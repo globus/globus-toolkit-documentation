@@ -1,0 +1,228 @@
+<?php include( "http://www-unix.globus.org/include/globus_header.inc" ); ?><head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Globus Toolkit 3.2: Installation Guide</title>
+<link href="../../../../../CSS/style.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+<!--
+.style1 {color: #FF00FF}
+-->
+</style>
+</head>
+
+		
+<h1>Required Configuration </h1>
+<p>In order to use security with Globus services, you must have a certificate first. This section will cover configuring the Grid Security Infrastructure (GSI) and acquiring a certificate for very basic purposes such as running a demo or a basic Grid service. For a more advanced procedure, go to the GSI System Administrator's Guide. </p>
+<p>In this procedure, the CA host and user are on the same machine. </p>
+<h2>Requirements</h2>
+<ul>
+  <li> You should be familiar with the Globus Toolkit 3.2 Security Concepts (for now, I could link to Borja's tutorial: the security section) <br>
+  </li>
+  <li>You must already have<a href="install_ch5_installing.htm"> installed the Globus Toolkit 3.2</a></li>
+</ul>
+<h2>Configuring Required Elements (Basic) </h2>
+
+<table width="650" border="0" cellpadding="5">
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">Setting environment variables </div></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top">In order for the system to know the location of the Globus Toolkit you just installed, you must edit certain environment variables and run the <font face="Courier New" size="2">globus-user-env.sh</font> script. You do this by editing <font face="Courier New" size="2">/etc/profile</font>.</td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step1">1</a></td>
+            <td valign="top">As root, set <font face="Courier New" size="2">$GLOBUS_LOCATION</font> in the user environment (<font face="Courier New" size="2">/usr/local/globus</font>).<br>
+Remember to place the lines <i>before</i> the existing export PATH statement.</td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step2">2</a></td>
+            <td valign="top">Source <font face="Courier New" size="2">$GLOBUS_LOCATION/etc/globus-user-env-setup.{sh,csh}</font> depending on shell. <br>
+              <font face="Courier New" size="2">.sh</font> for Bourne shell<br>
+              <font face="Courier New" size="2">.csh</font> for C shell</td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">Certificate Authority (CA) Options </div></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><p>Your best option is to use an already existing CA. You may have access to one from the company you work for, or an organization you are affiliated with. Some universities provide certificates for their members and affiliates. Contact your support organization for details about how to acquire a certificate.
+              </p>
+              <p>If you do not have and existing CA, you can set up a CA for your own use with the Globus SimpleCA package. SimpleCA provides a wrapper around the openssl CA functionality and is sufficient for simple Grid services. Steps 3 through 9 show you how to install and configure SimpleCA. Alternatively,  you can use openssl's CA.sh command on its own. </p>
+              <p>You can also use an online certificate service. However, this option should only be used as a last resort <span class="style1">(why?)</span>. If you must use this option, please see the following link for instructions: <a href="http://gcs.globus.org:8080/gcs">http://gcs.globus.org:8080/gcss</a>.</p>
+            <p>Real world tip: install CAs on all the machines you will want to include in your grid service(s).</p>
+            <p>talk about time factors??</p>            
+            <ul>
+              <li>If you do not  have access to an existing CA and want to use SimpleCA, continue with <a href="#step3">step 3</a>.</li>
+              <li>If you already have a CA, continue to <a href="#step9">step 9</a>. </li>
+            </ul></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">SimpleCA: Creating Users </div></td>
+          </tr>
+          <tr>
+            <td width="40" valign="top"><a name="step3">3</a></td>
+            <td width="578" valign="top"><p>Make sure you have the following users on your machine:</p>
+              <ul>
+                <li>Your user account, which will be used to run the client programs.<br>
+                </li>
+                <li>A generic <span class="code">globus</span> account, which will be used to perform administrative tasks such as starting and stopping the container, deploying services, etc. This user will also be in charge of managing the SimpleCA. To do this, make sure this account has read and write permissions in the $GLOBUS_LOCATION directory. </li>
+            </ul></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">              SimpleCA: Downloading</div></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step4">4</a></td>
+            <td valign="top"><p>Download the SimpleCA package using this link:</p>
+            <p><a href="http://www-unix.globus.org/ftppub/gsi/simple_ca/globus_simple_ca-latest-src_bundle.tar.gz&quot;&gt;globus_simple_ca-latest-src_bundle.tar.gz" title="Latest Source SimpleCA Installation Package">http://www-unix.globus.org/ftppub/gsi/simple_ca/globus_simple_ca-latest-src_bundle.tar.gz">globus_simple_ca-latest-src_bundle.tar.gz</a> </p></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">              SimpleCA: Building</div></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step5">5</a></td>
+            <td valign="top"><p>Run the following command from the directory where you've downloaded the file:</p>
+              <p class="command"><font face="Courier New">$GLOBUS_LOCATION/sbin/gpt-build globus_simple_ca-latest-src_bundle.tar.gz &lt;<em>flavor type</em>&gt;</font></p>
+              <p>For Redhat 7.x, the flavor type could be <strong><font face="Courier New">gcc32dbg</font></strong><font face="Courier New">.</font></p>
+              <p><b>Disregard</b> the following message if it appears: </p>
+              <p class="command">make: *** No rule to make target `distclean'. Stop.</p>
+</td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">              SimpleCA: Running the   Setup Script</div></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top">Now that SimpleCA has been built, run a post-install script to set it up. 
+              <p>This script will prompt you for information about the CA you wish to create. Most of the questions provide default answers;  if you are unsure, use the default. You'll need the following information before running the setup script: </p>
+              <ul>
+                <li><em>Subject Name of the CA </em>- The subject name of the CA uniquely identifies it among other Grid CA certificates. An example subject name is:<br>
+                    <br>
+                    <span class="code">cn=Sams CA, ou=SamsLittleGrid, o=Grid</span> <br>
+    <br>
+    In this example, the <strong>organization (o)</strong> is Grid , which uniquely identifies this CA as one that generates certificates used on the Grid.<br>
+    <br>
+    The <strong>organizational unit (ou) </strong>is SamsLittleGrid , which identifies this CA from other Grid CA.<br>
+    <br>
+    The <strong>common name (cn)</strong> is Sams CA , which identifies this particular certificate as the CA certificate within the <em>SamsLittleGrid </em>domain.<br>
+                </li>
+                <li> <em>Email </em>- This should be the email address where you intend to receive certificate requests.<br>
+                </li>
+                <li> <em>Expiration</em> - This is the number of days for which the CA certificate is valid. Once this time expires, the CA certificate will have to be recreated, and all of its certificates regranted.<br>
+                </li>
+                <li> <em>Passphrase </em>- The passphrase of the CA certificate will be used only when signing certificates (with grid-cert-sign). It should be hard to guess, as its compromise may compromise all the certificates signed by the CA.</li>
+            </ul></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step6">6</a></td>
+            <td valign="top"><p> As <span class="style1">who?</span>, run:</p>
+                <p class="command"><font face="Courier New">$GLOBUS_LOCATION/sbin/gpt-postinstall</font></p>              </td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header"> SimpleCA: Setting the Default CA </div></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top">Configure your system to use the SimpleCA you just installed as the default CA.</td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step7">7</a></td>
+            <td valign="top"><p>As root, run: </p>
+                <pre class="command">$GLOBUS_LOCATION/bin/grid-default-ca
+            </pre>
+                <p>The output should be similar to the following example: </p>
+                <pre class="command">The available CA configurations installed on this host are:
+
+1) 24d355a5 -&nbsp; /O=Globus/OU=GT3 Tutorial/CN=Globus Simple CA
+/bin/ls: /etc/grid-security//grid-security.conf: No such file or directory
+
+The default CA is:
+
+
+Enter the index number of the CA to set as the default:
+            </pre>
+            </td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step8">8</a></td>
+            <td valign="top"><p>Type in <strong>1</strong> to make your SimpleCA the default CA. </p>
+                <p>This Certificate Authority is managed by the <span class="code">globus</span> user. You are now ready to request certificates to your CA. You can do this from the machine that hosts the CA, or from other machines.</p></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">              Finalize GSI set up</div></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><p>The <span class="code">setup-gsi</span> command copies security configuration files into the<span class="code"> /etc/grid-security/</span> directory. </p>
+            <p><strong>Note:</strong> You can make this configuration the default configuration by linking the files to <span class="code">/etc/grid-security</span>. </p></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step9">9</a></td>
+            <td valign="top"><p>As root, run the following command if you used SimpleCA:</p>
+              <p class="command">$GLOBUS_LOCATION/setup/globus_simple_ca_24d355a5_setup/setup-gsi</p>
+            <p>Otherwise, run the following command :</p>
+            <p class="command">$GLOBUS_LOCATION/setup/globus/setup-gsi</p>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">              Requesting and signing host certificates </div></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><p>Since this procedure is for one user, you must request and sign a host certificate and then copy it into the appropriate directory. </p>
+            <p>You also need a host certificate if you want to run a gatekeeper or GridFTP server on your machine. The certificate must be for a machine which has a consistent name in DNS; you should not run it on a computer using DHCP where a different name could be assigned to your computer. </p></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step10">10</a></td>
+            <td valign="top"><p>Request a host certificate: As root, run:</p>
+                <p class="command">grid-cert-request -host `hostname' </p>
+                <p class="style1">what is the result? </p></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step11">11</a></td>
+            <td valign="top"><p>Sign the host certificate: as globus run:</p>
+                <p class="command">grid-ca-sign.</p>
+            <p>A signed host certificate, named <font face="Courier New">usercert_request.pem</font> is stored in the <font face="Courier New">/home/<i>user</i>/.globus</font> directory</p>            </td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step12">12</a></td>
+            <td valign="top"> As root, copy the signed host certificate into <font face="Courier New">/etc/grid-security</font>. <br>
+            The certificate should be owned by root, and read-only for other users. <br>
+            The key should be read-only by root.</td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header"> Requesting and signing user certificates </div></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top">Since you are also the user in this scenario, you must also request and sign user certificates. </td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step13">13</a></td>
+            <td valign="top"><p>Request a user certificate: As your normal user account (<strong>not</strong> globus), run:</p>
+            <p class="command">grid-cert-request</p>
+            <p class="style1">what is the result? </p></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step14">14</a></td>
+            <td valign="top"><p>Sign the user certificate: as globus, run:</p>
+              <p class="command">grid-ca-sign</p>
+              <p><span class="style1">what is the result? </span></p></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step15">15</a></td>
+            <td valign="top"><p>As your normal user account (not globus), copy the signed user certificate into <font face="Courier New">~/.globus/ </font>. <br>
+              The certificate should be owned by <span class="style1">who?</span> and read-only for other users. <br>
+            The key should be read-only by the owner</p>
+            <p>If you want to include other machines, distribute this key to the administrators of any other machines you want to include in your Grid service. </p></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">Change the ownership and access permissions </div></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step16">16</a></td>
+            <td valign="top"><p>As root, run:</p>
+              <p class="command"> $GLOBUS_LOCATION/bin/setperms.sh</p>              </td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">Now what? </div></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top">You are now able to <span class="style1">what?</span> </td>
+          </tr>
+</table>
+		<p>&nbsp;</p>
+		<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
