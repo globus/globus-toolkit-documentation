@@ -26,8 +26,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">02.25.2005</span></td>
+              <td><b>GT 3.9.5 is available for testing.</b> 
+                <a href="http://www-unix.globus.org/toolkit/staging/news.html#02252005">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">02.11.2005</span></td>
-              <td><b>We had a great time at GlobusWORLD 2005.</b> 
+              <td><b>Good times at GlobusWORLD 2005!</b> 
                 <a href="http://www.globusworld.org/">Learn more...</a></td>
             </tr>
             <tr>
@@ -37,7 +42,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
             </tr>
             <tr>
               <td><span class="newsdate">01.25.2005</span></td>
-              <td><b>Globus Alliance welcomes formation of Consortium.</b> 
+              <td><b>Globus Consortium is formed.</b> 
                 <a href="alliance/news/consortium.php">Learn more...</a></td>
             </tr>
           </table>
