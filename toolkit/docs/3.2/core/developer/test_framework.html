@@ -1,0 +1,270 @@
+<?php
+
+$title = "Core: Developer's Guide";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+
+  <p class="small">
+    <a href="http://www.globus.org">Globus</a> &gt;
+    
+    <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt;
+
+    <a href="http://www-unix.globus.org/toolkit/documentation/web/docs/">
+      Documentation</a> &gt; 
+    <a href="../index.html">3.2</a> &gt; 
+    <a href="../index.html">Core</a> &gt; 
+    Developer's Guide &lt; 
+  </p>
+
+  <h1>Core: Developer's Guide </h1>
+  
+  <p class="small"> 
+    <a href="index.html">Overview </a><br>
+    <a href="http://www-unix.globus.org/api/javadoc-3.2/">APIs</a><br>
+    <a href="javaprogramming.html">Programmer's Guide </a><br>
+    <a href="performance.html">Performance Guide </a><br>
+    <a href="javacodingguidelines.html">Java Coding Guidelines </a><br>
+    <a href="securitysupport.html">Security Support </a><br>
+    &gt;Test Framework</p>
+
+
+Globus Toolkit 3.2 - Last Updated <!--webbot bot="Timestamp"
+S-Type="EDITED" S-Format="%m/%d/%Y" startspan -->07/15/2003<!--webbot bot="Timestamp" i-CheckSum="12584" endspan -->
+<h2>1<a name="intro"></a> Introduction</h2>
+
+
+<p>This document describes the test framework available in GT3 Core. The
+framework can be used to run tests against core distributions to verify correct
+installations and setups, and also provides a set of APIs and tools to
+facilitate testing of components built on top of GT3 Core. This test framework
+is currently only available in source distributions.&nbsp;</p>
+<h2>2 <a name="tool-dep"></a> Tool Dependencies</h2>
+
+
+
+<p><b>Junit 3.8.1</b> - The tests are built on top of the JUnit test
+toolkit.&nbsp; You need to download JUnit from <a href="http://www.junit.org">http://www.junit.org</a>
+where you also can find further documentation about the JUnit APIs and tools.
+Then put junit.jar in the GT3 distribution lib directory, in the ant lib
+directory or in anywhere in your classpath before running the tests.</p>
+<p><b>Ant 1.5.3</b> - All the tests are run via ant, and also extend some ant
+tasks, so you need to download and install ant from <a href="http://ant.apache.org">http://ant.apache.org</a>&nbsp;</p>
+
+<h2>3<a name="running-test"></a> Running the Tests</h2>
+
+
+
+<p>Go to the&nbsp; impl/java directory in your GT3 Core source distribution. Now
+to run all tests type <b>ant testAll</b>. If you do not have a GSI security
+proxy set up on your machine you cannot run the security tests. To run all tests
+but the security tests type <b>ant test</b>. Also make sure that you have a
+clean source distribution before running the tests by typing <b>ant cleanAll</b>.
+Below is a table summarizing the basic test targets available.</p>
+
+<table border="1" width="100%">
+  <tr>
+    <td width="50%">testAll</td>
+    <td width="50%">runs all tests</td>
+  </tr>
+  <tr>
+    <td width="50%">test</td>
+    <td width="50%">runs all tests but security tests</td>
+  </tr>
+  <tr>
+    <td width="50%">testSecurity</td>
+    <td width="50%">runs security tests</td>
+  </tr>
+  <tr>
+    <td width="50%">testCompatibility</td>
+    <td width="50%">runs OGSI compatibility tests</td>
+  </tr>
+  <tr>
+    <td width="50%">testTools</td>
+    <td width="50%">runs tests of grid service generation tools</td>
+  </tr>
+  <tr>
+    <td width="50%">testPackage</td>
+    <td width="50%">runs individual package test. See section 5.</td>
+  </tr>
+</table>
+<p>All these tests will run against a local server started in the same JVM as
+the clients on a dynamic port. You can also run the tests against a remote
+server. In order to do so you need to specify the test.server.url property and
+pass it into ant as follows: ant &lt;test&gt;Server -Dtest.server.url=http://&lt;host&gt;:&lt;port&gt;/ogsa/services/.
+Where &lt;test&gt; can be any of test, testSecurity, testCompatibilty or
+testPackage depending on what tests you want to run. If you run the server tests
+without this property set it will default to <a href="http://127.0.0.1:8080/ogsa/services/">http://127.0.0.1:8080/ogsa/services/</a>.&nbsp;</p>
+
+<h2>4 <a name="test-conventions"></a> Tests Conventions</h2>
+
+
+
+<p>Tests of a component are put in a subdirectory called test of that component.
+This directory should container test suite classes, collecting all the
+individual tests of the components. The suites are named after conventions based
+on when they should be run and what kind of functionality they test. Below is a
+summary of suite name conventions:</p>
+
+<table border="1" width="100%">
+  <tr>
+    <td width="50%">PackageTests</td>
+    <td width="50%">will automatically be run by the test target</td>
+  </tr>
+  <tr>
+    <td width="50%">PackagePostTests</td>
+    <td width="50%">will automatically be run by the test target, and guaranteed
+      to run after any PackageTests tests</td>
+  </tr>
+  <tr>
+    <td width="50%">PackagePostPostTests</td>
+    <td width="50%">will automatically be run by the test target, and guaranteed
+      to run after any PackagePostTests tests</td>
+  </tr>
+  <tr>
+    <td width="50%">SecurityTests</td>
+    <td width="50%">contains test cases requiring security credentials, and will
+      be run using the testSecurity targets</td>
+  </tr>
+  <tr>
+    <td width="50%">CompatibilityTests</td>
+    <td width="50%">contains test cases used to test OGSI compatibility, and may
+      not be used to test non-standard functionality. These tests are run with
+      the ant testCompatibilty targets</td>
+  </tr>
+  <tr>
+    <td width="50%">ToolsTests</td>
+    <td width="50%">run by testTools, and used to test tools for building Grid
+      services</td>
+  </tr>
+</table>
+<h2>5 <a name="individual"></a> Running Individual Tests</h2>
+
+
+
+<p>In order to just run a single test suite you need to run the testPackage ant
+task as follows:</p>
+
+<p>ant testPackage -Dpackage.test=&lt;package test&gt; -Dtest.pattern=&lt;test
+pattern&gt;</p>
+
+<p>&lt;package test&gt; must be the full path to the test suite, e.g org/globus/ogsa/encoding/test/PackageTests<br>
+&lt;test pattern&gt; Only test cases in the suite matching this pattern will be
+run. If omitted all test cases will be run. Currently the only supported pattern
+matching is substring comparison.</p>
+
+<h2>6 <a name="writing"></a> Writing a Tests</h2>
+
+
+
+<p>First of all pick an name for your test suite that follows the conventions in
+section 3. To take full advantage of the test framework features you should make
+your suite extend from the GridTestSuite class, which is an extension of the
+Junit TestSuite class. You may also extend from the JUnit class directly if you
+don't need to make use of the GridTestSuite extensions, such as collocated and
+remote server test support, and test case pattern matching.</p>
+
+<p>Here is a simple example of a PackageTest class:</p>
+
+<pre class="code">package org.globus.ogsa.encoding.test;
+
+import junit.framework.Test;
+import org.globus.ogsa.server.test.GridTestSuite;
+
+public class PackageTests extends GridTestSuite {
+&nbsp;&nbsp;&nbsp; public PackageTests(String name) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; super(name);
+&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp; public static Test suite() throws Exception {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GridTestSuite suite = new PackageTests(&quot;SerializationTests&quot;);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; suite.addTestSuite(TestSerialization.class);
+        return suite;
+&nbsp;&nbsp;&nbsp; }
+}</pre><p>Similarly when implementing your test case you can extend from the
+GridTestCase class which in turn extends the JUnit TestCase class. The
+GridTestCase class gives you access to a static TEST_SERVER variable of type
+org.globus.ogsa.server.test.TestServer, which can be used to run collocated or
+remote tests depending on configuration. Typically you would use the TEST_SERVER
+url to compose handles of services to call. Please see the JUnit documentation
+at <a href="http://www.junit.org">http://www.junit.org</a> for details on how to
+write test cases.</p>
+
+<h2>7 <a name="stress"></a>Stress Test Framework</h2>
+
+
+
+<p>In order to stress arbitrary tests with multithreaded clients and clients
+running in multiple JVMs, we have developed a stressJava ant target that extends
+the ant java target. The stressJava task supports the following attributes (ant
+property names within paranthesis):</p>
+
+
+
+<table border="1" width="100%">
+  <tr>
+    <td width="50%">className (-Dstress.class)</td>
+    <td width="50%">The class name of the stress test client to run. It must
+      implement the org.globus.ogsa.tools.ant.StressTest interface.</td>
+  </tr>
+  <tr>
+    <td width="50%">threads (-Dstress.threads)</td>
+    <td width="50%">Number of threads used to run the test (per process)</td>
+  </tr>
+  <tr>
+    <td width="50%">processes (-Dstress.processes)</td>
+    <td width="50%">Number of processes used to run the test</td>
+  </tr>
+  <tr>
+    <td width="50%">repeats (-Dstress.repeats)</td>
+    <td width="50%">Number of times within a thread the run method of the test
+      case will be run</td>
+  </tr>
+  <tr>
+    <td width="50%">concurrent (-Dstress.concurrent)</td>
+    <td width="50%">yes/no. If no disables concurrent threads in a process</td>
+  </tr>
+  <tr>
+    <td width="50%">args (-Dservice.root -Dservice.port -Dstress.path -Dstress.args)</td>
+    <td width="50%">stress test specific arguments passed in to the init method
+      of the test</td>
+  </tr>
+</table>
+<p>We currently provide 5 built in ant stress test targets, described below:</p>
+
+<table border="1" width="100%">
+  <tr>
+    <td width="50%">stressService</td>
+    <td width="50%">stress tests a SOAP service invocation, without parameter
+      serialization, nor deserialization</td>
+  </tr>
+  <tr>
+    <td width="50%">stressFactory</td>
+    <td width="50%">stress tests Grid service instance creation</td>
+  </tr>
+  <tr>
+    <td width="50%">stressStringSerialization</td>
+    <td width="50%">test of string array serialization (-Dstress.args should
+      contain the array size)</td>
+  </tr>
+  <tr>
+    <td width="50%">stressIntSerialization</td>
+    <td width="50%">test of int array serialization (-Dstress.args should
+      contain the array size)</td>
+  </tr>
+  <tr>
+    <td width="50%">stressCustomSerialization</td>
+    <td width="50%">test of java bean (xsd:complexType) array serialization (-Dstress.args
+      should contain the array size)</td>
+  </tr>
+</table>
+<p>All tests will dump an xml based performance result log in a file when
+completed.</p>
+
+<p>To, for example,&nbsp; run the factory test from 5 processes with 10
+concurrent threads in each process creating 20 services you can run the
+following command:</p>
+
+<p>ant stressFactory -Dstress.processes=5 -Dstress.threads=10 -Dstress.repeats=20
+-Dstress.concurrent=yes</p>
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
