@@ -1,0 +1,197 @@
+<head><title>GT3 Index Service: Developer's Guide</title>
+<link href="../../../../../../../CSS/style.css" rel="stylesheet" type="text/css">
+</head>
+<?php include( "http://www-unix.globus.org/include/globus_header.inc" ); ?>
+
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt;
+<a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt;
+<a href="http://www-unix.globus.org/toolkit/documentation/web/docs/">Documentation</a> &gt;
+<a href="http://www-unix.globus.org/toolkit/documentation/web/docs/3.2/">3.2</a> &gt; 
+<a href="http://www-unix.globus.org/toolkit/documentation/web/docs/3.2/mds/">GT3
+Index Service</a> &gt; 
+Developer's Guide &lt;</p>
+<h1>GT3 Index Service : Developer's Guide</h1>
+<p class="small"> &gt;top links<br>
+</p>
+<h2><a name="EnablingProvider">Enabling a Provider Program for Execution </a>
+  </p>
+</h2>
+<p>
+This section describes how the <a href="#SDPProviderManager">Service Data Provider
+Manager</a>, the <a href="#sdproviderexecporttype">Service Data
+Provider Execution Port Type</a>, and <a href="#CustomDataHandlers">custom data
+handlers</a> are used to enable a
+provider program. </p>
+<h3>
+  <a name="SDPProviderManager">Service Data Provider Manager </a></h3>
+    <p>Service Data Provider execution is handled by the <strong>ServiceDataProviderManager</strong>  class, which schedules and manages provider execution using Java TimerTasks. </p>
+<p>The Service Data Provider Manager uses an auxiliary service configuration
+  file to load and link installed Service Data Providers during runtime through
+  standard Java reflection methods, as follows: </p>
+<p class="command">&lt;?xml version="1.0" encoding="UTF-8" ?&gt; <br>
+&lt;serviceConfiguration <br>
+&nbsp;&nbsp;&nbsp;&nbsp; xmlns:ogsi=http://www.gridforum.org/namespaces/2003/03/OGSI <br>
+&nbsp;&nbsp;&nbsp;&nbsp; xmlns:aggregator=http://www.globus.org/namespaces/2003/04/service_data_aggregator <br>
+&nbsp;&nbsp;&nbsp;&nbsp; xmlns:provider-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; exec=http://www.globus.org/namespaces/2003/04/service_data_provider_execution <br>
+&nbsp;&nbsp;&nbsp;&nbsp; xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt; <br><br>
+&nbsp; &lt;installedProviders&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;providerEntry&nbsp; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; class="org.globus.ogsa.impl.base.providers.servicedata.impl. <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SimpleSystemInformationProvider" /&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;providerEntry <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; class="org.globus.ogsa.impl.base.providers.servicedata.impl. <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; AsyncDocumentProvider" /&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;providerEntry <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; class="org.globus.ogsa.impl.base.providers.servicedata.impl. <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ScriptExecutionProvider" /&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;providerEntry <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; class="org.globus.ogsa.impl.base.providers.servicedata.impl. <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; HostScriptProvider" /&gt; <br>
+&nbsp; &lt;/installedProviders&gt; <br><br>
+&lt;/serviceConfiguration&gt; </p>
+<p>To enable your provider for execution by the Service Data Provider Manager
+  and to publish the existence of your provider to clients, you must include
+  a configuration entry for the provider in the auxiliary service configuration
+  file read by the Service Data Provider Manager. </p>
+<p>The one required attribute in the configuration entry is the class attribute,
+  which is simply the fully qualified Java class name.&nbsp; For example: </p>
+<p class="command">&lt;provider class="org.globus.ogsa.impl.base.providers.servicedata.impl.HostScriptProvider&quot;/&gt; </p>
+<p>A service that incorporates the ServiceDataProviderManager class can specify
+  the location of this configuration by setting the serviceConfig property specified
+  in that service's deployment descriptor entry (in the default server configuration
+  file, server.config.wsdd).&nbsp; For example, the Index Service, which uses
+  the Service Data Provider Manager to execute Service Data Providers, uses the
+  following entry in its server-config.wsdd deployment descriptor to indicate
+  the location of the auxiliary service configuration file: </p>
+<p class="command">&lt;parameter name="serviceConfig" value="etc/index-service-config.xml"/&gt; </p>
+<h2>  <a name="sdproviderexecporttype">Service Data Provider Execution Port Type</a></h2>
+<p>The Service Data Provider Execution Port Type is composed of two operations,
+  <strong>enumProviders</strong> and <strong>executeProvider</strong>, both of
+  which are implemented by the ServiceDataProviderManager class.&nbsp; Both of
+  these methods use XML-serializable Java bean structures to encapsulate parameter
+  lists and return values:&nbsp; these are the ServiceDataProviderEnumType
+  and the ServiceDataProviderExecutionType , respectively.&nbsp; </p>
+<h3><a name="enumproviders">enumProviders</a></h3>
+<p>The enumProviders method produces a list of executable providers that a client
+  is able to invoke on the target service. </p>
+<p>The enumProviders method returns provider information in the ServiceDataProviderEnumType
+  structure as follows: </p>
+<p class="command">&lt;xsd:complexType name="ServiceDataProviderType"&gt; <br>
+&nbsp; &lt;xsd:sequence&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;xsd:element name="providerName" type="xsd:string" /&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;xsd:element name="providerDesc" type="xsd:string" /&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;xsd:element name="providerImpl" type="xsd:string" /&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;xsd:element name="providerArgs" type="xsd:string" /&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;xsd:element name="async" type="xsd:boolean" /&gt;&nbsp; <br>
+&nbsp; &lt;/xsd:sequence&gt; <br>
+&lt;/xsd:complexType&gt; </p>
+<p>The enumProviders method takes a Boolean argument as input and as output,
+  and produces an array of ServiceDataProviderEnumTypes represented by an XML
+  element as its result, as follows: </p>
+<p class="command">&lt;xsd:complexType name="ServiceDataProvidersElement"&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:sequence&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:element name="ServiceDataProviders" <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; type="tns:ServiceDataProviderEnumType" <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; minOccurs="0" maxOccurs="unbounded" /&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/xsd:sequence&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;/xsd:complexType&gt; <br><br>
+&nbsp;&nbsp;&nbsp; &lt;xsd:element name="enumProviders" type="xsd:boolean"/&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;xsd:element name="enumProvidersResponse" type="tns:ServiceDataProvidersElement"/&gt; </p>
+<p>The only parameter to the enumProviders method is the rescanConfig variable,
+  a Boolean value that indicates that a rescan of its configuration should be
+  done as a precondition.&nbsp; This will effectively cause the Service Data
+  Provider Manager to reprocess the auxiliary service configuration file and
+  attempt to locate and load any providers in the current classpath that have
+  a corresponding entry in that configuration file. </p>
+<h3><a name="executeprovider">executeProvider</a></h3>
+<p>The executeProvider method takes the ServiceDataProviderExecutionType as its
+  argument, and produces no return value (an exception is thrown on errors),
+  as follows: </p>
+<p class="command">&lt;xsd:complexType name="ServiceDataProviderExecutionType"&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:sequence&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:element name="serviceDataProviderName" type="xsd:string" /&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:element name="serviceDataProviderImpl" type="xsd:string" /&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:element name="serviceDataProviderArgs" type="xsd:string" /&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:element name="serviceDataName" type="xsd:QName" /&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:element name="refreshFrequency" type="xsd:int" /&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:element name="async" type="xsd:boolean" /&gt;&nbsp; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/xsd:sequence&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;/xsd:complexType&gt; <br><br>
+&lt;xsd:complexType name="ServiceDataProviderExecutionElement"&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:sequence&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:element name="ServiceDataProviderExecution"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; type="tns:ServiceDataProviderExecutionType"/&gt; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/xsd:sequence&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;/xsd:complexType&gt; <br><br>
+&nbsp;&nbsp;&nbsp; &lt;xsd:element name="executeProvider" type="tns:ServiceDataProviderExecutionElement"/&gt; <br>
+&nbsp;&nbsp;&nbsp; &lt;xsd:element name="executeProviderResponse"/&gt; </p>
+<p>The ServiceDataProviderExecutionType parameters are defined as follows: </p>
+<table width="650" border="0" cellpadding="5">
+  <tr>
+    <td width="271" valign="top"><code>serviceDataProviderName <em></em>(string)</code></td>
+    <td width="353">The display name of the Service Data Provider to execute.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>serviceDataProviderImpl (string)</code></td>
+    <td>The fully qualified Java class name of the provider implementation
+      to use.&nbsp; This parameter cannot be overridden, and must be the same
+      as the providerImpl <strong><em></em></strong>parameter of the ServiceDataEnumType
+      for the provider entry that matches the serviceDataProviderName parameter
+    in the ServiceDataProviderExecutionType &nbsp; structure.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>serviceDataProviderArgs <strong><em></em></strong>(string )</code></td>
+    <td><p>The arguments to pass to the provider at runtime, depending on
+    the provider implementation. </p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>serviceDataName <strong></strong>(QName)</code></td>
+    <td>The XML Qualified Name for the new Service Data Elements that will
+      be created from the output of the provider.&nbsp; Note:&nbsp; This parameter
+      may not be honored if a custom callback handler is used to process the
+    result data.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>refreshFrequency <strong></strong>(integer)</code></td>
+    <td>The refresh frequency, in seconds, with which the provider will be executed. </td>
+  </tr>
+  <tr>
+    <td valign="top"><code>async (Boolean)</code></td>
+    <td>Specifies that the provider should run asynchronously, if it is capable
+      of doing so.&nbsp; The async <strong></strong>member of the ServiceDataProviderEnumType
+      indicates whether asynchronous operation is available for the selected
+    provider. </td>
+  </tr>
+</table>
+<h2><a name="CustomDataHandlers">Custom Data Handlers </a></h2>
+<p>The default data processing behavior of the Service Data Provider Manager
+  is to take the logical XML document result of a provider's execution, create
+  a new Service Data Element based on the data, and then add this Service Data
+  Element to the service's Service Data. </p>
+<p>However, it is possible to override the default data processing logic in the
+  Service Data Provider Manager by specifying the name of a custom callback handler
+  in the provider's auxiliary service configuration file.&nbsp; This is done
+  by adding an attribute named handler to the providerEntry element in the configuration
+  file.&nbsp; For example: </p>
+<p class="command">&lt;providerEntry <br>
+  class="org.globus.ogsa.impl.base.providers.servicedata.impl.PBSInfoProvider" <br>
+handler="jobDataHandler"/&gt; </p>
+<p>If a handler attribute is present in a providerEntry configuration element,
+  then once the provider has executed successfully, the Service Data ProviderManager
+  will attempt to invoke the custom handler method specified in the auxiliary
+  service configuration file rather than its own default callback handler. </p>
+<p>A custom callback routine allows the developer complete control when handling
+  provider output data, providing a mechanism for facilitating sorting, merging,
+  or other data preprocessing and transformation. </p>
+<p>This mechanism can be useful for situations in which the developer does not
+  have any control over provider execution code or the provider's XML structural
+  format, and/or some additional results processing is required. </p>
+<p><strong>Note:</strong> Depending on how custom callback handlers are implemented, the
+  serviceDataName parameter of the ServiceDataProviderExecutionType may or may
+  not be used as the name of the new service data. This choice is left
+  to the developer. </p>
+<p>For example, GRAM RIPS uses a custom callback handler for the PBS, LSF, and
+  Condor providers to search, sort and atomize child “Job” elements from the
+logical result document into new individual SDEs. </p>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
