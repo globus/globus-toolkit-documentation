@@ -13,4 +13,8 @@ man:
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
           /usr/share/xml/docbook/stylesheet/nwalsh/xhtml/chunk.xsl ${FILENAME}
+debian-pdf:
+	docbook2pdf \
+           -l /usr/share/sgml/declaration/xml.dcl \
+           ${FILENAME}
 
