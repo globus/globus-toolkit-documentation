@@ -1,8 +1,14 @@
 
+# This script plots the datafile sequence-times.dat
+# to represent the protocol phases over elapsed time
+# (as seen by the instrumented globusrun-ws)
+#
+
+# output to FIG format to allow post-processing
 set terminal fig color depth 50
 set output "sequence-times.fig"
 
-set title "Average WS_GRAM sequence timing"
+set title "Simple WS_GRAM sequence timing (averaged)"
 
 set noxtics
 set xrange [-0.5:2.5]
