@@ -6,16 +6,16 @@ $section = "section-2";
 include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 ?>
+<!--
 <div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'alliance.inc'); ?>
 </div>
+-->
 
 <div id="main">
 <!-- content STARTS here -->
 
-<p><a href="index.php"> << Globus Activities</a></p>
-
-<h1>Publications</h1>
+<h1>Publications from Globus Alliance Members</h1>
 
 <p>Members of the Globus Alliance should consult these <b> <a href="bibliography.php"> guidelines for submitting bibliographic citations</a></b>.</p>
 <p>Papers are generally available in Adobe Acrobat PDF format, for which a <a href="http://www.adobe.com/prodindex/acrobat/readstep.html">free reader is available</a>, or in <a href="http://www.gzip.org">GNU zipped</a> postscript (PS). They are listed in reverse chronological order within several subject areas.
@@ -1380,8 +1380,6 @@ Computer Systems Research</a></b>. I. Foster.
 	<p></p>
     
 
-<p><a href="index.php"> << Globus Activities</a></p>      
-    
 </div>
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
 
