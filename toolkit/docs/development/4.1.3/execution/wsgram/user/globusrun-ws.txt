@@ -1,0 +1,296 @@
+Command line tool: GT 4.0 globusrun-ws
+
+
+This command is used to submit jobs to Globus resources. The job startup is done using the GRAM services.  Both single or multi managed jobs can be submitted.   remote job's stdout and stderr can be redirected to the terminal.  File staging is done using GridFTP servers.  If staging of files to/from the client machine is desired, then a GridFTP server will need to be available client-side.  In addition to starting jobs, it is possible to query the state of previously started jobs and parse RSL request strings and/or files. The existence of a valid proxy is required for essentially all supported operations but RSL parsing (-p).
+
+
+globusrun-ws [ options ]
+
+help options:
+
+   [ -help ] [ -version ] [ -usage ]
+
+command options:
+
+   -submit [ submit options ]
+
+    Submit a job to the gram service.
+
+         [ submit options ] = [ -s ] [ -personal ] [ -p ] [ -b ]
+	                [ -auth <auth> ] [ -xmlsec <sec> ] [ -proxy <file> ]
+                        [ -deleg <deleg type> ]
+                        [ -duration <duration> ] [ -terminate-at <date> ]
+	                [ -factory <contact> | -factory-epr-file <file> ]
+                        [ -submission-id [ ID ] | -submission-id-file <file> ] 
+                        [ -job-description-file <file> | -cmd <command line> ]
+                        [ -submission-id-file-output <file> ]
+                        [ -job-epr-file-output <file> ]
+                        [ -q ] [ -n ] [ -timeout ]
+
+   -kill [ kill options ] = [ -job-epr-file <file> ] [ -personal ]
+		            [ -auth <auth> ] [ -xmlsec <sec> ] [ -proxy ]
+                            [ -n ] [ -timeout ]
+
+    Kill the specified job.
+
+   -state [ state options ] = [ -job-epr-file <file> ] [ -personal ]
+			      [ -auth <auth> ] [ -xmlsec <sec> ] [ -proxy ]
+                              [ -n ] [ -timeout ]
+
+    Print the current job state for a job.
+
+   -monitor [ monitor options ] = [ -s ] [ -job-epr-file <file> ] [ -personal ]
+			          [ -auth <auth> ] [ -xmlsec <sec> ] [ -proxy ]
+                                  [ -q ] [ -n ] [ -timeout ]
+
+    Begin monitoring job state changes for a job.  This can include stdout/err file streaming as well.
+   
+   -list [ -factory <contact> | -factory-epr-file <file> ]
+    
+    *unimplemented* list the jobs (EPRs) submitted by the user to this managed job factory resource.
+    
+
+
+Option Descriptions
+-----------------------
+
+-help
+Displays help information about the command.
+
+-usage
+Displays usage of the command.
+
+-v, -version
+Displays version of the command.
+
+
+-factory <contact>
+
+Specifies the URL of the Job Factory Service to contact when submitting or listing jobs.  A factory contact string can be specified in the following ways:
+
+   host
+   host:
+   host:port
+   host:port/service
+   host/service
+   host:/service
+
+It is also possible to specify the protocol  by prepending protocol:// to each of the  previous possibilities, bringing the total  number of supported syntaxes to 12.
+
+For those factory contacts which omit the  protocol, port or service field, the following default values  are used, as the following table explains:
+
+URL part
+default value
+
+port
+8080
+
+protocol
+http
+
+service
+/wsrf/services/ManagedJobFactoryService
+
+
+Omitting altogether the -factory option is  equivalent to specifying the local host as the contact string (with the implied default  protocol, port and service).
+
+The factory value can be specified in the RSL file instead of using the command line option.  The same rules apply when used in the RSL.
+
+
+-type <factory type>
+Specifies the type of factory resource to use. This is the name of the local resource manager. The default value is "Fork" for a single RSL and "Multi" for a multi RSL.  This option must be used with the -factory option.
+
+
+
+-factory-epr-file <filename>
+
+Specifies the file containing the End Point Reference (EPR) to the Job Factory Service to contact when submitting or listing jobs.
+
+
+-job-epr-file-output <filename>
+
+Specifies the file for globusrun-ws to write the End Point Reference (EPR) to the Job.  This EPR is then used for subsequent management of the job.  See options: -kill, -state and -monitor.
+
+
+-cmd <command line>
+
+Creates a simple job description that only consists of a command line of the form:
+'executable (argument)*'
+
+
+-job-description-file <RSL filename>
+
+Reads RSL from the local file <RSL filename>.
+The RSL can be the form of a single or multi job request.
+
+
+-p
+
+This option only parses the RSL, and then prints either  a success message or a parser failure. No job will be submitted to any factory service.
+The RSL can be the form of a single or multi job request.
+
+
+-s, -streaming
+
+Streams the remote job's stdout and stderr during execution.  If stdout or stderr is not specified in the RSL, then a remote file path will be created by globusrun-ws and added to the job's RSL before submitting the job.  These files will be added to the cleanup RSL attribute in order to have these files removed at the end of the job.
+
+Implies -quiet.
+
+******developer note******
+Once the job is ACTIVE:
+   a. Fetch the location to the stdout file.
+      - query the stdout RP for the job to get the path relative to the GridFTP server.
+   b. Periodically check the file for bytes and keep track of bytes received.
+      - Use the gridftp client file streaming library
+
+Note: The file path added to stdout should be $HOME/<uuid>.stdout
+
+for multi-jobs, globusrun-ws would query the Managed Multi job Resource for all the EPRs to all the Managed Job Execution Resources.   And for each EPR do the a and b steps above.
+
+All the above must for done for stderr too.
+**************************
+
+
+-b, -batch
+
+Do not wait for started job to complete (and do not destroy started job service on exit.) The job EPR will be printed to the file specified by the -job-epr-file option.
+Incompatible with -streaming.
+
+
+-submission-id <ID> | -submission-id-file <file>
+
+Specify the ID of a previous job submission for which no server response was received.  The ID can be used after a job submission attempt in order to recover the EPR to the job.  This option needs to be used on the original job submission in order for recovery to be successful.  If the ID is not provided, then a unique ID will be create and printed on stderr.  -quiet will turn off the printing of the ID on stderr.  If -quiet and neither submission id option is specified, then there is no job submission reliability.
+
+
+******developer note******
+CLIENT SIDE
+1) the client - possibly via lower layer API - creates a GUID for the create()
+   call. This GUID will be semantically associated with the call with the 
+   parameters supplied (JobDescription, InitialTerminationTime).
+2) the client prints the GUID onto stderr (or to a file).
+3) the client - used the submission ID in the corresponding argument to the 
+    createJob() operation 
+4) the client makes the remote call and wait for the response until a 
+   determined timeout. 
+5) if a fault is received by the client, the job submission has failed, so 
+    there should be no retry. The client prints the error onto stdout and 
+    exits.
+6) If the timeout is reached, the client makes the create call again with 
+    the same input message object and the same submission ID in the SOAP header.  
+    (note: this might be implemented as an exponential backoff, but I don't 
+    see the advantage here).
+    Go back to step 4).
+7) after N unsucessful retries, the client prints an error message onto stdout 
+    such as: "In spite of repeated attempts, could not obtain any response 
+    from the ManagedJobFactory service when submitting the job" and exits.
+8) the user can retry to obtain a handle to the job later on by executing the 
+    same m-j-g command line with the addition of the following option:
+    -submission-id <GUID> where <GUID> is the ID that was printed at step 2).
+    
+SERVER SIDE
+1) the MJFS receives an createJob() invocation with the submission ID as an argument to the operation.
+2) the MJFS looks up the submission ID in an internal map (we might want to
+   think about implications for persistence here)
+3) if the submission ID is there, return the mapped CreateManagedJobOutputType 
+    object
+4) if the submission ID is not there, create the job and the 
+   CreateManagedJobOutputType response, and add the mapping:
+   "submission ID =>  CreateManagedJobOutputType object" to the internal map.
+**************************
+
+-submission-id-file-output <file>
+
+Specifies the file for globusrun-ws to write the ID for the Job submission.  This ID is used in a second (duplicate) job submission to get the EPR to the first job submission.  This would be necessary in the event that the EPR was not received in the first submission attempt.
+
+
+-duration <duration>
+
+Specify the duration of the job resource. The server will automatically destroy the job  resource after the specified duration starting from service creation.
+
+Format: HH:mm
+Default: 24 hours.
+
+Incompatible with -date-time. Useful with -batch.
+
+
+-terminate-at <date>
+
+Specify termination date/time of job. Same as -duration but with an absolute
+date/time value.
+
+Format: MM/dd/yyyy HH:mm
+Default: see -duration.
+
+The date expression may need to be quoted, as in:
+   -terminate-at '08/15/2005 11:30'
+
+Incompatible with -duration. Useful with -batch.
+
+
+-auth <auth>
+
+Set authorization type.
+
+<auth> can be:
+   'host' for host authorization (default)
+   'self' for self authorization
+
+<id> for identity authorization.
+
+
+-xmlsec <sec>
+
+Set message protection level.
+
+<sec> can be:
+   'sig' for XML Signature (default)
+   'enc' for XML Encryption.
+
+
+-personal
+
+Shortcut for -auth self.
+
+
+-proxy <proxy file>
+
+Use <proxy file> instead of the default proxy credential file.
+
+
+-deleg <deleg>
+
+Set delegation type.
+
+<deleg> can be:
+   'none' for no delegation.
+   'auto' (default) delegation is performed automatically.
+
+auto delegation processing:
+
+These credentials are delegated to the DS before the job is submitted to managed job factory service.
+
+single job RSL
+globusrun-ws will check the RSL to see if a delegated credentials are required for the job.  If so, it will delegate a proxy to the Delegation Service and add the EPR to the RSL accoringly.  The possible elements where the EPR could be added are: jobCredentialEndpoint, stagingCredentialEndpoint, fileStageIn, fileStageOut, fileCleanUp.  The MJS will fetch the cred from the DS and use as needed on behalf of the job.  See RSL documentation <link> for descriptions about these attributes.
+
+multi job RSL
+globusrun-ws will delegate a full cred to the delegation service for the multijob.  Then process each single job as stated above. If multiple subjobs will use the same delegation service, then only delegate one credential to that delegation service.  I.e. the same credential can be used for multiple jobs.
+
+**************************
+
+-q, -quiet
+
+Set quiet mode to ON (do not print diagnostic  messages when job state changes, in  non-batch mode).
+
+This option is useful when job output is  redirected to the local process and parsed.
+
+
+-n, -no-interrupt
+
+Disable interrupt handling. By default, interrupt signals (typically generated by Ctrl + C) cause the program to terminate the currently submitted job. This flag disables that behavior.
+
+
+-timeout <integer>
+
+Set timeout for HTTP socket, in milliseconds.
+Applies to job submission only. The default value is 120000.
+

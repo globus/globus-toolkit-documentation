@@ -1,0 +1,732 @@
+<h1>globusrun-ws: WS_GRAM client (remote job submission program)</h1>
+
+<h2>Description</h2>
+<p>
+globusrun-ws (WS_GRAM client) is a program for submitting and
+managing jobs to a local or remote job host. WS_GRAM provides secure
+job submission to many types of job scheduler for users who have the
+right to access a job hosting resource in a Grid environment. All
+WS_GRAM submission options are supported transparently through the
+embedded request document input. <tt>globusrun-ws</tt> offers
+additional features to fetch job output files incrementally during the
+run as well as to automatically delegate credentials needed for
+certain optional WS_GRAM features. Online and batch submission modes
+are supported with reattachment (recovery) for jobs whether they were
+started with this client or another WS_GRAM client application.
+</p>
+
+<h2>Synopsis</h2>
+
+<dl>
+
+<dt>globusrun-ws [<i>common options</i>] <br>
+&nbsp;&nbsp;&nbsp;&nbsp;<b>-submit</b> [-streaming|-batch]
+[-factory <u>contact</u> | -factory-epr-file <u>filename</u>]
+[-job-epr-output-file <u>filename</u>] <br>
+&nbsp;&nbsp;&nbsp;&nbsp;[-submission-id <u>ID</u> | -submission-id-file <u>filename</u> |
+-submission-id-output-file <u>filename</u>] <br>
+&nbsp;&nbsp;&nbsp;&nbsp;[-job-credential] [-staging-credential]
+[-transfer-credential] [-termination [+|<u>date</u>]<u>time</u>] <br>
+&nbsp;&nbsp;&nbsp;&nbsp;-job-description-file <u>filename</u> | -job-command <u>program</u> [<u>arg</u>]...
+</dt>
+<dd>
+<p>
+The -submit command submits (or <i>resubmits</i>) a job to a
+job host in one of three output modes: batch, interactive, or
+interactive-streaming.
+</p>
+</dd>
+
+<dt>globusrun-ws [<i>common options</i>] <b>-validate</b>
+-job-description-file <u>filename</u></dt>
+<dd>
+<p>
+The -validate command checks the job description for syntax errors and a
+subset of semantic errors without making any service requests.
+</p>
+</dd>
+
+<dt>globusrun-ws [<i>common options</i>] <b>-monitor</b> -job-epr-file
+<u>filename</u> [-streaming]</dt>
+<dd>
+<p>
+The -monitor command attaches to an existing job in interactive or
+interactive-streaming output modes.
+</p>
+</dd>
+
+<dt>globusrun-ws [<i>common options</i>] <b>-status</b> -job-epr-file
+<u>filename</u></dt>
+<dd>
+<p>
+The -status command reports the current state of the job and exits.
+</p>
+</dd>
+
+<dt>globusrun-ws [<i>common options</i>] <b>-kill</b> -job-epr-file
+<u>filename</u></dt>
+<dd>
+<p>
+The -kill command requests the immediate cancellation of the job and exits.
+</p>
+</dd>
+
+<dt>globusrun-ws <b>-help</b></dt>
+<dd>
+<p>
+Outputs an overview of the commands and features of the command.
+</p>
+</dd>
+
+<dt>globusrun-ws <b>-usage</b></dt>
+<dd>
+<p>
+Outputs brief usage information for the command.
+</p>
+</dd>
+
+<dt>globusrun-ws <b>-version</b></dt>
+<dd>
+<p>
+Outputs version information for the command.
+</p>
+</dd>
+
+
+</dl>
+
+<h2>Common options</h2>
+
+<p>
+These common options affect more than one command mode as described
+below.
+</p>
+
+<h3>Quiet mode</h3>
+
+<p>
+A variety of protocol status messages, warning messages, and output
+data may be printed to standard output and error under multiple
+command modes. The <i>quiet mode</i> suppresses all but fatal standard
+error messages in order to have clean outputs for use in scripting or
+with the <i>streaming output mode</i> where application output is
+retrieved and output.
+</p>
+
+<dl>
+
+<dt>-q, -quiet</dt>
+<dd>
+<p>
+If supplied, all non-fatal status and protocol-related messages are
+suppressed.
+</p>
+</dd>
+
+</dl>
+
+<h3>Protocol Options</h3>
+
+<h4>Service authorization</h4>
+
+<p>
+Usually, secure communication includes mutual authentication. In
+addition to the service authorizing the client for the requested
+operation(s), an authorization decision is made by the client to
+determine whether the remote service is the one intended.
+</p>
+
+<dl>
+
+<dt>-host, -host-authz</dt>
+<dd>
+<p>
+The GSI "host authorization" rule is used to verify that the service
+is using a host credential appropriate for the underlying service
+address information. This is the default.
+</p>
+</dd>
+
+<dt>-self, -self-authz</dt>
+<dd>
+<p>
+The GSI "self authorization" rule is used to verify that the service
+is using a (proxy) credential derived from the same identity as the
+client's.
+</p>
+</dd>
+
+<dt>-subject, -subject-authz <u>subject name</u></dt>
+<dd>
+<p>
+The service must be using a credential with the exact subject name
+provided by this option.
+</p>
+</dd>
+
+</dl>
+
+<h4>Security Protocol</h4>
+
+<font color="red">Should this be an environment variable setting instead?</font>
+
+<dl>
+
+<dt>-st, -secure-transport</dt>
+<dd>
+<p>
+If supplied, the secure transport mechanism is enabled between
+globusrun-ws and the WS_GRAM service. It is a fatal error if this
+mechanism is not available or more than one mechanism is selected.
+</p>
+</dd>
+
+<dt>-sm, -secure-message</dt>
+<dd>
+<p>
+If supplied, the secure message mechanism is enabled between
+globusrun-ws and the WS_GRAM service. It is a fatal error if this
+mechanism is not available or more than one mechanism is selected.
+</p>
+</dd>
+
+<dt>-p, -private</dt>
+<dd>
+<p>
+If supplied, privacy-protection is enabled between globusrun-ws and
+WS_GRAM or GridFTP services. It is a fatal error to select privacy
+protection if it is not available due to build options or other
+security settings.
+<br>
+<b>Note:</b> Currently only supported with -secure-transport
+</p>
+</dd>
+
+</dl>
+
+<h4>Timeouts</h4>
+
+<dl>
+
+<dt>-T, -http-timeout <u>milliseconds</u></dt>
+<dd>
+<p>
+Set timeout for HTTP socket, in milliseconds, for all Web services
+interactions. The default value is 120000 (2 minutes).
+</p>
+</dd>
+
+</dl>
+
+<h3>File clobbering</h3>
+
+<p>
+The globusrun-ws tool has several options where output files may be
+written to user-specified locations. The default behavior is "no
+clobber", i.e. a file will not be written if it already exists. In
+this event, a warning will be printed to standard error unless
+<i>quiet mode</i> is in effect.
+</p>
+
+<dl>
+
+<dt>-C, -clobber</dt>
+<dd>
+<p>
+If supplied, the default no clobber behavior is reversed. Output files
+will be written whenever the filesystem permissions allow it. Existing
+files will be truncated and then written with the globusrun-ws output
+as usual.
+</p>
+</dd>
+
+</dl>
+
+<h3>Signal handling</h3>
+
+<dl>
+
+<dt>-n, -no-cleanup</dt>
+<dd>
+<p>
+If supplied, the default behavior of trapping interrupts (SIG_INTR)
+and cancelling the job is disabled. Instead, the interrupt simply
+causes the tool to exit without affecting the ManagedJob resource.
+</p>
+</dd>
+
+</dl>
+
+
+<h3>Submit options</h3>
+
+<h4>Output Mode</h4>
+
+<p>
+The user can select several tool behaviors following submission. In
+<i>batch mode</i>, the tool prints the resulting ManagedJob EPR as the
+sole standard output (unless in <i>quiet mode</i>) and exits. In
+<i>interactive mode</i>, the tool keeps running in order to monitor
+job status. Interactive mode is qualitatively equivalent to a
+batch-mode submission immediately followed a second invocation of
+globusrun-ws using the -monitor command. In interactive mode, an
+optional <i>streaming mode</i> where job output files are fetched and
+output from globusrun-ws.
+</p>
+
+<dl>
+
+<dt>-b, -batch</dt>
+<dd>
+<p>
+If supplied, the batch mode is enabled. The default is interactive mode.
+</p>
+</dd>
+
+<dt>-s, -stream</dt>
+<dd>
+<p>
+The standard output and standard error files of the job are monitored
+and data is written to the corresponding output of globusrun-ws. The
+standard output will contain ONLY job output data, while the standard
+error may be a mixture of job error output as well as globusrun-ws
+messages, unless the <i>quiet mode</i> is also enabled.
+</p>
+
+<p>
+Streaming output depends on the ability to access job outputs via
+GridFTP. If -stream mode is selected and the job description does not
+already specify output file redirection for the job host, then
+globusrun-ws adds unique output file name redirections and automatic
+cleanup directives to the job description.
+</p>
+</dd>
+
+</dl>
+
+<h4>Factory information</h4>
+
+<p>
+Addressing information for the ManagedJobFactory target of this
+submission must be provided. If neither option is specified, and no
+EPR is supplied in the job description, then "-factory localhost
+-factory-type fork" is assumed.
+</p>
+
+<dl>
+
+<dt>-Ff, -factory-epr-file <u>filename</u></dt>
+<dd>
+<p>
+If supplied, this option causes the EPR for the ManagedJobFactory to
+be read from the given file. This EPR is used as the service endpoint
+for submission of the job.
+</p>
+</dd>
+
+<dt>-F, -factory <u>contact</u></dt>
+<dd>
+<p>
+If supplied, this option causes an EPR to be constructed using ad-hoc
+methods that depend on GT implementation details.  For
+interoperability to other implementations of WS_GRAM, the
+-factory-epr-file option should be used instead. See the Service
+Contact Format below.
+</p>
+</dd>
+
+<dt>-Ft, -factory-type <u>type</u></dt>
+<dd>
+<p>
+This option refines the behavior of the -factory option to select a
+specific type of scheduler. The default is "fork".
+</p>
+</dd>
+
+</dl>
+
+<h4>Job description</h4>
+
+<p>
+A description of the job to be submitted must be provided with the
+-submit command, either using the WS_GRAM XML description syntax or a
+simpler Unix command and argument list.
+</p>
+
+<dl>
+
+<dt>-f, -job-description-file <u>filename</u></dt>
+<dd>
+<p>
+If supplied, this option causes the job description to be read from
+the given file.  This description is modified according to the other
+options and passed in the WS_GRAM submission messages.
+</p>
+</dd>
+
+<dt>-c, -job-command <u>prog</u> [<u>arg</u>]...</dt>
+<dd>
+<p>
+If supplied, this option take all remaining globusrun-ws arguments as
+its arguments; therefore it must appear last among globusrun-ws
+options. This option causes globusrun-ws to generate a simple job
+description with the named program and arguments.
+</p>
+
+</dl>
+
+<h4>Submission ID</h4>
+
+<p>
+A submission ID may be used in the WS_GRAM protocol for robust
+reliability in the face of message faults or other transient errors to
+ensure that at most one instance of a job is executed, i.e. to prevent
+accidental duplication of jobs under rare circumstances with client
+retry on failure. The globusrun-ws tool always uses this feature,
+requiring either a submission ID to be passed in as input or a new
+unique ID to be created by the tool itself. If a new ID is created, it
+should be captured by the user who wishes to exploit this reliability
+interface. The ID in use, whether created or passed as input, will be
+written to the optional output file when provided, as well as to the
+first line of standard error output unless the <i>quiet mode</i> is in
+effect.
+</p>
+
+<p>
+If a user is unsure whether a job was submitted successfully, he
+should resubmit using the same ID as was used for the previous
+attempt.
+</p>
+
+<dl>
+
+<dt>-I, -submission-id <u>ID</u></dt>
+<dd>
+<p>
+If supplied, this option causes the job to be submitted using the
+given ID in the reliability protocol.
+</p>
+</dd>
+
+<dt>-If, -submission-id-file <u>filename</u></dt>
+<dd>
+<p>
+If supplied, this option causes the ID to be read from the given
+file. It is an error to use both mechanisms to provide an input ID.
+</p>
+</dd>
+
+<dt>-Io, -submission-id-output-file <u>filename</u></dt>
+<dd>
+<p>
+If supplied, the ID in use is written to the given file, whether this
+ID was provided by the user or given by one of the above input
+options.
+</p>
+</dd>
+
+</dl>
+
+<h4>Job EPR output</h4>
+
+<p>
+A successful submission will create a new ManagedJob resource with its
+own unique EPR for messaging. The globusrun-ws tool will output this
+EPR to a file when requested and as the sole standard output when
+running in batch mode. When running in streaming output mode, it is
+possible that the EPR will not be output and the user's only recourse
+is to submit again with the same submission ID and job request in
+order to reattach to the existing job.
+</p>
+
+<dl>
+
+<dt>-o, -job-epr-output-file <u>filename</u></dt>
+<dd>
+<p>
+If supplied, the created ManagedJob EPR will be written to the given
+file following successful submission. The file will not be written if
+the submission fails.
+</p>
+</dd>
+
+</dl>
+
+<h4>Delegation</h4>
+
+<p>
+The job description supports the optional identification of delegated
+credentials for use by the WS_GRAM services.  These features are
+passed through globusrun-ws without modification. However,
+globusrun-ws can also perform delegation and construct these optional
+request elements before submitting it to the service. No delegations
+are performed by default.
+</p>
+
+<dl>
+
+<dt>-J, -job-delegate</dt>
+<dd>
+<p>
+If supplied AND the job description does not already provide a <font
+color="red">jobDelegation</font> element, globusrun-ws will delegate
+the client credential to WS_GRAM and introduce the corresponding
+element to the submission input.
+</p>
+</dd>
+
+<dt>-S, -staging-delegate</dt>
+<dd>
+<p>
+If supplied AND the job description does include staging or cleanup
+directives AND the job description does not already provide the
+necessary <font color="red">stagingCredential</font> or 
+<font color="red">transferCredential</font> element(s),
+globusrun-ws will delegate the client credential to WS_GRAM and RFT, and
+introduce the corresponding elements to the submission input.
+</p>
+</dd>
+
+</dl>
+
+<h4>Lifetime</h4>
+
+<p>
+The ManagedJob resource supports lifetime management in the form of a
+scheduled destruction. The default lifetime requested by the client is
+infinite, subject to server policies.
+</p>
+
+<dl>
+
+<dt>-term, -termination <u>date/time</u></dt>
+<dd>
+<p>
+Set an absolute termination time. <font color="red">What is the right
+way to support generalized (locale based) parsing of date/time
+strings? Don't invent a new internationalization headache...</font>
+</p>
+</dd>
+
+<dt>-termination +<u>time</u></dt>
+<dd>
+<p>
+Set a termination time relative to the successful creation of the
+job. <font color="red">What is the right way to support generalized
+(locale based) parsing of date/time strings?  Don't invent a new
+internationalization headache...</font>
+</p>
+</dd>
+
+</dl>
+
+<h3>Validate options</h3>
+
+<h4>Job description</h4>
+
+<dl>
+
+<dt>-f, -job-description-file <u>filename</u></dt>
+<dd>
+<p>
+This option causes the job description to be read from the given file.
+This description is checked for validity.
+</p>
+</dd>
+
+</dl>
+
+<h3>Monitor options</h3>
+
+<h4>Job</h4>
+
+<p>
+Addressing information for the ManagedJob target of this command
+must be provided.
+</p>
+
+<dl>
+
+<dt>-j, -job-epr-file <u>filename</u></dt>
+<dd>
+<p>
+If supplied, this option causes the EPR for the ManagedJob to be read
+from the given file. This EPR is used as the endpoint for service
+requests.
+</p>
+</dd>
+
+</dl>
+
+<h4>Output mode</h4>
+
+<p>
+In the default <i>interactive mode</i>, the tool keeps running in
+order to monitor job status.  In the optional <i>interactive-streaming
+mode</i>, the job output files are fetched and output from
+globusrun-ws as well.
+</p>
+
+<dl>
+
+<dt>-s, -stream</dt>
+<dd>
+<p>
+The standard output and standard error files of the job are monitored
+and data is written to the corresponding output of globusrun-ws. The
+standard output will contain ONLY job output data, while the standard
+error may be a mixture of job error output as well as globusrun-ws
+messages, unless the <i>quiet mode</i> is also enabled.
+</p>
+</dd>
+
+</dl>
+
+<h3>Status options</h3>
+
+<p>
+See the Job options for the -monitor command.
+</p>
+
+<h3>Kill options</h3>
+
+<p>
+See the Job options of the -monitor command.
+</p>
+
+<h2>Service Contact Format</h2>
+
+<p>
+The -factory option takes a proprietary contact string argument in
+order to build up an EPR to the services. A factory contact string can
+be specified in the following syntax:
+</p>
+
+<blockquote>
+[<u>protocol</u>://]{<u>hostname</u>|<u>hostaddr</u>}[:<u>port</u>][/<u>service</u>]
+</blockquote>
+
+<p>
+Default values form the following contact information if not overridden:
+</p>
+
+<blockquote>
+http://{<u>hostname</u>|<u>hostaddr</u>}:8080/wsrf/services/ManagedJobFactoryService
+</blockquote>
+
+<h2>Single Job Handling</h2>
+
+For every job that globusrun-ws delegates a credential, globusrun will augment the user's job description, adding annotations that will later tell globusrun-ws to destroy the credential after the job has been destroyed.  Below are 2 job annotation examples.
+
+globusrun-ws only delegated the job cred...
+<pre>
+   &lt;extensions&gt;
+      &lt;globusrunAnnotation&gt;
+         &lt;automaticJobDelegation&gt;true&lt;/automaticJobDelegation&gt;
+      &lt;/globusrunAnnotation&gt;
+   &lt;/extensions&gt;
+</pre>
+
+globusrun-ws delegated the job, staging and transfer cred...
+<pre>
+   &lt;extensions&gt;
+      &lt;globusrunAnnotation&gt;
+	&lt;automaticJobDelegation&gt;true&lt;/automaticJobDelegation&gt;
+	&lt;automaticStagingDelegation&gt;true&lt;/automaticStagingDelegation&gt;
+	&lt;automaticTransferDelegation&gt;true&lt;/automaticTransferDelegation&gt;
+      &lt;/globusrunAnnotation&gt;
+   &lt;/extensions&gt;
+</pre>
+
+<h2>Multi-Job Handling</h2>
+
+
+
+<h2>Environment</h2>
+
+<dl>
+
+<dt>X509_USER_PROXY</dt>
+<dd>
+<p>
+Overrides the default selection of user credentials when using GSI security.
+</p>
+</dd>
+
+</dl>
+
+
+<h2>Exit Codes</h2>
+
+<p>
+TBD.
+</p>
+
+
+<h2>Developer Notes</h2>
+<pre>
+
+-staging-delegate, -job-delegate processing
+Add to the job description
+<globusrunAnnotation automaticJobCredential=true ... />
+
+
+******developer note******
+Once the job is ACTIVE:
+   a. Fetch the location to the stdout file.
+      - query the stdout RP for the job to get the path relative to the GridFTP server.
+   b. Periodically check the file for bytes and keep track of bytes received.
+      - Use the gridftp client file streaming library
+
+Note: The file path added to stdout should be $HOME/<uuid>.stdout
+
+for multi-jobs, globusrun-ws would query the Managed Multi job Resource for all the EPRs to all the Managed Job Execution Resources.   And for each EPR do the a and b steps above.
+
+All the above must for done for stderr too.
+**************************
+
+
+CLIENT SIDE
+1) the client - possibly via lower layer API - creates a GUID for the create()
+   call. This GUID will be semantically associated with the call with the 
+   parameters supplied (JobDescription, InitialTerminationTime).
+2) the client prints the GUID onto stderr (or to a file).
+3) the client - used the submission ID in the corresponding argument to the 
+    createJob() operation 
+4) the client makes the remote call and wait for the response until a 
+   determined timeout. 
+5) if a fault is received by the client, the job submission has failed, so 
+    there should be no retry. The client prints the error onto stdout and 
+    exits.
+6) If the timeout is reached, the client makes the create call again with 
+    the same input message object and the same submission ID in the SOAP header.  
+    (note: this might be implemented as an exponential backoff, but I don't 
+    see the advantage here).
+    Go back to step 4).
+7) after N unsucessful retries, the client prints an error message onto stdout 
+    such as: "In spite of repeated attempts, could not obtain any response 
+    from the ManagedJobFactory service when submitting the job" and exits.
+8) the user can retry to obtain a handle to the job later on by executing the 
+    same m-j-g command line with the addition of the following option:
+    -submission-id <GUID> where <GUID> is the ID that was printed at step 2).
+    
+SERVER SIDE
+1) the MJFS receives an createJob() invocation with the submission ID as an argument to the operation.
+2) the MJFS looks up the submission ID in an internal map (we might want to
+   think about implications for persistence here)
+3) if the submission ID is there, return the mapped CreateManagedJobOutputType 
+    object
+4) if the submission ID is not there, create the job and the 
+   CreateManagedJobOutputType response, and add the mapping:
+   "submission ID =>  CreateManagedJobOutputType object" to the internal map.
+**************************
+
+single job RSL
+globusrun-ws will check the RSL to see if a delegated credentials are required for the job.  If so, it will delegate a proxy to the Delegation Service and add the EPR to the RSL accoringly.  The possible elements where the EPR could be added are: jobCredentialEndpoint, stagingCredentialEndpoint, fileStageIn, fileStageOut, fileCleanUp.  The MJS will fetch the cred from the DS and use as needed on behalf of the job.  See RSL documentation <link> for descriptions about these attributes.
+
+multi job RSL
+globusrun-ws will delegate a full cred to the delegation service for the multijob.  Then process each single job as stated above. If multiple subjobs will use the same delegation service, then only delegate one credential to that delegation service.  I.e. the same credential can be used for multiple jobs.
+
+</pre>
+
+
