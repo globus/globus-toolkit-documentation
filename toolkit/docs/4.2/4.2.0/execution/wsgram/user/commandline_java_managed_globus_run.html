@@ -336,6 +336,15 @@ that behavior.</td>
   <li>  <a href="#jobandprocessrendezvous">Job and process rendezvous</a> </li>
 </ul>
 <h3><a name="substitutionvariables"></a>Substitution variables</h3>
+In GT 3.9.2, RSL substitution variables had been removed from GRAM. 
+Starting with GT 3.9.4, substitution variables are available again, 
+while preserving the simplicity of the job description XML schema 
+(relatively to the GT3.2 RSL schema).
+Susbtitution variables can be used in any path-like string or URL 
+specified in the job description. They are special strings that are 
+replaced by the GRAM service with run-time or values known by the 
+GRAM services.<p>
+
 <p>TODO reference: link to HTML generated from schema annotations
 </p>
 
@@ -626,8 +635,8 @@ Each file transfer must therefore specify a source URL and a destination URL.
 URLs are specified as GridFTP URLs (for remote files) or as file URLs (for local files).
 <p>
 For instance, in the case of staging a file <i>in</i>, the source URL would be a 
-GridFTP URL (for instance <code>gsiftp://127.0.01:2888/tmp/mySourceFile</code>) 
-resolving to a source document accessible on the file system of the the submission 
+GridFTP URL (for instance <code>gsiftp://job.submitting.host:2888/tmp/mySourceFile</code>) 
+resolving to a source document accessible on the file system of the job submission 
 machine (for instance <code>/tmp/mySourceFile</code>). At run-time the 
 Reliable File Transfer service used by the GRAM service on the remote machine 
 would fetch the remote file using the GridFTP protocol and write it reliably 
@@ -638,7 +647,7 @@ to the specified local file (for instance
 <pre>
     &lt;fileStageIn&gt;
         &lt;transfer&gt;
-            &lt;sourceUrl&gt;<code>gsiftp://127.0.01:2888/tmp/mySourceFile</code>&lt;/sourceUrl&gt;
+            &lt;sourceUrl&gt;<code>gsiftp://job.submitting.host:2888/tmp/mySourceFile</code>&lt;/sourceUrl&gt;
             &lt;destinationUrl&gt;<code>file:///${GLOBUS_USER_HOME}/my_transfered_file</code>&lt;/destinationUrl&gt;
         &lt;/transfer&gt;
     &lt;/fileStageIn&gt;
@@ -647,35 +656,52 @@ to the specified local file (for instance
 <b>Note:</b> additional RFT-defined quality of service requirements can be specified 
       for each transfer. See the RFT documentation for more information.
 <p>
-Here is an example job description:
+Here is an example job description with file stage-in and stage-out:
 
 <pre>
-<job>
-    <executable>my_echo</executable>
-    <directory>${GLOBUS_USER_HOME}</directory>
-    <argument>Hello</argument>
-    <argument>World!</argument>
-    <stdout>${GLOBUS_USER_HOME}/stdout</stdout>
-    <stderr>${GLOBUS_USER_HOME}/stderr</stderr>
-    <fileStageIn>
-        <transfer>
-            <sourceUrl>gsiftp://127.0.01:2888/bin/echo</sourceUrl>
-            <destinationUrl>file:///${GLOBUS_USER_HOME}/my_echo</destinationUrl>
-        </transfer>
-    </fileStageIn>
-    <fileStageOut>
-        <transfer>
-            <sourceUrl>file://${GLOBUS_USER_HOME}/stdout</sourceUrl>
-            <destinationUrl>gsiftp://127.0.0.1:2888/tmp/stdout</destinationUrl>
-        </transfer>
-    </fileStageOut>
-    <fileCleanUp>
-        <deletion>
-            <file>file://${GLOBUS_USER_HOME}/my_echo</file>
-        </deletion>
-    </fileCleanUp>
-</job>
+&lt;job&gt;
+    &lt;executable&gt;my_echo&lt;/executable&gt;
+    &lt;directory&gt;${GLOBUS_USER_HOME}&lt;/directory&gt;
+    &lt;argument&gt;Hello&lt;/argument&gt;
+    &lt;argument&gt;World!&lt;/argument&gt;
+    &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout&lt;/stdout&gt;
+    &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr&lt;/stderr&gt;
+    &lt;fileStageIn&gt;
+        &lt;transfer&gt;
+            &lt;sourceUrl&gt;gsiftp://job.submitting.host:2888/bin/echo&lt;/sourceUrl&gt;
+            &lt;destinationUrl&gt;file:///${GLOBUS_USER_HOME}/my_echo&lt;/destinationUrl&gt;
+        &lt;/transfer&gt;
+    &lt;/fileStageIn&gt;
+    &lt;fileStageOut&gt;
+        &lt;transfer&gt;
+            &lt;sourceUrl&gt;file://${GLOBUS_USER_HOME}/stdout&lt;/sourceUrl&gt;
+            &lt;destinationUrl&gt;gsiftp://job.submitting.host:2888/tmp/stdout&lt;/destinationUrl&gt;
+        &lt;/transfer&gt;
+    &lt;/fileStageOut&gt;
+    &lt;fileCleanUp&gt;
+        &lt;deletion&gt;
+            &lt;file&gt;file://${GLOBUS_USER_HOME}/my_echo&lt;/file&gt;
+        &lt;/deletion&gt;
+    &lt;/fileCleanUp&gt;
+&lt;/job&gt;
 </pre>
+
+The submission of this job to the GRAM services causes the following sequence 
+of actions:
+<ol>
+<li> The <code>/bin/echo</code> executable is transfered from the submission machine 
+    to the GRAM host filesystem. The destination location is the HOME directory of the 
+    user on behalf of whom the job is executed by the GRAM services 
+    (see <code>&lt;fileStageIn&gt;</code>).</li>
+<li> The transfered executable is used to print a test string  
+     (see <code>&lt;executable&gt;</code>, <code>&lt;directory&gt;</code> and 
+      the <code>&lt;argument&gt;</code> elements) on the standard output, which is 
+      redirected to a local file (see <code>&lt;stdout&gt;</code>).</li>
+<li> The standard output file is transfered to the submission machine 
+     (see <code>&lt;fileStageOut&gt;</code>).</li>
+<li> The file that was initially transfered during the stage-in phase is removed 
+     from the filesystem of the GRAM installation (see <code>&lt;fileCleanup&gt;</code>).</li>
+</ol>
 
 
 
