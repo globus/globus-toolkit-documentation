@@ -370,11 +370,56 @@ should resubmit using the same ID as was used for the previous
 attempt.</p>
 
 <h3><a name="jobholdandrelease"></a>Job hold and release</h3>
-<p>&nbsp;</p>
+<p>
+It is posible to specify in a job description that the job be 
+put on hold when it reaches a chosen state (see "GRAM Approach" 
+documentation for more information about the executable 
+job state machine, and the job description XML schema documentation 
+for information about how to specify a held state 
+<font color="red">TODO insert links to those 2 docos</font>). 
+This is useful for instance when a GRAM client wishes to directly 
+access output files written by the job (as opposed to waiting for 
+the stage-out step to transfer files from the job host). The client would  
+request that the file cleanup process be held until released, 
+giving the client an opportunity to fetch all remaining/buffered 
+data after the job completes but <i>before</i> the output files are 
+deleted. 
+<p>
+Note that the hold feature of the GRAM service interface is 
+not exploited by the current Java version of the client tool, 
+but will be in the C client in order to implement client-side 
+streaming of remote stdout/err. 
+<p>
+The current client tool does however
+<ul>
+<li>automatically release a 
+job remotely in interactive mode if the job is being held 
+at any given state</li>
+<li>offer an option (<code>-release</code>) for the user 
+    to release a job previously submitted in batch mode.</li>
+</ul>
+</p>
 <h3><a name="multijobs"></a>MultiJobs</h3>
-<p>&nbsp;</p>
+<p>The new job description XML schema allows for specification of a MultiJob 
+i.e. a job that is itself composed of several executable jobs 
+(those jobs cannot be multijobs, so the structure is not recursive). 
+This is useful in order to bundle a group of jobs together and submit 
+them as a whole to a remote GRAM installation.<p>
+Note that there is no 
+specification of relationships between the executable jobs, which we will 
+refer to as "subjobs". The subjobs are submitted to job factory services 
+in their order of appearance in the multijob description.
+
+</p>
 <h3><a name="jobandprocessrendezvous"></a>Job and process rendezvous</h3>
-<p>&nbsp;</p>
+<p>This version of GRAM offers a mechanism to perform synchronization 
+between job processes in a multiprocess job and between subjobs in a multijob. 
+The job application can in fact register binary information, for 
+instance process information or subjob information, and get notified when 
+all the other processes or subjobs have registered their own information.
+This is for instance useful for parallel jobs which need to rendezvous 
+at a "barrier" before proceeding with computations, in the case when no 
+native application API is available to help do the rendezvous.</p>
 <h2><a name="limitations"></a>Limitations</h2>
 <p>With the porting of existing GRAM functionality from OGSI to WSRF, 
 this new version of the job submission tool suffers from a few limitations 
@@ -714,7 +759,24 @@ of actions:
 
 
 <h3><a name="specifyingmultijob"></a>Specifying and submitting a MultiJob</h3>
-
+<p>
+Within the multijob description, each subjob description 
+must come along with an endpoint for the factory to submit the subjob to. This 
+enables the at-once submission of several jobs to different hosts.
+The factory to which the multijob is submitted acts as an intermediary tier 
+between the client and the eventual executable job factories. 
+See the job description schema documentation for more information about 
+multijob specification.<font color="red">TODO insert link</font>
+<p>
+A multijob must be submitted to a <code>Multi</code> job factory resource:
+<pre>
+% bin/managed-job-globusrun -type Multi -file myMultiJob.xml
+</pre>
+A multijob resource is created by the factory and exposes a set of 
+WSRF resource properties different than the resource properties of 
+an executable job. The state machine of a multijob is also different 
+since the multijob represents the overall execution of all the executable 
+jobs it is composed of.
 <h2><a name="troubleshooting"></a>Troubleshooting</h2>
 <ul>
   <li><a href="#jobexecution">Job execution errors</a></li>
