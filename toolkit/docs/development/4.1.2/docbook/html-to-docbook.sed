@@ -5,7 +5,9 @@ s/^include_once(.*//
 s/^?>//
 s/<h1><?php echo $title; ?><\/h1>//
 s/<p>/<para>/g
+s/<P>/<para>/g
 s/<\/p>/<\/para>/g
+s/<\/P>/<\/para>/g
 s/<p \/>/<para>/g
 s/<p style="color:green">/<para>/g
 s/<p style="color:red">/<para>/g
@@ -28,6 +30,7 @@ s/<tr style="text-align: left">/<row>/g
 s/<tr style="text-align: right">/<row>/g
 s/<\/tr>/<\/row>/g
 s/<td>/<entry>/g
+s/<td valign="top">/<entry>/g
 s/<td style="text-align: center">/<entry>/g
 s/<td style="color:green">/<entry>/g
 s/<td style="color:red">/<entry>/g
