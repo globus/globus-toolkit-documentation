@@ -13,7 +13,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <div id="home">
 
-	<h1 class="first">The Globus Alliance</h1>
+	<h1 class="first">The Globus<sup><small>&reg;</small></sup> Alliance</h1>
 	<p>The Globus Alliance is an international collaboration that conducts 
            research and development to create fundamental Grid technologies. 
            The Grid lets people share computing power, databases, and other 
