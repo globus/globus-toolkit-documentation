@@ -50,8 +50,7 @@ are used in some cases and errors are reported in other cases.</p>
   service is supposed to be accessed only by a specific user -- the user that
   created it.)</p>
 
-<p> For secure resources, code modifications need to be done as
-described in <a href="#resource">Section 4</a>.</p>
+<p> In the case of security descriptor for secure resources, code modifications need to be done as described in <a href="#resource">Section 4</a>, but the descriptor can be read off a file too.</p>
 
 <h3><a name="WSDL" id="WSDL"></a>2. WSDL</h3>
 
@@ -76,8 +75,10 @@ described in <a href="#resource">Section 4</a>.</p>
   programatically. Service and container security descriptors can be
   configured  as an XML file in the deployment descriptor
   (server-config.wsdd) as shown below. Resource security descriptors can
-  only be created programatically and have been described in <a href="#resource">Secure
-  Resource</a>.</p>
+only be created dynamically either programatically or from descriptor file. Secure resources have been described in detail in <a href="#resource">Section 4</a>.</p>
+ 
+ Configuring service and container descriptor files:
+
 <pre class="command"> &lt;globalConfiguration&gt;<br> ...<br>  &lt;parameter name="containerSecDesc" value="org/wsrf/inpl/security/container-security-config.xml"&gt;<br> ...<br> &lt;globalConfiguration&gt;<br> ...<br> &lt;service name="my/dummy/service" provider="Handler" style="wrapped"&gt;<br>  ...<br>  &lt;parameter name="securityDescriptor" value=<span
  style="font-weight: bold;"></span>"org/globus/wsrf/impl/security/descriptor/security-config.xml"/&gt;<br>  ...<br> &lt;/service&gt;</pre>
 <p>It is loaded in the same way as any other resource data, i.e. from
@@ -87,11 +88,21 @@ descriptor will <strong>not</strong> be reloaded if it is changed at runtime.</p
 
 <p> The security descriptor files need to comply with the <a href="service_security_descriptor.xsd">service
     security descriptor schema</a> or <a href="container_security_descriptor.xsd">container
-    security descriptor schema</a> as appropriate. 
+security descriptor schema</a> as appropriate. The resouce security descriptor file uses the same schema as the service security descriptor. 
+
   The security deployment descriptor is contained within the <code>&lt;securityConfig
  xmlns="http://www.globus.org"&gt;</code> element.</p>
 <blockquote>
   <h4><a name="descFile" id="descFile"></a> 3.1 Writing security descriptor file </h4>
+
+  <p> The next few sections deal with writing of security descriptor
+  files to set various properties. Please note that not all parameters
+  are applicable for all three types of descriptors and are
+  appropriately noted in the relevant sections. Few parameters relevant
+  only for container security descriptor are described in <a
+  href="#container">Section 8</a>.</p>
+  
+
   <h5><a name="configCred"></a>3.1.1 Configuring Credentials</h5>
     <p>The container and each service can also be configured with a separate
       set of credentials. You can set the credentials using either the a) path
@@ -99,7 +110,12 @@ descriptor will <strong>not</strong> be reloaded if it is changed at runtime.</p
       adding the following block to the container or service security descriptor.
     
   </p>
+
+Example for option (a):
+
     <pre class="command"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br> ...<br> &ltcredential&gt;<br>  &lt;key-file value="keyFile"/&gt;<br>  &lt;cert-file value="certFile"/&gt;<br> &lt;/credential&gt<br> ...<br> &lt;/securityConfig&gt;
+
+Example for option (b):
 
 &lt;securityConfig xmlns="http://www.globus.org"&gt;<br> ...<br> &lt;proxy-file value="proxyFile"/&gt;<br> ...<br> &lt;/securityConfig&gt;</pre>
     <p>The service will look for credentials in this order:</p>
@@ -325,6 +341,13 @@ href="#configRunas">Configuring Run-As Mode</a>.)</p></td>
       a custom authorization mechanism</p></td>
     </tr>
   </table>
+
+
+    <p>Example:
+  
+      <pre class="command"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>   ...<br>   &lt;authz value="custom"/&gt;<br>   &lt;customAuthzClass value="org.some.custom.authz"/&gt;<br>   ...<br> &lt;/securityConfig&gt;</pre>
+    
+
   <h5><a name="configOthers"></a>3.1.6 Other Configuration</h5>
   <p>Some other security properties that can be configured as a part of
     the container or service descriptor are described below:</p>
@@ -382,12 +405,7 @@ href="#configRunas">Configuring Run-As Mode</a>.)</p></td>
       <td valign="top">Resource Security Descriptor</td>
       <td><p>This is represented by <code>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</code>.
           Use the API in <code>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</code> to
-          initialize the descriptor, i.e load credentials and gridmap.</p>              <p>For
-            example, the code snippet below is a descriptor that has a gridmap
-            file and specifies a custom authorization class name:</p>        <pre class="command">  ResourceSecurityDescriptor desc = new ResourceSecurityDescriptor();<br>  desc.setGridMapFile("foo/bar/gridmap");<br>  desc.setCustomAuthzClassName("org.globus.some.customAuthz");<br>  ResourceSecurityConfig config = new ResourceSecurityConfig(desc);<br>  config.init();</pre>              
-            <p> If
-              the descriptor property changes, force a reload by setting <code>setInitialized</code>              to <code>false</code>:</p>        <pre class="command">  desc.setInitalized(true);<br>  desc.setGridMapFile("foo/bar/newGridMap");<br>  config.init();</pre>                            <p> GridMap and Subject object can be set directly, i.e without
-                configuring files to read off:</p>        <pre class="command">  desc.setInitalized(false);<br>  GridMap map = new GridMap();<br>  map.put("Some user DN", "userid");<br>  desc.setGridMap(map);</pre></td>
+          initialize the descriptor, i.e load credentials and gridmap.Refer to description of resource security descriptor in <a href="#resDesc">Section 4.1</a> for more details.</p></td>
     </tr>
   </table>
 </blockquote>
@@ -402,26 +420,50 @@ container level security. </p>
   If <code>null</code> is returned, it is assumed that no security is
   set on the resource. </p>
 
+<blockquote>
+  <h4><a name="#resDesc"></a>4.1 Resource Secure Descriptor</h4>
+
 <p>The resource security descriptor is identical to the service
 security descriptor and contains API to set and get all properties
-that are descriped in <a href="#descFile">Section 3.1</a>. There are
+that are described in <a href="#descFile">Section 3.1</a>. A
+descriptor file can also be used to create this object. The file needs
+to be written as described in <a href="#writeDesc">Section
+3.1</a>.</p>
+
+ 
+   <p> In the following examples, the first code snippet creates a resource descriptor object directly and the second one off a file. 
+   
+   <pre class="command">  ResourceSecurityDescriptor desc = new ResourceSecurityDescriptor();<br>  desc.setRejectLimitedProxy("true");</pre>
+   
+   <pre class="command">  ResourceSecurityConfig config = new ResourceSecurityConfig("resDescFileName");<br>  config.init();<br>  ResourceSecurityDescriptor desc = config.getSecurityDescriptor();</pre>
+   
+
+
+There are
 two attributes of the security descriptor, <strong>credentials</strong> and <strong>gridmap</strong>,
 that can be specified as objects (<code>javax.security.auth.Subject</code>
 or <code>org.globus.security.gridmap.GridMap</code>) or path to credentials
-and gridmap. In the latter case, these need to be loaded from file; you can use
-the provided helper API:
-<i>org.globus.wsrf.impl.security.descriptor.ResourceSecurityConfig</i>. The credentials
-and gridmap are loaded if the property <code>initialized</code> in the descriptor
-is set to
-<code>false</code>.</p>
+and gridmap. Similarly, either the <b>custom authorization</b> object or name of the custom authorization class can be specifed. In the latter case, these need to be loaded from file; you can use the provided helper API <i>org.globus.wsrf.impl.security.descriptor.ResourceSecurityConfig</i> to do the same. The credentials, gridmap and custom authorization class are loaded if the property <code>initialized</code> in the descriptor
+   is set to
+   <code>false</code>.</p>
 
-<p>In the example shown below, a secure counter resource is created
+<p>For example, the code snippet below is a descriptor that has a gridmap file and specifies a custom authorization class name. When <code>config.init()</code> is called, gridmap is loaded and an instance of the custom authorization class is created. Both are stored as a part of the security descripto object itself.:</p>        
+<pre class="command">  ResourceSecurityDescriptor desc = new ResourceSecurityDescriptor();<br>  desc.setGridMapFile("foo/bar/gridmap");<br>  desc.setCustomAuthzClassName("org.globus.some.customAuthz");<br>  ResourceSecurityConfig config = new ResourceSecurityConfig(desc);<br>  config.init();</pre>              
+              <p> If
+                the descriptor property changes, force a reload by setting <code>setInitialized</code>              to <code>false</code>:</p>        <pre class="command">  desc.setInitalized(true);<br>  desc.setGridMapFile("foo/bar/newGridMap");<br>  config.init();</pre>                            <p> GridMap and Subject object can also be set directly, i.e without
+                  configuring files to read off:</p>        <pre class="command">  desc.setInitalized(false);<br>  GridMap map = new GridMap();<br>  map.put("Some user DN", "userid");<br>  desc.setGridMap(map);</pre>
+  </blockquote>
+  
+  <blockquote>
+  <h4><a name="#secResourceSample"></a>4.2 Sample Secure Resource</h4>
+  
+  <p>In the example shown, a secure counter resource is created
 that sets security properties on itself:</p>
 <ul>
-  <li>The counter resource
-    implements the <code>SecureResource</code> interface, which returns a
-    resource security descriptor. <br>
-  </li>
+<li>The counter resource implements the <code>SecureResource</code>
+    interface and hence has a method which returns a resource security
+    descriptor. <br> </li>
+
   <li>The security policy is defined so that
         when the value of the counter is greater than 100, the authorization
         scheme is altered to be <i>gridmap</i>. Prior to this change, (i.e for
@@ -432,9 +474,21 @@ that sets security properties on itself:</p>
           gridmap file is specified as a part of the descriptor; 
           the <i>ResourceSecurityConfig</i> API loads it.</li>
 </ul>
-<strong>Example:</strong><br>
+<strong>Example 1:</strong><br>
 
   <pre class="command"> public class SecureCounter implements SecureResource {<br>    ...    <br>    ResourceSecurityDescriptor desc = null;<br>    public void setValue(int value) {<br>        if ((value > 100) && (this.desc == null)) {<br>           this.desc = new ResourceSecurityDescriptor();<br>           this.desc.setAuthz("gridmap");<br>           this.desc.setGridMapFile("foo/bar/gridmap");<br>           ResourceSecurityConfig config = <br>                new ResourceSecurityConfig(this.desc);<br>           config.init();<br>     }<br>      .... <br>    public ResourceSecurityDescriptor getSecurityDescriptor() {<br>       return this.desc;<br>    }<br> }</pre>
+
+ <p> Alternatively, the same policy can be expressed in a security
+   descriptor file as shown below and that file can be used to create the
+   resource security descriptor.</p>
+   
+   <pre class="command"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>   &lt;gridmap value="foo/bar/gridmap"/&gt;<br>   &lt;authz value="gridmap"&gt;<br> &lt;/securityConfig&gt;</pre>
+   
+   <strong>Example 2:</strong><br>
+   
+     <pre class="command"> public class SecureCounter implements SecureResource {<br>    ...    <br>    ResourceSecurityDescriptor desc = null;<br>    public void setValue(int value) {<br>        if ((value > 100) && (this.desc == null)) {<br>           ResourceSecurityConfig config = <br>                new ResourceSecurityConfig("counter-security-config.xml");<br>           config.init();<br>           this.desc = config.getSecurityDescriptor();<br>     }<br>      .... <br>    public ResourceSecurityDescriptor getSecurityDescriptor() {<br>       return this.desc;<br>    }<br> }</pre>
+   
+   </blockquote>
 
 <h3><a name="securityAPI" id="securityAPI"></a>5. Useful Security API</h3>
 
