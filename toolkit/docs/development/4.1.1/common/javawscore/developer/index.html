@@ -22,8 +22,9 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
    <ul>
     <li><a href="#ContextProperties">MessageContext Properties</a></li>
     <li><a href="#debugging">Debugging and Logging</a></li>
-    <li><a href="#testing">Tests</li>
+    <li><a href="#testing">Writing and Running Tests</li>
     <li><a href="#gardetails">GAR</li>
+    <li><a href="#CreatingLaunchers">Generating Launcher Scripts</li>
    </ul>
   </li>
 </ul>
@@ -42,6 +43,12 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
   descriptions of domain-specific structured interface data, can be found in
   the <a href="../Java_WS_Core_Public_Interfaces.html">public interface guide</a>.</p>
 <h2><a name="scenarios"></a>Usage scenarios</h2>
+
+
+<h3><a name="HandlingNotifications">Handling Notifications</a></h3>
+<p>
+[TODO: unordered, message type (DOM Element/SOAPElement)
+</p>
 
 <h3><a name="LocalInvocations">Making Local Invocations</a></h3>
 
@@ -138,16 +145,6 @@ To fix this, add the following to the client:
  }
  ...
 </pre>
-</p>
-
-<h3>Running clients from any directory</h3>
-<p>
-A client launched directly through the <code>java</code> executable might fail if ran from a directory other then the <code>GLOBUS_LOCATION</code> (It usually happens if the client receives notifications). <br>
-To ensure that a client can be started from any directly pass a <code>GLOBUS_LOCATION</code> system property on the <code>java</code> command line set to the real <code>GLOBUS_LOCATION</code> directory. <br>
-For example on Unix:
-<pre> $ java -DGLOBUS_LOCATION=$GLOBUS_LOCATION my.class</pre>
-or on Windows:
-<pre> &gt; java -DGLOBUS_LOCATION=%GLOBUS_LOCATION% my.class</pre>
 </p>
 
 <?php
@@ -248,7 +245,7 @@ This will log Axis client side calls and Axis HTTP messages.
   line or passing it via the <code><a href="../Java_WS_Core_Public_Interfaces.html#GLOBUS_OPTIONS">GLOBUS_OPTIONS</a></code> environment
   property.</p>
 
-<h3><a name="testing">Tests</a></h3>
+<h3><a name="testing">Writting and Running Tests</a></h3>
 <p>Tests in the Java WS Core are based on the <a href="http://www.junit.org/">JUnit</a> API. JUnit must first be installed with Ant. To install JUnit with Ant copy the <code>junit.jar</code> found in JUnit distribution to the <code>$ANT_HOME/lib</code> directory.
 </p>
 
@@ -314,7 +311,7 @@ The GAR (Grid Archive) file is a single file which contains all the files and in
   <dt><code>schema/</code></dt>
   <dd>This directory contains service WSDL and schema files. </dd>
   <dt><code>etc/</code></dt>
-  <dd>This directory contains service configuration files and a post-deploy.xml Ant script. </dd>
+  <dd>This directory contains service configuration files and a <code>post-deploy.xml</code> Ant script. </dd>
   <dt><code>bin/</code></dt>
   <dd>This directory contains service executables such as command line tools, GUI, etc. </dd>
   <dt><code>lib/</code></dt>
@@ -332,7 +329,7 @@ The GAR (Grid Archive) file is a single file which contains all the files and in
 [FILL ME IN]
 </p>
 
-<h4>GAR file deployment</h4>
+<h4><a name="gardeploy">GAR file deployment</a></h4>
 
 <p>The contents of the GAR file are processed in the following way (all steps
   are performed only if necessary):</p>
@@ -381,14 +378,14 @@ The GAR (Grid Archive) file is a single file which contains all the files and in
  </li>
  <li>
   A <code>etc/post-deploy.xml</code> Ant script is called if the GAR contains
-  one. 
+  one. The <i>setup</i> target is called automatically.
  </li>
 
 </ul>
 
 <p>Notes:</p>
 <ul>
-  <li>If post-deploy.xml script creates some files, they will <strong>not</strong> be removed by
+  <li>If <code>post-deploy.xml</code> script creates some files, they will <strong>not</strong> be removed by
     <code>undeploy</code>. </li>
   <li>During deployment, filtering is done for contents of <code>server-deploy.wsdd</code> and <code>jndi-config-deploy.xml</code> files
       to replace the <code>@config.dir@</code> token
@@ -397,6 +394,37 @@ The GAR (Grid Archive) file is a single file which contains all the files and in
 </ul>
 </p>
 
+
+<h3><a name="CreatingLaunchers">Generating Launcher Scripts</a></h3>
+<p>
+Bourne Shell and Windows batch scripts can be automatically generated to hide the details of launching a Java program from the command line. 
+<br>
+To generate such a command line script write a Ant task that calls <code>generateLauncher</code> target in <code>$GLOBUS_LOCATION/share/globus_wsrf_common/build-launcher.xml</code>. The following properties/parameters must be specified:
+</p>
+<ul>
+  <li><b><code>${launcher-name}</code></b> - the base name of script to generate</li>
+  <li><b><code>${class.name}</code></b> - the name of Java class the script must call.</li>
+</ul>
+<p>
+For example:
+</p>
+<pre>   ...
+   &lt;property name="env.GLOBUS_LOCATION" value="."/&gt;
+   &lt;property name="deploy.dir" location="${env.GLOBUS_LOCATION}"/&gt;
+   &lt;property name="abs.deploy.dir" location="${deploy.dir}"/&gt;
+   &lt;property name="build.launcher"
+        location="${abs.deploy.dir}/share/globus_wsrf_common/build-launcher.xml"&gt;
+   ...
+   &lt;ant antfile="${build.launcher}" target="generateLauncher"&gt;
+        &lt;property name="launcher-name" value="myClient"/&gt;
+        &lt;property name="class.name" value="org.mypackage.MyClient"/&gt;
+   &lt;/ant&gt;
+</pre>
+<p>
+It is also possible to specify defaults JVM options and command-line
+via the <code>default.jvm.options</code> and <code>default.cmd.line</code> parameters.<br>
+In general the generation of the command line scripts is done in <code>post-deploy.xml</code> script during <a href="#gardeploy">GAR deployment</a>.
+</p>
 
 
 <?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
