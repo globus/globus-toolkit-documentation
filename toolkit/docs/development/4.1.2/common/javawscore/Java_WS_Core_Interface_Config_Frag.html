@@ -6,6 +6,105 @@ The configuration information of a service is mainly encapsulated in two separat
 <h3>Syntax of the interface</h3>
 <p>
 
+<h2>Global Configuration</h2>
+
+<p>
+The global properties are specified in the global section of <code>*server-config.wsdd</code> files in <code>$GLOBUS_LOCATION/etc/globus_wsrf_core/</code> directory.
+</p>
+
+<p>
+General configuration parameters:
+</p>
+
+<table border="0" cellpadding="2" width="100%" >
+<tr>
+ <td><i>Name</i></td>
+ <td><i>Value</i></td>
+ <td><i>Description</i></td>
+ <td><i>Comments</i></td>
+</tr>
+<tr valign="top">
+ <td><b>logicalHost</b></td>
+ <td>&lt;hostname&gt;</td>
+ <td>
+      This parameter specifies the hostname to use instead of the default local host. It is equivalent to setting the <code>GLOBUS_HOSTNAME</code> environment property. Can be FQDN or just hostname. 
+ </td>
+ <td>Optional</td>
+</tr>
+
+<tr valign="top">
+ <td><b>disableDNS</b></td>
+ <td>&lt;boolean&gt;</td>
+ <td>
+      This parameter specifies whether to perform DNS lookup on the <code>logicalHost</code> parameter. By default <code>"false"</code> is assumed (DNS lookup is performed).
+ </td>
+ <td>Optional</td>
+</tr>
+
+<tr valign="top">
+ <td><b>domainName</b></td>
+ <td>&lt;domanin name&gt;</td>
+ <td>
+      This parameter specifies the domain name to append to the host name if the host name is not qualified by a domain.
+ </td>
+ <td>Optional</td>
+</tr>
+
+<tr valign="top">
+ <td><b>publishHostName</b></td>
+ <td>&lt;boolean&gt;</td>
+ <td>
+      This parameter specifies whether to publish the hostname or the ip address. It is only used when DNS lookups are enabled (<code>disableDNS</code> is false).
+ </td>
+ <td>Optional</td>
+</tr>
+
+</table>
+
+<p>
+Standalone/embedded container specific configuration parameters:
+</p>
+
+<table border="0" cellpadding="2" width="100%" >
+<tr>
+ <td><i>Name</i></td>
+ <td><i>Value</i></td>
+ <td><i>Description</i></td>
+ <td><i>Comments</i></td>
+</tr>
+<tr valign="top">
+ <td><b>containerThreads</b></td>
+ <td>&lt;int&gt;</td>
+ <td>
+      This parameter controls the initial thread pool size for the container.
+      By default it is set to 5.
+ </td>
+ <td>Optional</td>
+</tr>
+
+<tr valign="top">
+ <td><b>containerThreadsMax</b></td>
+ <td>&lt;int&gt;</td>
+ <td>
+      This parameter sets the maximum number of threads for the container. By default it is set to 4 * the <code>containerThread</code> setting.
+ </td>
+ <td>Optional</td>
+</tr>
+
+<tr valign="top">
+ <td><b>containerThreadsHighWaterMark</b></td>
+ <td>&lt;int&gt;</td>
+ <td>
+      This parameter controls when the thread pool of the container should start shrinking (if the number of idle threads exceeds this number). By default it is set to 2 * the <code>containerThread</code> setting.
+ </td>
+ <td>Optional</td>
+</tr>
+
+</table>
+
+
+<h2>Service Configuration</h2>
+
 <h3>WSDD</h3>
 <p>
 An example of a deployment descriptor for a CounterService:
@@ -175,7 +274,7 @@ Each service entry in JNDI should have a resource defined called <code>"home"</c
 <h3>ResourceHomeImpl</h3>
 
 <p>
-This implementation is a generic <code>ResourceHome</code> implementation. It supports persistent resources, resource caching, resource reaper, etc. 
+This implementation is a generic <code>ResourceHome</code> implementation. It supports persistent resources, resource caching, resource sweeper, etc. 
 </p>
 
 <table border="0" cellpadding="2" width="100%" >
@@ -236,13 +335,73 @@ This implementation is a generic <code>ResourceHome</code> implementation. It su
  <td><b>cacheLocation</b></td>
  <td>&lt;jndi path&gt;</td>
  <td>
-      This parameter specifies the jndi location of the resource cache for this
-      resource home. Please see the development guide for details (XXX).
+      This parameter specifies the JNDI location of the resource cache for this
+      resource home. Please see <a href="#resourcecache">Configuring Resource Cache</a> below for details.
  </td>
  <td>Optional</td>
 </tr>
 
 </table>
+
+<h4><a name="resourecache">Configuring Resource Cache</a></h4>
+
+<p>
+If <i>ResourceHomeImpl</i> is configured with resource class that implements the <i>PersistenceCallback</i> interface it will store the resource objects wrapped in Java <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/lang/ref/SoftReference.html">SoftReference</a>. That allows the JVM to automatically reclaim these resource objects thus reducing the memory usage. Since the JVM can decide to reclaim these objects at any point sometimes a resource object can be reclaimed between two subsequent invocations on the same resource. This for example can cause the state of the resource to be reloaded from disk on each call.<br>
+To prevent the JVM from reclaiming the resource objects so quickly a cache can be setup up to hold direct references to these objects. A basic LRU (least recently used) cache implementation is provided. Other cache implementations can be used as long as they implement the <i>org.globus.wsrf.utils.cache.Cache</i> interface.
+</p>
+
+<p>
+To configure a cache for <i>ResourceHomeImpl</i> first define a cache resource entry in JNDI:
+</p>
+<pre>
+&lt;resource name="cache" 
+             type="org.globus.wsrf.utils.cache.LRUCache"&gt;
+  &lt;resourceParams&gt;
+     &lt;parameter&gt;
+        &lt;name&gt;factory&lt;/name&gt;
+        &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+     &lt;/parameter&gt;
+     &lt;parameter&gt;
+        &lt;name&gt;timeout&lt;/name&gt;
+        &lt;value&gt;120000&lt;/value&gt;
+     &lt;/parameter&gt;
+  &lt;/resourceParams&gt;
+&lt;/resource>
+</pre>
+
+<p>
+In this case a LRU cache is configured. The "<i>timeout</i>" parameter (in ms) is used to specify the idle time of the resource object before it is removed from the cache.
+<br>
+The same cache resource can be reused in different services but usually once cache per service will be configured. 
+</p>
+<p>
+
+<p>
+Once the cache resource entry is defined add the "<i>cacheLocation</i>" parameter to the service <i>home</i> resource. The "<i>cacheLocation</i>" parameter value is the JNDI name of the cache resource:
+</p>
+<pre>
+&lt;service name="CounterService"&gt;
+   &lt;resource name="home" type="..."&gt;
+      &lt;resourceParams&gt;
+         ...<b>
+         &lt;parameter&gt;
+            &lt;name&gt;cacheLocation&lt;/name&gt;
+            &lt;value&gt;java:comp/env/CounterService/cache&lt;/value&gt;
+         &lt;/parameter&gt;</b>
+         ...
+      &lt;/resourceParams&gt;
+   &lt;/resource>
+   ...
+   &lt;resource name="cache" 
+             type="org.globus.wsrf.utils.cache.LRUCache"&gt;
+   ...
+   &lt;/resource>
+&lt;/service>
+</pre>
+<p>
+Please note that once the object is removed from the cache it is still up to the JVM to actually reclaim the object.
+</p>
+
 
 <h3>ServiceResourceHome</h3>
 
