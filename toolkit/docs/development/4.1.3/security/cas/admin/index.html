@@ -12,18 +12,127 @@
 <p><font color="purple">[introduces the guide to sysadmins AND points them to
     the Installation Guide for comprehensive basic installation/configuration
     info]</font></p>
+
 <h2><a name="installing"></a>Building and Installing</h2>
 <p><font color="purple">[information about installing the component - may link
     to Installation Guide]</font></p>
+
 <h2><a name="configuring"></a>Configuring </h2>
 <p>Information on configuration settings and environment variables can be found
   in the <a href="../WS_AA_CAS_Public_Interfaces.html">public interface guide</a>.</p>
+
 <h2><a name="deploying"></a>Deploying</h2>
 <p><font color="purple">[information about deploying the component into various
     containers/environments] </font></p>
+
 <h2><a name="testing"></a>Testing</h2>
-<p><font color="purple">[procedures for how to test the configuration. must include
-    examples of the tests ]</font></p>
+
+<p> CAS has two sets of tests, one for the backend database access
+module and another set to test the service itself. To install both
+tests, the CAS test package
+(<i>gt4-cas-delegation-test-3.9-src_bundle.tar.gz</i>) needs to be
+installed using GPT <b>FILLME: instructions </b> into
+<i>GLOBUS_LOCATION</i>.</p>
+
+<p> It is assumed thet a backend database has been set up and
+configured and that CAS service and tests are installed in
+<i>$GLOBUS_LOCATION</i>. The sample commands assume that the service
+is running on localhost and port 8080, and that the database is set up
+with a) username as tester, b) database name as casDatabase, c) host as
+foo.bar.gov and default port.</p>
+
+<ul>
+<li> Testing backend database module
+<ul>
+<li> cd $GLOBUS_LOCATION
+<li> The file <i>etc/globus_cas_unit_test/casTestProperties</i> needs to be populated with database configuration information.
+
+<a name="testDbConfig"></a><table>
+<tr><td>dbDriver </td><td> The JDBC driver to be used</td></tr>
+<tr><td>dbConnectionURL </td><td> JDBC connection url to be used to connect to database</td></tr>
+<tr><td>dbUsername </td><td> user name to connect to database as</td></tr>
+<tr><td>dbPassword </td><td> database password for the said username </td></tr>
+</table>
+
+<li> The database needs to be empty for these tests to work. To delete
+all the data in the database the following can be used:
+
+<pre>psql -d casDatabase -U tester -h foo.bar.gov -f etc/globus_cas_utils/database_delete.sql </pre>
+<li> ant -f share/globus_cas_unit_test/cas-test-build.xml testDatabase
+<li> Test reports are palced in $GLOBUS_LOCATION/share/globus_cas_unit_test/cas-test-reports
+</ul>
+<li> Testing CAS service module
+
+<p> These tests can be set up so as to be able to test multiple user
+scenario or it can be configured to run just as a single identity. The first set of tests are used to test admin functionality and sets up the database for second user. As the second user the permissions and queries are tested to ensure that the set up worked.</p>
+
+<p> All the configuraiton information for the test, needs to be
+configured in
+<i>etc/globus_cas_unit_test/casTestProperties</i> file. The database
+section of the properties file needs to be configured as described <a
+href="testDbConfig">here</a>. Other than those, the following
+properties also need to be configured for these tests:</p>
+
+<table>
+<tr><td>user1SubjectDN</td><td> The DN of the user running the first
+set of tests.</td></tr>
+<tr><td>user2SubjectDN</td><td> The DN of the user running the second
+set of tests. Can be the same as previous property</td></tr>
+<tr><td>maxAssertionLifetime</td><td> Should match the value set in
+service configuration as shown in <a
+href="./../WS_AA_CAS_Public_Interfaces.html#config">Configuration
+information</a></td></tr> </table>
+
+<p> Steps for testing:</p>
+
+<ol>
+<li> cd $GLOBUS_LOCATION
+
+<li> The database needs to be empty for these tests to work. To delete
+all the data in the database the following can be used:
+
+<pre>psql -d casDatabase -U tester -h foo.bar.gov -f etc/globus_cas_utils/database_delete.sql </pre>
+
+<li> In the test properties file, set <i>user2SubjectDN</i> to be the
+subject in your regular proxy. The following returns the appropriate
+string
+
+<pre>  casadmin$ bin\grid-cert-info -subject -globus</pre>
+
+<li> Generated an independent proxy using the following command. 
+    
+<pre>  casadmin$ bin\grid-proxy-init -independent<br></pre>
+
+<li> Set the identity in the proxy generated from the above step as
+<i>user1SubjectDN</i> in the test properties file. The following
+command will return the relevant string.
+
+<pre>  casadmin$ java org.globus.tools.ProxyInfo -subject -globus</pre>
+
+<li> Start a container on port, say testPort and host, hostPort.
+
+<li> The following command, runs tests for self permissions and sets up the database for user with subjectDN that is user2SubjectDN. 
+            
+<pre>  casadmin$ ant -f share/globus_cas_unit_test/cas-test-build.xml -Dtest.port=testPort -Dtest.host=testHost serverTestIser1</pre>
+
+<li> To test as the second user, generate proxy for the subject DN specified for the second user.
+
+    <pre>  casadmin$ bin/grid-proxy-init <br></pre></li>
+
+<li> To test as second user, run the following. If you are not running container on default host/port, set properties as shown <a href="#testParams">here.</a>
+
+    <pre>  casadmin$ ant -f GLOBUS_LOCATION/etc/cas-build.xml serverTestsUser2 -Dtest.port=testPort -Dtest.host=testHost</pre>
+
+<li> Test reports are palced in $GLOBUS_LOCATION/share/globus_cas_unit_test/cas-test-reports
+
+<li>After these tests, the CAS database needs to be reset. The following
+command will delete all entries from the database.
+
+<pre> casadmin$ psql -U casadmin -d casDatabase -f GLOBUS_LOCATION/share/cas/database_delete.sql<br></pre>
+
+</li>
+</ul>
+
 <h2><a name="troubleshooting"></a>Troubleshooting</h2>
 <p><font color="purple">[help for common problems sysadmins may experience] </font></p>
 <p>&nbsp;</p>
