@@ -18,7 +18,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <ol>
 <li><a href="#mechanisms">Basic Computation Mechanisms</a>
-<li><a href="#workflow">Components for Workflow Management</a>
+<li><a href="#frameworks">Distributed Programming Frameworks</a>
 <li><a href="#metascheduling">Components for Metascheduling</a>
 <li><a href="#virtualdata">Components for Virtual Data</a>
 </ol>
@@ -54,7 +54,7 @@ be used in conjunction with a scheduler to provide a managed computation service
 critical interface between the GRAM service and several popular schedulers. </li>
 </ul>
 
-<p><strong><a name="workflow" class="title">Distributed Programming Frameworks</a></strong><p>
+<p><strong><a name="frameworks" class="title">Distributed Programming Frameworks</a></strong><p>
 
 <p>
 These components provide programming support for developing distributed applications using three
@@ -65,8 +65,8 @@ familiar frameworks: RPC, message passing, and workflow.
 <li><strong><a href='computation/netsolve.php'>NetSolve/GridSolve</a></strong> - NetSolve/GridSolve is an RPC-based library for executing solver code on Grid resources.</li>
 <li><strong><a href='computation/ninf-g.php'>Ninf-G</a></strong> - Ninf-G allows existing programming libraries to be used
 in a distributed fashion on a Grid using the RPC framework.</li>
-<li><strong><a href='computation/mpich-g2.php'>MPICH-G2</a></strong> - MPICH-G2 is a Grid-enabled implementation of the popular MPI (Message Passing Interface) framework for 
-managing concurrent processes that communicate with each other during execution
+<li><strong><a href='computation/mpich-g2.php'>MPICH-G2</a></strong> - MPICH-G2 is a Grid-enabled 
+implementation of the popular MPI (Message Passing Interface) framework
 <li><strong><a href='computation/condor-g.php'>Condor-G, DAGman</a></strong> - Condor-G and DAGman can be used 
 to execute complex workflows (consisting of multiple independent or related jobs) using Grid compute resources 
 via GRAM or Condor.</li>
