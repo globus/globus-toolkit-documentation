@@ -4,74 +4,102 @@ $title = "GT3 GRAM Fault Tolerance";
 
 include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
 ?>
-<h1><?php echo $title; ?></h1>
+<link href="../../../../../../../CSS/style.css" rel="stylesheet" type="text/css">
 
-<p>GT3 GRAM fault tolerance is managed by a coordinated set of
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/">Documentation</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/3.2/">3.2</a> &gt; <a href="../index.html">WS
+    GRAM</a> &gt; Developer's Guide &lt; </p>
+<h1>WS GRAM: Developer's Guide </h1>
+<p class="small"><a href="index.html">Overview</a><br>
+    <a href="GT_3_2_GRAM.html" target="_blank">GRAM slides</a><br>
+    <a href="http://www-unix.globus.org/api/javadoc-3.2/" target="_blank">API</a><br>
+    <a href="architecture.html">Architecture</a><br>
+  &gt;Fault Tolerance Architecture<br>
+    <a href="mjs_rsl_schema.html">RSL Schema</a><br>
+    <a href="managed_job_types.html">MJS Fault Types</a><br>
+    <a href="samples.html">Samples</a><br>
+    <a href="scheduler.html">Scheduler tutorial</a><br>
+    <a href="troubleshooting.html">Troubleshooting</a></p>
+<h2>Fault Tolerance Architecture </h2>
+<p>WS GRAM fault tolerance is managed by a coordinated set of
 serviceContainer handlers and background sweeper tasks in both the MHE and
 UHE.  Below is a diagram with descriptions of how it is accomplished.</p>
 
-<p>For more information on GRID service persistence in the OGSA core framework, refer to the GT3 java programmers guide. 
+<p>For more information on GRID service persistence in the OGSA core framework,
+  refer to the <a href="../../../core/developer/javaprogramming.html">Java Programming
+  Guide</a>. 
 <p>
 
 <img src="gt3_gram_fault_tolerance.jpg" align="center">
 
-<h2>UHERestartHandler in the MHE</h2>
+<h3>UHERestartHandler in the MHE</h3>
 
-<p>The UHERestartHandler is containerHandler in the
-Master Host Environment (MHE) that is installed when the
-MasterManagedJobFactoryService is installed.  It is configured to
-run once when the MHE is started.  The UHERestartHandler attempts to
-restart any User Host Environments (UHEs) that were previously started
-by the MHE.  For each UHE entry in the jobManPortMapping, it uses
-the startLocalHostingEnv java method in Setuid.java to start the UHE.
-This is the same method used by the MMJFS to start a UHE.</p>
+<blockquote>
+  <p>The UHERestartHandler is containerHandler in the
+    Master Host Environment (MHE) that is installed when the
+    MasterManagedJobFactoryService is installed.  It is configured to
+    run once when the MHE is started.  The UHERestartHandler attempts to
+    restart any User Host Environments (UHEs) that were previously started
+    by the MHE.  For each UHE entry in the jobManPortMapping, it uses
+    the startLocalHostingEnv java method in Setuid.java to start the UHE.
+    This is the same method used by the MMJFS to start a UHE.</p>
+</blockquote>
+<h3>UHESweeperTask in the MHE</h3>
 
-<h2>UHESweeperTask in the MHE</h2>
+<blockquote>
+  <p>UHESweeperTask is a background task running in the MHE.  It is
+    configured to run every two hours.  It is responsible for restarting "crashed" UHEs
+    and updating the jobManPortMapping file when a UHE is shutting itself down
+    due to inactivity. </p>
+  <p>To determine if a UHE has crashed, for each entry in the
+    jobManPortMapping, the UHESweeperTask pings the UHE's admin service to
+    determine if it is still alive.  If the ping fails, the UHESweeperTask
+    restarts the UHE on the same port.  If the restart fails, no further
+    attempts are made until the sweeper task is run again.
+    
+</p>
+  <p>To identify UHEs that are shutting down, the UHESweeperTask does a
+    findServiceData call for UHEActivity SDE in the UHE's Admin Service.
+    If the SDE is "Shutdown" then the jobManPortMapping file is purged of
+    the entry for that UHE. </p>
+</blockquote>
+<h3>SimpleTimestampHandler in the UHE</h3>
 
-<p>UHESweeperTask is a background task running in the MHE.  It is
-configured to run every two hours.  It is responsible for restarting
-"crashed" UHEs and updating the jobManPortMapping file when a UHE is
-shutting itself down due to inactivity.
+<blockquote>
+  <p>This logs a timestamp everytime a message comes into the UHE.
+    This handler gets installed in the UHE at creation time.
+    
+</p>
+</blockquote>
+<h3>UHEActivityTask in the UHE</h3>
 
-<p>To determine if a UHE has crashed, for each entry in the
-jobManPortMapping, the UHESweeperTask pings the UHE's admin service to
-determine if it is still alive.  If the ping fails, the UHESweeperTask
-restarts the UHE on the same port.  If the restart fails, no further
-attempts are made until the sweeper task is run again.
+<blockquote>
+  <p>This is a UHE background sweeper task.  It monitors the activity
+    of UHE and sets the UHEActivity SDE in AdminService accordingly.
+    The UHEActivityTask SDE can have two values, "Active" or "Shutdown".
+    Active is set when the UHE has had a recent message or an active service
+    instance.  Shutdown is set when the UHE has no active service instances
+    and no messages have been received in the past 2 hours.  The UHE is
+    actually shutdown the *next* time the UHEActivityTask is run. </p>
+</blockquote>
+<h3>MHE services</h3>
 
-<p>To identify UHEs that are shutting down, the UHESweeperTask does a
-findServiceData call for UHEActivity SDE in the UHE's Admin Service.
-If the SDE is "Shutdown" then the jobManPortMapping file is purged of
-the entry for that UHE.
+<blockquote>
+  <p>The persistent service in the MHE are restarted after the
+    UHERestartHandler is run.  Typically, this includes one or more MMJFSs
+    and a RIPS.
+    
+</p>
+</blockquote>
+<h3>UHE services</h3>
 
-<h2>SimpleTimestampHandler in the UHE</h2>
-
-<p>This logs a timestamp everytime a message comes into the UHE.
-This handler gets installed in the UHE at creation time.
-
-<h2>UHEActivityTask in the UHE</h2>
-
-<p>This is a UHE background sweeper task.  It monitors the activity
-of UHE and sets the UHEActivity SDE in AdminService accordingly.
-The UHEActivityTask SDE can have two values, "Active" or "Shutdown".
-Active is set when the UHE has had a recent message or an active service
-instance.  Shutdown is set when the UHE has no active service instances
-and no messages have been received in the past 2 hours.  The UHE is
-actually shutdown the *next* time the UHEActivityTask is run.
-
-<h2>MHE services</h2>
-
-<p>The persistent service in the MHE are restarted after the
-UHERestartHandler is run.  Typically, this includes one or more MMJFSs
-and a RIPS.
-
-<h2>UHE services</h2>
-
-<p>The persistent services in the UHE are MJFSs, MJS instances,
-FileStreamFactoryServices, and FileStreamService instances.  Once a MJS
-instance has been recovered, it resumes monitoring of the User's job.
-
-<h1>Testing GT3 GRAM Fault Tolerance</h1>
+<blockquote>
+  <p>The persistent services in the UHE are MJFSs, MJS instances,
+    FileStreamFactoryServices, and FileStreamService instances.  Once a MJS
+    instance has been recovered, it resumes monitoring of the User's job.
+    
+</p>
+</blockquote>
+<h2>Testing WS GRAM Fault Tolerance</h2>
 
 <p><a href="fault_tolerance_testing.html">Testing Scenarios and Results</a>
 
