@@ -6,8 +6,9 @@ all: html pdf
 
 html:
 	xsltproc --stringparam chunk.section.depth 0 \
+	--stringparam html.cellpadding 3\
            ${GRAPHICS} ${NUMBERING} \
-           custom.xsl \
+           chunk.xsl \
            ${FILENAME}
 
 pdf:
