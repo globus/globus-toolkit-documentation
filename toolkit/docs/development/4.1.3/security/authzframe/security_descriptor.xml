@@ -30,8 +30,7 @@
   <para>The following shows how the service and container security descriptor files
 are configured:</para>
   <screen>&lt;globalConfiguration&gt;
-   ...
-   &lt;parameter name=&quot;containerSecDesc&quot; 
+   ...&lt;parameter name=&quot;containerSecDesc&quot; 
               value=&quot;etc/container-security-config.xml&quot;&gt;
    ...
 &lt;globalConfiguration&gt;
@@ -229,7 +228,7 @@ are configured:</para>
         <simpara>Multiple authentication methods can be specified under the <constant>&lt;auth-method&gt;</constant> element (expect for the <constant>&lt;none/&gt;</constant> method, see above). As long as one of the specified authentication methods is used, access to the service is allowed.</simpara>
       </listitem>
       <listitem>
-        <simpara>If <emphasis>no</emphasis> <constant>&lt;protection-level&gt;</constant> sub element is specified, then all protection levels are available to clients. However, if the <constant>&lt;protection-level&gt;</constant> sub element <emphasis>is</emphasis> specified, then the service will only accept the protection levels listed under said element.</simpara>
+        <simpara>If <emphasis>no</emphasis><constant>&lt;protection-level&gt;</constant> sub element is specified, then all protection levels are available to clients. However, if the <constant>&lt;protection-level&gt;</constant> sub element <emphasis>is</emphasis> specified, then the service will only accept the protection levels listed under said element.</simpara>
       </listitem>
       <listitem>
         <simpara>The <constant>org.globus.wsrf.impl.security.authentication.SecurityPolicyHandler</constant> handler <emphasis>must</emphasis> be installed properly in order for this to work. This handler is installed by default.</simpara>
@@ -387,7 +386,7 @@ are configured:</para>
   authorization mechanisms (also known as Policy Decision Points (PDPs)),
   using the <emphasis>authz</emphasis> element. Each PDP name is scoped and the
   format is <emphasis>prefix:FQDN of the PDP</emphasis>. For example,
-  <emphasis>self:org.globus.wsrf.impl.security.authorization.SelfAuthorization</emphasis>. The
+  <emphasis>self:org.globus.wsrf.impl.security.authorization.SelfAuthorization</emphasis>.  The prefix is used to allow multiple instances of the same PDP to exist in the same PDP chain. The
   authorization is deemed to be a permit if each of the authorization
   mechanisms in the chain returns a permit.</para>
     <para><emphasis>Example:</emphasis></para>
@@ -557,42 +556,93 @@ authorization mechanism</para>
   <section id="s-authzframe-secdesc-customAuthz">
     <title>Writing a custom authorization mechanism</title>
     <para>The authorization handler can be configured to call out to a custom authorization
-    class. The class must implement the interface <constant>org.globus.wsrf.impl.security.PDP</constant>. </para>
-    <para>If the authorization fails, then a <constant>org.globus.wsrf.impl.security.authorization.AuthorizationException</constant> should
-    be thrown.</para>
+    class. The class must implement the interface <constant>org.globus.wsrf.security.PDP</constant>. </para>
     <para><emphasis>Example: </emphasis> 
   </para>
-    <screen>public class FooAuthorization implements PDP {
+    <screen>package org.foobar;
 
-  public void authorize(Subject peerSubject, ServiceProperties service,
-   MessageContext context) 
- throws AuthorizationException {
- // Evaluate and throw exception if not authorized.
-      }
-  }</screen>
-    <para><emphasis>Example:</emphasis></para>
+import ....;
+
+public class FooPDP implements PDP
+{
+    private Principal authorizedIdentity;
+
+    /* Not used by the current code */
+    public String[] getPolicyNames() {
+        return new String[0];
+    }
+
+    /* Not used by the current code */
+    public Node getPolicy(Node query)
+        throws InvalidPolicyException {
+        return null;
+    }
+
+    /* Not used by the current code */
+    public Node setPolicy(Node policy)
+        throws InvalidPolicyException {
+        return null;
+    }
+
+    public boolean isPermitted(Subject peerSubject,
+                               MessageContext context,
+                               QName operation)
+        throws AuthorizationException {
+
+        if (peerSubject == null) {
+            return false;
+        }
+
+        Set peerPrincipals = peerSubject.getPrincipals();
+
+        if ((peerPrincipals == null) || peerPrincipals.isEmpty()) {
+            return false;
+        }
+
+        /* Check if the peer identity and the authorized
+         * identity match
+         */
+
+        return peerPrincipals.contains(this.authorizedIdentity);
+    }
+
+    public void initialize(PDPConfig config,
+                           String name,
+                           String id)
+        throws InitializeException {
+
+        /* Read the initialization information from the service
+         * specific WSDD parameter &lt;name&gt;-authorizedIdentity
+         */
+
+        this. authorizedIdentity =
+            new GlobusPrincipal((String) config.getProperty(
+                name, &quot;authorizedIdentity&quot;));
+    }
+
+    public void close() throws CloseException {
+        this. authorizedIdentity = null;
+    }
+}</screen>
+    <para>To use the above PDP one would configure a service security descriptor with the following authorization settings:</para>
     <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
-   &lt;method name=&quot;findServiceData&quot;&gt;
-      &lt;run-as&gt;
-         &lt;caller-identity/&gt;
-      &lt;/run-as&gt;
-   &lt;/method&gt;
-
-   &lt;method name=&quot;destroy&quot;&gt;
-      &lt;run-as&gt;
-         &lt;system-identity/&gt;
-      &lt;/run-as&gt;
-   &lt;/method&gt;
-
-   &lt;!-- default run-as for any other method --&gt;
-   &lt;run-as&gt;
-      &lt;service-identity/&gt;
-   &lt;/run-as&gt;
-   &lt;context-lifetime value=&quot;100&quot;/&gt;
-&lt;/securityConfig&gt;</screen>
-    <para>In the above example, if the service is accessed using a limited
-    proxy, an error is reported. Also, the contexts created at the
-    server end are set to have a lifetime of 100 seconds. </para>
+   ...
+   &lt;authz value=&quot;foo1:org.foobar.FooPDP&quot;/&gt;
+   ...
+&lt;securityConfig/&gt;</screen>
+    <para>This security descriptor (identified as <filename>/.../foo-pdp-security-config.xml</filename> in the below) can then be used by a service as follows:</para>
+    <screen>...
+&lt;service name=&quot;MyDummyService&quot; 
+             provider=&quot;Handler&quot; 
+             style=&quot;document&quot;&gt;
+   ...
+   &lt;parameter name=&quot;securityDescriptor&quot; 
+                     value=&quot;/.../foo-pdp-security-config.xml&quot;/&gt;
+   &lt;parameter name=&quot;foo1-authorizedIdentity&quot; 
+                     value=&quot;/DC=org/DC=doe/OU=People/CN=John D&quot;/&gt;
+   ...
+&lt;/service&gt;</screen>
+    <para>Note that the parameter <parameter>foo1-authorizedIdentity</parameter> in the above configures the identity the PDP uses  for authorizing incoming requests. The parameter name is derived by composing the prefix used when specifying the PDP in the security descriptor with the property name used in the PDP code.</para>
   </section>
 </section>
 <section id="s-authzfram-secdesc-descProgram">
