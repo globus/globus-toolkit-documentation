@@ -66,7 +66,7 @@ your request for an account is denied.)
 
 $software = "PURSE";
 $developer = "<a href='http://www.grids-center.org/'>GRIDS Center</a>";
-$distros = "PURSE is not yet included in any known distribution, but it can be made available on request.";
+$distros = "A development version is available.  Please see the user manual linked above for information about anonymous CVS access.";
 $contact = "<a href='mailto:info@grids-center.org'>info@grids-center.org</a>";
 
 app_info($software, $developer, $distros, $contact);
