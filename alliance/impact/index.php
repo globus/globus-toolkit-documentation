@@ -22,12 +22,12 @@ advances that have been helped by Globus technology.</p>
 
 <table>
 <tr>
-<td><?php include("isabel.inc"); ?></td>
-<td><?php include("leadimpact.inc"); ?></td>
+<td width="50%"><?php include("isabel.inc"); ?></td>
+<td width="50%"><?php include("leadimpact.inc"); ?></td>
 </tr>
 <tr>
-<td><?php include("gravitywaves.inc"); ?></td>
-<td><br></td>
+<td width="50%"><?php include("gravitywaves.inc"); ?></td>
+<td width="50%"><br></td>
 </tr>
 </table>
 
