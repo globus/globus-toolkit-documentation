@@ -3,11 +3,225 @@
 include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/draft.inc" );
 ?>
 
-<h1>MDS4 Key Concepts</h1>
-
+<p><font color="purple">[context: this document will ideally be read after the
+    Toolkit-level Key Concepts and is meant to be a user-friendly starting point
+    for people curious about mds. the main purpose is to answer the questions:
+    What is MDS4? Why would i want it? This will then be a gateway to each components
+    admin/dev/user guides. the language should be simple as opposed to technical/jargony/corporate] </font></p>
+<h1>Information Services (MDS) : Key Concepts</h1>
 <ul>
-
-  <li><a href="deployment_overview.html">Deploying MDS4 in a VO</a></li>
-  <li><a href="gluerp.html">Configuring the GLUE Resource Property to publish cluster information</a></li>
-
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#concepts">Conceptual details</a>
+    <ul>
+      <li>[will fill in subheadings also] </li>
+    </ul>
+  </li>
+  <li><a href="#relateddocs"> Performance characteristics</a></li>
+  <li><a href="#mds2_mds4">Differences between MDS4 and previous versions </a> </li>
+  <li><a href="#related"> Related documents</a> </li>
 </ul>
+<h2><a name=overview></a>Overview</h2>
+<p><strong>Note:</strong> If you haven't done so already, we recommend reading
+  the [GT4 Key Concepts guide] before continuing with this one.</p>
+<p>The Monitoring and Discovery System (MDS4) component of Globus Toolkit V4
+  (GT4) can streamline the tasks of monitoring and discovering services and resources
+  in a distributed system or Grid :</p>
+<ul>
+  <li><em>Monitoring</em> is the process of observing resources or services (e.g.,
+    computers and schedulers), for such purposes as fixing problems and tracking
+    usage. For example, a user might use a monitoring system to identify resources
+    that are running low on disk space, in order to take corrective action.</li>
+  <li><em>Discovery</em> is the process of finding a suitable resource to perform
+    a task: for example, finding a compute host on which to run a job. This process
+    may involve both finding which resources are suitable (e.g., have the correct
+    CPU architecture) and choosing a suitable member from that set (e.g., the
+    one with the shortest submission queue).</li>
+</ul>
+<p>Both monitoring and discovery applications require the ability to collect
+  information from multiple, perhaps distributed, sources (referred to in this
+  documentation as <em>information sources</em>). To meet this need, MDS4 provides:</p>
+<ul>
+  <li><em>aggregator services</em> that collect recent state information from
+    registered information sources (note for developers: these services are all
+    built on the <em>aggregator
+    framework</em>):
+        <ul>
+          <li><em>MDS-Index</em> service provides the current status of the state
+            information.</li>
+          <li><em>MDS-Trigger</em> service <font color="purple">(easy reader
+          description)</font></li>
+          <li><em>MDS-Archiver</em> service, as the name suggests, stores the
+            state information for future queries. </li>
+        </ul>
+  </li>
+  <li>browser-based interfaces (such as <em>WebMDS</em>), command line tools (such as
+    <em>wsrf-get-property</em>), and Web service interfaces that allow users to query
+  and access the collected information:</li>
+</ul>
+<p>MDS4 makes heavy use of XML and Web service interfaces to simplify the tasks
+  of registering information sources and locating and accessing information of
+  interest. In particular, all information collected by aggregator services is
+  maintained as XML, and can be queried via Xpath queries (as well as other Web
+  services mechanisms.) <font color="purple">[need some mention of WSRF here..]</font> </p>
+<h2><a
+name=concepts></a>Conceptual details</h2>
+<p>The key to understanding MDS4 is the aggregator service/information source
+  framework. The basic ideas are as follows:</p>
+<ul>
+  <li>Information sources are
+    explicitly registered with an aggregator service.</li>
+  <li>Registrations have a lifetime: if not renewed periodically, they expire.
+    (Thus, an aggregator service is self-cleaning: outdated entries disappear
+    automatically when they do not renew their registrations.)</li>
+  <li>The aggregator service periodically collects up-to-date state or status
+    information from all registered information sources, by using an <font color="purple">access
+    mechanism</font> specific to the source (such as <font color="purple">?</font>.) </li>
+  <li>The aggregator service then makes this information available via an <font color="purple">aggregator-service-specific</font>
+    Web services interface (such as WebMDS.)</li>
+</ul>
+<p>[diagram?]</p>
+<h3>Registering information sources</h3>
+<p>An information source can be essentially any entity from which an aggregator
+  service can obtain information: for example, a file, a program, a Web service,
+  or another network-enabled service.</p>
+<p>As noted above, information sources must be registered periodically with any
+  aggregator&nbsp;service <font color="purple">that is to provide access to its
+  data values</font>.&nbsp;Registration
+  is performed via a Web service (WS-ServiceGroup) Add operation. </p>
+<p>Two registration modes are supported; <font color="purple">each also defines
+  the mechanism to be used to access the associated information source</font>.</p>
+<h4><font color="purple">General mode </font></h4>
+<p><font color="purple">The more general registration mode allows information
+    to be obtained from an arbitrary source. In this mode, an information source
+    is registered by providing a user-supplied program that is run periodically
+    to obtain up-to-date data .&nbsp;This user program can either generate the
+    information locally or use a source-specific protocol to access the information
+    remotely. The program must convert non-XML data into an appropriate XML representation.</font></p>
+<h4><font color="purple">Streamlined mode </font></h4>
+<p><font color="purple">A more streamlined form of registration is supported
+    for WSRF-compliant Web services. Such services need simply to&nbsp;make status and state information
+    available as WSRF resource properties.&nbsp;At registration time, the user
+    specifies whether the aggregator should use either <em>pull</em> resource
+    properties, using the WSRF &ldquo;get resource property&rdquo; interface,
+    or to subscribe to resource property changes so that values are <em>pushed</em> via
+    WS-Notification subscription methods.</font></p>
+<h3>GT4&rsquo;s Built-In Information Sources</h3>
+<p>GT4 is configured to use MDS4 components for discovery and monitoring of GT4
+  services, as follows:</p>
+<ul>
+  <li>Every GT4 Web service supports a minimal set of resource properties (an
+    informal service name and a service startup time) and thus can be registered
+    easily into one or more aggregator services for monitoring and discovery.</li>
+  <li>Two GT4 Web services, GRAM and RFT, also publish a larger set of service-specific
+    information. These values are documented in the service descriptions for
+    GRAM and RFT <font color="purple">[provide links]</font> and also in the [GT4 resource properties catalog].</li>
+  <li>The GT4 distribution also includes information source executables to enable
+    registering GridFTP and RLS into aggregator services <font color="purple">[any
+    examples? specific names?].</font></li>
+</ul>
+<h3>Aggregator services</h3>
+<p>MDS4 aggregator services are distinguished from a traditional static registry
+  such as UDDI by their soft-state registration of information sources and periodic
+  refresh of the information source values that they store. This dynamic behavior
+  enables scalable discovery by allowing users to access &ldquo;recent&rdquo; information
+  without accessing the information sources directly. </p>
+<p>However, note that the information obtained may not be the absolute latest.
+  Also, as aggregator services do not interpret policy information, there is
+  no guarantee that a user will be allowed to access a service discovered in
+  this way.</p>
+<p><font color="purple">[how's the level of detail for Index, Trigger and Archiver? these are only
+  supposed to be introductions but does it cover enough ground?]</font></p>
+<h4>MDS-Index service </h4>
+<p>The <em>MDS-Index</em> service is the main component of MDS. It makes data
+  collected from information sources available as XML documents and supports
+  Xpath queries on the latest values obtained from the information sources.</p>
+<p>For more information, see the <a href="../index/">MDS-Index service documentation</a>.</p>
+<h4>MDS-Trigger service </h4>
+<p>The <em>MDS-Trigger</em> service performs user-specified actions (such as
+  sending email or generating a log-file entry) whenever collected information
+  matches user determined criteria. MDS-Trigger defines:</p>
+<ul>
+  <li> a Web service interface that allows a client to register an Xpath query;
+    and</li>
+  <li>a program to be executed whenever a new value matches a user-supplied matching
+    rule.</li>
+</ul>
+<p>For more information, see the <a href="../trigger/">MDS-Trigger service documentation</a>.</p>
+<h4>MDS-Archiver service </h4>
+<p>The <em>MDS-Archiver</em> service stores all values received from information
+  sources in a persistent database. Client requests can then specify a time range
+  for which data values are required.</p>
+<p>For more information, see the MDS-Archiver service documentation.</p>
+<h3>Public interfaces</h3>
+<p>Since the data collected by aggregator services are maintained as WSRF resource
+  properties, there are three possible user interfaces: </p>
+<h4>Web services interfaces </h4>
+<p>Users can write their own applications that collect information using standard<em> Web
+        services interfaces</em>, namely the [WSRF get-property] and [WS-Notification
+      subscribe operations], for which GT4 provides C, Java, and Python APIs.</p>
+<p>For more information, see <font color="purple">[is this documented anywhere?]</font>.</p>
+<h4>Command line</h4>
+<p>The command line tool <code>wsrf-get-property</code> can be used to retrieve
+      resource properties, with the desired resource property specified via an
+    XPath expression.</p>
+<p>For more information, see <font color="purple">[is this documented anywhere?]</font></p>
+<h4>Browser-based</h4>
+<p><em>WebMDS</em> presents MDS-Index information in a standard web browser.
+          WebMDS is highly configurable, using XLST transformations to describe
+    how MDS-Index resource properties are converted to HTML.&nbsp;Standard transformations
+          included in GT4 provide an interface that displays overview information,
+          with hyperlinks giving the ability to drill down and view more detailed
+    information about each monitored resource.</p>
+<p>For more information, see the WebMDS documentation.</p>
+<h3>Capabilities of a Basic MDS4 Deployment</h3>
+<p>Every standard GT4 Web services hosting environment includes a default MDS-Index
+  service with which any GT4 services running in that hosting environment (e.g.,
+  GRAM, CAS, RFT) are automatically registered. Thus, each installation on a
+  platform has an index that allows one to discover what services are available.</p>
+<p>In addition, virtual organizations (VOs) often need to keep track of all the
+  WS-Resources that are available to it. To accommodate this common case, GT4
+  also provides a simple method for specifying one or more default indexes to
+  be a VO-wide MDS-Index so that each WS-Resource registered to a default MDS-Index
+  is also registered in the VO MDS-Index.</p>
+<p>For a description of an example deployment, see <a href="deployment_overview.html">Deployment
+    Overview</a>. </p>
+<h2><a name=relateddocs></a>Performance Characteristics</h2>
+<p>We only have very preliminary performance data at this time. These data suggest
+  that MDS4 aggregator services can support query rates of the order of tens
+  of queries per second (depending on data sizes) and a few hundred information
+  sources, depending on registration and information update rates. We emphasize
+  that these are not accurate data. We welcome feedback on application requirements.</p>
+<h2><a name="mds2_mds4"></a>Differences between MDS4 and previous versions</h2>
+<p>MDS4 has similar features to, but does not interoperate with, previous versions
+  of MDS (MDS2 and MDS3). The following are important differences:</p>
+<ul>
+  <li>More powerful query language: Xpath instead of LDAP</li>
+  <li>Simpler and therefore more robust implementation, due to fewer components</li>
+  <li>Simpler (indeed, in simple cases, totally automated) configuration, due
+    to fewer components and tight integration with the GT4 implementation</li>
+  <li>Convenient interface to arbitrary information sources due to extensible
+    architecture.</li>
+  <li>No requirement for pre-defined schema in information providers. </li>
+  <li>Lower performance due to use of XML protocols</li>
+</ul>
+<h2><a name="related"></a>Related Documents</h2>
+<p>The following links include internal or external documents that expand on
+  some of these key concepts:</p>
+<ul>
+  <li><a href="deployment_overview.html">Deploying MDS4 in a Virtual Organization</a></li>
+  <li> <a href="gluerp.html">Cluster Monitoring Information and the GLUE Resource
+      Property</a></li>
+</ul>
+<p>SHOULD BE IN OTHER DOCS.</p>
+<p>In the default installation, the most useful information collected and made
+  available by MDS is from the GRAM compute job submission service and the RFT
+  reliable file transfer service interface to GridFTP.</p>
+<p>For GRAM, the collected information includes details of each queue to which
+  jobs can be submitted, including name of the queue and number of jobs in the
+  queue. The information also includes information about the underlying cluster
+  or host that will be used to execute the compute job, with details such as
+  CPU type and disk space. </p>
+<p>For RFT, a number of numerical statistics are made available, including the
+  total number of files transferred, total number of bytes transferred, and the
+  number of transfers underway at present.</p>
+<p>&nbsp;</p>
