@@ -58,8 +58,6 @@ The Grid community has developed several specialized systems for system monitori
 <ul>
 <li><strong><a href="monitoring/trigger-service.php">Globus Trigger Service</a></strong> - A service that monitors WSRF resource properties and, when
 preconfigured patterns are matched, triggers actions</li>
-<li><strong><a href="monitoring/archiver-service.php">Globus Archiver Service</a></strong> - A service that logs WSRF resource property values over time,
-storing them in an XML database for later review</li>
 <li><strong><a href="monitoring/ganglia.php">Ganglia Cluster Toolkit</a></strong> - A toolkit that specializes in collecting monitoring data from clusters and hierarchical aggregations of clusters</li>
 <li><strong><a href="monitoring/inca.php">Inca</a></strong> - A generic framework for automated testing, verification, and monitoring of service-level agreements</li>
 <!-- <li><strong><a href="monitoring/big-brother.php">Big Brother</a></strong> - A scripting framework for producing web-based system status displays</li> -->
