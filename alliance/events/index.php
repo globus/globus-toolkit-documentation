@@ -35,7 +35,7 @@ reviewing some of the higher-level tools that build on Globus mechanisms. A brie
 introduction to administering a GT4-based Grid is also provided. To register,
 send email to <a href="mailto:gt4tutorial@novgp.com">gt4tutorial@novgp.com</a></p>
 
-<p><b>UK Globus Week, 2005</b><br>
+<p><b><a href="http://www.nesc.ac.uk/esi/events/519/">UK Globus Week, 2005</a></b><br>
 April 4-8, 2005<br>
 <u>Edinburgh, UK</u><br>
 UK Globus Week has 5 aims: to bring together people from the UK, Europe, and 
