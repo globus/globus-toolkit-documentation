@@ -25,16 +25,14 @@ gives the following output:
 <pre>
 gram-service
 gram-service-Fork
-gram-service-LSF
 gram-service-Multi
 </pre>
 
 <h2><a name="serverconfig"></a>Web service deployment configuration</h2>
 
 The file <tt>$GLOBUS_LOCATION/etc/gram-service/server-config.wsdd</tt> 
-contains information necessary to deploy and instanciate the GRAM services in the Globus 
-container, which uses Axis (<font color="red">insert link to Axis apache project</font>)
-to implementing the hosting of Web services. <p>
+contains information necessary to deploy and instantiate the GRAM services in the Globus container.
+<p>
 Three GRAM services are deployed:
 <ul>
 <li>ManagedExecutableJobService: service invoked when querying or managing an <i>executable job</i>
@@ -69,8 +67,7 @@ The JNDI-based GRAM configuration is of two kinds:
 <h3><a name="commonfactoryconfig"></a>Common job factory configuration</h3>
 
 The file <tt>$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml</tt> contains 
-configuration information that is common to every local resource managers 
-for which support is installe.
+configuration information that is common to every local resource manager.
 <p>
 More precisely, the configuration data it contains pertains to the implementation 
 of the GRAM WSRF resources (factory resources and job resources), 
@@ -86,7 +83,7 @@ used by several services. For more information, refer to the Globus Core documen
 (<font color="red">insert appropriate link</font>).
 <p>
 Here is the decomposition, in JNDI objects, of the common configuration 
-data, categorized by service by service. Each XYZHome object contains the same 
+data, categorized by service. Each XYZHome object contains the same 
 Globus Core-defined information for the implementation fo the WSRF resource, 
 such as the Java implementation class for the resource (<code>resourceClass</code> datum), 
 the Java class for the resource key (<code>resourceKeyType</code> datum), etc. 
@@ -95,18 +92,14 @@ the Java class for the resource key (<code>resourceKeyType</code> datum), etc.
 <li>ManagedExecutableJobService
    <ul>
      <li>ManagedExecutableJobHome: configuration of the implementation of resources for the service.<p>
-     Note the Java class, <code>PersistentManagedExecutableJobResource</code>, 
-     is a persistent resource class. If during job submission and execution a problem 
-     occur that may be due to persistence, or if job passivation and failure recovery is not required, it is possible to switch off persistence 
-     for the executable job resources by changing the class name to that of the non-persistent 
-     version of the executable job resource: <code>ManagedExecutableJobResource</code>.</li>
+     </li>
    </ul>
 </li>
 
 <li>ManagedMultiJobService
    <ul>
      <li>ManagedMultiJobHome: configuration of the implementation of resources for the service<p>
-         The remark about persistence is also valid here.</li>
+     </li>
    </ul>
 </li>
 
@@ -182,46 +175,87 @@ contains the following XML element structure:</p>
                         <b>Fork</b>
                     &lt;/value&gt;
                 &lt;/parameter&gt;           
-                [...]
+                &lt;parameter&gt;
+                    &lt;name&gt;
+                        <b>scratchDirectory</b>
+                    &lt;/name&gt;
+                    &lt;value&gt;
+                        <b>${GLOBUS_USER_HOME}</b>
+                    &lt;/value&gt;
+                &lt;/parameter&gt;           
             &lt;/resourceParams&gt;
         &lt;/resource&gt;        
     &lt;/service&gt;
 </pre>
 <p>In the example above, the <i>GRAM name</i> of the local resource manager is <tt>Fork</tt>. 
-This value can be used with the GRAM client in order to specify which factory resource to 
-use when submitting a job, or at a lower level of abstraction, in order to use the 
-GRAM client API to create an endpoint reference to the chosen factory service-resource pair. </p>
-
-<font color="red">TODO description of other info such as SCRATCH_DIR</font>
+This value can be used with the GRAM command line client in order to specify which factory resource to use when submitting a job.  Similarly, it is used to create contruct an endpoint reference to the chosen factory service-resource pair when using the GRAM client API. 
+<br>
+<p>In the example above, the <i>scratchDirectory</i> is set to <tt>${GLOBUS_USER_HOME}</tt>.  This is the default setting, it can be configured to point to an alternate netowrk file sustem path that is common to the compute cluster and is typically less reliable (auto purging), while offering a greater amount of disk space.  (e.g. /scratch)
+</p>
 
 <h2><a name="securitydesc"></a>Security descriptor</h2>
 
-The file <tt>$GLOBUS_LOCATION/etc/gram-service/managed-job-factory-security-config.xml</tt> 
-contains the Core security configuration for the GRAM <tt>ManagedJobFactory</tt> service:
+The file <tt>$GLOBUS_LOCATION/etc/gram-service/managed-job-factory-security-config.xml</tt> contains the Core security configuration for the GRAM <tt>ManagedJobFactory</tt> service:
 <ul>
-   <li>default security information for all remote invocations, such as the authorization method 
-       which is based on a Gridmap file (in order to resolve user credentials to local user names)
-       <font color="red">(insert at least sentence about reject-limited-proxy?)</font></li>
+   <li>default security information for all remote invocations, such as:
+       <ul>
+	  <li>the authorization method, based on a Gridmap file (in order to resolve user credentials to local user names) </li>
+	  <li>that limited proxy credentials will be rejected </li>
+       </ul>
    <li>security information for the <code>createManagedJob</code> operation</li>   
 </ul>
 
-The file <tt>$GLOBUS_LOCATION/etc/gram-service/managed-job-security-config.xml</tt> 
-contains the Core security configuration for the GRAM job resources:
+The file <tt>$GLOBUS_LOCATION/etc/gram-service/managed-job-security-config.xml</tt> contains the Core security configuration for the GRAM job resources:
 <ul>
-   <font color="red">More content here</font> 
+    <li>The default is to only allow the identity that called the createManagedJob operation to access the resource.
+    </li>
 </ul>
 
-<font color="red">More content here</font>
+Note: GRAM does not override the container security credentials defined in <tt>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml</tt>.  These are the credentials used to authenticate all service requests.
+
 
 <h2><a name="filesysmap"></a>File sytem to GridFTP mapping</h2>
 The file <tt>$GLOBUS_LOCATION/etc/gram-service/globus_gram_fs_map_config.xml</tt> 
-contains information to associate local resource managers with (Grid)FTP servers 
-used for staging and mappings between file system paths and (Grid)FTP paths. 
-This enables the GRAM services to resolve GridFTP URLs specified in staging 
-directives to local file URLs and vice-versa. 
-
-<font color="red">generate HTML from File mapping XML Schema and add link to it 
-here</font>
+contains information to associate local resource managers with GridFTP servers.  GRAM uses the GridFTP server (via RFT) to perform all file staging directives.
+Since the GridFTP server and the Globus service container can be run on separate hosts, a mapping is needed between the common file system paths of these 2 hosts.
+This enables the GRAM services to resolve file:/// staging directives to the local GridFTP URLs.
 <p>
-<font color="red">More content here</font>
 
+below is the default Fork entry.  mapping a jobPath of / to ftpPath of / will allow any file staging directive to be attempted.
+<pre>
+    &lt;map&gt;
+        &lt;scheduler&gt;Fork&lt;/scheduler&gt;
+        &lt;ftpServer&gt;
+           &lt;protocol&gt;gsiftp&lt;/protocol&gt;
+           &lt;host&gt;myhost.org&lt;/host&gt;
+           &lt;port&gt;2811&lt;/port&gt;
+        &lt;/ftpServer&gt;
+        &lt;mapping&gt;
+           &lt;jobPath&gt;/&lt;/jobPath&gt;
+           &lt;ftpPath&gt;/&lt;/ftpPath&gt;
+        &lt;/mapping&gt;
+    &lt;/map&gt;
+</pre>
+
+For a scheduler, where jobs will typically run on a compute node, a default entry is not provided.  This means staging directives will fail until a mapping is entered.
+Here is an example of a compute cluster with PBS installed and has 2 common mount points between the front end host and the gridFTP server host.
+<pre>
+    &lt;map&gt;
+        &lt;scheduler&gt;PBS&lt;/scheduler&gt;
+        &lt;ftpServer&gt;
+           &lt;protocol&gt;gsiftp&lt;/protocol&gt;
+           &lt;host&gt;myhost.org&lt;/host&gt;
+           &lt;port&gt;2811&lt;/port&gt;
+        &lt;/ftpServer&gt;
+        &lt;mapping&gt;
+           &lt;jobPath&gt;/pvfs/mount1/users&lt;/jobPath&gt;
+           &lt;ftpPath&gt;/pvfs/mount2/users&lt;/ftpPath&gt;
+        &lt;/mapping&gt;
+        &lt;mapping&gt;
+           &lt;jobPath&gt;/pvfs/jobhome&lt;/jobPath&gt;
+           &lt;ftpPath&gt;/pvfs/ftphome&lt;/ftpPath&gt;
+        &lt;/mapping&gt;
+    &lt;/map&gt;
+</pre>
+
+The file system mapping schema doc is <a href="./schemas/fs_mapping.html">here</a>
