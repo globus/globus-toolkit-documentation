@@ -74,17 +74,18 @@ Addressing</a> library for WS-Addressing support. The API are pretty straightfor
  Service service = new Service();
  Call call = (Call) service.createCall();
 
- AddressingHeaders headers = new AddressingHeaders();
- Action a = new Action(new URI("urn:action"));
- headers.setAction(a);
- EndpointReference epr = new EndpointReference("http://www.apache.org");
- headers.setFaultTo(epr);
+ String url = "http://localhost:8080/axis/services/Version";
 
+ AddressingHeaders headers = new AddressingHeaders();
+ headers.setTo(new To(url));
+
+ // pass the addressing info to the addressing handler
  call.setProperty(Constants.ENV_ADDRESSING_REQUEST_HEADERS, headers);
+
  call.setTargetEndpointAddress(new URL(url));
- call.setOperationName(new QName(
-        "http://localhost:8080/axis/services/Version", "getVersion"));
- String ret = (String) call.invoke(new Object[]
+ call.setOperationName(new QName(url, "getVersion")); // url here is just a namespace
+
+ String ret = (String) call.invoke(new Object[]);
 </pre>
 
 <h3><a name="addressinglocator"></a>AddressingLocator class</h3>
@@ -96,10 +97,10 @@ and <code>&lt;service&gt;AddressingLocator</code> class. </p>
 <p>The <code>AddressingLocator</code>  class can be used to get a stub for a service by passing Apache Addressing <code>EndpointReferenceType</code> parameter. </p>
 <p>For example: </p>
 <pre>
+ String url = "http://localhost:8080/axis/services/Version";
+
  EndpointReferenceType epr = new EndpointReferenceType();
- epr.setAddress(
-      new Address("http://localhost:8080/axis/services/Version")
- );
+ epr.setAddress(new Address(url));
 
  VersionServiceAddressingLocator locator =
       new VersionServiceAddressingLocator();
@@ -111,11 +112,11 @@ and <code>&lt;service&gt;AddressingLocator</code> class. </p>
 
 <h3><a name="referenceproperties"></a>ReferenceProperties</h3>
 
-<p>In the WS-RF, WS-N specifications, the WS-Addressing <code>ReferenceProperties</code> are used to carry resource identity information. The resource identity can be anything as long as it serializes as a XML element.
+<p>In the WS-RF, WS-N specifications, the WS-Addressing <code>ReferenceProperties</code> are used to carry resource identity information. The resource identity can be anything as long as it serializes as a XML element. The <code>ReferenceProperties</code> are serialized as separate SOAP headers in the SOAP envelope.
 </p>
 <p> Apache Addressing library only allows a DOM <code>Element</code> or a <code>SOAPElement</code> to
   be a reference property. </p>
-<p>For example: </p>
+<p>For example, create <code>ReferencePropertiesType</code> and fill it with resource key info: </p>
 <pre>
  // this will be a reference property
  SimpleResourceKey key = new SimpleResourceKey(Counter.KEY, "123");
@@ -124,12 +125,42 @@ and <code>&lt;service&gt;AddressingLocator</code> class. </p>
 
  // convert to SOAPElement and add to the list
  props.add(key.toSOAPElement()); 
+ ...
+</pre>
+<p>
+Then pass it to <code>AddressingHeaders</code>:
+</p>
+<pre>
+ ...
+ Service service = new Service();
+ Call call = (Call) service.createCall();
+
+ String url = "http://localhost:8080/axis/services/Version";
+
+ AddressingHeaders headers = new AddressingHeaders();
+ headers.setTo(new To(url));
+ <b>headers.setReferenceProperties(props);</b>
+
+ // pass the addressing info to the addressing handler
+ call.setProperty(Constants.ENV_ADDRESSING_REQUEST_HEADERS, headers);
+
+ call.setTargetEndpointAddress(new URL(url));
+ call.setOperationName(new QName(url, "getVersion")); // url here is just a namespace
+
+ String ret = (String) call.invoke(new Object[]);
+</pre>
+<p>
+Or set it on <code>EndpointReferenceType</code>:
+</p>
+<p>
+</p>
+<pre>
+ ...
+ String url = "http://localhost:8080/axis/services/Version";
 
  EndpointReferenceType epr = new EndpointReferenceType();
- epr.setAddress(
-     new Address("http://localhost:8080/axis/services/Version")
- );
- epr.setProperties(props);
+ epr.setAddress(new Address(url));
+ <b>epr.setProperties(props);</b>
 
  VersionServiceAddressingLocator locator =
      new VersionServiceAddressingLocator();
