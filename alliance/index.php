@@ -50,6 +50,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <ul>
                 <li><a href="news/">News Archive</a></li>
                 <li><a href="events/">Meetings and Events</a></li>
+                <li><a href="impact/">Impact of Our Work</a></li>
                 <li><a href="news/kit.php">Press Kit</a></li>
               </ul>
             </td>
