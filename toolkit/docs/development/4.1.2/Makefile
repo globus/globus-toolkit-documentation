@@ -1,4 +1,4 @@
-FILENAME=glossary.xml
+FILENAME=toolkit.xml
 GRAPHICS=--stringparam admon.graphics.path /docbook-images/ --stringparam admon.graphics 1
 NUMBERING=--stringparam  section.autolabel 1 --stringparam  section.label.includes.component.label 1
 TITLES=--stringparam  chapter.autolabel 0 
