@@ -1,4 +1,3 @@
-<?php include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); ?>
   
 <h1>GT 3.9.4 WS GRAM  : User's Guide </h1>
 <ul>
@@ -20,6 +19,96 @@ description to the GRAM services. This submission can be made by end-users with 
 GRAM <a href="#commandline">command-line tools</a>.
 
 </p>
+
+
+<h2><a name="newfunctionality"></a>New Functionality</h2>
+<ul>
+  <li><a href="#substitutionvariables">Substitution variables</a> </li>
+  <li><a href="#submissionid">Submission ID</a></li>
+  <li><a href="#jobholdandrelease">Job hold and release</a></li>
+  <li><a href="#multijobs">MultiJobs</a></li>
+  <li>  <a href="#jobandprocessrendezvous">Job and process rendezvous</a> </li>
+</ul>
+<h3><a name="substitutionvariables"></a>Substitution variables</h3>
+In GT 3.9.2, RSL substitution variables had been removed from GRAM. 
+Starting with GT 3.9.4, substitution variables are available again, 
+while preserving the simplicity of the job description XML schema 
+(relatively to the GT3.2 RSL schema).
+Susbtitution variables can be used in any path-like string or URL 
+specified in the job description. They are special strings that are 
+replaced by the GRAM services with actual values that the client-side 
+does not <i>a priori</i> know. An example of substitution variable is 
+<code>${GLOBUS_USER_HOME}</code>, which represents the path to the 
+HOME directory on the file system visible by the GRAM services of the 
+user on behalf of whom the job is executed.
+<p>
+
+<p> 
+Details are in <a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/execution/wsgram/schemas/mjs_job_description.html">job description doc</a>
+</p>
+
+<h3><a name="submissionid"></a>Submission ID</h3>
+<p>A submission ID may be used in the GRAM protocol for robust
+reliability in the face of message faults or other transient errors in order 
+to ensure that at most one instance of a job is executed, i.e. to prevent
+accidental duplication of jobs under rare circumstances with client
+retry on failure. The managed-job-globusrun tool always uses this feature,
+requiring either a submission ID to be passed in as input or a new
+unique ID to be created by the tool itself. If a new ID is created, it
+should be captured by the user who wishes to exploit this reliability
+interface. The ID in use, whether created or passed as input, will be
+written to the first line of standard output unless the <i>quiet mode</i> 
+is in effect.</p>
+
+<p>If a user is unsure whether a job was submitted successfully, he
+should resubmit using the same ID as was used for the previous
+attempt.</p>
+
+<h3><a name="jobholdandrelease"></a>Job hold and release</h3>
+<p>
+It is posible to specify in a job description that the job be 
+put on hold when it reaches a chosen state (see <a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/execution/wsgram/WS_GRAM_Approach.html>"GRAM Approach</a>
+documentation for more information about the executable 
+job state machine, and the job description XML schema documentation 
+for information about how to specify a <a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/execution/wsgram/schemas/mj_types.html">held state</a>
+This is useful for instance when a GRAM client wishes to directly 
+access output files written by the job (as opposed to waiting for 
+the stage-out step to transfer files from the job host). The client would  
+request that the file cleanup process be held until released, 
+giving the client an opportunity to fetch all remaining/buffered 
+data after the job completes but <i>before</i> the output files are 
+deleted. 
+<p>
+Note that the hold feature of the GRAM service interface is 
+not exploited by the current Java version of the client tool, 
+but will be in the C client in order to implement client-side 
+streaming of remote stdout/err. 
+<p>
+The current client tool does however
+<ul>
+<li>automatically release a 
+job remotely in interactive mode if the job is being held 
+at any given state</li>
+<li>offer an option (<code>-release</code>) for the user 
+    to release a job previously submitted in batch mode.</li>
+</ul>
+</p>
+<h3><a name="multijobs"></a>MultiJobs</h3>
+<p>The new job description XML schema allows for specification of a MultiJob 
+i.e. a job that is itself composed of several executable jobs.
+This is useful in order to bundle a group of jobs together and submit 
+them as a whole to a remote GRAM installation.<p>
+
+</p>
+<h3><a name="jobandprocessrendezvous"></a>Job and process rendezvous</h3>
+<p>This version of GRAM offers a mechanism to perform synchronization 
+between job processes in a multiprocess job and between subjobs in a multijob. 
+The job application can in fact register binary information, for 
+instance process information or subjob information, and get notified when 
+all the other processes or subjobs have registered their own information.
+This is for instance useful for parallel jobs which need to rendezvous 
+at a "barrier" before proceeding with computations, in the case when no 
+native application API is available to help do the rendezvous.</p>
 
 <h2><a name="howto"></a>Common job submission tasks</h2>
 <ul>
@@ -266,12 +355,15 @@ Here is an example of a multijob description:
 &lt;/job&gt;
 </pre>
 <b>Notes:</b>
-The <code>&lt;ResourceID&gt;</code> element within the <code>&lt;factoryEndpoint&gt;</code> WS-Addressing endpoint structures must be qualified with the 
-appropriate GRAM namespace.
-Apart from the <code>factoryEndpoint</code> element, all elements at the enclosing multijob level 
-act as defaults for the subjob parameters, in this example <code>&lt;directory&gt;</code> and </code>&lt;count&gt;</code>. 
-Note how <code>&lt;count&gt;</code> is overridden in the subjob descriptions.
+<ul>
+<li>The <code>&lt;ResourceID&gt;</code> element within the <code>&lt;factoryEndpoint&gt;</code> WS-Addressing endpoint structures must be qualified with the 
+appropriate GRAM namespace.</li>
+<li>Apart from the <code>factoryEndpoint</code> element, all elements at the enclosing multijob level 
+act as defaults for the subjob parameters, in this example <code>&lt;directory&gt;</code> and </code>&lt;count&gt;</code>.</li>
+<li>The default <code>&lt;count&gt;</code> value is overridden in the subjob descriptions.</li>
+</ul>
 <p>
+
 In order to submit a multijob description, use a job submission <a href="#commandline">command-line tool</a> 
 and specify the Managed Job Factory resource to be <tt>Multi</tt>.
 
@@ -310,4 +402,3 @@ include_once( "./../WS_GRAM_Interface_Domain_Frag.html" );
 include_once( "./../WS_GRAM_Interface_GUI_Frag.html" );
 ?>
 </p>
-<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
