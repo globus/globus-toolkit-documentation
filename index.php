@@ -37,7 +37,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
             </tr>
             <tr>
               <td><span class="newsdate">02.09.2005</span></td>
-              <td><b>UCLA's campus Grid portal is based on GT3.2.</b> 
+              <td><b>UCLA Grid portal based on GT3.2.</b> 
                 <a href="http://grid.ucla.edu/">Learn more...</a></td>
             </tr>
             <tr>
