@@ -6,9 +6,187 @@
   <li><a href="#relateddocs">Related Documents</a> </li>
 </ul>
 <h2><a name="overview"></a>Overview</h2>
-<p><font color="purple">[provide high-level overview of the features of the component, as well as a description of the problem space of relevance to the component.  The discussion should be  aimed at readers who are non-experts.]</font></p>
+<p>The GSI uses public key cryptography (also known as asymetric cryptography)
+  as the basis for its functionality. Many of the terms and concepts used in
+  this description of the GSI come from its use of public key cryptography. </p>
+<p>A reference for detailed information about public key cryptography is available
+  in the book <a href="http://www.cacr.math.uwaterloo.ca/hac/">Handbook of Applied
+  Cryptography </a>, by A. Menezes, P. van Oorschot, and S. Vanstone, CRC Press,
+  1996. <a href="http://www.cacr.math.uwaterloo.ca/hac/about/chap8.pdf">Chapter
+  8 </a> of this book deals exclusively with public key cryptography. </p>
+<p>The primary motivations behind the GSI are:
+<ul>
+  <li>The need for secure communication (authenticated and perhaps confidential)
+    between elements of a computational Grid.
+  <li>The need to support security across organizational boundaries, thus prohibiting
+      a centrally-managed security system.
+  <li>The need to support "single sign-on" for users of the Grid, including
+      delegation of credentials for computations that involve multiple resources
+      and/or sites. </li>
+</ul>
+<p><strong>Contents:</strong></p>
+<ul>
+  <li><a href="#publickey">Public Key Cryptography</a> </li>
+  <li><a href="#digitalsig">Digital Signatures</a> </li>
+  <li><a href="#certificates">Certificates</a></li>
+  <li><a href="#mutualauthentication">Mutual Authentication</a></li>
+  <li><a href="#confcommunication">Confidential Communication</a></li>
+  <li><a href="#securingprivatekeys">Securing Private Keys</a></li>
+  <li><a href="#delegation">Delegation and Single Sign-On </a></li>
+</ul>
 <h2><a name="concepts"></a>Conceptual Details</h2>
-<p><font color="purple">[Several paragraphs outlining the fundamental concepts that underly the component] </font></p>
+<h3><a name="publickey"></a>Public Key Cryptography </h3>
+<p>The most important thing to know about public key cryptography is that unlike
+  earlier cryptographic systems, it relies not on a single key (a password or
+  a secret "code"), but on two keys. These keys are numbers that are mathematically
+  related in such a way that if either key is used to encrypt a message, the
+  other key must be used to decrypt it. Also important is the fact that it is
+  next to impossible (with our current knowledge of mathematics and available
+  computing power) to obtain the second key from the first one and/or any messages
+  encoded with the first key. </p>
+<p>By making one of the keys available publicly (a public key) and keeping the
+  other key private (a private key), a person can prove that he or she holds
+  the private key simply by encrypting a message. If the message can be decrypted
+  using the public key, the person must have used the private key to encrypt
+  the message. </p>
+<p><strong>Important:</strong> It is critical that private keys be kept private!
+  Anyone who knows the private key can easily impersonate the owner. </p>
+<h3><a name="digitalsig"></a>Digital Signatures </h3>
+<p>Using public key cryptography, it is possible to digitally "sign" a piece
+  of information. Signing information essentially means assuring a recipient
+  of the information that the information hasn't been tampered with since it
+  left your hands. </p>
+<p>To sign a piece of information, first compute a mathematical hash of the information.
+  (A hash is a condensed version of the information. The algorithm used to compute
+  this hash must be known to the recipient of the information, but it isn't a
+  secret.) Using your private key, encrypt the hash, and attach it to the message.
+  Make sure that the recipient has your public key. </p>
+<p>To verify that your signed message is authentic, the recipient of the message
+  will compute the hash of the message using the same hashing algorithm you used,
+  and will then decrypt the encrypted hash that you attached to the message.
+  If the newly-computed hash and the decrypted hash match, then it proves that
+  you signed the message and that the message has not been changed since you
+  signed it. </p>
+<h3><a name="certificates"></a>Certificates</h3>
+<p>A central concept in GSI authentication is the <em>certificate</em>. Every user and
+  service on the Grid is identified via a certificate, which contains information
+  vital to identifying and authenticating the user or service.
+<p>A GSI certificate includes four primary pieces of information:
+<ul>
+  <li>A subject name, which identifies the person or object that the certificate
+    represents.
+  <li>The public key belonging to the subject.
+  <li>The identity of a <strong>Certificate Authority (CA)</strong> that has signed the certificate
+      to certify that the public key and the identity both belong to the subject.
+  <li>The digital signature of the named CA. </li>
+</ul>
+<p>Note that a third party (a CA) is used to certify the link between the public
+  key and the subject in the certificate. In order to trust the certificate and
+  its contents, the CA's certificate must be trusted. The link between the CA
+  and its certificate must be established via some non-cryptographic means, or
+  else the system is not trustworthy.
+<p>GSI certificates are encoded in the X.509 certificate format, a standard data
+  format for certificates established by the Internet Engineering Task Force
+  (IETF). These certificates can be shared with other public key-based software,
+  including commercial web browsers from Microsoft and Netscape.
+<h3><a name="mutualauthentication"></a>Mutual Authentication </h3>
+<p>If two parties have certificates, and if both parties trust the CAs that signed
+  each other's certificates, then the two parties can prove to each other that
+  they are who they say they are. This is known as <em>mutual
+  authentication</em>. The
+  GSI uses the Secure Sockets Layer (SSL) for its mutual authentication protocol,
+  which is described <a href="#delegation">below</a>. (SSL is also known by a new, IETF standard name:
+  Transport Layer Security, or TLS.)
+<p>Before mutual authentication can occur, the parties involved must first trust
+  the CAs that signed each other's certificates. In practice, this means that
+  they must have copies of the CAs' certificates--which contain the CAs' public
+  keys--and that they must trust that these certificates really belong to the
+  CAs.
+<p>To mutually authenticate, the first person (<em>A</em>) establishes a connection to
+the second person (<em>B</em>). 
+<p>To start the authentication process, <em>A</em> gives <em>B</em> his certificate.
+<p>The certificate tells <em>B</em> who <em>A</em> is claiming to be (the identity), what <em>A</em>'s
+public key is, and what CA is being used to certify the certificate. 
+<p><em>B</em> will
+      first make sure that the certificate is valid by checking the CA's digital
+      signature to make sure that the CA actually signed the certificate and
+  that the certificate hasn't been tampered with. (This is where <em>B</em> must trust
+  the CA that signed <em>A</em>'s certificate.)
+<p>Once <em>B</em> has checked out <em>A</em>'s certificate, <em>B</em> must make sure that <em>A</em> really is
+the person identified in the certificate. 
+<p><em>B</em> generates a random message and
+sends it to <em>A</em>, asking <em>A</em> to encrypt it. 
+<p><em>A</em> encrypts the message using his private
+key, and sends it back to <em>B</em>. 
+<p><em>B</em> decrypts the message using <em>A</em>'s public key.
+<p>If this results in the original random message, then <em>B</em> knows that <em>A</em>  is who he says he is.
+<p>Now that <em>B</em> trusts <em>A</em>'s identity, the same operation must happen in reverse.
+<p><em>B</em> sends <em>A</em> her certificate, <em>A</em> validates the certificate and sends a challenge
+message to be encrypted. 
+<p><em>B</em> encrypts the message and sends it back to <em>A</em>, and
+<em>A</em> decrypts it and compares it with the original. 
+<p>If it matches, then <em>A</em>  knows that <em>B</em> is who she says she is.
+<p>At this point, <em>A</em> and <em>B</em> have established a connection to each other and are
+  certain that they know each others' identities.
+<h3><a name="confcommunication"></a>Confidential Communication </h3>
+<p>By default, the GSI does not establish confidential (encrypted) communication
+  between parties. Once mutual authentication is performed, the GSI gets out
+  of the way so that communication can occur without the overhead of constant
+  encryption and decryption.
+<p>The GSI can easily be used to establish a shared key for encryption if confidential
+  communication is desired. Recently relaxed United States export laws now allow
+  us to include encrypted communication as a standard optional feature of the
+  GSI.
+<p>A related security feature is communication integrity. Integrity means that
+  an eavesdropper may be able to read communication between two parties but is
+  not able to modify the communication in any way. The GSI provides communication
+  integrity by default. (It can be turned off if desired). Communication integrity
+  introduces some overhead in communication, but not as large an overhead as
+  encryption.
+<h3><a name="securingprivatekeys"></a>Securing Private Keys </h3>
+<p>The core GSI software provided by the Globus Toolkit expects the user's private
+  key to be stored in a file in the local computer's storage. To prevent other
+  users of the computer from stealing the private key, the file that contains
+  the key is encrypted via a password (also known as a passphrase). To use the
+  GSI, the user must enter the passphrase required to decrypt the file containing
+  their private key.
+<p>We have also prototyped the use of cryptographic smartcards in conjunction
+  with the GSI. This allows users to store their private key on a smartcard rather
+  than in a filesystem, making it still more difficult for others to gain access
+  to the key.
+<h3><a name="delegation"></a>Delegation and Single Sign-On </h3>
+<p>The GSI provides a delegation capability: an extension of the standard SSL
+  protocol which reduces the number of times the user must enter his passphrase.
+  If a Grid computation requires that several Grid resources be used (each requiring
+  mutual authentication), or if there is a need to have agents (local or remote)
+  requesting services on behalf of a user, the need to re-enter the user's passphrase
+  can be avoided by creating a <em>proxy</em>.
+<p>A proxy consists of a new certificate (with a new public key in it) and a
+  new private key. The new certificate contains the owner's identity, modified
+  slightly to indicate that it is a proxy. The new certificate is signed by the
+  owner, rather than a CA. (See diagram below.) The certificate also includes
+  a time notation after which the proxy should no longer be accepted by others.
+  Proxies have limited lifetimes.
+<p align="center"><img height="144" src="gssapi1.gif" width="533">
+<p>The proxy's private key must be kept secure, but because the proxy isn't valid
+  for very long, it doesn't have to kept quite as secure as the owner's private
+  key. It is thus possible to store the proxy's private key in a local storage
+  system without being encrypted, as long as the permissions on the file prevent
+  anyone else from looking at them easily. Once a proxy is created and stored,
+  the user can use the proxy certificate and private key for mutual authentication
+  without entering a password.
+<p>When proxies are used, the mutual authentication process differs slightly.
+  The remote party receives not only the proxy's certificate (signed by the owner),
+  but also the owner's certificate. During mutual authentication, the owner's
+  public key (obtained from her certificate) is used to validate the signature
+  on the proxy certificate. The CA's public key is then used to validate the
+  signature on the owner's certificate. This establishes a chain of trust from
+  the CA to the proxy through the owner.
+<p>Note that the GSI and software based on it (notably the Globus Toolkit, GSI-SSH,
+  and GridFTP) is currently the only software which supports the delegation extensions
+  to TLS (a.k.a. SSL). The Globus Project is actively working with the Grid Forum
+  and the IETF to establish proxies as a standard extension to TLS so that GSI
+  proxies may be used with other TLS software. </p>
 <h2><a name="relateddocs"></a>Related Documents</h2>
 <p><font color="purple">[this is where you link to other documents (internal or external) that supplement
   the overview]</font></p>
