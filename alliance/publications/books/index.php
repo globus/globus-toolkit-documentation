@@ -46,8 +46,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     </td>
   </tr>
   <tr>
-    <td><center><a href=""><img border=0 src="resmgmt.jpg" alt="Grid Resource Management"></a></center></td>
-    <td><b><a href="">Grid 
+    <td><center><a href="http://www.amazon.com/exec/obidos/ASIN/1402075758/qid%3D1112805394/sr%3D11-1/ref%3Dsr%5F11%5F1/103-4918058-7991028"><img border=0 src="resmgmt.jpg" alt="Grid Resource Management"></a></center></td>
+    <td><b><a href="http://www.amazon.com/exec/obidos/ASIN/1402075758/qid%3D1112805394/sr%3D11-1/ref%3Dsr%5F11%5F1/103-4918058-7991028">Grid 
            Resource Management: State of the Art and Future Trends</a></b><br>
         Edited by Jarek Nabrzyski, Jennifer M. Schopf, Jan Weglarz<br>
         Springer; 1 edition (September, 2003)<br>
