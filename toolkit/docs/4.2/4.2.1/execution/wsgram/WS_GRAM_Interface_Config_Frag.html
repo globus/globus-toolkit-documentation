@@ -31,22 +31,112 @@ gram-service-Multi
 
 <h2><a name="serverconfig"></a>Web service deployment configuration</h2>
 
+The file <tt>$GLOBUS_LOCATION/etc/gram-service/server-config.wsdd</tt> 
+contains information necessary to deploy and instanciate the GRAM services in the Globus 
+container, which uses Axis (<font color="red">insert link to Axis apache project</font>)
+to implementing the hosting of Web services. <p>
+Three GRAM services are deployed:
+<ul>
+<li>ManagedExecutableJobService: service invoked when querying or managing an <i>executable job</i>
+</li>
+
+<li>ManagedMultiJobService: service invoked when querying or managing a <i>multijob</i>
+</li>
+
+<li>ManagedJobFactoryService: service invoked when submitting a job
+</li>
+</ul>   
+
+Each service deployment information 
+contains the name of the Java service implementation class, the path to the 
+WSDL service file, the name of the operation providers that the service reuses for its 
+implementation of WSDL-defined operations, etc. More information about the service deployment 
+configuration information can be found here <font color="red">(add link to Core doco)</font>
+
+
 <h2><a name="jndiconfig"></a>JNDI application configuration</h2>
 
-The configuration of WSRF resources and some service configuration 
+The configuration of WSRF resources and application-level service configuration 
 not related to service deployment is contained in JNDI files 
-<font color="red">(TODO insert link to JNDI doco)</font>. 
-The JNDI-based GRAM configuration is of two kind:
+<font color="red">(TODO insert link to JNDI doco; ask Sam for URL)</font>. 
+The JNDI-based GRAM configuration is of two kinds:
 
 <ul>
-  <li><a href="#commonfactoryconfig">common job factory configuration</a></li>
-  <li><a href="#managerconfig">local resource manager configuration</a></li>
+  <li><a href="#commonfactoryconfig">Common job factory configuration</a></li>
+  <li><a href="#managerconfig">Local resource manager configuration</a></li>
 </ul>
 
 <h3><a name="commonfactoryconfig"></a>Common job factory configuration</h3>
 
+The file <tt>$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml</tt> contains 
+configuration information that is common to every local resource managers 
+for which support is installe.
+<p>
+More precisely, the configuration data it contains pertains to the implementation 
+of the GRAM WSRF resources (factory resources and job resources), 
+as well as initial values of WSRF resource properties that are always 
+published by any Managed Job Factory WSRF resource. 
+</p>
+The data is categorized by service, because according to WSRF, 
+in spite of the service/resource separation of concern, a given service 
+will use only one XML Schema type of resource. In practice it is therefore clearer
+to categorize the configuration resource implementation by service, 
+even if theoretically speaking a given resource implementation could be 
+used by several services. For more information, refer to the Globus Core documentation 
+(<font color="red">insert appropriate link</font>).
+<p>
+Here is the decomposition, in JNDI objects, of the common configuration 
+data, categorized by service by service. Each XYZHome object contains the same 
+Globus Core-defined information for the implementation fo the WSRF resource, 
+such as the Java implementation class for the resource (<code>resourceClass</code> datum), 
+the Java class for the resource key (<code>resourceKeyType</code> datum), etc. 
+
+<ul>
+<li>ManagedExecutableJobService
+   <ul>
+     <li>ManagedExecutableJobHome: configuration of the implementation of resources for the service.<p>
+     Note the Java class, <code>PersistentManagedExecutableJobResource</code>, 
+     is a persistent resource class. If during job submission and execution a problem 
+     occur that may be due to persistence, or if job passivation and failure recovery is not required, it is possible to switch off persistence 
+     for the executable job resources by changing the class name to that of the non-persistent 
+     version of the executable job resource: <code>ManagedExecutableJobResource</code>.</li>
+   </ul>
+</li>
+
+<li>ManagedMultiJobService
+   <ul>
+     <li>ManagedMultiJobHome: configuration of the implementation of resources for the service<p>
+         The remark about persistence is also valid here.</li>
+   </ul>
+</li>
+
+<li>ManagedJobFactoryService
+   <ul>
+   <li>FactoryServiceConfiguration: this encapsulates configuration information 
+       used by the factory service. Currently this identifies the service to associate 
+       to a newly created job resource in order to create an endpoint reference and 
+       return it.
+   </li>
+   
+   <li>ManagedJobFactoryHome: implementation of resources for the service
+      resourceClass</li>
+      
+   <li>FactoryHomeConfiguration: this contains GRAM application-level configuration data 
+       i.e. values for resource properties common to all factory resources. For instance, 
+       the path to the Globus installation, host information such as CPU type, manufacturer, 
+       operating system name and version, etc. <font color="red">(should all elements be listed 
+       and defined here?)</font></li>
+   </ul>
+</li>
+ 
+</ul>     
+
 <h3><a name="managerconfig"></a>Local resource manager configuration</h3>
 
+When a SOAP call is made to a GRAM factory service in order to submit a job, 
+the call is actually made to a GRAM service-resource pair, where the 
+factory resource represents the local resource manager to be used to execute the job.
+<p>
 There is one directory <tt>gram-service-&lt;manager&gt;/</tt> 
 for each local resource manager supported by the GRAM installation. 
 </p>
@@ -71,9 +161,10 @@ which enables the GRAM services to support multijobs
 
 <p>The JNDI configuration file located under each manager directory 
 contains configuration information for the GRAM support of the given 
-local resource manager, such as the <i>GRAM name</i> of, i.e. the name that 
-GRAM uses to designate, the given resource manager. For 
-instance, <tt>$GLOBUS_LOCATION/etc/gram-service-Fork/jndi-config.xml</tt> 
+local resource manager, such as the name that GRAM uses to designate 
+the given resource manager. This is referred to as the <i>GRAM name</i> 
+of the local resource manager.<p>
+For instance, <tt>$GLOBUS_LOCATION/etc/gram-service-Fork/jndi-config.xml</tt> 
 contains the following XML element structure:</p>
 <pre>
     &lt;service name="ManagedJobFactoryService"&gt;
@@ -97,10 +188,40 @@ contains the following XML element structure:</p>
     &lt;/service&gt;
 </pre>
 <p>In the example above, the <i>GRAM name</i> of the local resource manager is <tt>Fork</tt>. 
-This value can be used with the GRAM client to specify which factory resource to 
-use when submitting a job. </p>
+This value can be used with the GRAM client in order to specify which factory resource to 
+use when submitting a job, or at a lower level of abstraction, in order to use the 
+GRAM client API to create an endpoint reference to the chosen factory service-resource pair. </p>
 
+<font color="red">TODO description of other info such as SCRATCH_DIR</font>
 
 <h2><a name="securitydesc"></a>Security descriptor</h2>
 
+The file <tt>$GLOBUS_LOCATION/etc/gram-service/managed-job-factory-security-config.xml</tt> 
+contains the Core security configuration for the GRAM <tt>ManagedJobFactory</tt> service:
+<ul>
+   <li>default security information for all remote invocations, such as the authorization method 
+       which is based on a Gridmap file (in order to resolve user credentials to local user names)
+       <font color="red">(insert at least sentence about reject-limited-proxy?)</font></li>
+   <li>security information for the <code>createManagedJob</code> operation</li>   
+</ul>
+
+The file <tt>$GLOBUS_LOCATION/etc/gram-service/managed-job-security-config.xml</tt> 
+contains the Core security configuration for the GRAM job resources:
+<ul>
+   <font color="red">More content here</font> 
+</ul>
+
+<font color="red">More content here</font>
+
 <h2><a name="filesysmap"></a>File sytem to GridFTP mapping</h2>
+The file <tt>$GLOBUS_LOCATION/etc/gram-service/globus_gram_fs_map_config.xml</tt> 
+contains information to associate local resource managers with (Grid)FTP servers 
+used for staging and mappings between file system paths and (Grid)FTP paths. 
+This enables the GRAM services to resolve GridFTP URLs specified in staging 
+directives to local file URLs and vice-versa. 
+
+<font color="red">generate HTML from File mapping XML Schema and add link to it 
+here</font>
+<p>
+<font color="red">More content here</font>
+
