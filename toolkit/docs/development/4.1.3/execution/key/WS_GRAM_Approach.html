@@ -345,11 +345,9 @@ steps occuring automatically in the server. A number of optional
 protocol elements are available for more complex scenarios.
 </p>
 
-<font color="red">VERIFY THESE OPERATION NAMES...</font>
-
 <dl>
 
-<dt>DelegationFactory::createDelegation</dt>
+<dt>DelegationFactory::requestSecurityToken</dt>
 
 <dd><p> This (optional) step allows a client to delegate credentials
 that will be required for correct operation of WS GRAM, RFT, or the
@@ -364,20 +362,27 @@ is configured to make use of the DelegationFactory, respectively.
 already established for use with the previous createDelegation step.
 </p></dd>
 
-<dt>ManagedJobFactory::createJob</dt>
+<dt>ManagedJobFactory::getResourceProperty and getMultipleResourceProperties</dt>
+
+<dd><p> These (optional) steps allow a client to retrieve information about the
+scheduler and the jobs associated with a particular factory resource before or
+after job creation.  The delegationFactoryEndpoint and
+stagingDelegationFactoryEndpoint resource properties are two examples of
+information that may need to be obtained before job creation.
+</p></dd>
+
+<dt>ManagedJobFactory::createManagedJob</dt>
 
 <dd><p> This required step establishes the stateful ManagedJob
 resource which implements the job processing described in the input
 request.
 </p></dd>
 
-<dt>ManagedJob::releaseHold</dt>
+<dt>ManagedJob::release</dt>
 
 <dd><p>This (optional) step allows the ManagedJob to continue through
 a state in its lifecycle where it was previously held or scheduled to
-be held according to details of the original job request.  It is a
-fault to try to release a hold that was not set in the job request
-or that was already released.
+be held according to details of the original job request.
 </p></dd>
 
 <dt>ManagedJob::setTerminationTime</dt>
@@ -390,8 +395,12 @@ the ManagedJob resource.
 <dt>ManagedJob::destroy</dt>
 
 <dd><p> This (optional) step allows the client to explicitly abort a
-job and destroy the ManagedJob resource, in the event that the
-scheduled automatic termination time is not adequate.
+job and destroy the ManagedJob resource in the event that the
+scheduled automatic termination time is not adequate. If the job has already
+completed (i.e. is in the Done or Failed state), this will simply destroy the
+resource associated with the job.  If the job has not completed, appropriate
+steps will be taken to purge the job process from the scheduler and perform
+clean up operations before setting the job state to Failed.
 </p></dd>
 
 <dt>ManagedJob::subscribe</dt>
@@ -403,7 +412,7 @@ an initial subscription in the createJob() operation without an
 additional round-trip communication to the newly created job.
 </p></dd>
 
-<dt>ManagedJob::queryProperty and queryMultipleProperties</dt>
+<dt>ManagedJob::getResourceProperty and getMultipleResourceProperties</dt>
 
 <dd><p> These (optional) steps allow a client to query the status (and
 particularly lifecycle status) of the ManagedJob resource.
