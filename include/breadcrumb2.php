@@ -19,7 +19,7 @@ function globus_current_location()
     while ($entry = array_shift($expand_list)) {
 
         # never show html files
-        if ( strstr($entry, "html") == false ) {
+        if ( (strstr($entry, ".html") && strstr($entry, ".php") && strstr($entry, ".htm") ) == false ) {
             $nice = strtoupper(substr($entry, 0, 1)) . substr($entry, 1);
             $current = $current . "$entry/";
             print "-&gt; <a href='$current'>$nice</a> "; 
