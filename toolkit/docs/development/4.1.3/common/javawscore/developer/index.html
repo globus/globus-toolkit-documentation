@@ -20,6 +20,7 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
   <li><a href="#relateddocs">Related Documentation</a></li>
   <li><a href="#miscellaneousinfo">Miscellaneous information</a>
    <ul>
+    <li><a href="#ContextProperties">MessageContext Properties</a></li>
     <li><a href="#debugging">Debugging and Logging</a></li>
     <li><a href="#testing">Tests</li>
     <li><a href="#gardetails">GAR</li>
@@ -41,8 +42,57 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
   descriptions of domain-specific structured interface data, can be found in
   the <a href="../Java_WS_Core_Public_Interfaces.html">public interface guide</a>.</p>
 <h2><a name="scenarios"></a>Usage scenarios</h2>
-<p><font color="purple">[describe how to use the programatic interfaces of the
-    component, provide examples]</font></p>
+
+<h3><a name="LocalInvocations">Making Local Invocations</a></h3>
+
+<p>
+Services in the container can be invoked locally. Local invocations work just like remote invocations (all handlers are called, messages get serialized/deserialized) but messages do not travel over the network - everything happens in memory. 
+</p>
+<p>
+Local invocations can only be made on the server side and only when a Axis MessageContext is associated with a current thread. URLs with "<i>local</i>" protocol name are used for local invocations. To invoke a service locally do:
+
+<table cellpadding="5">
+
+<tr>
+<td valign="top">1</td>
+<td valign="top">
+<p>Register "<i>local</i>" protocol handler:</p>
+<pre>
+import org.globus.axis.transport.local.LocalTransportUtils;
+...
+<b>LocalTransportUtils.init();</b>
+...
+</pre>
+</td>
+</tr>
+
+<tr>
+<td valign="top">2</td>
+<td valign="top">
+<p>Create a service URL with "<i>local</i>" protocol:</p>
+<pre>
+URL url = new URL(<b>"local:///wsrf/services/MyService"</b>);
+</pre>
+</td>
+</tr>
+
+<tr>
+<td valign="top">3</td>
+<td valign="top">
+<p>Configure the service stub for local invocation and make the call:</p>
+<pre>
+MyServiceAddressingLocator locator = 
+       new MyServiceAddressingLocator();
+MyService port = locator.getMyServicePort(url);
+
+<b>LocalTransportUtils.enableLocalTransport((Stub)port);</b>
+
+port.hello();
+</pre>
+
+</table>
+</p>
+
 <h2><a name="tutorials"></a>Tutorials</h2>
 <p><font color="purple">[add links to any tutorials - if no tutorials, say &quot;There
     are no tutorials available at this time&quot;] </font></p>
@@ -108,6 +158,31 @@ include_once( "./../Java_WS_Core_Troubleshooting_Frag.html" );
 <p><font color="purple">[could link to pdfs and whitepapers about protocols, etc re: the component]</font></p>
 
 <h2><a name="miscellaneousinfo"></a>Miscellaneous information</h2>
+
+<h3><a name="ContextProperties">MessageContext Properties</a></h3>
+
+The following properties can be obtained from the SOAPContext/MessageContext associated with the current thread:
+
+<ul>
+<li>
+<b><code>org.apache.axis.Constants.MC_HOME_DIR</code></b> - the base directory from which the wsdl files are loaded from. 
+</li>
+<li>
+<b><code>org.apache.axis.Constants.MC_CONFIGPATH</code></b> - the base directory from which different configuration files are loaded from. 
+</li>
+<li>
+<b><code>org.apache.axis.Constants.MC_REMOTE_ADDR</code></b> - contains the IP address of the client
+</li>
+<li>
+<b><code>org.apache.axis.MessageContext.TRANS_URL</code></b> - the URL of the request
+</li>
+</ul>
+
+<p>
+The <code>Constants.MC_CONFIGPATH</code> property should be used to load any type of configuration files. Only <code>Constants.MC_CONFIGPATH</code> and <code>Constants.MC_HOME_DIR</code> are associated with thread during activation.
+<br>
+In the standalone container the <code>Constants.MC_HOME_DIR</code> and <code>Constants.MC_CONFIGPATH</code> properties will usually point to the same directory. However, in Tomcat they will point to two different directories.
+</p>
 
 <h3><a name="debugging">Debugging and Logging</a></h3>
 
