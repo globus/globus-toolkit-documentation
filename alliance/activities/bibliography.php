@@ -1,45 +1,53 @@
 <?php
 
-$title = "Bibliography";
+$title = "Globus: Guidelines for Research Citations";
 $section = "section-2";
 include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 ?>
+<!--
 <div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'alliance.inc'); ?>
 </div>
+-->
 
 <div id="main">
-<!-- content STARTS here -->
 
-<p> << <a href="index.php"> Globus Activities </a> << <a href="publications.php"> Publications </a> </p>
+<h1 class="first">Guidelines for Reseach Paper Citations on the Globus Website</h1>
 
-<h1>Publication Guidelines</h1>
-    <p>The Globus Alliance manages its bibliography using the BibTeX tool. If you use BibTeX, you may download our <a href="globusbib.bib">citation database</a>. Note that this citation database is incomplete. (If not, you can still <a href="publications.php">view the citations</a> here online.)</p>
+<p>For papers listed on this site, at least one author should be a member 
+of the Globus Alliance.</p>
 
-<p>If you have (or are aware of) appropriate publications that are not here, please submit them to Julie Wulf (<a href="mailto:wulf@mcs.anl.gov">wulf@mcs.anl.gov</a>) using the BibTeX templates below.<br>
-</p>
+<p>The Globus Alliance manages its bibliography using the BibTeX tool. 
+If you use BibTeX, you may download our <a href="globusbib.bib">citation 
+database</a>. Note that this citation database is incomplete. (If not, 
+you can still <a href="publications.php">view the citations</a> here online.)</p>
 
-<p><h1>Acknowledging Sponsors</h1></p>
+<p>If you have (or are aware of) appropriate publications that are not here, 
+please submit them to <a href="mailto:webmaster@globus.org">webmaster@globus.org</a> 
+using the BibTeX templates below.</p>
+
+<h2>Acknowledging Sponsors</h2>
+
       <p>Publications describing work conducted in the Argonne 
     Mathematics and Computer Science Division should include the following 
-    acknowledgement:
+    acknowledgement.</p>
     
 <blockquote>
-
-      <p>This work was supported by the Mathematical, Information, and 
+      This work was supported by the Mathematical, Information, and 
       Computational Sciences Division subprogram of the Office of Advanced 
       Scientific Computing Research, Office of Science, U.S. Department of 
-      Energy, under Contract W-31-109-ENG-38.</p>
-</blockquote>
-    <p>Work supported by NSF should include:</p>
-    <blockquote>
-    <p>This material is based upon work supported by the National Science 
-    Foundation under Grant No. (enter NSF grant number).<br>
-</p>
+      Energy, under Contract W-31-109-ENG-38.
 </blockquote>
 
-<p><h1>Templates for Bibliographic Citation</h1></p>
+    <p>Work supported by NSF should include the following acknowledgement.</p>
+
+    <blockquote>
+    This material is based upon work supported by the National Science 
+    Foundation under Grant No. (enter NSF grant number).
+    </blockquote>
+
+<h2>Templates for Bibliographic Citation</h2>
     <p>The following templates may be used for submitting bibliographic references to the Globus Alliance.</p>
     <p>Please select an appropriate document type, complete the corresponding template, and
     send the resulting reference to Julie Wulf (see above). It would be helpful if you
@@ -302,17 +310,5 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     OPTannote =&nbsp;&nbsp;&nbsp;&nbsp; {}<br>
     }
 
-<p> << <a href="index.php"> Globus Activities </a> << <a href="publications.php"> Publications </a> </p>
-
-<!-- content ENDS here -->
-
 </div>
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
-
-
-
-
-
-
-
-

@@ -1,6 +1,6 @@
 <?php
 
-$title = "Globus: Alliance - Activites";
+$title = "Globus: Alliance - Publications";
 
 $section = "section-2";
 include_once( "../../include/local.inc" );
@@ -12,23 +12,21 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 </div>
 -->
 
-<div id="main">
-<!-- content STARTS here -->
+<div id="home">
 
-<h1> Globus Activities </h1>
+<h1 class="first">Globus<sup><small>&reg;</small></sup> Publications</h1>
 
-<p>The Globus Alliance was and will be represented at a number of meetings and events. It publishes papers on a variety of subjects relating to computational grids.
-</p>
-<ol>
+<p>The Globus Alliance has produced an enormous amount of written material
+on the Grid, distributed computing, applied computer science, and related 
+topics.</p>
 
-<li><a href="meetings.php">Upcoming or Recent Meetings and Events</a> 
-<li><a href="related.php">Related Work</a>
-<li><a href="publications.php">Publications</a>
+<ul>
+<li><a href="papers.php">Research Papers</a></li>
+<li>Mass Media</li>
+<li>Presentations</li>
+<li>Globus Toolkit Documentation</li>
+</ul>
 
-</ol>
-
-   
 </div>
+
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
-
-
