@@ -652,7 +652,7 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
     </div>
   </xsl:if>
   <![CDATA[
- <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
+ <?php include("http://www-unix.globus.org/include/globus_footer_dev_docs.inc"); ?>
 ]]>
 </xsl:template>
 
