@@ -5,4 +5,4 @@
         <a href="http://www.cern.ch/">CERN</a>.  This 
         simulation shows two colliding lead ions just after impact, with 
         quarks in red, blue, and green and hadrons in white. 
-        [&copy; CERN Geneva]</p>
+        [&copy;&nbsp;CERN Geneva]</p>
