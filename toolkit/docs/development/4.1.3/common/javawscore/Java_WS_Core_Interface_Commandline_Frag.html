@@ -24,7 +24,7 @@
 <h3><a name="globus-start-container"></a>globus-start-container</h3>
 <h4>Tool description</h4>
 
-<p>Starts a standalone container. By default the container is started on port 8080 and is accessible via HTTP. On successful startup a list of services will be displayed on the console. By default a secure container is started on port 8443 and is accessible via HTTPS</p>
+<p>Starts a standalone container. By default a secure container is started on port 8433 and is accessible via HTTPS. On successful startup a list of services will be displayed on the console. By default the non secure (HTTP) container is started on port 8080.</p>
 
 <h4>Command syntax</h4>
 
@@ -50,8 +50,8 @@ globus-start-container [options]
 </tr>
 
 <tr>
- <td><code>-secure</code></td>
- <td><p>Starts a secure container.</p></td>
+ <td><code>-nosec</code></td>
+ <td><p>Starts a non secure (HTTP) container.</p></td>
 </tr>
 
 <tr>
@@ -70,7 +70,10 @@ globus-start-container [options]
 <h4>Tool description</h4>
 
 <p>
-Stops a standalone container. By default this command will attempt to stop a container running on localhost:8080. It will perform a sort shutdown.
+Stops a standalone container. By default this command will attempt to stop a container running on <code>localhost:8433</code> and perform a <code>soft</code> shutdown. 
+</p>
+<p>
+The <code>globus-stop-container</code> command invokes a <code>ShutdownService</code> running in the container. By default that service is configured to perform <code>self</code> authorization and therefore the <code>globus-stop-container</code> must be executed with the same credentials as the container is running with. Alternatively, the service can be configured with a gridmap file to allow a subset of users (with their own credentials) to invoke the service (please see the service security deployment descriptor for details).
 </p>
 
 <h4>Command syntax</h4>
@@ -84,6 +87,12 @@ Stops a standalone container. By default this command will attempt to stop a con
   <dt><code>'hard'</code></dt>
   <dd>This option forces an immediate JVM shutdown. </dd>
 </dl>
+
+<p>Example:</p>
+<pre>
+$ globus-stop-container soft
+</pre>
+
 <h3><a name="wsrf-destroy"/>wsrf-destroy</h3>
 <h4>Tool description</h4>
 
@@ -95,7 +104,11 @@ Destroys a resource.
 
 <pre>wsrf-destroy <a href="#common">[options]</a></pre>
 
-
+<p>Example:</p>
+<pre>
+$ wsrf-destroy -s http://localhost:8080/wsrf/services/CounterService \
+   -k {http://counter.com}CounterKey 123
+</pre>
 
 <h3><a name="wsrf-set-termination-time"/>wsrf-set-termination-time</h3>
 <h4>Tool description</h4>
@@ -107,7 +120,11 @@ Sets a termination time of a resource.
 
 <pre>wsrf-set-termination-time <a href="#common">[options]</a> &lt;seconds&gt; | 'infinity' </pre>
 
-
+<p>Example:</p>
+<pre>
+$ wsrf-set-termination-time -s http://localhost:8080/wsrf/services/CounterService \
+   -k {http://counter.com}CounterKey 123 30
+</pre>
 
 <h3><a name="wsrf-query" />wsrf-query</h3>
 <h4>Tool description</h4>
@@ -119,7 +136,11 @@ Queries resource property document of a resource. By default, a simple XPath que
 
 <pre>wsrf-query <a href="#common">[options]</a> [query expression] [dialect]</pre>
 
-
+<p>Example:</p>
+<pre>
+$ wsrf-query -s http://localhost:8080/wsrf/services/ContainerRegistryService \
+   "/*/*/*/*[local-name()='Address']"
+</pre>
 
 <h3><a name="wsrf-get-property" />wsrf-get-property</h3>
 <h4>Tool description</h4>
@@ -134,7 +155,12 @@ Gets a single resource property from a resource.
 The <code>&lt;property&gt;</code> is a QName of the resource property in the string form: <code>{namespaceURI}localPart</code>.
 </p>
 
-
+<p>Example:</p>
+<pre>
+$ wsrf-get-property -s http://localhost:8080/wsrf/services/CounterService \
+   -k {http://counter.com}CounterKey 123 \
+  {http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd}CurrentTime
+</pre>
 
 <h3><a name="wsrf-get-properties"/>wsrf-get-properties</h3>
 <h4>Tool description</h4>
@@ -150,6 +176,14 @@ Gets multiple resource properties from a resource.
 Each <code>&lt;propertyN&gt;</code> is a QName of the resource property in the string form: <code>{namespaceURI}localPart</code>.
 </p>
 
+<p>Example:</p>
+<pre>
+$ wsrf-get-properties -s http://localhost:8080/wsrf/services/CounterService \
+  -k {http://counter.com}CounterKey 123 \ 
+  {http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd}CurrentTime \
+  {http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd}TerminationTime
+</pre>
+
 <h3><a name="wsrf-insert-property" />wsrf-insert-property</h3>
 <h4>Tool description</h4>
 
@@ -164,6 +198,25 @@ Inserts a property into the resource property document of a resource.
 The <code>&lt;propertyValueFile&gt;</code> is an XML file that contains the value of the resource property. The QName of the property is the outer most element.
 </p>
 
+<p>Example:</p>
+<p>
+Contents of <code>in.xml</code>:
+<pre>
+ &lt;doc&gt;
+   &lt;ns1:foo xmlns:ns1="http://widgets.com"&gt;
+     Value1
+   &lt;/ns1:foo&gt;
+   &lt;ns1:foo xmlns:ns1="http://widgets.com"&gt;
+     Value2
+   &lt;/ns1:foo&gt;
+ &lt;/doc&gt;
+</pre>
+
+<pre>
+$ wsrf-insert-property -s http://localhost:8080/wsrf/services/WidgetService \
+   -k {http://www.globus.org/namespaces/2004/06/core}WidgetKey 123 \
+   in.xml
+</pre>
 
 <h3><a name="wsrf-update-property"/>wsrf-update-property</h3>
 <h4>Tool description</h4>
@@ -179,6 +232,22 @@ Updates property value in the resource property document of a resource.
 The <code>&lt;propertyValueFile&gt;</code> is an XML file that contains the value of the resource property. The QName of the property is the outermost element.
 </p>
 
+<p>Example:</p>
+<p>
+Contents of <code>in.xml</code>:
+<pre>
+ &lt;doc&gt;
+   &lt;ns1:foo xmlns:ns1="http://widgets.com"&gt;
+     Value
+   &lt;/ns1:foo&gt;
+ &lt;/doc&gt;
+</pre>
+
+<pre>
+$ wsrf-update-property -s http://localhost:8080/wsrf/services/WidgetService \
+   -k {http://www.globus.org/namespaces/2004/06/core}WidgetKey 123 \
+   in.xml
+</pre>
 
 <h3><a name="wsrf-delete-property" />wsrf-delete-property</h3>
 <h4>Tool description</h4>
@@ -195,6 +264,13 @@ Deletes a resource property from the resource property document of a resource.
 The <code>&lt;property&gt;</code> is a QName of the resource property in the string form: <code>{namespaceURI}localPart</code>.
 </p>
 
+<p>Example:</p>
+<pre>
+$ wsrf-delete-property -s http://localhost:8080/wsrf/services/WidgetService \
+   -k {http://www.globus.org/namespaces/2004/06/core}WidgetKey 123 \
+   {http://widgets.com}foo
+</pre>
+
 <h3><a name="wsn-get-current-message"/>wsn-get-current-message</h3>
 <h4>Tool description</h4>
 
@@ -210,6 +286,13 @@ Gets the current message associated with the specified topic.
 The <code>&lt;topic&gt;</code> is a QName of the resource property in the string form: <code>{namespaceURI}localPart</code>.
 </p>
 
+<p>Example:</p>
+<pre>
+$ wsn-get-current-message -s http://localhost:8080/wsrf/services/CounterService \
+   -k {http://counter.com}CounterKey 123 \ 
+   {http://counter.com}Value
+</pre>
+
 <h3><a name="wsn-pause-subscription"/>wsn-pause-subscription</h3>
 <h4>Tool description</h4>
 
@@ -221,7 +304,11 @@ Pauses a subscription (notifications on that subscription will not be sent out u
 
 <pre>wsn-pause-subscription <a href="#common">[options]</a></pre>
 
-
+<p>Example:</p>
+<pre>
+$ wsn-pause-subscription -s http://localhost:8080/wsrf/services/SubscriptionManagerService \
+   -k {http://www.globus.org/namespaces/2004/06/core}acc271c0-4df9-11d9-ab19-87da3bc7cf28
+</pre>
 
 <h3><a name="wsn-resume-subscription"/>wsn-resume-subscription</h3>
 <h4>Tool description</h4>
@@ -234,8 +321,11 @@ Resumes a subscription (notifications on that subscription will be sent out agai
 
 <pre>wsn-resume-subscription <a href="#common">[options]</a></pre>
 
-
-
+<p>Example:</p>
+<pre>
+$ wsn-resume-subscription -s http://localhost:8080/wsrf/services/SubscriptionManagerService \
+   -k {http://www.globus.org/namespaces/2004/06/core}acc271c0-4df9-11d9-ab19-87da3bc7cf28
+</pre>
 
 <h3><a name="wsn-subscribe"/>wsn-subscribe</h3>
 <h4>Tool description</h4>
@@ -264,14 +354,20 @@ The <code>&lt;topic&gt;</code> is a QName of the resource property in the string
 </tr>
 
 <tr>
- <td><code>-b, --subEpr &lt;file&gtl</code></td>
+ <td><code>-b, --subEpr &lt;file&gt;</code></td>
  <td><p>Specifies a file to which the subscription resource EPR will be saved.</p></td>
 </tr>
 
 </table>
 
-<hr>
+<p>Example:</p>
+<pre>
+$ wsn-subscribe -s http://localhost:8080/wsrf/services/CounterService \
+   -k {http://counter.com}CounterKey 123 \ 
+   {http://counter.com}Value
+</pre>
 
+<hr>
 
 <h3><a name="deployGar" />ant deployGar</h3>
 <h4>Tool description</h4>
@@ -354,7 +450,7 @@ Some clients share the same command line options:
 
 <tr>
  <td valign="top"><code>-a, --anonymous</code></td>
- <td><p>Enables anonymous authentication. Only supported with GSI Secure Conversation authentication mechanism.</p></td>
+ <td><p>Enables anonymous authentication. Only supported with transport security or GSI Secure Conversation authentication mechanism.</p></td>
 </tr>
 
 <tr>
