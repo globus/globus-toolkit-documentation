@@ -22,9 +22,17 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
     <a href="install_test.html">Testing</a><br>
     <a href="install_trouble.html">Troubleshooting</a></p>
 <h2>Configuring GridFTP - Basic </h2>
-<table width="650" border="0" cellpadding="5">
+<ul>
+  <li><a href="#prerequisites">Prerequisites</a></li>
+  <li><a href="#configuregridftpdaemon">Configure GridFTP server daemon</a> </li>
+  <li><span class="box-header"><a href="#configureinetdxinetd">Configure Inetd/Xinetd </a></span></li>
+  <li><a href="#notifyinetdxinetd">Notify Inetd/Xinetd to reload</a></li>
+  <li><a href="#testinggridftp">Testing GridFTP</a></li>
+  <li><a href="#personalgridftpserver">Personal GridFTP server</a></li>
+</ul>
+<table width="650" border="1" cellpadding="5">
   <tr>
-    <td colspan="2" valign="top"><div align="center" class="box-header">Requirements</div></td>
+    <td colspan="2" valign="top"><div align="center" class="box-header"><a name="prerequisites"></a>Prerequisites</div></td>
   </tr>
   <tr>
     <td colspan="2" valign="top"><p>Before you can configure a GridFTP server, you must have:</p>
@@ -35,7 +43,7 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
     </td>
   </tr>
   <tr>
-    <td colspan="2" valign="top" class="box-header"><div align="center">Configure GridFTP server daemon </div></td>
+    <td colspan="2" valign="top" class="box-header"><div align="center"><a name="configuregridftpdaemon"></a>Configure GridFTP server daemon </div></td>
   </tr>
   <tr>
     <td colspan="2" valign="top">In order to use GridFTP, you need to configure your machine to automatically start the GridFTP server daemon.</td>
@@ -46,7 +54,7 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
       <p class="command"> gsiftp 2811/tcp</p></td>
   </tr>
   <tr>
-    <td colspan="2" valign="top"><div align="center" class="box-header">Configure Inetd/Xinetd </div></td>
+    <td colspan="2" valign="top"><div align="center" class="box-header"><a name="configureinetdxinetd"></a>Configure Inetd/Xinetd </div></td>
   </tr>
   <tr>
     <td colspan="2" valign="top">Modify the configuration file for Inetd or Xinetd (depending on which your host is running):</td>
@@ -55,8 +63,19 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
     <td valign="top"><a name="step2">2</a></td>
     <td valign="top"><p><b>For Inetd</b>, open <code>/etc/inetd.conf</code> and add the following entry.</p>
       <p class="command"> gsiftp&nbsp; stream&nbsp; tcp&nbsp;&nbsp;&nbsp;&nbsp; nowait&nbsp; root /usr/bin/env env LD_LIBRARY_PATH=GLOBUS_LOCATION/lib GLOBUS_LOCATION/sbin/in.ftpd -l -a -G GLOBUS_LOCATION</p>
-      <p> Enter the entire string in one line (disregard the word wrapping above). Be sure to replace <font face="Courier New">GLOBUS_LOCATION</font> with the actual value of <font face="Courier New">$GLOBUS_LOCATION</font> in your environment.</p>
-      <p> <b>For Xinetd</b>, add a file called <font face="Courier New">grid-ftp</font> to the <font face="Courier New">/etc/xinetd.d/</font> directory with the following contents:</p>
+      <p> Enter the entire string in one line (disregard the word wrapping above). Be sure to replace <font face="Courier New">GLOBUS_LOCATION</font> with the actual value of <font face="Courier New">$GLOBUS_LOCATION</font> in your environment.</p>      <p><strong>New to 2.2: </strong> This entry has changed from the entry
+          provided for the GridFTP server in the Globus Toolkit 2.0 Administrator's
+          Guide.&nbsp; The reason is that if you followed the instructions from
+          the install section, you do not have a static in.ftpd.&nbsp; This requires
+          you to set the LD_LIBRARY_PATH so that the server can dynamically link
+          against the libraries in $GLOBUS_LOCATION/lib.&nbsp; To accomplish
+          the setting of the environment variable in inetd, we use /usr/bin/env
+          (the location may vary on your system) to first set LD_LIBRARY_PATH,
+          and then to call in.ftpd itself. </p>      <p>The advantage of this setup is that when you apply a security update
+          to your installation, the GridFTP server will pick it up dynamically
+          without your having to rebuild it.</p>
+          <hr>
+          <p> <b>For Xinetd</b>, add a file called <font face="Courier New">grid-ftp</font> to the <font face="Courier New">/etc/xinetd.d/</font> directory with the following contents:</p>
       <pre class="command">
 		service gsiftp
 		 { 
@@ -71,11 +90,20 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
 		      log_on_failure += USERID 
 		      nice            = 10 
 		      disable         = no 
-		  }</pre>    <p>Be sure to replace <font face="Courier New">GLOBUS_LOCATION</font> with the actual value of <font face="Courier New">$GLOBUS_LOCATION</font> in your environment.</p></td>
+		  }</pre>    <p>Be sure to replace <font face="Courier New">GLOBUS_LOCATION</font> with the actual value of <font face="Courier New">$GLOBUS_LOCATION</font> in your environment.</p>      <p><strong>New to 2.2: </strong> This entry has changed from the entry
+		      provided for the GridFTP server in the Globus Toolkit 2.0 Administrator's
+		      Guide.&nbsp; The reason is that if you followed the instructions from
+		      the install section, you do not have a static in.ftpd.&nbsp; This requires
+		      you to set the LD_LIBRARY_PATH so that the server can dynamically link
+		      against the libraries in $GLOBUS_LOCATION/lib.&nbsp; To accomplish the
+		      setting of the environment variable in xinetd, we use the "env =" option
+		      to set LD_LIBRARY_PATH in the gatekeeper's environment. </p>      <p>The advantage of this setup is that when you apply a security update
+		      to your installation, the GridFTP server will pick it up dynamically
+		      without your having to rebuild it.</p>	      </td>
   </tr>
   <tr>
     <td colspan="2" valign="top" class="box-header"><div
-      align="center">Notify Inetd/Xinetd to reload</div></td>
+      align="center"><a name="notifyinetdxinetd"></a>Notify Inetd/Xinetd to reload</div></td>
   </tr>
   <tr>
     <td valign="top"><a name="step3">3</a></td>
@@ -86,7 +114,7 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
       <code>/etc/init.d/xinetd reload</code>. </p>    </td>
   </tr>
   <tr>
-    <td colspan="2" valign="top" class="box-header"><div align="center">Testing GridFTP</div></td>
+    <td colspan="2" valign="top" class="box-header"><div align="center"><a name="testinggridftp"></a>Testing GridFTP</div></td>
   </tr>
   <tr>
     <td colspan="2" valign="top"><p>Testing GridFTP consists of:</p>
@@ -112,7 +140,7 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
   </tr>
   <tr>
     <td colspan="2" valign="top" class="box-header"><div
-  align="center">Personal GridFTP server</div></td>
+  align="center"><a name="personalgridftpserver"></a>Personal GridFTP server</div></td>
   </tr>
   <tr>
     <td valign="top"></td>
@@ -155,8 +183,6 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
     is not required when transferring to/from a host-based GridFTP
     server.
   </tr>
-
-
 </table>
 <p>For more information, see the <em><a href="../gridftp/admin/index.html">GridFTP System Administrator's Guide</a></em>.<br>
 </p>
