@@ -1,7 +1,4 @@
 <?
-
-// 2004-10-15, robinett: created, copied information from www.globus.org/gridware/computation-components.html
-
 $title = "Grid Ecosystem - Computation";
 $section = "section-4";
 include_once( "../include/local.inc" );
@@ -34,29 +31,45 @@ on a compute resource.
 </p>
 
 <p>
-The Globus Toolkit and Condor provide basic mechanisms for remote job submission and the related file staging and 
-I/O requirements.  Other components in this area seem to fall into three major categories: workflow managers,
-metascheduling (aka brokering), and virtual data.
+The Globus Toolkit's GRAM interface, combined with a local scheduler, provides a basic mechanism for 
+remote job submission and the related file staging and I/O requirements.  Other components in this area seem 
+to fall into three major categories: metascheduling (aka brokering), distributed programming frameworks, and 
+virtual data.
 </p>
+
+<p>
+<strong>Related solutions:</strong>
+The <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> section of this website
+provides examples of these components being used in scientific projects.  See especially the
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."pegasus/"; ?>">Pegasus</a></strong> solution.
+</p>
+
 
 <p><strong><a name="mechanisms" class="title">Basic Computation Mechanisms</a></strong><p>
 
 <ul>
 <li><strong><a href='computation/gram.php'>GRAM</a></strong> -  The Globus Toolkit's GRAM service, client interfaces, and tools have supported much of the Grid's success to date in large-scale distributed computation. In its simplest form, GRAM provides a uniform interface for submitting and controlling jobs on heterogeneous Grid computation elements.</li>
-<li><strong><a href='computation/condor.php'>Condor</a></strong> -  The Condor resource manager provides another way to offer compute resources to remote users. Although similar in principle to traditional queueing systems, it has several interesting twists that make it unique.</li>
+<li><strong><a href='computation/gram-plugins.php'>GRAM Scheduler Plugins</a></strong> -  The GRAM service can
+be used in conjunction with a scheduler to provide a managed computation service. These "plugins" provide the
+critical interface between the GRAM service and several popular schedulers. </li>
 </ul>
 
-<p><strong><a name="workflow" class="title">Components for Workflow Management</a></strong><p>
+<p><strong><a name="workflow" class="title">Distributed Programming Frameworks</a></strong><p>
 
-<p>Workflow Managers organize and coordinate task execution within a complicated application, and they often coordinate data movement and task execution.
+<p>
+These components provide programming support for developing distributed applications using three
+familiar frameworks: RPC, message passing, and workflow.
 </p>
 
 <ul>
+<li><strong><a href='computation/netsolve.php'>NetSolve/GridSolve</a></strong> - NetSolve/GridSolve is an RPC-based library for executing solver code on Grid resources.</li>
+<li><strong><a href='computation/ninf-g.php'>Ninf-G</a></strong> - Ninf-G allows existing programming libraries to be used
+in a distributed fashion on a Grid using the RPC framework.</li>
+<li><strong><a href='computation/mpich-g2.php'>MPICH-G2</a></strong> - MPICH-G2 is a Grid-enabled implementation of the popular MPI (Message Passing Interface) framework for 
+managing concurrent processes that communicate with each other during execution
 <li><strong><a href='computation/condor-g.php'>Condor-G, DAGman</a></strong> - Condor-G and DAGman can be used 
 to execute complex workflows (consisting of multiple independent or related jobs) using Grid compute resources 
 via GRAM or Condor.</li>
-<li><strong><a href='computation/netsolve.php'>NetSolve/GridSolve</a></strong> - NetSolve/GridSolve is an RPC-based library for executing solver code on Grid resources.</li>
-<li><strong><a href='computation/gridant.php'>GridAnt</a></strong> - GridAnt is a user-controllable, grid-enabled workflow engine based on Java Ant.</li>
 </ul>
 
 <p><strong><a name="metascheduling" class="title">Components for Metascheduling</a></strong><p>
@@ -77,7 +90,6 @@ resources required to (re)produce it.</p>
 
 <ul>
 <li><strong><a href='computation/chimera.php'>Chimera</a></strong> - Chimera captures the steps in a data analysis process and stores them in a catalog for later reuse.</li>
-<li><strong><a href='computation/pegasus.php'>Pegasus</a></strong> - Pegasus converts abstract workflows into concrete workflows and executes them using Chimera and Condor tools.</li>
 </ul>
 
 </div>
