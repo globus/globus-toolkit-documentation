@@ -619,6 +619,66 @@ factory resource to use when submitting a job. </p>
 
 <h3><a name="specifyingstaging"></a>Specifying file staging in the job description</h3>
 
+In order to do file staging one must add specific elements to the job description. The 
+file transfer directives follow the RFT syntax (TODO insert link to the RFT docs) which 
+enables third-party transfers.
+Each file transfer must therefore specify a source URL and a destination URL.  
+URLs are specified as GridFTP URLs (for remote files) or as file URLs (for local files).
+<p>
+For instance, in the case of staging a file <i>in</i>, the source URL would be a 
+GridFTP URL (for instance <code>gsiftp://127.0.01:2888/tmp/mySourceFile</code>) 
+resolving to a source document accessible on the file system of the the submission 
+machine (for instance <code>/tmp/mySourceFile</code>). At run-time the 
+Reliable File Transfer service used by the GRAM service on the remote machine 
+would fetch the remote file using the GridFTP protocol and write it reliably 
+to the specified local file (for instance 
+<code>file:///${GLOBUS_USER_HOME}/my_transfered_file</code>, which resolves to  
+<code>~/my_transfered_file</code>). Here is how the stage-in directive would look like:
+
+<pre>
+    &lt;fileStageIn&gt;
+        &lt;transfer&gt;
+            &lt;sourceUrl&gt;<code>gsiftp://127.0.01:2888/tmp/mySourceFile</code>&lt;/sourceUrl&gt;
+            &lt;destinationUrl&gt;<code>file:///${GLOBUS_USER_HOME}/my_transfered_file</code>&lt;/destinationUrl&gt;
+        &lt;/transfer&gt;
+    &lt;/fileStageIn&gt;
+</pre> 
+
+<b>Note:</b> additional RFT-defined quality of service requirements can be specified 
+      for each transfer. See the RFT documentation for more information.
+<p>
+Here is an example job description:
+
+<pre>
+<job>
+    <executable>my_echo</executable>
+    <directory>${GLOBUS_USER_HOME}</directory>
+    <argument>Hello</argument>
+    <argument>World!</argument>
+    <stdout>${GLOBUS_USER_HOME}/stdout</stdout>
+    <stderr>${GLOBUS_USER_HOME}/stderr</stderr>
+    <fileStageIn>
+        <transfer>
+            <sourceUrl>gsiftp://127.0.01:2888/bin/echo</sourceUrl>
+            <destinationUrl>file:///${GLOBUS_USER_HOME}/my_echo</destinationUrl>
+        </transfer>
+    </fileStageIn>
+    <fileStageOut>
+        <transfer>
+            <sourceUrl>file://${GLOBUS_USER_HOME}/stdout</sourceUrl>
+            <destinationUrl>gsiftp://127.0.0.1:2888/tmp/stdout</destinationUrl>
+        </transfer>
+    </fileStageOut>
+    <fileCleanUp>
+        <deletion>
+            <file>file://${GLOBUS_USER_HOME}/my_echo</file>
+        </deletion>
+    </fileCleanUp>
+</job>
+</pre>
+
+
+
 <h3><a name="specifyingmultijob"></a>Specifying and submitting a MultiJob</h3>
 
 <h2><a name="troubleshooting"></a>Troubleshooting</h2>
@@ -634,6 +694,7 @@ factory resource to use when submitting a job. </p>
 <ul>
   <li><a href="#expiredcreds">Expired credentials</a></li>
   <li><a href="#sockettimeout">Socket timeout error</a></li>
+  <li> <a href="#postmasterexception"> Postmaster connection refused</a></li>  
   <li> <a href="#filesnotfound"> File(s) Not Found warnings</a></li>
 </ul>
 <h4><a name="expiredcreds"></a>Expired credentials</h4>
@@ -666,6 +727,19 @@ Use the<tt>-timeout</t> option of <tt>managed-job-globusrun</tt>, as in:</p>
 <pre>
 % bin/managed-job-globusrun -timeout 240000 -f myJob.xml
 </pre>
+
+<h4><a name="postmasterexception"></a>Connection refused to postmaster</h4>
+<p><b>Symptom:</b> the server log and client output show exception stack traces 
+                   with the following message:</p>
+<pre>
+Unable to create RFT Resource; nested exception is:
+        org.apache.commons.dbcp.DbcpException: Connection refused. Check that the hostname and port are correct and that the postmaster is accepting TCP/IP connections.
+</pre>
+This error indicates a lack of configuration for RFT.
+<p><b>Solution:</b>  TODO: point to how to configure postgresSQL IP connectivity or 
+  better: point to RFT's troubleshooting doco</p>
+
+
 
 <h4><a name="filesnotfound"></a>File(s) Not Found warnings</h4>
 <p><b>Symptom:</b> the server LOG displays messages at WARN severity such as:</p>
