@@ -1,0 +1,200 @@
+<?php 
+$title="GT 4.0 MyProxy: User's Guide";
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); ?>
+  
+<?php
+include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/draft.inc" );
+?>
+
+<h1><?php echo $title; ?></h1>
+<ul>
+  <li><a href="#introduction">Introduction</a></li>
+  <li><a href="#commandline">Command-line tools </a></li>
+  <li><a href="#gui">Graphical user interfaces</a></li>
+  <li><a href="#troubleshooting">Troubleshooting</a> </li>
+</ul>
+<h2><a name="introduction"></a>Introduction</h2>
+
+<p>
+Rather than storing your X.509 credentials
+(certificate and private key)
+on each machine you use,
+you can store them in a MyProxy repository
+and retrieve a proxy credential from the MyProxy repository when
+needed.
+</p>
+
+<p>
+To store a credential in the MyProxy repository, run the
+<code>myproxy-init</code> command
+on a computer where your Grid credentials are located.
+For example:
+<pre>
+  $ myproxy-init -a -s myproxy.ncsa.uiuc.edu
+  Your identity: /C=US/O=National Computational Science Alliance/CN=Jim Basney
+  Enter GRID pass phrase for this identity:
+  Creating proxy ........................................... Done
+  Your proxy is valid until Fri Sep 13 13:52:56 2002
+  Enter MyProxy Pass Phrase:
+  Verifying password - Enter MyProxy Pass Phrase:
+  A proxy valid for 168 hours (7.0 days) for user jbasney now exists on myproxy.ncsa.uiuc.edu.
+</pre>
+The <code>myproxy-init</code> command
+prompts first for the pass phrase of your private key
+(similar to <code>grid-proxy-init</code>) and
+then prompts twice for a new pass phrase to use to secure the
+credentials on the MyProxy server.
+By default, the credential is stored under your Unix username (jbasney
+in the example above) for 7 days and can be used to retrieve
+credentials with 12 hour lifetimes.
+The <a href="#commandline">Command-line tools</a>
+section below lists all the available options for the myproxy-init command.
+</p>
+
+<p>
+Once you've stored a credential in the MyProxy repository, you can
+retrieve a proxy credential whenever you need one with the 
+<code>myproxy-get-delegation</code>
+command.
+For example:
+<pre>
+  $ myproxy-get-delegation -s myproxy.ncsa.uiuc.edu
+  Enter MyProxy Pass Phrase:
+  A proxy has been received for user jbasney in /tmp/x509up_u500
+</pre>
+The
+<code>myproxy-get-delegation</code>
+command prompts for the pass phrase you set previously with
+<code>myproxy-init</code>, retrieves a proxy
+credential for you, and stores it in the correct default location for
+use with other Globus Toolkit programs.
+The <a href="#commandline">Command-line tools</a> section below
+lists all the available options for the
+<code>myproxy-get-delegation</code> command.
+</p>
+
+<h2><a name="commandline"></a>Command-line tools</h2>
+
+<?php
+include_once( "./../Cred_Mgmt_MyProxy_Interface_Commandline_Frag.html" );
+?>
+
+<h2><a name="gui"></a>Graphical user interfaces</h2>
+
+<?php
+include_once( "./../Cred_Mgmt_MyProxy_Interface_GUI_Frag.html" );
+?>
+
+<h2><a name="troubleshooting"></a>Troubleshooting</h2>
+
+<p>
+When troubleshooting a MyProxy problem, it is important to consult the
+myproxy-server logs.  If you don't have access to the myproxy-server
+logs, please contact your myproxy-server administrator for help.
+The myproxy-server logs to the system logger (syslog) LOG_DAEMON
+facility.
+Alternatively, run
+</p>
+<blockquote><p><kbd>myproxy-server -d</kbd></p></blockquote>
+<p>
+from a terminal.
+In that mode, the myproxy-server will write debugging messages to the
+terminal and exit after servicing a single request.
+</p>
+
+<p>
+The most common cause of MyProxy authentication problems is incorrect
+system clocks.  GSI authentication is very sensitive to clock skew.
+Make sure your system clock is accurate (for example, by running 
+<a href="http://www.ntp.org/">NTP</a>)
+and your timezone is set correctly.
+</p>
+
+<p>
+To debug GSI authentication problems, run
+</p>
+<blockquote><p><kbd>grid-proxy-init -debug -verify</kbd></p></blockquote>
+<p>from the terminal where you run the MyProxy clients, and run</p>
+<blockquote><p><kbd>grid-proxy-init -debug -verify -cert
+/etc/grid-security/hostcert.pem -key
+/etc/grid-security/hostkey.pem</kbd></p></blockquote>
+<p>
+as root on the myproxy-server machine (assuming you run the
+myproxy-server as root).
+</p>
+
+<p>
+The following common problems are documented below:
+</p>
+
+<ol>
+<li><a href="#servername">MyProxy server name does not match expected name.</a>
+<li><a href="#bind">Error in bind(): Address already in use</a>
+<li><a href="#gpi">grid-proxy-init failed</a>
+<li><a href="#auth">User not authorized</a>
+</ol>
+
+<ol>
+<li><a name="servername"><strong>MyProxy server name does not match expected
+name.</strong></a>
+<p>
+This error appears as a mutual authentication failure or a server
+authentication failure, and the error message should list two names:
+the expected name of the MyProxy server and the actual authenticated
+name.  By default, the MyProxy clients expect the MyProxy server to be
+running with a host certificate that matches the target hostname.
+This error can occur when running the
+MyProxy server under a non-nost certificate or if the server is
+running on a machine with multiple hostnames.  The MyProxy clients
+authenticate the identity of the MyProxy server to avoid sending
+passphrases and credentials to rogue servers.
+</p>
+<p>
+If the expected name contains an IP address, your system is unable to
+do a reverse lookup on that address to get the canonical hostname of
+the server, indicating either a problem with that machine's DNS record
+or a problem with the resolver on your system.
+</p>
+<p>
+If the server name shown in the error message is acceptable, set the
+MYPROXY_SERVER_DN environment variable to that name to resolve the
+problem.
+</p>
+<li><a name="bind"><strong>Error in bind(): Address already in
+use</strong></a>
+<p>
+This error indicates that the myproxy-server port (default: 7512) is
+in use by another process, probably another myproxy-server instance.
+You can not run multiple instances of the myproxy-server on the same
+network port.
+If you want to run multiple instances of the myproxy-server on a
+machine, you can specify different ports with the -p option, and then
+give the same -p option to the MyProxy commands to tell them to use
+the myproxy-server on that port.
+</p>
+<li><a name="gpi"><strong>grid-proxy-init failed</strong></a>
+<p>
+This error indicates that the grid-proxy-init command failed when
+myproxy-init attempted to run it, which implies a problem with the
+underlying Globus installation.  Run
+</p>
+<blockquote><p>
+<kbd>grid-proxy-init -debug -verify</kbd>
+</p></blockquote>
+<p>
+for more information.
+</p>
+<li><a name="auth"><strong>User not authorized</strong></a>
+<p>
+An error from the myproxy-server saying you are "not authorized" to
+complete an operation typically indicates that the
+myproxy-server.config
+file settings are restricting your access to the
+myproxy-server.  It is possible that the myproxy-server is running
+with the default myproxy-server.config file, which does not authorize
+any operations.
+See the 
+<a href="../admin/#configuring">configuration section of the Administrator's Guide</a>
+for more information.
+</p>
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>

@@ -1,0 +1,104 @@
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!-- &copy; International Business Machines Corporation, 2004 -->
+<!-- &copy; The University of Edinburgh, 2004 -->
+<head>
+<title>How Activities Publish Inputs and Outputs</title>
+<link rel="stylesheet" type="text/css" href="../../style.css"/>
+</head>
+<body>
+<h1>How Activities Publish Inputs and Outputs</h1>
+<p>
+An activity is required to have published the names of its inputs and
+outputs (defined in Perform documents) before
+returning from its constructor, using the mechanisms described
+shortly. This is necessary so that the engine
+can access this information and link activities together. The engine
+will access these names via each activity's <span
+class="java">getInputs()</span> and <span
+class="java">getOutputs()</span> methods.
+</p>
+<p>
+To facilitate publishing the names of an activity's inputs and outputs 
+two <span class="java">String</span> arrays, <span
+class="java">mInputs</span> and <span class="java">mOutputs</span>, 
+are defined in the <span class="java">Activity</span> base
+class. These arrays are returned by the <span
+class="java">getInputs()</span> and <span
+class="java">getOutputs()</span> methods respectively. Each of these  
+arrays is set to a <span class="java">String</span> array of zero
+length when the activity is created. This means that if an activity
+does not have any inputs it needs do nothing to publicise the
+fact. Therefore to publish the inputs and outputs of an activity all
+that is necessary is to set <span class="java">mInputs</span>
+and <span class="java">mOutputs</span> to arrays containing the
+names, e.g. <span class="java">mInputs = new String[]
+{input};</span>.
+</p>
+<p>
+It is possible for the engine to determine the inputs and outputs for 
+an activity without the names being published. This is achieved by
+validating incoming Perform documents using
+the Xerces PSVI parser. The code to do this is present (in <span
+class="java">SchemaMap.validate(InputSource)</span> and in <span
+class="java">Activity.getInputs/getOutputs</span>) but 
+commented out. This was done because it was thought that it would be
+more useful to disable validation of incoming Perform documents for
+performance reasons than to extract inputs/outputs without developer
+assistance. The two are mutually exclusive because once activities are
+written without explicitly publishing their inputs and outputs then
+validation cannot be disabled. 
+</p>
+
+<h2 id="NonOutputActivities">Non-Output Activities</h2>
+<p>
+If an activity does not publish any outputs it is given special
+treatment by the engine. The handler that is used to manage its
+execution is the <span
+class="java">uk.org.ogsadai.engine.RunAheadHandler</span>
+(see <a href="#RunAheadHandler">below</a>) rather than the standard <span
+class="java">uk.org.ogsadai.engine.SimpleHandler</span>
+that is assigned to all other activities.  
+</p>
+ 
+<h2 id="RunAheadHandler"><span class="java">RunAheadHandler</span></h2>
+<p>
+The <span class="java">RunAheadHandler</span> is a threaded handler
+that continually loops, calling the <span
+class="java">processBlock</span> method of its activity, until the
+activity's status changes to either <span
+class="java">COMPLETE</span>, or <span class="java">ERROR</span>. The
+output pipes constructed for the activity's outputs are instances of
+<span class="java">SynchronizedPipe</span>. A <span
+class="java">SynchronizedPipe</span> is created with a buffer size,
+N. If no objects are being extracted from the pipe by a consumer, then 
+the producer activity can run ahead by N blocks before being forced to
+wait for the consumer. If the consumer extracts a single block then
+the producer can then produce N more blocks before being made to wait,
+it will have to wait until the number of blocks buffered falls back to 
+N. This means there can be up to N - 1 blocks present in the pipe at
+any one time.  
+</p>
+
+
+<hr/>
+<table width="100%" summary="Navigation" class="footer">
+<tr>
+<td class="footer">Back: <a href="Lifecycle.html">The Life-cycle of an
+Activity During Execution of a Perform Document</a></td>
+<td class="footer">Up: <a href="index.html">How Activities Work</a></td>
+<td class="footer">Next: <a href="ControlExecution.html">Controlling Activity Execution Within the Engine</a></td>
+</tr>
+<tr>
+<td>
+&copy; International Business Machines Corporation, 2004.
+</td>
+<td>
+&copy; The University of Edinburgh, 2004.
+</td>
+<td/>
+</tr>
+</table>
+</body>
+</html>
+

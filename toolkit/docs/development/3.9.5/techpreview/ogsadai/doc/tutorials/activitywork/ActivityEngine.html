@@ -1,0 +1,173 @@
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!-- &copy; International Business Machines Corporation, 2004 -->
+<!-- &copy; The University of Edinburgh, 2004 -->
+<head>
+<title>Executing Activities in the Engine</title>
+<link rel="stylesheet" type="text/css" href="../../style.css"/>
+</head>
+<body>
+<h1>Executing Activities in the Engine</h1>
+<p>
+This page gives an overview of the <span
+class="important">engine</span> which is used by OGSA-DAI services to
+execute Perform documents.
+</p>
+<div class="figure">
+<img width="621" height="384"
+ src="./images/EngineActivities.gif"  
+ alt="Engine Architecture for Activities and Handlers"/>
+<p>Engine Architecture for Activities and Handlers</p>
+</div>
+<p>
+The above figure shows the general structure created by the engine
+when processing a Perform document (the components shown are limited
+to those which are related to or impact upon implementation of
+activities). The main points are:   
+</p>
+<ul>
+<li>
+For each activity in a Perform document, an
+<span class="java">uk.org.ogsadai.engine.ActivityHandler</span>
+is created to manage that activity.   
+</li>
+<li>
+For each output published by an activity, its handler constructs a
+pipe for it to use. 
+</li>
+<li>
+If a consumer requests a block from a pipe that has none, the pipe may
+call back to the handler that created it to ensure that the producer
+is running.
+</li>
+<li>
+<span class="xml">deliverToResponse</span> activities are generated
+and attached to any outputs that are not consumed within the request. 
+</li>
+</ul>
+<p>
+To illustrate this, the Perform document below
+provides some hard-coded string data and passes that into a <span
+class="xml">stringTokenizer</span>. No delivery is specified so
+the results will be delivered back to the client in a synchronous
+fashion:
+</p>
+<pre class="xml">
+&lt;gridDataServicePerform xmlns="..."&gt;
+  &lt;dataStore name="data"&gt;
+    &lt;item&gt;my-data&lt;/item&gt;
+    &lt;itemCursor name="cursor"/&gt;
+  &lt;/dataStore&gt;
+  &lt;stringTokenizer name="tokenizer"&gt;
+    &lt;sourceString from="cursor"/&gt;
+    &lt;tokens name="tokens"/&gt;
+  &lt;/stringTokenizer&gt;
+&lt;/gridDataServicePerform&gt;
+</pre>
+<p>
+The Perform document above would result in a structure identical to
+that shown in the foregoing figure. The following figure labels the
+activities and their handlers with the types that would be used when
+processing this Perform document.
+</p>
+<div class="figure">
+<img width="631" height="409"
+ src="./images/EngineActivitiesExample.gif"
+ alt="Structure of an Example Request"/>
+<p>Structure of an Example Request</p>
+</div>
+<p>
+The engine's responsibilities are split into four main areas: 
+</p>
+<ol>
+<li>
+Processing the Perform document to generate the structure shown in
+the foregoing figures.  
+</li>
+<li>
+Initiating execution of the activities (see <a href="#Execution">below</a>).
+</li>
+<li>
+Monitoring the status of the activities within the Perform document
+(see <a href="#StatusMonitoring">below</a>).
+</li>
+<li>
+Returning a response to the client within a Response document.
+</li>
+</ol>
+ 
+<h2 id="Execution">Execution</h2>
+<p>
+The way in which an engine executes a request is simple. All handlers
+registered within a specific section of the context (<span
+class="java">uk.org.ogsadai.engine.EngineImpl.OUTPUTS</span>)
+are told to initiate processing (a call is made to the  <span
+class="java">processBlock()</span> method of the handler). This is the 
+same way that a pipe causes its source to initiate processing, if
+required. When using the default activity handlers, any activity that
+does not publish any outputs will be a member of this set, and so will 
+be executed directly by the engine. 
+</p>
+<p>
+Activities that do publish outputs will only be executed when a
+running activity requests a block from one of their outputs. At this
+point, the pipe will call <span class="java">processBlock()</span> on
+the associated activity handler to initiate processing.  
+</p>
+<p>
+Execution ends when all activities have set their status to either 
+<span class="java">ERROR</span> or <span
+class="java">COMPLETE</span>. Once all of the activities in the output 
+set have completed successfully, if other activities are still running
+the engine will terminate the request to force those activities still
+outstanding to finish.  
+</p>
+ 
+<h2 id="StatusMonitoring">Status Monitoring</h2>
+<p>
+This stage can occur either before or after a response is returned to
+the client. If the client request is asynchronous in nature (i.e. the
+results from the request are being delivered to a third party) then
+the response is sent to the client once the engine has successfully 
+completed execution of the request. The response seen by the client in
+this case contains only the status of the activities in the request,
+and will only contain additional data if there was an error prior to
+execution of the request. 
+</p>  
+<p>
+If the request is synchronous then the status of the activities is
+monitored in the same way, but the engine will only return a response
+to the client once the request has terminated, either successfully, or
+because of an error condition. If the request completed successfully
+then the data will be returned to the client within the response. If
+the request failed then any data produced prior to the failure will be
+discarded and only the error will be returned to the client. In the
+case of an error, the first error to be reported is flagged by the
+engine so that if it causes a cascade of errors the root cause is easy
+to locate. 
+</p>
+<p>
+Any status change reported by an activity is published via a 
+<span class="important">RequestStatus</span> property.
+</p>
+
+<hr/>
+<table width="100%" summary="Navigation" class="footer">
+<tr>
+<td class="footer">Back: <a href="XMLSchema.html">Declaring Activities Using XML Schema</a></td>
+<td class="footer">Up: <a href="index.html">How Activities Work</a></td>
+<td class="footer">Next: <a href="Context.html">The Activity Execution Context</a></td>
+</tr>
+<tr>
+<td>
+&copy; International Business Machines Corporation, 2004.
+</td>
+<td>
+&copy; The University of Edinburgh, 2004.
+</td>
+<td/>
+</tr>
+</table>
+</body>
+</html>
+

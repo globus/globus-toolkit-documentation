@@ -1,0 +1,124 @@
+<?php 
+$title="GT 4.0 Message/Transport-level Security: Developer's Guide";
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); ?>
+
+<?php
+include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/draft.inc" );
+?>
+
+<h1><?php echo $title; ?></h1>
+<ul>
+  <li><a href="#introduction">Introduction</a></li>
+  <li><a href="#archdes">Architecture and design overview</a></li>
+  <li><a href="#pubinterfaces">Public interface</a></li>
+  <li><a href="#scenarios">Usage scenarios</a> </li>
+  <li><a href="#tutorials">Tutorials</a></li>
+  <li><a href="#features">Feature summary</a></li>
+  <li><a href="#platforms">Tested platforms</a></li>
+  <li><a href="#compatibility">Backward compatibility summary</a></li>
+  <li><a href="#dependencies">Technology dependencies</a></li>
+  <li><a href="#security_considerations">Security considerations </a></li>
+  <li><a href="#debugging">Debugging</a></li>
+  <li><a href="#troubleshooting">Troubleshooting</a></li>
+  <li><a href="#relateddocs">Related Documentation </a></li>
+</ul>
+<h2><a name="introduction"></a>Introduction</h2>
+<p>This component contains mainly framework level code and as such
+  developing services and clients utilizing this component does in
+  general involve either programmatically or declaratively driving the
+  framework level security code. Now, what does this entail? On the
+  programmatic side of things it involves acquiring credentials, passing
+  these credentials on to the framework and setting various
+  authentication and protection related flags, either in a descriptor or 
+  as properties on a stub object. On the declarative side it involves 
+  setting up security descriptors, both client and service side, to 
+  prescribe the security policy used to drive the security framework code. </p>
+<h2><a name="archdes"></a>Architecture and design overview</h2>
+<h3>Transport Security</h3>
+<p>Our implementation of transport security is based on HTTP over SSL, also known as HTTPS, with modifications to path validation to enable X.509 Proxy Certificate support. In contrast to the GT3 implementation of transport security this implementation does not support delegation of proxy certificates as part of the security handshake.</p> 
+<p>Transport security is implemented by layering on top of the <em>GSISocket</em> class provided in JGlobus. This class deals with the security related aspects of connection establishment as well as message protection. The socket interface serves as a abstraction layer making the HTTP protocol handling code unaware of the underlying security properties of the connection.</p>
+<h4>Server Side Security</h4>
+<p>On the server side transport security is enabled by simply switching a non-secure socket implementation with the <em>GSISocket</em> implementation. In addition to this change some code was added to propagate authentication information and message protection settings to the relevant security handlers, in particular the authorization and security policy handlers.</p>
+<h4>Client Side Security</h4>
+<p>On the client side transport security is enable by again switching a non-secure socket implementation with the <em>GSISocket</em> implementation and registering a protocol handler for HTTPS that uses the secure socket implementation. In practice this means that any messages targeted at a HTTPS endpoint will irregardless of any stub properties be authenticated and protected. It also means that any messages sent to a HTTP endpoint will not be secured, again irregardless of any stub properties. Stub properties are only used to communicate the desired message protection level, i.e. either integrity or integrity and privacy.</p>
+<h3>Message Level Security</h3>
+<h4>Server Side Security</h4>
+<p>This section aims to describe the message flow and processing that occurs for a security-enabled service. The below figure shows the JAX-RPC handlers that are involved in security related message processing on a server.</p>
+
+<div align="center"><img src="ServerSideSec.jpg" width="793" height="493" border="0" alt="">
+</div>
+<p>GT4 provides two mechanisms, GSI Secure Conversation and GSI Secure Message security, for authentication and secure communication.</p>
+<p>In the GSI Secure Conversation approach the client establishes a context with the server before sending any data. This context serves to authenticate the client identity to the server and establish a shared secret using a collocated GSI Secure Conversation Service. Once this context establishment is complete the client can securely invoke an operation on the service by signing or encrypting outgoing messages using the shared secret in the context.</p>
+<p>The GSI Secure Message approach differs in that no context is established before invoking an operation. The client simply uses existing keying material, such as an X509 end entity certificate, to secure messages and authenticate itself to the service.</p>
+<p>The securing of messages in the GSI Secure Conversation approach using the shared secret requires less computational effort than using existing keying material in the GSI Secure Message approach. This allows the client to trade off the extra step of establishing a context to enable more efficient securing of messages once that context has been established.</p>
+<h5>Message Processing</h5>
+<p>When a message arrives from the client the SOAP engine invokes several security related handlers as follows.</p>
+<p>The first of these handlers, the WS-Security handler, searches the message for any WS-Security headers. From those headers it extracts any keying material, which can be either in the form of an X509 certificate and associated certificate chain or a reference to a previously established secure conversation session. It also checks any signatures and/or decrypts elements in the SOAP body.  The handler then populates a peer JAAS subject object with principals and any associated keying material whose veracity was ascertained during the signature checking or decryption step.</p>
+<p>The next handler that gets invoked, the security policy handler, checks that incoming messages fulfill any security requirements the service may have. These requirements are specified, on a per-operation basis, as part of a security descriptor during deployment. The security policy handler will also identify the correct JAAS subject to associate with the current thread of execution. Generally this means choosing between the peer subject populated by the WS-Security handler, the subject associated with the hosting environment and the subject associated with the service itself. The actual association is done by the pivot handler, a non-security handler not shown in the figure that handles the details of delivering the message the service.</p>
+<p>The security policy handler is followed by an authorization handler. This handler verifies that the principal established by the WS-Security handler is authorized to invoke the service. The type of authorization that is performed is specified as part of a deployment descriptor. More information can be found in there <a href="../../authzframe/developer/index.html">authorization framework documentation</a></p> 
+<p>Once the message has passed the authorization handler it is finally handed off to the actual service for processing (discounting any non security related handlers, which are outside the scope of this document). Replies from the service back to the client are processed by two outbound handlers: the GSI Secure Conversation message handler and the GSI Secure Message handler. The GSI Secure Conversation message handler deals with encrypting and signing messages using a previously established security context, whereas the GSI Secure Message handler deals with messages without an established contact by signing or encrypting the messages using X509 certificates. The operations that are actually performed depend on the message properties associated with the message by the inbound handlers, i.e. outbound messages will have the same security attributes as inbound messages. That being said, a service has the option of modifying the message properties if so desired. These handlers are identical to the client side handlers described in the following section.</p>
+<h4>Client Side Security</h4>
+<p>This section describes the security related message processing for Java-based GT4 clients. In contrast to the server side, where security is specified via deployment descriptors, client side security configuration is handled by the application. This means that a client side application has to explicitly pass information to the client side handlers on what type of security to use. This is also true for the case of services acting as clients. The below figure shows the JAX-RPC handlers that are involved in security related message processing on a server.</p>
+<div align="center"><img src="ClientSideSec.jpg" width="793" height="493" border="0" alt=""></div>
+<h5>Message Processing</h5>
+<p>The client side application can specify to use either the GSI Secure Conversation or GSI Secure Message security approaches. It does this by setting a per message property that is processed by the client side security handlers.</p> 
+<p>There are three outbound client side security handlers:</p>
+<p>The secure conversation service handler is only operational if GSI Secure Conversation mode is in use. It establishes a security session with a secure conversation service collocated with the service with which the client aims to communicate. When the client sends the initial message to the service with a property indicating that session based security is required this handler intercepts the message and establishes a security session. It will also authorize the service by comparing the service’s principal/subject obtained during session establishment with a value provided by the client application. Once the session has been established the handler passes on the original message. </p>
+<p>The next handler in the chain, the secure message handler, is only operational if GSI Secure Message mode is in use. It signs and/or encrypts messages using X.509 credentials.</p>
+<p>The third outbound handler is operational only if GSI Secure Conversation mode is in use. It handles signing and/or encryption of messages using a security session established by the first handler.
+The client side inbound handler (the WS-Security client handler) deals with verifying and decrypting any signed and/or encrypted incoming messages. In the case of GSI Secure Message operation it will also authorize the remote side in a similar fashion to the outbound secure conversation service handler.</p>
+<h2><a name="pubinterfaces"></a>Public interface</h2>
+<p>The semantics and syntax of the APIs and WSDL for the component,
+along with descriptions of domain-specific structured interface data,
+can be found in the <a
+ href="../WS_AA_Message_Level_Public_Interfaces.html">public interface
+guide</a>.</p>
+<h2><a name="scenarios"></a>Usage scenarios</h2>
+<p><font color="purple">[describe how to use the programmatic interfaces
+of the component, provide examples]</font></p>
+<h2><a name="tutorials"></a>Tutorials</h2>
+<p>There are no tutorials available at this time.</p>
+<h2><a name="features"></a>Feature summary</h2>
+<p>
+  <?php
+include_once( "./../WS_AA_Message_Level_Feature_Summary_Frag.html" );
+?>
+</p>
+<h2><a name="platforms"></a>Tested platforms</h2>
+<p>
+  <?php
+include_once( "./../WS_AA_Message_Level_Platform_Summary_Frag.html" );
+?>
+</p>
+<h2><a name="compatibility"></a>Backward compatibility summary</h2>
+<p>
+  <?php
+include_once( "./../WS_AA_Message_Level_Compatibility_Summary_Frag.html" );
+?>
+</p>
+<h2><a name="dependencies"></a>Technology dependencies</h2>
+<p>
+  <?php
+include_once( "./../WS_AA_Message_Level_Dependencies_Summary_Frag.html" );
+?>
+</p>
+<h2><a name="security_considerations"></a>Security considerations </h2>
+<?php
+include_once( "./../WS_AA_Message_Level_Security_Considerations_Frag.html" );
+?>
+<h2><a name="debugging"></a>Debugging</h2>
+<p><font color="purple">[information on standard debugging] </font></p>
+<h2><a name="troubleshooting"></a>Troubleshooting</h2>
+[TODO]
+<br>
+<h2><a name="relateddocs"></a>Related Documentation</h2>
+<ul>
+	<li><a href="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0.pdf">WS-Security</a></li>
+	<li><a href="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0.pdf">WS-Security: X.509 Certificate Tokens</a></li>
+	<li><a href="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0.pdf">WS-Security: Username Tokens</a></li>
+	<li><a href="http://www.ws-i.org/Profiles/BasicSecurityProfile-1.0.html">WS-I Basic Security Profile</a></li>
+	<li><a href="http://www.faqs.org/rfcs/rfc3820.html">RFC 3820</a> Proxy Certificates</li>
+	<li><a href="http://www.faqs.org/rfcs/rfc2818.html">RFC 2818</a> HTTP over TLS</li>
+	<li><a href="http://www.faqs.org/rfcs/rfc2246.html">RFC 2246</a> TLS</li>
+</ul>
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>

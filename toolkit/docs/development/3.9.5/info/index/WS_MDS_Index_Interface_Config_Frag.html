@@ -1,0 +1,278 @@
+<h3>Configuration overview</h3>
+<p>For a basic installation, the index service itself does not need any
+   configuration changes from default.</p>
+<p>In order for information to appear in the index, the source of that
+information must be registered to the information service.  Information
+sources are registered using tools like
+<a href="#mds-servicegroup-add"><code>mds-servicegroup-add</code></a>.
+Each registration has a limited lifetime; <code>mds-servicegroup-add</code>
+should be left running in the background so that it can continue to refresh
+registrations.
+Depending 
+on administration preference, it may be run on the same host as the index,
+on the same host as a member resource, or on any other host(s).</p>
+<p>
+The Index service is built on the
+<a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/aggregator/">WS
+MDS Aggregator Framework</a>
+and can use any aggregator  source to collect information.
+In the most common case, the index service uses the <code>QueryAggregatorSource</code>
+to gather resource property values from 
+the registered resource using one of the three WS-Resource Properties
+operations to poll for information; the polling
+method used depends on the configuration element supplied in 
+the registration content.
+</p>
+<p>Two other aggregator  sources are supplied with the distribution:  the
+<code>SubscriptionAggregatorSource</code>, which gathers resource property
+values through subscription/notification, and the
+<code>ExecutionAggregatorSource</code>, which executes an external program
+to gather information.
+<h3>Syntax of the interface</h3>
+<h4><a name="specifying-source"></a>Specifying the Aggregator Source</h4>
+<p>The aggregation source used to collect data can be changed from default
+   by editing the aggregatorSource parameter in the index configuration
+   in <code>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/jndi-config.xml</code>:
+</p>
+<pre>
+  &lt;resource name="configuration"
+               type="org.globus.mds.index.impl.IndexConfiguration"&gt;
+    &lt;resourceParams&gt;
+      &lt;parameter&gt;
+        &lt;name&gt; factory&lt;/name&gt;
+        &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+      &lt;/parameter&gt;
+      &lt;parameter&gt;
+        &lt;name&gt;aggregatorSource&lt;/name&gt;
+        <b>&lt;value&gt;org.globus.mds.aggregator.impl.QueryAggregatorSource&lt;/value&gt;</b>
+      &lt;/parameter&gt;
+    &lt;/resourceParams&gt;
+
+</pre>
+
+<p>This parameter specifies a java class that will be used to collect data
+   for the index. By default it is set to the QueryAggregatorSource. It can
+   be changed to one of the other sources supplied with the toolkit, or to
+   one installed later. Details of the supplied sources are in the
+   <a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/aggregator/developer/#introduction">Aggregator
+   Framework Developers Guide</a>.</p>
+<h4><a name="configuring_source"></a>Configuring the Aggregator Source</h4>
+Configuration options are specified by creating a configuration file and
+running <a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/index/WS_MDS_Index_Public_Interfaces.html#mds-servicegroup-add">mds-servicegroup-add</a> to perform the
+registrations specified in that configuration file.  The syntax of that file
+is:
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
+&lt;ServiceGroupRegistrations
+  xmlns="http://mds.globus.org/servicegroup/client" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+
+   &lt;<b>defaultServiceGroupEPR</b>&gt;
+      <i>Default service group EPR</i>
+   &lt;/<b>defaultServiceGroupEPR</b>&gt;
+
+   &lt;<b>defaultRegistrantEPR</b>&gt;
+      <i>Default registrant EPR</i>
+   &lt;/<b>defaultRegistrantEPR</b>&gt;
+
+   &lt;<b>defaultSecurityDescriptorFile</b>&gt;
+      <i>Path name of security descriptor file</i>
+   &lt;/<b>defaultSecurityDescriptorFile</b>&gt;
+
+   <i>One or more of the following:</i>
+   &lt;<b>ServiceGroupRegistrationParameters</b>&gt;
+      &lt;<b>ServiceGroupEPR</b>&gt;
+         <i>EPR of the service group to register to</i>
+      &lt;<b>/ServiceGroupEPR</b>&gt;
+      &lt;<b>RegistrantEPR</b>&gt;
+         <i>EPR of the entity to be monitored.</i>
+      &lt;<b>/RegistrantEPR</b>&gt;
+      &lt;<b>InitialTerminationTime</b>&gt;
+         <i>Initial termination time</i>
+      &lt;<b>/InitialTerminationTime</b>&gt;
+      &lt;<b>RefreshIntervalSecs</b>&gt;
+         <i>Refresh interval, in seconds</i>
+      &lt;<b>/RefreshIntervalSecs</b>&gt;
+      &lt;<b>Content</b>&gt;
+         <i>Aggregator-source-specific configuration parameters</i>
+      &lt;<b>/Content</b>&gt;
+   &lt;/<b>ServiceGroupRegistrationParameters</b>&gt;
+
+&lt;/ServiceGroupRegistrations&gt;
+</pre>
+
+Each <code>ServiceGroupRegistrationParameters</code> block specifies
+the parameters used to register a resource to a service group.  The
+parameters specified in this block are:
+<table border="1">
+<tr>
+<td><code>ServiceGroupEPR</code></td>
+<td>The EPR of the service group to register to.  This parameter may be omitted
+if a <code>defaultServiceGroupEPR</code> block is specified; in this case, the
+value of <code>defaultServiceGroupEPR</code> will be used instead.</td>
+</tr>
+<tr>
+<td><code>RegistrantEPR</code></td>
+<td>The EPR of the resource to register.  This parameter may be omitted
+if a <code>defaultRegistrantEPR</code> block is specified; in this case, the
+value of <code>defaultRegistrantEPR</code> will be used instead.</td>
+</tr>
+<tr>
+<td><code>InitialTerminationTime</code></td>
+<td>The initial termination time of this registration (this may be omitted).</td>
+</tr>
+<tr>
+<td><code>RefreshIntervalSecs</code></td>
+<td>The refresh interval, in seconds.</td>
+</tr>
+<tr>
+<td><code>Content</code></td>
+<td>Aggregator-source-specific registration parameters.  The content blocks
+for the various aggregator  sources are described in detail in the following
+  sections.</td>
+</tr>
+</table>
+<p>
+The <code>defaultServiceGroupEPR</code> block provides a convenient way to
+register a number of resources to a single service group -- for example, if
+you wish to register several resources to your default VO index, you can
+specify that index as the default service group and omit the
+<code>ServiceGroupEPR</code> blocks from each 
+<code>ServiceGroupRegistrationParameters</code> block.
+</p>
+<p>
+The <code>defaultRegistrantEPR</code> block provides a convenient way to
+register a single resource to several service groups -- for example, if
+you wish to register your local GRAM server to several index servers,
+you can specify your GRAM server as the default registrant and omit
+the
+<code>RegistrantEPR</code> blocks from each 
+<code>ServiceGroupRegistrationParameters</code> block.
+</p>
+<h4><a name="configuring_poll"></a>ServiceGroupRegistration Content Blocks for QueryAggregatorSource</h4>
+The QueryAggregatorSource can use one of the following three configuration
+blocks.
+<h5>GetResourcePropertyPollType</h5>
+If a GetResourcePropertyPollType block is used, QueryAggregatorSource will
+request a single resource property.  The block has this form:
+<pre>
+   &lt;Content xsi:type="agg:AggregatorContent"
+      xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:GetResourcePropertyPollType&gt;
+            &lt;agg:<b>PollIntervalMillis</b>&gt;<i>interval_in_ms</i>&lt;/agg:<b>PollIntervalMillis</b>&gt;
+            &lt;agg:<b>ResourcePropertyName</b>&gt;<i>rp_namespace</i>:<i>rp_localname</i>&lt;/agg:<b>ResourcePropertyName</b>&gt;
+         &lt;/agg:GetResourcePropertyPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</pre>
+The <code>PollIntervalMillis</code> parameter is the poll refresh period in
+milliseconds; the <code>ResourcePropertyName</code> parameter is the
+QName of the resource property to poll for.
+
+<h5>GetMultipleResourcePropertiesPollType</h5>
+If a <code>GetMultipleResourcePropertiesPollType</code> block is
+used, <code>QueryAggregatorSource</code> will request one or more 
+resource properties.  The block has this form:
+<pre>
+   &lt;Content
+        xmlns:agg="http://mds.globus.org/aggregator/types"
+        xsi:type="agg:AggregatorContent"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:GetMultipleResourcePropertiesPollType&gt;
+            &lt;agg:<b>PollIntervalMillis</b>&gt;<i>interval_in_ms</i>&lt;/agg:<b>PollIntervalMillis</b>&gt;
+            &lt;agg:<b>ResourcePropertyNames</b>&gt;<i>rp1_namespace</i>:<i>rp1_localname</i>&lt;/agg:<b>ResourcePropertyNames</b>&gt;
+            &lt;agg:<b>ResourcePropertyNames</b>&gt;<i>rp2_namespace</i>:<i>rp3_localname</i>&lt;/agg:<b>ResourcePropertyNames</b>&gt;
+            &lt;agg:<b>ResourcePropertyNames</b>&gt;<i>rp3_namespace</i>:<i>rp3_localname</i>&lt;/agg:<b>ResourcePropertyNames</b>&gt;
+         &lt;/agg:GetMultipleResourcePropertiesPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</pre>
+The <code>PollIntervalMillis</code> parameter is the poll refresh period in
+milliseconds; the <code>ResourcePropertyNames</code> parameters are the
+QNames of the resource properties to poll for.  There is no limit on the
+number of <code>ResourcePropertyNames</code> that may be specified.
+<h5>QueryResourcePropertiesPollType</h5>
+If a <code>QueryResourcePropertiesPollType</code> block is used,
+QueryAggregatorSource will request that a query be executed against the Resource Property Set of the remote resource.
+In the GT3.9.4 implementation of core, the only query language that is
+supported is XPath.  The block has this form:
+<pre>
+   &lt;Content
+        xmlns:agg="http://mds.globus.org/aggregator/types"
+        xsi:type="agg:AggregatorContent"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:QueryResourcePropertiesPollType&gt;
+            &lt;agg:<b>PollIntervalMillis</b>&gt;<i>interval_in_ms</i>&lt;/agg:<b>PollIntervalMillis</b>&gt;
+            &lt;agg:<b>QueryExpression</b> Dialect="<i>dialect</i>"&gt;
+               <i>Query Expression</i>
+            &lt;/agg:<b>QueryExpression</b>&gt;
+         &lt;/agg:QueryResourcePropertiesPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</pre>
+The <code>PollIntervalMillis</code> parameter is the poll refresh period in
+milliseconds.  The <code>QueryExpression</code> is an <code>xsd:any</code>
+element; the <code>Dialect</code> attribute specifies the dialect of the
+query expression.
+<h4><a name="configuring_subscription"></a>ServiceGroupRegistration Content Blocks for SubscriptionAggregatorSource</h4>
+The SubscriptionAggregatorSource gathers resource property values from
+the registered resource using WS-Notification subscriptions.
+The configuration block for <code>SubscriptionAggregatorSource</code> looks
+like this:
+<pre>
+
+   &lt;Content
+        xmlns:agg="http://mds.globus.org/aggregator/types"
+        xsi:type="agg:AggregatorContent"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:AggregatorSubscriptionType&gt;
+             &lt;<b>TopicExpression</b> Dialect="<i>dialect</i>"&gt;
+                <i>Topic Expression</i>
+             &lt;/<b>TopicExpression</b>&gt;
+             &lt;Precondition Dialect="<i>dialect</i>"&gt;
+                <i>Precondition</i>
+             &lt;/Precondition&gt;
+             &lt;Selector Dialect="<i>dialect</i>"&gt;
+                <i>Selector</i>
+             &lt;/Selector&gt;
+             &lt;SubscriptionPolicy&gt;
+                <i>Subscription Policy</i>
+             &lt;/SubscriptionPolicy&gt;
+             &lt;InitialTerminationTime&gt;<i>time</i>&lt;/InitialTerminationTime&gt;
+         &lt;/agg:AggregatorSubscriptionType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</pre>
+The only required parameter is the <code>TopicExpression</code>, which
+specifies the topic expression to use in the subscription request.
+[TODO:  link to generic notification/subscription docs].
+
+<h4><a name="configuring_execution"></a>ServiceGroupRegistration Content Blocks for ExecutionAggregatorSource</h4>
+The ExecutionAggregatorSource gathers arbitrary XML information about
+a registered resource by executing an external script and passing
+registration as parameters.
+The configuration block for <code>ExecutionAggregatorSource</code> looks
+like this:
+<pre>
+   &lt;Content xsi:type="agg:AggregatorContent"
+      xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:ExecutionPollType&gt;
+            &lt;agg:<b>PollIntervalMillis</b>&gt;<i>interval_in_ms</i>&lt;/agg:<b>PollIntervalMillis</b>&gt;
+            &lt;agg:<b>ProbeName</b>&gt;<i>dummy_namespace</i>:<i>filename</i>&lt;/agg:<b>ProbeName</b>&gt;
+         &lt;/agg:ExecutionPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</pre>
+The <code>PollIntervalMillis</code> parameter is the poll refresh period in
+milliseconds.  The <code>ProbeName</code> parameter specifies the path name
+to the executable file, relative to the
+<code>$GLOBUS_LOCATION/libexec/aggrexec</code> directory.  The path name should
+be specified as the local name part of this QName; the namespace part is ignored.

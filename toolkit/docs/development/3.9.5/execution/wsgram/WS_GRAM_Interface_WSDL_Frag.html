@@ -1,0 +1,231 @@
+<h3>Protocol overview</h3>
+<p> WS-GRAM allows for remote execution and management of programs
+through the creation of a managed job. The management of the job is
+taken care of primarily by core toolkit functionality
+(WS-ResourceLifetime and WS-BaseN implementations).  Please see the <a
+href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/common/javawscore/index.html">Java WS Core
+documentation</a> on notifications and resource lifetime (destruction)
+for more information.</p>
+
+<h4>Managed Job Factory Service (MJFS)</h4>
+<p>  A single MJFS is used to create all jobs for all users. For each local
+  resource manager, a dedicated Managed Job Factory Resource (MJFR)
+  enables the MJFS to publish information about the characteristics of the
+  compute resource, for example:</p>
+<ul>
+  <li>host information</li>
+  <li>GridFTP URL (for file staging and streaming)</li>
+  <li>compute cluster size and configuration, and so on... </li>
+</ul>
+
+In addition, there is a special MJFR which is used for creating MMJRs.
+
+<h4>Managed Executable Job Service (MEJS)</h4>
+<p>  A single MEJS is used to manage all executable jobs for all users.
+  Each Managed Executable Job Resource (MEJR) enables the MEJS to publish
+  information about the individual job the MEJR represents. This information
+  can be accessed by querying the MEJS for the resource properties of
+  a given MEJR, such as the:</p>
+<ul>
+  <li>  current job state</li>
+  <li>  stdout location</li>
+  <li>  stderr location</li>
+  <li>  exit code, and so on. </li>
+</ul>
+
+<h4>Managed Multi-Job Service (MMJS)</h4>
+<p>  A single MMJS is used to manage all multi-jobs for all users.
+  Each Managed Multi-Job Resource (MMJR) enables the MMJS to publish
+  information about the individual multi-job the MMJR represents. This
+  information can be accessed by querying the MMJS for the resource properties
+  of a given MMJR, such as the:</p>
+<ul>
+  <li>current overall job state</li>
+  <li>list of sub-job EPRs</li>
+  <!--
+  <li>stdout location</li>
+  <li>stderr location</li>
+  -->
+</ul>
+
+<h3>Operations</h3>
+
+<p>There are just two operations defined in the GRAM port types (not counting
+the Rendezvous port type which is used for MPI job synchronization):
+"createManagedJob" in the Managed Job Factory port type, and "release" in the
+Managed Job port type. All other operations (such as canceling/killing the job
+and querying for resource properties) are provided by the underlying WSRF
+implementation of the toolkit.</p>
+
+<h4>ManagedJobFactoryPortType</h4>
+
+<ul>
+  <li><code>createManagedJob</code>:  This operation creates either a
+    MEJR or MMJR, subscribes the client for notifications if requested, and replies
+    with one or two endpoint references (EPRs). The input of this operation consists
+    of a job description, an optional initial termination time for the job resource,
+    and an optional state notification subscription request.</li>
+</ul>
+<blockquote>
+  <p>The first EPR:
+  </p>
+  <ul>
+    <li>is qualified with the identifier to the newly created MEJR or MMJR</li>
+    <li>points to either the MEJS or MMJS.</li>
+  </ul>
+  <p>The second EPR:
+  </p>
+  <ul>
+    <li>is only present if a notification subscription was requested</li>
+    <li>is qualified with the identifier to the newly created subscription
+              resource</li>
+    <li>points to the subscription manager service.</li>
+  </ul>
+  <p>It should be noted that using the optional subscription request is the only
+     way to guarantee that all notification messages will reach the client.</p>
+</blockquote>
+<p>The ManagedJobFactoryPortType also has all the operations and
+  publishes all the resource properties (via the MJFR) defined in the
+  following <a
+  href="http://www.ibm.com/developerworks/library/ws-resource/ws-resourceproperties.pdf"
+  target="_blank">WS-ResourceProperties</a> port types:</p> 
+<ul> 
+    <li><code>GetResourceProperty</code></li>
+    <li><code>GetMultipleResourceProperties</code></li>
+    <li><code>QueryResourceProperties</code></li> 
+</ul>
+<h4>ManagedJobPortType</h4>
+
+<ul>
+  <li><code>release: </code>This operation takes no parameters and returns nothing.
+    Its purpose is to release a hold placed on a state through the use of the "holdState" field
+    in the job description. See the <a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/execution/wsgram/schemas/mjs_job_description.html">domain-specific
+    WS GRAM component documentation</a> for more information on the "holdState" field.</li>
+</ul>
+<p>The ManagedJobPortType also has all the operations
+  and publishes all the resource properties (via the MJFR)
+defined in the following port types:</p>
+<blockquote>
+  <p><strong><a href="http://www.ibm.com/developerworks/library/ws-resource/ws-resourceproperties.pdf" target="_blank">WS-ResourceProperties</a> port types:
+  </strong></p>
+  <ul>
+    <li><code> GetResourceProperty</code></li>
+    <li><code>GetMultipleResourceProperties</code></li>
+    <li><code> QueryResourceProperties</code></li>
+  </ul>
+  <p><strong> <a href="http://www.ibm.com/developerworks/library/ws-resource/ws-resourcelifetime.pdf" target="_blank">WS-ResourceLifetime</a> port types:
+  </strong></p>
+  <ul>
+    <li><code> ScheduledResourceTermination</code></li>
+    <li><code> ImmediateResourceTermination</code></li>
+  </ul>
+  <p><strong> <a href="ftp://www6.software.ibm.com/software/developer/library/ws-notification/WS-BaseN.pdf" target="_blank">WS-BaseNotification</a> port type:
+  </strong></p>
+  <ul>
+    <li><code> NotificationProducer</code></li>
+  </ul>
+</blockquote>
+<h4>Managed Executable Job Port Type</h4>
+
+This port type does not define any new operations.  See the  section on
+<a href="#rp">resource properties</a>.<br>
+
+<h4>Managed Multi-Job Port Type</h4>
+
+This port type does not define any new operations.  See the  section on
+<a href="#rp">resource properties</a>.
+
+<h3><a name="rp"></a>Resource properties</h3>
+
+<h4>Managed Job Factory Port Type</h4>
+<ul>
+  <li><code>localResourceManager: </code>The local resource manager type (i.e. Condor,
+    Fork, LSF, Multi, PBS, etc...) </li>
+  <li><code>globusLocation: </code>The location of the Globus Toolkit installation
+      that these services are running under. </li>
+  <li><code>hostCPUType: </code>The job host CPU architecture (i686, x86_64,
+    etc...) </li>
+  <li><code>hostManufacturer: </code>The host manufacturer name. May be &quot;unknown&quot;. </li>
+  <li> <code>hostOSName: </code>The host OS name (Linux, Solaris, etc...) </li>
+  <li><code>hostOSVersion: </code>The host OS version. </li>
+  <li> <code>scratchBaseDirectory: </code>The directory recommended by the system
+      administrator to be used for temporary job data. </li>
+  <li><code>delegationFactoryEndpoint: </code>The endpoint reference to the delegation
+      factory used to delegated credentials to the job. </li>
+  <li><code>stagingDelegationFactoryEndpoint: </code>The endpoint reference to
+    the delegation factory used to delegated credentials to the staging service
+    (RFT).</li>
+  <li><code>condorArchitecture: </code>Condor architecture label. </li>
+  <li><code>condorOS: </code>Condor OS label. </li>
+  <li><code>GLUECE: </code>GLUE data </li>
+  <li><code>GLUECESummary: </code>GLUE data summary </li>
+</ul>
+<h4>Managed Job Port Type</h4>
+<ul>
+  <li><code>serviceLevelAgreement: </code>A wrapper around fields containing
+    the single-job and multi-job descriptions or RSLs. Only one of these sub-fields
+    shall have a non-null value.</li>
+  <li><code>state: </code>The current state of the job.</li>
+  <li><code>fault: </code>The fault (if generated) indicating the reason for
+    failure of the job to complete.</li>
+  <li><code>localUserId: </code>The job owner's local user account name.</li>
+  <li><code>userSubject: </code>The GSI certificate DN of the job owner.</li>
+  <li><code>holding: </code>Indicates whether a hold has been placed on this
+    job.</li>
+</ul>
+<h4>Managed Executable Job Port Type</h4>
+<ul>
+  <li><code>stdoutURL: </code>A GridFTP URL to the file generated by the job
+    which contains the stdout.</li>
+  <li><code>stderrURL: </code>A GridFTP URL to the file generated by the job
+    which contains the stderr.</li>
+  <li><code>credentialPath: </code>The path (relative to the job process) to
+    the file containing the user proxy used by the job to authenticate out to
+    other services.</li>
+  <li><code>exitCode: </code>The exit code generated by the job process.</li>
+</ul>
+<h4>Managed Multi-Job Port Type</h4>
+<ul>
+  <li><code>subJobEndpoint: </code>A set of endpoint references to the sub-jobs
+    created by this multi-job.</li>
+</ul>
+<h3>Faults</h3>
+<ul>
+  <li><code>FaultType: </code>This is the base fault for runtime errors that
+    occur while managing a job. It extends the OGSI FaultType.</li>
+  <li><code>CredentialSerializationFaultType: </code>This fault indicates that
+    the managed job service was unable to serialize or deserialize a delegated
+    credential.</li>
+  <li><code>InsufficientCredentialsFaultType: </code>This fault indicates that
+    the managed job service was unable to perform some action on behalf of the
+    owner of the job submission because the owner has delegated insufficient
+    credentials.</li>
+  <li><code>InternalFaultType: </code>This fault indicates that an internal operation
+    failed.</li>
+  <li><code>InvalidCredentialsFaultType: </code>This fault indicates that the
+    managed job service was unable to use a delegated credential.</li>
+  <li><code>ServiceLevelAgreementFaultType: </code>Fault for runtime errors which
+    are directly related to a particular part of the ServiceLevelAgreement document
+    passed to the createService method. This fault type contains the fragment
+    of the ServiceLevelAgreement related to the fault as one of its elements.</li>
+  <li><code>ExecutionFailedFaultType: </code>This fault indicates that the Managed
+    Job service was unable to begin the execution of the job.</li>
+  <li><code>FilePermissionsFaultType: </code>This fault indicates that the ManagedJob
+    service does not have permissions to access a file referenced in the ServiceLevelAgreement.</li>
+  <li><code>InvalidPathFaultType: </code>This fault indicates that a file or
+    directory path referenced in the ServiceLevelAgreement contains an invalid
+    path.</li>
+  <li><code>StagingFaultType: </code>This fault indicates that part of the file
+    staging requirements of the ServiceLevelAgreement could not be completed.</li>
+  <li><code>UnsupportedFeatureFaultType: </code>This fault indicates that an
+    error occurred because the RSL depended on a feature not implemented by a
+    particular GRAM scheduler.</li>
+</ul>
+<h3><a name="wsdlandschema"></a>WSDL and Schema Definition</h3>
+<ul>
+  <li><a href="http://viewcvs.globus.org/viewcvs.cgi/ws-gram/common/schema/gram/managed_job_factory_port_type.wsdl?rev=1.5&only_with_tag=globus_3_9_5&content-type=text/vnd.viewcvs-markup">ManagedJobFactoryPortType</a></li>
+  <li><a href="http://viewcvs.globus.org/viewcvs.cgi/ws-gram/common/schema/gram/managed_job_port_type.wsdl?rev=1.6&only_with_tag=globus_3_9_5&content-type=text/vnd.viewcvs-markup">ManagedJobPortType</a></li>
+  <li><a href="http://viewcvs.globus.org/viewcvs.cgi/ws-gram/common/schema/gram/managed_executable_job_port_type.wsdl?rev=1.4&only_with_tag=globus_3_9_5&content-type=text/vnd.viewcvs-markup">ManagedExecutableJobPortType</a></li>
+  <li><a href="http://viewcvs.globus.org/viewcvs.cgi/ws-gram/common/schema/gram/managed_multi_job_port_type.wsdl?rev=1.3&only_with_tag=globus_3_9_5&content-type=text/vnd.viewcvs-markup">ManagedMulti-JobPortType</a></li>
+</ul>
+

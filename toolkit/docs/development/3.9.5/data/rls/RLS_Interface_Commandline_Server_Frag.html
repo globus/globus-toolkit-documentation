@@ -1,0 +1,280 @@
+<p>The RLS server <code>(globus-rls-server) </code> can be configured as either
+or both of the following:</p>
+        <ul>
+          <li> <strong>Location Replica Catalog (LRC)</strong> server, which
+            manages <strong>Logical FileName (LFN)</strong> to <strong>Physical
+            FileName (PFN)</strong> mappings in a database.<br>
+            <strong><br>
+    Note:</strong> If <code>globus-rls-server</code> is configured as an LRC
+    server, the RLI servers that it sends updates to should be added to the database
+    using <code><a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/rls/RLS_Public_Interfaces.html#admin">globus-rls-admin</a></code>. <br>
+          </li>
+          <li> <strong>Replica Location Index (RLI)</strong> server, which manages
+            mappings of LFNs to LRC servers.</li>
+        </ul>
+        <p>Clients wishing to locate one or more physical filenames associated
+          with a logical filename should first contact an RLI server, which will
+          return a list of LRCs that may know about the LFN. The LRC servers
+          are then contacted in turn to find the physical filenames. </p>
+        <p><strong>Note:</strong> RLI information may be out of date, so clients
+          should be prepared to get a negative response when contacting an LRC
+          (or no response at all if the LRC server is unavailable.)</p>
+        <p>This page contains the following topics: </p>
+        <ul>
+          <li><a href="#synopsis">Synopsis</a></li>
+          <li><a href="#lrctorliupdates">LRC to RLI updates</a> </li>
+          <li><a href="#bloomfilter">Bloom filter updates</a></li>
+          <li><a href="#logmessages">Log messages</a> </li>
+          <li><a href="#signals">Signals</a></li>
+          <li><a href="#options">Options</a></li>
+        </ul>
+        <h3><a name="synopsis"></a>Synopsis</h3>
+        <p>[ <em>-B lrc_update_bf </em> ] [ <em>-b maxbackoff </em> ] [ <em>-C
+              rlscertfile </em> ] [ <em>-c conffile </em> ] [ <em>-d </em> ]
+              [ <em>-e
+              rli_expire_int </em> ] [ <em>-F lrc_update_factor </em> ] [ <em>-f
+              maxfreethreads </em> ] [ <em>-I true|false </em> [ <em>-i idletimeout </em> ]
+              [ <em>-K rlskeyfile </em> ] [ <em>-L loglevel </em> ] [ <em>-l
+              true|false </em> ]
+              [ <em>-M maxconnections </em> ] [ <em>-m maxthreads </em> ] [ <em>-N </em> ]
+              [ <em>-o lrc_buffer_time </em> ] [ <em>-p pidfiledir </em> ] [ <em>-r
+              true|false </em> ] [ <em>-S rli_expire_stale </em> ] [ <em>-s startthreads </em> ]
+              [ <em>-t timeout </em> ] [ <em>-U myurl </em> ] [ <em>-u lrc_update_ll </em> ]
+        [ <em>-v </em> ] </p>
+        <h3><a name="lrctorliupdates"></a>LRC to RLI Updates</h3>
+        <p>Two methods exist for LRC servers to inform RLI servers of their LFNs.        </p>
+        <ul>
+          <li>By default, the LFNs are sent from the LRC to the RLI. <br>
+            <br>
+            This can be
+            time consuming if the number of LFNs is large, but does give the RLI
+            an exact list of the LFNs known to the LRC, and it allows wildcard
+          searching of the RLI.<br>
+          </li>
+          <li> Alternatively, Bloom filters may be sent, which
+            are highly compressed summaries of the LFNs; however they do not
+            allow wildcard searching, and they will generate more "false positives" when
+            querying an RLI. </li>
+        </ul>
+        <p>Please see <a href="#bloomfilter">below</a> for more on Bloom filters.</p>
+        <p><a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/rls/RLS_Public_Interfaces.html#admin"><code>globus-rls-admin</code></a> can
+              be used to manage the list of RLIs that an LRC server updates.
+          This includes partitioning LFNs among multiple RLI servers. </p>
+        <p>A softstate algorithm is used in both update modes: periodically the
+          LRC server sends its state (LFN information) to the RLI servers it
+        updates. </p>
+        <p>The RLI servers add these LFNs to their index, or update a
+            timestamp if the LFNs were already known. RLI servers expire information
+            about LFN,LRC mappings if they haven't been updated for a period
+          longer than the softstate update interval. </p>
+        <p>The following options in the <a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/rls/RLS_Public_Interfaces.html#config">Configuration</a> file control
+          the softstate algorithm when an LRC updates an RLI by sending LFNs: </p>
+        <ul>
+          <li><a href="globusrlsserverconfig.html#rliexpireint"><code>rli_expire_int (seconds)</code></a></li>
+          <li><a href="globusrlsserverconfig.html#rliexpirestale"><code>rli_expire_stale (seconds)</code></a></li>
+          <li><a href="globusrlsserverconfig.html#lrcupdatell"><code>lrc_update_ll (seconds)</code></a></li>
+          <li><a href="globusrlsserverconfig.html#lrcupdatebf"><code>lrc_update_bf (seconds)</code></a></li>
+        </ul>
+        <p>Updates to an LRC (new LFNs or deleted LFNs) normally don't propagate
+        to RLI servers until the next softstate update (controlled by options <a href="globusrlsserverconfig.html#lrcupdatell"><code>lrc_update_ll</code></a> and <a href="globusrlsserverconfig.html#lrcupdatebf"><code>lrc_update_bf</code></a>. </p>
+        <p>However,
+          by enabling "immediate update" mode (set <a href="globusrlsserverconfig.html#lrcupdateimmediate"><code>lrc_update_immediate</code></a> to
+          <code>true</code>),
+          an LRC will send updates to an RLI within <a href="globusrlsserverconfig.html#lrcbuffertime"><code>lrc_buffer_time</code></a> seconds. </p>
+        <p>If updates are done with LFN lists, then only the LFNs that
+              have been added or deleted to the LRC are sent. If Bloom filters
+              are used, then the entire Bloom filter is sent. </p>
+        <p>When immediate updates are enabled, the interval between softstate
+          updates is multiplied by <a href="globusrlsserverconfig.html#lrcupdatefactor"><code>lrc_update_factor</code></a> as long
+          as no updates have failed (LRC and RLI are considered to be in sync).
+          This can greatly reduce the number of softstate updates an LRC needs
+          to send to an RLI. </p>
+        <p>Incremental updates are buffered by the LRC server
+              until either 200 updates have accumulated (when LFN lists are used),
+              or <a href="globusrlsserverconfig.html#lrcbuffertime"><code>lrc_buffer_time</code></a> seconds have passed since
+              the last update. </p>
+        <h3><a name="bloomfilter"></a>Bloom filter updates</h3>
+        <p>A Bloom filter is an array of bits. Each LFN is hashed multiple times
+        and the corresponding bits in the Bloom filter are set. </p>
+        <p>Querying an
+            RLI to verify if an LFN exists is done by performing the same hashes,
+            and checking if the bits in the filter are on. If not, then the LFN
+            is known not to exist. If they're all on, then all that's
+          known is that the LFN probably exists. </p>
+        <p>The size of the Bloom filter
+            (as a multiple of the number of LFNs) and the number of hash functions,
+            control the false positive rate. The default values of 10 and 3 give
+          a false positive rate of approximately 1%. </p>
+        <p>The advantage of Bloom
+            filters is their efficiency. For example, if the LRC has 1,000,000
+            LFNs in its database, with an  average length of 20 bytes, then 20,000,000
+          bytes must be sent to an RLI during a softstate update (assuming no
+          partitioning). The RLI server must perform 1,000,000 updates to its
+          database to create new LFN,LRC mappings, or update timestamps on existing
+          entries. With Bloom filters, only 1,250,000 bytes are sent (10 x 1,000,000
+            bits / 8), and there are no database operations on the RLI (Bloom
+          filters are maintained entirely in memory). A comparison of the time
+          to perform a 1,000,000 LFN update took 20 minutes sending all the LFNs,
+            and less than 1 second using a Bloom filter. However as noted before,
+          Bloom filters do <strong>not</strong> support wild card searches of an RLI. </p>
+        <p><strong>Note:</strong> An LRC server can update some RLIs with Bloom
+          filters, and others with LFNs. However an RLI server can only be updated
+          using one method. </p>
+        <p>The following options in the <a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/rls/RLS_Public_Interfaces.html#config">Configuration</a> file
+          control Bloom filter updates:</p>
+        <ul>
+          <li><a href="globusrlsserverconfig.html#rlibloomfilter"><code>rli_bloomfilter true|false</code></a></li>
+          <li><a href="globusrlsserverconfig.html#rlibloomfilterdir"><code>rli_bloomfilter_dir none|default|pathname</code></a></li>
+          <li><a href="globusrlsserverconfig.html#lrcbloomfilternumhash"><code>lrc_bloomfilter_numhash N</code></a></li>
+          <li><a href="globusrlsserverconfig.html#lrcbloomfilterratio"><code>lrc_bloomfilter_ratio N</code></a></li>
+          <li><code><a href="globusrlsserverconfig.html#lrcupdatebf">lrc_update_bf seconds</a></code></li>
+        </ul>
+        <h3><a name="logmessages"></a>Log messages</h3>
+        <p><code>globus-rls-server </code> uses syslog to log errors and other
+          information (facility <code>LOG_DAEMON</code>) when it's running in normal (daemon)
+        mode. </p>
+        <p>If the <code><a href="#d">-d</a></code><a href="#d"> option (debug)</a> is specified, then log messages
+          are written to stdout. </p>
+        <h3><a name="signals"></a>Signals</h3>
+        <p>The server will reread its configuration file if it receives a <code>HUP</code> signal.
+          It will wait for all current requests to complete and shut down cleanly
+          if sent any of the following signals: <code>INT</code>, <code>QUIT</code> or <code>TERM</code>.</p>
+        <h3><strong><a name="options"></a>Options (globus-rls-server)</strong></h3>
+        <p>The following table describes the command line options available for
+          globus-rls-server:</p>
+        <table width="650" border="1" cellpadding="5">
+          <tr>
+            <td width="148" valign="top"><code>-b maxbackoff</code></td>
+            <td width="470" valign="top">Maximum time (in seconds) that <code>globus-rls-server </code> will
+            attempt to reopen the socket it listens on after an I/O error.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-C rlscertfile</code></td>
+            <td valign="top">Name of X.509 certificate file that identifies the
+              server; sets environment variable <code>X509_USER_CERT</code>.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code><a name="conffile"></a>-c conffile </code></td>
+            <td valign="top"><p>Name of configuration file for server. </p>
+              <p>The default is <code>$GLOBUS_LOCATION/etc/globus-rls-server.conf</code> if
+            the environment variable <code>GLOBUS_LOCATION</code> is set; else , <code>/usr/local/etc/globus-rls-server.conf</code>.</p></td>
+          </tr>
+          <tr>
+            <td valign="top"><code><a name="d"></a>-d </code></td>
+            <td valign="top"><p>Enable debugging. </p>
+              <p>Server will not detach from controlling terminal
+                and log messages will be written to stdout rather than syslog.
+                For additional logging verbosity set loglevel (see <a href="#loglevel"><code>-L</code></a> option)
+            to higher values.</p></td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-e rli_expire_int</code></td>
+            <td valign="top">Interval (seconds) at which an RLI server should expire stale
+            entries.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-F lrc_update_factor </code></td>
+            <td valign="top">If <a href="globusrlsserverconfig.html#lrcupdateimmediate"><code>lrc_update_immediate</code></a> mode is on, and the LRC server
+              is in sync with an RLI server (an LRC and RLI are synced if there
+              have been no failed updates since the last full softstate update),
+              then the interval between RLI updates for this server ( <a href="globusrlsserverconfig.html#lrcupdatell"><code>lrc_update_ll</code></a> )
+            is multipled by <a href="globusrlsserverconfig.html#lrcupdatefactor"><code>lrc_update_factor</code></a>. </td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-f maxfreethreads</code></td>
+            <td valign="top">Maximum number of idle threads server will leave running. Excess
+            threads are terminated.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-I true|false </code></td>
+            <td valign="top"><p>Turns LRC to RLI immediate update mode on (<code>true</code>)
+                or off (<code>false</code>). </p>
+              <p>The default value is
+            <code>false</code>. </p></td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-i idletimeout</code></td>
+            <td valign="top">Seconds after which idle client connections are timed out.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-K rlskeyfile</code></td>
+            <td valign="top">Name of X.509 key file. Sets environment variable <code>X509_USER_KEY</code>.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code><a name="loglevel"></a>-L loglevel </code></td>
+            <td valign="top">Sets log level. By default this is <code>0</code>, which means only errors
+            will be logged. Higher values mean more verbose logging.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-l true|false </code></td>
+            <td valign="top"><p>Configure whether server is an LRC server. </p>
+              <p>Default is <code>false</code>.</p></td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-M maxconnections </code></td>
+            <td valign="top"><p>Maximum number of active connections. Should be small enough
+              to prevent server from running out of open file descriptors. </p>
+              <p>The default
+            value is <code>100</code>.</p></td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-m maxthreads</code></td>
+            <td valign="top">Maximum number of threads server will start up to support simultaneous
+            requests.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-N </code></td>
+            <td valign="top"><p>Disable authentication checking. </p>
+              <p>This option is intended for debugging. Clients
+                should use the URL <code>RLSN://host </code> to disable authentication
+            on the client side.</p></td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-o lrc_buffer_time</code></td>
+            <td valign="top"><p>LRC to RLI updates are buffered until either
+                the buffer is full or this much time (in seconds) has elapsed
+                since the last update. </p>
+              <p>The default value is
+            <code>30</code>.</p></td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-p pidfiledir </code></td>
+            <td valign="top">Directory where PID files should be written.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-r </code></td>
+            <td valign="top"><p>Configure whether server is an RLI server. </p>
+            <p>The default value is <code>false</code>.</p></td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-S rli_expire_stale </code></td>
+            <td valign="top"><p>Interval (in seconds) after which entries in the
+              RLI database are considered stale (presumably because they were
+              deleted in the LRC.) </p>
+              <p>Stale entries are not returned in queries.</p></td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-s startthreads</code></td>
+            <td valign="top">Number of threads to start up initially.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-t timeout </code></td>
+            <td valign="top"><p>Timeout (in seconds) for calls to other RLS servers
+              (in other words, for LRC calls to send an update to an RLI.) </p>
+              <p>A
+              value of <code>0</code> disables timeouts. </p>
+              <p>The default value is <code>30</code>.</p></td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-U myurl </code></td>
+            <td valign="top">URL for this server.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-u lrc_update_ll</code></td>
+            <td valign="top">Interval (in seconds) between lfn-list LRC to RLI updates.</td>
+          </tr>
+          <tr>
+            <td valign="top"><code>-v</code></td>
+            <td valign="top">Show version and exits.</td>
+          </tr>
+</table>
