@@ -8,13 +8,14 @@ include_once( "../../include/local.inc" );
 include_once($SITE_PATHS["SERV_INC"].'header.inc'); 
 include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
 ?>
+<!--
 <div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'software.inc'); ?>
 </div>
+-->
 
 <div id="main">
 
-<p><a href="../monitoring-components.php"><< Components for Grid Monitoring and Discovery</a></p>
 
 <h1 class="first">Ganglia Cluster Toolkit</h1>
 
@@ -43,7 +44,6 @@ app_info($software, $developer, $distros, $contact);
 
 ?>
 
-<p><a href="../monitoring-components.php"><< Components for Grid Monitoring and Discovery</a></p>
 
 </div>
 

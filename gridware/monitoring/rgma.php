@@ -8,13 +8,14 @@ include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 ?>
+<!--
 <div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'software.inc'); ?>
 </div>
+-->
 
 <div id="main">
 
-<p><a href="../monitoring-components.php"><< Components for Grid Monitoring and Discovery</a></p>
 
 <h1 class="first">R-GMA</h1>
 
@@ -41,7 +42,6 @@ app_info($software, $developer, $distros, $contact);
 
 <p></p>
 
-<p style="clear: left;"><a href="../monitoring-components.php"><< Components for Grid Monitoring and Discovery</a></p>
 
 </div>
 

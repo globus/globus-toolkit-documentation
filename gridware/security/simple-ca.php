@@ -8,13 +8,14 @@ include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
 ?>
+<!--
 <div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'software.inc'); ?>
 </div>
+-->
 
 <div id="main">
 
-<p><a href="../security-components.php"><< Components for Grid Security</a></p>
 
 <h1 class="first">Simple CA</h1>
 
@@ -47,7 +48,6 @@ app_info($software, $developer, $distros, $contact);
 
 <p></p>
 
-<p style="clear: left;"><a href="../security-components.php"><< Components for Grid Security</a></p>
 
 </div>
 

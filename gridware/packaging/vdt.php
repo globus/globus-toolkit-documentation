@@ -8,13 +8,14 @@ include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 ?>
+<!--
 <div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'software.inc'); ?>
 </div>
+-->
 
 <div id="main">
 
-<p><a href="../packaging-tools-and-dist.php"><< Tools for Software Packaging and Distribution</a></p>
 
 <h1 class="first">Virtual Data Toolkit (VDT)</h1>
 
@@ -45,7 +46,6 @@ app_info($software, $developer, $distros, $contact);
 
 <p></p>
 
-<p style="clear: left;"><a href="../packaging-tools-and-dist.php"><< Tools for Software Packaging and Distribution</a></p>
 
 </div>
 

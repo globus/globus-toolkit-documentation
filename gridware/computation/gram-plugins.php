@@ -5,13 +5,14 @@ include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 ?>
+<!--
 <div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'software.inc'); ?>
 </div>
+-->
 
 <div id="main">
 
-<p><a href="../computation-components.php"><< Components for Grid Computation</a></p>
 
 <h1 class="first">GRAM Scheduler Plugins</h1>
 
@@ -74,7 +75,6 @@ app_info($software, $developer, $distros, $contact);
 
 <p></p>
 
-<p style="clear: left;"><a href="../computation-components.php"><< Components for Grid Computation</a></p>
 
 </div>
 
