@@ -28,7 +28,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
             <td width="33%">
               <h4>People and Organizations</h4>
               <ul>
-                <li>The Globus Team</li>
+                <li><a href="team/">The Globus Team</a></li>
                 <li>e-Science/e-Business Project Partners</li>
                 <li>Academic Affiliates</li>
                 <li>Sponsors</li>
