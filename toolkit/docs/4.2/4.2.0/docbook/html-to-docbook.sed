@@ -31,6 +31,7 @@ s/<tr style="text-align: right">/<row>/g
 s/<\/tr>/<\/row>/g
 s/<td>/<entry>/g
 s/<td valign="top">/<entry>/g
+s/<td align="center">/<entry>/g
 s/<td style="text-align: center">/<entry>/g
 s/<td style="color:green">/<entry>/g
 s/<td style="color:red">/<entry>/g
@@ -53,6 +54,7 @@ s/<a /<ulink /g
 s/href=/url=/g
 s/<\/a>/<\/ulink>/g
 s/pre>/screen>/g
+s/blockquote>/screen>/g
 s/<h.>/<\/section>\n<section><title>/g
 s/<\/h.>/<\/title>/g
 s/<br>//g
