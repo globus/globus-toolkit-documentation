@@ -1,6 +1,7 @@
 FILENAME=index.xml
 
-all: html pdf
+#PDF image includes are slightly broken.
+all: html 
 
 html:
 	xsltproc --stringparam chunk.section.depth 0 \
