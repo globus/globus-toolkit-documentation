@@ -28,6 +28,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">04.01.2005</span></td>
+              <td><b>See us in Edinburgh (April) and San Diego (May)!</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">02.25.2005</span></td>
               <td><b>GT 3.9.5 is available for testing.</b> 
                 <a class="learnmore" href="http://www-unix.globus.org/toolkit/staging/news.html#02252005">Learn more...</a></td>
@@ -39,13 +44,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
             </tr>
             <tr>
               <td><span class="newsdate">02.09.2005</span></td>
-              <td><b>UCLA Grid portal based on GT3.2.</b> 
+              <td><b>UCLA builds Grid portal using GT3.2.</b> 
                 <a class="learnmore" href="http://grid.ucla.edu/">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">01.25.2005</span></td>
-              <td><b>Globus Consortium is formed.</b> 
-                <a class="learnmore" href="alliance/news/consortium.php">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
