@@ -7,3 +7,8 @@ pdf:
 rh9:
 	xsltproc --stringparam chunk.section.depth 0 \
           /usr/share/sgml/docbook/xsl-stylesheets-1.58.1-2/html/chunk.xsl admin.xml
+
+debian-sarge:
+	xsltproc --stringparam chunk.section.depth 0 \
+          /usr/share/xml/docbook/stylesheet/nwalsh/xhtml/chunk.xsl admin.xml
+
