@@ -47,6 +47,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p><a class="newsalliance" href="http://www.globusworld.org/">We had 
+a great time at GlobusWORLD 2005.</a> (2/2005)</p>
+
 <p><a class="newsalliance" href="consortium.php">We welcome 
 the formation of the Globus Consortium.</a> (1/2005)</p>
 
