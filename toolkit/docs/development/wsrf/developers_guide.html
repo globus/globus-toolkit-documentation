@@ -3,11 +3,9 @@
 $title = "GT 3.9.0 WSRF Preview Developer's Guide";
 
 include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
-?>
-
-
-<p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/">Documents</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/development/index.html">Development</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/development/wsrf/index.html">WSRF</a> &lt; </p>
-<h1>GT 3.9.0 WSRF Preview Developers' Guide</h1>
+?><p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/">Documents</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/development/index.html">Development</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/development/wsrf/index.html">WSRF</a> &lt; </p>
+<h1>GT 3.9.0 Java WSRF Core Preview 
+Developers' Guide</h1>
 <ul>
   <li><a href="#WritingWebServices">Writing Web Services</a></li>
   <li><a href="#documentliteral">Document/literal</a></li>
@@ -23,7 +21,19 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
     </ul>
   </li>
   <li><a href="#jndi">JNDI</a>    </li>
-  <li><a href="#logging">Logging and Debugging</a>    </li>
+  <li><a href="#logging">Logging and Debugging</a>
+    <ul>
+      <li><a href="#tracingsoapmessages">Tracing SOAP messages
+        </a>
+        <ul>
+          <li><a href="#usingtcpmon">Using TcpMon</a> </li>
+          <li><a href="#usingmessagelogginghandler">Using MessageLoggingHandler</a></li>
+          <li><a href="#enablinglogging">Enabling logging for Axis classes</a> </li>
+        </ul>
+      </li>
+      <li><a href="#debugginglog4j">Debugging Log4j</a></li>
+    </ul>
+  </li>
 </ul>
 
 <h2><a name="WritingWebServices"></a>Writing Web Services</h2>
@@ -231,57 +241,68 @@ with a number of operation providers. </p>
   at the same time in the same service deployment descriptor.</p>
 
 <h2><a name="jndi"></a>JNDI</h2>
-<i>Standalone container only</i>. 
-<br><br>
+<p><i>Standalone container only</i>. 
+  <br>
+  <br>
 
-WSRF Core provides <a href="http://jakarta.apache.org/tomcat/tomcat-5.0-doc/jndi-resources-howto.html">Tomcat's JNDI</a> implementation. The file format of our jndi-config.xml is slightly different from the Tomcat's <code>server.xml</code> file. One main difference that the <code>&lt;resourceParams&gt;</code> are specified as children of <code>&lt;resource&gt;</code> objects. Also, our jndi-config.xml parser is case sensitive and all elements names are lowercase. 
-<br>
-All elements defined in the <code>&lt;global&gt;</code> section of the jndi config file are deployed into the <code>java:comp/env</code> context under the name specified in the 'name' attribute. All <code>&lt;service&gt;</code> elements are deployed into <code>java:comp/env/&lt;service name&gt;</code> context. New objects and contexts can be added or modified dynamically at runtime but they will not be persisted. The only way to always have some object around is to deploy it in the jndi-config.xml file. All services <b>share</b> the same <code>java:comp/env</code> context. This is different from EJBs where each EJB has a separate <code>java:comp/env</code> context. 
-<br>
-When deploying <code>&lt;resource&gt;</code> in jndi-config.xml make sure to use the <code>org.globus.wsrf.tools.jndi.BeanFactory</code> as a BeanFactory (value of a 'factory' parameter) instead of <code>org.apache.naming.factory.BeanFactory</code>. Your bean must have a default constructor. If your bean implements the <code>org.globus.wsrf.tools.jndi.Initializable</code> interface, the <code>initialize()</code> function will be automatically called after all parameters are set on the bean.
-<br><br>
-Please see <a href="http://java.sun.com/products/jndi/tutorial/">The JNDI Tutorial</a> for more information on JNDI programming.
-
+WSRF Core provides <a href="http://jakarta.apache.org/tomcat/tomcat-5.0-doc/jndi-resources-howto.html">Tomcat's
+JNDI</a> implementation. The file format of our jndi-config.xml is slightly different
+from the Tomcat's <code>server.xml</code> file. One main difference is that the <code>&lt;resourceParams&gt;</code> are
+specified as children of <code>&lt;resource&gt;</code> objects. Also, our jndi-config.xml
+parser is case sensitive and all elements names are lowercase. </p>
+<p>All elements defined in the <code>&lt;global&gt;</code> section of the JNDI
+    configuration file are deployed into the <code>java:comp/env</code> context
+    under the name specified in the 'name' attribute. All <code>&lt;service&gt;</code> elements
+    are deployed into <code>java:comp/env/&lt;service
+  name&gt;</code> context. New objects and contexts can be added or modified
+  dynamically at runtime but they will not be persisted. The only way to always
+  have some object around is to deploy it in the jndi-config.xml file. All services <b>share</b> the
+  same <code>java:comp/env</code> context. This is different from EJBs where
+each EJB has a separate <code>java:comp/env</code> context. </p>
+<p>  When deploying <code>&lt;resource&gt;</code> in jndi-config.xml make sure
+    to use the <code>org.globus.wsrf.tools.jndi.BeanFactory</code> as a BeanFactory
+    (value of a 'factory' parameter) instead of <code>org.apache.naming.factory.BeanFactory</code>.
+    Your bean must have a default constructor. If your bean implements the <code>org.globus.wsrf.tools.jndi.Initializable</code> interface,
+    the <code>initialize()</code> function will be automatically called after
+    all parameters are set on the bean. </p>
+<p>  Please see <a href="http://java.sun.com/products/jndi/tutorial/">The JNDI Tutorial</a> for
+      more information on JNDI programming. </p>
 <h2><a name="logging"></a>Logging and Debugging</h2>
 
-Logging in the WSRF Core is based on the <a href="http://jakarta.apache.org/commons/logging/">Jakarta Commons Logging</a> architecture. Commons Logging provides a consistent interface for instrumenting source code while at the same time allowing the user to plug-in a different logging implementation. Currently we use <a href="http://logging.apache.org/log4j/docs/">Log4j</a> as a logging implementation.
-
-<h3>Tracing SOAP messages</h3>
-
-There are three methods for tracing SOAP messages.
-
-<p>1. To trace SOAP messages on the wire you can use TcpMon from Apache
-Axis. After setting the environment using $GLOBUS_LOCATION/globus-dev-env.[sh|csh|bat] you can run:
-<pre>java org.apache.axis.utils.tcpmon [listenPort targetHost targetPort]</pre>
+<p>Logging in the WSRF Core is based on the <a href="http://jakarta.apache.org/commons/logging/">Jakarta Commons Logging</a> architecture. Commons Logging provides a consistent interface for instrumenting source code while at the same time allowing the user to plug-in a different logging implementation. Currently we use <a href="http://logging.apache.org/log4j/docs/">Log4j</a> as a logging implementation.
+  
 </p>
-<p>If no arguments are used, you have to fill out these values in the
-GUI.
-</p>
+<h3><a name="tracingsoapmessages"></a>Tracing SOAP messages</h3>
 
-<p>2. Another method for logging SOAP messages is to add the
-<code>org.globus.ogsa.handlers.MessageLoggingHandler</code> to the
-request or response chain in the <code>server-config.wsdd</code> or <code>client-config.wsdd</code> files. For example:
-</p>
-<pre>&lt;requestFlow&gt;<br>  ...<br>  &lt;handler type="java:org.globus.ogsa.handlers.MessageLoggingHandler"/&gt;<br>  ...<br>&lt;requestFlow&gt;</pre>
-
-Then you must enable logging for this class in <code>log4j.properties</code> file and change the logging level to DEBUG:
-<pre>
- log4j.category.org.globus.wsrf.handlers.MessageLoggingHandler=DEBUG
+<p>There are three methods for tracing SOAP messages: <a href="#usingtcpmon">using
+  TcpMon</a>, <a href="#usingmessagelogginghandler">using MessageLoggingHandler</a>  and <a href="#enablinglogging">enabling
+  logging for Axis classes</a>. </p>
+<h4><a name="usingtcpmon"></a>Using TcpMon</h4>
+<p>To trace SOAP messages on the wire you can use TcpMon from Apache Axis. After
+  setting the environment using <code>$GLOBUS_LOCATION/globus-dev-env.[sh|csh|bat]</code> you
+can run: </p>
+<pre class="command">java org.apache.axis.utils.tcpmon [listenPort targetHost targetPort]</pre>
+<p>If no arguments are used, you have to fill out these values in the GUI. </p>
+<h4><a name="usingmessagelogginghandler"></a>Using MessageLoggingHandler</h4>
+<p>Another method for logging SOAP messages is to add the <code>org.globus.ogsa.handlers.MessageLoggingHandler</code> to
+the request or response chain in the <code>server-config.wsdd</code> or <code>client-config.wsdd</code> files. </p>
+<p>For example: </p>
+<pre class="command">&lt;requestFlow&gt;<br>  ...<br>  &lt;handler type="java:org.globus.ogsa.handlers.MessageLoggingHandler"/&gt;<br>  ...<br>&lt;requestFlow&gt;</pre>
+<p>Then you must enable logging for this class in <code>log4j.properties</code> file
+  and change the logging level to DEBUG: </p>
+<pre class="command">log4j.category.org.globus.wsrf.handlers.MessageLoggingHandler=DEBUG
 </pre>
-
-<p>3. Another method for tracing SOAP messages is to enable logging for
-selected Axis classes.
-Add the following lines to the <code>log4j.properties</code> file:
-<pre>
+<h4><a name="enablinglogging"></a>Enabling logging for Axis classes</h4>
+<p>Another method for tracing SOAP messages is to enable logging for selected
+Axis classes. Add the following lines to the <code>log4j.properties</code> file: </p>
+<pre class="command">
  log4j.category.org.apache.client.Call=DEBUG
  log4j.category.org.apache.axis.transport.http.HTTPSender=DEBUG
 </pre>
+This will log Axis client side calls and Axis HTTP messages.
+<h3><a name="debugginglog4j"></a>Debugging Log4j</h3>
 
-This will cause axis client side calls and Axis HTTP messages to
-be logged. </p>
-
-<h3>Debugging Log4j</h3>
-
-If you are having problems with configuring Log4j you can enable internal Log4j debugging by adding <code>-Dlog4j.debug</code> option on the <code>java</code> command line.
-
-<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
+<p>If you are having problems with configuring Log4j, you can enable internal
+  Log4j debugging by adding <code>-Dlog4j.debug</code> option on the <code>java</code> command
+  line.</p>
+  <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
