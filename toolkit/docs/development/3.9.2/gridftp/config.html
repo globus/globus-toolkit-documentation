@@ -13,7 +13,12 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
 file.</p>
 <ul>
   <li><a href="#guidelines">Guidelines</a></li>
-  <li><a href="#options">Configuration Options</a></li>
+  <li><a href="#options">Configuration Options in gridftp.conf</a></li>
+  <li><a href="#globusurlcopy">Configuring the GridFtP server for globus-url-copy</a>
+    <ul>
+      <li><a href="#limitations">Limitations of globus-url-copy</a> </li>
+    </ul>
+  </li>
   <li> <a href="#xinetd_inetd">Configuring the GridFTP server to run under
   Xinetd/Inetd</a></li>
 </ul>
@@ -32,7 +37,7 @@ file.</p>
   anonymous_user bob
   banner &quot;Welcome!&quot;
 </pre>
-<h3><a name="options"></a>Configuration Options </h3>
+<h3><a name="options"></a>Configuration Options in gridftp.conf</h3>
 <p>The following options are allowed in the configuration file:</p>
 <table width="650" border="1" cellpadding="5">
   <tr>
@@ -134,6 +139,119 @@ file.</p>
     <td valign="top">same as -r option</td>
   </tr>
 </table>
+<h3><a name="globusurlcopy"></a>Configuring the GridFTP server for globus-url-copy</h3>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td colspan="2" valign="top"><div align="center" class="box-header">General
+        options </div></td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-v</pre></td>
+    <td valign="top">Show server version information.</td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-V</pre></td>
+    <td valign="top">Show version info for all globus packages used by the server.</td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-p &lt;port&gt;</pre></td>
+    <td valign="top">Specify the port to listen on.</td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-s, -S</pre></td>
+    <td valign="top">Run in <a href="index.html#daemon_mode">daemon mode</a>.</td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-i</pre></td>
+    <td valign="top"><p>Run in Inetd mode.</p>
+        <p>Also see <a href="config.html#xinetd_inetd">Configuring the GridFTP
+            server to run under Xinetd/Inetd</a>. </p></td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-ns</pre></td>
+    <td valign="top"><p>Run with no security at all. </p>
+        <p><strong>Important:</strong> This option allows unencrypted access
+          to anyone. Use this for testing only!</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-aa</pre></td>
+    <td valign="top"><p>Allow unencrypted anonymous access. </p>
+        <p>Should be run as an unprivileged user, or as root when the <code>anonymous_user</code> and <code>anonymous_group</code> options
+          are set in the configuration file (see <a href="config.html">Configuration</a>). </p>
+        <p><strong>Note:</strong> GSI clients may still connect as normal when
+          this mode is enabled.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-d &lt;num&gt;</pre></td>
+    <td valign="top"><p>Specify debug level. </p>
+        <table width="400" border="1" cellpadding="5">
+          <tr>
+            <td>1</td>
+            <td>Only shows errors (default) </td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Shows other information as well. </td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>Dumps the entire control channel. </td>
+          </tr>
+      </table></td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-l &lt;logfile&gt;</pre></td>
+    <td valign="top"><p>Specify the full path to a logfile.</p>
+        <p>Logging defaults to stderr. This is the only way to get logging/debug
+          info with <code>-i</code> or <code>-S</code>.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-c &lt;config&gt;</pre></td>
+    <td valign="top">Load this configuration file instead of the default <code>$GLOBUS_LOCATION/etc/gridftp.conf </code></td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-G &lt;globus_loc&gt;</pre></td>
+    <td valign="top">Use this path as the <code>$GLOBUS_LOCATION</code></td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-bs &lt;num&gt;</pre></td>
+    <td valign="top">Specify the size of buffers used for reading from disk.</td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top" class="box-header"><div align="center">Striping/remote
+        data node options </div></td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>-dn</pre></td>
+    <td valign="top">Run as a remote data-node.</td>
+  </tr>
+  <tr>
+    <td valign="top"><pre>
+ -r &lt;host:port&gt;[,&lt;host:port&gt;...]</pre></td>
+    <td valign="top">Specify list of remote data-nodes to connect to.</td>
+  </tr>
+</table>
+<h4><a name="limitations"></a>Limitations of globus-url-copy </h4>
+<p> There are numerous known memory leaks.</p>
+<p> Threaded builds are not expected to work properly.</p>
+<p> Error responses are unclear and inconsistent.</p>
+<p> Running as a daemon (-s or -S) sometimes triggers a bug that causes an assertion
+  that does not come up when running as a single process.</p>
+<p> The server will leak a socket (and the child process will hang in daemon
+  mode) when the client 1) sends a PASV and then 2) sends RETR or STOR and then
+  3) terminating.</p>
+<p> The server running in inetd mode may not automatically load the configuration
+  file from $GLOBUS_LOCATION/etc/gridftp.conf. Use the <code>-c &lt;configfile&gt;</code> parameter
+  to specify the configuration file.</p>
+<p> When running a striped transfer with parallelism of more than 1, the transfer
+  may hang when finished, but before eof. This is more likely as parallelism
+  increases and the size of the transfer decreases.</p>
+<p> An assertion or other failure may occur when the connection between a data
+  node and frontend is closed unexpectedly.</p>
+<p> There is no security whatsoever on the connection between the frontend and
+  data nodes. Additionally, the data node only operates as the user it is started
+  as</p>
+<p>&nbsp; </p>
 <h3><a name="xinetd_inetd"></a>Configuring the GridFTP server to run under Xinetd/Inetd</h3>
 <p>Here is a sample gridftp xinetd config entry:</p>
 <p><strong>Note:</strong> The service name used (gridftp2 in this case) should
