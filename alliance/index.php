@@ -25,7 +25,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
         <table width="100%" class="news">
           <tr>
-            <td width="25%" valign="top">
+            <td width="33%">
               <h4>People and Organizations</h4>
               <ul>
                 <li>The Globus Team</li>
@@ -35,15 +35,20 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
                 <li>Job Opportunities</li>
               </ul>
             </td>
-            <td width="25%" valign="top">
-              <h4>News and Information</h4>
+            <td width="33%">
+              <h4>Publications</h4>
               <ul>
-                <li>News Archive</li>
-                <li>Meetings and Events</li>
                 <li>Publications - Research Papers</li>
                 <li>Publications - Mass Media</li>
                 <li>Publications - Books</li>
                 <li>Publications - Presentations</li>
+              </ul>
+            </td>
+            <td width="33%">
+              <h4>News and Events</h4>
+              <ul>
+                <li>News Archive</li>
+                <li>Meetings and Events</li>
               </ul>
             </td>
           </tr>
