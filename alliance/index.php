@@ -23,7 +23,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
            [<a href="about.php">More</a>]</p>
 
         <p>In this section of the website, you may choose from the following 
-           areas, which are reflected in the navigational submenu to the left.</p>
+           areas.</p>
 
 <blockquote>
 <b><a href="activities/">Activities</a></b> links to Globus Alliance projects, publications, presentations and meetings.

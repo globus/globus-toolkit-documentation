@@ -28,7 +28,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     of successful Grid projects.  This section of our website provides a description of the role 
     that software plays in Grid projects and descriptions of many of the software tools that GRIDS 
     Center members and our partners have used successfully in ambitious Grid applications.
-    You may choose from the following areas, which are reflected in the navigational submenu to the left.</p>
+    You may choose from the following areas.</p>
 
     <blockquote><b><a href="ecology.php">An Ecosystem of Grid Components</a></b> describes the GRIDS Center's general 
     approach to using software components in Grid projects and applications.</blockquote>
