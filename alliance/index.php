@@ -31,23 +31,23 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
                 <li><a href="team/">The Globus Team</a></li>
                 <li>e-Science/e-Business Project Partners</li>
                 <li><a href="affiliates.php">Academic Affiliates</a></li>
-                <li>Sponsors</li>
-                <li>Job Opportunities</li>
+                <li><a href="sponsors.php">Sponsors</a></li>
+                <li><a href="employment/">Job Opportunities</a></li>
               </ul>
             </td>
             <td width="33%">
               <h4>Publications</h4>
               <ul>
-                <li>Publications - Research Papers</li>
-                <li>Publications - Mass Media</li>
-                <li>Publications - Books</li>
-                <li>Publications - Presentations</li>
+                <li>Research Papers</li>
+                <li>Mass Media</li>
+                <li>Books</li>
+                <li>Presentations</li>
               </ul>
             </td>
             <td width="33%">
               <h4>News and Events</h4>
               <ul>
-                <li>News Archive</li>
+                <li><a href="news/">News Archive</a></li>
                 <li>Meetings and Events</li>
               </ul>
             </td>
