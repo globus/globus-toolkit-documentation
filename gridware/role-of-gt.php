@@ -160,12 +160,12 @@ After reviewing the contents and capabilities of the Globus Toolkit and having r
 The following sections provide pointers to some of the Grid community's best tools and services including many that are not currently included the Globus Toolkit. These components have all been used with the Globus Toolkit in real projects to accomplish ambitious goals, and we encourage application developers and system builders to consider reusing them in new efforts rather than ignoring them (and most likely reinventing them from scratch).
 </p>
 
-<blockquote><strong><a href="security-components.php">Security</a></strong> describes a number of useful software tools for meeting the security requirements in Grid systems.</blockquote>
-<blockquote><strong><a href="monitoring-components.php">Monitoring and Discovery</a></strong> describes software components that can provide monitoring and discovery features in Grid systems.</blockquote>
-<blockquote><strong><a href="computation-components.php">Computation</a></strong> describes software tools that can be used to manage computational tasks in Grid applications.</blockquote>
-<blockquote><strong><a href="data-components.php">Data</a></strong> describes software tools that can be used to manage data and datasets in data-intensive applications.</blockquote>
-<blockquote><strong><a href="collaboration-components.php">Collaboration</a></strong> describes software for facilitating and encouraging collaboration in distributed projects.</blockquote>
-<blockquote><strong><a href="packaging-tools-and-dist.php">Packaging and Distribution</a></strong> describes tools for helping to create integrated software distributions for use in Grid projects.</strong></blockquote>
+<blockquote><strong><a href="security/">Security</a></strong> describes a number of useful software tools for meeting the security requirements in Grid systems.</blockquote>
+<blockquote><strong><a href="monitoring/">Monitoring and Discovery</a></strong> describes software components that can provide monitoring and discovery features in Grid systems.</blockquote>
+<blockquote><strong><a href="computation/">Computation</a></strong> describes software tools that can be used to manage computational tasks in Grid applications.</blockquote>
+<blockquote><strong><a href="data/">Data</a></strong> describes software tools that can be used to manage data and datasets in data-intensive applications.</blockquote>
+<blockquote><strong><a href="collaboration/">Collaboration</a></strong> describes software for facilitating and encouraging collaboration in distributed projects.</blockquote>
+<blockquote><strong><a href="packaging/">Packaging and Distribution</a></strong> describes tools for helping to create integrated software distributions for use in Grid projects.</strong></blockquote>
 
 <p>
 The Globus Toolkit does make projects of this nature easier.  It does this by providing solutions to the most common problems and by promoting standard solutions. The Globus Toolkit is a well-designed implementation of community standards that allows many things to be built on it. (We have lots of happy developers!) The Globus Alliance has accumulated more than seven years of experience at providing support to Grid builders in more than fifty large-scale R&D applications. The Toolkit's documentation, installation, configuration, and training resources are constantly improving through the efforts of the entire Grid community.

@@ -241,24 +241,24 @@ components that have been selected are those that GRIDS Center team members have
 effectively in successful Grid application or system deployment projects. The components are classified
 based on the functional areas they address, as follows.</p>
 
-    <blockquote><b><a href="security-components.php">Security</a></b> describes a number of useful software tools for meeting the
+    <blockquote><b><a href="security/">Security</a></b> describes a number of useful software tools for meeting the
     security requirements in Grid systems.</blockquote>
     
-    <blockquote><b><a href="monitoring-components.php">Monitoring and Discovery</a></b> describes software components that can provide
+    <blockquote><b><a href="monitoring/">Monitoring and Discovery</a></b> describes software components that can provide
     monitoring and discovery features in Grid systems.</blockquote>
     
-    <blockquote><b><a href="computation-components.php">Computation</a></b> describes software tools that can be used to manage 
+    <blockquote><b><a href="computation/">Computation</a></b> describes software tools that can be used to manage 
     computational tasks in Grid applications.</blockquote>
     
-    <blockquote><b><a href="data-components.php">Data</a></b> describes software tools that can be used to manage data 
+    <blockquote><b><a href="data/">Data</a></b> describes software tools that can be used to manage data 
 and
     datasets in data-intensive applications.</blockquote>
     
-    <blockquote><b><a href="collaboration-components.php">Collaboration</a></b> describes software for facilitating and
+    <blockquote><b><a href="collaboration/">Collaboration</a></b> describes software for facilitating and
  encouraging
     collaboration in distributed projects.</blockquote>
     
-    <blockquote><b><a href="packaging-tools-and-dist.php">Packaging and Distribution</a></b> describes tools for helping to create integrated
+    <blockquote><b><a href="packaging/">Packaging and Distribution</a></b> describes tools for helping to create integrated
     software distributions for use in Grid projects.</b></blockquote>
 
 

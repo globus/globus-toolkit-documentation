@@ -40,19 +40,19 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <blockquote><b><a href="security/">Security</a></b> describes a number of useful software 
     tools for meeting the security requirements in Grid systems.</blockquote>
     
-    <blockquote><b><a href="monitoring-components.php">Monitoring and Discovery</a></b> describes software 
+    <blockquote><b><a href="monitoring/">Monitoring and Discovery</a></b> describes software 
     components that can provide monitoring and discovery features in Grid systems.</blockquote>
     
-    <blockquote><b><a href="computation-components.php">Computation</a></b> describes software tools that can 
+    <blockquote><b><a href="computation/">Computation</a></b> describes software tools that can 
     be used to manage computational tasks in Grid applications.</blockquote>
     
-    <blockquote><b><a href="data-components.php">Data</a></b> describes software tools that can be used to 
+    <blockquote><b><a href="data/">Data</a></b> describes software tools that can be used to 
     manage data and datasets in data-intensive applications.</blockquote>
     
-    <blockquote><b><a href="collaboration-components.php">Collaboration</a></b> describes software for 
+    <blockquote><b><a href="collaboration/">Collaboration</a></b> describes software for 
     facilitating and encouraging collaboration in distributed projects.</blockquote>
     
-    <blockquote><b><a href="packaging-tools-and-dist.php">Packaging and Distribution</a></b> describes tools 
+    <blockquote><b><a href="packaging/">Packaging and Distribution</a></b> describes tools 
     for helping to create integrated software distributions for use in Grid projects.</b></blockquote>
 
 <!-- content ENDS here -->
