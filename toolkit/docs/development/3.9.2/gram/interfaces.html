@@ -1,0 +1,193 @@
+<?php
+
+$title = "Globus Toolkit 3.9.2 Documentation: GRAM";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+
+
+
+
+
+
+
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/">Documents</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/development/index.html">Development</a> &gt;  <a href="../index.html">3.9.2</a> &lt; </p>
+<h1>Globus Toolkit 3.9.2 Documentation: GRAM </h1>
+<h2>GRAM Web Services Interfaces </h2>
+<p>This page provides information about the web services interfaces in WS GRAM: </p>
+<ul>
+  <li><a href="#intro">Introduction</a></li>
+  <li><a href="#wsrfwebservices">WSRF GRAM Web Services </a></li>
+  <li><a href="#rsl">Resource Specification Language (RSL)</a></li>
+  <li><a href="#gramclient">GRAM Client </a></li>
+  <li><a href="#gramclientapi">GRAM Client API </a></li>
+  <li><a href="#relateddocuments">Related Documents</a></li>
+</ul>
+<h3><a name="intro"></a>Introduction</h3>
+<p>The key concepts for the GRAM component have not changed. Its purpose 
+  is still to provide the mechanisms to execute remote applications for a 
+  user. Given an RSL (Resource Specification Language) job description, 
+  GRAM submits the job to a scheduling system such as PBS or Condor, or 
+  to a simple fork-based way of spawning processes, 
+  and monitors it until completion. More details can be found here:</p>
+<p><a href="http://www-unix.globus.org/toolkit/docs/3.2/gram/key">http://www-unix.globus.org/toolkit/docs/3.2/gram/key</a></p>
+<h3><a name="wsrfwebservices"></a>WSRF GRAM Web Services </h3>
+<p>  The GRAM services in GT4 are WSRF compliant. One of the key 
+  concepts in the [WSRF] specification is the decoupling of a 
+  service with the public &quot;state&quot; of the service in the interface via
+  the&quot;implied resource pattern&quot; (http://www.globus.org/wsrf/faq.asp#wsrf12).
+  Following this concept, the data of GT4 GRAM jobs is published 
+  as part of WSRF resources, while there is only one service 
+  to start jobs or query and monitor their state. This is different from the
+   [OGSI] model of GT3 where each job was represented as a separate service.
+  There still is a job factory service that can be called in order 
+  to create job instances (represented as WSRF resources). Each scheduling 
+  system that GRAM is interfaced with is represented as a separate factory resource.
+  By making a call to the factory service while associating the call to 
+  the appropriate factory resource, the job submitting actor can create 
+  a job resource mapping to a job in the chosen scheduling system.</p>
+<p>The WSRF GRAM service deployment therefore consists 
+of two deployed services:</p>
+<ul>
+  <li> <a href="#mjfs">ManagedJobFactoryService (MJFS)</a></li>
+  <li> <a href="#mjs">ManagedJobService (MJS)</a></li>
+</ul>
+<h4><a name="mjfs"></a>ManagedJobFactoryService (MJFS)</h4>
+<p>  A single MJFS is used to create all jobs for all users. For each local 
+  resource manager, a dedicated Managed Job Factory Resource (MJFR)
+  enables the MJFS to publish information about the characteristics of the 
+  compute resource, for example:</p>
+<ul>
+  <li>host information</li>
+  <li> GridFTP URL (for file staging and streaming)</li>
+  <li> compute cluster size and configuration, and so on... </li>
+</ul>
+<p>The ManagedJobFactoryPortType GRAM-specific operation is:</p>
+<pre>createManagedJob</pre>
+<p>  The input of this operation consists of a job description 
+  and an optional initial termination time for the MJR.
+  This operation creates a MJR and replies with an 
+  endpoint reference (EPR) that: </p>
+<ul>
+  <li> is qualified with the identifier to the newly created MJR </li>
+  <li> points to the MJS.</li>
+</ul>
+<p>  The returned EPR enables the submitting user to obtain a 
+  resource-qualified reference to the MJS and start the job 
+  (see <a href="#mjs">ManagedJobService (MJS)</a>)</p>
+<p>The ManagedJobFactoryPortType also has all the operations 
+  and publishes all the resource properties (via the MJFR)
+defined in the following [WS-ResourceProperties] port types:</p>
+<ul>
+  <li> GetResourceProperty</li>
+  <li> GetMultipleResourceProperties</li>
+  <li> QueryResourceProperties</li>
+</ul>
+<p>For more details, see the WSDL definition:</p>
+<p> <a href="http://www-unix.mcs.anl.gov/%7Esmartin/gt4/managed_job_factory_port_type_compact.wsdl" target="_blank">http://www-unix.mcs.anl.gov/~smartin/gt4/managed_job_factory_port_type_compact.wsdl</a></p>
+<h4>  <a name="mjs"></a>ManagedJobService (MJS)</h4>
+<p>  A single MJS is used to manage all jobs for all users. 
+  Each Managed Job Resource (MJR) enables the MJS to publish 
+  information about the individual job the MJR represents. This information 
+  can be accessed by querying the MJS for the resource properties of 
+a given MJR, such as:</p>
+<ul>
+  <li> the current job state</li>
+  <li> the stdout location</li>
+  <li> the stderr location</li>
+  <li> the exit code, and so on. </li>
+</ul>
+<p>The ManagedJobPortType GRAM-specific operation is:</p>
+<pre>start</pre>
+<p> which takes no parameters and submits the job 
+  to the back-end scheduling system.</p>
+<p>The ManagedJobPortType also has all the operations 
+  and publishes all the resource properties (via the MJFR)
+defined in the following port types:</p>
+<blockquote>
+  <p><strong>[WS-ResourceProperties] port types:
+  </strong></p>
+  <ul>
+    <li> GetResourceProperty</li>
+    <li>GetMultipleResourceProperties</li>
+    <li> QueryResourceProperties</li>
+  </ul>
+  <p><strong> [WS-ResourceLifetime] port types:
+  </strong></p>
+  <ul>
+    <li> ScheduledResourceTermination</li>
+    <li> ImmediateResourceTermination</li>
+  </ul>
+  <p><strong> [WS-BaseNotification] port type:
+  </strong></p>
+  <ul>
+    <li> NotificationProduce</li>
+  </ul>
+</blockquote>
+<p>For more details, see the WSDL definition:</p>
+<ul>
+  <li>[MJS wsdl] <a href="http://www-unix.mcs.anl.gov/%7Esmartin/gt4/managed_job_port_type_compact.wsdl">http://www-unix.mcs.anl.gov/~smartin/gt4/managed_job_port_type_compact.wsdl</a></li>
+  <li>[managed job types] <a href="http://www-unix.mcs.anl.gov/%7Esmartin/gt4/managed_job_types.html">http://www-unix.mcs.anl.gov/~smartin/gt4/managed_job_types.html</a></li>
+</ul>
+<p>GRAM uses the GT 3.9.2 WSRF core for a number of operations, for 
+example:</p>
+<ul>
+  <li><code>GetResourceProperty</code></li>
+  <li><code>GetMultipleResourceProperties</code></li>
+  <li><code>QueryResourceProperties</code></li>
+  <li><code>ScheduledResourceTermination</code></li>
+  <li><code>ImmediateResourceTermination</code></li>
+  <li><code>NotificationProducer</code></li>
+</ul>
+<p>&lt;UML diagram for dependencies?&gt;</p>
+<h3><a name="rsl"></a>Resource Specification Language (RSL)</h3>
+<p>  The RSL is an XML schema defined language used to describe a GRAM job 
+  to be executed by the GRAM service. It's a general means to describe 
+  almost any job. The GRAM client reads an RSL file and unmarshalls it 
+into a job description that it then sends to the MJFS. </p>
+<p>  The RSL-written job description is translated by the GRAM service 
+  implementation into commands understood by the local resource manager 
+  or batch scheduling system specified by the client. </p>
+<p>The biggest change to the RSL schema from version 3.2 of the Globus Toolkit
+  is that the substitution definitions and references were removed. 
+  This was changed in order to use stronger typing for the job attributes 
+  and enable standard XML parsing and serialization tools to validate the values
+  against the schema, if needed. The purpose of the RSL substitutions was 
+  for the client to be able to create a generic RSL that could be used to 
+  submit jobs to different GRAM services at different sites, and the GRAM 
+  service would substitute in the site unique values. For example, a user's 
+  home directory is not always the same at different sites; the GRAM service
+   RSL substitution variable HOME made it so the user does did not have to 
+  specify a hard-coded path specific to each targetted system. The 
+  functionality previously provided by RSL substitutions 
+  will be a new requirement for GRAM clients to perform, except for 
+  the HOME substitution, which is still supported as the variable 
+  <code>${GLOBUS_USER_HOME}</code>. GRAM service defined substitution values 
+  will be published as MJFS Resource Properties, but a GRAM client will need
+  to 
+  query for these values and edit the RSL accordingly before submitting the 
+job.</p>
+<p>For more information about the  RSL schema, go to:</p>
+<p><a href="http://www-unix.mcs.anl.gov/%7Esmartin/gt4/rsl_schema.html">http://www-unix.mcs.anl.gov/~smartin/gt4/rsl_schema.html</a></p>
+<h4>RSL Examples </h4>
+<p> Please see the <a href="testing.html">Testing</a> page for RSL examples.</p>
+<h3><a name="gramclient"></a>GRAM Client </h3>
+<p>  This command is used to submit jobs to Globus resources. The job 
+  startup is done using the GRAM services. Also, the GASS service can be 
+  used to provide access to remote files and for redirecting standard 
+  output streams. For more information, go to: </p>
+<p><a href="http://www-unix.globus.org/toolkit/docs/development/3.9.2/gram/managed-job.html">http://www-unix.globus.org/toolkit/docs/development/3.9.2/gram/managed-job.html</a></p>
+<h3><a name="gramclientapi"></a>GRAM Client API </h3>
+<p>  When the supplied client is not enough to satisfy partcular needs, 
+  it is possible to write a dedicated client using the GRAM client API. 
+  This API adds an abstraction layer on top of the service proxies 
+  generated by the tooling from the WSDL schemas. 
+  The main class of the client APi is 
+  org.globus.exec.client.GramJob, which represents a remote job.</p>
+<p>&lt;link to Javadoc?&gt;</p>
+<h3><a name="relateddocuments"></a>Related Documents </h3>
+<ul>
+  <li> [WSRF] <a href="http://www.globus.org/wsrf/">http://www.globus.org/wsrf/</a></li>
+  <li> [OGSI] <a href="http://www.gridforum.org/ogsi-wg/drafts/draft-ggf-ogsi-gridservice-04_2002-10-04.pdf">http://www.gridforum.org/ogsi-wg/drafts/draft-ggf-ogsi-gridservice-04_2002-10-04.pdf</a></li>
+</ul>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
