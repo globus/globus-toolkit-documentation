@@ -1,6 +1,6 @@
 <?php
 
-$title = "Grid Ecosystem: Monitoring and Discovery - Globus Index Service";
+$title = "Grid Ecosystem: Monitoring and Discovery - Globus Trigger Service";
 $section = "section-4";
 include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
@@ -14,33 +14,35 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 
 <p><a href="../monitoring-components.php"><< Components for Grid Monitoring and Discovery</a></p>
 
-<h1 class="first">Globus Index Service</h1>
+<h1 class="first">Globus Trigger Service</h1>
 
 <p>
-The Globus Index Service is a component of the Globus Toolkit. It is an OGSA-compliant Web service that
-serves as a collection point for status information from other OGSA Web services.
+The Globus Trigger Service uses basic OGSA service monitoring capabilities to take actions when
+specific system conditions occur.  This can be used to construct email notifications that let system 
+administrators know when services fail.
 </p>
 
 <p>
-The Globus Index service creates and manages dynamic service data via Service Data Provider programs. 
-This provides a point of inquiry regarding the characteristics of a physical system in a Grid.
-</p>
-
-<p> 
-The Index Service also aggregates status information from other Grid services, providing a "collection point"
-for information from many services in a Grid that allows clients or agents to "discover" services
-that come and go dynamically on the Grid.
+The Trigger Service subscribes to an 
+<a href="index-service.php">Index Service</a> or another source of 
+<a href="ws-core.php">OGSI or WSRF monitoring information</a>.
+The Trigger Service is configured with a set of Xpath
+conditions and, for each contition, an action script that should be run when the condition is
+satisfied, plus an optional XSLT stylesheet.  Each time a notification is received, the Trigger 
+Service checks each Xpath condition against the notification data.  If any of the Xpath conditions 
+are is met, the Trigger Service runs the corresponding action scripts with the product of the 
+XLST transformation applied to the matching XML.
 </p>
 
 <p>
-The Index Service also registers Grid service instances using the OGSI ServiceGroup port type.
+An action script can be a simple shell script or a wrapper around other applications such as 
+a grid service client or email client.
 </p>
 
 <?
-$software = "<a href='http://www.globus.org/toolkit/'>Globus Index Service</a>";
+$software = "<a href='http://www-unix.globus.org/toolkit/docs/development/3.9.4/info/trigger/'>Globus Trigger Service</a>";
 $developer = "<a href='http://www.globus.org/'>The Globus Alliance</a>";
-$distros = "<a href='http://www.globus.org/toolkit/'>Globus Toolkit 3.2</a><br />
-            <a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a>";
+$distros = "<a href='http://www-unix.globus.org/toolkit/'>Globus Toolkit 3.9 (and 4.0)</a>";
 $contact = "<a href='mailto:info@globus.org'>info@globus.org</a>";
 
 // use the function below once problem is discovered, remove the two lines above
