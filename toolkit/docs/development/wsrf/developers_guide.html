@@ -1,34 +1,68 @@
 <?php
 
-$title = "GT 3.9.0 WSRF Preview Release Notes";
+$title = "GT 3.9.0 WSRF Preview Developer's Guide";
 
 include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
 ?>
 
+
 <p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/">Documents</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/development/index.html">Development</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/development/wsrf/index.html">WSRF</a> &lt; </p>
 <h1>GT 3.9.0 WSRF Preview Developers' Guide</h1>
+<ul>
+  <li><a href="#documentliteral">Document/literal</a></li>
+  <li><a href="#wsaddressing">WS-Addressing</a>    <ul>
+      <li><a href="#call">Call object </a></li>
+      <li><a href="#addressinglocator">AddressingLocator class</a> </li>
+      <li><a href="#referenceproperties">ReferenceProperties</a></li>
+    </ul>
+  </li>
+  <li><a href="#operationproviders">Operation Providers</a>    <ul>
+      <li><a href="#configuringoperationproviders">Configuring operation providers</a></li>
+      <li><a href="#configuringallowedmethods">Configuring allowed methods</a></li>
+    </ul>
+  </li>
+  <li><a href="#jndi">JNDI</a>    </li>
+</ul>
+<h2><a name="documentliteral"></a>Document/literal</h2>
 
-
-<h2>Document/literal</h2>
-
-The WS-RF specifications schemas follow the <b>document/literal</b> mode as described in <a href="http://www.ws-i.org/Profiles/BasicProfile-1.0-2004-04-16.html">WS-I Basic Profile</a>. The Basic Profile defines certain rules to follow for document/literal and other modes to ensure interoperability. For example, for document/literal mode, at most one &lt;wsdl:part&gt; is allowed in the &lt;wsdl:message&gt element and it has to define the 'element' attribute. Also, the wire signatures must be unique (cannot use the same 'element' attribute in &lt;wsdl:part&gt in two different &lt;wsdl:message&gt elements). 
-<br>
-Our implementation relies on these restrictions so please keep them in mind when designing your own schema.
+<p>The WS-RF specifications schemas follow the <b>document/literal</b> mode as described in <a href="http://www.ws-i.org/Profiles/BasicProfile-1.0-2004-04-16.html">WS-I Basic Profile</a>.
+  The Basic Profile defines certain rules to follow for document/literal and
+other modes to ensure interoperability. </p>
+<p>For example, for document/literal mode,
+  at most one &lt;wsdl:part&gt; is allowed in the &lt;wsdl:message&gt; element and it has to define the 'element' attribute. Also, the wire signatures must be unique (cannot use the same 'element' attribute in &lt;wsdl:part&gt; in two different &lt;wsdl:message&gt; elements). </p>
+<p>  Our implementation relies on these restrictions so please keep them in mind
+  when designing your own schema. </p>
 <p>
-Axis' WSDL2Java tool might sometimes incorrectly detect that schema follows the wrapped/literal mode and generate wrong stub and type classes. To ensure that always document/literal mode is used use our <code>generateStub*</code> tasks in <code>&lt;install&gt;/share/globus_wsrf_tools/build-stubs.xml</code> ant file or if you are using WSDL2Java tool directly specify <code>-W</code> command line option.<br>
-Also, with wrapped/literal mode, the element name had to match the operation name in wsdl. This is not necessary with document/literal mode.
-
-<h2>WS-Addressing</h2>
+<strong>Note:</strong> Axis' WSDL2Java tool might sometimes incorrectly detect
+that schema follows the wrapped/literal mode and generate wrong stub and type
+classes. To ensure that document/literal mode is always used:
+<ul>
+  <li> use our <code>generateStub*</code> tasks
+        in <code>&lt;install&gt;/share/globus_wsrf_tools/build-stubs.xml</code> ant
+  file</li>
+  <li> if you are using WSDL2Java tool directly, you can alternatively specify
+    the <code>-W</code> command
+        line option.
+  </li>
+</ul>
+<p>  Also, with wrapped/literal mode, the element name had to match the operation
+  name in wsdl. This is <strong>not</strong> necessary with document/literal mode.
+<h2><a name="wsaddressing"></a>WS-Addressing</h2>
 
 The WS-RF specifications use WS-Addressing (the 2003 version of the specification) for addressing services and resources. 
 <br>
-Our implementation uses <a href="http://ws.apache.org/ws-fx/addressing/">Apache Addressing</a> library. The API are pretty straightforward and easy to use. Most of the work in done in <code>AddressingHandler</code> so make sure the handler is properly deployed. See Apache Addressing documentation for details.
+Our implementation uses <a href="http://ws.apache.org/ws-fx/addressing/">Apache
+Addressing</a> library. The API are pretty straightforward and easy to use. Most
+of the work is done in <code>AddressingHandler</code> so make sure the handler
+is properly deployed. See Apache Addressing documentation for details.
 
-<h3>Call</h3>
+<h3><a name="call"></a>Call object </h3>
 
-If you are using the <code>javax.xml.rpc.Call</code> object directly you can pass the addressing information by setting a <code>Constants.ENV_ADDRESSING_REQUEST_HEADERS</code> property on the call object. For example:
-
-<pre>
+<p>If you are using the <code>javax.xml.rpc.Call</code> object directly, you
+  can pass the addressing information by setting a <code>Constants.ENV_ADDRESSING_REQUEST_HEADERS</code> property
+  on the call object. </p>
+<p>For example: </p>
+<pre class="command">
         Service service = new Service();
         Call call = (Call) service.createCall();
 
@@ -45,11 +79,15 @@ If you are using the <code>javax.xml.rpc.Call</code> object directly you can pas
         String ret = (String) call.invoke(new Object[]
 </pre>
 
-<h3>AddressingLocator</h3>
+<h3><a name="addressinglocator"></a>AddressingLocator class </h3>
 
-The Apache Addressing library also contains a version of Axis' WSDL2Java tool. It extends the Axis' WSDL2Java tool functionality by generating in addition to all the regular classes, the <code>&lt;service&gt;Addressing</code> interface and <code>&lt;service&gt;AddressingLocator</code> class. The AddressingLocator class can be used to get a stub for a service by passing Apache Addressing <code>EndpointReferenceType</code> parameter. For example:
-
-<pre>
+<p>The Apache Addressing library also contains a version of Axis' WSDL2Java tool.
+  It extends the Axis' WSDL2Java tool functionality by generating, in addition
+  to all the regular classes, the <code>&lt;service&gt;Addressing</code> interface
+and <code>&lt;service&gt;AddressingLocator</code> class. </p>
+<p>The <code>AddressingLocator</code>  class can be used to get a stub for a service by passing Apache Addressing <code>EndpointReferenceType</code> parameter. </p>
+<p>For example: </p>
+<pre class="command">
         EndpointReferenceType epr = new EndpointReferenceType();
         epr.setAddress(
             new Address("http://localhost:8080/axis/services/Version")
@@ -63,13 +101,16 @@ The Apache Addressing library also contains a version of Axis' WSDL2Java tool. I
         port.getVersion();
 </pre>
 
-<h3>ReferenceProperties</h3>
+<h3><a name="referenceproperties"></a>ReferenceProperties</h3>
 
-In WS-RF specifications the WS-Addressing ReferenceProperties are used to carry resource identity information. The resource identity can be anything as long as it serializes as a XML element.
-<br>
-Apache Addressing library only allows a DOM <code>Element</code> or a <code>SOAPElement</code> to be a reference property. For example:
-
-<pre>
+<p>In WS-RF specifications, the WS-Addressing <code>ReferenceProperties</code> are
+  used to carry resource identity information. The resource identity can be anything
+  as long as it serializes as a XML element.
+</p>
+<p> Apache Addressing library only allows a DOM <code>Element</code> or a <code>SOAPElement</code> to
+  be a reference property. </p>
+<p>For example: </p>
+<pre class="command">
         // this will be a reference property
         SimpleResourceKey key = new SimpleResourceKey(Counter.KEY, "123");
 
@@ -92,30 +133,55 @@ Apache Addressing library only allows a DOM <code>Element</code> or a <code>SOAP
         port.getVersion();
 </pre>
 
-<h2>Operation providers</h2>
+<h2><a name="operationproviders"></a>Operation providers</h2>
 
-GT3 introduced a concept of operation providers where a service could be composed of different parts/classes. WSRF Core also supports this functionality. In GT3 operation providers had to implement a specific interface. In WSRF Core no such interface is required. As matter of fact an operation provider is not in any way different from a standard web service. That means that any web service can automatically be used as an operation provider (as long as it uses common or standard interfaces to operate on resources).
+GT3 introduced a concept of operation providers where a service could be composed
+of different parts/classes. WSRF Core also supports this functionality. In GT3
+operation providers had to implement a specific interface. In WSRF Core <strong>no</strong> such
+interface is required. As matter of fact an operation provider is not in any
+way different from a standard web service. That means that <strong>any</strong> web service can
+automatically be used as an operation provider (as long as it uses common or
+standard interfaces to operate on resources.)
+<h3><a name="configuringoperationproviders"></a>Configuring operation providers</h3>
 
-<h3>Configuring operation providers</h3>
-
-To enable operation provider support for your service do the following:
-<ol>
-<li>Change the 'provider' attribute value to 'Handler' and add 'handleClass' parameter with value 'org.globus.axis.providers.RPCProvider'.
-<li>Specify providers in the 'providers' parameter. The value of the parameter is a space-separated list of either provider names or class names. If provider name is used, it must be first defined as a parameter in &lt;globalConfiguration&gt; element in <b>main</b> deployment descriptor. For example:
-<pre>
+<p>To enable operation provider support for your service, make the following
+  changes to the service deployment descriptor: </p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top">1</td>
+    <td valign="top">Change the value of the <code>provider</code> attribute to <code>Handler</code>.</td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td valign="top">Add a <code>handleClass</code> parameter with a value of <code>org.globus.axis.providers.RPCProvider</code>.</td>
+  </tr>
+  <tr>
+    <td valign="top">3</td>
+    <td valign="top"><p>Specify providers in the <code>providers</code> parameter. </p>
+      <p>The value
+        of the parameter is a space-separated list of either provider names or
+        class names. If provider names are used, they must  first be defined
+        as  parameters in the <code>&lt;globalConfiguration&gt;</code> element
+    of the <b>main</b> deployment descriptor. </p>
+    <p>For example: </p>      <pre class="command">
   &lt;globalConfiguration&gt;
   ...
    &lt;parameter name="GetRPProvider" 
               value="org.globus.wsrf.impl.properties.GetResourcePropertyProvider"/&gt;
   ...
   &lt;/globalConfiguration&gt;
-</pre>
-<li>Add or modify the value of 'scope' parameter to 'Application'
-</ol>
-
-Example:
-
-<pre>
+</pre></td>
+  </tr>
+  <tr>
+    <td valign="top">4</td>
+    <td valign="top">Add or change the value of the <code>scope</code> parameter
+      to <code>Application</code></td>
+  </tr>
+</table>
+<p>The following is an example of a modified service deployment descriptor:
+  
+</p>
+<pre class="command">
     &lt;service name="SubscriptionManagerService" <b>provider="Handler"</b>
         use="literal" style="document"&gt;
         &lt;parameter name="allowedMethods" value="*"/&gt;
@@ -134,15 +200,26 @@ Example:
     &lt;/service&gt;
 </pre>
 
-<b>Note:</b> The operations defined in the 'className' service always overwrite the providers' operations. That is, if one provider defines the same method as the service specified in the 'className' parameter, the operation will be invoked on the service. Also, if two providers define the same method, the first one specified in the 'providers' parameter will be invoked.
+<b>Note:</b> The operations defined in the <code>className</code> service always
+overwrite the providers' operations. That is, if one provider defines the same
+method as the service specified in the <code>className</code> parameter, the
+operation will be invoked on the service. Also, if two providers define the same
+method, the first one specified in the <code>providers</code> parameter will be invoked.
 
-<h3>Configuring allowed methods</h3>
+<h3><a name="configuringallowedmethods"></a>Configuring allowed methods</h3>
 
-All public methods of a service can potentially be invoked remotely unless the service is configured with the right 'allowedMethods' parameter. The control over allowed methods becomes more problematic if the service is configured with a number of operation providers. To solve the problem, WSRF code adds a new 'allowedMethodsClass' parameter which can be used to set the allowed methods from a class. The methods defined in that class are the only methods that can be invoked on the service. We recommend that the 'allowedMethodClass' be set to the service interface class generated by WSDL2Java tool (if wsdl is used). 
-<br>
-<b>Note:</b> Only 'allowedMethods' or 'allowedMethodsClass' parameter can be specified in service deployment descriptor.
-
-<h2>JNDI</h2>
-
-
+<p>All public methods of a service can potentially be invoked remotely unless
+  the service is configured with the correct <code>allowedMethods</code> parameter. The
+  control over allowed methods becomes more problematic if the service is configured
+with a number of operation providers. </p>
+<p>To solve the problem, WSRF code adds
+    a new <code>allowedMethodsClass</code> parameter which can be used to set
+    the allowed methods from a class. The methods defined in that class are the
+    only methods that can be invoked on the service. We recommend that the <code>allowedMethodClass</code>  be set to the service interface class generated by WSDL2Java tool (if wsdl
+  is used.)</p>
+<p>  <b>Note:</b> The <code>allowedMethods</code> and <code>allowedMethodsClass</code> parameters
+    are exclusive of one another. In other words, you  can't have both specified
+  at the same time in the same service deployment descriptor.</p>
+<h2><a name="jndi"></a>JNDI</h2>
+<p>&nbsp;</p>
 <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
