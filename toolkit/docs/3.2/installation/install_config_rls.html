@@ -307,8 +307,8 @@ Port=5432 </p>      <p><strong>Note:</strong> You do not need
     Server Database Configuration </a> </p></td>
   </tr>
   <tr>
-    <td colspan="2" valign="top" class="box-header"><div align="center"><strong><a name="myodbcinstall"></a>Installing
-    MyODBC</strong></div></td>
+    <td colspan="2" valign="top" class="box-header"><div align="center"><a name="myodbcinstall"></a>Installing
+    MyODBC</div></td>
   </tr>
   <tr>
     <td colspan="2" valign="top"><p>Recommended Version: 3.51.03 (why is this recommended
@@ -487,9 +487,10 @@ Port=5432 </p>      <p><strong>Note:</strong> You do not need
   <tr>
     <td valign="top">19</td>
     <td valign="top"><p>Start the RLS Server by running:</p>
-    <p class="command">$GLOBUS_LOCATION/sbin/SXXrls start</p>
+    <pre class="command">$GLOBUS_LOCATION/sbin/SXXrls start</pre>
     <p>Similarly, you can  stop the RLS Server by running: </p>
-    <p class="command">$GLOBUS_LOCATION/sbin/SXXrls stop </p></td>
+    <pre class="command">$GLOBUS_LOCATION/sbin/SXXrls stop </pre>
+    <p>Important: See Notes on Initializing RLS. </p></td>
   </tr>
   <tr>
     <td colspan="2" valign="top" class="box-header"><div align="center"><a name="mdsconfig"></a>Configuring
@@ -652,10 +653,43 @@ export GLOBUS_LOCATION
 LD_ASSUME_KERNEL=2.4.1
 export LD_ASSUME_KERNEL
 &lt;--- END ---&gt;</pre>
-  <p>On i586 systems, set LD_ASSUME_KERNEL=2.2.5<br>
-  </p>
+  <p>On i586 systems, set LD_ASSUME_KERNEL=2.2.5</p>
 </blockquote>
-<p>For more information, see the <em>RLS System Administrator's Guide</em>. (not yet available)</p>
+<h3>Notes on RLS Initialization</h3>
+<blockquote>
+  <p>Please be advised (and advise other users responsible for bringing up the
+    RLS) that the startup initialization may take a few minutes before the RLS
+    may be accessible. The initialization involves two key operations
+    that may consume significant resources causing the server to appear temporarily
+    unresponsive. Users of RLS may mistakenly assume that RLS failed to
+    startup and may kill the server and start over. Some users may fall into
+    this in a repeated cycle, believing that the RLS is unable to startup properly. </p>
+  <p>If the RLS is configured to send compressed updates (Bloom filters) to other
+    RLIs, the RLS startup will involve initialization of the Bloom filter representing
+    the current contents of the local replica catalog (LRC). This step is a prerequisite
+    before any additional operations may be allowed, therefore no client connections
+    are permitted until the initialization is complete. In our test environment,
+    we have seen over 30 seconds delay due to creation of the Bloom filter corresponding
+    to 1 million LFN names on a system with Dual 1 GHz CPU and 1.5 GB RAM. You
+    may experience greater delays at larger scales and/or when running RLS with
+    more limited system resources.</p>
+  <p>If the RLS is configured to send uncompressed udpates (LFN lists) to other
+    RLIs, the RLS startup will not involve any additional initialization delay,
+    however, the RLS will spawn an initial full catalog update to all RLIs it
+    updates. Though these updates will take place on separate threads of execution
+    after the initialization of the system, they will consume a great amount
+    of processor activity. Depending on the volume of the local replica catalog
+    (LRC), this processor activity may initially interfere with a client operation.
+    In our test environment, we have seen our initial &quot;globus-rls-admin
+    ping...&quot; operation
+    may suffer a delay and timeout in 30 seconds, the second &quot;ping&quot; may
+    delay for a few seconds but will successfully return, and the third and every
+    subsequent &quot;ping&quot; operation will successfully return immediately
+    throughout the duration of the update. The system exhibits the same behavior
+  for any other client operation, such as a &quot;globus-rls-cli query...&quot; operation.</p>
+</blockquote>
+<p>For more information, see the <a href="../rls/admin/">RLS System Administrator's
+Guide</a>.</p>
 
 
 <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
