@@ -13,6 +13,7 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
   <li><a href="#pubinterfaces">Public interface</a></li>
   <li><a href="#scenarios">Usage scenarios</a> 
    <ul>
+    <li><a href="#NotificationConsumer">Notification Consumer</a></li>
     <li><a href="#EndpointInfo">Container Endpoint Information</a></li>
     <li><a href="#LocalInvocations">Local Invocations</a></li>
     <li><a href="#CustomExpressionEval">Custom Query/Topic Expression Evaluators</li>
@@ -53,12 +54,119 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
 <h2><a name="scenarios"></a>Usage scenarios</h2>
 
 
-<h3><a name="HandlingNotifications">Handling Notifications</a></h3>
+<h3><a name="NotificationConsumer">Notification Consumer</a></h3>
 <p>
-[TODO: unordered, message type (DOM Element/SOAPElement)
+There are a few steps involved in setting up and receiving notifications:
+<ul>
+ <li>Callback implementation</li>
+ <li>NotificationConsumerManager</li>
+ <li>Registration of callback</li>
+ <li>Subscription</li>
+ <li>Clean up</li>
+</ul>
 </p>
 
-<h3><a name="EndpointInfo">Obtaining container endpoint information</a></h3>
+<h4>Callback implementation</h4>
+<p>
+The notification consumer application must provide an implementation of the <code>org.globus.wsrf.NotifyCallback</code> interface. The <code>deliver</code> function of the interface will be invoked whenever a notification for that consumer arrives. The <code>message</code> parameter will either be of <code>org.w3c.dom.Element</code> type if the message type was unknown or some object mapped to the type of the message. <br>
+Please note that the <code>deliver</code> function should be thread-safe as multiple notifications might come at once. Notifications might also come unordered and some might even be lost.
+</p>
+
+<h4>NotificationConsumerManager</h4>
+<p>
+In order to facilitate the receipt of notifications a <code>NotificationConsumerManager</code> needs to be started. The <code>NotificationConsumerManager</code> starts an embedded container through which the notifications are handled. To start a <code>NotificationConsumerManager</code> do:
+</p>
+<pre>
+ import org.globus.wsrf.NotificationConsumerManager; 
+ ...
+
+ NotificationConsumerManager consumer = null;
+ try {
+    consumer = NotificationConsumerManager.getInstance();
+    consumer.startListening();
+    ...
+</pre>
+
+<h4>Registration of callback</h4>
+<p>
+The callback implementation needs to be registered with the <code>NotificationConsumerManager</code> (once it is started) using the <code>createNotificationConsumer</code> function. The <code>createNotificationConsumer</code> function returns an endpoint for this notification consumer. Example:
+</p>
+<pre>
+ import org.globus.wsrf.NotifyCallback;
+ import org.apache.axis.message.addressing.EndpointReferenceType;
+ ...
+
+    MyCallback callback = new MyCallback();
+    EndpointReferenceType consumerEPR =
+        consumer.createNotificationConsumer(callback);
+    ...
+
+ class MyCallback implements NotifyCallback {
+   ....
+ }
+</pre>
+
+<h4>Subscription</h4>
+<p>
+The endpoint returned by the <code>createNotificationConsumer</code> function can be then passed to the subscribe call. Example:
+</p>
+<pre>
+ import org.oasis.wsn.TopicExpressionType;
+ import org.oasis.wsn.Subscribe;
+ import org.oasis.wsn.SubscribeResponse;
+ import org.globus.wsrf.WSNConstants;
+ import org.globus.wsrf.WSRFConstants;
+ ...
+
+    TopicExpressionType topicExpression = new TopicExpressionType();
+    topicExpression.setDialect(WSNConstants.SIMPLE_TOPIC_DIALECT);
+    topicExpression.setValue(WSRFConstants.TERMINATION_TIME);
+
+    Subscribe request = new Subscribe();
+    request.setUseNotify(Boolean.TRUE);
+    request.setConsumerReference(consumerEPR);
+    request.setTopicExpression(topicExpression);
+
+    SubscribeResponse subResponse = port.subscribe(request);
+    ...
+</pre>
+
+<h4>Clean up</h4>
+<p>
+Once done with the notifications make sure to explicitly destroy the subscription resource or set its termination time. <br>
+For example:
+</p>
+<pre>
+ import org.globus.wsrf.core.notification.SubscriptionManager;
+ import org.globus.wsrf.core.notification.service.SubscriptionManagerServiceAddressingLocator;
+ import org.oasis.wsrf.lifetime.Destroy;
+ ...
+
+    SubscriptionManagerServiceAddressingLocator sLocator =
+        new SubscriptionManagerServiceAddressingLocator();
+    SubscriptionManager manager = sLocator.getSubscriptionManagerPort(
+                        subResponse.getSubscriptionReference());
+    manager.destroy(new Destroy());
+    ...
+</pre>
+
+
+<p>
+Also, please ensure to call (especially in error cases) <b><code>NotificationConsumerManager.removeNotificationConsumer()</code></b> function to unregister the callbakc from the <code>NotificationConsumerManager</code>. In addition make sure to always call the <b><code>NotificationConsumerManager.stopListening()</code></b> function when finished using the <code>NotificationConsumerManager</code>. Otherwise, some resources might not be released. <br>
+For example:
+</p>
+<pre>
+    ...
+ } catch(Exception e) {
+    ...
+ } finally {
+    if (consumer != null) {
+       try { consumer.stopListening(); } catch (Exception ee) {}
+    }
+ }
+</pre>
+
+<h3><a name="EndpointInfo">Container Endpoint Information</a></h3>
 <p>
 In most cases, a service will need to return an endpoint information of the container to a client. Unfortunately, getting that information might not be easy. The only reliable way of getting the container endpoint information is to extract it from the <code>MessageContext.TRANS_URL</code> property of the <code>MessageContext/ResourceContext</code> associated with the current thread. We provide <code>ServiceHost</code> API to obtain that information easily, for example:
 </p>
@@ -87,7 +195,7 @@ The above will return the <code>EndpointReferenceType</code> object with the <co
 <b>Note:</b> The <code>ServiceHost</code> API will return the correct information and <code>AddressingUtils</code> API will work correctly, only if called from the same thread as the service method was invoked from.
 </p>
 
-<h3><a name="LocalInvocations">Making Local Invocations</a></h3>
+<h3><a name="LocalInvocations">Local Invocations</a></h3>
 
 <p>
 Services in the container can be invoked locally. Local invocations work just like remote invocations (all handlers are called, messages get serialized/deserialized) but messages do not travel over the network - everything happens in memory. 
@@ -135,7 +243,7 @@ port.hello();
 </pre>
 </table>
 </p>
-<h3><a name="CustomExpressionEval">Custom QueryExpression/TopicExpression Evaluators</a></h3>
+<h3><a name="CustomExpressionEval">Custom Query/Topic Expression Evaluators</a></h3>
 <p>
 Java WS Core allows for custom query/topic expression evaluators to be plugged in. The process of adding a new query/topic expression evaluator is composed of three steps:
 <ul>
