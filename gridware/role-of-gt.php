@@ -9,9 +9,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 ?>
 
+<!--
 <div id="left">
 <? include($SITE_PATHS["SERV_INC"].'software.inc'); ?>
 </div>
+-->
 
 <div id="main">
 

@@ -7,9 +7,10 @@ $section = "section-4";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 ?>
-<div id="left">
+<!--<div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'software.inc'); ?>
 </div>
+-->
 
 <div id="main">
 <!-- content STARTS here -->
@@ -36,7 +37,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     Globus Toolkit<sup>&reg;</sup> plays in Grid projects and why the Globus Alliance uses it in this 
     way.</b></blockquote>
 
-    <blockquote><b><a href="security-components.php">Security</a></b> describes a number of useful software 
+    <blockquote><b><a href="security/">Security</a></b> describes a number of useful software 
     tools for meeting the security requirements in Grid systems.</blockquote>
     
     <blockquote><b><a href="monitoring-components.php">Monitoring and Discovery</a></b> describes software 
