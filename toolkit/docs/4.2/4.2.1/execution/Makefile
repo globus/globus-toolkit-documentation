@@ -5,7 +5,9 @@ FIGS=WS_GRAM_components WS_GRAM_software \
 	WS_GRAM_sequence_full \
 	WS_GRAM_sequence_minimal \
 	WS_GRAM_sequence_delegonly \
-	WS_GRAM_sequence_staging
+	WS_GRAM_sequence_staging \
+	sequence-times \
+	sequence-times-manual
 
 EPS=
 
@@ -46,9 +48,13 @@ cgmfigs: $(CGMFIGS)
 
 ### end boilerplate FIG manipulation ###
 
+sequence-times.fig: sequence-times.dat plot-sequence-times.gnuplot
+	gnuplot plot-sequence-times.gnuplot
+
 clean: force
 	rm -f $(EPSFIGS) $(CGMFIGS) $(PNGFIGS)
 	rm -f $(FIGBAKS)
+	rm -f sequence-times.fig
 	rm -f *~
 
 force:
