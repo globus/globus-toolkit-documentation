@@ -1,0 +1,548 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Service-side Message Level Security</title>
+  <style type="text/css"></style>
+</head>
+
+<body vlink="#ff0000" alink="#0000ee" link="#0000ee" style="color: rgb(0, 0, 0);"> 
+
+<h2>Service-side Message Level Security</h2>
+
+Last Updated 06/02/2004 <br>
+
+<p>Please report any errors or suggestions to our <a
+href="http://bugzilla.globus.org/bugzilla/enter_bug.cgi?product=Documentation">Bugzilla
+system</a>.</p/>
+
+<h2><i>Contents</i></h2>
+<ol>
+  <li><a href="#Introduction">Introduction</a></li>
+  <li><a href="#WSDL">WSDL</a></li>
+  <li><a href="#Descriptor">Security Descriptor</a></li>
+  <ol>
+     <li><a href="#descFile">Writing security descriptor file</a></li>
+     <li><a href="#descProgram">Programatic altering of security descripors</a></li>
+  </ol>
+  <li><a href="#resource">Secure Resources</a></li>
+  <li><a href="#securityAPI">Useful Security API</a></li>
+  <li><a href="#limitations">Limitations</a></li>
+  <li><a href="#otherFeatures">Other Features</a></li>
+  <ol>
+     <li><a href="#replayAttack">Replay Attack Prevention</a></li>
+     <li><a href="#customAuthz">Writing custom authorization</a></li>
+  </ol>
+  <li><a href="#container">Container-only Security Configuration</a></li>
+  <li><a href="#Errors">Errors</a></li>
+  <br>
+</ol>
+
+<a name="Introduction"><h3>1 Introduction</h3></a>
+
+<p> Security can be set at container level, service level or resource
+level, using a security descriptor to specify the desired security
+properties. Not all properties can be set at each level, but
+typically, the security property value is obtained by looking for
+property presence in this order: resource level proeprty, service
+level proeprty and then container level property. If not set, defaults
+are used in some cases and in some others error is reported.</p>
+
+<p> For container and service level security, no code modifications are necessary in general, and can be set using a security descriptor. That being
+said, minor code modifications might be needed for specialized
+purposes such as setting the service owner with the caller's delegated
+credential (e.g. in cases where a service is supposed to be accessed
+only by a specific user -- the user that created it)</p>
+
+<p> For secure resources, code modifications need to be done as
+described in **.
+
+<a name="#WSDL"><h3>2 WSDL</h3></a>
+
+<p>No WSDL changes are necessary.</p>
+
+<a name="Descriptor"><h3>3 Security Descriptor</h3></a>
+
+<p>There are three kinds of security descriptor in the code base:
+service security descriptor, container security descriptor and
+resource security descriptor, for setting container, service and
+resource security properties respectively. Each of these are
+represented as objects in the code base and can be altered
+programatically. Service and container security descriptors can be
+configured in as a XML file in the deployment descriptor
+(server-config.wsdd) as shown below. Resource security descriptors can
+only be created programatically and have been described in section "<a
+href="#resource">Secure Resource</a>"</p>
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);"> &lt;globalConfiguration&gt;<br> ...<br>  &lt;parameter name="containerSecDesc" value="org/wsrf/inpl/security/container-security-config.xml"&gt;<br> ...<br> &lt;globalConfiguration&gt;<br> ...<br> &lt;service name="my/dummy/service" provider="Handler" style="wrapped"&gt;<br>  ...<br>  &lt;parameter name="securityDescriptor" value=<span
+ style="font-weight: bold;"></span>"org/globus/ogsa/impl/security/descriptor/security-config.xml"/&gt;<br>  ...<br> &lt;/service&gt;</pre>
+</div>
+
+<p>It is loaded in the same way as any other resource data, i.e. from
+the class path. This allows the security descriptor to be included in
+the same .jar file as rest of the service code.The security deployment
+descriptor will not be reloaded if it is changed at runtime.</p>
+
+<p> The schema for the security descriptor is defined <a
+ href="security_descriptor.xsd">here</a>. (<b> Shema needs to be updated </b>)The security deployment
+ descriptor is contained within the "<b>&lt;securityConfig
+ xmlns="http://www.globus.org"&gt;</b>" element.<p>
+
+<p>In the case of service security descriptor, selected properties can
+be set at method-based security properties (for some properties) can
+be contained within the "<b>&lt;method name="qname"&gt;</b>"
+elements. The <i>name</i> attribute of the method can just be the
+operation name (preferred) or the operation name with a given
+namespace.</p>
+
+<a name="#descFile"><h3> 3.1 Writing security descriptor file </h3></a>
+
+<a name="configCred"><h4>3.1.1 Configuring Credentials</h4></a>
+
+The container and each service can be configured with a separate set
+of credentials. Either a) path to a proxy file or b) path to a
+certficate and key file can be used to set the credentials. This is
+done by adding the following block to the container or service
+security descriptor.
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br> ...<br> &ltcredential&gt;<br>  &lt;key-file value="keyFile"/&gt;<br>  &lt;cert-file value="certFile"/&gt;<br> &lt;/credential&gt<br> ...<br> &lt;/securityConfig&gt;</pre>
+</div>
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br> ...<br> &lt;proxy-file value="proxyFile"/&gt;<br> ...<br> &lt;/securityConfig&gt;</pre>
+</div>
+
+<p>The service will look for credentials in this order:
+<ol>
+ <li> Resource credentials
+ <li> Service credentials 
+ <li> Container credentials 
+ <li> Default credentials (uses the underlaying security library to
+ acquire the credentials, which will be the proxy certificate of the
+ user that is running the container)
+</ol>
+</p>
+
+<p> Should the configured credentials files change while the container
+is running, they will be automatically reloaded.</p>
+
+<a name="configGridmap"><h4>3.1.2 Configuring Gridmap</h4></a>
+
+The container and each service can be configured with a separate
+Gridmap in its security descriptor.
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br> ...<br> &lt;gridmap value="gridMapFile"/&gt;<br> ...<br> &lt;/securityConfig&gt;</pre>
+</div>
+
+<p>The service will look for gridmap configured in resource, then
+service and then in container.</p>
+
+<p>For services configured to perform gridmap file authorization, the
+gridmap file can be updated dynamically using the SecurityManager
+API. Also, if the gridmap file changes at runtime it will be
+automatically reloaded.</p>
+
+<a name="configAuth"><h4>3.1.3 Configuring Authentication Methods</h4></a>
+
+<b>This can be done only at service or resource level.</b>
+
+<p>The authentication methods a service requires are specified using the
+"<b>&lt;auth-method&gt;</b>" element. The authentication methods can
+be configured on a per method basis. Currently, the following
+authentication methods are supported:</p>
+
+<ul>
+  <li>"<b>&lt;none/&gt;</b>" - indicates that no authentication is
+required<br>
+  </li>
+  <li>"<b>&lt;GSISecureMessage/&gt;</b>" - indicates the GSI Secure
+Message authentication method ("&lt;pkey&gt;" may also be used)</li>
+  <ul>
+    <li>The "<b>&lt;protection-level&gt;</b>" sub element can be used
+to specify a specific protection level that must be applied to the
+message:</li>
+    <ul>
+      <li>"<b>&lt;integrity/&gt;</b>" - indicates that the message must
+be integrity protected (signed)</li>
+      <li>"<b>&lt;privacy/&gt;</b>" - indicates that the message must
+be privacy protected (encrypted &amp; signed)</li>
+    </ul>
+  </ul>
+  <li>"<b>&lt;GSISecureConversation/&gt;</b>" - indicates the GSI
+Secure Conversation authentication method (with integrity or privacy
+protection) ("&lt;gsi&gt;" may also be used)</li>
+  <ul>
+    <li>The "<b>&lt;protection-level&gt;</b>" sub element can be used
+to specify a specific protection level that must be applied to the
+message:</li>
+    <ul>
+      <li>"<b>&lt;integrity/&gt;</b>" - indicates that the message must
+be integrity protected (signed)</li>
+      <li>"<b>&lt;privacy/&gt;</b>" - indicates that the message must
+be privacy protected (signed &amp; encrypted)<br>
+      </li>
+    </ul>
+  </ul>
+  <ul>
+  </ul>
+</ul>
+
+<p>Multiple authentication methods can be specified under the
+"<b>&lt;auth-method&gt;</b>" element (expect for the
+"<b>&lt;none/&gt;</b>" method, see below). As long as one of the
+authentication methods is performed, the access to the service is
+allowed. The "<b>&lt;none/&gt;</b>" method cannot be specified with
+any other authentication method. Also, if no
+"<b>&lt;protection-level&gt;</b>" sub element is specified then all
+protection levels are available to clients. If on the other hand the
+"<b>&lt;protection-level&gt;</b>" sub element is specified then the
+service will only accept the protection levels listed under said
+element.</p>
+
+<p><b>Note:</b>The
+"<i>org.globus.ogsa.impl.security.authentication.SecurityPolicyHandler</i>"
+handler must be installed properly in order for this to work. This
+handler is installed by default. Also, if security deployment
+descriptor is not specified, authentication method enforcementis not
+performed.</p>
+
+Example:<br>
+<br>
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);">&lt;securityConfig xmlns="http://www.globus.org"&gt;<br><br> &lt;method name="findServiceData"&gt;<br>   &lt;auth-method&gt;<br>     &lt;none/&gt;<br>   &lt;/auth-method&gt;<br> &lt;/method&gt;<br><br> <br> &lt;method name="destroy"&gt;<br>   &lt;auth-method&gt;<br>     &lt;GSISecureMessage/&gt;<br>     &lt;GSISecureConversation&gt;<br>       &lt;protection-level&gt;<br>          &lt;integrity/&gt;<br>       &lt;/protection-level&gt;<br>     &lt;/GSISecureConversation&gt;<br>   &lt;/auth-method&gt;<br> &lt;/method&gt;<br><br><br><br> &lt;!-- default auth-method for any other method --&gt;<br>&nbsp;&lt;auth-method&gt;<br>&nbsp; &lt;GSISecureConversation/&gt;<br>&nbsp;&lt;/auth-method&gt;<br><br>&lt;/securityConfig&gt;</pre>
+</div>
+<span style="font-family: monospace;"><br> </span>In the above
+example, the <i>findServiceData()</i> operation does not require any
+authentication while the <i>destroy()</i> operation requires either
+GSI Message Security authentication (either level of protection) or
+GSI Secure Conversation with integrity protection authentication. Any
+other operation must be authenticated with GSI Secure Conversation
+with either privacy or integrity protection.
+
+<a name="configRunas"><h4>3.1.4 Configuring Run-As Mode</h4></a>
+
+The "<b>&lt;run-as&gt;</b>" element is used to configure the JAAS
+run-as identity under which the service method will be executed. The
+run-as identity can be configured on per-method basis. Currently, the
+following run-as identities are supported:<br>
+
+<ul>
+  <li>"<b>&lt;caller-identity/&gt;</b>" - the service method will be
+  run with the security identity of the client. The caller Subject
+  will contain the following:<br> </li>
+  <ul>
+    <li>In the case of <i>GSI Secure Message</i>, a GlobusPrincipal
+    (the identity of the signer) is added to the principal set of the
+    caller-identity Subject. Also, the signer's certificate chain is
+    added to the public credentials set of the Subject object.</li>
+    <li>In case of <i>GSI Secure Conversation</i>, a GlobusPrincipal
+    (the identity of the initiator) is added to the principal set of
+    the Subject. If client authentication was performed, client's
+    certificate chain will be added to the public credentials set of
+    the Subject object. Also, if delegation was performed, the
+    delegated credential is added to the private credential set of the
+    Subject object.</li>
+    <li>If gridmap file authorization was performed, a
+    UserNamePrincipal is added to the principal set of the Subject
+    object.</li>
+  </ul>
+  <li>"<b>&lt;system-identity/&gt;</b>" - the service method will be
+  run with security identity of the container</li>
+  <li>"<b>&lt;service-identity/&gt;</b>" - the service method will be
+  run with the security identity of the service itself (if the service
+  has one, otherwise the container identity will be used
+  [default])</li>
+</ul>
+
+<p><b>Note:</b> The
+"<i>org.globus.ogsa.impl.security.authentication.SecurityPolicyHandler</i>"
+handler must be installed properly in order for this to work. </p>
+
+<p> Also, if the security deployment descriptor is not specified, then the run-as identity is not set and there will be no JAAS subject associate with the execution of the operation. This means that any method calls that require credential and that are invoked by the service method itself will fail.</p>
+
+Example:<br>
+<br>
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);">&lt;securityConfig xmlns="http://www.globus.org"&gt;<br><br> &lt;method name="counter:add" xmlns:counter="http://www.globus.org/samples/counter"&gt;<br>   &lt;run-as&gt;<br>     &lt;caller-identity/&gt;<br>   &lt;/run-as&gt;<br> &lt;/method&gt;<br><br> &lt;method name="counter:subtract" xmlns:ogsi="http://www.globus.org/samples/counter"&gt;<br>   &lt;run-as&gt;<br>     &lt;system-identity/&gt;<br>   &lt;/run-as&gt;<br> &lt;/method&gt;<br><br> &lt;!-- default run-as for any other method --&gt;<br>&nbsp;&lt;run-as&gt;<br>&nbsp; &lt;service-identity/&gt;<br>&nbsp;&lt;/run-as&gt;<br><br>&lt;/securityConfig&gt;<br></pre>
+</div>
+
+<p>In the above example, the <i>add() </i>operation will be executed
+with caller's identity while the <i>subtract() </i>call will be run
+with system identity. Any other operation will be run with the service
+identity (if the service has one set).</p>
+
+<a name="configAuthz"><h4>3.1.5 Configuring Authorization Mechanism</h4></a>
+
+<p>The container and each service can be configured with a separate
+authorization mechanism using the element <b>"&lt;authz
+value=&quot;someMethod&quot;&gt;"</b>. Currently the following
+authorization mechanisms are supported:</p>
+
+<ul>
+
+  <li><i><b>"none"</b></i>: no authorization is performed. <br> </li>
+
+  <li><i><b>"self"</b></i>: only the clients with the same identity as
+the identity in the current JAAS subject associated with the service
+are allowed to access the service. The identity in the JAAS subject is
+determined through the value in the runas element in the service
+security deployment descriptor (see <a
+href="#configRunas">Configuring Run-As Mode</a>).</li>
+
+  <li><i><b>"gridmap"</b></i>: gridmap file authorization is
+  performed. A gridmap file must be configured as described in section
+  3.2</i>
+
+  <li><i><b>"custom"</b></i>: a custom authorization mechanism
+  configured using the element, <b>"&lt;authzClass
+  value=&quot;customAuthzClassname&quot;/&gt;"</b>, where the value is
+  fully qualified name of the custom authorization class that needs to
+  be used. Refer to <a href="**">section **</a> for details on writing
+  a custom authorization mechanism</li>
+</ul>
+
+<a name="configOthers"><h4>3.1.6 Other Configuration</h4></a>
+
+<p>Some other security properties that can be configured as a part of
+the container or service descriptor are described below:</p>
+
+<ul>
+  <li>"<b>&lt;context-lifetime value="lifetime in seconds"/&gt;</b>" -
+This sets the lifetime of the context that is created at the server
+end. If this option is not specified, by default, the lifetime of the
+credential used is set as the lifetime of the context. Relevant for all
+operations requiring GSI Secure Conversation authentication.</li>
+
+  <li>"<b>&lt;reject-limited-proxy/&gt;</b>" - This requires that the
+credential presented by the client is not a limited proxy. Relevant for
+all operations requiring GSI Secure Conversation or GSI Secure Message
+authentication. </li>
+</ul>
+
+Example:<br>
+<br>
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);"><br>&lt;securityConfig xmlns="http://www.globus.org"&gt;<br><br> &lt;method name="ogsi:findServiceData" xmlns:ogsi="http://www.gridforum.org/namespaces/2003/03/OGSI"&gt;<br>   &lt;run-as&gt;<br>     &lt;caller-identity/&gt;<br>   &lt;/run-as&gt;<br> &lt;/method&gt;<br><br> &lt;method name="ogsi:destroy" xmlns:ogsi="http://www.gridforum.org/namespaces/2003/03/OGSI"&gt;<br>   &lt;run-as&gt;<br>     &lt;system-identity/&gt;<br>   &lt;/run-as&gt;<br> &lt;/method&gt;<br><br> &lt;!-- default run-as for any other method --&gt;<br>&nbsp;&lt;run-as&gt;<br>&nbsp; &lt;service-identity/&gt;<br>&nbsp;&lt;/run-as&gt;<br>&nbsp;&lt;context-lifetime value="100"/&gt;<br>&nbsp;&lt;reject-limited-proxy/&gt;<br><br>&lt;/securityConfig&gt;<br></pre>
+</div><br>
+In the above example, if the service is accessed using limited
+proxy, an error is reported. Also, the contexts created at the server
+end are set to have a lifetime of 100seconds.
+<br>
+
+<a name="#descProgram"><h3> 3.2 Programatic altering of security descriptor </h3></a>
+
+<p> FILLME </p>
+
+<a name="#resource"><h3>4. Secure Resource<br></h3></a>
+
+<p> Resource level security can be set, which overrides any service or container level security. To make a resource secure, it needs to implement <i>org.globus.wsrf.impl.security.SecureResource</i>. This interface has a method that returns an instance of <i>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</i>. If <i>null</i> is returned, it is assumed that no security is set on the resource.
+
+<a name="#securityAPI"><h3>5. Useful Security API<br></h3></a>
+
+<h4>5.1 Setting service owner with caller's delegated credential</h4>
+
+<p>Associating credentials a method invoker has delegated with a service
+instance can be done in the following fashion:</p>
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);">import org.globus.wsrf.impl.security.SecurityManager;<br> ...<br> public void serviceMethod(...) {<br>   ...<br>   SecurityManager.getManager().setServiceOwnerFromContext(servicePath);<br> }<br> ...</pre>
+</div>
+
+<p> In the above, <i>servicePath</i> is the service path specified in
+the deployment descriptor.</p>
+
+<p>The <i>SecurityManager.setServiceOwnerFromContext()</i> operation
+requires a Subject object to be associated with the current thread of
+execution. That Subject object must also contain some private
+credentials.</p>
+
+<h4>5.2 Getting caller's identity</h4>
+
+<p>To get the current caller's (client's) identity, use:</p>
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);">import org.globus.wsrf.impl.security.SecurityManager;<br> ...<br> public void serviceMethod() {<br>    String identity = SecurityManager.getManager().getCaller();<br> }<br> ...</pre>
+</div>
+
+<h4>5.3 Getting the current JAAS Subject</h4>
+
+<p>A JAAS Subject object contains authentication and authorization
+artifacts such as principals, and public and private credentials such
+as client's certificates, the delegated proxy credentials, etc. GT4
+allows a service operation to be invoked using either a null subject,
+the system/container subject, the service subject or the caller's
+subject. For more information on these JAAS subjects see section <a
+href="#configRunas">"Configuring Run-As Mode"</a>. To get the current
+JAAS Subject, use:</p>
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);">import javax.security.auth.Subject;<br> import org.globus.gsi.jaas.JaasSubject;<br> ...<br> public void serviceMethod() {<br>   Subject subject = JaasSubject.getCurrentSubject();<br> }<br> ...<br></pre>
+</div>
+
+<p>The current Subject depends on the run-as policy specified in the
+security descriptor (again, see section<a
+href="#configRunas">Configuring Run-As Mode</a>). Should no security
+descriptor is set for the service, the current Subject will be
+null.</p>
+
+<h4>5.4 Performing work as a particular JAAS Subject</h4>
+
+<p>A piece of code can also be executed with a particular JAAS Subject
+object. For example, to execute a piece of code with a given Subject
+object do the following:</p>
+
+A JAAS Subject object contains authentication
+and authorization artifacts such as principals, and public and private
+credentials such as client's certificates, the delegated proxy
+credentials, etc. GT3 allows a
+service operation to be invoked using either a null subject, the
+system/container subject, the service subject
+or the caller's subject. For more information on these JAAS subjects
+see
+section <a href="#configRunAs">Config Run-As Mode</a>. To get the current
+JAAS Subject, use:<br>
+<br>
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);">import javax.security.auth.Subject;<br> import org.globus.gsi.jaas.JaasSubject;<br> ...<br> public void serviceMethod() {<br>   Subject subject = JaasSubject.getCurrentSubject();<br> }<br> ...<br></pre>
+</div>
+<span style="font-family: monospace;"><br>
+</span>The current Subject depends on the run-as policy specified
+in the security descriptor (again, see section<a
+ href="#configRunAs">Config Run-As</a>). Should no security descriptor is set for the service,
+the current Subject will be null.<br>
+
+<h4>5.5 Performing work as a particular JAAS Subject</h4>
+A piece of code can also be executed with a particular JAAS Subject
+object. For example, to execute a piece of code with a given Subject
+object do the following:
+<br>
+<br>
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);">import javax.security.auth.Subject;<br> import java.security.PrivilegedAction;<br> import org.globus.gsi.jaas.JaasSubject;<br> ...<br> public void method() {<br>   // create a new subject or obtain it from somewhere<br>   Subject subject = ...;<br>   JaasSubject.doAs(subject, new PrivilegedAction() {<br>		               public Object run() {<br>                                 // do work here<br>		                 return null;<br>		               }<br>	            });<br> }<br> ...<span
+ style="font-weight: bold;"></span><br></pre>
+</div>
+
+<a name="#limitations"><h3>6 Limitations</h3></a>
+
+<h4>6.1 Persistent Services Activation Run-As Identity</h4>
+The activation of persistent services is not executed under any run-as
+identity. Wrong credentials might be used if the service is making an
+outbound connection during the activation. JAAS API might be used to
+set the right identity for the outbound connection.<br>
+
+<h4>6.2 Security Descriptor Requires Credentials</h4>
+The presence of a security descriptor for a specific service triggers
+credential acquisition and as such causes the service to require
+credentials, even if the security descriptor only specifies the
+&lt;none/&gt; authentication method. As a workaround we suggest that
+you remove the security-descriptor.&nbsp; Secure invocation on a
+service without a security descriptor will still work (given that the
+service has credentials available).<br>
+
+<a name="otherFeatures"><h3>7 Other Features</h3></a>
+
+<a name="#replayAttack"><h3> 7.1 Replay Attack Prevention </h3></a>
+
+<p>In case <b>GSI Secure Message</b> is used as the security
+mechanism, a replay attack filter can be configured at the server
+side. If activated, the filter can be configured with a time window,
+and only non-duplicate messages received with in the window are
+accepted. The message received is expected to have a timestamp header
+as a part of the security headers. To facilitate this, relevant
+message details are persisted at the server end and a sweeper task is
+run periodically to delete expired messages. </p>
+
+<p> The following paramaters maybe used to configure this feature:
+<ul>
+
+<li> By default, a timestamp header is required as a part of any
+request using GSI Secure Message as security mechanism. This
+requirement can be disabled by setting a property
+<b><i>replayAttackFilter</i></b> to <b><i>false</i></b>. This can be
+set either in container or security descriptor, the latter overriding
+the former. The following turns off the replay attack filter.
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>  &lt;replay-attack-filter value="false"/&gt;<br>  ...<br> &lt;/securityConfig&gt;</pre>
+</div></li>
+
+<li> By default, a time window of 5 minutes is used for the replay
+attack filter. This window value can be set in minutes using the
+element <b><i>replayAttackWindow</i></b> in either the container
+security descriptor or the service security descriptor, latter
+overriding the former. If the value set is not an integer or cannot be
+parsed for any reason, the default value of 5 minutes is used. The
+following example sets the window to be 10 minutes.
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>  &lt;replay-attack-window value="10"/&gt;<br>  ...<br> &lt;/securityConfig&gt;</pre>
+</div></li>
+</ul>
+
+<a name="#customAuthz"><h3>7.2 Writing custom service authorization mechanism</h3></a>
+
+<p> The authorization handler can be configured to call out to a
+custum authorization class. The class must implement the interface
+<i>org.globus.wsrf.impl.security.authorization.ServiceAuthorization</i>. If
+the authorization fails, then a
+<i>org.globus.wsrf.impl.security.authorization.AuthorizationException</i> should be thrown.</p>
+
+<br>Example: <br> 
+
+<pre style="margin-left: 40px; background-color: rgb(204, 204, 255);">  public class FooAuthorization implements ServiceAuthorization {<br>      public void authorize(Subject peerSubject, ServiceProperties service,
+			  MessageContext context) 
+	throws AuthorizationException {
+	// Evaluate and throw exception if not authorized.
+      }
+  }
+</pre>
+
+<a name="container"><h3>8 Container-only Security Configuration</h3></a>
+
+<p> Other than the security properties that have been described in <a
+href="#Descriptor">"Security Descriptor"</a> section, two more properties are
+exclusive to the container security descriptor.
+<ul>
+
+<li> As a part of the support for <a href="#replayAttack">Replay
+Attack Prevention</a>, a sweeper task is used to delete expired
+message values. This is run every 7 minutes by default. This interval
+can be set in milliseconds in the container security descriptor as
+shown below:
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>  &lt;replay-attack-interval value="10000"/&gt;<br>  ...<br> &lt;/securityConfig&gt;</pre>
+</div></li>
+
+<li> When GSI Secure Conversation is used a security context is established. A aweeper task is run every 10 minutes to delete all expired contexts. This interval can be set in milliseconds in the container security descriptor as shown below:
+shown below:
+
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>  &lt;replay-attack-interval value="10000"/&gt;<br>  ...<br> &lt;/securityConfig&gt;</pre>
+</div></li>
+</ul>
+
+<a name="Errors"><h3>9 Errors</h3></a>
+
+<h3>9.1 '[SEC05] Invocation subject not set'</h3>
+
+<p> The service' method is calling
+<i>SecurityManager.setOwnerFromContext()</i> but the run-as identity
+of the method is not set. The service is probably missing a security
+deployment descriptor.</p>
+
+<h3>9.2 '[SEC06] Invocation subject does not contain private credentials'</h3>
+
+<p> The service' method is calling
+<i>SecurityManager.setOwnerFromContext()</i> but the run-as identity
+of the method does not contain private credentials. If the method is
+run under the "callers-identity" make sure the client calling the
+service uses GSI Secure Conversation and enables delegation for the
+call.<br>
+</p>
+
+
+</body>
+</html>

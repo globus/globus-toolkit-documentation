@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Client-side Message Level Security</title>
+  <style type="text/css"></style>
+</head>
+
+<body vlink="#ff0000" alink="#0000ee" link="#0000ee" style="color: rgb(0, 0, 0);"> 
+
+<h2>Client-side Message Level Security</h2>
+
+Last Updated 06/02/2004 <br>
+
+<p>Please report any errors or suggestions to our <a
+href="http://bugzilla.globus.org/bugzilla/enter_bug.cgi?product=Documentation">Bugzilla
+system</a>.</p/>
+
+<h2><i>Contents</i></h2>
+<ol>
+  <li><a href="#Prerequisites">Prerequisites</a></li>
+  <li><a href="#GSIProperties">GSI Client Properties</a></li>
+  <li><a href="#limitations">Limitations</a></li>
+</ol>
+
+<h3><a name="client_prereqs">1 Prerequisites</a></h3>
+
+<p>The Java CoG Kit must be properly configured to use GSI on the
+client. Information on how to do so can be found in the entries
+concerning the cog.properties file in the <a
+href="http://www-unix.globus.org/cog/distribution/1.1/FAQ.TXT">Java
+CoG Kit FAQ</a>. Note that the GT4 distribution only includes a subset
+of the CoG distribution and does not provide all the tools mentioned
+in the FAQ.  Make sure you have a valid proxy before running any
+GSI-enabled client.</p>
+
+<a name="GSIProperties"><h3>2 GSI Client Properties</h3></a>
+
+<p>The following GSI properties can be set on the client to control
+the authentication/authorization process. These properties will later
+be picked up by and determine the behavior of the security
+handlers. Note that while service side security is generally
+configured at deployment time, services acting as clients (e.g. a service
+interaction with another service) will have to make use of the above
+described interface.</p>
+
+<ul>
+  <li> <b>org.globus.ogsa.impl.security.Constants.GSI_SEC_CONV</b></li>
+  <ul>
+  <li> <b>Value:</b> One of:
+  <ul>
+       <li> Constants.ENCRYPTION</li>
+       <li> Constants.SIGNATURE</li>
+  </ul>
+  <li> Used to enable <i>GSI Secure Conversation </i> with specified
+  message protected level.</li>
+  <li>Furthermore, you can set the SOAP Actor of the GSI
+  signed/encrypted SOAP message by using the "<b>gssActor</b>"<b>
+  </b>property. We recommend that you do not do this unless you really
+  know what you are doing.</li>
+  </ul>
+
+  <li> <b>org.globus.ogsa.impl.security.Constants.GSI_SEC_MSG</b></li>
+  <ul>
+  <li> <b>Value:</b> One of:
+  <ul>
+       <li> Constants.ENCRYPTION</li>
+       <li> Constants.SIGNATURE</li>
+  </ul>
+  <li> Used to enable <i>GSI Secure Message</i> with specified message
+  protected level.</li>
+   <li>you can set the SOAP Actor of the signed message can be set
+   using the "<b>x509Actor</b>" property, but we do not recommend
+   it.</li>
+  </ul>
+
+  <li> <b>org.globus.axis.gsi.GSIConstants.GSI_CREDENTIALS</b></li>
+  <ul>
+    <li> <b>Value:</b> <i>org.ietf.jgss.GSSCredential</i> instance </li>
+
+    <li> It is used to pass a specific set of credentials for
+    authentication.  By default, if not specified, the default user proxy
+    credential is used.</li> <li>Please see the <a
+    href="http://www-unix.globus.org/cog/distribution/1.1/compatibility.html">Security
+    Library Compatibility Document</a> for some hints on loading and
+    managing different GSI credentials.</li> </ul>
+
+<br>
+It should be noted that GSI Secure Message and GSI Secure Conversation
+are not mutually exclusive. <br>
+
+  <li> <b>org.globus.ogsa.impl.security.Constants.AUTHORIZATION</b></li>
+  <ul>
+    <li> <b>Value:</b>
+    <i>org.globus.ogsa.impl.security.authorization.Authorization</i>
+    instance </li>
+    <li>It is used to set authorization type to perform. By default,
+    if not specified, host authorization is performed.</li> 
+  </ul>
+
+  <li> <b>org.globus.axis.gsi.GSIConstants.GSI_MODE</b></li>
+  <ul>
+    <li> <b>Value:</b> One of:
+      <ul>
+        <li>GSIConstants.GSI_MODE_NO_DELEG - performs no delegation
+        (default)</li>
+        <li>GSIConstants.GSI_MODE_LIMITED_DELEG - performs
+        limiteddelegation</li>
+        <li>GSIConstants.GSI_MODE_FULL_DELEG - performs full
+        delegation</li>
+      </ul>
+    </li>
+    <li><i>Used for GSI Secure Conversation only</i>.</li>
+    <li>It is used to set GSI delegation mode. </li>
+  </ul>
+
+  <li><b>org.globus.ogsa.impl.security.Constants.GSI_SEC_CONV_ANON</b></li>
+  <ul>
+    <li>
+      <b>Value:</b> One of:
+      <ul>
+        <li>Boolean.FALSE - Anonymous authentication is
+        disabled. (default)</li>
+        <li>Boolean.TRUE - Anonymous authentication is enabled.</li>
+      </ul>
+    </li>
+    <li><i>Used for GSI Secure Conversation only</i>.</li>
+    </ul>
+
+  <li>
+  <b>org.globus.ogsa.impl.security.Constants.PEER_SUBJECT</b></li>
+
+    <ul>
+        <li><b>Value:</b> <i>javax.security.auth.Subject</i>
+        instance</li>
+	<li> It is used to set the credential to be used to encrypt
+	the client request message (typically, the recipient's public
+	key).</li>
+	<li><i>Used for GSI Secure Message with encryption protection
+	level only.</i></li>
+
+	<li> The credential object needs to be wrapped in
+	<i>org.globus.wsrf.impl.security.authentication.EncryptionCredentials</i>
+	and added to the set of public credentils of the subject
+	object.</li>
+	<li> For example, if <i>publicKeyFilename</i> was the file
+	that had the receipient's public key,
+ 
+	<pre style="background-color: rgb(204, 204, 255); margin-left: 0"><br> Subject subject = new Subject();<br> X509Certificate serverCert = 
+	CertUtil.loadCertificate(publicKeyFilename); <br> EncryptionCredentials encryptionCreds = 
+	new EncryptionCredentials(new X509Certificate[] { serverCert }); <br> subject.getPublicCredentials().add(encryptionCreds);<br> stub._setProperty(Constants.PEER_SUBJECT, subject);</pre>
+
+       </li>
+     </ul>
+    </li>
+  </ul>
+</ul>
+
+<p>You can set these GSI properties on any service port instance by
+casting the instance to javax.xml.rpc.Stub class and calling
+._setProperty() method. If you are dealing directly with JAX-RPC Call
+object use .setProperty() instead. For example:
+
+<br>
+<pre style="background-color: rgb(204, 204, 255); margin-left: 40px;"> // Create endpoint reference<br> EndpointReferenceType endpoint = new EndpointReferenceType();<br> // Set address of service<br> String counterAddr = <br>	"http://localhost:8080/wsrf/services/CounterService";<br> // Get handle to port <br> CounterPortType port = locator.getCounterPortTypePort(endpoint);<br> // enable GSI Secure Conversation message level security<br> ((Stub)port)._setProperty(Constants.GSI_SEC_CONV,<br>                              Constants.SIGNATURE);<br> // enable limited delegation<br> ((Stub)port)._setProperty(GSIConstants.GSI_MODE,<br>                              GSIConstants.GSI_MODE_LIMITED_DELEG);<br> // set client authorization to none<br> ((Stub)port)._setProperty(Constants.AUTHORIZATION,<br>                              NoAuthorization.getInstance());<br></pre>
+
+<h3><a name="limitations">3 Limitations</a></h3>
+
+<h4>3.1 ServiceLocator/GridLocator reuse</h4>
+
+<p> For GSI Secure Conversation, the same ServiceLocator instance
+cannot be called from multiple threads at the same time or shared
+between two different services. A security context is currently
+associated with a ServiceLocator instance. If the same ServiceLocator
+instance is used from multiple threads or shared between two different
+services a wrong security context might be used to sign/encrypta
+request. A simple workaround for this problem is to use separate
+ServiceLocator instances. <span style="font-weight: bold;">This means
+that you can not reuse the same locator for two service instances,
+even if they are of the same type.<br> </span></p>
+
+</body>
+</html>

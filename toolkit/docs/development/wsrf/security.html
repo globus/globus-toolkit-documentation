@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Security Support</title>
+  <style type="text/css">
+  </style>
+</head>
+<body style="color: rgb(0, 0, 0);" link="#0000ee" alink="#0000ee"
+ vlink="#ff0000">
+
+<h1>Security Support</h1>
+
+Last Updated 06/02/2004
+
+<h3><i>Contents</i></h3>
+<ol>
+  <li><a href="#Introduction">Introduction</a></li>
+  <li><a href="#Features">Features</a></li>
+  <li><a href="#messageSecurity">Message Level Security</a></li>
+  <li><a href="#service">Service side security</a></li>
+  <li><a href="#client">Client side security</li>
+  <br><b> FIXME: groups these under some heading </b>
+  <li><a href="#initTips">GSI Initialization Tips</li>
+  <li><a href="#JAASinstallation">JAAS Installation</li>
+  <li><a href="#missFeatures">Features to be added</li>
+</ol>
+
+<a name="Introduction"><h3>1 Introduction</h3></a>
+
+GT4 Java GSI is based on the implementation of GSI in the <a
+href="http://www.globus.org/cog/java/1.1a">Java CoG Kit</a> and
+provides <b>message level security.</b> It is based on the <a
+href="http://www.oasis-open.org/committees/wss/">WS-Security</a>, <a
+href="http://www.w3.org/TR/xmlenc-core/">XML Encryption</a> and <a
+href="http://www.w3.org/TR/xmldsig-core/">XML Signature</a>
+standards. The Java GSI implementation is an implementation of the
+Java GSS-API.It supports the <a
+href="http://www.ggf.org/security/gsi/draft-ggf-gss-extensions-07.pdf">GSS-API
+extensions</a> and the <a
+href="http://www.ietf.org/internet-drafts/draft-ietf-pkix-proxy-10.txt">new
+proxy certificate format</a> specifications as defined by the <a
+href="http://www.ggf.org/">Global Grid Forum</a> and the IETF PKIX
+working group.
+
+<a name="Features"><h3>2 Features</h3></a>
+GT4 security library features:
+<ul>
+  <li>Message level security. </li>
+  <li>Resource-based and service-based security.
+    <ul>
+      <li> Each resource/service can have its own security properties like
+      credentials, gridmap file, etc. </li>
+    </ul>
+  </li>
+  <li>Declarative security
+    <ul>
+      <li> The security behavior of a service can be specified in a
+security deployment descriptor. Note that this is not the case for
+client, including service acting as client, security
+properties. Client-side security properties still have to be specified
+in the client code itself.<br>
+      </li>
+    </ul>
+  </li>
+  <li>Programmatic security</li>
+  <ul>
+    <li>Security APIs are provided to service developers for fine
+grained security control.<br>
+    </li>
+  </ul>
+  <li><a href="http://java.sun.com/products/jaas/">JAAS</a>
+integration.
+    <ul>
+      <li> Permits services to be independent from underlying
+authentication technologies. </li>
+    </ul>
+  </li>
+</ul>
+
+<a name="messageSecurity"><h3>3 Message Level Security </h3></a> 
+
+<h3> 3.1 Introduction </h3>
+
+<p>The message level security is based on the <a
+href="http://www.oasis-open.org/committees/wss/">WS-Security</a>, <a
+href="http://www.w3.org/TR/xmlenc-core/">XML Encryption</a> and <a
+href="http://www.w3.org/TR/xmldsig-core/">XML Signature</a>
+standards. GT4 provides two different message level authentication
+mechanisms: <i>GSI Secure Conversation</i> and <i>GSI Secure
+Message.</i>
+
+<p>With the GSI Secure Conversation method, a security context is
+first established between a client and the service which then is used
+to sign/verify/encrypt/decrypt messages.
+
+<p>With the GSI Secure Message method a message is signed or encrypted
+with the given (X509) credentials. Encryption in this case is done in
+two steps. A symmetric key, generated using AES with key size of 128
+bits, is used to encrypt the body of the message. The symmetric key
+itself is encrypted using RSA/OAEP with the recipient (specified)
+public key.
+
+<p>GSI Secure Conversation requires three more round trips than GSI
+Secure Message, which makes GSI Secure Message more suitable for
+single request-response interactions.
+
+<h3>3.2 Configuration</h3>
+
+<p>Message level security is handled by a few client- and server- side
+Axis/JAX-RPC handlers and a authentication service. The handlers and
+the authentication service must be properly installed in
+order for message level security to work.</p>
+
+<b>Note: All these client- and server-side handlers and the
+<i>gsi/AuthenticationService</i> service are installed by default.</b>
+
+<p>The server-config.wsdd file must define the request and response flows as shown below:
+
+<br>
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);">&nbsp; &lt;requestFlow&gt;<br>&nbsp;&nbsp; &lt;handler type="URLMapper"/&gt;<br>&nbsp;&nbsp; &lt;handler type="HandleResolverHandler"/&gt;<br><b>   &lt;handler type="java:org.globus.ogsa.impl.security.authentication.AuthenticationServiceHandler</b><b>"/&gt;</b><b><br>   &lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>     &lt;parameter name="className" <br>                value="org.globus.ogsa.impl.security.authentication.wssec.WSSecurityHandler"/&gt;<br>   &lt;/handler&gt;</b><b><br>   &lt;handler type="java:org.globus.ogsa.impl.security.authentication.SecurityPolicyHandler"/&gt;<br>   &lt;handler type="java:org.globus.ogsa.impl.security.authorization.AuthorizationHandler"/&gt;<br>   </b>&lt;!-- optional: only needed for credential refresh functionality --&gt;<br>   <b>&lt;handler type="java:org.globus.ogsa.impl.security.authentication.CredentialRefreshHandler"/&gt;</b><br>&nbsp;&nbsp; &lt;!-- additional handlers --&gt;<br>&nbsp; &lt;/requestFlow&gt;<br><br>  &lt;responseFlow&gt;<br>&nbsp;&nbsp;&nbsp; &lt;!-- additional handlers --&gt;<br>    <b>&lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>     &lt;parameter name="className" <br>                value="org.globus.ogsa.impl.security.authentication.X509EncryptHandler"/&gt;<br>    &lt;/handler&gt;</b><br>    <b>&lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>     &lt;parameter name="className" <br>                value="org.globus.ogsa.impl.security.authentication.X509SignHandler"/&gt;<br>    &lt;/handler&gt;<br>    &lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>     &lt;parameter name="className" <br>                value="org.globus.ogsa.impl.security.authentication.GSSHandler"/&gt;<br>    &lt;/handler&gt;</b><br>&nbsp; &lt;/responseFlow&gt;</pre>
+</div>
+</p>
+
+<p>It should also contain the entry for the
+<i>gsi/AuthenticationService</i> service:
+
+<br>
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);">&lt;service name="gsi/AuthenticationService" provider="Handler" style="wrapped" use="literal"&gt;<br>&nbsp;  &lt;parameter name="allowedMethods" value="*"/&gt;<br>   &lt;parameter name="baseClassName" value="org.globus.ogsa.impl.security.authentication.service.AuthenticationServiceImpl"/&gt;<br>   &lt;parameter name="persistent" value="true"/&gt;<br>   &lt;parameter name="schemaPath" value="schema/security/authentication/gss_secure_conversation_service.wsdl"/&gt;<br>   &lt;parameter name="className" value="org.globus.ogsa.security.authentication.SecureContextEstablishmentPortType"/&gt;<br>   &lt;parameter name="handlerClass" value="org.globus.ogsa.router.RedirectProvider"/&gt;<br>   &lt;parameter name="bootstrap" value="true"/&gt;<br>  &lt;/service&gt;</pre></div>
+</p>
+
+<p>The client-config.wsdd file must define the following request and response
+flows:
+<br>
+<div style="margin-left: 40px;">
+<pre style="background-color: rgb(204, 204, 255);">&nbsp;&lt;requestFlow&gt;<br>&nbsp; &lt;!-- additional handlers --&gt;<br>&nbsp; &lt;handler type="java:org.globus.ogsa.handlers.OnceInvocationHandler"/&gt;<br>  &lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>    &lt;parameter name="className" <br>               value="org.globus.ogsa.impl.security.authentication.X509EncryptHandler"/&gt;<br>  &lt;/handler&gt;<br>  &lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>    &lt;parameter name="className" <br>               value="org.globus.ogsa.impl.security.authentication.X509SignHandler"/&gt;<br>  &lt;/handler&gt;<br>  &lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>    &lt;parameter name="className" <br>               value="org.globus.ogsa.impl.security.authentication.SecContextHandler"/&gt;<br>    &lt;parameter name="authService" <br>               value="auto"/&gt;<br>  &lt;/handler&gt;<br>  &lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>    &lt;parameter name="className" <br>               value="org.globus.ogsa.impl.security.authentication.GSSHandler"/&gt;<br>  &lt;/handler&gt;</b><br> &lt;/requestFlow&gt;<br><br>&nbsp;&lt;responseFlow&gt;<br>   <b>&lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>     &lt;parameter name="className" <br>                value="org.globus.ogsa.impl.security.authentication.wssec.WSSecurityClientHandler"/&gt;<br>   &lt;/handler&gt;</b><br>&nbsp;&nbsp; &lt;!-- additional handlers --&gt;<br>&nbsp;&lt;/responseFlow&gt;</pre> <span style="font-family: monospace;"><br></span></div>
+</p>
+
+<a name="service"><h3>4 Server side Security </h3></a> 
+
+<p> Please refer to <a href="service_security.html">server security</a>
+document.</p>
+
+<a name="client"><h3>4 Client side Security </h3></a> 
+
+<p> Please refer to <a href="client_security.html">client security</a>
+document.</p>
+
+<a name="initTips"><h3>5 GSI initialization tips</h3></a>
+
+Initialization of GSI on both the client and the server might be a
+very time consuming process on some platforms. It depends on the
+initialization of a secure seed needed by the random number generator
+for security purposes.  The default seeding algorithm of Sun's VM is
+somewhat slow but it can be easily replaced by a better one by
+installing a new SecureRandom provider.  
+
+<p> For example, for Windows users we recommend installing the <a
+href="http://www.isnetworks.com/infinitemonkey/">InfiniteMonkey</a>
+provider from <a href="http://www.isnetworks.com/">ISNetworks.com</a>
+(Just follow the installation instructions in their included
+README.TXT file and put the intifitemonkey.dll in the
+c:\WINNT\system32 directory) <br> Once the provider is properly
+installed the GSI initialization time will be much faster.</p>
+
+<p> Also,on Unix/Linux machines, GSI will take advantage of the
+/dev/urandom device if installed to speed up the start up time. In the
+future, we will provide a SecureRandom implementation for machines
+without this device.</p>
+
+<a name="JAASinstallation"><h3>6 JAAS installation</h3></a>
+
+<i><b>This step is only necessary for J2SE 1.3.1.</b></i> To install
+JAAS library please download "JAAS 1.0_01 Class Libraries" from <a
+href="http://java.sun.com/products/jaas/index-10.html">http://java.sun.com/products/jaas/index-10.html.</a>
+Extract the <i>jaas-1_0_01.zip</i> file into a temporary directory and
+copy the "<i>jaas1_0_01/lib/jaas.jar</i>" file to the <i>lib</i>
+directory of the GT4 installation.
+
+<h3><a name="14VM"> 2.2 Sun JVM 1.4.0/1.4.1 Issues</a></h3>
+
+<p>The message level security code is based on <a
+href="http://xml.apache.org/security/">Apache's XML Security
+library</a>, which requires a newer version of Xalan than was shipped
+with Sun's JVM 1.4.0/1.4.1. Please see the <a
+href="http://xml.apache.org/security/Java/installation.html#Using+JDK+1.4.0">XML
+Security library installation instructions</a> for details and a
+workaround. The xalan.jar file found in our distribution can be used
+for the suggested workaround. Even without the workaround those of our
+command line clients that are invoked by a shell script wrapper will
+pick the right version of the xalan.jar file. When invoking a client
+by directly calling Java in an environment where the above suggested
+workaround is not in place you should use&nbsp; <br>
+<i>Java&nbsp; -Djava.endorsed.dirs=$GLOBUS_LOCATION/endorsed&nbsp;
+&lt;other options&gt;&nbsp; &lt;client class&gt; &lt;args&gt; </i></p>
+
+<a name="missFeature"><h3>7 Features to be added </h3></a>
+
+<ul>
+<li> Secure notifications.
+<li> Credential refresh.
+<li> Client side security descriptor.
+</ul>
+</body>
+</html>
