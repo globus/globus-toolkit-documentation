@@ -12,11 +12,18 @@
 The Index service is built on the
 <a href="../aggregator/">MDS Aggregator Framework</a>
 and can use any aggregator source to collect information.
-After the standard Globus Toolkit installation, the index will be configured
-to use an aggregator source that queries remote WSRF services for resource
-property information; a different source can be specified by modifying
-the Index server's <code>jndi-config.xml</code>.
+By default, the index service uses the <code>QueryAggregatorSource</code>
+to gather resource property values from 
+the registered resource using one of the three WS-Resource Properties
+operations to poll for information; the polling
+method used depends on the configuration element supplied in 
+the registration content.
 </p>
+<p>Two other aggregator sources are supplied with the distribution:  the
+<code>SubscriptionAggregatorSource</code>, which gathers resource property
+values through subscription/notification, and the
+<code>ExecutionAggregatorSource</code>, which executes an external program
+to gather information.
 <h3>Syntax of the interface</h3>
 <a name="specifying-source"></a><h4>Specifying the Aggregator Source</h4>
 <p>The aggregation source used to collect data can be changed from default
@@ -45,4 +52,127 @@ the Index server's <code>jndi-config.xml</code>.
    one installed later. Details of the supplied sources are in the
    <a href="../aggregator/developer/#introduction">Aggregator developer
    guide</a>.</p>
+<a name="configuring_poll"></a><h4>Configuring QueryAggregatorSource</h4>
+The QueryAggregatorSource can use one of the following three configuration
+blocks.
+<h5>GetResourcePropertyPollType</h5>
+If a GetResourcePropertyPollType block is used, QueryAggregatorSource will
+request a single resource property.  The block has this form:
+<pre>
+   &lt;Content xsi:type="agg:AggregatorContent"
+      xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:GetResourcePropertyPollType&gt;
+            &lt;agg:<b>PollIntervalMillis</b>&gt;<i>interval_in_ms</i>&lt;/agg:<b>PollIntervalMillis</b>&gt;
+            &lt;agg:<b>ResourcePropertyName</b>&gt;<i>rp_namespace</i>:<i>rp_localname</i>&lt;/agg:<b>ResourcePropertyName</b>&gt;
+         &lt;/agg:GetResourcePropertyPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</pre>
+The <code>PollIntervalMillis</code> parameter is the poll refresh period in
+milliseconds; the <code>ResourcePropertyName</code> parameter is the
+QName of the resource property to poll for.
 
+<h5>GetMultipleResourcePropertiesPollType</h5>
+If a <code>GetMultipleResourcePropertiesPollType</code> block is
+used, <code>QueryAggregatorSource</code> will request one or more 
+resource properties.  The block has this form:
+<pre>
+   &lt;Content
+        xmlns:agg="http://mds.globus.org/aggregator/types"
+        xsi:type="agg:AggregatorContent"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:GetMultipleResourcePropertiesPollType&gt;
+            &lt;agg:<b>PollIntervalMillis</b>&gt;<i>interval_in_ms</i>&lt;/agg:<b>PollIntervalMillis</b>&gt;
+            &lt;agg:<b>ResourcePropertyNames</b>&gt;<i>rp1_namespace</i>:<i>rp1_localname</i>&lt;/agg:<b>ResourcePropertyNames</b>&gt;
+            &lt;agg:<b>ResourcePropertyNames</b>&gt;<i>rp2_namespace</i>:<i>rp3_localname</i>&lt;/agg:<b>ResourcePropertyNames</b>&gt;
+            &lt;agg:<b>ResourcePropertyNames</b>&gt;<i>rp3_namespace</i>:<i>rp3_localname</i>&lt;/agg:<b>ResourcePropertyNames</b>&gt;
+         &lt;/agg:GetMultipleResourcePropertiesPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</pre>
+The <code>PollIntervalMillis</code> parameter is the poll refresh period in
+milliseconds; the <code>ResourcePropertyNames</code> parameters are the
+QNames of the resource properties to poll for.  There is no limit on the
+number of <code>ResourcePropertyNames</code> that may be specified.
+<h5>QueryResourcePropertiesPollType</h5>
+If a <code>QueryResourcePropertiesPollType</code> block is used,
+QueryAggregatorSource will request that a query be executed against the Resource Property Set of the remote resource.
+In the GT3.9.4 implementation of core, the only query language that is
+supported is XPath.  The block has this form:
+<pre>
+   &lt;Content
+        xmlns:agg="http://mds.globus.org/aggregator/types"
+        xsi:type="agg:AggregatorContent"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:QueryResourcePropertiesPollType&gt;
+            &lt;agg:<b>PollIntervalMillis</b>&gt;<i>interval_in_ms</i>&lt;/agg:<b>PollIntervalMillis</b>&gt;
+            &lt;agg:<b>QueryExpression</b> Dialect="<i>dialect</i>"&gt;
+               <i>Query Expression</i>
+            &lt;/agg:<b>QueryExpression</b>&gt;
+         &lt;/agg:QueryResourcePropertiesPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</pre>
+The <code>PollIntervalMillis</code> parameter is the poll refresh period in
+milliseconds.  The <code>QueryExpression</code> is an <code>xsd:any</code>
+element; the <code>Dialect</code> attribute specifies the dialect of the
+query expression.
+<a name="configuring_subscription"></a><h4>Configuring SubscriptionAggregatorSource</h4>
+The SubscriptionAggregatorSource gathers resource property values from
+the registered resource using WS-Notification subscriptions.
+The configuration block for <code>SubscriptionAggregatorSource</code> looks
+like this:
+<pre>
+
+   &lt;Content
+        xmlns:agg="http://mds.globus.org/aggregator/types"
+        xsi:type="agg:AggregatorContent"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:AggregatorSubscriptionType&gt;
+             &lt;<b>TopicExpression</b> Dialect="<i>dialect</i>"&gt;
+                <i>Topic Expression</i>
+             &lt;/<b>TopicExpression</b>&gt;
+             &lt;Precondition Dialect="<i>dialect</i>"&gt;
+                <i>Precondition</i>
+             &lt;/Precondition&gt;
+             &lt;Selector Dialect="<i>dialect</i>"&gt;
+                <i>Selector</i>
+             &lt;/Selector&gt;
+             &lt;SubscriptionPolicy&gt;
+                <i>Subscription Policy</i>
+             &lt;/SubscriptionPolicy&gt;
+             &lt;InitialTerminationTime&gt;<i>time</i>&lt;/InitialTerminationTime&gt;
+         &lt;/agg:AggregatorSubscriptionType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</pre>
+The only required parameter is the <code>TopicExpression</code>, which
+specifies the topic expression to use in the subscription request.
+[TODO:  link to generic notification/subscription docs].
+
+<a name="configuring_execution"></a><h4>Configuring ExecutionAggregatorSource</h4>
+The ExecutionAggregatorSource gathers arbitrary XML information about
+a registered resource by executing an external script and passing
+registration as parameters.
+The configuration block for <code>ExecutionAggregatorSource</code> looks
+like this:
+<pre>
+   &lt;Content xsi:type="agg:AggregatorContent"
+      xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:ExecutionPollType&gt;
+            &lt;agg:<b>PollIntervalMillis</b>&gt;<i>interval_in_ms</i>&lt;/agg:<b>PollIntervalMillis</b>&gt;
+            &lt;agg:<b>ProbeName</b>&gt;<i>namespace</i>:<i>localname</i>&lt;/agg:<b>ProbeName</b>&gt;
+         &lt;/agg:ExecutionPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</pre>
+The <code>PollIntervalMillis</code> parameter is the poll refresh period in
+milliseconds.  [TODO:  figure out what ProbeName is -- should be an executable,
+but why is it a QName?]
