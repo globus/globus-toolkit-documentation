@@ -47,6 +47,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>The <a class="newsalliance" href="http://www-unix.globus.org/toolkit/staging/news.html#02252005">Globus 
+Toolkit 3.9.5 beta release</a> is available for testing. (2/2005)</p>
+
 <p>UCLA's Academic Technology Services group has constructed 
 <a class="newspartners" href="http://grid.ucla.edu/">a Grid Portal based on GT3.2.</a> (2/2005)</p>
 
