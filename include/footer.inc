@@ -29,7 +29,8 @@
   <hr class="first"/>
 
   <p class="panel">Comments? <a href="mailto:webmaster@globus.org">webmaster@globus.org</a></p>
-  <p class="panel">Globus, Globus Alliance, and Globus Toolkit are trademarks held by the University of Chicago.</p>
+  <p class="panel">Globus, Globus Alliance, and Globus Toolkit are trademarks<br>
+    held by the University of Chicago.</p>
   <!--ending div of footer-->
 </div>
 </body>
