@@ -45,49 +45,73 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
                     <li>host certificate</li>
                     <li>user account with a user certificate</li>
                     <li>trusted CA certificate in <code>/etc/grid-security/certificates</code></li>
-                    <li><code>setuid globus-grim</code> executable (This is what you get after running setperms.sh as root) </li>
+                    <li><code>setuid globus-grim</code> executable
+		  (This is what you get after running setperms.sh as
+		  root) </li>
+		    <li>A grid-mapfile in <code>/etc/grid-security/grid-mapfile</li>
                   </ul>
               </li>
             </ul></td>
           </tr>
-          <tr>
-            <td colspan="2" valign="top"><div align="center" class="box-header">Add Authorization </div></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top">Add authorizations for those who are allowed to submit jobs:</td>
-          </tr>
-          <tr>
-            <td width="40" valign="top"><a name="step1">1</a></td>
-            <td width="578" valign="top"><p>Create <font face="Courier New">/etc/grid-security/grid-mapfile</font>. </p>
-              <p>                The syntax is one line per user, with the certificate subject followed by the user account name:</p>              <p class="command">&quot;/O=Grid/O=Globus/OU=<i>organization</i>/CN=<i>name</i>&quot; <i>username</i> </p>
-            <p>You can get the certificate DN by running <code>grid-cert-info -subject</code> as your non-globus user.</p></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><div align="center" class="box-header">Test the configuration?</div></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><p>You should now be able to use a client
-                (such as the Fork service). It
-                  runs a job locally. $GLOBUS_LOCATION/bin/managed-job-globusrun
-                  is the client.</p>
-              <p>However, there are two more steps you may need to perform if you have a scheduler: </p></td>
-          </tr>
+  <tr>
+    <td colspan="2" valign="top" class="box-header"><div align="center">Testing
+        GRAM via the command line </div></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top"><p>Start the container:</p></td>
+  </tr>
+  <tr>
+    <td width="40" valign="top"><a name="step1">1</a></td>
+    <td valign="top"><p>To start the container as the globus user:</p>
+    <p class="command">globus$ bin/globus-start-container</p>
+    <p>It will print out a list of services.  One of them should look
+    like:</p>
+    <p
+    class="command">http://127.0.0.1:8080/ogsa/services/base/gram/MasterForkManagedJobFactoryService</p>
+  <tr>
+    <td colspan="2" valign="top"><p>Now that the container is running, you can
+        submit a job through the GRAM component.</p></td>
+  </tr>
+  <tr>
+    <td width="40" valign="top"><a name="step2">2</a></td>
+    <td valign="top"><p>To submit a test GRAM job as a user:</p>
+    <pre class="command">
+user$ source $GLOBUS_LOCATION/globus-user-env.{sh,csh}
+user$ grid-proxy-init
+user$ bin/managed-job-globusrun -factory
+  http://localhost:8080/ogsa/services/base/gram/MasterForkManagedJobFactoryService
+  -file schema/base/gram/examples/test.xml</pre>
+<p>This test is successful if the output  looks something like this:</p>
+<pre class="command">========== Status Notification ==========
+Job Status: StageIn
+=========================================
+========== Status Notification ==========
+Job Status: active
+=========================================
+========== Status Notification ==========
+Job Status: done
+=========================================
+DESTROYING SERVICE</pre></td>
+  </tr>
           <tr>
             <td colspan="2" valign="top"><div align="center" class="box-header">If you have a scheduler...</div></td>
           </tr>
           <tr>
-            <td valign="top"><a name="step2">2</a></td>
+            <td valign="top"><a name="step3">3</a></td>
             <td valign="top"><p>Find the scheduler bundle from the installer you downloaded (look under <code>schedulers/</code> in your installer directory) and install it by running:</p>
-            <p class="command">gpt-build</p></td>
+            <p class="command">gpt-build
+	    scheduler-[name]-3.2-src_bundle.tar.gz gcc32dbg</p></td>
           </tr>
           <tr>
             <td colspan="2" valign="top" class="box-header"><div align="center">If you need to customize the jobmanager for your scheduler type...</div></td>
           </tr>
           <tr>
-            <td valign="top"><a name="step3">3</a></td>
+            <td valign="top"><a name="step4">4</a></td>
             <td valign="top"><p>Edit the following file to affect how jobs are submitted.</p>                
               <p class="command">$GLOBUS_LOCATION/lib/perl/Globus/GRAM/JobManager/[scheduler].pm</p>
-            <p>For example, you may need to perform this step  to change between <code>rsh</code> and <code>ssh</code>.</p></td>
+            <p>For example, some PBS clusters use rsh, and some use
+          ssh.  You may need to perform this step for pbs.pm  to
+          change the remote shell between <code>rsh</code> and <code>ssh</code>.</p></td>
           </tr>
         </table>
 		<p>For more information, see the <em><a href="../gram/ws/admin/index.html">WS GRAM

@@ -30,9 +30,7 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
     <td colspan="2" valign="top"><p>Before you can configure a GridFTP server, you must have:</p>
       <ul>
         <li> a host certificate</li>
-        <li> appropriate users in the gridmapfile</li>
-        <li>          a valid proxy (<code>grid-proxy-init</code>) if you want to test your
-          configuration </li>
+        <li> appropriate users in the grid-mapfile</li>
       </ul>
     </td>
   </tr>
@@ -76,11 +74,16 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
 		  }</pre>    <p>Be sure to replace <font face="Courier New">GLOBUS_LOCATION</font> with the actual value of <font face="Courier New">$GLOBUS_LOCATION</font> in your environment.</p></td>
   </tr>
   <tr>
-    <td colspan="2" valign="top" class="box-header"><div align="center">Notify Inetd/Xinetd</div></td>
+    <td colspan="2" valign="top" class="box-header"><div
+      align="center">Notify Inetd/Xinetd to reload</div></td>
   </tr>
   <tr>
     <td valign="top"><a name="step3">3</a></td>
-    <td valign="top"><p> Notify Inetd or Xinetd that its configuration file has changed. To do this, follow the instructions for the server as listed in the manual (<kbd>man inetd</kbd> or <kbd>man xinetd</kbd>). </p>    </td>
+    <td valign="top"><p> Notify Inetd or Xinetd that its configuration
+      file has changed. To do this, follow the instructions for the
+      server as listed in the manual (<kbd>man inetd</kbd> or <kbd>man
+      xinetd</kbd>).  It will probably be something like
+      <code>/etc/init.d/xinetd reload</code>. </p>    </td>
   </tr>
   <tr>
     <td colspan="2" valign="top" class="box-header"><div align="center">Testing GridFTP</div></td>
@@ -88,36 +91,72 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
   <tr>
     <td colspan="2" valign="top"><p>Testing GridFTP consists of:</p>
       <ul>
-	<li>starting a GridFTP server running under the permissions of your user certificate (steps 4-6) 
-	<li> moving a test file (step 7) </li>
+	<li>Starting a GridFTP server (steps 2-3 above) 
+	<li>Creating a proxy (step 4)
+	<li>Moving a test file (step 5) </li>
     </ul></td>
   </tr>
   <tr>
     <td valign="top"><a name="step4">4</a></td>
     <td valign="top">Create a proxy certificate: 
-      <pre class="command">     % grid-proxy-init -verify -debug</pre>      </td>
+      <pre class="command">% grid-proxy-init -verify -debug</pre>      </td>
   </tr>
   <tr>
     <td valign="top"><a name="step5">5</a></td>
+    <td valign="top">Create a file named <code>/tmp/file1</code>, and run the following command: 
+      <pre class="command">% globus-url-copy gsiftp://localhost/tmp/file1 \
+    file:///tmp/file2</pre>
+    <p>Check to make sure that <code>/tmp/file2</code> now exists.
+  You may look in <code>/var/log/messages</code> to see any messages
+  the GridFTP daemon may have logged about the transfer</p>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top" class="box-header"><div
+  align="center">Personal GridFTP server</div></td>
+  </tr>
+  <tr>
+    <td valign="top"></td>
+    <td><p>For whatever reason, you might not be able to start the GridFTP
+    server as root.  The following procedure contains the instructions
+    for running a GridFTP server as a user.  They only apply to that
+    situation.  If you already have the GridFTP server running from
+  the above steps, you may skip the following section.</p>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step6">6</a></td>
+    <td valign="top"><p>Create <code>~/.gridmap</code>, and add an
+  entry with your subject (from <code>grid-cert-info -subject</code>)
+  and username (from <code>whoami</code>): </p>
+      <p class="command">&quot;/O=Grid/O=Globus/OU=your.domain/CN=Your Name&quot; your-account </p>      
+  </tr>
+
+
+  <tr>
+    <td valign="top"><a name="step7">7</a></td>
     <td valign="top"><p>Start the GridFTP server as yourself: </p>
       <pre class="command">     % $GLOBUS_LOCATION/sbin/in.ftpd -S -p 5678</pre>
     <p>The <code>-S</code> flag leaves the daemon in the background and the <code>-p</code> flag specifies the port. If that port is already in use, you  try another one.</p></td>
   </tr>
+
   <tr>
-    <td valign="top"><a name="step6">6</a></td>
-    <td valign="top"><p>Create <code>~/.gridmap</code>, and add an entry with your subject (which was output by <a href="#step4">step 4</a>) and username: </p>
-      <p class="command">&nbsp;&nbsp;&nbsp; &quot;/O=Grid/O=Globus/OU=your.domain/CN=Your Name&quot;&nbsp;&nbsp;&nbsp; your-account </p>      
-    <p><strong>Note:</strong> In the future, you will <strong>not</strong> be starting the<code> in.ftpd</code> daemon by hand.</p></td>
-  </tr>
-  <tr>
-    <td valign="top"><a name="step7">7</a></td>
-    <td valign="top">Create a file named <code>/tmp/file1</code>, and run the following command: 
-      <pre class="command">% globus-url-copy -s &quot;`grid-cert-info -subject`&quot; \
+    <td valign="top"><a name="step8">8</a></td>
+    <td valign="top"><p>Transferring a file from a personal GridFTP
+    server: </p>
+      <pre class="command">% globus-url-copy -s "`grid-cert-info -subject`" \
     gsiftp://localhost:5678/tmp/file1 \
-    file:///tmp/file2</pre>    <p>Check to make sure that <code>/tmp/file2</code> now exists.&nbsp;     
-    <p><strong>Note:</strong> The <code>-s</code> flag is used in this procedure because the GridFTP server is running under your user proxy.&nbsp; In general, this is not required when transferring to/from a host-based GridFTP server.     
-    <p><strong>If you are using a real gridftp server</strong>, started by inetd/xinetd, do <strong>not</strong> use the -s flag. You <strong>only</strong> need that to work with a server started as a user, which is <strong>not</strong> the normal case.</td>
+    file:///tmp/file2</pre>
+    <p><b>Note</b>: The -s flag is used in this procedure because the
+    GridFTP server is running under your user proxy.  Ordinarily (like
+    in Step 5 above) globus-url-copy expects the GridFTP server to be
+    using a host certificate.  Because this transfer is to a personal
+    GridFTP server, this is not true.  The -s flag combined with
+    grid-cert-info lets the client
+    know to expect your user subject instead.  In general, this
+    is not required when transferring to/from a host-based GridFTP
+    server.
   </tr>
+
+
 </table>
 <p>For more information, see the <em><a href="../gridftp/admin/index.html">GridFTP System Administrator's Guide</a></em>.<br>
 </p>
