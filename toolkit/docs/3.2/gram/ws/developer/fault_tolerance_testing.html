@@ -1,0 +1,111 @@
+<?php
+
+$title = "GT3 GRAM Fault Tolerance Testing Scenarios";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
+?>
+<h1><?php echo $title; ?></h1>
+
+<pre>
+<b>Definitions</b>
+------------
+Kill Master = ctrl-c in Master terminal
+Kill UHE = 2 methods are possible:
+                call admin service shutdown
+                kill -9 UHE process
+job completes = client receives DONE notification
+submit a job = managed-job-globusrun -factory xxx -file yyy
+submit a batch job = managed-job-globusrun -batch -factory xxx -file yyy
+FSD = FindServiceData call; managed-job-globusrun -status <job contact>
+job contact = GSH returned from managed-job-globusrun -batch
+
+<b>test case 1 - Only MHE crash:</b>
+----------------------------------
+  - Master is up
+  - Submit a job (UHE starts up)
+  - Job completes
+  - Kill Master
+  - Restart Master (UHE still active)
+      (Ping is failing even though UHE is up: Ravi investigating)
+      -- This is fixed and committed to Trunk
+      (Ping should not fail if UHE is active)
+  - Submit a job
+  - Job completes
+
+<b>test case 2 - Both MHE and UHE crash:</b>
+----------------------------------
+  - Master is up
+  - Submit a job (UHE starts up)
+  - Job completes
+  - Kill Master
+  - Kill UHE
+  - Restart Master (UHE is restarted)
+  - Submit a job
+  - Job completes
+
+<b> test case 3 - UHE crash; no jobs: </b>
+----------------------------------
+  - Master is up
+  - UHE is killed (no jobs at the time)
+  - Restart handler in MHE restarts UHE
+  - Submit a job (UHE starts up)
+  - Job completes
+
+<b> test case 4 - UHE crash, long job, subscribe:</b>
+----------------------------------
+I configured the UHESweeperTask ( that periodically sweeps all the uhes and pin
+gs whether they are active or not ) to sweep the uhes every 5 seconds. I killed
+the UHE by fishing out its pid from ps -efwww | grep <port> of uhe process.
+
+- Master is up
+  - Submit a long running sleep job
+     Waits for DONE notification
+  - UHE is killed (1 active job)
+  - Restart handler in MHE restarts UHE
+  - job completes on service side
+  - Client receives DONE
+
+<b>test case 5 - UHE crash, long job, FSD: </b>
+----------------------------------
+  - Master is up
+  - Submit a long running sleep job - batch
+  - UHE is killed (1 active job)
+  - Restart handler in MHE restarts UHE
+  - client does a FSD with job contact (GSH) and gets ACTIVE
+  - job completes on service side
+  - client does a FSD with job contact (GSH) and gets DONE
+
+<b>test case 6 - UHE inactivity shutdown 1:</b>
+----------------------------------
+  - Master is up
+  - Submit a simple /bin/date job
+  - Job completes
+  - UHEActivitySweeper shuts down UHE
+  - Submit a simple /bin/date job
+    + verifies UHE startup works after shutdown
+
+<b>test case 7 - UHE inactivity shutdown 2:</b>
+----------------------------------
+  - Master is up
+  - Submit a simple /bin/date job
+  - Job completes
+  - do FSD to UHE MJFS to keep UHE up even though there are no more instances
+  - stop doing FSD allowing the UHEActivitySweeper to shut down UHE
+  - Submit a simple /bin/date job
+    + verifies UHE startup works after shutdown
+</pre>
+
+
+<h1>Test Results</h1>
+    GT 3.2 release results for MMJFS/MJS fork <br>
+<ul>
+    <li>Test case 1: Success
+    <li>Test case 2: Success
+    <li>Test case 3: Success
+    <li>Test case 4: Success
+    <li>Test case 5: Success
+    <li>Test case 6: Success
+    <li>Test case 7: Success
+</ul>
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
