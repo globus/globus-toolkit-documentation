@@ -9,6 +9,7 @@ define("LOCAL_INC",1);
     $SITE_PATHS["SERV_ROOT"]              = "/Users/liming/Sites/alliance/";
     $SITE_PATHS["WEB_ROOT"]               = "/~liming/alliance/";
 
+
     $SITE_PATHS["SERV_INC"]               = $SITE_PATHS["SERV_ROOT"]."include/";
 
     $SITE_PATHS["WEB_ALLIANCE"]              = $SITE_PATHS["WEB_ROOT"]."alliance/";
