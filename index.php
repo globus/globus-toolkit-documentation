@@ -21,7 +21,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         </div>
 
         <div id="main">
-          <h1 class="first">Welcome to Globus</h1>
+          <h1 class="first">Welcome to Globus<sup><small>&reg;</small></sup></h1>
           <p>The <b>Globus Alliance</b> is a community of organizations and individuals developing 
               fundamental technologies behind the "Grid," which lets people share computing power, 
               databases, instruments, and other on-line tools securely across corporate, institutional, 
