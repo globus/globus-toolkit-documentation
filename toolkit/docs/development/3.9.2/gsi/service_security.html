@@ -20,7 +20,6 @@ href="http://bugzilla.globus.org/bugzilla/enter_bug.cgi?product=Documentation">B
   </li> 
   <li><a href="#resource">Secure Resources</a></li> 
   <li><a href="#securityAPI">Useful Security API</a></li> 
-  <li><a href="#limitations">Limitations</a></li> 
   <li><a href="#otherFeatures">Other Features</a> 
     <ul> 
       <li><a href="#replayAttack">Replay Attack Prevention</a></li> 
@@ -28,6 +27,8 @@ href="http://bugzilla.globus.org/bugzilla/enter_bug.cgi?product=Documentation">B
     </ul> 
   </li> 
   <li><a href="#container">Container-only Security Configuration</a></li> 
+  <li><a href="#notifications">Secure Notifications</a></li> 
+  <li><a href="#limitations">Limitations</a></li> 
   <li><a href="#Errors">Errors</a></li> 
 </ol> 
 <h3><a name="Introduction"></a>1. Introduction</h3> 
@@ -372,7 +373,7 @@ href="#configRunas">Configuring run-as mode</a>.)</p></td>
   If <code>null</code> is returned, it is assumed that no security is set on
   the resource. </p> 
 <blockquote> 
-  <h4><a name="resDesc"></a>4.1 Resource Secure Descriptor</h4> 
+  <h4><a name="resDesc"></a>4.1 Resource Security Descriptor</h4> 
   <p>The resource security descriptor is identical to the service security descriptor
     and contains API to set and get all properties that are described in <a href="#descFile">Section
     3.1</a>. A descriptor file can also be used to create this object. The file
@@ -466,25 +467,10 @@ href="#configRunas">Configuring run-as mode</a>). If <strong>no</strong> securit
   following: </p> 
   <pre class="command">import javax.security.auth.Subject;<br> import java.security.PrivilegedAction;<br> import org.globus.gsi.jaas.JaasSubject;<br> ...<br> public void method() {<br>   // create a new subject or obtain it from somewhere<br>   Subject subject = ...;<br>   JaasSubject.doAs(subject, new PrivilegedAction() {<br>		               public Object run() {<br>                                 // do work here<br>		                 return null;<br>		               }<br>	            });<br> }<br> ...</pre> 
 </blockquote> 
-<h3><a name="limitations" id="limitations"></a>6. Limitations</h3> 
+
+<h3><a name="otherFeatures"></a>6. Other Features</h3> 
 <blockquote> 
-  <h4>6.1 Persistent Services Activation Run-As Identity</h4> 
-  <p>The activation of persistent services is not executed under any run-as identity.
-    Wrong credentials might be used if the service is making an outbound connection
-    during the activation. JAAS API might be used to set the right identity for
-    the outbound connection. </p> 
-  <h4>6.2 Security Descriptor Requires Credentials</h4> 
-  <p>The presence of a security descriptor for a specific service triggers credential
-    acquisition. This causes the service to require credentials, even if the
-    security descriptor only specifies the <code>&lt;none/&gt;</code> authentication
-    method. </p> 
-  <p>As a workaround, we recommend that you remove the security descriptor.&nbsp; Secure
-    invocation on a service without a security descriptor will still work (given
-    that the service has credentials available.)</p> 
-</blockquote> 
-<h3><a name="otherFeatures"></a>7. Other Features</h3> 
-<blockquote> 
-  <h4><a name="replayAttack" id="replayAttack"> </a>7.1 Replay Attack Prevention </h4> 
+  <h4><a name="replayAttack" id="replayAttack"> </a>6.1 Replay Attack Prevention </h4> 
   <p>If <em>GSI Secure Message</em> authentication is used, a replay attack filter
     can be configured on the server side. If activated, the filter can be configured
     with a time window, and only non-duplicate messages received within the window
@@ -515,7 +501,7 @@ href="#configRunas">Configuring run-as mode</a>). If <strong>no</strong> securit
   </ul> 
 </blockquote> 
 <blockquote> 
-  <h4><a name="customAuthz" id="customAuthz"></a>7.2 Writing a custom service
+  <h4><a name="customAuthz" id="customAuthz"></a>6.2 Writing a custom service
     authorization mechanism</h4> 
   <p> The authorization handler can be configured to call out to a custom authorization
     class. The class must implement the interface <code>org.globus.wsrf.impl.security.authorization.ServiceAuthorization</code>. </p> 
@@ -531,7 +517,7 @@ href="#configRunas">Configuring run-as mode</a>). If <strong>no</strong> securit
   }
 </pre> 
 </blockquote> 
-<h3><a name="container"></a>8. Container-only Security Configuration</h3> 
+<h3><a name="container"></a>7. Container-only Security Configuration</h3> 
 <p> Other than the security properties that have been described in <a
 href="#Descriptor">Security Descriptor</a>, two more properties are exclusive
   to the container security descriptor.
@@ -549,7 +535,59 @@ href="#Descriptor">Security Descriptor</a>, two more properties are exclusive
     <pre class="command"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>  &lt;replay-attack-interval value="10000"/&gt;<br>  ...<br> &lt;/securityConfig&gt;</pre> 
   </li> 
 </ul> 
-<h3><a name="Errors"></a>9. Errors</h3> 
+<h3><a name="notifications"></a>8. Secure Notifications</h3> 
+<blockquote> 
+<p>Notification security is driven by the client. The security
+configuration on a <i>subscribe</i> call is used on the <i>notify</i>
+operation too. For example, if secure conversation with integrity is
+used on the <i>subscribe</i> operation, the <i>notify</i> is alsot
+secured similarly. Hence there is no change needed at the notification
+source for security.</p>
+
+<p> For example, if notifications need to be secured with GSI Secure Message integrity, then the subscribe operation needs to be secured with the same, as shown below:</p>
+
+    For example: <br> 
+    <pre class="command"> // Create endpoint reference<br> EndpointReferenceType endpoint = new EndpointReferenceType();<br> // Set address of service<br> String counterAddr = <br>	"http://localhost:8080/wsrf/services/CounterService";<br> // Get handle to port <br> CounterPortType port = locator.getCounterPortTypePort(endpoint);<br> // enable GSI Secure Message message level security<br> ((Stub)port)._setProperty(Constants.GSI_SEC_MSG,<br>                              Constants.SIGNATURE);<br> // set client authorization to none<br> ((Stub)port)._setProperty(Constants.AUTHORIZATION,<br>                              SelfAuthorization.getInstance());<br>  _Subscribe request = new _Subscribe();<br> // Construct request<br> ...<br> ...<br> port.subscribe();<br>
+</pre> 
+
+<p> <b>Notes:</b> <ul><li>Please refer to <a
+href="client_security.html">Client-side Security Document</a> for details on
+setting security on the client side.</li>
+<li> The credentials used for securing the notification depends on credentials assocaited with the thread that spawns off the notification. The credentials associated with the thread is determined by the <a href="configRunas">Run-as configuration</a>.</li></ul></p>
+
+<p>The notification consumer can be configured to ensure that the
+notifications that are sent are secure by setting the required policy
+as a <i><a href="#resDesc">Resource Security Descriptor</a></i>. <a
+href="#resDesc">Section 4.1</a> describes creating a resource
+descriptor and the example below shows creating a notification
+consumer that uses it.</p>
+
+<p>Example:<br>
+<pre class="command">  ResourceSecurityDescriptor resDesc =<br>      new ResourceSecurityDescriptor();<br>  resDesc.setAuthz("self");<br>  Vector authMethod = new Vector();<br>  authMethod.add(GSISecureConvAuthMethod.BOTH);<br>  resDesc.setAuthMethods(authMethod, true);<br>  consumerEPR =<br>    consumer.createNotificationConsumer(<br>            new CounterClient(),<br>            resDesc);</pre>
+
+<p>This sample enforces that the notification received must be secured
+by GSI Secure Conversation (either privacy or integrity) and
+notifications are sent using the same identity as the client.</p>
+
+</blockquote> 
+
+<h3><a name="limitations" id="limitations"></a>9. Limitations</h3> 
+<blockquote> 
+  <h4>6.1 Persistent Services Activation Run-As Identity</h4> 
+  <p>The activation of persistent services is not executed under any run-as identity.
+    Wrong credentials might be used if the service is making an outbound connection
+    during the activation. JAAS API might be used to set the right identity for
+    the outbound connection. </p> 
+  <h4>6.2 Security Descriptor Requires Credentials</h4> 
+  <p>The presence of a security descriptor for a specific service triggers credential
+    acquisition. This causes the service to require credentials, even if the
+    security descriptor only specifies the <code>&lt;none/&gt;</code> authentication
+    method. </p> 
+  <p>As a workaround, we recommend that you remove the security descriptor.&nbsp; Secure
+    invocation on a service without a security descriptor will still work (given
+    that the service has credentials available.)</p> 
+</blockquote> 
+<h3><a name="Errors"></a>10. Errors</h3> 
 <blockquote> 
   <h4>9.1 '[SEC05] Invocation subject not set'</h4> 
   <p> The service method is calling <code>SecurityManager.setOwnerFromContext()</code> but
