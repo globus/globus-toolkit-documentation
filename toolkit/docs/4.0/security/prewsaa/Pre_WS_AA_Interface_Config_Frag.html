@@ -2,4 +2,241 @@
 <h3>Configuration overview</h3>
 <p><font color="purple">[high-level characterization of the configuration options for the component here]</font></p>
 <h3>Syntax of the interface</h3>
-<p><font color="purple">[list and describe detailed config info here]</font></p>
+<ul>
+  <li><a
+ href="#GeneratingCertificateRequests"
+ align="left">Configuration for Generating Certificate Requests </a></li>
+
+  <li><a href="#TrustedCA" align="left">Configuring
+a Trusted CA </a></li>
+  <li><a href="#GSIDirectories" align="left">GSI Directories </a></li>
+  <li><a href="#GSIConfigurationFiles"
+ align="left">Installation of GSI Configuration Files </a></li>
+  <li><a href="#GridmapFileFormat" align="left">Gridmap
+File Format </a></li>
+  <li><a href="#GridmapFileSearchRules" align="left">Gridmap
+File Search Rules </a></li>
+  <li><a href="#CredentialAcquisitionRules" align="left">Credential
+Acquisition Rules </a></li>
+  <li><a href="#GSI_File_Permissions_Requirements" align="left"> GSI
+File Permissions Requirements</a></li>
+
+</ul>
+<h3><a name="GeneratingCertificateRequests" id="GeneratingCertificateRequests">Configuration
+for Generating Certificate Requests </a></h3>
+The following files are required for generating a certificate request:
+<ul>
+  <li>globus-user-ssl.conf.XXXXX : defines the distinguished name to
+use for a user's certificate request. </li>
+  <li>globus-host-ssl.conf.XXXXX : defines the distinguished name for a
+host (or service) certificate request. </li>
+  <li>grid-security.conf.XXXXXX : a base configuration file used by the
+above configuration files. </li>
+</ul>
+XXXXX is replaced by the unique hash of the trusted CA certificate (The
+CA which will sign the request). These files should be located in the <strong>TRUSTED_CA
+
+</strong> directory, explained in the following section. To generate a
+certificate request, grid-cert-request must be able to determine which
+trusted CA (multiple CA's may be installed) to generate a request for.
+This is done by creating a symbolic link for each of these config files
+from the <strong>GRID_SECURITY </strong> directory, to their actual
+location in the <strong>TRUSTED_CA </strong> directory. <br>
+<br>
+<strong>GRID_SECURITY </strong>/globus-user-ssl.conf --&gt; <strong>TRUSTED_CA
+</strong>/globus-user-ssl.conf.XXXXXX <br>
+<strong>GRID_SECURITY </strong>/globus-host-ssl.conf --&gt; <strong>TRUSTED_CA
+
+</strong>/globus-host-ssl.conf.XXXXXX <br>
+<strong>GRID_SECURITY </strong>/grid-security.conf --&gt; <strong>TRUSTED_CA
+</strong>/grid-security.conf.XXXXXX <br>
+<br>
+These files are only required when you plan to use the
+grid-cert-request tool.
+<h3><a name="TrustedCA" id="TrustedCA">Configuring a Trusted CA </a></h3>
+The following files are required to setup a trusted CA (required by all
+globus enabled programs):
+<ul>
+  <li>XXXXX.0 : The trusted CA certificate.</li>
+
+  <li>XXXXX.signing_policy : A configuration file defining the DN's a
+CA is willing to sign. </li>
+</ul>
+XXXXX is replaced by the hash of the trusted CA certificate. These
+files need to be located in the <strong>TRUSTED_CA </strong>
+directory, explained in the following section, and have permissions
+requirements, as specified <a href="#GSI_File_Permissions_Requirements">here</a>
+<h3><a name="GSIDirectories" id="GSIDirectories">GSI Directories </a></h3>
+<p>The GSI uses the following directories: </p>
+<ul>
+  <li><strong>TRUSTED_CA </strong> directory: contains the CA
+certificates and associated files trusted by the globus installation .
+The trusted certificates directory is searched for in the following
+order:
+    <p> </p>
+
+    <ul>
+      <li>X509_CERT_DIR environment variable. If this variable is set,
+trusted certificates are searched for here. </li>
+      <li>$HOME/.globus/certificates/ This is a user specific location
+to search for trusted certificates. </li>
+      <li>/etc/grid-security/certificates/ The default location for
+trusted certificates and config files. This location is independent of
+the location of a globus installation. </li>
+      <li>$GLOBUS_LOCATION/share/certificates/ location based on a
+globus installation. </li>
+    </ul>
+    <p> Be aware, the first directory found to exist in the search
+order is the directory that gets used, independ e nt of whether it has
+the correct trusted CA certificate. If multiple directories exist and
+you want to use a directory that does not appear first in the search
+order, X509_CERT_DIR must be set. </p>
+
+  </li>
+</ul>
+<ul>
+  <li><strong>GRID_SECURITY </strong> directory: contains symbolic
+links to the certificate request configuration files . For certificate
+request purposes t his directory is searched for in the following
+order:
+    <p> </p>
+    <ul>
+      <li>GRID_SECURITY_DIR environment variable. If this variable is
+set, the symbolic links of configuration files are searched for here. </li>
+      <li>/etc/grid-security The default location to search for the
+configuration file symbolic links. </li>
+
+      <li>$GLOBUS_LOCATION/etc File location based on a globus install.
+      </li>
+    </ul>
+    <p> If a certificate request needs to be based on an installed
+trusted CA other than the default, grid-cert-request provides the -ca
+to specify any CA to create a request. </p>
+  </li>
+</ul>
+<p></p>
+<h3><strong><a name="GSIConfigurationFiles" id="GSIConfigurationFiles">
+Installation of GSI Configuration Files </a></strong></h3>
+The above configuration files are installed using the setup-gsi script.
+This script gets run as a manual post-install step to an installation
+of the globus toolkit. Using the option -nonroot will install
+configuration files as follows: <br>
+
+<br>
+<strong>TRUSTED_CA </strong>: $GLOBUS_LOCATION/share/certificates <br>
+<strong>GRID_SECURITY </strong>: $GLOBUS_LOCATION/etc/
+<p> If the -nonroot option is <strong>not </strong> used, the
+configuration files will be installed as follows: </p>
+<p> <strong>TRUSTED_CA </strong>: /etc/grid-security/certificates <br>
+<strong>GRID_SECURITY </strong>: /etc/grid-security <br>
+
+</p>
+<h3><strong><a name="GridmapFileFormat">Gridmap File Format</a></strong> </h3>
+<p>
+The Gridmap file has the following format:<br><br>
+
+&lt;user DN&gt; &lt;local username&gt;[,&lt;local username&gt;]*<br><br>
+
+In the above &lt;user DN&gt; refers to the distinguished name of the user, 
+i.e. the subject name embedded in the user's certificate and 
+&lt;local username&gt; refers to the system specific user name.
+</p>
+<h3><strong><a name="GridmapFileSearchRules" id="GridmapFileSearchRules">Gridmap File Search
+Rules</a></strong> </h3>
+<p>The Gridmap file is searched for in the following way. If the user
+is root (uid 0) then the following locations are checked: </p>
+<ul>
+  <li> value of the GRIDMAP environment variable</li>
+  <li>/etc/grid-security/grid-mapfile </li>
+</ul>
+<p>If on the other hand the user is a non-root user we check the
+following: </p>
+
+<ul>
+  <li> value of the GRIDMAP environment variable</li>
+  <li>$HOME/.gridmap </li>
+</ul>
+<h3><a name="CredentialAcquisitionRules" id="CredentialAcquisitionRules">Credential Acquisition Rules
+</a></h3>
+<p>Credentials are looked for in the following order: service
+credential, host credential, proxy credential and user credential.
+These are in turn looked for in the following locations: </p>
+<ul>
+  <li>Service credentials:
+    <p> </p>
+
+    <ul>
+      <li>the X509_USER_KEY and X509_USER_CERT environment variables</li>
+      <li>/etc/grid-security/
+&lt;service&gt;/&lt;service&gt;{cert,key}.pem</li>
+      <li>$GLOBUS_LOCATION/etc/
+&lt;service&gt;/&lt;service&gt;{cert,key}.pem</li>
+
+      <li>$HOME/.globus / &lt;service&gt;/&lt;service&gt;{cert,key}.pem
+      </li>
+    </ul>
+  </li>
+  <p> </p>
+  <li>Host credentials:
+    <p> </p>
+
+    <ul>
+      <li>the X509_USER_KEY and X509_USER_CERT environment variables</li>
+      <li>/etc/grid-security/ host{cert,key}.pem</li>
+      <li>$GLOBUS_LOCATION/etc/host {cert,key}.pem</li>
+      <li>$HOME/.globus / host{cert,key}.pem </li>
+    </ul>
+  </li>
+
+  <p> </p>
+  <li>Proxy credentials:
+    <p> </p>
+    <ul>
+      <li>the X509_USER_PROXY environment variable</li>
+      <li>/tmp/x509up_u&lt;uid&gt; </li>
+
+    </ul>
+  </li>
+  <p> </p>
+  <li>User credentials:
+    <p> </p>
+    <ul>
+      <li>the X509_USER_KEY and X509_USER_CERT environment variables</li>
+      <li>$HOME/.globus/user{cert,key}.pem</li>
+
+      <li>$HOME/.globus/usercred.p12 </li>
+    </ul>
+  </li>
+</ul>
+<h3><a name="GSI_File_Permissions_Requirements"> GSI File Permissions
+Requirements</a></h3>
+<ul>
+  <li><a href="../key/glossary.html#End_Entity_Certificate_EEC"> End
+Entity</a> (<a href="../key/glossary.html#User_Certificate">User</a>, <a
+ href="../key/glossary.html#Host_Certificate">Host</a> and <a
+ href="../key/glossary.html#Service_Certificate">Service</a>)
+Certificates and the <a
+ href="../key/glossary.html#GSI_Authorization_Callout_Configuration">GSI
+Authorization Callout Configuration File</a>:
+    <p> </p>
+
+    <ul>
+      <li>Are not allowed to be executable</li>
+      <li>Are not allowed to be writable by group and other</li>
+      <li>Have to be either regular files or soft links</li>
+    </ul>
+  </li>
+  <p> </p>
+
+  <li><a href="../key/glossary.html#Private_Key"> Private Keys</a> and <a
+ href="../key/glossary.html#Proxy_Credentials">Proxy Credentials</a>:
+    <p> </p>
+    <ul>
+      <li>Have to be owned by the current (effective) user</li>
+      <li>Are not allowed to be executable</li>
+
+      <li>Are not allowed to be readable by group and other</li>
+      <li>Are not allowed to be writable by group and other</li>
+      <li>Have to be either regular files or soft links</li>
+    </ul>
+  </li>
