@@ -15,7 +15,18 @@ scoped as the name suggests.</para>
 </section>
 <section id="s-authzframe-developer-archdes">
   <title>Architecture and design overview</title>
-  <para>[link to architecture and design docs]</para>
+  <section>
+    <title>Server-side authorization</title>
+    <para>The authorization framework on the server side consists of an engine that evaluates a chain of configured authorization schemes, also known as Policy Decisin Points(PDPs) to determine if the client making the invocation can access the resource/service. The chain can also be configured with Policy Information Points(PIPs), which can used to glean information that would be useful in the decision making process. </para>
+    <para>The authorization engine is invoked as a part of handler chain, immediately after authentication of the invocation (<function>java:org.globus.wsrf.impl.security.authorization.AuthorizationHandler</function>. Authorization is done only if the call is secure and is authenticated successfully. The toolkit contains a set of PDPs that implement some authorization schemes or callout to some authorization service.  But custom PDPs and PIPs can be written and plugged in as a part of the chain.</para>
+    <para>Any PDP has to implement the interface <function>org.globus.wsrf.security.authorization.PDP</function> and contain the logic to return a permit or deny based on  information such as subject DN, service being access and the operation being performed. To manage configuration information, each PDP can be bootstrapped with an object implementing <function>org.globus.wsrf.security.authorization.PDPConfig</function> interface. The interface has get and set methods which can be used to retrieve and set scoped parameters for the PDP. </para>
+    <para>PIPs have to implement the interface <function>org.globus.wsrf.security.authorization.PIP</function> with the functionality to collect attributes from the invocation context that are relevant to making the authorization decision.</para>
+    <para>A chain if PDPs and PIPs, with relevant configuration information can be configured at resource,  service or container level. If no chain is specified at resource level, service level one is used, if not container level configuration is used.The engine evaluates each PDP and PIP in the order specified and a permit-override mechanism is used to render a decision, that is even if one PDP returns a  permit, the decision rendered is permit. If all PDPs return a deny, an fault is thrown.</para>
+  </section>
+  <section>
+    <title>Client-side authorization</title>
+    <para>The client side authorization is done as a part of the handler that does authentication. GSI Secure Message authentication does client-side authorization only after the operation is completed. The other two authentication schemes supported, GSI Secure Conversation and GSI Transport authorize the server prior to the operation. The toolkit supports self, gridmap, host and identity authorization on the client side. The authorization to be used is set programatically on the Stub and the handler enforces it.</para>
+  </section>
 </section>
 <section id="s-authzframe-developer-pubinterfaces">
   <title>Public interface</title>
@@ -64,7 +75,7 @@ using security descriptor files be used.</para>
 </section>
 <section id="s-authzframe-developer-debugging">
   <title>Debugging</title>
-  <para>Log output from the   authorization frameworkis a useful tool for debugging
+  <para>Log output from the   authorization framework is a useful tool for debugging
   issues. Logging in   the code is based on  the <ulink url="http://jakarta.apache.org/commons/logging/">Jakarta Commons Logging</ulink> API and is described in more detail <ulink url="../../../common/javawscore/developer/index.html#debugging">here</ulink>. As
   described in above section, configuration files need to be edited to
   enable logging at different levels. For example, to see all logging
