@@ -1,0 +1,234 @@
+<?php include( "http://www-unix.globus.org/include/globus_header.inc" ); ?>
+<link href="../../../../../../CSS/style.css" rel="stylesheet" type="text/css">
+
+<title>CAS: Developer's Guide</title><p class="small"><a href="http://www.globus.org">Globus</a> &gt;
+
+<a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt;
+
+<a href="http://www-unix.globus.org/toolkit/documentation/web/docs/">Documentation</a> &gt; <a href="../../index.html">3.2</a> &gt;
+<a href="../index.html">CAS</a> &gt; Developer's Guide &lt;</p>
+
+<h1>CAS: Developer's Guide </h1>
+<p class="small"><a href="index.html">Overview</a><br>
+    <a href="http://www-unix.globus.org/Security/CAS/GT3/javadocs/">Java API
+    Docs</a><br>
+  &gt;Database Design<br>
+      <a href="requests.html">CAS Requests</a> <br>
+      <a href="permissions.html">Permissions</a><br>
+      <a href="licensing.html">Licensing Considerations</a></p>
+<h1>Database Design</h1>
+<p>The CAS database contains a number of tables to store information about users,
+  resources (objects), actions and policies. This section describes each of those
+  tables and their contents. The tables are categorized into tables used to identify
+  and organize users in the database (trust_anchor, user and user_group), tables
+  used to describe actions service_type, service_type_action, service_type_action_groups),
+  tables used to describe and organize resources or objects (object, object namespace
+  and object_group) and tables used to describe policies (policy_statement).</p>
+<p>This page contains the following topics:</p>
+<ul>
+  <li><a href="#tablesusers">Tables relating to users</a></li>
+  <li><a href="#tablesactions">Tables relating to actions</a></li>
+  <li><a href="#tablesresourceobjects">Tables relating to resources/objects</a></li>
+  <li><a href="#tablespolicy">Tables relating to policy statements </a> </li>
+</ul>
+<h2><a name="tablesusers">Tables relating to users</a></h2>
+There are two categories of people in the CAS database, the trust anchors and
+the users. The users may further be placed in user groups and the granularity
+of operation in the CAS database, with respect to users, is user group.
+<h3><a name="trust_anchor">trust_anchor</a></h3>
+<blockquote>
+  <p>This table describes authorities that can generate credentials.
+      It consists of tuples with {trust_anchor_nickname, authentication_method,
+      authentication_data} tuples. In general, the meaning of one of these tuples
+      is "database entries that refer to trust_anchor_nickname apply to the authority
+      represented by authentication_data for authentication method authentication_method". </p>
+  <p>The current implementation supports the following contents in these
+            fields: an authentication_method of "x509" and authentication_data
+  is the certificate authority's CA certificate. </p>
+  <p>A trust_anchor_nickname
+              uniquely identifies an authentication_method and authentication_data
+              across the database. </p>
+  <p>For example, {globus_ca, x509, &lt;contents of the globus CA cert&gt; }
+            associates the name globus_ca with the Globus CA certificate. </p>
+</blockquote>
+<h3><a name="user">user</a></h3>
+<blockquote>
+  <p>This table consists of {user_nickname, trust_anchor_nickname, subject_name}
+        tuples, which map raw authentication information into the symbolic names
+        that appear in CAS user specifications. The meaning of this tuple is
+    database entries that refer to user_nickname apply to the user who authenticates
+    as subject_name using the authentication mechanism and credentials generated
+        by trust_anchor_nickname.
+  </p>
+  <p>The current implementation supports a subject_name which is a X509 distinguish
+          name of the user.
+  </p>
+  <p>A subjectDN and trust anchor nick name uniquely identifies an entry
+              in the user_table, that is there is a one to one mapping between a
+              user nickname and the combination of subjectDN and trust anchor nickname.
+  </p>
+  <p>For example, the tuple {user1, globus_ca, "/O=Globus/CN=User1 Name")
+              means that the person who can authenticate using authentication method
+              of the trust anchor globus_ca with subject name "/O=Globus/CN=User1
+              Name" CA has the permissions assigned to the user "user1" within
+              the CAS database. </p>
+</blockquote>
+<h3><a name="user-group">user_group</a></h3>
+<blockquote>
+  <p>This table maintains a list of all user groups in the CAS database. </p>
+</blockquote>
+<h3><a name="user_group_entry">user_group_entry</a></h3>
+<blockquote>
+  <p>This table consists of {group, user} tuples implying that
+      the specified user is a member of the group. </p>
+</blockquote>
+<h2><a name="tablesactions">Tables relating to actions</a></h2>
+The database includes tables related to action specifications. Different services
+may define actions that have similar (or identical) names with different meanings
+and hence an action specification must include a service type in addition to
+the name of the action. The resource servers that receive CAS policy statements
+interpret the service types and actions. For example, a GridFTP server may honor
+policy statements that refer to the "file" service type and ignore policy statements
+for all other service types. In theory (because all this processing is done by
+the resource servers and not the CAS server), there's no need for the CAS server
+to keep track of allowable service types and actions. However, it is done to
+make it easier for administrators to detect and avoid errors while setting permissions.
+<p>The server also supports grouping of these service action mappings. Permissions
+  may be granted to the service action groups or to a single service action.
+<h3><a name="service_type">service_type</a></h3>
+<blockquote>
+  <p>This table lists all the service types in the database.
+  </p>
+</blockquote>
+<h3><a name="service_type_action">service_type_action</a></h3>
+<blockquote>
+  <p>This table consists of {service_type, action} tuples
+          implying that the specified action is valid for the specified service
+    type. For example, a {service_type, action} of {file, read} means that read
+    is a valid action for the service type file. This mapping is represents as "serviceType/action" in
+          the current implementation. </p>
+</blockquote>
+<h3><a name="service_action_group">service_action_group</a></h3>
+<blockquote>
+  <p>This table lists all the service action group names.
+  </p>
+</blockquote>
+<h3><a name="service_action_group_entry">service_action_group_entry</a></h3>
+<blockquote>
+  <p>This table contains the following tuple (group, service/action). The tuple
+        indicates that the service/action belongs to group. </p>
+</blockquote>
+<h2><a name="tablesresourceobjects">Tables relating to resources/objects</a></h2>
+An object specification refers to an object or group of objects. An "object" may
+itself refer to either a single physical object (e.g., a file) or a collection
+of objects (e.g., all files within a directory). A given object is relevant within
+a namespace defined and the properties of the namespace apply to the object.
+<h3><a name="namespace_table">namespace_table</a></h3>
+<blockquote>
+  <p>
+    This table stores the following tuple (nickname, basename, comparisonAlg)
+      implying that objects with in the namespace referred to as nickname in
+      the CAS database are compared using the comparisonAlg and have a base URL(FIXME
+      explain namespace better, correctly ?) of basename. A namespace uniquely
+      identifies a single physical resource. For example, a namespace (ftpNS1,
+      ftp://sample1.org/, wildcard) implies that all object names within the
+      realm of this namespace, are to be compared using wildcard matching. Each
+      comparison algorithm corresponds to a class with in the CAS server implementation
+      an interface that defines routines for matching objects.</p>
+  <p>The current implementation supports exact match and wildcard matching.
+            Objects are represented as "objectNamespace|objectName" in the current
+          implementation. </p>
+</blockquote>
+<h3><a name="object">object</a></h3>
+<blockquote>
+  <p> This table stores the object name and the namespace that this object is
+    in. For example, (/mydir/*, ftpNS1) implies that this object is within the
+    ftpNs1 namespace, described above. Since this has wild card matching and
+    hence /mydir/foo would match this object. CAS Objects can be either implicit,
+    that is those that are inherent to CAS or explicit, that is objects on other
+    resources about which policies may be stored in the CAS database. While implict
+    objects maybe of many types, external objects are always represented as type "object". </p>
+</blockquote>
+<h3>Implicit Objects (?) </h3>
+<blockquote>
+  <p>  It is sometimes convenient to treat some of the entities defined within the
+      CAS server (such as users and groups) as objects. These implicit objects
+      can be added to object groups and can appear in policy statements. Such
+      policy statements govern access permissions to the CAS database. The types
+      of implicit objects are:
+  </p>
+</blockquote>
+<ol>
+    <ul>
+      <li>A user (a reference to an entry in the user table).This is used when
+                granting permissions such as "may unenroll this user"
+      <li>A user_group (a reference to an entry in the user_group table). This
+                is used to grant permissions such as "may add users to this group".
+      <li>A service_type (a reference to an entry in the service_type table).
+                    This is used when granting permissions such as "may add actions
+                    to this service type";
+      <li>An object_group (a reference to an entry in the object_group
+                    table). This is used when granting permissions such as "may add
+                    objects to this object group".
+      <li>A namespace (reference to an entry in namespace table). This
+                    is used when granting permission like "may unenroll this namespace"
+      <li>A trust anchor (reference to an entry in the trust_anchor_table);
+                    this is used when granting permissions like "may grant rights on
+                    this trust anchor"
+      <li>The CAS server itself; this is used when granting permissions
+                    such as "may add new users to the CAS server". This is added at
+            start up to the object_table. </li>
+    </ul>
+</ol>
+<h3><a name="object_group">object_group</a></h3>
+<blockquote>
+  <p>  This table lists the names of object groups in the database.
+  </p>
+</blockquote>
+<h3><a name="object_group_entry">object_group_entry</a></h3>
+<blockquote>
+  <p>  This table consists of {object_group, objectSpecification,
+      objectSpecDesc} tuples; the meaning of this tuple is that the specified
+      objectSpecification of the type objectSpecDesc is a member of the specified
+      object group. The objectSpecification could be an identifier for one of
+      these objectSpecDesc, an object(implicit or explicit), user, user group,
+    service type, namespace or trust anchor. </p>
+</blockquote>
+<h2><a name="tablespolicy">Tables relating to policy statements</a></h2>
+The CAS server keeps track of policy statements, which are composed of three
+parts: a user specification, which denotes a user or set of users, an action
+specification, which denotes an operation (e.g., read a file) or a group of operation,
+and an object specification, which specifies an object or group of objects.
+<p>For example, if we were to specify a policy statement as an English sentence, "User1
+  may read ftp://myhost.edu/myfile", then the user specification would be "User1",
+  the action specification would be "file/read", and the object specification
+  would be ftp://myhost.edu/myfile. In reality, the CAS server maintains this
+  information as entries in database tables and translates it into a policy language
+  when responding to a query.
+<h3><a name="policy_statement">policy_statement</a></h3>
+<blockquote>
+  <p>  The policy_statement table consists of (userGroup, actionSpec, actionSpecDesc,
+      objectSpec, objectSpecDesc) corresponding to policy statement that implies
+  </p>
+  <ul>
+    <li>userGroup - a reference to an entry in user_group table </li>
+    <li>actionSpec - a reference to an entry in service_action table
+                          or service_action_group table </li>
+    <li>actionSpecDesc - either "serviceAction" or "serviceActionGroup" describing
+                      the actionSpec entry </li>
+    <li>objectSpec - a reference to an entry in object table, object_group_entry
+                          table, user table, user_group table, service_type table,
+          namespace table or trust_anchor table. </li>
+    <li>objectSpecDesc - either "object", "objectGroup", "user", "userGroup", "serviceType", "namespace" or "trustAnchor" describing
+                the objectSpec entry. </li>
+  </ul>
+  <p>Each statement implies that users who belong to the userGroup are permitted to
+    perform the service/action or all service/action(s) in the serviceActionGroup
+    on the specified object or all objects in the said object group.
+</p></blockquote>
+  <p class="blue"><strong>Next Page</strong> &gt;&gt; <a href="requests.html">CAS
+      Requests</a></p>
+  <p>&nbsp;  </p>
+
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
+</p>

@@ -1,0 +1,127 @@
+<head><title>GRAM3: Developer's Guide</title>
+<link href="../../../../../../../CSS/style.css" rel="stylesheet" type="text/css">
+</head>
+
+<?php include( "http://www-unix.globus.org/include/globus_header.inc" ); ?>
+
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt;
+<a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt;
+<a href="http://www-unix.globus.org/toolkit/documentation/web/docs/">Documentation</a> &gt;
+<a href="http://www-unix.globus.org/toolkit/documentation/web/docs/3.2/">3.2</a> &gt; <a href="../index.html">GRAM3</a>&gt; Developer's Guide &lt; </p>
+
+<h1>GRAM3: Developer's Guide </h1>
+<p class="small"> <a href="index.html">Overview</a><br>
+  API<br>
+  Architecture<br>
+  <a href="samples.html">Samples</a><br>
+  <a href="scheduler.html">Scheduler tutorial</a><br>
+  <a href="troubleshooting.html">Troubleshooting</a></p>
+<h2>Architecture </h2>
+<p>Below we walk through a typical GT3 GRAM service invocation from the point
+  of view of the resource and the user. </p>
+<br>
+<img src="http://www-unix.globus.org/developer/architecture_gt3_gram_arch.jpg"><br>
+<ol>
+  <li>The Master is configured to use the Redirector to redirect calls to it
+    and use the Starter UHE module when there is not a running UHE for the user.
+    A createService call on the Master uses the Redirector to invoke the Starter
+    UHE module and start up a UHE. <br>
+  <li>The Master publishes its handle to a remote registry (optional) <br>
+  <li>A client submits a createService request which is received by the Redirector <br>
+  <li>The Redirector calls the Starter UHE class which authorizes the request
+    via the grid-mapfile to determine the local username and port to be used
+    and constructs a target URL <br>
+  <li>The Redirector attempts to forward the call to the said target URL. If
+    it is unable to forward the call because the UHE is not up, the Launch UHE
+    module is invoked <br>
+  <li>The Launch UHE creates a new UHE process under the authenticated user's
+    local uid <br>
+  <li>The Starter UHE waits for the UHE to be started up (ping loop) and returns
+    the target URL to the Redirector <br>
+  <li>The Redirector forwards the createService call to the MJFS unmodified and
+    mutual authentication/authorization can take place <br>
+  <li>MJFS creates a new Managed Job Service (MJS) <br>
+  <li>MJS submits the job into a back-end scheduling system <br>
+  <li>Subsequent calls to the MJS from the client will be redirected through
+    the Redirector <br>
+  <li>RIPS providing data to the MJS instances and Master. It gathers data from
+    the local scheduling system, file system, host info, ... <br>
+  <li>FindServiceData requests to the Master will result in either an SDE returned
+    (populated by the Service Data Aggregate) or redirected to the MJFS of the
+    requestor's UHE <br>
+  <li>In order to stream stdout/stderr back to the client, the MJS creates 2
+    File Stream Factory Services (FSFS), one for stdout and one for stderr <br>
+  <li>The MJS then creates the File Stream Services (FSS) instances as specified
+    in the job request <br>
+  <li>The grim handler is run in the UHE to create a user host certificate. The
+    user host certificate is used for mutual authentication between the MJS service
+    and the client. <br>
+  </li>
+</ol>
+<h2>Virtual Host Environment Redirector </h2>
+<p>It accepts all incoming soap messages and redirects them to the User Host
+  Environment. This component is part of Core. See core documentation for details. </p>
+<h2>Starter UHE </h2>
+<p>This java class is used by the Redirector to resolve the incoming calls to
+  a user hosting environment. The gridmap file is used to obtain the username
+  corresponding to a particular subject DN and one UHE is run per user on a machine.
+<p>Mapping from the username to the port number of the UHE for that particular
+  user is maintained in a configuration file.
+<p>When a request to resolve a URL comes in and an entry is found in the configuration
+  file, the target URL is constructed and returned to the Redirector. If the
+  UHE on that port number is not up, the setuid/launch module is used to launch
+  a UHE as the user.
+<p>If an entry does not exist in the configuration file, a free port number is
+  chosen, the setuid/launch module is used to start up a UHE on the particular
+  port number as the user and the target URL is returned to the Redirector, after
+  ensuring the UHE is running. The configuration file is also updated with this
+  entry.
+<h2>LAUNCH UHE </h2>
+<p>A simple java class that is used to call a C program in order to start a new
+  hosting environment under the user's account. The setuid C program does an
+  su/fork/exec of a shell script that uses a java program to configure and startup
+  the UHE. The C program needs to be "setuid" root. The path to the shell script
+  is determined when the C program is compiled. This limits the root exposure
+  to starting up a new hosting environment as a user.
+<h2>Master </h2>
+<p>The Master Managed Job Factory Service is responsible for exposing the virtual
+  GRAM service to the outside world. It configures the Redirector to direct createService
+  calls sent to it through the Startup UHE, and launch UHE in order to eventually
+  end up unmodified to the MJFS. The Redirector is instructed to redirect subsequent
+  createService calls sent to it to a user's hosting environment.
+<p>The Master uses the Service Data Aggregator to collect and populate local
+  Service Data Elements which represent local scheduler data (e.g. freenodes,
+  totalnodes) and general host information (e.g. host cpu type, host OS). If
+  the FSD request is for any known MJFS SDE, then is it redirected to he MJFS
+  of the UHE. All other FSD queries are handled locally.
+<h2>Managed Job Factory Service (MJFS) </h2>
+<p>The Managed Job Factory Service is responsible for instantiating a new MJS
+  when it receives a CreateService request. The MJFS stays up for the life of
+  the UHE.
+<h2>Managed Job Service (MJS) </h2>
+<p>An OGSI service that given a job request specification can submit a job to
+  a local scheduler, monitor its status and send notification. The MJS will start
+  two File Streaming Factory Service (FSFS), one for the job's stdout and one
+  for the job's stderr. The MJS starts the initial set of FSS instances as specified
+  in the job specification. The FSFS's Grid Service Handles (GSH) are available
+  in the SDE of the MJS, which will enable the client to start additional FSS
+  instances of stdout/err or terminate existing FSS instances. The MJS destroys
+  the stdout and stderr File Stream Factories during it's preDestroy operation.
+<h2>File Stream Factory Service (FSFS) </h2>
+<p>The File Stream Factory Service is responsible for instantiating a new File
+  Stream Service instances when it receives a CreateService request. It exposes
+  two SDE's: the path to the local file being streamed and the the current size
+  of the file.
+<h2>File Stream Service (FSS) </h2>
+<p>An OGSI service that given a destination URL will stream from the local file
+  the factory was created to stream (stdout or stderr) to the destination URL.
+  It exposes two SDE's: The URL of the stream destination and a done flag indicating
+  that the streamming of the file has been completed.
+<h2>RIPS </h2>
+<p>RIPS is a specialized notification service providing raw data about a resources
+  scheduling system, file system, host system, etc. Some of the data may be privileged.
+  The MJS instances will subscribe to RIPS for notification on job state changes.
+  The Master will subscribe for data about the local scheduler (e.g free / total
+  nodes), file system and host system information. </p>
+<h2>&nbsp;</h2>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

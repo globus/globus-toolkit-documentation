@@ -1,0 +1,178 @@
+<?php include( "http://www-unix.globus.org/include/globus_header.inc" ); ?>
+<link href="../../../../../../CSS/style.css" rel="stylesheet" type="text/css">
+
+<title>CAS: Developer's Guide</title>
+<style type="text/css">
+<!--
+.style1 {color: #FF00FF}
+-->
+</style>
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt;
+
+<a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt;
+
+<a href="http://www-unix.globus.org/toolkit/documentation/web/docs/">Documentation</a> &gt; <a href="../../index.html">3.2</a> &gt;
+<a href="../index.html">CAS</a> &gt; Developer's Guide &lt;</p>
+
+<h1>CAS: Developer's Guide</h1>
+<p class="small"><a href="index.html">Overview</a><br>
+  <a href="http://www-unix.globus.org/Security/CAS/GT3/javadocs/">Java API Docs</a><br>
+  <a href="databasedesign.html">Database Design</a><br>
+&gt;CAS Requests <br>
+<a href="permissions.html">Permissions</a><br>
+<a href="licensing.html">Licensing Considerations</a></p>
+<h2>CAS Requests </h2>
+<p>CAS requests can be broadly classified into administrative requests and query
+  requests. Each CAS request requires some set of permissions. These permission
+  are assessed by looking up the authenticated user in the user table, (to get
+  the CAS nickname mapped to this user) and using that to check if the policy table
+  has a permission defined for the operation as described in the previous section.
+</p>
+<p>This page contains the following topics:</p>
+<ul>
+  <li><a href="#adminReq">CAS Administrative Requests</a></li>
+  <li><a href="#queryReq">CAS Query Requests</a></li>
+</ul>
+<h3><a name="adminReq">CAS Administrative Requests </a></h3>
+<blockquote>
+  <p>Administrative requests typically modify the database and are used to add
+    or remove CAS table entries.
+  </p>
+  <ul>
+    <li>Enroll or unenroll trust anchor </li>
+    <li>Enroll or unenroll user </li>
+    <li>Create or delete namespace </li>
+    <li>Create or delete objects </li>
+    <li>Create or delete service type </li>
+    <li>Add or remove service type/action mappings </li>
+    <li>Create or delete user, object or service action groups </li>
+    <li>Add or remove entries from any of the above </li>
+    <li>defined groups </li>
+    <li>grant or revoke permissions </li>
+  </ul>
+  <p>The above request asserts permissions and performs the operation preserving
+    the database consistency. For example, a policy can be defined (or right can
+    be granted) only on objects that exist in the CAS database and so on.
+  </p>
+  <p>Creation of any CAS object (like a trust anchor, namespace, object, user,
+    service type, user group, object group, service_action group), allows the client
+    to choose a user group, (irrespective of whether the client belongs to the
+    group or not), to which all permissions on the newly created object is granted.
+    In the case of the operation where the user creates a new user group, if the
+    client chooses to grant all permissions to the newly created user group, then
+    the user is added to the new group.
+  </p>
+</blockquote>
+<h3><a name="queryReq">CAS Query Requests </a></h3>
+<blockquote>
+  <p>Query request are classified into
+  </p>
+  <ul>
+    <li>requests that return assertions that are typically signed and can be
+      used by the client to authorize with some resource. </li>
+    <li>requests that return information about the current state of the CAS database. </li>
+  </ul>
+  <ol>
+    <li>
+      <h4>Assertion requests </h4>
+      <p>The CAS server supports requests to retrieve policy information as signed
+            policy assertion. These assertions can be presented at a resource by the
+            client for authorization purposes. A policy assertion includes a list of
+            policy statements, the distinguished name of the user that the permissions
+            apply to, a validity period (a start and end time corresponding to when
+            the assertion is valid), and is signed by the CAS server. Each of the requests
+            for policy assertions takes a lifetime argument (the desired lifetime of
+            the policy assertion, in seconds) and the following is done to generate
+            them. </p>
+      <p><br>
+      </p>
+      <ol>
+        <li>The applicable user is identified as described <a href="#permissions">here </a>. </li>
+        <li>Applicable set of policy statements for the user are identified
+                        as described <a href="#permissions">here </a>. </li>
+        <li>If the set is not empty, policy assertion is created or else
+                        null is returned. </li>
+        <li>The assertion lifetime is calculated as follows. If the requested
+                        lifetime is 0, the server's default lifetime is used,
+          otherwise, the minimum of the requested lifetime and the server's maximum
+                        lifetime is used. </li>
+        <li>The list of {service/action, object} permissions, the validity
+                        time (start time is the current time, end time is the
+          current time plus the assertion lifetime), and the applicable user's
+          subject name is formatted into a assertion. </li>
+        <li>The assertion is signed and returned to the requestor. </li>
+      </ol>
+      <p>In the current implementation, Security Assertion Markup Language (SAML),
+            standard defined by <a href="http://www.oasis-open.org">OASIS </a>, is
+            used for exchange of request for authorization assertions and response. <a href="http://www.opensaml.org">OpenSAML </a>,
+            an open source implementation of the SAML 1.0 specification has been used
+            as a utility to generate and process SAML Queries and Assertions.
+      </p>
+      <p>The methods for the requests are:
+      </p>
+      <ul>
+        <li>getMaximalAssertion : This is a self request and any user in the
+                      CAS database can make this request. The set of policy statements
+                      is the complete set of the user's permissions, for all
+          services other than the CAS service. </li>
+        <li>getUserAssertion : In this case, an additional argument specifies
+                        the requested user; the set of policy statements is the
+          complete set of that user's permissions for all services other than
+          the CAS service. This request requires cas/query or cas/superuser permission
+                        on the cas/server object. </li>
+        <li>getAssertion : This is a self-request and any user in the CAS
+                        database is allowed to make this request. In this case,
+          the list of {service/action, object} permissions is determined as follows: </li>
+      </ul>
+      <p>For each requested permission, if there is a policy statement granting
+                the request in the CAS database, then the requested (service/action,
+                object) is added to the returned assertion as a decision statement.
+      </p>
+      <p>Assertion generation is done based primarily based on the objects.
+                This has implications in the case of maximal assertion and user assertion
+                generation, where all applicable polices are returned. The service
+                restricts polices only based on objects and does not make a distinction
+                on the service type. For example, if a non-implicit object has a CAS
+                service type policy on it, that will be returned as a part of the assertion.
+                Might be useful in case some other CAS server itself being treated
+                as an external resource and the cas service types are used) </p>
+    </li>
+    <li>
+      <h4>Non-assertion queries </h4>
+    </li>
+  </ol>
+  <p class="style1">(FIXME: Add implementation specifics: database module design,
+    front end OGSA service design. describe setup and such.) - CASService runs
+    in some user hosting enviroment. - It need not be run as root. - Run in some
+    account - server-config and such shld not be accessible to other users since
+    it has db user name and password. - Only the owner of the service (casAdmin)
+    is allowed access to the database. - Any user in the grid map should be able
+    to invoke methods on the service. - At startup, the user's data is read from
+    config and the table is populated as follows - ServiceTypeAction is returned
+    as serviceType/Action (permission query looks for first occurance of slash)
+    - SAMLAssertion authorize(SAMLAuthzQuery) SAMLAuthzQuery: SAMLSubject String
+    name (required) : subjectDN String nameQualifier : DN of the CA String format
+    : #X509SubjectName Collection confMethod : urn:oasis:names:tc:SAML:1.0:am:X509-PKI
+      String confData Element keyInfo String resource : object Collection (SAMLActions)
+      String namespace : serviceType String actionName : actionName SAMLAssertion:
+      String issuer (required) : DN of the server Date notBefore : current time
+    stamp Date onOrAfter : if lifetime &lt;= 0, server lifetime else min(requested
+    lifetime, server lifetime) Collection (Conditions) SAMLAdvice Collection
+    (SAMLStatment) - SAMLAuthzDecisionStmt SAMLSubject (As in SAMLAuthzQuery)
+    String resource : object String decision : permit Collection (SAMLActions)
+    Namespace : service type ActioName : action name Collection (SAMLEvidence)
+    MajorVersion : 1 MinorVersion : 0 AssertionID : Unique Id (Generated by OpenSAML)
+    Issuer instant : Current time Rework of Object storage Assume user U wants
+    to add the object O. For this to succeed, the equality, superset test and
+    the subset test have to succeed. Exact match No exact match is found. Superset
+    test: Either: There is some object S such that: S is a superset of O, and
+    U has cas/enrollObject permissions on S or There is no object in the database
+    that is a superset of O, and U has cas/enrollObject permissions on casServer
+    Subset test For every object S in the database that is a subset of O, U has
+    cas/grantAll permissions on S </p>
+</blockquote>
+<p class="blue"><strong>Next Page</strong> &gt;&gt; <a href="permissions.html">Permissions</a></p>
+<p>&nbsp;</p>
+<p>
+  <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
+</p>
