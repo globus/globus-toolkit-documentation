@@ -40,17 +40,83 @@ include_once( "./../Java_WS_Core_Compatibility_Summary_Frag.html" );
 include_once( "./../Java_WS_Core_Dependencies_Summary_Frag.html" );
 ?>
 <h2><a name="troubleshooting"></a>Troubleshooting</h2>
-<p><font color="purple">[help for common problems developers may experience]</font></p>
+<p>
+Currently, no common problems are reported.
+</p>
+<p>
+In general, if you want to investigate a problem on your own please see the <a href="#debugging">Debugging and Logging</a> section for details on how to turn on debugging. Also, please note that most of the command line clients have <code>-debug</code> option that will display more detailed error messages including the error stack traces. Also, <a href="http://www-fp.globus.org/about/email-archive-search.html">searching the mailing lists</a> such as <a href="mailto:discuss@globus.org">discuss@globus.org</a> or <a href="mailto:developer-discuss@globus.org">developer-discuss@globus.org</a> (before posting a message) can also be very fruitful. Finally, if you think you have found a bug please report it in our <a href="http://bugzilla.globus.org/bugzilla/">Bugzilla</a> system. Please include as much as detail about the problem as possible.
+</p>
+
 <h2><a name="relateddocs"></a>Related Documentation</h2>
 <p><font color="purple">[could link to pdfs and whitepapers about protocols, etc re: the component]</font></p>
 
 <h2><a name="miscellaneousinfo"></a>Miscellaneous information</h2>
 
+<h3><a name="debugging">Debugging and Logging</a></h3>
+
+<p>Logging in the Java WS Core is based on the <a href="http://jakarta.apache.org/commons/logging/">Jakarta Commons Logging</a> API. Commons Logging provides a consistent interface for instrumenting source code while at the same time allowing the user to plug-in a different logging implementation. Currently we use <a href="http://logging.apache.org/log4j/">Log4j</a> as a logging implementation. Log4j uses a separate configuration file to configure itself. Please see Log4j documentation for details on the <a href="http://logging.apache.org/log4j/docs/api/org/apache/log4j/PropertyConfigurator.html#doConfigure(java.lang.String, org.apache.log4j.spi.LoggerRepository)">configuration file format</a>.
+</p>
+<p>
+Java WS Core is deployed with two Log4j configuration files:
+<ul>
+ <li>
+   <code>$GLOBUS_LOCATION/container-log4j.properties</code> - configures logging for the standalone container.
+ </li>
+ <li>
+   <code>$GLOBUS_LOCATION/log4j.properties</code> - configures logging for everything else besides the standalone container.
+ </li>
+</ul>
+</p>
+
+<h4><a name="tracingsoapmessages"></a>Tracing SOAP messages</h4>
+
+<p>There are three methods for tracing SOAP messages: 
+ <ul>
+   <li><a href="#usingtcpmon">Using TcpMonitor</a>
+   <li><a href="#usingmessagelogginghandler">Using MessageLoggingHandler</a>
+   <li><a href="#enablinglogging">Enabling logging for Axis classes</a>. 
+ </ul>
+</p>
+
+<h5><a name="usingtcpmon"></a>Using TcpMonitor</h5>
+
+<p>
+To trace SOAP messages on the wire you can use TcpMon from Apache Axis. After setting the environment using <code>$GLOBUS_LOCATION/etc/globus-dev-env.[sh|csh|bat]</code> run: 
+</p>
+<pre>java org.apache.axis.utils.tcpmon [listenPort targetHost targetPort]</pre>
+
+<p>If no arguments are used, you have to fill out these values in the GUI. Make sure to also start the standalone container with <a href="../Java_WS_Core_Public_Interfaces.html#SUPPORTED_GLOBUS_OPTIONS">proxy server port</a> option set to the <code>listenPort</code> value.</p>
+
+<h5><a name="usingmessagelogginghandler"></a>Using MessageLoggingHandler</h5>
+<p>Another method for logging SOAP messages is to add the <code>org.globus.wsrf.handlers.MessageLoggingHandler</code> to the request or response chain in the <code>server-config.wsdd</code> or <code>client-config.wsdd</code> files. </p>
+<p>For example: </p>
+<pre>&lt;requestFlow&gt;<br>  ...<br>  &lt;handler type="java:org.globus.wsrf.handlers.MessageLoggingHandler"/&gt;<br>  ...<br>&lt;requestFlow&gt;</pre>
+<p>Then you must enable logging for this handler class in the appropriate <code>log4j.properties</code> files and change the logging level to DEBUG: </p>
+<pre>log4j.category.org.globus.wsrf.handlers.MessageLoggingHandler=DEBUG</pre>
+
+<h5><a name="enablinglogging"></a>Enabling logging for Axis classes</h5>
+<p>Another method for tracing SOAP messages is to enable logging for selected
+Axis classes. Add the following lines to the appropriate <code>log4j.properties</code> files: </p>
+<pre>
+ log4j.category.org.apache.client.Call=DEBUG
+ log4j.category.org.apache.axis.transport.http.HTTPSender=DEBUG
+ # enable the following logger for HTTPS/HTTPG transport handlers
+ log4j.category.org.globus.axis.axis.transport=DEBUG
+</pre>
+<p>
+This will log Axis client side calls and Axis HTTP messages.
+</p>
+
+<h4><a name="debugginglog4j"></a>Debugging Log4j</h4>
+
+<p>If you are having problems with configuring Log4j, you can enable internal
+  Log4j debugging by adding <code>-Dlog4j.debug=true</code> option on the <code>java</code> command line or passing it via <code><a href="../Java_WS_Core_Public_Interfaces.html#GLOBUS_OPTIONS">GLOBUS_OPTIONS</a></code> environment property.</p>
+
 <h3><a name="gardetails">GAR</a></h3>
 <p>
 The GAR (Grid Archive) file is a single file which contains all the files and information that the container needs to deploy a service. The GAR files are deployed using <a href="../Java_WS_Core_Public_Interfaces.html#deploygar">deployGar</a> and undeployed using <a href="../Java_WS_Core_Public_Interfaces.html#duneploygar">undeployGar</a> Ant tasks.
 
-<h3>Gar file structure</h3>
+<h4>Gar file structure</h4>
 
 <ul>
  <li>
@@ -82,13 +148,13 @@ The GAR (Grid Archive) file is a single file which contains all the files and in
  </li>
 </ul>
 
-<h3>Creating a gar file through Ant</h3>
+<h4>Creating a gar file through Ant</h4>
 
 <p>
 [FILL ME IN]
 </p>
 
-<h3>Gar file deployment</h3>
+<h4>Gar file deployment</h4>
 
 <p>The contents of the gar file are processed in the following way (all steps are performed only if necessary):</p>
 <ul>
