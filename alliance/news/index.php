@@ -6,9 +6,11 @@ include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 ?>
 
+<!--
 <div id ="left">
 <?php include($SITE_PATHS["SERV_INC"].'alliance.inc'); ?>
 </div>
+-->
 
 <div id="main">
 
@@ -19,18 +21,21 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p>This page contains  the latest news from and about the Globus Alliance. The list is chronological, with archives dating to 1997.</p>
 
 <ul>
-<li>Stories with <u><b><font color="#FF6633">links in bold orange text</font></b></u> are news releases and other communications issued by the Globus Alliance.</li>
-<li>Stories with <u><b style="font-weight: 400"><font color="#0033CC">links in plain blue text</font></b></u> are communications from our partners.</li>
-<li>Stories with <font color="#003390"> <u><b style="font-weight: 400"><i>links in italic text</i></b></u></font> are generally from independent news media.</li>
+<li>Stories with <span class="newsalliance">links in bold orange text</span> are news releases and other communications issued by the Globus Alliance.</li>
+<li>Stories with <span class="newspartners">links in plain blue text</span> are communications from our partners.</li>
+<li>Stories with <span class="newsmedia">links in italic text</span> are generally from independent news media.</li>
 </ul>
 
 <p>Our <a href="kit.php">on-line press kit</a> also has useful background on the Globus Alliance.  If you're a reporter seeking more information, send mail to <a href="mailto:info@globus.org">info@globus.org</a>.</p>
 	
 	
-<p>Participants in the Globus Alliance are also contributing a <b> <a href="http://www-fp.grids-center.org/news/clusterworld/default.asp"> <font color="#FF6633">monthly column in <i>ClusterWorld</i> magazine</font></a></b>. PDFs are available three months after publication.</p>
+<p>Participants in the Globus Alliance are also contributing a 
+   <a class="newsalliance" href="http://www-fp.grids-center.org/news/clusterworld/default.asp">monthly 
+   column in <i>ClusterWorld</i> magazine</a>. PDFs are available three months after publication.</p>
 
-<p><b>Sections by date</b></p>
+<h2>Sections by Date</h2>
 <p>
+<a href="#2005">2005</a>  
 <a href="#2004">2004</a>  
 <a href="#2003">2003</a>  
 <a href="#2002">2002</a>  
@@ -38,20 +43,37 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <a href="#2000">2000</a> 
 <a href="#1999">1999</a>  
 <a href="#1998">1998</a>  
-</p><br>
-<br>
-
-<p><a name="2004" class="section"> <b>2004:</b></a>
 </p>
-<br>
+
+<h2><a name="2005">2005</a></h2>
+
+<p><a class="newsalliance" href="consortium.php">We welcome 
+the formation of the Globus Consortium.</a> (1/2005)</p>
+
+<h2><a name="2004">2004</a></h2>
 	
-<p>The Virtual Data System (VDS) has been used to support the <b><a href="http://www.isi.edu/~deelman/SCEC/scec_9_04.ppt"><font color="#FF6633">creation and secure execution</font></a></b> of three different Siesmic Hazard-related calculations for the Southern California Earthquake Center. (10/2004)</p>
+<p><a class="newsalliance" href="univa.php">We welcome 
+Univa Corporation to the Globus Community!</a> (12/2004)</p>
+
+<p>Globus@Work: The Globus Alliance was out in force at 
+<a class="newsalliance" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."activities/SC04/"; ?>">SC04</a>, 
+Nov. 6-12, 2004. (11/2004)</p>
+
+<p>The Virtual Data System (VDS) has been used to support the 
+<a class="newsalliance" href="http://www.isi.edu/~deelman/SCEC/scec_9_04.ppt">creation and secure execution</a> 
+of three different Siesmic Hazard-related calculations for the Southern California Earthquake Center. (10/2004)</p>
     
-<p>Ian Foster explains how the Grid is <b><a href="http://www.computerworld.com/hardwaretopics/hardware/story/0,10801,96255,00.html"><font color="#FF6633">poised for prime time</font></a></b> in an opinion column in <i>ComputerWorld</i>. (9/2004)</p>
+<p>Ian Foster explains how the Grid is 
+<a class="newsalliance" href="http://www.computerworld.com/hardwaretopics/hardware/story/0,10801,96255,00.html">poised 
+for prime time</a> in an opinion column in <i>ComputerWorld</i>. (9/2004)</p>
     
-<p>Researchers at Lawrence Berkeley National Laboratory have created a highly efficient <a href="http://www.gridtoday.com/04/0830/103719.html">data-distribution system for LIGO</a> using pyGlobus, a Python-enabled interface to the Globus Toolkit. (8/2004)</p>
+<p>Researchers at Lawrence Berkeley National Laboratory have created a highly efficient 
+<a class="newspartners" href="http://www.gridtoday.com/04/0830/103719.html">data-distribution system 
+for LIGO</a> using pyGlobus, a Python-enabled interface to the Globus Toolkit. (8/2004)</p>
     
-<p>A significant grid security milestone has been reached with the IETF's <a href="ftp://ftp.rfc-editor.org/in-notes/rfc3820.txt">official RFC</a> for the X.509 Public Key Infrastructure (PKI) proxy certificate profile.(7/2004)</p>
+<p>A significant grid security milestone has been reached with the IETF's 
+<a class="newspartners" href="ftp://ftp.rfc-editor.org/in-notes/rfc3820.txt">official RFC</a> for 
+the X.509 Public Key Infrastructure (PKI) proxy certificate profile. (7/2004)</p>
     
 <p>The dates and location of <a href="http://www.globusworld.org">GlobusWORLD 2005</a> have been announced. The third annual conference will be held in Boston, Massachusetts, on February 7-11. GlobusWORLD 2004 saw over 500 participants from over 25 countries.&nbsp; (6/2004)</p>
     
@@ -107,11 +129,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p>Announcement of the WS-Resource Framework prompted extensive press coverage, including <a href="http://www.infoworld.com/article/04/01/22/HNglobusmap_1.html"> InfoWorld</a>, <a href="http://zdnet.com.com/2100-1104_2-5143733.html">CNet</a>, <a href="http://www.internetnews.com/infra/article.php/3301191">Internet News</a>, <a href="http://xml.coverpages.org/ni2004-01-20-a.html">Cover Pages</a> and <a href="http://www.informationweek.com/story/showArticle.jhtml?articleID=17500168">Information Week</a>. For related press coverage, see the <a href="http://www.globusworld.org/news/default.asp">GlobusWORLD news archive</a>.(1/2004)</p>
 
 <p>The Globus Alliance and IBM in conjunction with HP <b> <a href="http://www.marketwire.com/mw/release_html_b1?release_id=61977"> <font color="#FF6633">announce the WS-Resource Framework</font></a></b> as a further convergence of Grid services and Web services. (1/2004)</p>
-<br>
-<p>
-<a name="2003" class="section"> <b>2003:</b></a>
-</p>
-<br>
+
+<h2><a name="2003">2003</a></h2>
+
 <p>DataSynapse is organizing a <a href="http://www.datasynapse.com/news/pr.asp?pr_ID=23">Financial Services workshop</a> as part of GlobusWORLD 2004, of which the company is a sponsor. The workshop will feature participants from Wall Street companies that are using the Grid for real-world data analysis. (12/2003)</p>
 
 <p>In a survey of 400 IT managers, Evans Data Corporation found that 16 percent plan to use the Grid and another 24 percent are considering it, <a href="http://www.techweb.com/wire/story/TWB20031201S0005">according to an article in <i>TechWeb News</i></a>. (11/2003</p>
@@ -323,9 +343,7 @@ chi-0301020216jan02,1,5740408.story"> Self-healing computers</a> are a good
 'fix' to defray rising management costs, in the <cite><a href=
 "http://www.chicago-tribune.com">Chicago Tribune</a></cite>.</p>
 
-<br>
-<p><a name="2002" class="section"> <b>2002:</b></a>
-</p><br>
+<h2><a name="2002">2002</a></h2>
 
 <p> <font face="Verdana,Arial,Helvetica,Courier New,Courier"><a href=
 "http://www.computerworld.com/networkingtopics/networking/management/
@@ -517,11 +535,8 @@ EWeek</a></i>. (1/2002)</p>
 
 <p><a href="http://www.ibm.com/news/us/2002/01/02.html"> Texas to Mars</a>:
 IBM supercomputer to power research. (1/2002)</p>
-<br>
 
-<p><a name="2001" class="section"> <b>2001:</b></a>
-</p>
-<br>
+<h2><a name="2001">2001</a></h2>
  
 <p>Irving Wladawsky-Berger, Vice President, Technology and Strategy, IBM 
 Server Group told a group of 200 management consultants that <a href=
@@ -638,10 +653,7 @@ computational grids.</a> (1/2001)</p>
 <p><a href="http://www.informatica.unile.it/laboratori/lab-hpc/euroglobus/
 index.htm">First <cite>EuroGlobus</cite> conference</a> is planned for June 16-23, 2001 in Lecce, Italy. (1/2001)<br></p>
     
-<br>
-<p><a name="2000" class="section"> <b>2000:</b></a>
-</p>
-<br>
+<h2><a name="2000">2000</a></h2>
 
 <p><a href="http://www.nature.com/nature/webmatters/grid/grid.html"><cite>
 Nature</cite> carries an article by Ian Foster</a> about the emerging Grid.
@@ -711,9 +723,7 @@ Times</a></i>. (3/2000)  </p>
 
 <p>Version 1.1.2 of the Globus Toolkit is now available. (3/2000)<br></p>
 
-<br>
-<p><a name="1999" class="section"> <b>1999:</b></a></p>
-<br>
+<h2><a name="1999">1999</a></h2>
 
 <p>Version 1.1.1 of the Globus Toolkit is now available. (12/1999)</p>
 
@@ -762,9 +772,7 @@ with leading hair stylist</a>. (2/26/99)</p>
 <p><a href="http://www.it.fairfax.com.au/990216/networking/networking1.html">
 Nimrod-G parameter study tool</a> in the news. (2/16/99)<br></p>
 
-<br>
-<p><a name="1998" class="section"> <b>1998:</b></a></p>
-<br>
+<h2><a name="1998">1998</a></h2>
 
 <p>New papers describe <a href=../activities/publications.php#gass"> Globus GASS service</a> and <a href="../activities/publications.php#gara">Globus QoS Architecture</a>. (11/1998)</p>
 
