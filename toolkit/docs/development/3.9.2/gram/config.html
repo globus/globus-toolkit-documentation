@@ -9,19 +9,26 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
 <h2>Configuring the WS GRAM Service </h2>
 <p>This topic describes how to configure and troubleshoot your GRAM service in
   <strong>multi-user mode</strong>.</p>
-<p>[Still need specific sudo configuration recommendations! We'll do this on
-  Monday.]</p>
 <p><strong>Important:</strong> Any user can run globus-start-container from a GLOBUS_LOCATION
   even if it was not the account that built/installed it. However for the GRAM
   service to run correctly, the file $GLOBUS_LOCATION/var/globus-fork.log
   must be owned by the account running the container.</p>
 <ul>
+  <li><a href="#sudo">Configuring sudo </a></li>
   <li><a href="#hostcertlocation">Configuring hostcert and hostkey locations</a> </li>
   <li><a href="#addingPBS">Adding PBS as a target</a></li>
   <li><a href="#submittingjobs">Submitting jobs to the PBS scheduler</a> </li>
   <li><a href="#setupSSH">Setting up SSH</a></li>
   <li><a href="#troubleshooting">Troubleshooting</a> </li>
 </ul>
+<h3><a name="sudo"></a>Configuring sudo </h3>
+<p>Add the following lines to the
+<code>/etc/sudoers</code> file. These commands are added as root using the visudo
+command. Replace <code>smartin</code> with the username(s) that will be submitting jobs.</p>
+<pre class="command">globus ALL=(smartin) NOPASSWD: /bin/mv /tmp/x509up_*_deleg */.globus/job/*/user/proxy
+globus ALL=(smartin) NOPASSWD: &lt;put path to the GLOBUS LOCATION here&gt;/libexec/globus-job-manager-script.pl
+globus ALL=(root) NOPASSWD: /bin/chown * /tmp/x509up_*_deleg 
+globus ALL=(root) NOPASSWD: /bin/chown * */.globus/job/*/user </pre>
 <h3><a name="hostcertlocation"></a>Configuring hostcert and hostkey locations</h3>
 <p>Use the following procedure to change the location that the GRAM service will
 look for the hostcert and hostkey files. The default is to use the existin hostcert.pem
@@ -102,6 +109,27 @@ the job submission command, like so:</p>
 <pre class="command">% cd $GLOBUS_LOCATION/setup/globus
 % ./setup-globus-job-manager-pbs --remote-shell=rsh</pre>
 <h3><a name="troubleshooting"></a>Troubleshooting</h3>
+<p>Before sending email with problems, first add log4j debugging for GRAM. 
+Send complete debug infomation for client and service.</p>
+<p>To add log4j debuggin:</p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top">1</td>
+    <td valign="top"><p>cd $GLOBUS_LOCATION</p></td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td valign="top"><p>Add a sym link to the log4j.properties file:</p>
+    <pre class="command">ln -s etc/log4j.properties</pre></td>
+  </tr>
+  <tr>
+    <td valign="top">3</td>
+    <td valign="top"><p>Turn on debugging for all of GRAM by adding the following
+        line to log4j.properties: </p>
+      <pre class="command">log4j.category.org.globus.exec=DEBUG</pre></td>
+  </tr>
+</table>
+<p>You may experience these known issues while using GRAM in 3.9.2: </p>
 <ul><li>Internal testing from the Globus Team had jobs that occasionally hung
 and needed intervention to terminate them.</li>
   <li>The following are known container service exceptions that do not always
