@@ -2,6 +2,8 @@
       </div>
       <!--ending div of container-->
     </div>
+
+  <!-- Eliminate the sidebar for now ...
     <div id="sidebar">
       <ul>
         <li><?php echo '<a href="'.$SITE_PATHS["WEB_ROOT"].'faq.php">'; ?>FAQ</a><br />
@@ -15,8 +17,9 @@
 			</form> 
 		</li>
       </ul>
-      <!--ending div of sidebar-->
     </div>
+  -->
+
     <div class="clearing">&nbsp;</div>
     <!--ending div of wrapper-->
   </div>
