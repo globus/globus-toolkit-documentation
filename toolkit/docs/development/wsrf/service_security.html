@@ -67,13 +67,18 @@ described in <a href="#resource">Section 4</a>.</p>
 
 <h3><a name="Descriptor"></a>3. Security Descriptor</h3>
 
-<p>There are three kinds of security descriptor in the code base for setting
-  container, service and resource security properties respectively:</p>
+<p>Security descriptors container various security properties like
+  credentials, gridmap, required authentication and authorization and
+  so on. There are three kinds of security descriptor in the code base
+  for setting container, service and resource security properties
+  respectively:</p>
+
 <ul>
   <li>service security descriptor</li>
   <li>container security descriptor</li>
   <li>resource security descriptor</li>
 </ul>
+
 <p>Each of these are
   represented as objects in the code base and can be altered
   programatically. Service and container security descriptors can be
@@ -342,17 +347,49 @@ href="#configRunas">Configuring Run-As Mode</a>.)</td>
     proxy, an error is reported. </p>
   <p>Also, the contexts created at the server
       end are set to have a lifetime of 100 seconds. </p>
-  <h4><a name="#descProgram"></a> 3.2 Programatic altering of security descriptor </h4>
-  <p>The security descriptor (container, security and resource) can be
-    created and altered programatically (as opposed to writing a security
-    descriptor file.) For the service and container descriptor, we recommend taking
-      the security descriptor file approach so that the security
-      properties are initialized at start up.</p>
 
-  
-  <p><b> FILLME - talk about *SecurityConfig helper classes to initialize and set
-    them, esp. Resource stuff.</b>
+  <h4><a name="#descProgram"></a> 3.2 Programatic altering of security descriptor </h4>
+
+  <p>The security descriptor (container, security and resource) can be
+  created and altered programatically (as opposed to writing a
+  security descriptor file.) For the service and container descriptor,
+  we recommend taking the security descriptor file approach so that
+  the security properties are initialized at start up.</p>
+
+  <ul>
+     <li> Container Security Descriptor: This is represented by
+     <code>org.globus.wsrf.impl.security.descriptor.ContainerSecurityDescriptor</code>. If
+     a container security descriptor file is configured as described
+     in <a href="#Descriptor">Section 3</a>, then an object is created
+     and stored. To alter the values, API provided in
+     <code>org.globus.wsrf.impl.security.descriptor.ContainerSecurityConfig</code>
+     can be used.</li>
+
+     <li> Service Security Descriptor: This is represented by
+     <code>org.globus.wsrf.impl.security.descriptor.ServiceSecurityDescriptor</code>. If
+     a service security descriptor file is configured as described in
+     <a href="#Descriptor">Section 3</a>, then an object is created
+     and stored. To alter the values, API provided in
+     <code>org.globus.wsrf.impl.security.descriptor.ServiceSecurityConfig</code>
+     can be used.  </li>
     
+     <li> Resource Security Descriptor: This is represented by <code>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</code>. The API in <code>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</code> can be used to initialize the descriptor, i.e load credentials and gridmap. 
+
+<p>For example, the code snippet below a descriptor that has a gridmap file and custom authorization class name is spcified.</p>
+
+<pre class="command">  ResourceSecurityDescriptor desc = new ResourceSecurityDescriptor();<br>  desc.setGridMapFile("foo/bar/gridmap");<br>  desc.setCustomAuthzClassName("org.globus.some.customAuthz");<br>  ResourceSecurityConfig config = new ResourceSecurityConfig(desc);<br>  config.init();</pre>
+
+<p> If the descriptor property changes, to force a reload, set
+initalized needs to be set to <i>false</i>.</p>
+
+<pre class="command">  desc.setInitalized(true);<br>  desc.setGridMapFile("foo/bar/newGridMap");<br>  config.init();</pre>
+
+<p> GridMap and Subject object can be set directly, i.e without
+configuring files to read off.</p>
+
+<pre class="command">  desc.setInitalized(false);<br>  GridMap map = new GridMap();<br>  map.put("Some user DN", "userid");<br>  desc.setGridMap(map);</pre>
+
+</ul>
 
   </p>
 </blockquote>
@@ -365,17 +402,35 @@ container level security. </p>
   interface has a method that returns an instance of
   <code>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</code>.
   If <code>null</code> is returned, it is assumed that no security is
-  set on the resource.</p>
+  set on the resource. </p>
 
-  <p>In the example shown below, a secure counter resource is created that sets security descriptor on itself. </p> <b> FILLME - explain the weird sample!</b>
+<p>The resource security descriptor is identical to the service
+security descriptor and contains API to set and get all properties
+that are descriped in <a href="#descFile">Section 3.1</a>. There are
+two attributes of the security descriptor, credentials and gridmap,
+that can be specified as objects (<code>javax.security.auth.Subject</code>
+or <code>org.globus.security.gridmap.GridMap</code>) or path to credentials
+and gridmap. In the latter case, these need to be loaded from file and
+a helper API
+<i>org.globus.wsrf.impl.security.descriptor.ResourceSecurityConfig</i>
+has been provided to do the same. The credentials and gridmap are
+loaded if the property "initialized" in the descriptor is set to
+false.</p>
 
-  <pre class="command"> public class SecureCounter implements SecureResource {<br>    ...    <br>    ResourceSecurityDescriptor desc = null;<br>    public void setValue(int value) {<br>        if ((value > 100) && (this.desc == null)) {<br>           this.desc = new ResourceSecurityDescriptor();<br>           this.desc.setAuthz("self");<br>           this.desc.setGridMapFile("foo/bar/gridmap");<br>           ResourceSecurityConfig config = <br>                new ResourceSecurityConfig(this.desc);<br>           config.init();<br>     }<br>      .... <br>    public ResourceSecurityDescriptor getSecurityDescriptor() {<br>       return this.desc;<br>    }<br> }</pre>
+<p>In the example shown below, a secure counter resource is created
+that sets security properties on itself. The counter resouce
+implements the <i>SecureResource</i> interface, which returns a
+resource security descriptor. The security policy is defined such that
+when the value of the counter is greater than 100, the authorization
+scheme is altered to be <i>gridmap</i>. Prior to this change, (i.e for
+values less than 100), the authorization specifed in the service (or
+container if not set on service) is used. Moreover, the path to the
+gridmap file is specified as a part of the descriptor and to load it
+the <i>ResourceSecurityConfig</i> API is used.</p> Example:<br>
 
+  <pre class="command"> public class SecureCounter implements SecureResource {<br>    ...    <br>    ResourceSecurityDescriptor desc = null;<br>    public void setValue(int value) {<br>        if ((value > 100) && (this.desc == null)) {<br>           this.desc = new ResourceSecurityDescriptor();<br>           this.desc.setAuthz("gridmap");<br>           this.desc.setGridMapFile("foo/bar/gridmap");<br>           ResourceSecurityConfig config = <br>                new ResourceSecurityConfig(this.desc);<br>           config.init();<br>     }<br>      .... <br>    public ResourceSecurityDescriptor getSecurityDescriptor() {<br>       return this.desc;<br>    }<br> }</pre>
 
-<p>The <code>ResourceSecurityDescriptor</code> has get/set methods for all
-the relevant configuration properties described in <a
-href="#descFile">Section 3.1</a> and can be created as described in <a
-href="#descProgram">Section 3.2</a>.<h3><a name="#securityAPI"></a>5. Useful Security API</h3>
+<h3><a name="#securityAPI"></a>5. Useful Security API</h3>
 
 <blockquote>
   <h4>5.1 Setting service owner with caller's delegated credential</h4>
@@ -489,7 +544,7 @@ href="#configRunas">Configuring Run-As Mode</a>). If <strong>no</strong> securit
     </li>
   </ul>
 </blockquote>
-<b> FIXME: does not intend like 7.1</b>
+<b> FIXME: need to fix indendation to be like in 7.1</b>
 <h4><a name="#customAuthz"></a>7.2 Writing custom service authorization mechanism</h4>
 
 <p> The authorization handler can be configured to call out to a
