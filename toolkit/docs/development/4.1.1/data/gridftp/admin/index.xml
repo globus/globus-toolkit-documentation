@@ -1,0 +1,147 @@
+<title> GT 4.0 GridFTP : System Administrator's Guide</title>
+<titleabbrev>System Administrator's Guide</titleabbrev>
+
+
+<section id="s-gridftp-admin-introduction"><title>Introduction</title>
+<para>This guide contains advanced configuration information for system administrators
+  working with GridFTP. It provides references to information on procedures
+  typically performed by system administrators, including installation, configuring,
+deploying, and testing the installation. This guide should help you configure
+and run the GridFTP server in some standard configurations.</para>
+<para>This information is in addition to the basic installation instructions in
+  the <ulink url="../../../admin/docbook/">GT 4.0 System Administrator's Guide</ulink>.</para>
+</section>
+
+<section id="s-gridftp-admin-installing"><title>Building and Installing</title>
+<para>GridFTP is built and installed as part of
+    a default GT 4.0 installation. For basic installation instructions, see the
+    <ulink url="../../../admin/docbook/">GT 4.0 System Administrator's Guide</ulink>.
+    No extra installation steps are required for this component.</para>
+</section>
+
+
+<section id="s-gridftp-admin-configuring"><title>Configuring </title>
+<para><xref linkend="s-gridftp-Public_Interfaces-config"/></para>
+</section>
+
+
+
+<section id="s-gridftp-admin-deploying"><title>Deploying the GridFTP Server: <computeroutput>globus-gridftp-server</computeroutput></title>
+<para>It is assumed that the toolkit installation was successful and that Globus
+security is properly configured.  For more information, see the 
+<ulink url="../../../admin/docbook/">Installation Guide</ulink>. Also be sure to 
+reference the <xref linkend="s-gridftp-Public_Interfaces-config"/>.</para>
+
+<section id="s-gridftp-admin-daemon_mode"><title>Running in daemon mode</title>
+<para>The server should generally be run as root in daemon mode, though it is 
+  possible to run it as a user (see below). When run as root you will need to have a 
+  host certificate.</para>
+<para>Run the server: </para>
+<screen>globus-gridftp-server &lt; -s | -S &gt; &lt;args&gt;</screen>
+<para>where:</para>
+<table><title>TITLE</title>
+<tgroup cols="2"><tbody>
+  <row>
+    <entry>-s</entry>
+    <entry><para>Runs in the foreground. (this is the default mode)</para>
+    </entry>
+  </row>
+  <row>
+    <entry>-S</entry>
+    <entry><para>Detaches from the terminal and runs in the background.</para>
+    </entry>
+  </row>
+</tbody></tgroup>
+</table>
+
+<para>The following additional steps may be required when running as a user other
+  than root.
+<itemizedlist>
+  <listitem><simpara>Create a ~/.gridmap file, containing the DNs of any clients you wish to
+  allow, mapped to the current username.</simpara></listitem>
+  <listitem><simpara>Create proxy: <computeroutput>grid-proxy-init</computeroutput></simpara></listitem>
+</itemizedlist>
+
+</para>
+</section>
+<section id="s-gridftp-admin-inetd"><title>Running under inetd or xinetd</title>
+<para>The -i command line option enables the server to be run under inetd or xinetd.</para>
+<para>See <xref linkend="s-gridftp-Public_Interfaces-config"/> for example xinetd and inetd configuration
+   entries. </para>
+
+</section>
+<section id="s-gridftp-admin-data_nodes"><title>Remote data-nodes and striped operation</title>
+<para>The GridFTP server now supports separate front end (client control connection)
+and back end (data node) processes. In addition, a single front end process may
+connect to multiple back end data nodes. </para>
+<para>When multiple back end data nodes are available, the server is said to be 
+in a striped configuration, or simply, is a striped server.  In this mode, 
+transfers are divided over all available data nodes, thus allowing the 
+combined bandwidth of all data nodes to be used.</para>
+<para>Note: The connection between the front end and data nodes is referred to as 
+the <emphasis>ipc channel</emphasis>.</para>
+
+<para>The ability to use inetd or daemon execution modes applies to both 
+front end servers and data nodes, and the same certificate and user requirements
+apply.</para>
+
+<para>To start the front end: 
+<screen>globus-gridftp-server &lt;args&gt; -r &lt;host:port&gt;[,&lt;host:port&gt;,...]</screen>
+To start the data-node:
+<screen>globus-gridftp-server -p &lt;port&gt; -dn</screen>
+The <computeroutput>-p &lt;port&gt;</computeroutput> option used on the data-node is the port 
+  that will be used for ipc connections.  This is the port that you will register
+  with the front end server.</para>
+<para>  For example:
+<screen>machineB&gt; globus-gridftp-server -p 6000 -dn
+machineC&gt; globus-gridftp-server -p 7000 -dn
+machineA&gt; globus-gridftp-server -p 5000 -r machineB:6000,machineC:7000</screen>
+The client would only connect to the front end at 
+<computeroutput>machineA:5000</computeroutput>, for example, using globus-url-copy with the -stripe option:
+<screen>globus-url-copy -stripe gsiftp://machineA:5000/file file:///destination
+   <emphasis>or</emphasis>
+globus-url-copy -stripe gsiftp://machineA:5000/file gsiftp://machineX/destination</screen>
+Where machineX may be another striped server or a standard GridFTP server.</para>
+
+
+</section>
+</section>
+
+
+<section id="s-gridftp-admin-testing"><title>Testing</title>
+<para>If the globus-ftp-client-test package has been installed, our standard
+test suite may be run to verify functionality on your platform.  Simply set
+up the globus environment, chdir to 
+<computeroutput>$GLOBUS_LOCATION/test/globus_ftp_client_test/</computeroutput> and run <computeroutput>./TESTS.pl</computeroutput></para>
+<para> Please also see the 
+<ulink url="../GridFTP_Call_for_Testing.html">Call for Community Testing</ulink>.</para>
+</section>
+
+<section id="s-gridftp-admin-security_considerations"><title>Security Considerations </title>
+&GridFTP_Security_Considerations_Frag;
+</section>
+
+<section id="s-gridftp-admin-troubleshooting"><title>Troubleshooting</title>
+<para>If you are having problems using the GridFTP server, you should try these steps:</para>
+<para>Verify that the server has started successfully.  The easiest way to do this is to
+ telnet to the port on which the server is running.
+<screen>% telnet localhost 2811
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+220 GridFTP Server localhost.localdomain 0.11 (gcc32dbg, 1098910702-1) ready.</screen>
+If you see anything other than a 220 banner such as that, then the server has not started correctly.
+Verify that you have the options you expect.  Try no other options besides -s, -i, or -p (the server defaults
+should be fine in most cases).  Verify that there are no configuration files being unexpectedly loaded 
+from /etc/grid-security/gridftp.conf or $GLOBUS_LOCATION/etc/gridftp.conf.  If all else fails and
+you still cannot pass this test, seek help on discuss@globus.org</para>
+<para>If the server has started correctly, and your problem is with a security failure or gridmap lookup failure, verify
+that you have security configured properly <ulink url="../../../security/prewsaa/admin/">here</ulink>.</para>
+<para>If the server is running and your client succesfully authenticates, but has a problem
+at some other time during the session, please ask for help on discuss@globus.org</para>
+</section>
+
+<section id="s-gridftp-admin-usage"><title>Usage statistics collection by the Globus Alliance </title>
+&GridFTP_Usage_Statistics_Frag;
+</section>
+
