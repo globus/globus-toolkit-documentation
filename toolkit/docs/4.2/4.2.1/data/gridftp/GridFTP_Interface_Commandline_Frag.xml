@@ -273,7 +273,8 @@ where:</para>
     <entry><para> Specifies the size (in bytes) of the TCP buffer to be
         used by the underlying ftp data channels. </para>
         <para>This is critical to good performance over the WAN.  </para>
-      <para>How do I pick a value?</para>
+      <para><link linkend="tcpbuffervalue">How do I pick a value?</link>
+        </para>
     </entry>
   </row>
   <row>
@@ -281,7 +282,8 @@ where:</para>
     <entry><para> Specifies the number of parallel data connections that
         should be used. </para>
         <para>This is one of the most commonly used options. </para>
-
+      <para><link linkend="parallelismvalue">How do I pick a value?</link>
+      </para>
     </entry>
   </row>
   <row>
@@ -384,12 +386,48 @@ where:</para>
   <refsect2 id="choosingvalues">
   <title>How do I choose a value?</title>
     
-   <refsect3 id="tcpbuffer"> for the TCP buffer size (-tcp)
+   <refsect3 id="tcpbuffervalue"> <title>How do I choose a value for the TCP buffer size (-tcp) option?</title>
    
+     <para>The value you should pick for the TCP buffer size (-tcp-bs) depends on how fast you want to go (your bandwidth) and how far you are moving the data 
+     (as measured by the Round Trip Time (RTT) or the time it takes a packet to get to the destination and back. </para> 
+     
+    <para> To calculate the value for –tcp-bs, use the following formula (this assumes that Mega means 1000^2 rather than 1024^2, which is typical for bandwidth):</para>
+     
+     <para>-tcp-bs = bandwidth in Megabits per second (Mbs)  * RTT in milliseconds (ms)  * 1000 / 8</para>
+     
+     <para>As an example, if you are using fast ethernet (100 Mbs) and the RTT was 50 ms it would be:</para>
+     
+    <para> -tcp-bs = 100 * 50 * 1000 / 8 = 625,000 bytes.</para>
+     
+     <para>So, how do you come up with values for bandwidth and RTT?  To determine RTT, use either ping or traceroute.  They both list RTT values.</para>
+     
+     <note><para>You must be on one end of the transfer and ping the other end.  This means that if you are doing a [third party transfer - olink to user's guide] you have to run 
+     between the two server hosts, not from your client.  </para></note>
+     
+     <para>The bandwidth is a little trickier.  Any point in the network can be the bottleneck, so you either need to talk with your network engineers to find out what the bottleneck 
+     link is, or just assume that your host is the bottleneck and use the speed of your network interface card (NIC).</para>
+     
+     <note><simpara>The value you pick for –tcp-bs limits the top speed you can achieve.  You will NOT get bandwidth any higher than what you used in the calculation (assuming the 
+     RTT is actually what you specified, it varies a little with network conditions).  So, if for some reason you want to limit the bandwidth you get, you can do that by judicious 
+     choice of –tcp-bs values.</simpara></note>
+     
+     <para>So where does this formula come from?  Because it uses the bandwidth and the RTT (also known as the latency or delay) it is called the <emphasis>bandwidth–delay product</emphasis>.  
+     The very simple explanation is this: TCP is a reliable protocol.  It must save a copy of everything it sends out over the network until the other end acknowledges that it has 
+     been received.</para>  
+     
+     <para>As a simple example, if I can put one byte per second onto the network, and it takes 10 seconds for that byte to get there, and 10 seconds for the 
+     acknowledgment to get back (RTT = 20 seconds), then I would need at least 20 bytes of storage.  Then, hopefully, by the time I am ready to send byte 21, 
+     I have received an acknowledgement for byte 1 and I can free that space in my buffer.  If you want a more detailed explanation, try the following links on TCP tuning:</para>
+     
+     <itemizedlist>
+       <listitem><simpara><ulink url="http://www.psc.edu/networking/perf_tune.html">http://www.psc.edu/networking/perf_tune.html</ulink></simpara></listitem>
+       <listitem><simpara><ulink url="http://www-didc.lbl.gov/TCP-tuning/">http://www-didc.lbl.gov/TCP-tuning/</ulink></simpara></listitem>
+       <listitem><simpara><ulink url="http://www.ncne.nlanr.net/research/tcp/">http://www.ncne.nlanr.net/research/tcp/</ulink></simpara></listitem>
+     </itemizedlist>
    </refsect3>
     
-<refsect3 id="parallelism">    
-<title>  Choosing values for the parallelism (-p) option</title>
+<refsect3 id="parallelismvalue">    
+<title>  How do I choose a value for the parallelism (-p) option?</title>
 <para>For most instances, using 4 streams is a very good rule of thumb.  Unfortunately, there is not a good formula for 
     picking an exact answer.  The shape of the graph shown here is very characteristic.  </para>
   
