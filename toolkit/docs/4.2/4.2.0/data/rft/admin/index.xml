@@ -1,0 +1,206 @@
+<title>GT 4.0 RFT : System Administrator's Guide</title>
+<titleabbrev> System Administrator's Guide</titleabbrev> 
+
+<section id="s-rft-admin-introduction"><title>Introduction</title>
+<para>This guide contains advanced configuration information for system administrators
+  working with RFT. It provides references to information on procedures
+  typically performed by system administrators, including installation, configuring,
+deploying, and testing the installation.</para>
+<para>This information is in addition to the basic installation instructions in
+  the <ulink url="../../../admin/docbook/">GT 4.0 System Administrator's Guide</ulink>.</para>
+<para>RFT is used to perform third-party transfers across GridFTP servers. It
+  uses a database to store its state periodically
+  so the transfers can be recovered from any failures. RFT uses
+  standard grid security mechanisms for authorization and authentication
+  of the users. So in order to effectively use RFT you should have
+  installed and configured a database with RFT database schemas and have
+  the necessary security infrastructure in place to perform a 3rd party
+  transfer.</para>
+</section>
+
+<section id="s-rft-admin-installing"><title>Building and Installing</title>
+<para>RFT is built and installed as part
+      of a default GT 4.0 installation. For basic installation instructions,
+      see the <ulink url="../../../admin/docbook/">GT 4.0 System Administrator's
+      Guide</ulink>. No extra installation steps
+are required for this component.</para>
+<para>The following are specialized instructions for advanced
+  developers who want to deploy latest code from CVS:</para>
+<table><title>TITLE</title>
+<tgroup cols="2"><tbody>
+    <row>
+      <entry>1</entry>
+      <entry><para>Configure your CVSROOT to point to globus cvs location.</para></entry>
+    </row>
+    <row>
+      <entry>2</entry>
+      <entry><para>Run:</para>
+          <screen>cvs co ws-transfer</screen></entry>
+    </row>
+    <row>
+      <entry>3</entry>
+      <entry><para>Run:</para>
+          <screen>cd ws-transfer/reliable</screen></entry>
+    </row>
+    <row>
+      <entry>4</entry>
+      <entry><para>Set GLOBUS_LOCATION to point to your globus installation.</para></entry>
+    </row>
+    <row>
+      <entry>5</entry>
+      <entry><para>Run:</para>
+          <screen>ant deploy </screen></entry>
+    </row>
+</tbody></tgroup>
+</table>
+</section>
+
+<section id="s-rft-admin-configuring"><title>Configuring </title>
+
+<section id="s-rft-admin-postgresql"><title>Required configuration: configuring the PostgreSQL
+  database</title>
+<para>PostgreSQL (Version 7.1 or greater ) needs to be installed and configured&nbsp; for
+  RFT to work. You can either use the packages which came with your operating
+system (RPMs, DEBs, ...) or build from source. We used
+    PostgreSQL version 7.3.2 for our testing and the following instructions are
+  good for the same. </para>
+
+<orderedlist>
+  <listitem><para>Install Postgresql. Instructions on how to install/configure
+postgresql can be found <ulink
+ url="http://www.postgresql.org/docs/manuals/">here</ulink>.</para></listitem>
+  <listitem><para>Configure the postmaster daemon
+    so that it accepts TCP connections. This can be done by adding -o "-i" switch
+    to postmaster script (This can be init.d script found in /etc/init.d/postgresql or /var/lib/ depending on how you installed postgresql). Follow the intstructions <ulink url="http://www.postgresql.org/docs/7.4/static/postmaster-start.html"> here </ulink> to start the postmaster with -i option.  </para></listitem> 
+    <listitem><para> Now you need to set security on the database you are about to create. You can do it by following the steps below: 
+   <computeroutput>sudo vi /var/lib/pgsql/data/pg_hba.conf </computeroutput> and append the following line to the file:
+    <computeroutput>
+        host    rftDatabase "user name "ip address" 255.255.255.255 trust
+        </computeroutput>
+
+    <computeroutput> sudo /etc/init.d/postgresql restart </computeroutput>
+    </para></listitem>
+    <listitem><para> You will now need to create a postgresql user that would connect to 
+    the database. This is usually the account under which the container is 
+    running. You can create a postgresql user by running the following command:
+    <computeroutput> su postgres </computeroutput>
+    <computeroutput> createruser globus </computeroutput>. If you get the following error :
+    <computeroutput>
+    psql: could not connect to server: No such file or directory
+        Is the server running locally and accepting
+        connections on Unix domain socket "/tmp/.s.PGSQL.5432"?
+</computeroutput> 
+This generally  means that 1. either your postmaster is not started with -i option
+or 2. you did'nt restart the postmaster after above mentioned step</para></listitem>
+  <listitem><para>To create the database that is used for RFT, run ( as user globus):
+      <computeroutput>createdb rftDatabase</computeroutput></para></listitem>
+  <listitem><para>To populate the RFT database with appropriate schemas, run:
+      <computeroutput>psql -d rftDatabase -f $GLOBUS_LOCATION/share/globus_wsrf_rft/rft_schema.sql
+      
+      </computeroutput>Now that you have created a database to store RFT's state, the following
+      steps configure RFT to find the database:
+  </para></listitem>
+  <listitem><para>Open <computeroutput> $GLOBUS_LOCATION/etc/globus_wsrf_rft/jndi-config.xml</computeroutput></para></listitem>
+  <listitem><para>Find the <computeroutput>dbConfiguration</computeroutput> section under <computeroutput>ReliableFileTransferService &lt;service&gt;</computeroutput> section. </para></listitem>
+  <listitem><para>Change the <computeroutput>connectionString</computeroutput> to point to the machine on which
+    you installed Postgres and name of the database you used in step 2. 
+    If you installed Postgres on the same machine as your Globus install, the
+    default should work fine for you.</para></listitem>
+  <listitem><para>Change the <computeroutput>userName</computeroutput> to the name of the user who owns/created
+    the database and do the same for the password. (It also depends on how you
+    configured your database.)</para></listitem>
+  <listitem><para>Don't worry about the other parameters in that section. The defaults should
+    work fine for now.</para></listitem>
+  <listitem><para>Edit the configuration section under <computeroutput>ReliableFileTransferService</computeroutput>.
+    There are two values that can be edited in this section. </para></listitem>
+  <listitem><para><itemizedlist>
+    <listitem><para><computeroutput>backOff</computeroutput>&nbsp; : Time in seconds you want RFT to backoff
+      before a failed transfer is retried by RFT. Default should work fine for
+      now.</para></listitem>
+    <listitem><para><computeroutput>maxActiveAllowed</computeroutput>:&nbsp; This is the number of transfers
+      the container can do at given point. Default should be fine for now.</para></listitem>
+  </itemizedlist></para></listitem>
+</orderedlist>
+</section>
+</section>
+
+<section id="s-rft-admin-deploying"><title>Deploying</title>
+<para>[information about deploying the component into various
+    containers/environments] </para>
+</section>
+
+<section id="s-rft-admin-testing"><title>Testing</title>
+<para>You need to checkout the tests from CVS because RFT tests are not
+included in the installer. Please follow these steps to run RFT unit
+tests:</para>
+<table><title>TITLE</title>
+<tgroup cols="2"><tbody>
+    <row>
+      <entry>1</entry>
+      <entry>
+      <para>Run:</para>
+      <screen>cvs co ws-transfer/reliable/service/test</screen>
+      </entry>
+    </row>
+    <row>
+      <entry>2</entry>
+      <entry>
+      <para>Start a gridftp server on the machine you are running the
+tests on; use port 5678. This can be done by running: </para>
+      <screen>globus-gridftp-server -s  -p 5678 &amp;</screen>
+      </entry>
+    </row>
+    <row>
+      <entry>3</entry>
+      <entry>Start the container with RFT deployed in it.</entry>
+    </row>
+    <row>
+      <entry>4</entry>
+      <entry>
+      <screen>cd ws-transfer/reliable/service/test/unit</screen>
+      <para>Edit test.properties. Put in appropriate values for all the properties.</para>
+      </entry>
+    </row>
+<row>
+      <entry>5</entry>
+      <entry>
+      <para>Generate a report of the tests that ran in the current working
+directory:</para>
+      <screen>ant test</screen>
+      </entry>
+    </row>
+</tbody></tgroup>
+</table>
+</section>
+
+
+<section id="s-rft-admin-security_considerations"><title>Security Considerations </title>
+&RFT_Security_Considerations_Frag;
+</section>
+
+<section id="s-rft-admin-troubleshooting"><title>Troubleshooting</title>
+<para><emphasis>Problem:</emphasis> If RFT is not configured properly to talk to a PostgreSQL
+  database, you will see this message displayed on the console when you start
+the container : </para>
+
+<screen>"Error creating RFT Home: Failed to connect to database ... 
+Until this is corrected all RFT request will fail and all GRAM jobs that require staging will fail". </screen>
+<para><emphasis>Solution:</emphasis> Usual mistake is Postmaster is not accepting TCP
+  connections which&nbsp; means that you must restart Postmaster with -i option&nbsp; (
+  see <xref linkend="s-rft-admin-postgresql"/>). </para>
+<para><emphasis>Problem:</emphasis> Make RFT print more verbose error messages: </para>
+<para><emphasis>Solution:</emphasis> Edit $GLOBUS_LOCATION/container-log4j.properties 
+and add following line to it: 
+<computeroutput> log4j.category.org.globus.transfer=DEBUG </computeroutput>. For more verbosity add
+<computeroutput> log4j.category.org.globus.ftp=DEBUG </computeroutput> which will print out Gridftp
+messages too.
+</para>
+
+</section>
+
+<section id="s-rft-admin-usage"><title>Usage statistics collection by the Globus Alliance </title>
+&RFT_Usage_Statistics_Frag;
+</section>
+
+
+
