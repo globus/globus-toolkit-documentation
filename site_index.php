@@ -5,9 +5,11 @@ $section = "section-2";
 include_once( "include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 ?>
+<!--
 <div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'alliance.inc'); ?>
 </div>
+-->
 
 <div id="main">
 
@@ -48,7 +50,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <a href="#Z">Z</a></b></p>
 
     <h1><a name="A">A</a></h1>
-    <p><a href="gridware/collaboration/accessgrid.php">Access Grid</a><br>
+    <p><a href="grid_software/collaboration/accessgrid.php">Access Grid</a><br>
 ANL - <i>see Argonne National Laboratory</i><br>
 <!-- APIs - <i>see Application Programmer Interfaces</i><br>-->
 <!-- <a name="Application Programmer Interfaces" href="../developer/api-reference.html">Application Programmer Interfaces</a><br>-->
@@ -57,14 +59,14 @@ ANL - <i>see Argonne National Laboratory</i><br>
         
     <h1><a name="B">B</a></h1>
     <p>Bibliography - <i>see <a href="#Research Papers">Research Papers</a></i><br>
-<a href="gridware/monitoring/big-brother.php"> Big-Brother</a></p>
+<a href="grid_software/monitoring/big-brother.php"> Big-Brother</a></p>
    
     <h1><a name="C">C</a></h1>
     <p>
-<a href="gridware/computation/chimera.php">Chimera "Virtual Data"</a><br>
-<a href="gridware/security/cas.php">CAS- Community Authorization Service</a><br>
+<a href="grid_software/computation/chimera.php">Chimera "Virtual Data"</a><br>
+<a href="grid_software/security/cas.php">CAS- Community Authorization Service</a><br>
 <a href="http://www.pdc.kth.se">Center for Parallel Computers</a><br>
-<a href="gridware/collaboration/chef.php">CHEF/Sakai</a><br>
+<a href="grid_software/collaboration/chef.php">CHEF/Sakai</a><br>
     <a href="alliance/participants.php#affiliates"> Collaborators</a><br>
      
 <!-- Computational Grid - <i>see <a href="#Grid"> Grid</a></i><br>-->
@@ -81,7 +83,7 @@ ANL - <i>see Argonne National Laboratory</i><br>
     <h1><a name="D">D</a></h1>
 
     <h1><a name="E">E</a></h1><p>
-<a href="gridware/monitoring/esg-monitoring.php">Earth System Monitoring Tools</a><br>
+<a href="grid_software/monitoring/esg-monitoring.php">Earth System Monitoring Tools</a><br>
     <a href="http://www.ed.ac.uk/"> Edinburgh, University of</a><br>
     <a href="alliance/employment/" name="Employment Opportunities">
     Employment Opportunities</a><br>
@@ -97,11 +99,11 @@ ANL - <i>see Argonne National Laboratory</i><br>
       
     <h1><a name="G">G</a></h1>
     <p>
-<a href= "gridware/monitoring/ganglia.php"> Ganglia Cluster Toolkit </a><br>
+<a href= "grid_software/monitoring/ganglia.php"> Ganglia Cluster Toolkit </a><br>
     GIIS - <i>see <a href="#Grid Index Information Service"> Grid Index Information Service</a></i><br>
    <!-- GIS - <i>see <a href="#Grid Information Services"> Grid Information Services</a></i><br>-->
     GGF - <i>see <a href="#Global Grid Forum"> Global Grid Forum</a></i><br>
-    <a href="gridware/security/globus-cert-service.php"> Globus Certificate Service</a><br>
+    <a href="grid_software/security/globus-cert-service.php"> Globus Certificate Service</a><br>
     <a name="Global Grid Forum" href="http://www.gridforum.org/">
     Global Grid Forum</a><br>
     <a href="alliance"> Globus Alliance</a><br>
@@ -114,9 +116,9 @@ ANL - <i>see Argonne National Laboratory</i><br>
 
    <!-- GRAM - <i>see <a href="#Globus Resource Allocation Manager"> Globus Resource Allocation Manager</a></i><br>-->
     Grid Forum - <i>see <a href="#Global Grid Forum"> Global Grid Forum</a></i><br>
-<a href="gridware/data/gridftp.php"> GridFTP </a><br>
+<a href="grid_software/data/gridftp.php"> GridFTP </a><br>
     <a href="http://www.ncsa.uiuc.edu/TechFocus/Deployment/GiB/index.html">Grid in a Box</a><br>
-<a href="gridware/computation/gridant.php">GridAnt</a><br>
+<a href="grid_software/computation/gridant.php">GridAnt</a><br>
     <a name="Grid Index Information Service" href="alliance/activities/papers/MDS-HPDC.pdf">
     Grid Index Information Service</a><br>
     <a name="Grid Information Protocol" href="alliance/activities/papers/MDS-HPDC.pdf">
@@ -127,16 +129,16 @@ ANL - <i>see Argonne National Laboratory</i><br>
     Grid Registration Protocol</a><br>
     <a name="Grid Resource Information Service" href="alliance/activities/papers/MDS-HPDC.pdf">
     Grid Resource Information Service</a><br>
-    <a name="Grid Security Infrastructure" href="gridware/security-components.php">
+    <a name="Grid Security Infrastructure" href="grid_software/security-components.php">
 
     Grid Security Infrastructure</a><br>
       <a href="http://www.grids-center.org">GRIDS Center</a><br>
     GRIP - <i>see <a href="#Grid Information Protocol"> Grid Information Protocol</a></i><br>
     GRIS - <i>see <a href="#Grid Resource Information Service"> Grid Resource Infomation Service</a></i><br>
-<a href="gridware/computation/gram.php"> GRAM-Basic Job Submission and Control Service</a><br>
+<a href="grid_software/computation/gram.php"> GRAM-Basic Job Submission and Control Service</a><br>
     GRRP - <i>see <a href="#Grid Registration Protocol"> Grid Registration Protocol</a></i><br>
     GSI - <i>see <a href="#Grid Security Infrastructure"> Grid Security Infrastructure</a></i><br>
-<a href="gridware/data/scp.php">GSI-SCP/SFTP</a><br>
+<a href="grid_software/data/scp.php">GSI-SCP/SFTP</a><br>
     <a name="GSI-enabled Secure Shell" href="http://www.ncsa.uiuc.edu/Divisions/ACES/GSI/openssh/">GSI-enabled Secure Shell</a><br>
 
     GSI-SSH - <i>see <a href="#GSI-enabled Secure Shell">GSI-enabled Secure Shell</a></i><br>
@@ -150,7 +152,7 @@ ANL - <i>see Argonne National Laboratory</i><br>
 
     <h1><a name="I">I</a></h1><p>
     ISI - <i>see <a href="#University of Southern California Information Sciences Institute"> University of Southern California Information Sciences Institute</i><br>
-    <a href="gridware/monitoring/inca.php"> Inca</a></p>
+    <a href="grid_software/monitoring/inca.php"> Inca</a></p>
 
 
     
@@ -160,7 +162,7 @@ ANL - <i>see Argonne National Laboratory</i><br>
 
     
     <h1><a name="K">K</a></h1>
-	<p><a href="gridware/security/kx509-and-kca.php"> KX.509 and KCA</a></p>    
+	<p><a href="grid_software/security/kx509-and-kca.php"> KX.509 and KCA</a></p>    
     <h1><a name="L">L</a></h1>
     <p>LDAP - <i>see <a href="#Lightweight Directory Access Protocol"> Lightweight Directory Access Protocol</a></i><br>
     Licensing - <i>see <a href="#Globus Toolkit Public License"> Globus Toolkit Public License</a></i><br>
@@ -169,11 +171,11 @@ ANL - <i>see Argonne National Laboratory</i><br>
     Lightweight Directory Access Protocol</a></p>
     
     <h1><a name="M">M</a></h1>
-<p><a href="gridware/data/mcs.php">MCS-Metadata Catalog Service</a><br>
+<p><a href="grid_software/data/mcs.php">MCS-Metadata Catalog Service</a><br>
     Meetings - <i>see <a href="#Events"> Events</a></i><br>
-    <a href="gridware/monitoring/monalisa.php"> MonALISA </a><br>
+    <a href="grid_software/monitoring/monalisa.php"> MonALISA </a><br>
 <a href="http://www3.niu.edu/mpi/"> MPICH-G2</a><br>
-    <a href="gridware/security/myproxy.php">MyProxy</a>
+    <a href="grid_software/security/myproxy.php">MyProxy</a>
 </p>
 
     
@@ -183,29 +185,29 @@ ANL - <i>see Argonne National Laboratory</i><br>
 
     National Partners in Advanced Computational Infrastructure</a><br>
 <a href = "alliance/news.php"> News</a><br>
-<a href = "gridware/data/nest.php">NeST</a><br>
-<a href="gridware/computation/netsolve.php">NetSolve/GridSolve</a><br>
+<a href = "grid_software/data/nest.php">NeST</a><br>
+<a href="grid_software/computation/netsolve.php">NetSolve/GridSolve</a><br>
  NMI - <i>see <a href="#NSF Middleware Initiative"> NSF Middleware Initiative</a></i><br>
     NPACI - <i>see <a href="#National Partners in Advanced Computational Infrastructure"> National Partners in Advanced Computational Infrastructure</a></i><br>
-<a href="gridware/packing/npaci.php">NPACI Rocks</a><br>
-<a href="gridware/packaging/npackage.php">NPACKage</a><br>
+<a href="grid_software/packing/npaci.php">NPACI Rocks</a><br>
+<a href="grid_software/packaging/npackage.php">NPACKage</a><br>
 <a name="NSF Middleware Initiative" href="http://www.nsf-middleware.org">NSF Middleware Initiative</a></p>
     
     <h1><a name="O">O</a></h1>
-<p><a href="gridware/collaboration/ogce.php">OGCE-Open Grid Computing Environment</a><br>
-<a href="gridware/data/dai.php">OGSA-DAI</a></p>
+<p><a href="grid_software/collaboration/ogce.php">OGCE-Open Grid Computing Environment</a><br>
+<a href="grid_software/data/dai.php">OGSA-DAI</a></p>
       
     <h1><a name="P">P</a></h1>
 <p>
-<a href="gridware/packaging/pacman.php">PACMAN</a><br>
+<a href="grid_software/packaging/pacman.php">PACMAN</a><br>
 Papers - <i>see <a href="#Research Papers"> Research Papers</a></i><br>
 <a name="Partners in Advanced Computational Infrastructure" href="http://www.interact.nsf.gov/cise/descriptions.nsf/4614682edb4ce9118525665900483e39/c35975a518730127852565d90077e112?OpenDocument"> Partnerships for Advanced Computational Infrastructure</a><br>
-<a href="gridware/computation/pegasus.php">Pegasus</a> <br>
+<a href="grid_software/computation/pegasus.php">Pegasus</a> <br>
 <a href="alliance/activities/news.php">Press Coverage</a><br>
-<a href="gridware/security/pkinit.php">PKINIT</a><br>
-<a href = "gridware/computation/csf.php"> Platform CSE</a> <br>
-<a href "gridware/security/pre-ws-aa.php"> Pre-Web Services Authentication and Authorization</a><br>
-<a href="gridware/security/purse.php"> PURSE: Portal-based User Registration Service</a></p>
+<a href="grid_software/security/pkinit.php">PKINIT</a><br>
+<a href = "grid_software/computation/csf.php"> Platform CSE</a> <br>
+<a href "grid_software/security/pre-ws-aa.php"> Pre-Web Services Authentication and Authorization</a><br>
+<a href="grid_software/security/purse.php"> PURSE: Portal-based User Registration Service</a></p>
      
 
     <h1><a name="Q">Q</a></h1>
@@ -213,15 +215,15 @@ Papers - <i>see <a href="#Research Papers"> Research Papers</a></i><br>
     <h1><a name="R">R</a></h1>
     <p><a href="alliance/activities/related.php">Related Work</a><br>
     <a name="Research Papers" href="alliance/activities/publications.php">Research Papers</a><br>
-<a href="gridware/monitoring/rgma.php">R-GMA</a><br>
-<a href="gridware/data/rls.php"> RLS-Replica Location Service </a></p>    
+<a href="grid_software/monitoring/rgma.php">R-GMA</a><br>
+<a href="grid_software/data/rls.php"> RLS-Replica Location Service </a></p>    
     
     <h1><a name="S">S</a></h1>
     <p>Security - <i>see <a href="#Grid Security Infrastructure"> Grid Security Infrastructure</a></i><br>
-	<a href="gridware/security/simple-ca.php">Simple CA </a><br>
+	<a href="grid_software/security/simple-ca.php">Simple CA </a><br>
     Software - <i>see <a href="#Globus Toolkit"> Globus Toolkit</a></i><br>
     <a name="Sponsors" href="alliance/sponsors.php">Sponsors</a><br>
-<a href="gridware/data/stripedftp.php">Striped GridFTP Service</a><br>
+<a href="grid_software/data/stripedftp.php">Striped GridFTP Service</a><br>
     Support - <i>see <a href="#Technical Support"> Technical Support</a></i></p>
     
     <h1><a name="T">T</a></h1>
@@ -235,18 +237,18 @@ Papers - <i>see <a href="#Research Papers"> Research Papers</a></i><br>
     
     <h1><a name="U">U</a></h1>
     <p>
-<a href="gridware/data/uberftp.php">UberFTP</a><br>
+<a href="grid_software/data/uberftp.php">UberFTP</a><br>
 <a name="University of Southern California Information Sciences Institute" href="http://www.isi.edu/">University of Southern California Information Sciences Institute</a></p>
     
     <h1><a name="V">V</a></h1>
     <p>
-<a href="gridware/packaging/vdt.php">Virtual Data Toolkit - VDT</a><br>
-<a href="gridware/security/voms.php"> VOMS: Virtual Organization Membership Service </a><br>
-<a href="gridware/security/vomrs.php"> VOMRS: Virtual Organization Management Registration Service</a>
+<a href="grid_software/packaging/vdt.php">Virtual Data Toolkit - VDT</a><br>
+<a href="grid_software/security/voms.php"> VOMS: Virtual Organization Membership Service </a><br>
+<a href="grid_software/security/vomrs.php"> VOMRS: Virtual Organization Management Registration Service</a>
 </p>
 
     <h1><a name="W">W</a></h1>
-	<p><a href="gridware/security/ws-aa.php"> Web Services Authenication and Authorization</a></p>
+	<p><a href="grid_software/security/ws-aa.php"> Web Services Authenication and Authorization</a></p>
     
     <h1><a name="X">X</a></h1>
     
