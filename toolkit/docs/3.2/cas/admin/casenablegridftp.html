@@ -14,7 +14,183 @@ Administrator's Guide&lt;
 Example of CAS Server Administration<br>
 CAS-enabled GridFTP Server</p>
 <h2>CAS-enabled GridFTP Server  </h2>
-<p>content</p>
+This page contains the following topics:
+<ul>
+<li><a href="#enabling">Enabling CAS Support in the GridFTP Server</a></li>
+<li><a href="#configuring">Configuring the GridFTP Server to Trust a CAS Server</a></li>
+<li><a href="#permissions">Setting CAS permissions that the GridFTP Server Will Understand</a></li>
+<li><a href="#client">Using a GridFTP Client with a CAS-Enabled GridFTP Server</a></li>
+</ul>
+<h3><a name="enabling">Enabling CAS Support in the GridFTP Server</a></h3>
+<p>
+The <a href="../../gridftp/">Globus Toolkit 3.2 GridFTP Server</a>
+reads two files (<code>gsi-authz.conf</code> and <code>gsi-gaa.conf</code>) to determine how to perform certain
+authorization and mapping functions.
+If these files are not present (as is the case after a standard Globus Toolkit
+installation), the GridFTP server will not support CAS authorization (that is,
+the GridFTP server will ignore the CAS policy assertions in the user's credential
+and determine the user's permissions based solely on the user's identity).
+The <code>setup-globus-gaa-authz-callout</code> command creates
+<code>gsi-authz.conf</code> and <code>gsi-gaa.conf</code> files that
+will cause the GridFTP server to honor CAS policy assertions.  There
+are two ways to run this command.  Running:
+</p>
+<pre>
+   $GLOBUS_LOCATION/setup/globus/setup-globus-gaa-authz-callout
+</pre>
+<p>
+as root will create these configuration files
+and <code>gsi-gaa.conf</code> in the directory <code>/etc/grid-security</code>,
+where the GridFTP server looks for them by default.  Running:
+</p>
+<pre>
+   $GLOBUS_LOCATION/setup/globus/setup-globus-gaa-authz-callout -d <i>mydir</i>
+</pre>
+<p>
+will create these configuration files in <i>mydir</i>.  To get the GridFTP
+server to find these files, set the environment variable <code>GSI_AUTHZ_CONF</code> to <i>mydir</i>/gsi-authz.conf and <code>GSI_GAA_CONF</code> to <i>mydir</i>/gsi-gaa.conf before starting the GridFTP server.
+</p>
+<p>
+By default, <code>setup-globus-gaa-authz-callout</code> will not overwrite
+an existing configuration file.  The <code>-force</code> option will cause
+it to overwrite an existing <code>gsi-authz.conf</code> file, and the
+<code>-overwrite_gaa_config</code> option will cause it to overwrite an
+existing <code>gsi-gaa.conf</code> file.
+<h3><a name="configuring">Configuring the GridFTP Server to Trust a CAS Server</a></h3>
+<p>
+The steps above configure the GridFTP server to understand CAS credentials.
+However, the GridFTP server will not allow a user authenticating with a
+CAS credential to perform any action that it would not allow the CAS
+server itself to perform.  To configure the GridFTP server to trust a
+particular CAS server, create a local user account corresponding
+to the CAS server, use file permissions to allow that user account
+to have the desired level of file access, and create a gridmap entry
+mapping the CAS server's distinguished name to that local account.
+</p>
+<h3><a name="permissions">Setting CAS permissions that the GridFTP Server Will Understand</a></h3>
+<h4>Object Names</h4>
+<p>
+CAS objects created using the object namespace <code>FTPDirectoryTree</code>
+are recognized by the GridFTP server.  An object in that namespace with
+the name:
+</p>
+<pre>
+   ftp://<i>somehost.edu</i>/<i>some_path</i>
+</pre>
+will be recongized by the CAS-enabled GridFTP server at <i>somehost.edu</i>
+as referring to the file or directory named <i>some_path</i>.  An object
+in the <code>FTPDirectoryTree</code> name space with the name:
+</p>
+<pre>
+   ftp://<i>somehost.edu</i>/<i>some_directory_path</i>/*
+</pre>
+<p>
+will be recongized by the CAS-enabled GridFTP server at <i>somehost.edu</i>
+as referring to all files and directories under <i>some_directory_path</i>.
+</p>
+<p>
+In some cases, it may be desirable to have a GridFTP server recognize
+CAS assertions that use a hostname other than the server's fully qualified
+domain name.  Starting the GridFTP server with the option "-H <i>otherhost</i>"
+will cause the GridFTP server to recognize objects with names that
+start with "ftp://<i>otherhost</i>/" instead.
+</p>
+<h4>Permissions recognized by GridFTP</h4>
+<p>
+The GridFTP server recognizes permissions with the <code>service</code>
+service type.  The following table summarizes the recognized permissions
+within that service type, and their meanings:
+</p>
+<table>
+<tr>
+<td><b>Action<b></td>
+<td><b>Meaning<b></td>
+</tr>
+<tr>
+<td><b>read</b></td>
+<td>For a file, gives permission to read the file. For a directory, gives permission to chdir to the directory.</td>
+</tr>
+<tr>
+<td><b>lookup</b></td>
+<td>For a file, gives the right to get Unix stat() information. For a directory, gives the right to chdir to and to list the contents of the directory.</td>
+</tr>
+<tr>
+<td><b>write</b></td>
+<td>For a file, allows modification of an existing file. For a directory, gives the right to chdir to the directory.</td>
+</tr>
+<tr>
+<td><b>create</b></td>
+<td>For a file, allows creation of the file if it does not exist. For a directory, allows creation of the directory if it does not exist and gives the right to chdir to the directory if it does exist.</td>
+</tr>
+<tr>
+<td><b>delete</b></td>
+<td>For a file, allows deletion of the file. For a directory, allows deletion of the directory, if empty; also gives the right to chdir to the directory.</td>
+</tr>
+<tr>
+<td><b>chdir</b></td>
+<td>For a file, this right is meaningless. For a directory, allows making the directory the current default directory.</td>
+</tr>
+</table>
+<p>
+The following is a summary of ftp commands supported, and what permissions
+they require:
+<p>
+<table>
+<tr>
+<td><b>Typical Client Comand</b></td>
+<td><b>FTP Protocol Command</b></td>
+<td><b>Rights Required</b></td>
+</tr>
+<tr>
+<td>get</td>
+<td>RETR</td>
+<td><i>read</i></td>
+</tr>
+<tr>
+<td>put</td>
+<td>STOR</td>
+<td><i>write</i>, if file exists; <i>create</i>, if file does not exist</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>DELE</td>
+<td><i>delete</i></td>
+</tr>
+<tr>
+<td>ls</td>
+<td>LIST</td>
+<td><i>lookup</i></td>
+</tr>
+<tr>
+<td>chdir</td>
+<td>CWD</td>
+<td>any of: <i>chdir</i>, <i>lookup</i>, <i>read</i>, <i>write</i>, <i>create</i>, or <i>delete</i></td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>MKD</td>
+<td><i>create</i></td>
+</tr>
+<tr>
+<td>rmdir</td>
+<td>RMD</td>
+<td><i>delete</i></td>
+</tr>
+<tr>
+<td>rename</td>
+<td>RNFR / RNTO</td>
+<td><i>read</i> and <i>delete</i> on old file; <i>write</i> on new file, if it exists, <i>create</i> on new file, if it does not exist</td>
+</tr>
+</table>
+<h3><a name="client">Using a GridFTP Client with a CAS-Enabled GridFTP Server</a></h3>
+<p>
+The <a href="../user/">CAS User's Guide</a> describes how to
+acquire and use a CAS credential.
+<p>
+If a client connects using "normal" (non-CAS) credentials, the behavior
+of the CAS-enabled GridFTP server should be the same as the behavior of
+a non-CAS-enabled GridFTP server.
+</p>
 <p>&nbsp;</p>
 <p><span class="blue">
   <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
