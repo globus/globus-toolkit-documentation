@@ -18,6 +18,130 @@ operating systems following the Unix programming and security model,
 
 </p>
 
+<h2>Component Architecture Approach</h2>
+
+<p>
+WS_GRAM combines job-management services and local system adapters
+with other service components of GT4.0 in order to support job
+execution with coordinated file staging.
+</p>
+
+<img src="WS_GRAM_components.png">
+
+<h3>Globus Toolkit Components used by WS_GRAM</h3>
+
+<p>
+<dl>
+
+<dt>ReliableFileTransfer</dt>
+
+<dd><p>The ReliableFileTransfer (RFT) service of GT4 is invoked by the
+WS_GRAM services to effect file staging before and after job
+computations.</p>
+
+<p>
+The integration with RFT provides a much more robust file staging
+manager than the ad-hoc solution present in previous versions of the
+GRAM job manager logic. RFT has better support for retry, restart, and
+fine-grained control of these capabilities. WS_GRAM exposes the full
+flexibility of the RFT request language in the job staging clauses of
+the job submission language.
+</p>
+</dd>
+
+<dt>GridFTP</dt>
+
+<dd><p>GridFTP servers are required to access remote storage elements
+as well as filesystems accessible to the local compute elements that
+may host the job. The ReliableFileTransfer Web service acts as a
+so-called third-party client to the GridFTP servers in order to manage
+transfers of data between remote storage elements and the compute
+element filesystems. It is not necessary that GridFTP be deployed on
+the same host/node as the WS_GRAM services, but staging will only be
+possible to the subset of filesystems that are shared by the GridFTP
+server that is registered with the WS_GRAM service. (REF TO
+DEPLOY/CONFIG HERE) If no such server or shared fileystems are
+registered, staging is disallowed to that WS_GRAM compute
+element.</p>
+
+<p>The integration with GridFTP replaces the legacy GASS (Globus
+Access to Secondary Storage) data transfer protocol. This changeover
+is advantageous both for greater performance and reliability of data
+staging as well as to remove redundant software from the GRAM
+codebase.
+</p>
+</dd>
+
+</dl>
+
+<dl>
+
+</p>
+
+<p>
+<dt>Delegation</dt>
+
+<dd><p>The Delegation service of GT4 is used by clients to delegate
+credentials into the correct hosting environment for use by WS_GRAM
+or RFT services.</p>
+
+<p>
+The integration of the Delegation service replaces the implicit,
+binding-level delegation of previous GRAM solutions with explicit
+service operations. This change not only reduces the requirements on
+client tooling for interoperability purposes, but also allows a new
+separation of the lifecycle of jobs and delegated credentials.
+Credentials can now be shared between multiple short-lived jobs or
+eliminated entirely on an application-by-application basis to make
+desired performance and security tradeoffs. Meanwhile, for unique
+situations WS_GRAM retains the ability to refresh credentials for
+long-lived jobs and gains an ability to designate different delegated
+credentials for different parts of the job's lifecycle.
+</p>
+</dd>
+
+</dl>
+
+<h3>External Components used by WS_GRAM</h3>
+<p>
+
+<dl>
+
+<dt>Local job scheduler</dt>
+
+<dd><p>An optional local job scheduler is required in order to manage the
+resources of the compute element. WS_GRAM has the ability to spawn
+simple time-sharing jobs using standard Unix <tt>fork()</tt> methods,
+but most large-scale compute elements will be under the control of a
+schedule such as PBS, LSF, Loadleveler, etc.</p></dd>
+
+<dt>sudo</dt>
+
+<dd><p>The defacto standard Unix <tt>sudo</tt> utility is used by
+WS_GRAM to gain access to target user accounts without requiring
+WS_GRAM to have general super-user privelege on the system. The sudo
+command is used to execute WS_GRAM adapter tools in the user account
+context; these adapters perform the local system-specific operations
+needed to initialize and run user jobs.</p>
+
+<p>The <tt>sudo</tt> utility not only provides a simple way for
+WS_GRAM to run programs as other users without "root" privelege, but
+it provides fine-grained controls for the system administrator to
+restrict which user accounts are valid WS_GRAM targets as well as
+secure auditing of all operations requested by WS_GRAM.
+
+This mechanism replaces the root-priveleged Gatekeeper component of
+the Pre_WS_GRAM service in order to avoid running an entire WSRF
+hosting environment as root.  This change provides enhanced security,
+at the expense of slightly more complicated deployment effort, and is
+motivated by the relative increase in the size of the WS_GRAM and WSRF
+codebase as compared to the traditional Gatekeeper.</p>
+</dd>
+</dl>
+
+</p>
+
+
 <h2>Security Model</h2>
 
 <h3>Secure operations</h3>
@@ -75,9 +199,16 @@ support.</p></dd>
 
 </dl>
 
-<h2>Software Architecture</h2>
+<h2>WS_GRAM Software Architecture</h2>
 
-<h3>Web service suite</h3>
+<h3>Overview</h3>
+
+<img src="WS_GRAM_software.png">
+
+
+
+
+<h3>Web services for Job Management</h3>
 
 <p>The heart of the WS_GRAM service architecture is a set of Web
 services designed to be hosted in the Globus Toolkit's WSRF core
@@ -104,21 +235,9 @@ ManagedJobFactory service. The service provides an interface to create
 ManagedJob resources of the appropriate type in order to perform a job
 in that local scheduler.</p></dd>
 
-<dt>ReliableFileTransfer</dt>
-
-<dd><p>The externally provided ReliableFileTransfer (RFT) service is
-invoked by the ManagedJob service to effect file staging before and
-after job computations.</p></dd>
-
-<dt>Delegation</dt>
-
-<dd><p>The externally provided Delegation service is used by clients to
-delegate credentials into the correct hosting environment for use by
-ManagedJob or RFT services.</p></dd>
-
 </dl>
 
-<h3>Other software components</h3>
+<h3>Software for local system interaction</h3>
 
 <dl>
 
@@ -127,40 +246,6 @@ ManagedJob or RFT services.</p></dd>
 <dd><p>Support to control each local scheduler is provided in the form of
 adapter scripts in the Perl programming language, following the
 proprietary GRAM adapter plugin API.</p></dd>
-
-<dt>sudo</dt>
-
-<dd><p>The defacto standard Unix <tt>sudo</tt> utility is used by
-WS_GRAM to gain access to target user accounts without requiring
-WS_GRAM to have general super-user privelege on the system. The
-<tt>sudo</tt> utility not only provides a simple way for WS_GRAM to
-run programs as other users without "root" privelege, but it also
-provides fine-grained controls for the system administrator to
-restrict which user accounts are valid WS_GRAM targets and secure
-auditing of all operations requested by WS_GRAM.</p>
-
-<p>This mechanism replaces the root-priveleged Gatekeeper component of
-the Pre_WS_GRAM service in order to avoid running an entire WSRF
-hosting environment as root.  This change provides enhanced security
-at the expense of slightly more complicated deployment effort, and is
-motivated by the relative increase in the size of the WS_GRAM and WSRF
-codebase as compared to the traditional Gatekeeper.</p>
-</dd>
-
-<dt>GridFTP</dt>
-
-<dd><p>GridFTP servers are required to access remote storage elements
-as well as filesystems accessible to the local compute elements that
-may host the job. The ReliableFileTransfer Web service acts as a
-so-called third-party client to the GridFTP servers in order to manage
-transfers of data between remote storage elements and the compute
-element filesystems. It is not necessary that GridFTP be deployed on
-the same host/node as the WS_GRAM services, but staging will only be
-possible to the subset of filesystems that are shared by the GridFTP
-server that is registered with the WS_GRAM service. (REF TO
-DEPLOY/CONFIG HERE) If no such server or shared fileystems are
-registered, staging is disallowed to that WS_GRAM compute
-element.</p></dd>
 
 <dt>gridmap_authorize_and_exec</dt>
 
@@ -174,79 +259,28 @@ administrator efforts to manage user policies.</p></dd>
 
 </dl>
 
-<h2>Features Overview</h2>
+<h2>Performance and Scalability</h2>
 
-<h3>Job Management</h3>
+<h3>Overview</h3>
 
-<dl>
+<h3>Without staging</h3>
 
-<dt>Job submission</dt>
+<h4>No delegation</h4>
 
-<dd><p>The ManagedJobFactory service provides a createJob operation to
-submit a new job. This operation is given a reliable "at most once"
-semantics using the (WHAT STANDARD?) messageID mechanism; this applies
-a client-known unique identifier to the input message and guarantees
-that the ManagedJobFactory will not repeat the operation effects if
-the message is received more than once, meaning that the client is
-free to reissue the operation if a response is not received within a
-reasonable amount of time.</p></dd>
+<h4>Using existing delegation</h4>
 
-<dt>Job cancellation</dt>
+<h4>Using new delegation</h4>
 
-<dd><p>The ManagedJob service provides the WSRF standard terminate
-operation to request destruction of the ManagedJob resource
-representing a job.  Destruction of ManagedJob resources is understood
-to cancel any ongoing or pending activities pertaining to the job and
-to release state and "hidden resources" associated with the job,
-including removal of the job from the local scheduler and termination
-of any staging operations.</p></dd>
+<h3>With trivial staging</h3>
 
-</dl>
+<h4>No delegation</h4>
 
-<b>EVERYTHING BELOW IS UN-DIGESTED FODDER FOR THIS DOCUMENT</b>
+<h4>Using existing delegation</h4>
 
-<h3>Data management</h3>
-
-<dl>
+<h4>Using new delegation</h4>
 
 
-<dt>Output monitoring</dt> 
-
-<dd>WS_GRAM provides a mechanism for incrementally transferring output
-file contents from the computation resource while the job is
-running.</dd>
-
-</dl>
-
-<h3>Task coordination</h3>
-
-<dl>
-
-<dt>Parallel jobs</dt>
-
-<dd>Some jobs are parallel, meaning that they consist of more than one
-simultaneous tasks. These tasks are often hosted on parallel computing
-hardware to provide increased computational throughput.</dd>
-
-<dt>Startup barrier</dt>
-
-<dd>Many parallel jobs require a guarantee that the correct number of
-tasks have been started.  WS_GRAM does not enforce such constraints,
-but relies on the local scheduler to provide the appropriate job
-startup semantics.</dd>
-
-<dt>Task rendezvous</dt>
-
-<dd>Some parallel programming environments, such as MPI, provide
-mechanisms for all tasks in a parallel computation to find out about
-each other: to know the number of peer tasks as well as possibly to
-exchange some information between tasks.  WS_GRAM provides a mechanism
-for task rendezvous which job applications may use if they do not have
-another more appropriate solution. WS_GRAM does not require tasks to
-be coordinated, but addresses this requirement in order to facilitate
-a wider range of applications.</dd>
-
-</dl>
+<h3>Methodology</h3>
 
 </body>
 </html>
