@@ -5,22 +5,26 @@ $section = "section-2";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 ?>
+<!--
 <div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'alliance.inc'); ?>
 </div>
+-->
 
 <div id="main">
 <!-- content STARTS here -->
 
-<h1 class="first"> Alliance Sponsors </h1>
-<p>The Globus Alliance is supported by the following government agencies. </p>
+<h1 class="first">Our Sponsors</h1>
 
-
+<p>Globus Alliance activities are largely the result of government R&D programs aimed at 
+advancing information technology capabilities for society. The following organizations, both
+government and commercial, have contributed significantly to Globus research, development, and
+software quality improvements.</p>
 
 <table border="0" cellspacing="0" cellpadding="7" width="100%">
 
-<tr>
-<td valign="middle" align="center"><a href="http://www.arpa.mil/">
+<tr valign="middle">
+<td valign="middle" align="center"><p align="center"><a href="http://www.arpa.mil/">
         <img src="images/darpa.GIF" alt="darpa.gif (1204 bytes)" border="0" width="57" height="33"></a></td>
 <td valign="middle">The <a href="http://www.arpa.mil/ito">Information Technologies Research Office</a><br> <a href="http://www.arpa.mil">The Defense Advanced Research Projects Agency</a> (DARPA)</td>
 </tr>
@@ -41,17 +45,17 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 </tr>
 
 <tr>
-<td valign="middle" align="center"> <a href="images/UK%20e-Science%20greenwhite2.jpg"><img border="0" src="images/UK%20e-Science%20greenwhite2_small.jpg" xthumbnail-orig-image="images/UK e-Science greenwhite2.jpg" width="150" height="88"></a></td>
+<td valign="middle" align="center"> <p align="center"><a href="images/UK%20e-Science%20greenwhite2.jpg"><img border="0" src="images/UK%20e-Science%20greenwhite2_small.jpg" xthumbnail-orig-image="images/UK e-Science greenwhite2.jpg" width="150" height="88"></a></td>
 <td valign="middle"> <a href="http://www.escience-grid.org.uk/">UK e-Science Grid Core Programme</a></td>
 </tr>
 
 <tr>
-<td valign="middle" align="center"> <a title="Startsidan" href="http://www.vr.se/index.asp"> <img alt="Startsida" src="images/swedishrc_logo.gif" border="0" width="205" height="47"></a></td>
+<td valign="middle" align="center"> <p align="center"><a title="Startsidan" href="http://www.vr.se/index.asp"> <img alt="Startsida" src="images/swedishrc_logo.gif" border="0" width="205" height="47"></a></td>
 <td valign="middle"> <a href="http://www.vr.se/english/index.asp">Swedish Research Council</a></td>
 </tr>
       
 <tr>
-<td valign="middle" align="center"> <img border="0" src="images/royal_inst.gif" width="84" height="86"></td>
+<td valign="middle" align="center"> <p align="center"><img border="0" src="images/royal_inst.gif" width="84" height="86"></td>
 
 <td valign="middle"> <a href="http://www.kth.se/eng/">Swedish Royal Institute of Technology</a></td>
 </tr>
