@@ -4,19 +4,123 @@ $title = "WS GRAM: System Administrator's Guide";
 
 include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
 ?>
+<link href="../../../../../style.css" rel="stylesheet" type="text/css">
 
 
-<p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/">Documentation</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/3.2/">3.2</a> &gt; <a href="../index.html">WS GRAM</a>&gt; System
+
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/">Documentation</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/3.2/">3.2</a> &gt; <a href="../index.html">WS
+    GRAM</a> &gt; System
   Administrator's Guide &lt; </p>
 <h1>WS GRAM: System Administrator's Guide </h1>
-<h2>Overview</h2>
-<p>This page is under construction. When it is finished, it will  contain
-  more advanced configuration options, including information about Condor, PBS,
-  LSF, 
-fork, etc. </p>
 <p>For basic configuration information, see the <a href="../../../installation/install_config_resource.html">Installing
       WS GRAM - Basic</a> topic
-    of the <a href="../../../installation/index.html">Installation Guide</a>.</p>
-	
-	
+of the <a href="../../../installation/index.html">Installation Guide</a>.</p>
+<p>This page  describes how to configure a WS GRAM service for submitting
+  jobs to a batch scheduler.</p>
+<ul>
+  <li><a href="#before">Before You Begin</a></li>
+  <li><a href="#installingbatchscheduler">Installing a Batch Scheduler</a></li>
+  <li><a href="#name">Configuring a Batch Scheduler (default)</a></li>
+  <li><a href="#nondefaultconfigbatchscheduler">Configuring a Batch Scheduler (non-default) </a></li>
+  <li><a href="#mheuhe">Updating a Master Hosting Environment (MHE) and User Hosting <br>
+    Environment (UHE) configuration</a></li>
+  <li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+<h2><a name="before"></a>Before You Begin</h2>
+<p>This guide will be in addition to the GT admin guide at: <br>
+  <a href="http://www-unix.globus.org/toolkit/docs/3.2/installation/index.html">http://www-unix.globus.org/toolkit/docs/3.2/installation/index.html</a></p>
+<ul>
+  <li>You should already have a properly configured and working GT 3.2 installation
+    with MMJFS fork already installed. See the <a href="../../../installation/install_config_resource.html">Installing
+    WS GRAM - Basic</a> topic of the <a href="../../../installation/index.html">Installation
+    Guide</a> for more information.<br>
+  </li>
+  <li>You should be able to submit a job to the
+    fork service using <span class="code">managed-job-globusrun</span>.<br>
+    <br>
+    For example, <br>
+    <br>
+    <span class="command"> % managed-job-globusrun
+    -factory &lt;mmjfs fork factory&gt; -file schema/base/gram/examples/test.xml</span><br>
+  </li>
+  <li>You should already have a properly configured and working scheduler installation.
+      <br>
+      <br>
+    For example (using LSF), you should be able to:
+    <ul>
+        <li>submit a job using BSUB</li>
+        <li>monitor
+            a job using BJOBS</li>
+        <li>cancel a job using BDEL</li>
+    </ul>
+  </li>
+</ul>
+<h2><a name="installingbatchscheduler"></a>Installing a Batch Scheduler</h2>
+<p>Find the scheduler bundle from the installer you downloaded (look under <span class="code">/scheduler</span>  in your installer directory) and install it by running:</p>
+<pre class="command">% gpt-build scheduler-pbs-3.2-src_bundle.tar.gz gcc32dbg</pre>
+<h2><a name"defaultconfigbatchscheduler"></a>Configuring a Batch Scheduler (default)</h2>
+<p>If all the default configuration options are acceptable, then simply 
+  run:</p>
+<pre class="command">% gpt-postinstall</pre>
+<p>And now test the installation by running:</p>
+<pre class="command">% managed-job-globusrun -factory http://&lt;your host&gt;:&lt;your port&gt;/ogsa/services/base/gram/Master
+&lt;scheduler name&gt;ManagedJobFactoryService&gt; file schema/base/gram/examples/test.xml</pre>
+<h2><a name="nondefaultconfigbatchscheduler"></a>Configuring a Batch Scheduler (non-default)</h2>
+<p>First configure all setup packages for the 
+defaults, run:</p>
+<pre class="command">gpt-postinstall </pre>
+<p>Then run the individual setup package(s) by hand, which will 
+  replace the default configuration.</p>
+<p>A scheduler bundle contains 4 individual packages:</p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top"><kbd>mmjfs_lsf_setup</kbd></td>
+    <td><p>Creates 
+        <code>$GLOBUS_LOCATION/setup/globus/setup-mmjfs-lsf</code>.</p>
+      <p> Contains the configuration information to add the <code>MasterLsfManagedJobFactoryService</code>    to the GT installation.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><kbd>mjs_lsf_setup</kbd></td>
+    <td><p>Creates <code>$GLOBUS_LOCATION/setup/globus/setup-mjs-lsf</code>.</p>
+      <p> Contains the configuration information to add the 
+    <code>LsfManagedJobService</code> to the GT installation.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><kbd>rips_lsf_provider_setup</kbd></td>
+    <td><p>Creates 
+        <code>$GLOBUS_LOCATION/setup/globus/setup-lsf-provider</code>.</p>
+      <p> Contains the Borne Shell code that queries LSF for all 
+    jobs and reports the information to RIPS for processing.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><kbd>globus_gram_job_manager_setup_lsf</kbd></td>
+    <td><p>Creates <code> $GLOBUS_LOCATION/setup/globus/setup-globus-job-manager-pbs</code>.</p>
+      <p> Contains the Perl code that interacts with LSF. 
+    Translates the RSL to an LSF job.</p>
+      <p>In GT 3.2, the job manager setup package is the only one that takes
+      arguments to change  the default configuration. </p>
+      <p>For PBS installations, most people need to set the remote shell to <code>rsh</code>        instead of <code>ssh</code> by running:</p>
+      <pre class="command">% cd $GLOBUS_LOCATION/setup/globus
+% ./setup-globus-job-manager-pbs --remote-shell=rsh</pre>
+      <p>To see all configuration options, run:</p>
+      <pre class="command">% ./setup-globus-job-manager-pbs -help</pre></td>
+  </tr>
+</table>
+<h2><a name="mheuhe"></a>Updating a Master Hosting Environment (MHE) and User Hosting 
+  Environment (UHE) configuration</h2>
+<p>  After successfully running the gpt-postinstall and/or individual setup 
+  packages, your GT installation is now properly configured in order to 
+  submit jobs to the MMJFS in the Master Hosting Environment (MHE). </p>
+<p><strong>Important:</strong> The 
+  MHE needs to be restarted in order to have the new configuration take 
+  effect. </p>
+<p>Additionally, any users that had submitted a job to the MHE 
+  prior to the configuration change will have an outdated copy of the 
+  configuration in their User Hosting Environment (UHE):</p>
+<pre class="command">~user/.globus/uhe-&lt;host&gt;</pre>
+<p>To propogate the new configuration, 
+    remove the old UHE directory:</p>
+<pre class="command">% rm -Rf $HOME/.globus/uhe-*/</pre>
+<h2><a name="troubleshooting"></a>Troubleshooting</h2>
+<p>Content needed.</p>
 <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
