@@ -50,8 +50,8 @@ service.</para>
   <para>The CAS service can run with its own service specific credentials. Instructions 
   for obtaining service credentials may be found <ulink url="http://www.globus.org/gt2.2/admin/guide-verify.html#ldapcert">here</ulink>.
 </para>
-  <para>The standard administrator clients that come with the distribution use host authorization  to authorize the service they are running against and expect that the CAS service has credentials
-  that have service name &quot;cas&quot;. The command in the above mentioned <ulink url="http://www.globus.org/gt2.2/admin/guide-verify.html#ldapcert">web page</ulink> may be altered as follows:
+  <para>The standard administrator clients that come with the distribution by default use host authorization  to authorize the service they are running against and expect that the CAS service has credentials
+  that have service name &quot;cas&quot;. (Command line options can be used to specify the identity of the CAS service, if default identity is not used). The command in the above mentioned <ulink url="http://www.globus.org/gt2.2/admin/guide-verify.html#ldapcert">web page</ulink> may be altered as follows:
 </para>
   <screen>casadmin$ grid-cert-request -service <emphasis>cas</emphasis> -host <emphasis>FQDN</emphasis></screen>
   <para>The certificate and private key are typically placed in <filename>/etc/grid-security/cas-cert.pem</filename> and <filename>/etc/grid-security/cas-key.pem</filename>,
@@ -134,7 +134,7 @@ dbPassword=<replaceable>Password for the above username</replaceable></screen>
           <entry>
             <option>-implicit</option>
           </entry>
-          <entry>Populates database with CAS server implicit data and service/action and namespace relevant to FTP</entry>
+          <entry>Populates database with a) CAS server implicit data: this adds the CAS server itself as a CAS object and implicit service/actions like enrolling users, objects and so on. b) service/action and namespace relevant to FTP like read, write and so on</entry>
         </row>
       </tbody>
     </tgroup>
@@ -264,7 +264,7 @@ userGroupname=superUserGroup</screen></para>
   the set up worked.</para>
   <para>All the configuraton information for the test needs to be configured in  the <filename>etc/globus_cas_unit_test/casTestProperties</filename> file.
   The database section of the properties file needs to be configured as described <ulink url="testDbConfig">here</ulink>. In addition the following properties need to be configured  to run the tests:</para>
-  <table>
+  <table id="testPropertiesConfig">
     <title>Test properties</title>
     <tgroup cols="2">
       <tbody>
@@ -274,7 +274,7 @@ userGroupname=superUserGroup</screen></para>
         </row>
         <row>
           <entry>user2SubjectDN</entry>
-          <entry>The DN of the user running the second set of tests. This DN has to be a different DN than the DN specified for user1SubjectDN. It may be set to a dummy DN and second set of tests can also be run with certificate having DN set for user1SubjectDN </entry>
+          <entry>The DN of the user running the second set of tests. This DN has to be different from value specified for user1SubjectDN. Note: Both tests can be run as same user using certificates with DN set as value for user1SubjectDN. In this scenario, the value of user2SubjectDN can be set to some dummy string.</entry>
         </row>
         <row>
           <entry>maxAssertionLifetime</entry>
@@ -305,6 +305,9 @@ userGroupname=superUserGroup</screen></para>
       <para>Run:
       <screen>cd $GLOBUS_LOCATION</screen></para>
     </listitem>
+      <listitem>
+        <para>Source <replaceable>$GLOBUS_LOCATION/etc/globus-devel-env.sh</replaceable> or <replaceable>$GLOBUS_LOCATION/etc/globus-devel-env.csh</replaceable> or <replaceable>$GLOBUS_LOCATION/etc/globus-devel-env.bat</replaceable> as appropriate for your environment.</para>
+      </listitem>
     <listitem>
       <para>The database needs to be empty for these tests to work. To delete all
     the data in the database, run:
@@ -313,11 +316,11 @@ userGroupname=superUserGroup</screen></para>
     <listitem>
       <para>In the test properties file, set <replaceable>user2SubjectDN</replaceable> to the subject
     in your regular proxy. The following returns the appropriate string:
-      <screen>casadmin$ ./bin/grid-cert-info -subject -globus</screen></para>
+      <screen>casadmin$ java org.globus.tools.CertInfo -subject -globus</screen></para>
     </listitem>
     <listitem>
       <para>Generate an independent proxy using the following command:
-      <screen>casadmin$ ./bin/grid-proxy-init -independent</screen></para>
+      <screen>casadmin$ java org.globus.tools.ProxyInit -independent</screen></para>
     </listitem>
     <listitem>
       <para>Set the identity in the proxy generated from the above step as <emphasis>user1SubjectDN</emphasis> in
@@ -326,7 +329,7 @@ userGroupname=superUserGroup</screen></para>
       <screen>casadmin$ java org.globus.tools.ProxyInfo -subject -globus</screen></para>
     </listitem>
     <listitem>
-      <simpara>Start a container on port (for example, testPort) and host (for example, testHost). </simpara>
+      <simpara>Start container on port and host configured in <xref linkend="testPropertiesConfig">test properties file</xref></simpara>
     </listitem>
     <listitem>
       <para>The following command runs the tests for self permissions and sets up the database
@@ -336,7 +339,7 @@ userGroupname=superUserGroup</screen></para>
     <listitem>
       <para>To test as the second user, generate a proxy for the subject DN specified
       for the second user:
-        <screen>casadmin$ bin/grid-proxy-init </screen></para>
+        <screen>casadmin$ java org.globus.tools.ProxyInit </screen></para>
     </listitem>
     <listitem>
       <para>Then run the following:
@@ -585,7 +588,27 @@ rights to add/delete from this group to others and also delete this group.
   <title>Security Considerations </title>
 &WS_AA_CAS_Security_Considerations_Frag;
 </section>
-<section id="troubleshooting">
-  <title>Troubleshooting</title>
-  <para>[help for common problems sysadmins may experience] </para>
+<section id="troubleshooting"> <title>Troubleshooting</title>
+<section> <title> Database connectivity errors </title>
+<para> CAS server fails with following error:
+<screen>
+ faultCode: {http://schemas.xmlsoap.org/soap/envelope/}Server.userException
+ faultSubcode:
+ faultString: org.apache.commons.dbcp.DbcpException: Connection
+refused. Check t hat the hostname and port are correct and that the
+postmaster is accepting TCP/I P connections.
+</screen>
+</para>
+
+<itemizedlist>
+    <listitem> Ensure the database properties (connectionURL,
+    userName, password) in
+    <emphasis>$GLOBUS_LOCATION/globus_cas_service/jndi-config.xml</emphasis>
+    is correct.</listitem>
+    <listitem> Ensure that the database is set up with permission to
+    receive TCP/IP connections </listitem>
+</itemizedlist>
+</section>
+
+&Credential_Troubleshooting_Frag;
 </section>
