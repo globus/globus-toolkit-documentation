@@ -37,10 +37,11 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
     <li><a href="#JNDIDetails">JNDI details</a></li>
     <li><a href="#WritingClients">Client notes</a></li>
     <li><a href="#ContextProperties">MessageContext properties</a></li>
-    <li><a href="#testing">Writing and running tests</li>
-    <li><a href="#gardetails">GAR</li>
-    <li><a href="#CreatingLaunchers">Generating launcher scripts</li>
-    <li><a href="#ProxySupport">Proxy support</li>
+    <li><a href="#testing">Writing and running tests</a></li>
+    <li><a href="#gardetails">GAR</a></li>
+    <li><a href="#CreatingLaunchers">Generating launcher scripts</a></li>
+    <li><a href="#ProxySupport">Proxy support</a></li>
+    <li><a href="#Activation">Lifecycle and activation</a></li>
    </ul>
   </li>
 </ul>
@@ -991,5 +992,37 @@ The <b><code>org.globus.wsrf.proxy.port</code></b> system property can be passed
 <p>
 Please note that not all of the core code will obey the proxy port setting.
  </p>
+
+<h3><a name="Activation">Lifecycle and activation</a></h3>
+
+<h4>Service</h4>
+
+<h5>Axis RPCProvider</h5>
+
+<p>
+The <code>scope</code> setting of the service dictates when and how service instances are created. If the <code>scope</code> setting is set to <i>Application</i>, one instance of the service is used for all invocations. If the <code>scope</code> setting is set to <i>Request</i>, one instance is created per invocation. If the <code>scope</code> setting is set to <i>Session</i>, one instance is created per session. The <i>Request</i> scope is default (if scope parameter is not set in the deployment descriptor). If service implements the <a href="http://java.sun.com/j2ee/1.4/docs/api/javax/xml/rpc/server/ServiceLifecycle.html">javax.xml.rpc.server.ServiceLifecycle</a> interface the lifecycle methods they will be called accordingly to the scope setting as a service instance is created and destroyed. For example, in <i>Application</i> scope <i>destroy()</i> will be called on container shutdown, and in <i>Request</i> scope it will be called after the service method is called. <br>
+With Axis RPCProvider JAAS credentials are never associated with the invocation thread.
+</p>
+
+<h5>Globus RPCProvider</h5>
+
+<p>
+Only <i>Application</i> and <i>Request</i> scopes are supported with Globus RPCProvider. If <i>Request</i> scope it behaves more or less just like the Axis RPCProvider (service/providers instances are created per invocation, ServiceLifecycle methods called right before and after service method invocation, no JAAS credentials during ServiceLifecycle methods). <br>
+If <i>Application</i> scope service/provider instances are created either on first invocation or on container startup if the <i>"loadOnStartup"</i> parameter in the deployment descriptor is set to <i>"true"</i>. This will work in the same way in the standalone container and in Tomcat. <br>
+If the service or the container is configured with a security descriptor, the appropriate credentials will be associated with the thread during activation (using JAAS). Also, during activation a basic Axis MessageContext will be associated with the thread with only <i>Constants.MC_HOME_DIR</i>, <i>Constants.MC_CONFIGPATH</i>, and the right target service properties set (see <a href="#ContextProperties">MessageContext Properties</a> section for details). If service or providers implement the <a href="http://java.sun.com/j2ee/1.4/docs/api/javax/xml/rpc/server/ServiceLifecycle.html">javax.xml.rpc.server.ServiceLifecycle</a> interface the lifecycle methods will be called accordingly.
+</p>
+
+<h4>ResourceHome</h4>
+
+<p>
+ResourceHome will be activated on the first service invocation or during container startup if <i>"loadOnStartup"</i> parameter is set to <i>"true"</i>. If ResourceHome get activated in such ways, proper MessageContext and/or JAAS subject will be associated with the thread. Also proper MessageContext and/or JAAS subject will be associated with the thread if the ResourceHome gets activated by a separate thread directly looking up the ResourceHome implementation in JNDI. This actually applies to all <i>resource</i> entries directly defined under <i>service</i> entries in <i>jndi-config.xml</i> and configured with <i>org.globus.wsrf.jndi.BeanFactory</i> factory.
+</p>
+
+<h5>ServiceResourceHome</h5>
+
+<p>
+If you are using ServiceResourceHome please make sure to deploy the service with <i>"loadOnStartup"</i> option enabled and in <i>Application</i> scope. That will ensure that the ResourceHome is initialized with the right service/resource.
+</p>
+
 
 <?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
