@@ -33,11 +33,12 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
   <li><a href="#miscellaneousinfo">Miscellaneous information</a>
    <ul>
     <li><a href="#DocumentLiteral">Document/literal notes</a></li> 
-    <li><a href="#JNDIDetails">JNDI Details</a></li>
-    <li><a href="#ContextProperties">MessageContext Properties</a></li>
-    <li><a href="#testing">Writing and Running Tests</li>
+    <li><a href="#OperationProvider">Operation provider details</a></li>
+    <li><a href="#JNDIDetails">JNDI details</a></li>
+    <li><a href="#ContextProperties">MessageContext properties</a></li>
+    <li><a href="#testing">Writing and running tests</li>
     <li><a href="#gardetails">GAR</li>
-    <li><a href="#CreatingLaunchers">Generating Launcher Scripts</li>
+    <li><a href="#CreatingLaunchers">Generating launcher scripts</li>
    </ul>
   </li>
 </ul>
@@ -583,7 +584,80 @@ Also, with wrapped/literal mode, the element name had to match the operation
  name in wsdl. This is <strong>not</strong> necessary with document/literal mode.
 </p>
 
-<h3><a name="JNDIDetails">JNDI Details</a></h3>
+<h3><a name="OperationProvider">Operation provider details</a></h3>
+<p>
+GT3 introduced a concept of operation providers where a service could be composed
+of different parts/classes. Java WS Core also supports this functionality. In GT3
+operation providers had to implement a specific interface. In Java WS Core <strong>no</strong> such interface is required. As matter of fact an operation provider is not in any
+way different from a standard web service. That means that <strong>any</strong> web service implementation can automatically be used as an operation provider (as long as it uses common or standard interfaces to operate on resources.)
+</p>
+
+<h4>Configuring operation providers</h4>
+
+<p>To enable operation provider support for your service, make the following
+  changes to the service deployment descriptor: </p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top">1</td>
+    <td valign="top">Change the value of the <code>provider</code> attribute to <code>Handler</code>.</td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td valign="top">Add a <code>handleClass</code> parameter with a value of <code>org.globus.axis.providers.RPCProvider</code>.</td>
+  </tr>
+  <tr>
+    <td valign="top">3</td>
+    <td valign="top"><p>Specify providers in the <code>providers</code> parameter. </p>
+      <p>The value
+        of the parameter is a space-separated list of either provider names or
+        class names. If provider names are used, they must  first be defined
+        as  parameters in the <code>&lt;globalConfiguration&gt;</code> element
+    of the <b>main</b> deployment descriptor (<code>etc\globus_wsrf_core\server-config.wsdd</code>). </p>
+    <p>For example: </p>      <pre>
+  &lt;globalConfiguration&gt;
+  ...
+   &lt;parameter name="GetRPProvider" 
+              value="org.globus.wsrf.impl.properties.GetResourcePropertyProvider"/&gt;
+  ...
+  &lt;/globalConfiguration&gt;
+</pre></td>
+  </tr>
+  <tr>
+    <td valign="top">4</td>
+    <td valign="top">Add or change the value of the <code>scope</code> parameter
+      to <code>Application</code> or <code>Request</code></td>
+  </tr>
+</table>
+<p>The following is an example of a modified service deployment descriptor:
+  
+</p>
+<pre>
+    &lt;service name="SubscriptionManagerService" <b>provider="Handler"</b>
+        use="literal" style="document"&gt;
+        &lt;parameter name="allowedMethods" value="*"/&gt;
+        <b>&lt;parameter name="scope" value="Application"/&gt;</b>
+        <b>&lt;parameter 
+            name="providers"
+            value="GetRPProvider 
+                   org.globus.wsrf.impl.lifetime.SetTerminationTimeProvider
+                   PauseSubscriptionProvider"/&gt;</b>
+        <b>&lt;parameter 
+            name="handlerClass" 
+            value="org.globus.axis.providers.RPCProvider"/&gt;</b>
+        &lt;parameter name="className" 
+            value="org.globus.wsrf.impl.notification.ResumeSubscriptionProvider"/&gt;
+        &lt;wsdlFile>share/schema/core/notification/subscription_manager_service.wsdl&lt;/wsdlFile&gt;
+    &lt;/service&gt;
+</pre>
+
+<b>Note:</b> The operations defined in the <code>className</code> service always
+overwrite the providers' operations. That is, if one provider defines the same
+method as the service specified in the <code>className</code> parameter, the
+operation will be invoked on the service. Also, if two providers define the same
+method, the first one specified in the <code>providers</code> parameter will be invoked.
+
+
+<h3><a name="JNDIDetails">JNDI details</a></h3>
 <p>
 Java WS Core provides <a href="http://jakarta.apache.org/tomcat/tomcat-5.0-doc/jndi-resources-howto.html">Tomcat's JNDI</a> implementation. The file format of Java WS Core's <code>jndi-config.xml</code> is slightly different from the Tomcat's <code>server.xml</code> file. One main difference is that the <code>&lt;resourceParams&gt;</code> are specified as children of <code>&lt;resource&gt;</code> objects. Also, Java WS Core's <code>jndi-config.xml</code> parser is case sensitive and all elements names are lowercase. 
 </p>
@@ -596,7 +670,7 @@ When deploying <code>&lt;resource&gt;</code> in <code>jndi-config.xml</code> mak
 Please see <a href="http://java.sun.com/products/jndi/tutorial/">The JNDI Tutorial</a> for more information on JNDI programming. 
 </p>
 
-<h3><a name="ContextProperties">MessageContext Properties</a></h3>
+<h3><a name="ContextProperties">MessageContext properties</a></h3>
 
 The following properties can be obtained from the SOAPContext/MessageContext associated with the current thread:
 
@@ -621,7 +695,7 @@ The <code>Constants.MC_CONFIGPATH</code> property should be used to load any typ
 In the standalone container the <code>Constants.MC_HOME_DIR</code> and <code>Constants.MC_CONFIGPATH</code> properties will usually point to the same directory. However, in Tomcat they will point to two different directories.
 </p>
 
-<h3><a name="testing">Writing and Running Tests</a></h3>
+<h3><a name="testing">Writing and running tests</a></h3>
 <p>Tests in the Java WS Core are based on the <a href="http://www.junit.org/">JUnit</a> API. JUnit must first be installed with Ant. To install JUnit with Ant copy the <code>junit.jar</code> found in JUnit distribution to the <code>$ANT_HOME/lib</code> directory.
 </p>
 
@@ -771,7 +845,7 @@ The GAR (Grid Archive) file is a single file which contains all the files and in
 </p>
 
 
-<h3><a name="CreatingLaunchers">Generating Launcher Scripts</a></h3>
+<h3><a name="CreatingLaunchers">Generating launcher scripts</a></h3>
 <p>
 Bourne Shell and Windows batch scripts can be automatically generated to hide the details of launching a Java program from the command line. 
 <br>
