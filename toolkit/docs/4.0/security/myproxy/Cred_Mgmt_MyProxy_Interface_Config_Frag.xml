@@ -1,0 +1,163 @@
+<para>No additional configuration is required to use MyProxy clients after they
+  are installed, although you may want to set the MYPROXY_SERVER environment
+  variable to the hostname of your myproxy-server in the default user environment
+  on your systems.</para>
+
+<para>
+To configure the myproxy-server, you must 
+modify $GLOBUS_LOCATION/etc/myproxy-server.config.
+<emphasis>If you skip this step, your myproxy-server will not accept
+any requests.</emphasis>
+The default configuration does not enable any
+myproxy-server features to provide the greatest security until you
+have configured your server.
+To enable all myproxy-server features, uncomment the provided sample
+policy at the top of the myproxy-server.config config file, as
+follows:
+</para>
+<blockquote><para><code>
+#
+# Complete Sample Policy
+#
+# The following lines define a sample policy that enables all
+# myproxy-server features.  See below for more examples.
+accepted_credentials  "*"
+authorized_retrievers "*"
+default_retrievers    "*"
+authorized_renewers   "*"
+default_renewers      "none"
+</code></para></blockquote>
+<para>
+Please see below for additional documentation on the
+myproxy-server.config options.
+</para>
+<para>
+If you have root access, you can copy your
+myproxy-server.config file to /etc/myproxy-server.config
+so it is not overwritten by later installations.
+</para>
+
+<para>
+       The  <code>myproxy-server.config</code>  file  sets  the  policy  for
+        the <code>myproxy-server(8)</code>, specifying what credentials may be
+        stored in the server's repository and who is authorized to retrieve credentials.
+        By default, the <code>myproxy-server(8)</code> looks for this file in <code>/etc/myproxy-server.config</code>
+       and if it is not found there, it looks in <code>$GLOBUS_LOCATION/etc/myproxy-server.config</code>.
+       The <code>myproxy-server -c</code> option can
+       be used to specify an alternative location. The file installed by default
+       does not allow any requests.
+</para>
+<para>
+       The file also supports a <code>passphrase_policy_program</code> command
+       for specifying an external program for evaluating the quality of users'
+       passphrases.   A  sample  program   is   installed   in   <code>$GLOBUS_LOCATION/share/myproxy/myproxy-passphrase-policy</code>  but
+       is not enabled by default.
+</para>
+<para>
+       Lines in the configuration file use  limited  regular  expressions  for
+       matching  the  distinguished names (DNs) of classes of users.  The lim-
+       ited regular expressions support the  shell-stype  characters  '*'  and
+       '?',  where  '*'  matches  any number of characters and '?' matches any
+       single character.
+</para>
+<para>
+       The DN limited regexes should be  delimited  with  double  quotes  ("DN
+       regex").
+</para>
+<para>
+       The configuration file has the following types of lines:
+</para>
+<table><title>TITLE</title>
+<tgroup cols="2"><tbody>
+<row><entry>   accepted_credentials "DNregex"</entry>
+<entry>          Each of these lines allows any clients whose DNs match the given
+              limited regex to connect to the myproxy-server and store creden-
+              tials  with  it for future retrieval.  Any number of these lines
+              may appear.  For backwards compatibility, these lines  can  also
+              start with <code>allowed_clients</code> instead of <code>accepted_credentials</code>.</entry>
+</row>
+
+<row><entry>   authorized_retrievers "DN regex"</entry>
+<entry>          Each  of  these  lines  allows  the  server administrator to set
+              server-wide policies for authorized retrievers. If the client DN
+              does not match the given limited regex the client is not allowed
+              to retrieve the credentials previously stored by a  client.   In
+              addition  to  the server-wide policy, MyProxy also provides support
+  for per-credential policy. The user can specify the regex DN of the allowed
+  retrievers of the credential when uploading the credential (using <code>myproxy-init(1)</code>).
+  The retrieval client DN must also match the user specified regex. In order
+  to retrieve credentials the client also needs to know the name and pass
+              phrase  provided by the client when the credentials were stored.
+              Any number of these lines may appear.  For backwards compatibility,
+  these lines can also start with <code>allowed_services</code> instead
+              of
+              <code>authorized_retrievers</code>.</entry>
+</row>
+
+<row><entry>   default_retrievers "DN regex"</entry>
+<entry>          Each of these lines  allows  the  server  administrator  to  set
+              server-wide  default  policies.  The regex specifies the clients
+              who can access the credentials. The default retriever policy  is
+              enforced  if  a per-credential policy is not specified on upload
+              (using <code>myproxy-init(1)</code>).  In other words, the client
+              can override this policy for a credential on upload. The per-credential
+              policy is enforced in addition to the server-wide policy  specified
+              by the <code>authorized_retrievers</code> line (which clients can
+              not override). Any number of these lines may be present. For backwards
+              compatibility, if no <code>default_retrievers</code> line is specified,
+              the default policy is "*", which allows any client to  pass  the
+              per-credential  policy  check.   (The client must still pass the
+              <code>authorized_retrievers</code> check.)</entry>
+</row>
+
+<row><entry>   authorized_renewers "DN regex" </entry>
+<entry>          Each of these lines  allows  the  server  administrator  to  set
+              server-wide  policies  for authorized renewers. If the client DN
+              does not match the given limited regex the client is not allowed
+              to  renew  the  credentials  previously  stored by a client.  In
+              addition to the server-wide policy, MyProxy also  provides  support
+  for per-credential policy. The user can specify the regex DN of the allowed
+  renewers of the credential on upload (using
+              <code>myproxy-init(1)</code>).   The  renewal  client DN must match both
+              this regex and the user specified regex. In this case, the client
+              must also already have a credential with a DN matching the DN of
+              the credentials to be retrieved, to be used in a  second  autho-
+              rization step (see the <code>-a</code> option for <code>myproxy-get-delegation(1)</code>).</entry>
+</row>
+
+<row><entry>   default_renewers "DN regex"</entry>
+<entry>          Each of these lines  allows  the  server  administrator  to  set
+              server-wide  default  renewer  policies. The regex specifies the
+              clients who can renew the credentials. The default renewer  policy
+  is enforced if a per-credential policy is not specified on upload (using <code>myproxy-init(1)</code>).
+  This is enforced in addition to the server-wide policy specified by the <code>authorized_renewers</code>
+              line. Any number of these lines may appear.  For backwards  compatibility,
+              if no <code>default_renewers</code> line is specified, the default
+              policy is "*",
+              which allows any client to pass the per-credential policy check.
+              (The client must still pass the <code>authorized_renewers</code> check.)</entry>
+</row>
+
+<row><entry>   passphrase_policy_program full-path-to-script</entry>
+<entry>          This line specifies a program to run whenever  a  passphrase  is
+              set  or  changed  for implementing a local password policy.  The
+              program is passed the new passphrase via stdin and is passed the
+              following  arguments:  username,  distinguished name, credential
+              name (if any), per-credential retriever  policy  (if  any),  and
+              per-credential  renewal  policy  (if any).  If the passphrase is
+              acceptable, the program should exit with status  0.   Otherwise,
+              it  should  exit  with non-zero status, causing the operation in
+              progress (credential load, passphrase change) to fail  with  the
+              error  message provided by the program's stdout.  Note: You must
+              specify the full path to the external program.  <code>$GLOBUS_LOCATION</code>    can't be used in the <code>myproxy-server.config</code> file.</entry>
+</row>
+
+<row><entry>   max_proxy_lifetime hours</entry>
+<entry>          This line specifies a server-wide maximum lifetime for retrieved
+              proxy  credentials.   By  default,  no  server-wide  maximum  is
+              enforced.  However, if this option is specified, the server will
+              limit the lifetime of any retrieved  proxy  credentials  to  the
+              value given.</entry>
+</row>
+</tbody></tgroup>
+</table>
