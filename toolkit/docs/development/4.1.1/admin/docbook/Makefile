@@ -7,7 +7,7 @@ all: html pdf
 html:
 	xsltproc --stringparam chunk.section.depth 0 \
            ${GRAPHICS} ${NUMBERING} \
-           chunk.xsl \
+           custom.xsl \
            ${FILENAME}
 
 pdf:
