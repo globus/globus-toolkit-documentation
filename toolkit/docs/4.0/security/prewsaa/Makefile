@@ -1,7 +1,6 @@
 FILENAME=index.xml
 
-#My pdf generator segfaults, don't know why
-all: html 
+all: html pdf
 
 html:
 	xsltproc --stringparam chunk.section.depth 0 \
