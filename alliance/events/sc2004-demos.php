@@ -15,11 +15,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <div id="main">
 
 
-<!-- content STARTS here -->
-
-<p> << <a href="."> Activities </a> << <a href="meetings.php"> Meetings 
-</a></p>
-
 <img src="../images/logo.gif" align="right" border="0" height="145" width="212">
 <h1>Live Technology Demonstrations at SC2004</h1>
    
@@ -106,11 +101,6 @@ Tuesday: 1:45pm; Thursday: 1:00pm</p>
 Tuesday: 12:15pm; Wednesday: 3:15pm; Thursday: 1:00pm</p>
 
 
-<p> << <a href="."> Activities </a> << <a href="meetings.php"> Meetings 
-</a></p>
-
-  
 </div>
+
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
-
-

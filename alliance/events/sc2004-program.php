@@ -13,10 +13,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 -->
 
 <div id="main">
-<!-- content STARTS here -->
-
-<p> << <a href="."> Activities </a> << <a href="meetings.php"> Meetings </a></p>
-
 
 <img src="../images/logo.gif" align="right" border="0" height="145" width="212">
 <h1>The Globus Alliance at SC2004</h1>
@@ -182,10 +178,6 @@ Supercomputer Center), Marcus Thiebaux (Information Sciences Institute), Julio
 Lopez (Carnegie Mellon University)</p>
 
 
-<p> << <a href="."> Activities </a> << <a href="meetings.php"> Meetings 
-</a></p>
-
-   
 </div>
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
 
