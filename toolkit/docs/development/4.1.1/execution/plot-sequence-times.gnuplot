@@ -11,7 +11,7 @@ set output "sequence-times.fig"
 set title "Simple WS_GRAM sequence timing (averaged)"
 
 set noxtics
-set xrange [-0.5:2.5]
+set xrange [-0.5:4.5]
 #set yrange [0:10]
 
 set ylabel "Elapsed time (s)"
@@ -24,7 +24,8 @@ plot 	"sequence-times.dat" i 0 notitle with boxes, \
 	"sequence-times.dat" i 4 notitle with boxes, \
 	"sequence-times.dat" i 5 notitle with boxes, \
 	"sequence-times.dat" i 6 notitle with boxes, \
-	"sequence-times.dat" i 7 notitle with boxes
+	"sequence-times.dat" i 7 notitle with boxes, \
+	"sequence-times.dat" i 8 notitle with boxes
 
 # data file format:
 #
