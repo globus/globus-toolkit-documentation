@@ -1,0 +1,143 @@
+
+<h3>Protocol overview</h3>
+<p>RFT Service implementation
+in 3.9.3 uses
+standard SOAP messages over HTTP to submit and manage a set of 3rd
+party GridFTP transfers and to delete files using GridFTP. The user
+creates a RFT resource by submitting a list of URL pairs of&nbsp; files
+that need to be transferred/deleted&nbsp; to RFT Factory service. The
+user also specifies the time to live for the resource the user is
+creating to a GT 3.9.3 Container in which RFT is deployed and configured.
+The resource is created after the user is properly authorized and
+authenticated. RFT service implementation exposes operations to control
+and manage the transfers (the resource). The operations exposed by both
+RFT factory and RFT service are briefly described below. The resource
+the user created also exposes the state of the transfer as a resource
+property to which the user can either subscribe for changes or poll for
+the changes in state periodically using standard command line clients.</p>
+<h3>Operations</h3>
+<p>Reliable File Transfer Factory Service : Used
+to create a Reliable File Transfer resource. The operations exposed by
+the factory are as follows:</p>
+<ul>
+  <li><code>createReliableFileTransfer </code>: Creates a Reliable
+File
+Transfer Resource. <br>
+  </li>
+  <ul>
+    <li><span style="font-style: italic;">Input Parameters:</span>
+Initial Termination time , Transfer Request or Delete Request</li>
+    <li><span style="font-style: italic;">Output parameters:&nbsp;</span>
+Termination time, Current time, Endpoint reference of the Resource
+created. ( This should be stored by the user as it is needed to query
+the status of the resource and to perform any further operations on the
+resource.</li>
+    <li><span style="font-style: italic;">Fault: </span>createReliableFileTransferFault:</li>
+  </ul>
+</ul>
+<p>Reliable File Transfer Service : Used to manage the Resource created
+using the RFT Factory Service. The operations exposed by the service
+are as follows: </p>
+<ul>
+  <li><code> start:</code> Starts executing the transfers/deletes</li>
+  <ul>
+    <li><span style="font-style: italic;">Input&nbsp; Parameters: </span>None</li>
+    <li><span style="font-style: italic;">Output Parameters: </span>None</li>
+    <li><span style="font-style: italic;">Fault: </span>RepeatedlyStartedFault:
+    </li>
+  </ul>
+  <li><code>getStatus:</code> To get the status of a particular file.</li>
+  <ul>
+    <li><span style="font-style: italic;">Input Parameters:&nbsp; </span>A
+source URL of the file that is part of the request.</li>
+    <li><span style="font-style: italic;">Output Parameters: </span><code>Transfer
+Status Type</code></li>
+    <li><span style="font-style: italic;">Fault: </span>RFTDatabaseFault</li>
+  </ul>
+  <li><code>getStatusSet</code> : To get the status of a set of files
+in a request</li>
+  <ul>
+    <li><span style="font-style: italic;">Input Parameters:&nbsp; </span>int&nbsp;<span
+ style="font-style: italic;"> from</span> ( the relative position of
+the transfer in the request)&nbsp; and int <span
+ style="font-style: italic;">offset</span> ( Number of files
+queried)</li>
+    <li><span style="font-style: italic;">Output Parameters:&nbsp; </span>An
+array of <code> TransferStatusType </code></li>
+    <li><span style="font-style: italic;">Fault: </span>RFTDatabaseFault</li>
+  </ul>
+  <li><code></code>cancel:&nbsp; To cancel a transfer that is part of a
+resource.</li>
+  <ul>
+    <li><span style="font-style: italic;">Input Parameters : </span>int
+      <span style="font-style: italic;">from</span> ( the relative
+position of
+the transfer in the request ) int <span style="font-style: italic;">to</span>
+    </li>
+    <li><span style="font-style: italic;">Output Parameters: </span>None</li>
+    <li><span style="font-style: italic;">Fault: </span>RFTDatabaseFault</li>
+  </ul>
+</ul>
+<h3>Resource properties</h3>
+<p>RFT Factory Resource Properties:</p>
+<ul>
+  <li>ActiveResourceInstances: A dynamic resource property of total
+number of active rft resources in the container at a given point of
+time.<br>
+  </li>
+  <li>TotalNumberOfTransfers: A dynamic resource property of total
+number of transfers/deletes performed since the RFT service is deployed
+in this container <br>
+  </li>
+  <li>TotalNumberOfActiveTransfers: A dynamic resource property of
+number of active transfers across all rft resources in a container at a
+given point of time.<br>
+  </li>
+  <li>TotalNumberOfBytesTransferred: A dynamic resource property of
+total number of bytes transferred by all RFT resources created since
+the deployment of the service.<br>
+  </li>
+  <li>RFTFactoryStartTime: Time when the service was deployed in the
+container. Used to calculate uptime.<br>
+  </li>
+  <li>DelegationServiceEPR: The end point reference of the Delegation
+resource that holds the delegated credential used in executing the
+resource.</li>
+</ul>
+RFT Resource Properties : <br>
+<ul>
+  <li>RequestStatusProperty : represents the current state of the
+resource ( Active, Pending, Failed, Finished). It also includes the
+last fault message encountered while executing the request.<br>
+  </li>
+  <li>OverallStatusProperty:&nbsp; provides current state of the
+transfer by providing number of Transfers done, pending, active,
+failed, cancelled and retrying. It also contains the fault message, if
+any, raised during a transfer.<br>
+  </li>
+  <li>TotalBytes: provides the total number of bytes transferred by the
+resource</li>
+  <li>TotalTime: provides the total time taken to transfer the above
+mentioned total bytes.<br>
+  </li>
+</ul>
+<h3>Faults</h3>
+<p>Faults thrown by RFT Factory :</p>
+<ul>
+  <li>createReliableFileTransferFault: All the errors encountered
+during the creation of the RFT resource are mapped to this fault. Any
+security related errors are caught even before the factory and are
+thrown to the user/client.</li>
+</ul>
+Faults thrown by RFT Service:
+<ul>
+  <li>RepeatedlyStartedFault: This is raised if a client calls start
+more than once on a resource <br>
+  </li>
+  <li>RFTDatabaseFault: Thrown when the service is unable to find the
+resource the user/client is querying for.<br>
+  </li>
+</ul>
+<h3>Schema Definition</h3>
+You can find links to all the RFT schemas <a
+ href="http://viewcvs.globus.org/viewcvs.cgi/ws-transfer/reliable/common/schema/transfer/reliable/">here</a>

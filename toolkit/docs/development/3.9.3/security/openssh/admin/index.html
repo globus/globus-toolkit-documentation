@@ -1,0 +1,256 @@
+<h1>GT 3.9.3 GSI-OpenSSH : System Administrator's Guide</h1>
+<ul>
+  <li><a href="#introduction">Introduction</a></li>
+  <li> <a href="#installing">Building and Installing</a></li>
+  <li><a href="#configuring">Configuring</a></li>
+  <li><a href="#deploying">Deploying</a></li>
+  <li><a href="#testing">Testing</a></li>
+  <li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+<h2><a name="introduction"></a>Introduction</h2>
+<p>
+This is a guide for installing and administering GSI-enabled OpenSSH.
+This guide is meant solely to cover the GSI aspects of GSI-OpenSSH,
+and is not meant to be a full manual for OpenSSH itself.
+Please refer to the
+<a href="http://www.openssh.org/">OpenSSH Home Page</a>
+for general documentation for OpenSSH.</p>
+<h2><a name="installing"></a>Building and Installing</h2>
+<p>
+To install GSI-enabled OpenSSH, follow the instructions for 
+the Globus Toolkit <em>All Services</em> or <em>Pre-WS</em> Installer.
+</p>
+<p>
+You can optionally pass build-time configure options to the
+GSI-OpenSSH package by setting the macro GSI_OPENSSH_GPTMACRO during
+the build phase.  No options are typically needed for client-only
+installations, but options are often needed for full server
+functionality.
+The following table lists suggested options for different platforms.
+</p>
+
+<table border="0" width="100%" cellspacing="0" cellpadding="2" style="font-size: 100%;">
+<tr>
+<td width="30%" bgcolor="#FFE7BA" align="center"><b>Platform</b></td>
+<td width="70%" bgcolor="#FFE7BA" align="center"><b>Configuration</b></td>
+</tr>
+<tr>
+<td align="center">Linux</td>
+<td align="center">--with-pam --with-md5-passwords --with-tcp-wrappers</td>
+</tr>
+<tr>
+<td align="center">Solaris</td>
+<td align="center">--with-pam --with-md5-passwords --with-tcp-wrappers</td>
+</tr>
+<tr>
+<td align="center">Irix</td>
+<td align="center">--with-tcp-wrappers</td>
+</tr>
+<tr>
+<td align="center">AIX</td>
+<td align="center">--with-tcp-wrappers</td>
+</tr>
+</table>
+
+<p>Note: If you enable PAM support with the --with-pam configuration option,
+be sure to also set "UsePAM yes" in
+$GLOBUS_LOCATION/etc/ssh/sshd_config after installation.
+</p>
+
+<p>
+If you have an already configured and installed system-wide SSHD and
+you would like your build of GSI-OpenSSH to behave similarly,
+investigate the configure options available in GSI-OpenSSH and select
+those options that would add the functionality that your current SSHD
+possesses.  Be aware that since GSI-OpenSSH is based on OpenSSH, the
+standard set of functionality is turned on by default.
+</p>
+
+<p>
+<strong>Please do not attempt to override the following options:</strong>
+</p>
+<blockquote>
+--prefix<br/>
+--sysconfdir<br/>
+--with-globus<br/>
+--with-globus-flavor<br/>
+--with-ssl-dir<br/>
+</blockquote>
+
+<h2><a name="configuring"></a>Configuring </h2>
+<p>Information on configuration settings and environment variables can be found
+  in the <a href="../Util_OpenSSH_Public_Interfaces.html">public interface guide</a>.</p>
+<p>
+GSI authentication is very sensitive to clock skew.
+You must run a system clock synchronization service of some type on
+your system to prevent authentication problems caused by incorrect
+system clocks.
+We recommend <a href="http://www.ntp.org/">NTP</a>.
+Please refer to your operating system documentation or the 
+<a href="http://www.ntp.org/">NTP Home Page</a> for installation
+instructions.
+Please also ensure your system timezone is set correctly.
+</p>
+
+
+
+<h2><a name="deploying"></a>Deploying</h2>
+
+<ol>
+
+<li>
+<p>
+To install the GSI-Enabled OpenSSH Server on most systems, you must be
+a privileged user, such as root.
+</p>
+
+<blockquote>
+sh$ /bin/su - root
+</blockquote>
+
+<p>
+Note: If your system functions like this and you attempt to run these
+commands as a user other than root, these commands should fail.
+</p>
+</li>
+
+<li>
+(optional) Start a copy of your system's currently running SSH server
+on an alternate port by running, eg.
+
+<blockquote>
+sh# /usr/sbin/sshd -p 2000 &amp;
+</blockquote>
+
+<p>
+You may then choose to log in to this server and continue the rest of
+these steps from that shell.  We recommend doing this since some sshd
+shutdown scripts do particularly nasty things like killing <b>all</b>
+of the running SSH servers on a system, not just the parent server
+that may be listening on port 22.
+</p>
+
+<p>
+Roughly translated, this step is about guaranteeing that an alternate
+method of access is available should the main SSH server be shutdown
+and your connection via that server be terminated.
+</p>
+</li>
+
+<li>
+Locate your server's startup/shutdown script directory.  On some
+systems this directory may be located at /etc/rc.d/init.d, but since
+this location is not constant across operating systems, for the
+purposes of this document we will refer to this directory as INITDIR.
+Consult your operating system's documentation for your system's
+location.
+</li>
+
+<li>
+Run the following command
+
+<blockquote>
+sh# mv $INITDIR/sshd $INITDIR/sshd.bak
+</blockquote>
+</li>
+
+<li>
+Either copy or link the new sshd script to your system's
+startup/shutdown script directory.
+
+<blockquote>
+sh# cp $GLOBUS_LOCATION/sbin/SXXsshd $INITDIR/sshd
+</blockquote>
+</li>
+
+<li>
+Shutdown the currently running main SSH server.
+
+<blockquote>
+sh# $INITDIR/sshd.bak stop
+</blockquote>
+</li>
+
+<li>
+Provided you still have a connection to the machine, start the new SSH
+server.
+
+<blockquote>
+sh# $INITDIR/sshd start
+</blockquote>
+</li>
+
+<li>
+Test the new server by connecting to the standard SSH port (22) and
+authenticating via multiple methods.  Especially test that GSI
+authentication works correctly.
+</li>
+
+<li>
+If you are performing a new install, or if the old server was not
+configured to be started at run-time and shutdown automatically at
+system halt or reboot, either use a system utility such as RedHat's
+chkconfig to configure the system for the correct run-levels, or
+manually link up the correct run-levels.
+
+<blockquote>
+sh# /sbin/chkconfig sshd reset
+</blockquote>
+
+<blockquote>
+The recommended run-levels are listed in a set of comments within the
+SXXsshd startup script.  For example, on standard Unix systems we
+recommend running the GSI-Enabled OpenSSH server in run-levels two,
+three, four, and five.
+</blockquote>
+</li>
+
+<li>
+Finally, if, as a precautionary measure, you started a SSH server on
+an alternate port in order to complete the install process, you can
+now safely stop all instances of that server.
+</li>
+
+</ol>
+
+<h2><a name="testing"></a>Testing</h2>
+
+<li>
+Edit the file $GLOBUS_LOCATION/sbin/SXXsshd so that the GSI-Enabled
+OpenSSH server starts up on an alternate port.
+</li>
+
+<li>
+Run the command
+<blockquote>
+sh# $GLOBUS_LOCATION/sbin/SXXsshd start
+</blockquote>
+and verify that the server is running by checking that it both shows
+up in a process listing and creates a file named
+$GLOBUS_LOCATION/var/sshd.pid.
+</li>
+
+<li>
+From a remote machine attempt to connect to the local server on the
+modified test port using the standard SSH authentication methods plus
+authenticating via your GSI credentials.
+This may require you to authorize these users via an appropriate entry
+in the grid-mapfile.
+</li>
+
+<li>
+Stop the SSH server by running the command
+<blockquote>
+sh# $GLOBUS_LOCATION/sbin/SXXsshd stop
+</blockquote>
+and reverse any changes you made that altered the port on which the server resided upon startup.  After this step,
+running SXXsshd start should start the server on the default port (22).
+</li>
+</ol>
+
+<h2><a name="troubleshooting"></a>Troubleshooting</h2>
+<p><font color="purple">[help for common problems sysadmins may experience] </font></p>
+<p>&nbsp;</p>
+<ul>
+  <li></li>
+</ul>

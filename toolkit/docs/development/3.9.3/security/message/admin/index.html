@@ -1,0 +1,135 @@
+
+<h1>GT 3.9.3 Message/Transport-level Security : System Administrator's Guide</h1>
+<ul>
+  <li><a href="#introduction">Introduction</a></li>
+  <li> <a href="#installing">Building and Installing</a></li>
+  <li><a href="#configuring">Configuring</a></li>
+  <li><a href="#deploying">Deploying</a></li>
+  <li><a href="#testing">Testing</a></li>
+  <li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+<h2><a name="introduction"></a>Introduction</h2>
+The main administration issues for this component deal with configuring
+credential related settings. There are multiple mechanisms for&nbsp;
+doing this:<br>
+<br>
+<ul>
+  <li>Security Descriptors</li>
+  <ul>
+    <li>Container Security Descriptor: This is the preferred mechanism</li>
+    <li>Service Security Descriptor</li>
+  </ul>
+  <li>CoG properties</li>
+  <li>Environment variables</li>
+  <li>Relying on default behavior. The only default behaviors available
+concern the proxy file and trusted certificates locations.</li>
+</ul>
+More information on these mechanisms can be found in the <a
+ href="../WS_AA_Message_Level_Public_Interfaces.html">public interface
+guide</a>.
+<h2><a name="installing"></a>Building and Installing</h2>
+<p><font color="purple">[information about installing the component -
+may link to Installation Guide]</font></p>
+<h2><a name="configuring"></a>Configuring </h2>
+<p>Information on configuration settings and environment variables can
+be found in the <a href="../WS_AA_Message_Level_Public_Interfaces.html">public
+interface guide</a>.</p>
+<h2><a name="deploying"></a>Deploying</h2>
+<h3>Tomcat &amp; Transport Security</h3>
+To deploy into Tomcat with transport security run:<br>
+<br>
+cd $GLOBUS_LOCATION
+ant -f share/globus_wsrf_common/tomcat/tomcat.xml deploySecureTomcat
+-Dtomcat.dir=&lt;tomcat.dir&gt;
+<br>
+<br>
+In addition to the above deployment step you will also need to modify
+the Tomcat &lt;tomcat_root&gt;/conf/server.xml configuration file. In
+particular you will need to add the following configuation entries:
+<ul>
+  <li>Tomcat 4<br>
+    <br>
+    <ol>
+      <li>Add HTTPS Connector in <i>&lt;Service
+name="Tomcat-Standalone"&gt;</i> section and update the parameters
+appropriately with your local configuration: <br>
+        <br>
+&lt;Connector
+className="org.apache.catalina.connector.http.HttpConnector"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+port="8443" minProcessors="5" maxProcessors="75"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+enableLookups="true" authenticate="true"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+acceptCount="10" debug="1" scheme="https" secure="true"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;Factory
+className="org.globus.tomcat.catalina.net.HTTPSServerSocketFactory"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+proxy="/path/to/proxy/file"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cert="/path/to/certificate/file"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+key="/path/to/private/key/file"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cacertdir="/path/to/ca/certificates/directory"/&gt;<br>
+&lt;/Connector&gt;<br>
+        <br>
+In the above the proxy, cert, key and cacertdir attributes are
+optional. Furthermore, proxy and the combination of cert and key are
+mutually&nbsp; exclusive.<br>
+        <br>
+      </li>
+      <li>Add HTTPS Valve in <i>&lt;Engine name="Standalone" ... &gt; </i>section:<br>
+        <br>
+&lt;Valve className="org.globus.tomcat.catalina.valves.HTTPSValve"/&gt;<br>
+        <br>
+      </li>
+    </ol>
+  </li>
+  <li>Tomcat 5<br>
+    <br>
+    <ol>
+      <li>Add HTTPS Connector in <i>&lt;Service
+name="Catalina"&gt;</i> section and update the parameters
+appropriately with your local configuration: <br>
+        <br>
+&lt;Connector
+className="org.globus.tomcat.coyote.net.HTTPSConnector"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+port="8443" maxThreads="150" minSpareThreads="25" maxSpareThreads="75"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+enableLookups="false" disableUploadTimeout="true" <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+acceptCount="100"
+debug="0" scheme="https"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+proxy="/path/to/proxy/file"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cert="/path/to/certificate/file"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+key="/path/to/private/key/file"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cacertdir="/path/to/ca/certificates/directory"/&gt;<br>
+        <br>
+In the above the proxy, cert, key and cacertdir attributes are
+optional. Furthermore, proxy and the combination of cert and key are
+mutually&nbsp; exclusive.<br>
+        <br>
+      </li>
+      <li>Add HTTPS Valve in <i>&lt;Engine name="Standalone" ... &gt; </i>section:<br>
+        <br>
+&lt;Valve className="org.globus.tomcat.catalina.valves.HTTPSValve"/&gt;<br>
+        <br>
+      </li>
+    </ol>
+  </li>
+</ul>
+<h2><a name="testing"></a>Testing</h2>
+<p><font color="purple">[procedures for how to test the configuration.
+must include examples of the tests ]</font></p>
+<h2><a name="troubleshooting"></a>Troubleshooting</h2>
+  <?php
+include_once( "./../../Credential_Troubleshooting_Frag.html" );
+?>
+

@@ -1,0 +1,263 @@
+<p>This section describes the configuration steps required to:
+</p>
+<ul>
+<li>Determine whether or not to trust certificates issued by a particular
+Certificate Authority (CA),</li>
+<li>Provide appropriate default values for use by the
+<code>grid-cert-request</code> command, which is used to generate
+certificates,</li>
+<li>Request <i>service certificates</i>, used by services to authenticate
+themselves to users, and</li>
+<li>Specify identity mapping information.</li>
+</ul>
+<p>In general, Globus tools will look for a configuration file in a
+  user-specific location first, and in a systemwide location if no
+  user-specific file was found.  The configuration commands described
+  here may be run by administrators to create systemwide defaults, and by
+  individuals to override those defaults.
+  [TODO:  Add a reference to an overview document]
+</p>
+<h3>Configuring Globus to Trust a Particular Certificate Authority</h3>
+<p>The Globus tools will trust certificates issued by a CA if (and only if) it
+  can find information about that CA in the trusted certificate directory.
+  [TODO: link to the environment fragment, which explains where the
+  trusted certificates directory is]
+  The
+  following two files must exist in that directory for each trusted CA:
+</p>
+<table>
+<tr>
+<td><code><i>cert_hash</i>.0</code></td>
+<td>The trusted CA certificate.</li>
+</tr>
+<tr>
+<td><code><i>cert_hash</i>.signing_policy</code></td>
+<td>A configuration file defining the distinguished names of certificates
+signed by the CA.
+</td>
+</tr>
+</table>
+<p />
+Pre-WS Globus components will honor a certificate only if:
+<ul>
+<li>its CA certificate
+exists (with the appropriate name) in the <i>TRUSTED_CA</i> directory,
+and</li>
+<li>the certificate's distinguished name matches the pattern described in
+the signing policy file.</li>
+</ul>
+<p>WSRF-based components ignore the signing policy file and will honor
+  all valid certificates issued by trusted CAs.
+</p>
+<p>The <i>cert_hash</i> that appears in the file names above is the hash of
+  the CA certificate, which can be found by running the command:
+</p>
+<pre>$GLOBUS_LOCATION/bin/openssl x509 -hash -noout &lt; <i>ca_certificate</i>
+</pre>
+<p>Some CAs provide tools to install their CA certificates and signing policy
+  files into the trusted certificates directory.  You can, however, create
+  a signing policy file by hand; the signing policy file has the following
+  format:
+</p>
+<pre>
+   access_id_CA X509 '<i>CA Distinguished Name</i>'
+   pos_rights globus CA:sign
+   cond_subjects globus '"<i>Distinguished Name Pattern</i>"'
+</pre>
+<p>In the above, the <i>CA Distinguished Name</i> is the subject name of the
+  CA certificate, and the <i>Distinguished Name Pattern</i> is a string
+  used to match the distinguished names of certificates granted by the CA.
+  Some very simple wildcard matching is done -- if the
+  <i>Distinguished Name Pattern</i> ends with a '*', then any distinguished
+  name that matches the part of the CA subject name before the '*' is considered
+  a match.  Note:  the <code>cond_subjects</code> line may contain a space-separated list of distinguished name patterns.
+</p>
+<h3>Configuring Globus to Create Appropriate Certificate Requests</h3>
+<p>The <code>grid-cert-request</code> command, which is used to create certificates,
+  uses the following configuration files:
+</p>
+
+<table>
+<tr>
+<td><code>globus-user-ssl.conf</code></td>
+<td>defines the distinguished name to
+use for a user's certificate request. The format is described 
+<a href="http://www.openssl.org/docs/apps/req.html#CONFIGURATION_FILE_FORMAT">here</a>.</td>
+</tr>
+<tr>
+<td><code>globus-host-ssl.conf</code></td>
+<td>defines the distinguished name for a
+host (or service) certificate request. The format is described 
+<a href="http://www.openssl.org/docs/apps/req.html#CONFIGURATION_FILE_FORMAT">here</a>.</td>
+</tr>
+<tr>
+<td><code>grid-security.conf</code></td>
+<td>a base configuration file that contains the name and email address
+for the CA.</td>
+</tr>
+</table>
+<p />
+<p>Many CAs provide tools to install configuration files called
+  <code>globus-user-ssl.conf.<i>cert_hash</i></code>,
+  <code>globus-host-ssl.conf.<i>cert_hash</i></code>, and
+  <code>grid_security.conf.<i>cert_hash</i></code>
+in the trusted certificates directory.  The command:
+</p>
+<pre>
+   grid-cert-request -ca <i>cert_hash</i>
+</pre>
+<p>will create a certificate request based on the specified CA's configuration
+  files.  The command:
+</p>
+<pre>
+   grid-cert-request -ca
+</pre>
+<p>will list the available CAs and let the user choose which one to create a
+  request for.
+</p>
+<p>You can specify a default CA for certificate requests (i.e., a CA that
+  will be used if <code>grid-cert-request</code> is invoked without the
+  <code>-ca</code> flag) by making the following symbolic links (where
+  <i>GRID_SECURITY</i> is the grid security directory [TODO: link to environment
+  fragment] and <i>TRUSTED_CA</i> is the trusted CA directory:
+</p>
+<pre>
+   ln -s <i>GRID_SECURITY</i>/globus-user-ssl.conf \
+         <i>TRUSTED_CA</i>/globus-user-ssl.conf.<i>cert_hash</i>
+   ln -s <i>GRID_SECURITY</i>/globus-host-ssl.conf \
+         <i>TRUSTED_CA</i>/globus-host-ssl.conf.<i>cert_hash</i>
+   ln -s <i>GRID_SECURITY</i>/grid_security.conf \
+         <i>TRUSTED_CA</i>/grid_security.conf.<i>cert_hash</i>
+</pre>
+<h3>Requesting Service Certificates</h3>
+<p>Different CAs use different mechanisms for issuing end-user
+  certificates; some use mechanisms that are entirely web-based, while
+  others require you to generate a certificate request and send it to
+  the CA. If you need to create a certificate request for a
+  service certificate, you can do so by running:
+</p>
+<pre>
+    grid-cert-request -host <i>hostname</i> -service <i>service_name</i>
+</pre>
+<p>where <i>hostname</i> is the fully-qualified name of the host on which
+  the service will be running, and <i>service_name</i> is the name of the
+  service.  This will create the following three files:
+</p>
+<table>
+<tr>
+<td><code><i>GRID_SECURITY/service_name/service_name</i>cert.pem</code></td>
+<td>
+An empty file.  When you receive your actual service certificate from your CA,
+you should place it in this file.
+</td>
+</tr>
+<tr>
+<td><code><i>GRID_SECURITY/service_name/service_name</i>cert_request.pem</code></td>
+<td>
+The certificate request, which you should send to your CA.
+</td>
+</tr>
+<tr>
+<td><code><i>GRID_SECURITY/service_name/service_name</i>key.pem</code></td>
+<td>
+The private key associated with your certificate request, encrypted with
+the pass phrase that you entered when prompted by <code>grid-cert-request</code>.
+</td>
+</tr>
+</table>
+<p>The <code>grid-cert-request</code> command recognizes several other useful
+  options; you can list these with:
+</p>
+<pre>
+    grid-cert-request -help
+</pre>
+<h3>Specifying Identity Mapping Information</h3>
+<p>Several Globus services map distinguished names (found in certificates) to
+  local identities (e.g., unix logins).  These mappings are maintained in
+  the <i>gridmap</i> file.
+  [TODO:  link to the environment fragment,
+  which tells how to find the gridmap file]
+  A gridmap line of the form:
+</p>
+<pre>
+   "<i>Distinguished Name</i>" <i>local_name</i>
+</pre>
+<p>maps the distinguished name <i>Distinguished Name</i> to the local name
+  <i>local_name</i>.
+A gridmap line of the form:
+</p>
+<pre>
+   "<i>Distinguished Name</i>" <i>local_name1</i>,<i>local_name2</i>
+</pre>
+<p>maps <i>Distinguished Name</i> to both <i>local_name1</i> and
+  <i>local_name2</i>; any number of local user names may occur in the
+comma-separated local name list.
+</p>
+<p>Several tools exist to manage gridmap files.
+  To add an entry to the gridmap file, run:
+</p>
+<pre>
+    $GLOBUS_LOCATION/sbin/grid-mapfile-add-entry \
+        -dn "<i>Distinguished Name</i>" \
+        -ln <i>local_name</i>
+</pre>
+<p>To delete an entry from the <i>gridmap</i> file, run:
+</p>
+<pre>
+    $GLOBUS_LOCATION/sbin/grid-mapfile-delete-entry \
+        -dn "<i>Distinguished Name</i>" \
+        -ln <i>local_name</i>
+</pre>
+<p>To check the consistency of the <i>gridmap</i> file, run
+</p>
+<pre>
+    $GLOBUS_LOCATION/sbin/grid-mapfile-check-consistency
+</pre>
+<p>These commands recognize several useful options, including a
+<code>-help</code> option, which lists detailed usage information.
+<p>
+The location of the <i>gridmap</i> file is determined as follows:
+<ol>
+<li>If the <code>GRIDMAP</code> environment variable is set, the <i>gridmap</i>
+file location is the value of that environment variable.</li>
+<li>Otherwise:</li>
+<ul>
+<li>If the user is root (uid 0), then the <i>gridmap</i> file is
+<code>/etc/grid-security/grid-mapfile</code>.</li>
+<li>Otherwise, the <i>gridmap</i> file is
+<code>$HOME/.gridmap</code>.</li>
+</ul>
+</ol>
+<h3>GSI File Permissions Requirements</h3>
+<ul>
+<li>
+<a href="../glossary.html#End_Entity_Certificate_EEC"> End Entity</a>
+(<a href="../glossary.html#User_Certificate">User</a>, <a
+ href="../glossary.html#Host_Certificate">Host</a> and <a
+ href="../glossary.html#Service_Certificate">Service</a>)
+Certificates and the <a
+ href="../glossary.html#GSI_Authorization_Callout_Configuration">GSI
+Authorization Callout Configuration File</a>:</li>
+    <ul>
+      <li>May not be executable</li>
+      <li>May not be writable by group and other</li>
+      <li>Must be either regular files or soft links</li>
+    </ul>
+  <li><a href="../glossary.html#Private_Key"> Private Keys</a> and <a
+ href="../glossary.html#Proxy_Credentials">Proxy Credentials</a>:
+    <ul>
+      <li>Must be owned by the current (effective) user</li>
+      <li>May not be executable</li>
+      <li>May not be readable by group and other</li>
+      <li>May not be writable by group and other</li>
+      <li>Must be either regular files or soft links</li>
+    </ul>
+  </li>
+  <li><a href="../glossary.html#CA_Certificate"> CA Certificates</a>,
+    <a href="../glossary.html#CA_Signing_Policy">CA Signing Policy
+Files</a>, the <a href="../glossary.html#Grid_Map_File">Grid Map File</a> and the <a href="../glossary.html#GAA_Configuration_File">GAA Configuration File</a>:
+<ul>
+      <li>Have to be either regular files or soft links</li>
+    </ul>
+  </li>
+</ul>
