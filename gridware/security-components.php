@@ -1,12 +1,8 @@
 <?
-
-// 2004-10-15, robinett: created, copied information from www.globus.org/gridware/security-components.html
-
 $title = "Grid Ecosystem - Security";
 $section = "section-4";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
-
 ?>
 
 <div id="left">
@@ -22,7 +18,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <ol>
 <li><a href="#mechanisms">Basic Security Mechanisms</a></li>
 <li><a href="#generation">Components for Credential Generation</a></li>
-<li><a href="#registration">Components for User Registration</a></li>
 <li><a href="#credmgmt">Components for Credential Management</a></li>
 <li><a href="#authorization">Components for Access Control and Authorization</a></li>
 </ol>
@@ -33,6 +28,14 @@ Managing the certificates used by Grid applications is simple in principle, but 
 
 <p>
 Beyond verifying the identities of users and services, basic Grid security mechanisms leave access control decisions to services. The Grid community has developed authorization and access control tools for storing and providing access to system-wide authorization information and for creating a central data store for supporting decentralized control mechanisms.
+</p>
+
+<p><strong>Related Solutions:</strong>
+The <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> section of this website
+provides examples of these components being used in scientific projects. See especially the
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."purse/"; ?>">PURSE</a></strong> (Portal-based User 
+Registration Service) and <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."vomrs/"; ?>">VOMRS</a></strong> 
+(Virtual Organization Management Registration Service) solutions.
 </p>
 
 <p><strong><a name="mechanisms" class="title">Basic Security Mechanisms</a></strong></p>
@@ -57,17 +60,6 @@ When Grid security methods are used in a system or application, users and servic
 <li><strong><a href="security/simple-ca.php">Simple CA</a></strong> - A convenient method of issuing certificates for users and services that work with GSI and WS-Security</li>
 </ul>
 
-<p><strong><a name="registration" class="title">Components for User Registration</a></strong></p>
-
-<p>
-Many Grid applications are intended for use by large communities that expand over time as people become interested. This gives rise to common tasks, such as: collecting requests for new accounts, creating new accounts, issuing Grid credentials, and helping users to manage their credentials. These tasks have been automated in several application projects already, and the resulting tools are available for re-use.
-</p>
-
-<ul>
-<li><strong><a href="security/purse.php">PURSE: Portal-based User Registration Service</a></strong> - An &quot;integrated solution&quot; that provides an easy-to-use web interface for potential users of an application to &quot;register&quot; themselves and request sign-in credentials</li>
-<li><strong><a href="security/vomrs.php">VOMRS</a></strong> - Extensions to the VOMS system that add an easy-to-use web interface for registration with the VOMS system</li>
-</ul>
-
 <p><strong><a name="credmgmt" class="title">Components for Credential Management</a></strong></p>
 
 <p>
@@ -87,9 +79,13 @@ Beyond verifying the identities of users and services, basic Grid security mecha
 </p>
 
 <ul>
+<li><strong><a href="security/shibboleth.php">Shibboleth</a></strong> - A set of services that leverage existing
+user authentication and authorization systems at "home institutions" to give remote services the information they
+need to make authorization decisions</li>
 <li><strong><a href="security/cas.php">Community Authorization Service (CAS)</a></strong> - A service that allows resource providers to specify course-grained access control policies in terms of communities as a whole, delegating fine-grained access control policy management to the community itself</li>
 <li><strong><a href="security/voms.php">VOMS</a></strong> - A database-driven mechanism for central management of user role and capability data</li>
 </ul>
+
 
 </div>
 

@@ -1,12 +1,8 @@
 <?
-
-// 2004-10-15, robinett: created, copied information from www.globus.org/gridware/monitoring-components.html
-
 $title = "Grid Ecosystem - Monitoring and Discovery";
 $section = "section-4";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
-
 ?>
 
 <div id="left">
@@ -32,7 +28,15 @@ Grid systems and applications are usually intended to be "persistent," meaning t
 This model of availability creates requirements for <em>monitoring</em> and <em>discovering</em> infrastructure elements and services.  The OGSA architecture and the Globus Toolkit provide a core architecture and an implementation (respectively) for publishing, locating, and subscribing to information.  The Grid community has developed several specialized systems for system monitoring that are useful both as stand-alone mechanisms and as elements within the OGSA architecture.
 </p>
 
-<p><strong><a name="mechanisms">Basic Monitoring and Discovery Mechanisms</a></strong></p>
+<p>
+<strong>Related solutions:</strong>
+The <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> section 
+of this website provides examples of these components being used in scientific projects. See 
+especially the <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."esg-monitoring/"; ?>">ESG 
+Monitoring System</a></strong> solution.
+</p>
+
+<p><strong><a name="mechanisms" class="title">Basic Monitoring and Discovery Mechanisms</a></strong></p>
 
 <p>
 The OGSA architecture and the Globus Toolkit provide a core architecture and an implementation (respectively) for publishing, locating, and subscribing to information.
@@ -45,19 +49,22 @@ mechanisms for obtaining status details from Web services and for subscribing to
 for status information from other services on a Grid</li>
 </ul>
 
-<p><strong><a name="components">Specialized Monitoring and Discovery Components</a></strong></p>
+<p><strong><a name="components" class="title">Specialized Monitoring and Discovery Components</a></strong></p>
 
 <p>
 The Grid community has developed several specialized systems for system monitoring that are useful both as stand-alone mechanisms and as elements within the OGSA architecture.
 </p>
 
 <ul>
+<li><strong><a href="monitoring/trigger-service.php">Globus Trigger Service</a></strong> - A service that monitors WSRF resource properties and, when
+preconfigured patterns are matched, triggers actions</li>
+<li><strong><a href="monitoring/archiver-service.php">Globus Archiver Service</a></strong> - A service that logs WSRF resource property values over time,
+storing them in an XML database for later review</li>
 <li><strong><a href="monitoring/ganglia.php">Ganglia Cluster Toolkit</a></strong> - A toolkit that specializes in collecting monitoring data from clusters and hierarchical aggregations of clusters</li>
 <li><strong><a href="monitoring/inca.php">Inca</a></strong> - A generic framework for automated testing, verification, and monitoring of service-level agreements</li>
-<li><strong><a href="monitoring/big-brother.php">Big Brother</a></strong> - A scripting framework for producing web-based system status displays</li>
-<li><strong><a href="monitoring/esg-monitoring.php">Earth System Grid Monitoring System</a></strong> - A set of tools for monitoring Grid services, sounding alarms if services fail, and archiving system status data for subsequent analysis</li>
+<!-- <li><strong><a href="monitoring/big-brother.php">Big Brother</a></strong> - A scripting framework for producing web-based system status displays</li> -->
 <li><strong><a href='monitoring/monalisa.php'>MonALISA</a></strong> - A distributed monitoring tool that features proxy services to enable use with firewalls and a wide variety of client interfaces including JINI and WAP</li>
-<li><strong><a href='monitoring/rgma.php'>R-GMA</a></strong> - An alternative to the Globus Index Service that uses RDBMS technology and emphasizes the GGF producer/consumer architecture</li>
+<!-- <li><strong><a href='monitoring/rgma.php'>R-GMA</a></strong> - An alternative to the Globus Index Service that uses RDBMS technology and emphasizes the GGF producer/consumer architecture</li> -->
 </ul>
 
 </div>
