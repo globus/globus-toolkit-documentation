@@ -22,7 +22,7 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 <img src='CHIMERA-1.jpg' style='float: right; margin-left: 0.3em;'>
 Chimera captures both logical and physical steps in a data analysis process. The logical steps in an analysis
 (the steps to be taken without specific data filenames, executable filenames, or computation nodes) are stored as
-"transformations."  The phyisical steps for actual analysis runs (with specific filesnames and compute systems 
+"transformations."  The physical steps for actual analysis runs (with specific filesnames and compute systems 
 included) are stored as "derivations."  Transformations and derivations are stored in a "virtual data catalog,"
 where they can be retrieved later for retrospective inspection of the analysis process or for "replaying"
 (repeating) an analysis.</p>
