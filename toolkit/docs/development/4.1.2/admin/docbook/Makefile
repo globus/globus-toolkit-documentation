@@ -1,9 +1,11 @@
 FILENAME=admin.xml
+GRAPHICS=--stringparam admon.graphics.path /docbook-images/ --stringparam admon.graphics 1
 
 all: html pdf
 
 html:
 	xsltproc --stringparam chunk.section.depth 0 \
+           ${GRAPHICS} \
            /usr/share/sgml/docbook/xsl-stylesheets/html/chunk.xsl \
            ${FILENAME}
 
