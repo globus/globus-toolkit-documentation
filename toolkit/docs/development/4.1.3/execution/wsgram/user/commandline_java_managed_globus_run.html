@@ -1,0 +1,709 @@
+
+<h1>GT4 WS GRAM : managed-job-globusrun: Java-based Job Submission Tool</h1>
+<ul>
+  <li><a href="#tooldescription">Tool description</a></li>
+  <li><a href="#commandsyntax">Command syntax </a></li>
+  <li><a href="#newfunctionality">New functionality</a> </li>
+  <li><a href="#limitations">Limitations</a></li>
+  <li><a href="#toolbehavior">Tool behavior for some features</a> </li>
+  <li><a href="#howtosubmit">How to do common job submission tasks</a> </li>
+  <li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+<h2><a name="tooldescription"></a>Tool description</h2>
+
+<p><tt>managed-job-globusrun</tt> is the job submission tool 
+for the Globus Toolkit 3.9.3, i.e. it is a program for submitting jobs to a 
+local or remote job host and managing those jobs via GRAM services. 
+GRAM services provide secure job submission to many types of job schedulers 
+for users who have the right to access a job hosting resource in a Grid environment. 
+All GRAM job submission options are supported transparently through the
+embedded request document input. In fact, the job startup is done by submitting 
+a client-side provided job description (RSL)
+to the GRAM services.</p>
+
+<p>In addition to starting jobs, it is possible to delegate credentials needed for
+certain optional GRAM features, query the state of a previously 
+started job and parse a job description file without making any submission.
+Online and batch submission modes are supported with reattachment (recovery) 
+for jobs whether they were started with this client or another GRAM client 
+application.</p>
+
+<p><b>Note:</b> the existence of a valid proxy is required for essentially all
+supported operations but job description file parsing (<code>-p</code>). In order 
+to generate a valid proxy file, use the grid-proxy-init tool available 
+under $GLOBUS_LOCATION/bin.</p>
+
+<p><b>IMPORTANT RELEASE NOTE:</b> this version of the job submission tool is <i>not</i> 
+the final version that will be supplied with GT 4.0. A job submission tool 
+(written in C) will be provided with additional features such as file streaming.</p>
+
+<h2><a name="commandsyntax"></a>Command Syntax</h2>
+
+<h3>Arguments</h3>
+<pre>managed-job-globusrun [options] [&lt;factory&gt;] &lt;RSL&gt;
+managed-job-globusrun -p -file &lt;RSL filename&gt;
+managed-job-globusrun (-state | -release | -kill) &lt;job handle&gt;
+managed-job-globusrun -help | -usage | -version</pre>
+<p>with</p>
+<pre>&lt;RSL&gt;     = -file &lt;RSL filename&gt; | &lt;command line&gt;
+&lt;factory&gt; = -factory &lt;contact&gt; [-type &lt;type&gt;]
+&lt;contact&gt; = [&lt;protocol&gt;://]&lt;host&gt;[:[port]][/&lt;service&gt;]<br>
+[options] = [-q] [-n]
+            [-b] [-duration] [-terminate-at]
+            [-auth &lt;auth&gt;] [-xmlsec &lt;sec&gt;] [-personal]
+            [-submission-id &lt;ID&gt;]
+</pre>
+  
+<h3>Options</h3>
+  <table width="650" border="1" cellpadding="5">
+    <tr>
+      <td colspan="2" class="box-header"><div align="center">Help options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-help</code></td>
+      <td>Displays help information about the command. </td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-usage</code></td>
+      <td>Displays usage of the command.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-v, -version</code></td>
+      <td>Displays version of the command.</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="box-header"> <div align="center">Job Factory Contact  options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-factory &lt;contact&gt;</code></td>
+      <td><p>Specifies the URL of the Job Factory Service
+  to contact when submitting or listing jobs.
+  A factory contact string can be specified in
+  the following ways:</p>
+        <ul>
+          <li> host</li>
+          <li> host:</li>
+          <li> host:port</li>
+          <li> host:port/service</li>
+          <li> host/service</li>
+          <li> host:/service</li>
+        </ul>        <p>          It is also possible to specify the protocol
+          by prepending <code>protocol://</code> to each of the
+          previous possibilities, bringing the total
+          number of supported syntaxes to 12.</p>
+        <p>          For those factory contacts which omit the
+          protocol, port or service field, the following default values
+          are used, as the following table explains:</p>
+        <table width="400" border="1" cellpadding="5">
+          <tr>
+            <th><br>
+URL part</th>
+            <th>default value</th>
+          </tr>
+          <tr>
+            <td>port</td>
+            <td>8080</td>
+          </tr>
+          <tr>
+            <td>protocol</td>
+            <td>http</td>
+          </tr>
+          <tr>
+            <td>service</td>
+            <td> /wsrf/services/ManagedJobFactoryService</td>
+          </tr>
+        </table>        <p> Omitting altogether the -factory option is
+  equivalent to specifying the local host as
+  the contact string (with the implied default
+  protocol, port and service).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-type &lt;factory type&gt;</code></td>
+      <td valign="top"> Specifies the type of factory resource to use. This is
+the name of the local resource manager. 
+The default value is <b>Fork</b>.</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="box-header"><div align="center">Job Specification
+          options</div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>&lt;command line&gt;</code></td>
+      <td><p>Creates a simple job description that only
+  consists of a command line of the form:</p>
+        <pre>'executable (argument)*'</pre>
+        <p>          Quotes must be used if there is one or more
+      arguments.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-file &lt;RSL filename&gt;</code></td>
+      <td valign="top"><p> Reads RSL from the local file &lt;RSL filename&gt;.</p>
+        <p>      The RSL must be a single job request.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-p</code></td>
+      <td valign="top"><p>This option only parses the RSL, and then prints either
+        a
+success message or a parser failure. No job
+will be submitted to any factory service.</p>
+        <p>      The RSL must be a single job request.</p></td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">Batch Operations options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-b, -batch</code></td>
+      <td valign="top"><p>Do not wait for started
+        job to complete (and
+do not destroy started job service on exit.) 
+The handle of the job service will be
+printed on the standard output.
+</p>
+        <p>          This option is 
+          incompatible with multi-request jobs. 
+      Implies -quiet.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-state &lt;handle&gt;</code></td>
+      <td valign="top">Print out the state of the specified job. 
+For a list of valid states, see the GRAM 
+documentation [need link]; the current valid states are 
+Pending, Active, Done, Suspended, and Failed. 
+The handle may need to be quoted.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-r, -release &lt;handle&gt; </code></td>
+      <td valign="top"><p>release the specified job from hold. The handle may need to be quoted.</p>
+      </td>
+    </tr>    
+    <tr>
+      <td valign="top"><code>-k, -kill &lt;handle&gt; </code></td>
+      <td valign="top"><p>Kill the specified job. The handle may need to be quoted.</p>
+      <p>Note: The &lt;handle&gt; argument is printed out
+when executing in batch mode or when using
+the -list option.</p>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">Job Resource Lifetime
+          options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-duration &lt;duration&gt;</code></td>
+      <td valign="top"><p>Specify the duration of the job resource. The job
+  resource will destroy itself automatically
+  after the specified duration starting from
+  service creation.</p>
+        <ul>
+          <li> Format: HH:mm</li>
+          <li> Default: 24 hours.</li>
+        </ul>        <p>          Incompatible with -terminate-at. 
+      Useful with -batch.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-terminate-at &lt;date&gt;</code></td>
+      <td valign="top"><p>Specify the termination date/time of the job resource. 
+  Same as -duration but with an absolute date/time value.</p>
+        <ul>
+          <li> Format: MM/dd/yyyy HH:mm</li>
+          <li> Default: see -duration.</li>
+        </ul>  
+        <p>          The date expression may need to be quoted, 
+        as in: </p>
+        <pre>-terminate-at '08/15/2005 11:30'</pre>
+        <p>          Incompatible with -duration. 
+      Useful with -batch.</p></td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">Security options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-auth &lt;auth&gt;</code></td>
+      <td valign="top"><p>Set authorization type.<p>
+       Usually, secure communication includes 
+      mutual authentication. In addition to the service authorizing the client for the 
+      requested operation(s), an authorization decision is made by the client to determine 
+      whether the remote service is the one intended. Depending on the configured authorization  
+      type of the GRAM services (which by default is 'host'), the user must select a 
+      corresponding client-side authorization type &lt;auth&gt;.</p>
+        <p>&lt;auth&gt; can be:</p>
+        <ul>
+          <li> <b>host</b> for host authorization (default): the GSI "host authorization" rule is 
+                  used to verify that the service is using a host credential appropriate 
+                  for the underlying service address information. This is the default.</li>
+          <li> <b>self</b> for self authorization: the GSI "self authorization" rule is used 
+                  to verify that the service is using a (proxy) credential derived from the 
+                  same identity as the client's.</li>
+          <li>an &lt;id&gt; for identity authorization: the service must be using a credential 
+                  with the exact subject name provided.</li>
+        </ul></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-xmlsec &lt;sec&gt;</code></td>
+      <td valign="top"> <p>Set message protection level. </p>
+        <p>&lt;sec&gt; can be:</p>
+        <ul>
+          <li> <b>sig</b> for XML Signature (default)</li>
+          <li> <b>enc</b> for XML Encryption.</li>
+        </ul></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-personal</code></td>
+      <td valign="top">Shortcut for -auth self.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-proxy &lt;proxy file&gt;</code></td>
+      <td valign="top">Use &lt;proxy file&gt; instead of the default 
+proxy credential file.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-deleg &lt;deleg&gt;</code></td>
+      <td valign="top"> <p>Set delegation type. </p>
+        <p>&lt;deleg&gt; can be:</p>
+        <ul>
+          <li> <b>limited</b> for limited delegation (default).</li>
+          <li> <b>full</b> for full delegation</li>
+        </ul></td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">Miscellaneous options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-q, -quiet</code></td>
+      <td valign="top"><p>Switch quiet mode on, i.e. do not print diagnostic
+        messages when job state changes, in non-batch mode.<p>
+       Disabled by default.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-n, -no-interrupt</code></td>
+      <td valign="top">Disable interrupt handling. By default,
+interrupt signals (typically generated by
+        <em>Ctrl</em> + <em>C</em>) cause the program to terminate the
+currently submitted job. This flag disables
+that behavior.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-timeout &lt;integer&gt;</code></td>
+      <td valign="top"> <p>Set timeout for HTTP socket, in milliseconds.</p>
+        <p>          Applies to job submission only. The default value is 120000.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-submission-id &lt;ID&gt;</code></td>
+      <td valign="top"> <p>Set the submission ID of a previous job submission 
+          for which no server response was received.<p>The ID can be used after 
+          an attempted job submission in order to recover the handle to the job.</p></td>
+    </tr>    
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">        GT2 globusrun
+          options NOT functional (yet)</div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-l, -list</code></td>
+      <td valign="top"><p>NOT IMPLEMENTED ON SERVER SIDE YET.</p>
+        <p>List previously started and not destroyed
+          job services for this user. The output of 
+          this command consists of the handles and RSL
+        of the submitted jobs.</p>
+        <p>      Requires the -factory &lt;URL&gt; argument.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-dryrun</code></td>
+      <td valign="top"><p>NOT IMPLEMENTED ON SERVER SIDE YET.</p>
+        <p>Augment the RSL in order to mark this job as
+          a dry run, if the RSL does not already say
+          so. This causes the job manager to stop
+          short of starting the job, but still detect
+          other RSL errors (such as bad directory,
+          bad executable, etc). An error message will
+        be displayed if the dry run fails.</p>
+        <p>          Otherwise, a message will be displayed
+      indicating that the dryrun was successful.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-authenticate-only</code></td>
+      <td valign="top">NOT IMPLEMENTED ON SERVER SIDE YET.</td>
+    </tr>
+  </table>
+
+<h2><a name="newfunctionality"></a>New Functionality</h2>
+<ul>
+  <li><a href="#substitutionvariables">Substitution variables</a> </li>
+  <li><a href="#submissionid">Submission ID</a></li>
+  <li><a href="#jobholdandrelease">Job hold and release</a></li>
+  <li><a href="#multijobs">MultiJobs</a></li>
+  <li>  <a href="#jobandprocessrendezvous">Job and process rendezvous</a> </li>
+</ul>
+<h3><a name="substitutionvariables"></a>Substitution variables</h3>
+<p>TODO reference: link to HTML generated from schema annotations
+</p>
+
+<h3><a name="submissionid"></a>Submission ID</h3>
+<p>A submission ID may be used in the GRAM protocol for robust
+reliability in the face of message faults or other transient errors in order 
+to ensure that at most one instance of a job is executed, i.e. to prevent
+accidental duplication of jobs under rare circumstances with client
+retry on failure. The managed-job-globusrun tool always uses this feature,
+requiring either a submission ID to be passed in as input or a new
+unique ID to be created by the tool itself. If a new ID is created, it
+should be captured by the user who wishes to exploit this reliability
+interface. The ID in use, whether created or passed as input, will be
+written to the first line of standard output unless the <i>quiet mode</i> 
+is in effect.</p>
+
+<p>If a user is unsure whether a job was submitted successfully, he
+should resubmit using the same ID as was used for the previous
+attempt.</p>
+
+<h3><a name="jobholdandrelease"></a>Job hold and release</h3>
+<p>&nbsp;</p>
+<h3><a name="multijobs"></a>MultiJobs</h3>
+<p>&nbsp;</p>
+<h3><a name="jobandprocessrendezvous"></a>Job and process rendezvous</h3>
+<p>&nbsp;</p>
+<h2><a name="limitations"></a>Limitations</h2>
+<p>With the porting of existing GRAM functionality from OGSI to WSRF, 
+this new version of the job submission tool suffers from a few limitations 
+comparatively to previous versions of the tool.
+These limitations will be dealt with in the next version of the tool, which 
+will be implemented in C and thus will also be more performant.</p>
+<ul>
+  <li><a href="#nofilestaginggass">No more file staging using GASS</a></li>
+  <li><a href="#nooutputredirection">No standard output redirection yet</a></li>
+  <li>  <a href="#nolistingsubmittedjobs">No listing of submitted jobs yet</a> </li>
+</ul>
+<h3><a name="nofilestaginggass"></a>No more file staging using GASS</h3>
+<p>The GASS server is not being used anymore by GRAM, so the options 
+-server and -write are not available anymore. This is not a limitation 
+per se, since instead, file staging is done in a reliable fashion 
+by using GridFTP servers installed on the client machine and 
+the remote machine hosting the GRAM services. The file staging directives 
+in the job description must now contain paths that can be resolved 
+to GridFTP URLs.
+TODO add link to HowTo StageFiles here.</p>
+<h3><a name="nooutputredirection"></a>No standard output redirection yet</h3>
+<p>Unlike the GT3.2 managed-job-globusrun used with the option -output, 
+this version of the tool does not offer any streamed redirection of 
+the standard streams. This is because the GASS server is not used anymore 
+by GRAM. Instead, a future version of the tool will allow for streaming 
+of any server-side file (including the standard streams of the job 
+execution) using GridFTP "tailing" of remote files.</p>
+
+<h3><a name="nolistingsubmittedjobs"></a>No listing of submitted jobs yet</h3>
+<p>The -list option, which made the 3.2 tool print the identifiers of the jobs 
+submitted by the user on the standard output, is not available in this version 
+of the tool.</p>
+
+
+<h2><a name="toolbehavior"></a>Tool behavior for some features</h2>
+<ul>
+  <li><a href="#autojobresourcedestruction">Tool-triggered automatic job resource destruction</a> </li>
+  <li><a href="#credentialdelegation">Credential delegation</a></li>
+</ul>
+<h3><a name="autojobresourcedestruction"></a>Tool-triggered automatic job resource destruction</h3>
+ <p>Execution errors and user interrupt events are handled by automatically
+ destroying the requested job service(s), unless the -batch option
+ is on the command-line. The -batch option prevents the tool from
+ listening to job state changes and from waiting for the job to finish.
+ If -batch is selected, the command will return as soon as the remote
+ job has been submitted.</p>
+ <p> The behavior of the tool with respect to job service destruction will vary
+ in response to several kinds of events:</p>
+ <ul>
+ <li> The command exits normally after the job(s) finish(es), and destroys
+      the job service(s) it requested. In batch mode, the requested job
+      is never destroyed.</li>
+  <li> The command is terminated in response to a user interrupt, such as
+      typing <em>Ctrl</em> + <em>C</em>, or a system-wide event, such as user logoff or system
+      shutdown. If the -no-interrupt option is on the command-line,
+      and the command-line has been successfully parsed when the interrupt
+      occurs, the tool does not destroy any job service(s) it requested.
+      Otherwise the tool destroys the requested job service(s).</li>
+  <li> In case of any error of execution, the command will exit and
+      destroy the job(s) it successfully requested.</li>
+ </ul>
+
+<p>If the Java virtual machine of the tool aborts, that is, stops running without shutting down
+ cleanly, for instance because it received a SIGKILL signal on Unix, then no
+ guarantee can be made about whether or not the job service(s) will be
+ destroyed.</p>
+ <p>Note: the shutdown behavior explained above cannot be guaranteed if the JVM option -Xrs is entered.
+ The recommended way to disable service destruction is to specify the -batch option on the command-line.</p>
+
+<h3><a name="credentialdelegation"></a>Credential delegation</h3>
+<ul>
+  <li><a href="#singlejob">Single job submission</a></li>
+  <li><a href="#multijob">MultiJob submission </a> </li>
+</ul>
+<h4><a name="singlejob"></a>Single job submission</h4>
+<p>managed-job-globusrun checks the job description to see if 
+delegated credentials are required for the job.  If so, it  
+delegates a proxy to the Globus delegation services and add the 
+EPR to the job description accordingly.  
+The possible elements where the EPR could be added are: 
+jobCredentialEndpoint, stagingCredentialEndpoint, 
+fileStageIn, fileStageOut, fileCleanUp.  
+The MJS will fetch the cred from the DS and use as needed on 
+behalf of the job.  
+See the RSL documentation for descriptions about these attributes.
+TODO insert link to RSL doco.</p>
+
+<p>For every job that managed-job-globusrun delegates a credential for, 
+the tool augments the job description with annotations 
+that will later tell managed-job-globusrun to destroy the 
+credential after the job has been destroyed.  
+Below are 2 job annotation examples.</p>
+
+<p>managed-job-globusrun only delegated the job credentials:</p>
+<pre>
+   &lt;extensions&gt;
+
+      &lt;globusrunAnnotation&gt;
+         &lt;automaticJobDelegation&gt;true&lt;/automaticJobDelegation&gt;
+      &lt;/globusrunAnnotation&gt;
+   &lt;/extensions&gt;
+</pre>
+
+<p>managed-job-globusrun delegated the job, staging and transfer credentials:</p>
+<pre>
+   &lt;extensions&gt;
+      &lt;globusrunAnnotation&gt;
+        &lt;automaticJobDelegation&gt;true&lt;/automaticJobDelegation&gt;
+        &lt;automaticStagingDelegation&gt;true&lt;/automaticStagingDelegation&gt;
+
+        &lt;automaticTransferDelegation&gt;true&lt;/automaticTransferDelegation&gt;
+      &lt;/globusrunAnnotation&gt;
+   &lt;/extensions&gt;
+</pre>
+
+<h4><a name="multijob"></a>MultiJob submission</h4>
+<p><code>managed-job-globusrun</code> delegates full credentials to the delegation service 
+for the multijob, then processes each single job as stated in the single 
+job submission case. </p>
+<p>If several subjobs are to use the same delegation service, then only 
+one credential will be delegated to that delegation service, i.e. the same 
+credential will be used for several jobs.</p>
+
+<h2><a name="howtosubmit"></a>How to do common job submission tasks</h2>
+<ul>
+  <li><a href="#interactivemode">Submitting a job in interactive mode</a> </li>
+  <li><a href="#batchmode">Submitting a job in batch mode, checking its status
+      and destroying the resource</a></li>
+  <li><a href="#findingschedulers">Finding which schedulers  are interfaced by the WS GRAM installation</a></li>
+  <li><a href="#specifyingstaging">Specifying file staging in the job description</a></li>
+  <li><a href="#specifyingmultijob">Specifying and submitting a MultiJob</a></li>
+</ul>
+<h3><a name="interactivemode"></a>Submitting a job in interactive mode</h3>
+
+<p>A very simple command-line can be used to submit a job. 
+For instance, the following command-line submits a job 
+described in the file $GLOBUS_LOCATION/share/gram-client/test.xml 
+to the GRAM services hosted on the same machine (assuming a 
+Globus container is running of course):</p>
+
+<pre>% bin/managed-job-globusrun -f share/gram-client/test.xml</pre>
+
+<p>The output should look like:</p>
+<pre>
+Submission ID: uuid:661AA7F0-2573-11D9-99B2-D4755757F903
+WAITING FOR JOB TO FINISH
+========== State Notification ==========
+Job State: Active
+========================================
+========== State Notification ==========
+Job State: CleanUp
+========================================
+========== State Notification ==========
+Job State: Done
+========================================
+Exit Code: 0
+DESTROYING SERVICE
+SERVICE DESTROYED
+</pre>
+
+<p><b>Note:</b> the job state notifications are printed in the order of arrival, but 
+              they may arrive at the client-side in <i>any order</i>.</p>
+<p>In this example the job description specifies the standard output 
+stream path of the job to be: ${GLOBUS_USER_HOME}/stdout. The GRAM 
+services replace the substitution variable ${GLOBUS_USER_HOME} 
+with the path to the Home directory of the submitting user 
+as seen by the machine were the invoked GRAM services are hosted.
+You can thus verify the output of the job with the following 
+command:</p>
+
+<pre>% cat ~/stdout</pre>
+
+<p>which will display the string:</p>
+
+<pre>12 abc 34 pdscaex_instr_GrADS_grads23_28919.cfg pgwynnel was here</pre>
+
+<h3><a name="batchmode"></a>Submitting a job in batch mode, checking its status
+  and destroying the resource</h3>
+
+<p>To submit a job without having the client wait for job completion, 
+specify the option <code>-batch</code> (or <code>-b</code>) on the command-line:</p>
+<pre>
+% bin/managed-job-globusrun -batch -f share/gram-client/test.xml
+Warning: Will not wait for job completion, and will not destroy job service.
+Submission ID: uuid:9C715240-26C7-11D9-850A-ABE2020F9ED6
+CREATED MANAGED JOB SERVICE WITH HANDLE:
+http://127.0.0.1:8080/wsrf/services/ManagedExecutableJobService?9C715240-26C7-11D9-850A-ABE2020F9ED6
+</pre>
+
+<p>To check the status of the job, use the -state option:</p>
+<pre>
+% bin/managed-job-globusrun -state 'http://127.0.0.1:8080/wsrf/services/ManagedExecutableJobService?9C715240-26C7-11D9-850A-ABE2020F9ED6'
+Job State: Done
+</pre>
+
+<p>To destroy the job resource created on the server side, use the -kill option:</p>
+<pre>
+% bin/managed-job-globusrun -kill 'http://127.0.0.1:8080/wsrf/services/ManagedExecutableJobService?9C715240-26C7-11D9-850A-ABE2020F9ED6'
+DESTROYING SERVICE
+SERVICE DESTROYED
+</pre>
+
+<h3><a name="findingschedulers"></a>Finding which schedulers are interfaced by the WS GRAM installation</h3>
+
+<p>Unfortunately there is no option yet to print the list of local resource 
+managers supported by a given GRAM service installation. 
+Such information must currently be obtained and provided out of band to the user. 
+On the server side, in <tt>$GLOBUS_LOCATION/etc/</tt>, there is one directory 
+<tt>gram-service-&lt;manager&gt;/</tt> for each local resource manager supported 
+by the GRAM installation. </p>
+<p>For instance:</p>
+<pre>
+% ls etc | grep gram-service-
+gram-service-Fork
+gram-service-LSF
+gram-service-Multi
+</pre>
+<p>In this example, the Multi, Fork and LSF job factory resources have been 
+installed. <tt>Multi</tt> is a special kind of local resource manager 
+which enables the GRAM services to support multijobs (TODO link to section).</p>
+
+<p>The JNDI configuration file located under each manager directory 
+contains information about the name of the resource manager. For 
+instance, <tt>$GLOBUS_LOCATION/etc/gram-service-Fork/jndi-config.xml</tt> 
+contains the following XML element structure:</p>
+<pre>
+    &lt;service name="ManagedJobFactoryService"&gt;
+        &lt;!-- LRM configuration:  Fork --&gt;
+        &lt;resource
+            name="ForkResourceConfiguration"
+            type="org.globus.exec.service.factory.FactoryResourceConfiguration"&gt;
+            &lt;resourceParams&gt;
+                [...]
+                &lt;parameter&gt;
+                    &lt;name&gt;
+                        <b>localResourceManagerName</b>
+                    &lt;/name&gt;
+                    &lt;value&gt;
+                        <b>Fork</b>
+                    &lt;/value&gt;
+                &lt;/parameter&gt;           
+                [...]
+            &lt;/resourceParams&gt;
+        &lt;/resource&gt;        
+    &lt;/service&gt;
+</pre>
+<p>In the example above, the GRAM name of the local resource manager is <tt>Fork</tt>. 
+This value can be used with the <tt>-type</tt> option to specify which 
+factory resource to use when submitting a job. </p>
+
+<h3><a name="specifyingstaging"></a>Specifying file staging in the job description</h3>
+
+<h3><a name="specifyingmultijob"></a>Specifying and submitting a MultiJob</h3>
+
+<h2><a name="troubleshooting"></a>Troubleshooting</h2>
+<ul>
+  <li><a href="#jobexecution">Job execution errors</a></li>
+  <li> <a href="#commonissues">Common issues</a></li>
+  <li><a href="#knownproblems">Known problems</a></li>
+</ul>
+<h3><a name="jobexecution"></a>Job Execution Errors</h3>
+<p>TODO insert link to GRAM error codes.</p>
+
+<h3><a name="commonissues"></a>Common issues</h3>
+<ul>
+  <li><a href="#expiredcreds">Expired credentials</a></li>
+  <li><a href="#sockettimeout">Socket timeout error</a></li>
+  <li> <a href="#filesnotfound"> File(s) Not Found warnings</a></li>
+</ul>
+<h4><a name="expiredcreds"></a>Expired credentials</h4>
+<p><b>Symptom:</b> the client output shows an error related to expired credentials, 
+as in:</p>
+<pre>
+Error: error submitting job request: ; nested exception is:
+        javax.xml.rpc.soap.SOAPFaultException: Expired credentials 
+        (O=Grid,OU=GlobusTest,OU=simpleCA.mymachine,OU=mymachine,CN=John Doe,CN=1255793213).
+</pre>
+<p><b>Solution:</b> use the $GLOBUS_LOCATION/bin/grid-proxy-init tool to create a new proxy file:</p>
+<pre>
+% bin/grid-proxy-init
+Your identity: /O=Grid/OU=GlobusTest/OU=simpleCA.mymachine/OU=mymachine/CN=John Doe
+Enter GRID pass phrase for this identity:
+Creating proxy ................................. Done
+Your proxy is valid until: Tue Oct 26 01:33:42 2004
+</pre>
+
+<h4><a name="sockettimeout"></a>Socket timeout error</h4>
+<p><b>Symptom:</b> the client output shows a timeout error when waiting for 
+                the response from the GRAM service(s):</p>
+<pre>
+Error: error submitting job request: ; nested exception is:
+        java.net.SocketTimeoutException: Read timed out
+</pre>                
+
+<p><b>Solution:</b> re-submit the job with a higher delay before HTTP socket timeout than the default. 
+Use the<tt>-timeout</t> option of <tt>managed-job-globusrun</tt>, as in:</p>
+<pre>
+% bin/managed-job-globusrun -timeout 240000 -f myJob.xml
+</pre>
+
+<h4><a name="filesnotfound"></a>File(s) Not Found warnings</h4>
+<p><b>Symptom:</b> the server LOG displays messages at WARN severity such as:</p>
+<pre>
+[Thread-3] WARN  factory.ManagedJobFactoryResource [getRestartTimestamp:187] java.io.FileNotFoundException: /software/globus/gt4/rc3.9.3/var/globus-jsm-fork.stamp (No such file or directory)
+[Thread-3] WARN  factory.ManagedJobFactoryResource [getRestartTimestamp:187] java.io.FileNotFoundException: /software/globus/gt4/rc3.9.3/var/globus-jsm-multi.stamp (No such file or directory)
+[Thread-2] WARN  utils.XmlPersistenceHelper [load:185] [CORE] File /nfs/v5/alain/.globus/persisted/128.9.72.67/ManagedExecutableJobResourceStateType/897BC6E0-26CA-11D9-8D59-FF280F77E689.xml for resource {http://www.globus.org/namespaces/2004/10/gram/job}ResourceID=897BC6E0-26CA-11D9-8D59-FF280F77E689 was not found
+</pre>
+<p><b>Solution:</b> the log messages above are harmless and are not indicative of any problem in the 
+behavior of the GRAM service. they can be ignored.</p>
+
+<h3><a name="knownproblems"></a>Known problems</h3>
+<ul>
+  <li><a href="#hangingclient">Client hanging forever</a></li>
+  <li> <a href="#NotRegisteredException">NotRegisteredException ERROR log message</a></li>
+</ul>
+<h4><a name="hangingclient"></a>Client Hanging Forever</h4>
+<p><b>Symptom:</b> in interactive (i.e. non-batch) mode, the managed-job-globusrun client 
+            seems to be stuck waiting for additional job state notifications.</p>
+<p><b>Solution:</b> This is a known problem which can happen sometimes.</p>
+
+<p>Possible solution: remove the timestamp files in $GLOBUS_LOCATION/var:</p>
+<pre>
+% rm var/globus-jsm-*.stamp
+</pre>
+<p>Restart the container.</p>
+<p>If you decide to report the issue, please provide the job description 
+and submission command-line as well as a full server-side GRAM log 
+so we can determine the cause of the problem:</p>
+<ol>
+<li>Edit $GLOBUS_LOCATION/log4j.properties to add <code>exec=DEBUG</code>.</li>
+<li>Restart container and execute the same job submission command-line.</li>
+<li>Submit full GRAM server LOG to support list.</li>
+</ol>
+<h4><a name="NotRegisteredException"></a>NotRegisteredException ERROR log message</h4>
+<p><b>Symptom:</b> the following message appears in the server log:</p>
+<pre>
+[Thread-7] ERROR jobmanager.JobManager [unsubscribeForNotifications:1762] unable to stop monitoring job for state changes
+org.globus.exec.monitoring.NotRegisteredException
+	at org.globus.exec.monitoring.JobStateMonitor.unregisterJobID(JobStateMonitor.java:375)
+	at org.globus.exec.service.job.jobmanager.JobManager.unsubscribeForNotifications(JobManager.java:1758)
+	at org.globus.exec.service.job.jobmanager.JobManager.processState(JobManager.java:1274)
+	at org.globus.exec.service.job.jobmanager.RunQueue.run(RunQueue.java:75)
+</pre>
+
+<p><b>Solution:</b> this is typically harmless and can be ignored.</p>
