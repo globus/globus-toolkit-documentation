@@ -14,20 +14,23 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 <h1 class="first">ESG Monitoring System Architecture</h1>
 
 <p>
-The ESG monitoring system was constructed by integrating four MDS components--Index 
-Service, Web Service Data Browser, Archive Service, and Trigger Service--with 
-ESG-specific information providers and action scripts, as illustrated in the 
-following figure:
+The ESG monitoring system was constructed by integrating four MDS 
+components--<a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."monitoring/index-service.php"; ?>">Index Service</a>, 
+Web Service Data Browser, Archive Service, and 
+<a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."monitoring/trigger-service.php"; ?>">Trigger Service</a>--with 
+ESG-specific information providers and action scripts.
 </p>
 	
 <p>
-Figure 1: MDS components in the monitoring framework
+<img src="Architecture.jpg" border=0 width=337 height=400><br>
+Figure 1. MDS components in the monitoring framework
 </p>
 
 <h2>Index Service</h2>
 
 <p>
-The MDS3 Index Service obtains and caches information about other services, 
+The MDS3 <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."monitoring/index-service.php"; ?>">Index Service</a> 
+obtains and caches information about other services, 
 and allows clients to query and/or subscribe to that data. The Index Service 
 collects service data from various resources, which it publishes as one big 
 piece of service data. Other services can query for service data elements or 
@@ -72,7 +75,7 @@ enable historical queries about component behavior.
 
 <p>
 The Web Service Data Browser (WebSDB) is a customizable display client for 
-service data exposed by grid services. In the ESG monitoring system, the WSDB 
+service data exposed by grid services. In the ESG monitoring system, the WebSDB 
 is used to allow users to query both the Index Service and the Archive Service 
 (see below) to determine the current and past status, respectively, of ESG 
 components.
@@ -81,7 +84,9 @@ components.
 <h2>Trigger Service</h2>
 
 <p>
-The Trigger Service provides functionality such as an email gateway to let 
+The 
+<a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."monitoring/trigger-service.php"; ?>">Trigger 
+Service</a> provides functionality such as an email gateway to let 
 system administrators know when services fail (the email IDs of the recepients 
 are generated when the XSLT is performed.) An action script may be a simple 
 shell script or a wrapper around other applications such as a grid service 
@@ -98,6 +103,10 @@ plus an optional XSLT stylesheet. The following briefly describes the process:
     script, with the product of the XLST transformation applied to the matching 
     XML.
 </ol>
+
+<p>
+&lt;&lt; <a href="./">Return to ESG Monitoring System Overview</a>
+</p>
 
 </div>
 

@@ -11,7 +11,7 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 
 <div id="main">
 
-<h1 class="first">A Monitoring System for the Earth System Grid</h1>
+<h1 class="first">A Monitoring System for the Earth System Grid<sup>*</sup></h1>
 
 
 <p>
@@ -31,15 +31,17 @@ that contain the complete datasets.
 <li><a href="architecture.php">Monitoring Architecture</a></li>
 <li><a href="implementation.php">Implementation Details</a></li>
 <li><a href="resources.php">Software Availability</a></li>
+<li><a href="ESG-Use-Case-final.pdf">Printable Version (PDF format)</a></li>
 </ul>
 </div>
 
 <p>
 The ESG data is housed in data centers operated by national organizations. ESG
 users register with a Web portal 
-(<a href="https://www.earthsystemgrid.org/">www.earthsystemgrid.org</a>) and can then use that portal 
-to discover, browse, and request subsets of datasets.  The requested data is retrieved
-from appropriate storage systems and downloaded to the user's workstation. 
+(<a href="https://www.earthsystemgrid.org/">www.earthsystemgrid.org</a>) and can then 
+use that portal to discover, browse, and request subsets of datasets.  The requested 
+data is retrieved from appropriate storage systems and downloaded to the user's 
+workstation. 
 </p>
 
 <p>
@@ -49,10 +51,12 @@ services, including:
 
 <ul>
 <li>Archival storage systems and disk storage systems at several sites
-<li>Storage resource managers (SRMs) and GridFTP servers that provide access to the 
-    storage systems
+<li>Storage resource managers (SRMs) and 
+    <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."data/gridftp.php"; ?>">GridFTP servers</a> 
+    that provide access to the storage systems
 <li>Metadata catalog services that contain descriptive information about the data
-<li>Replica location services that keep track of copies of datasets when they're made
+<li><a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."data/rls.php"; ?>">Replica location services</a> 
+    that keep track of copies of datasets when they're made
 <li>The Web portal that provides the user interface to the system
 </ul>
 
@@ -62,10 +66,16 @@ need based on queries that use terms familiar to them.
 </p>
 
 <p>
+<img border=0 src="worldmap.jpg" width=454 height=229>
+</p>
+
+<p>
 The ESG team needed a way to monitor the status of their system components in order to
 detect and notify interested parties of failures. This need was met using Grid technology. 
 More specifically, it was satisfied with help from the Globus Toolkit's Monitoring and 
-Discovery System (MDS).
+Discovery System (MDS), including the 
+<a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."monitoring/index-service.php"; ?>">Index Service</a> and 
+<a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."monitoring/trigger-service.php"; ?>">Trigger Service</a>.
 </p>
 
 <p>
@@ -93,12 +103,28 @@ The resulting monitoring system provides the ESG team with the following benefit
 <p>
 This is the "entry page" for checking out how the various services are doing: status 
 (whether the service is UP or DOWN) and links to more information from the Archiver 
-and Details visualizers.  View the ESG Visualizer at http://dc-user.isi.edu:40080/monitor.html.
+and Details visualizers.  View the ESG Visualizer at 
+<a href="http://dc-user.isi.edu:40080/monitor.html">http://dc-user.isi.edu:40080/monitor.html</a>.
+A snapshot of the ESG Visualizer is provided below in Figure 1.
 </p>
 
 <p>
-<img src="ESG-Visualizer.jpg" width=452 height=232><br>
+<img border=0 src="ESG-Visualizer.jpg" width=452 height=232><br>
 Figure 1. Screenshot of the ESG Visualizer
+</p>
+
+<p>The first column of the ESG Visualizer shows the names of the services that are being
+monitored system-wide. "Web Portal" is, of course, the www.earthsystemgrid.org web server
+interface. The 
+<a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."data/rls.php"; ?>">RSL Server</a>
+entries are replica location services that catalog the files
+located in each of the ESG data storage systems. The 
+<a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."data/dai.php"; ?>">OGSA-DAI</a>
+entry is a Web service 
+interface to ESG metadata and data access services. The second column is the URL of the
+service (network location information) with a hyperlink to status details. The third 
+column is a simple UP/DOWN status indicator, and the fourth column is a link to historical 
+data on the service's status.
 </p>
  
 <p>
@@ -118,7 +144,7 @@ Figure 2. Screenshot of the Details Visualizer
 <h2>Archive Visualizer</h2>
 
 <p>
-From the ESG Visualizer, the History link takes you to the Archive Visualizer, which 
+Also from the ESG Visualizer, the History link takes you to the Archive Visualizer, which 
 displays the historical data ESG specified (percentage of uptime, the timestamp of the 
 reading, status of the server, reporter (test script) and URL.)
 </p>
@@ -126,6 +152,33 @@ reading, status of the server, reporter (test script) and URL.)
 <p>
 <img src="Archiver-Visualizer.jpg" width=452 height=218><br>
 Figure 3. Screenshot of the Archive Visualizer
+</p>
+
+<p>
+Each line of the table in the Archive Visualizer is an archive entry showing the status of
+the service at a given point in time.  The first column is the time at which the archive 
+entry was recorded.  The second column is a simple UP/DOWN indicator. The third and fourth
+columns are the name of the test script that was run to produce the status and the UserID
+that ran the test script.
+</p>
+
+<h2>Detailed Information</h2>
+
+<p>
+The following links provide more detail about the ESG Monitoring System.
+</p>
+
+<ul>
+<li><a href="architecture.php">Detailed architecture</a> of the monitoring system</li>
+<li><a href="implementation.php">Implementation details</a> of the monitoring system</li>
+<li><a href="resources.php">Software availability</a></li>
+<li><a href="https://www.earthsystemgrid.org/about/overviewPage.do">Overview of the 
+    Earth System Grid project</a> (from the ESG website)</li>
+<li><a href="ESG-Use-Case-final.pdf">Original white paper</a> on which this website is based (PDF format)</li>
+</ul>
+
+<p>
+<sup>*</sup> This website is based on a white paper written in September 2004 by Ben Clifford and Shishir S. Bharathi.
 </p>
 
 </div>

@@ -52,6 +52,10 @@ Available (WSRF) in Globus Toolkit 4.0:<br>
 
 <p></p>
 
+<p>
+&lt;&lt; <a href="./">Return to ESG Monitoring System Overview</a>
+</p>
+
 </div>
 
 <?
