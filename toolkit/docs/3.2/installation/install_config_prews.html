@@ -1,0 +1,218 @@
+<?php include( "http://www-unix.globus.org/include/globus_header.inc" ); ?><head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Globus Toolkit 3.2: Installation Guide</title>
+<link href="../../../../../CSS/style.css" rel="stylesheet" type="text/css">
+</head>
+
+		
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/">Documentation</a> &gt; <a href="http://www-unix.globus.org/toolkit/documentation/web/docs/3.2/">3.2</a> &gt; <a href="index.htm">Installation Guide</a> &gt; Configuring pre-Web Services Components &lt; </p>
+<h1>Configuring pre-Web Services Components </h1>
+<p>  This page is specifically for those who have downloaded only the<strong> pre-Webservices
+bundles</strong> (can we mention the specific names?) </p>
+<p>The following instructions
+    will show you how to start up the various server daemons
+    that you now have on your system independent of the rest of Globus Toolkit
+  3.2. </p>
+<p>In
+  cases where we refer to LD_LIBRARY_PATH, please use your system-equivalent
+  if you have one.&nbsp; E.g.,
+  LIBPATH or LD_LIBRARYN32_PATH.&nbsp; See
+your administrator if you do not know which variable to use. </p>
+<p>This page contains the following topics. </p>
+<ul>
+  <li><a href="#gridftp">Setting up a GridFTP Server</a> </li>
+  <li><a href="#gt2gram">Setting Up a GT2 GRAM Server</a></li>
+  <li><a href="#giisgris">Setting up a GT2 GIIS/GRIS</a></li>
+</ul>
+<h2><a name="gridftp">Setting up a GridFTP Server</a></h2>
+<p>Since the procedure for configuring a GridFTP server is the same whether you
+  are using GT2 or GT3, follow the instructions for <a href="install_config_gridftp.html">Configuring
+GridFTP</a>. </p>
+<h2><a name="gt2gram">Setting up a GT2 GRAM Server</a></h2>
+<p> intro </p>
+<table width="650" border="0" cellpadding="5">
+  <tr>
+    <td colspan="2" valign="top"><div align="center" class="box-header">Set up
+        a Full Gatekeeper</div></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top">Configure your machine to run <code>globus-gatekeeper</code>    as root, so that other people will be able to use your gatekeeper. </td>
+  </tr>
+  <tr>
+    <td width="40" valign="top"><a name="step1">1</a></td>
+    <td width="578" valign="top"><p>As root, find  /etc/services and add the
+        service name &quot;gsigatekeeper&quot; to
+        port 2119:</p>
+      <p class="command">gsigatekeeper 2119/tcp # Globus Gatekeeper</p></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top" class="box-header"><div align="center">Configure
+        Inetd/Xinetd </div></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top">Depending on whether your host is running inetd
+      or xinetd, you will need to modify its configuration. If the directory
+      /etc/xinetd.d/ exists, then your host is likely running xinetd. If the
+    directory doesn't exist, your host is likely running inetd. </td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step2">2</a></td>
+    <td valign="top"><p>  Follow the appropriate instructions below according
+    to what your host is running. </p>
+      <p><strong>Inetd</strong><br>
+  As root, find <code>/etc/inetd.conf</code> and  add the following
+  entry, all on one line: </p>
+      <p class="command"> gsigatekeeper stream tcp nowait root<br>
+  /usr/bin/env env LD_LIBRARY_PATH=GLOBUS_LOCATION/lib <br>
+  GLOBUS_LOCATION/sbin/globus-gatekeeper<br>
+  -conf GLOBUS_LOCATION/etc/globus-gatekeeper.conf      </p>
+      <p>Be sure to replace GLOBUS_LOCATION below with the actual value of $GLOBUS_LOCATION
+      in your environment. </p>
+      <p>This line sets the
+        environment variable by using <code>/usr/bin/env</code> (the location may
+        vary on your system) to first set LD_LIBRARY_PATH, and then to call the
+        gatekeeper itself. </p>      <p>The advantage of this setup is that when you apply a security update
+        to your installation, the gatekeeper will pick it up dynamically without
+        your having to rebuild it. </p>
+      <p><strong>Xinetd</strong><br>
+  Go to the  <code>/etc/xinetd.d/</code>  directory and add a file called <code>globus-gatekeeper</code> with the following
+  contents.</p>
+      <p class="command"> service gsigatekeeper<br>
+  {<br>
+  socket_type = stream<br>
+  protocol = tcp<br>
+  wait = no<br>
+  user = root<br>
+  env = LD_LIBRARY_PATH=GLOBUS_LOCATION/lib<br>
+  server = GLOBUS_LOCATION/sbin/globus-gatekeeper<br>
+  server_args = -conf GLOBUS_LOCATION/etc/globus-gatekeeper.conf<br>
+  disable = no<br>
+  }</p>
+      <p>Be sure to replace GLOBUS_LOCATION  with the actual value of $GLOBUS_LOCATION
+  in your environment.  </p>
+      <p>This file sets the environment by using the <code>env
+    =</code> option to set LD_LIBRARY_PATH in the gatekeeper's environment. </p>      <p>The advantage of this setup is that when you apply a security update
+        to your installation, the gatekeeper will pick it up dynamically without
+    your having to rebuild it. </p></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top" class="box-header"><div align="center">Notify
+        Inetd/Xinetd of the configuration change </div></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top">After you have added the globus-gatekeeper service
+      to either inetd or xinetd, you will need to notify inetd (or xinetd) that
+    its configuration file has changed.</td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step3">3</a></td>
+    <td valign="top"><p>Follow the appropriate instructions below according to
+        what your host is running. </p>
+      <p><strong>Inetd</strong><br>
+  On most Linux systems, you can simply run:</p>
+      <p class="command">killall -HUP inetd</p>      <p>On other systems, the following has the same effect: </p>
+      <p class="command">ps aux | grep inetd
+          | awk '{print $2;}' | xargs kill -HUP </p>
+      If neither option works, see <code>man inetd</code>.
+      <p><strong>Xinetd</strong><br>
+  On most Linux systems, you can simply run:</p>
+          <p class="command">/etc/rc.d/init.d/xinetd restart</p>
+          <p>        Your system may also support the <code>reload</code> option.            </p>
+    <p>If neither option works, see <code>man xinetd</code>. </p>    </td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top"><div align="center" class="box-header">Authorization
+    Mapping </div></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top">At this point, your gatekeeper will start up
+      when a connection comes in to port 2119, and will keep a log of its activity
+      in $GLOBUS_LOCATION/var/globus-gatekeeper.log. However, it does not yet
+    have any authorization mapping between certificate subjects and usernames. </td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step4">4</a></td>
+    <td valign="top"><p>Create a file named <code>/etc/grid-security/grid-mapfile</code>        with
+        single line entries listing a certificate subject and a username, such
+        as the following example: </p>
+      <p class="command">&quot;/O=Grid/O=Globus/OU=your.domain/CN=Your Name&quot; youruserid</p>
+      <p>        You can check your subject name using <code>grid-cert-info -subject.</code> There
+        are utility commands in <code>$GLOBUS_LOCATION/sbin/grid-mapfile</code> for adding
+    entries, removing entries, and checking consistency. </p></td>
+  </tr>
+</table>
+<h2><a name="giisgris">Setting up a GT2 GIIS/GRIS</a></h2>
+<p> Intro paragraph</p>
+
+		<table width="650" border="0" cellpadding="5">
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">Starting
+                the GT2 Index Service</div></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top">Start the GT2 Index Service by starting
+              the OpenLDAP 2.0 SLAPD server for the <em>GRIS</em>. It does not
+              require the environment variable $GLOBUS_LOCATION to be set. </td>
+          </tr>
+          <tr>
+            <td width="40" valign="top"><a name="step1">1</a></td>
+            <td width="578" valign="top"><p>Run:</p>
+            <p class="command">% GLOBUS_LOCATION/sbin/globus-mds start </p>
+            <p>To make this startup automatic, place it in the startup scripts
+              of your machine. Contact your system administrator to determine
+              where the call to this script needs to be placed. On a RedHat Linux
+              system, the answer is <code>/etc/rc.d/init.d</code>, with a call
+              to that script made in the appropriate <code>/etc/rc.d/rc?.d</code> (where <code>?</code> is
+              the default runlevel of your system, as specified in <code>/etc/inittab</code>). </p>
+            <p>There is a single SLAPD instance for both GRIS and GIIS. </p>
+            <p>You are now set for anonymous queries.</p></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top"><div align="center" class="box-header">Configuring for
+                Non-anonymous Queries </div></td>
+          </tr>
+          <tr>
+            <td colspan="2" valign="top">To configure for non-anonymous queries,
+              you need a grid-mapfile for the
+              GT2 Index Service (MDS2) and an LDAP server certificate.</td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step2">2</a></td>
+            <td valign="top"><p>The GT2 Index Service defaults to using the same
+                grid-mapfile as GRAM, namely<br> 
+              <code>/etc/grid-security/grid-mapfile</code></p>
+              <p>To change that location, modify <code>$GLOBUS_LOCATION/etc/grid-info-server-env.conf</code>. </p></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step3">3</a></td>
+            <td valign="top"><p>Request an LDAP certificate by running:</p>
+                <p class="command"> % grid-cert-request -service ldap -host FQDN</p>
+                <p>Replace <code>FQDN</code> with the fully qualified domain
+                  name of the host that will run the LDAP server. </p></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step4">4</a></td>
+            <td valign="top"><p>Send the request to your Certificate Authority. </p>
+                <p>This could be a SimpleCA you created, an existing CA, or the
+                  online certificate service.</p></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step5">5</a></td>
+            <td valign="top"><p>When you retrieve your certificate, save it to <code>/etc/grid-security/ldap/ldapcert.pem</code>. </p>
+                <p>This file must be owned by the user account that will run
+                  the GT2 Index Service (MDS2). The file should have permissions
+                  444. </p>
+                <p>Also change the ownership of <code>/etc/grid-security/ldap/ldapkey.pem</code> to
+                  the user account that will run the GT2 Index Service. Make
+                  sure <code>ldapkey.pem</code> has permissions 400. </p></td>
+          </tr>
+          <tr>
+            <td valign="top"><a name="step6">6</a></td>
+            <td valign="top"><br>
+  Signing it with SimpleCA will be just like signing the other certificates.</td>
+          </tr>
+        </table>
+		<p>The next section will show you how to verify that they are operating correctly.&nbsp; (need
+	    a testing section for this?) </p>
+		<p>For more information, see the <em>??? System Administrator's Guide</em>. (coming soon)</p>
+		<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

@@ -1,0 +1,97 @@
+<head><title>Core: Developer's Guide</title>
+<link href="../../../../../../CSS/style.css" rel="stylesheet" type="text/css">
+</head>
+
+<?php include( "http://www-unix.globus.org/include/globus_header.inc" ); ?>
+
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt;
+
+<a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt;
+
+<a href="http://www-unix.globus.org/toolkit/documentation/web/docs/">Documentation</a> &gt; <a href="../index.html">3.2</a> &gt; <a href="../index.html">Core</a> &gt; Developer's
+Guide
+&lt; </p>
+
+<h1>Core: Developer's Guide </h1>
+<p>links</p>
+<h2>Performance Tuning Guide </h2>
+<ul>
+  <li><a href="#startup">Startup and initialization</a></li>
+  <li><a href="#memory">Memory usage</a></li>
+  <li><a href="#invocation">Invocation overhead</a></li>
+  <li><a href="#profiling">Service container profiling</a></li>
+  <li><a href="#scalability">Service container scalability</a></li>
+</ul>
+<h3><a name="startup">Startup and Initialization</a></h3>
+<p>There are a number of initialization operations that can slow down the first
+  invocation on a service. The container activates all its services on first
+  use, unless they are explicitly configured to be activated on startup. The
+  first activation of a service in a JVM is going to be slow since typically
+  a whole set of jars need to be loaded into memory at that point. The same goes
+  for the a client application and its first use of a client stub. When factories
+  are activated, meta data configured for the services are dynamically loaded
+  into memory.&nbsp; </p>
+<p>To decrease the startup time of a service container you can start it up using
+  the -lazy argument. This will suppress the default behavior of querying the
+container for all its registered services. </p>
+<h3><a name="memory">Memory Usage</a></h3>
+<p>A service takes up something in the order of 40kB in active state. In order
+  to minimize the footprint of the server you can configure your services to
+  be deactivated when not used. The service will be deactivated after a configurable
+  TTL value (in seconds) specified in the deployment descriptor of the factory
+  like below: </p>
+<pre class="command">&lt;parameter name="lifecycleMonitorClass" value="org.globus.ogsa.repository.DefaultServiceDeactivator"/&gt; 
+&lt;parameter name="instanceDeactivation" value="10000"/&gt; </pre>
+<p>Note that even if you deactivate a service some meta data will be available
+  in order to be able to quickly activate the service again. If you don't want
+  the container to keep any meta data at all for deactivated services you need
+  to use a ServiceLoader that minimally needs to recover the handle and the timeout
+  of a service. Look at the samples/counter/deactivation/CounterFactoryService
+  service for an example. Note that the ServiceLoader implementation is only
+used for demo purposes, so you would need to plug in your own ServiceLoader. </p>
+<h3><a name="invocation">Invocation Overhead</a></h3>
+<p>On an IBM ThinkPad T22, Pentium II, running Windows 2000 we have seen basic
+  local machine roundtrip invocation overhead in the order of 5-10ms, and for
+  basic service creation calls the overhead is around 25-30ms. Activation of
+  a factory service takes about 130-140ms. Note these numbers should only be
+  used as ballpark figures when profiling your services built on top of the framework. </p>
+<h3><a name="profiling">Service Container Profiling</a></h3>
+<p>For programmatic ways to instrument your services look at the <a href="javaprogramming.html">Java
+    Programming</a> section.&nbsp; To run an hprof instrumented service container
+    with Suns JDK you can do as follows: </p>
+<p>From the root of the distribution run ant -f build-services.xml profileContainer.
+  Now you can run clients against the container that exercise the service you
+  want to profile. </p>
+<p>When you are done with profiling you can stop the container using ant stopContainer.
+  On exit a profile log will be dumped into profile.txt. Note that the container
+  will run much slower when instrumented. </p>
+<p>If you have a source distribution you can test the performance on your machine
+  using the ant tasks: stressFactory, stressService, and stress&lt;|Coustom|Int|String|&gt;Serialization.
+  Make sure to run ant buildTest and start up a service container before running
+  the tests. </p>
+<p>The timestamps used in these tests are all based on java System millisecond
+  probes, and thus different accuracy levels will be available on different platforms
+  as described at: <a href="http://www.javaworld.com/javaworld/javaqa/2003-01/01-qa-0110-timing.html">http://www.javaworld.com/javaworld/javaqa/2003-01/01-qa-0110-timing.html </a></p>
+<h3><a name="scalability">Service Container Scalability</a></h3>
+<p>Under heavy load the thread pool in the standalone service container might
+  need to be customized. </p>
+<p>If the server is overloaded you tend to get errors like: </p>
+<pre class="command">  java.net.SocketTimeoutException: Read timed out. </pre>
+<p>  To change the timeout value see: <br>
+  <a href="http://nagoya.apache.org/wiki/apachewiki.cgi?AxisProjectPages/JavaTimeout">http://nagoya.apache.org/wiki/apachewiki.cgi?AxisProjectPages/JavaTimeout <br>
+  <br>
+  </a>However this does not solve the scalability problem, it just avoids timing
+      out. You can increase the thread pool size in the container using the global <strong>containerThreads </strong> setting
+      in server-config.wsdd. It defaults to 5. The max number of threads then
+      defaults to 4 * that setting. <br>
+  Other threading related configs: <br>
+  <strong>containerThreadsMax </strong> - max number of threads <br>
+  <strong>containerThreadsHighWaterMark </strong> - when the thread pool
+      should start shrinking (if number of idle threads exceeds this number) <br>
+  <strong>containerThreadsReapInterval </strong> - how often killed threads
+        should be cleaned up </p>
+<p>Note these configurations only apply to our standalone container. If you use
+  a Servlet engine like Tomcat the thread pool features depend on the web server/servlet
+  implementation. </p>
+<p>&nbsp;</p>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

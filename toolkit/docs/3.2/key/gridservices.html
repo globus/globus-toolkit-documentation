@@ -1,0 +1,145 @@
+<head>
+<title>Fundamental Concepts of the Globus Toolkit 3.2</title>
+<link href="../../../../../CSS/style.css" rel="stylesheet" type="text/css">
+</head>
+<?php include( "http://www-unix.globus.org/include/globus_header.inc" ); ?>
+
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt;
+<a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt;
+<a href="http://www-unix.globus.org/toolkit/docs/">Documentation</a> &gt; <a href="../index.html">3.2</a> &gt;
+Key Concepts &lt;</p>
+<h1>Fundamental Concepts of the Globus Toolkit 3.2</h1>
+<p class="small"><a href="index.html">Overview</a><br>
+    <a href="ogsaogsigt3.html">OGSA, OGSI, and GT3</a><br>
+    <a href="webservices.html">Web Services: architecture and languages </a><br>
+  &gt;Grid Services<br>
+  <a href="gt3architecture.html">GT3 Architecture</a><br>
+  <a href="security_concepts.html">Security</a><br>
+  <a href="javaxml.html">Java &amp; XML</a></p>
+<h2> Grid Services </h2>
+<p>As mentioned before, Web Services are the technology of choice for 
+Internet-based applications with loosely coupled clients and servers. That makes 
+them the natural choice for making the next generation of grid-based 
+applications. However, remember Web Services do have certain limitations. In 
+fact, plain Web Services (as currently specified by the W3C) wouldn't be very 
+helpful for building a grid application. Enter <strong>Grid Services</strong>, 
+which are basically Web Services with improved characteristics and services. </p>
+<p>Let's take a tour of these improvements with a simple example. Imagine your 
+organization has a really big cluster capable of performing the most 
+mind-boggling calculations. However, this cluster is located in your central 
+headquarters in Chicago, and you need employees from your offices in New York, 
+Los Angeles, and Seattle to conveniently use the cluster's computational power.</p>
+<div class="center">
+	<div align="center"><img height="215" src="../../images/MathService.gif" width="400" border="0"> 
+    </div>
+</div>
+<p>You could implement a Math Web Service called <em>MathService</em> which 
+offered operations such as <kbd>SolveReallyBigSystem()</kbd>, <kbd>
+SolveFermatsLastTheorem()</kbd>, etc. At first, you would be able to perform 
+typical Web Service invocations: </p>
+<div>
+	<ol>
+		<li>Invoke MathService, asking it to perform a certain operation. </li>
+		<li>MathService will instruct the cluster to perform that operation. </li>
+		<li>MathService will return the result of the operation. </li>
+	</ol>
+</div>
+<p>However, if you're going to 
+access a remote cluster to perform complex mathematical operations, you probably
+  won't perform a single operation, but rather a chain of operations, which will
+  all be related to each other. However, Web Services are <em>stateless</em> and
+<em>non-transient</em>. &quot;Stateless&quot; means that Web Services can't remember
+what  you've done from one invocation to another. If you wanted to perform a
+chain of  operations, you would have to get the result of one operation and send
+it as a  parameter to the next operation. Furthermore, even if you solved the
+stateless  problem (some Web Services containers actually work around this problem),
+Web  Services are still non-transient, which means that they <em>outlive</em> all
+ their clients. This implies that, after one client is done using a Web Service,
+ all the information the Web Service is remembering could be accessed by the
+next  clients. In fact, while one client is using the Web Service, another client
+ could access the Web Service and potentially mess up the first client's 
+operations - which is not an elegant solution.</p>
+<h3>Factories</h3>
+<blockquote>
+  <p>Grid Services solve both problems by proposing a <em>factory</em> approach to 
+    Web Services. Instead of having one big stateless MathService shared by all 
+    users, you actually have a central MathService factory which is in charge of 
+    maintaining a bunch of MathService instances. When a client wants to invoke a 
+    MathService operation, it will talk to the instance, not to the factory. When a 
+    client needs a new instance to be created (or destroyed) it will talk to the 
+    factory. </p>
+</blockquote>
+<div class="center">
+	<div align="center"><img height="314" alt="" src="../../images/gs_factory.gif" width="401"> </div>
+</div>
+<blockquote>
+  <p>This diagram shows how there doesn't necessarily have to be one instance per 
+    client. One instance could be shared by two clients, and one client could have 
+    access to two instances. These instances are <em>transient</em>, because they 
+    have a limited lifetime (the instance will eventually be destroyed). The 
+    lifetime of an instance can vary from application to application. Usually, you 
+    want instances to live only as long as a client has any use for them. This way, 
+    every client has its own personal instance to work with. However, there are 
+    other scenarios where you might want an instance to be shared by several users, 
+    and to self-destruct after no clients have accessed it for a certain time. </p>
+</blockquote>
+<h3>Other Grid Services Improvements</h3>
+<blockquote>
+  <p>Factories are, by far, the most interesting improvement offered by Grid 
+    Services. However, Grid Services have more to offer: </p>
+</blockquote>
+<div>
+	<ul>
+		<ul>
+		  <li><strong>Two implementation approaches</strong>: A Grid Service can 
+		  be implemented either by inheriting from a <em>skeleton class</em> or by 
+		  using a delegation model, where incoming calls are <em>delegated</em> to 
+		  a series of classes called <em>operation providers.</em> 
+		  </li>
+		  <li><strong>Lifecycle management</strong>: Grid Services provide the 
+		  necessary tools, such as callback functions during special moments in a 
+		  Grid Service's lifetime (creation time, destruction time, etc.), to 
+		  effectively manage its lifecycle (for example, to make Grid Services 
+		  persistent). 
+		  </li>
+		  <li><strong>Service Data</strong>: A Grid Service can have a set of 
+		    associated service data that describes it. This is not to be confused
+		    with WSDL, which describes details like methods, protocols, etc. Service
+		    data is particularly useful to index Grid Services according to their characteristics
+		    and capabilities. </li>
+		  <li><strong>Notifications</strong>: You can configure a Grid Service to 
+		    be a <em>notification source</em>, and certain clients to be <em>
+		    notification sinks</em> (or subscribers). This means that if a change 
+		    occurs in the Grid Service, that change is <em>notified</em> to all the
+		    subscribers (not <em>all</em> changes are notified, only the ones the 
+		    Grid Services programmer wants to). In the MathService example, suppose
+		    that all the clients perform certain calculations using a variable called <em>InterestingCoefficient</em> which
+		    is stored in the Grid Service. Any of the clients can modify that value
+		    to improve the overall calculation. However, all clients must be notified
+		    of that change when it occurs. You can achieve this easily with the Grid
+		    Services notifications. </li>
+	  </ul>
+	</ul>
+</div>
+<h3>GSH &amp; GSR</h3>
+<blockquote>
+  <p>Finally, before moving on, you need to learn two very important acronyms which 
+    you will see a lot from now on. They are related to Grid Services <em>addressing</em>. 
+    In the previous section you saw that Web Services are addressed with URIs. Since 
+    Grid Service <em>are</em> Web Services, they are also addressed with URIs.
+    However, a &quot;Grid Service URI&quot; is called the <em>Grid Service Handle</em>, or 
+    simply GSH. </p>
+  <p>Each GSH must be unique. There cannot be two Grid Services (or Grid Service 
+    instances) with the same GSH. The only problem with the GSH is that it tells me
+    <em>where</em> the Grid Service is, but doesn't give me any information on <em>
+    how</em> to communicate with the Grid Service (what methods it has, what kind of 
+    messages it accepts/receives, etc.). To do this, you need the <em>Grid Service 
+    Reference</em>, or GSR. In theory, the GSR can take many different forms, but 
+    since you will usually use SOAP to communicate with a Grid Service, the GSR will 
+    be a WSDL file (remember that WSDL <em>describes</em> a Web Service: what 
+    methods it has, etc.). In fact, in this tutorial you will only handle WSDL as a 
+    GSR format. </p>
+</blockquote>
+<p class="blue"> <b>Next Page >> </b> <a href="gt3architecture.html">GT3 Architecture </a></p>
+<h2>&nbsp; </h2>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
