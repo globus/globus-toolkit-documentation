@@ -23,9 +23,11 @@ reaching the petabyte scale). To fully utilize the network capacity in these sce
 harnessing multiple network interface cards, multiple disk drives, and multiple internal busses.
 </p>
 
-<p>A Striped GridFTP Service is a GridFTP service that is configured to run in a distributed 
-fashion on a storage cluster.  Every node of the cluster can be used to transfer data into/out 
-of the cluster while one or more "head nodes" coordinate the transfer.
+<p>A Striped GridFTP Service is a 
+<a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."data/gridftp.php"; ?>">GridFTP server</a> that is 
+configured to run in a distributed fashion on a storage cluster.  (The GridFTP server in the Globus
+Toolkit 3.9 and later versions supports this capability.) Every node of the cluster can be 
+used to transfer data into/out of the cluster while one or more "head nodes" coordinate the transfer.
 </p>
 
 <p>
