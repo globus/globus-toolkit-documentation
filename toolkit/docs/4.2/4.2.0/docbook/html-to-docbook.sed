@@ -66,3 +66,4 @@ s/<dt>/<row><entry>/g
 s/<\/dt>/<\/entry>/g
 s/<dd>/<entry>/g
 s/<\/dd>/<\/entry>\n<\/row>/g
+s/&nbsp;//g
