@@ -1,10 +1,261 @@
 <h3>Protocol overview</h3>
-<p><font color="purple">[provide an overview of the protocol for the service]</font></p>
+<p> WS-GRAM allows for remote execution and management of programs through the 
+creation of a managed job. The management of the job is taken care of primarily
+by core toolkit functionality (WS-ResourceLifetime and WS-BaseN
+implementations).  Please see the core documentation on notifications and
+resource lifetime (destruction) for more information.</p>
+
+<p><font color="red">[Add link to appropriate core documentation.]</font></p>
+
 <h3>Operations</h3>
-<p><font color="purple">[list and briefly describe each operation]</font></p>
+
+<p>There are just two operations defined in the GRAM port types (not counting
+the Rendezvous port type which is used for MPI job synchronization):
+"createManagedJob" in the Managed Job Factory port type, and "release" in the
+Managed Job port type. All other operations (such as canceling/killing the job
+and querying for resource properties) are provided by the underlying WSRF
+implementation of the toolkit.</p>
+
+<b>Managed Job Factory Port Type</b> <br>
+<br>
+<i>createManagedJob</i><br>
+
+<p>To create a job, a call to the appropriate Managed Job Factory service is
+made using the <i>createManagedJob</i> operation with the desired input
+parameters.  Two important input parameters are the "subscribe" parameter and
+the holdState field in the job description. The first allows for
+subscribe-on-create functionality so that a separate call isn't needed to
+register for state change notifications. It is also the only way to guarantee
+that all notification messages will reach the client.  The second
+parameter--again, this is actually a field within the job description
+parameter--indicates on which state there should be placed a "hold". This is
+important since it gives justification to the existance of the second job
+management operation: <i>release</i>.</p>
+
+<b>Managed Job Port Type</b> <br>
+<br>
+<i>release</i><br>
+
+<p>The release operation removes a hold placed on a state through the
+population of the holdState field in the job description.  For example, a
+hold placed on the Pending state will prevent the submission of the jobs to the
+local resource manager until a release call is made.  Not all job states are
+allowed to have a hold placed on them.  Only the states StageIn, Pending,
+StageOut, and CleanUp will allow holds placed on them.  Attempts to place
+holds on the other states will result in an error if that state is
+encountered.</p>
+
+<b>Managed Executable Job Port Type</b> <br>
+<br>
+This port type does not define any new operations.  See the next section on
+resource properties.  <br>
+<br>
+<b>Managed Multi-Job Port Type</b> <br>
+<br>
+This port type does not define any new operations.  See the next section on
+resource properties.
+
 <h3>Resource properties</h3>
-<p><font color="purple">[list and briefly describe each resource property]</font></p>
+
+<b>Managed Job Factory Port Type</b>
+<hr>
+<table>
+<tr>
+    <td> <i>localResourceManager</i> </td>
+    <td> The local resource manager type (i.e. Condor, Fork, LSF, Multi, PBS,
+         etc...) </td>
+</tr>
+<tr>
+    <td> <i>globusLocation</i> </td>
+    <td> The location of the Globus Toolkit installation that these services
+         are running under. </td>
+</tr>
+<tr>
+    <td> <i>hostCPUType</i> </td>
+    <td> The job host CPU architecture (i686, x86_64, etc...) </td>
+</tr>
+<tr>
+    <td> <i>hostManufacturer</i> </td>
+    <td> The host manufacturer name. May be &quot;unknown&quot;. </td>
+</tr>
+<tr>
+    <td> <i>hostOSName</i> </td>
+    <td> The host OS name (Linux, Solaris, etc...) </td>
+</tr>
+<tr>
+    <td> <i>hostOSVersion</i> </td>
+    <td> The host OS version. </td>
+</tr>
+<tr>
+    <td> <i>scratchBaseDirectory</i> </td>
+    <td> The directory recommended by the system administrator to be used for
+         temporary job data. </td>
+</tr>
+<tr>
+    <td> <i>delegationFactoryEndpoint</i> </td>
+    <td> The endpoint reference to the delegation factory used to delegated
+         credentials to the job. </td>
+</tr>
+<tr>
+    <td> <i>stagingDelegationFactoryEndpoint</i> </td>
+    <td> The endpoint reference to the delegation factory used to delegated
+         credentials to the staging service (RFT). </td>
+</tr>
+<tr>
+    <td> <i>condorArchitecture</i> </td>
+    <td> Condor architecture label. </td>
+</tr>
+<tr>
+    <td> <i>condorOS</i> </td>
+    <td> Condor OS label. </td>
+</tr>
+<tr>
+    <td> <i>GLUECE</i> </td>
+    <td> GLUE data </td>
+</tr>
+<tr>
+    <td> <i>GLUECESummary</i> </td>
+    <td> GLUE data summary </td>
+</tr>
+</table>
+<br>
+<br>
+<b>Managed Job Port Type</b> <br>
+<hr>
+<table>
+<tr>
+    <td> <i>serviceLevelAgreement</i> </td>
+    <td>A wrapper around fields containing the single-job and multi-job
+        descriptions or RSLs.  Only one of these sub-fields shall have a
+        non-null value.</td>
+</tr>
+<tr>
+    <td> <i>state</i> </td>
+    <td>The current state of the job.</td>
+</tr>
+<tr>
+    <td> <i>fault</i> </td>
+    <td>The fault (if generated) indicating the reason for failure of the job
+        to complete.</td>
+</tr>
+<tr>
+    <td> <i>localUserId</i> </td>
+    <td>The job owner's local user account name.</td>
+</tr>
+<tr>
+    <td> <i>userSubject</i> </td>
+    <td>The GSI certificate DN of the job owner.</td>
+</tr>
+<tr>
+    <td> <i>holding</i> </td>
+    <td>Indicates whether a hold has been placed on this job.</td>
+</tr>
+</table>
+<br>
+<br>
+<b>Managed Executable Job Port Type</b> <br>
+<hr>
+<table>
+<tr>
+    <td> <i>stdoutURL</i> </td>
+    <td>A GridFTP URL to the file generated by the job which contains the
+        stdout.</td>
+</tr>
+<tr>
+    <td> <i>stderrURL</i> </td>
+    <td>A GridFTP URL to the file generated by the job which contains the
+        stderr.</td>
+</tr>
+<tr>
+    <td> <i>credentialPath</i> </td>
+    <td>The path (relative to the job process) to the file containing the user
+        proxy used by the job to authenticate out to other services.</td>
+</tr>
+<tr>
+    <td> <i>exitCode</i> </td>
+    <td>The exit code generated by the job process.</td>
+</tr>
+</table>
+<br>
+<br>
+<b>Managed Multi-Job Port Type</b> <br>
+<hr>
+<table>
+<tr>
+    <td> <i>subJobEndpoint</i> </td>
+    <td>A set of endpoint references to the sub-jobs created by this
+        multi-job.</td>
+</tr>
+</table>
+<br>
+
 <h3>Faults</h3>
-<p><font color="purple">[list and briefly describe each fault]</font></p>
+
+<table>
+<tr>
+    <td> <i>FaultType</i> </td>
+    <td>This is the base fault for runtime errors that occur while managing a
+        job. It extends the OGSI FaultType.</td>
+</tr>
+<tr>
+    <td> <i>CredentialSerializationFaultType</i> </td>
+    <td>This fault indicates that the managed job service was unable to
+        serialize or deserialize a delegated credential.</td>
+</tr>
+<tr>
+    <td> <i>InsufficientCredentialsFaultType</i> </td>
+    <td>This fault indicates that the managed job service was unable to
+        perform some action on behalf of the owner of the job submission
+        because the owner has delegated insufficient credentials.</td>
+</tr>
+<tr>
+    <td> <i>InternalFaultType</i> </td>
+    <td>This fault indicates that an internal operation failed.</td>
+</tr>
+<tr>
+    <td> <i>InvalidCredentialsFaultType</i> </td>
+    <td>This fault indicates that the managed job service was unable to use a
+        delegated credential.</td>
+</tr>
+<tr>
+    <td> <i>ServiceLevelAgreementFaultType</i> </td>
+    <td>Fault for runtime errors which are directly related to a
+        particular part of the ServiceLevelAgreement document passed to
+        the createService method. This fault type contains the fragment
+        of the ServiceLevelAgreement related to the fault as one of its
+        elements.</td>
+</tr>
+<tr>
+    <td> <i>ExecutionFailedFaultType</i> </td>
+    <td>This fault indicates that the Managed Job service was unable to
+        begin the execution of the job.</td>
+</tr>
+<tr>
+    <td> <i>FilePermissionsFaultType</i> </td>
+    <td>This fault indicates that the ManagedJob service does not have
+        permissions to access a file referenced in the
+        ServiceLevelAgreement.</td>
+</tr>
+<tr>
+    <td> <i>InvalidPathFaultType</i> </td>
+    <td>This fault indicates that a file or directory path
+        referenced in the ServiceLevelAgreement contains an invalid
+        path.</td>
+</tr>
+<tr>
+    <td> <i>StagingFaultType</i> </td>
+    <td>This fault indicates that part of the file staging requirements
+        of the ServiceLevelAgreement could not be completed.</td>
+</tr>
+<tr>
+    <td> <i>UnsupportedFeatureFaultType</i> </td>
+    <td>This fault indicates that an error occurred because
+        the RSL depended on a feature not implemented by
+        a particular GRAM scheduler.</td>
+</tr>
+<tr>
+</table>
+
+
 <h3>Schema Definition</h3>
 <p><font color="purple">[link to the source files here]</font></p>
