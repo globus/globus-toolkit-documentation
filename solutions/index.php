@@ -25,17 +25,54 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     </blockquote>
 
     <blockquote>
-    <b><a href="user-registration.html">User Registration</a></b> provides an easy-to-use system for using
-      high-quality Grid security to authenticate users throughout your distributed Grid system without 
-      requiring users to know anything about certificates. Users sign up to use your applications via a
-      simple web registration form and never see Grid certificates. System administrators, however, can
-      secure their systems via high-quality PKI security and manage local security issues autonomously.
+    <strong><a href="purse/">PURSE</a></strong> 
+    combines several Grid security components and a Web portal to provide an easy way for new 
+    users to sign up to use Grid applications on the Web. Using a Web browser and email, users 
+    can establish a sign-on for their application and then use sophisticated Grid-enabled 
+    software with high-quality security.
     </blockquote>
 
     <blockquote>
-    <b><a href="monitoring.html">System Monitoring</a></b> provides a useful system for monitoring the status
-      of distributed system resources and generating email or pager alarms when things go wrong. A web
-      interface provides ia summary of current system status plus status logs for individual components.
+    <strong><a href="vomrs/">VOMRS</a></strong> 
+    combines security components from the Physics community to provide a Web-based registration 
+    form for people who already have Grid credentials. VOMRS also includes a group membership 
+    capability that can be used by the application to make authorization decisions.
+    </blockquote>
+
+    <blockquote>
+    The <strong><a href="esg-monitoring/">ESG Monitoring System</a></strong> 
+    links system monitoring tools together to provide a service that keeps track 
+    of the critical components that make up the Earth System Grid (ESG), notifies system 
+    administrators if a critical service fails, and records availability of the services over time
+    for later analysis.
+    </blockquote>
+
+    <blockquote>
+    The TeraGrid project's <strong><a href="tgcp/">TGCP Tool</a></strong> 
+    simplifies TeraGrid's sophisticated data services for users by giving them a simple file transfer
+    command that fills in the details about network protocols and parameters, server names, etc.
+    in order to get the fastest transfer based on their request.
+    </blockquote>
+
+    <blockquote>
+    The <strong><a href="ldr/">Lightweight Data Replicator</a></strong> 
+    combines data management tools to create an easy-to-use tool for system managers to create
+    replicas of large datasets on multiple servers while keeeping track of where the replicas
+    are and ensuring that each replica site has all of the necessary files.
+    </blockquote>
+
+    <blockquote>
+    <strong><a href="pegasus/">Pegasus</a></strong> 
+    combines data management and virtual data tools into a powerful data processing system.
+    Pegasus accepts application-level requests for data and uses a metadata catalog, a virtual
+    data catalog, a workflow engine, and Grid data and computation services to provide the
+    requested data with minimal processing.
+    </blockquote>
+
+    <blockquote>
+    <strong><a href="striped-gridftp/">Striped GridFTP Servers</a></strong> provide a data 
+    transfer capability that can use high-bandwidth wide area network connections (10-30Gbps) 
+    to their maximum capacity.
     </blockquote>
 
 <!-- content ENDS here -->
