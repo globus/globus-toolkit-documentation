@@ -1,18 +1,17 @@
-<?php
+<html>
+<title> Security Descriptors </title>
 
-$title = "Security Descriptor Configuration";
-
-include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
-?>
+<body>
 <h2> Security Descriptor </h2>
 
 <ol>
 <li><a href="#introduction">Introduction</a></li> 
 <li><a href="#descFile">Writing security descriptor file</a></li> 
 <li><a href="#descProgram">Programmatic altering of security descriptors</a></li> 
+<li><a href="#resDesc">Resource Security Descriptor<a></li> 
 <li><a href="#container">Container-only Security Configuration</a></li> 
 <li><a href="#configOthers">Other Configuration<a></li> 
-<li><a href="#resDesc">Resource Security Descriptor<a></li> 
+
 </ol>
 
 <h3><a name="introduction"></a>1. Introduction</h3> 
@@ -60,14 +59,14 @@ installation root, typically pointed to by environment variable
     xmlns="http://www.globus.org"&gt;</code> element.</p>
 
 
- <h3><a name="descFile"></a> 2 Writing security descriptor files </h4> 
+ <h3><a name="descFile"></a> 2 Writing security descriptor files </h3> 
 
   <p> The next few sections deal with writing security descriptor
   files to set various properties. Please note that not all parameters
   are applicable for all three types of descriptors and are
   appropriately noted in the relevant sections. The few parameters
   relevant only for container security descriptor are described in <a
-  href="#container">Section 6</a>.</p>
+  href="#container">Section 5</a>.</p>
 
   <h5><a name="configCred"></a>2.1 Configuring credentials</h5> 
 
@@ -235,7 +234,7 @@ Example for option (b):
 
   </ul> 
 
- <h5><a name="configRunas"></a>2.1.4 Configuring run-as mode</h5> 
+ <h5><a name="configRunas"></a>2.4 Configuring run-as mode</h5> 
 
   <p>The <code>&lt;run-as&gt;</code> element is used to configure the
     JAAS run-as identity under which the service method will be
@@ -457,23 +456,24 @@ that have been scoped with prexif <b><i>foo1-</i></b></p>
 
 <p>Other than these, any custom authorization scheme could be
 configured with its own configuration information. Refer to <a
-href="#customAuthz"><b>FILLME</b></a> for details on writing a custom
+href="#customAuthz">next section</b></a> for details on writing a custom
 authorization mechanism</p>
 
-  <h5><a name="configOthers"></a>2.1.6 Other Configuration</h5> 
-  <p>Some other security properties that can be configured as a part of the container
-    or service descriptor are described below:</p> 
-  <table width="768" border="1" cellpadding="5"> 
-    <tr> 
-      <td width="162" valign="top"><code>&lt;context-lifetime value="lifetime
-          in seconds"/&gt;</code></td> 
-      <td width="574"><p>This sets the lifetime of the context that is created
-          at the server end; the value is set in seconds. </p> 
-        <p>If this option is <strong>not</strong> specified, the default value
-          is the lifetime of the credential. </p> 
-        <p>Relevant for all operations requiring <em>GSI Secure Conversation</em> authentication.</p></td> 
-    </tr> 
-  </table> 
+<h4><a name="customAuthz"></a>2.5.1 Writing a custom authorization mechanism</h4> 
+  <p> The authorization handler can be configured to call out to a custom authorization
+    class. The class must implement the interface <code>org.globus.wsrf.impl.security.PDP</code>. </p> 
+  <p>If the authorization fails, then a <code>org.globus.wsrf.impl.security.authorization.AuthorizationException</code> should
+    be thrown.</p> 
+  <p><strong> Example: </strong><br> 
+  </p> 
+  <pre>  public class FooAuthorization implements PDP {<br>      public void authorize(Subject peerSubject, ServiceProperties service,
+			  MessageContext context) 
+	throws AuthorizationException {
+	// Evaluate and throw exception if not authorized.
+      }
+  }
+</pre> 
+
 
   <p><strong>Example:</strong></p> 
   <pre><br>&lt;securityConfig xmlns="http://www.globus.org"&gt;<br><br> &lt;method name="ogsi:findServiceData" xmlns:ogsi="http://www.gridforum.org/namespaces/2003/03/OGSI"&gt;<br>   &lt;run-as&gt;<br>     &lt;caller-identity/&gt;<br>   &lt;/run-as&gt;<br> &lt;/method&gt;<br><br> &lt;method name="ogsi:destroy" xmlns:ogsi="http://www.gridforum.org/namespaces/2003/03/OGSI"&gt;<br>   &lt;run-as&gt;<br>     &lt;system-identity/&gt;<br>   &lt;/run-as&gt;<br> &lt;/method&gt;<br><br> &lt;!-- default run-as for any other method --&gt;<br>&nbsp;&lt;run-as&gt;<br>&nbsp; &lt;service-identity/&gt;<br>&nbsp;&lt;/run-as&gt;<br>&nbsp;&lt;context-lifetime value="100"/&gt;<br>&lt;/securityConfig&gt;</pre> 
@@ -482,7 +482,7 @@ authorization mechanism</p>
     proxy, an error is reported. Also, the contexts created at the
     server end are set to have a lifetime of 100 seconds. </p>
 
-<h4><a name="descProgram" ></a> 3.2 Programmatic altering of security descriptor </h4> 
+<h3><a name="descProgram" ></a> 3 Programmatic altering of security descriptor </h3> 
 
   <p>The security descriptor (container, security and resource) can be
     created and altered programmatically (as opposed to writing a
@@ -522,7 +522,7 @@ authorization mechanism</p>
   </table> 
 
 
-<h4><a name="resDesc"></a>4. Resource Security Descriptor</h4> 
+<h3><a name="resDesc"></a>4. Resource Security Descriptor</h3> 
 
 <p> Resource level security can be set using resource security
 descritpor, which overrides any service or container level
@@ -586,7 +586,7 @@ on the resource. </p>
 
   <pre>  desc.setInitalized(false);<br>  GridMap map = new GridMap();<br>  map.put("Some user DN", "userid");<br>  desc.setGridMap(map);</pre> 
 
-  <p> Service Authorization can also be set directly by creating an object of <code>org.globus.wsrf.impl.security.authorization.ServiceAuthorizationChain</code>. The chain needs to be initalized with an object implementing the <code>org.globus.wsrf.security.authorization.PDPConfig</code> interface. The <code>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</code> class has API to initialize a PDP using a said PDPConfig class. The distribution has a few sample classes that implement <code>org.globus.wsrf.security.authorization.PDPConfig</code> interface and are described below: 
+  <p> <a name="programPDPConfig"></a>Service Authorization can also be set directly by creating an object of <code>org.globus.wsrf.impl.security.authorization.ServiceAuthorizationChain</code>. The chain needs to be initalized with an object implementing the <code>org.globus.wsrf.security.authorization.PDPConfig</code> interface. The <code>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</code> class has API to initialize a PDP using a said PDPConfig class. The distribution has a few sample classes that implement <code>org.globus.wsrf.security.authorization.PDPConfig</code> interface and are described below: 
 <ul>
 
 <li><code>org.globus.wsrf.impl.security.authorization.ContainerPDPConfig</code>:
@@ -608,22 +608,9 @@ resource security descriptor programatically</p>
 
 <pre>// Create a resource security descriptor<br>ResourceSecurityDescriptor desc = new ResourceSecurityDescriptor();<br>// Configure a chain of PDPs<br>String authzChain = "identityAuthz, custom:org.something.CustomAuthz";<br>// Create configuration object that implements PDPConfig interface<br>PDPConfig config = new ResourcePDPConfig();<br>// Set properties that are requried by the PDPs on the configuration object.<br>// Property used by Identity authorization: scope, property name, property value<br>config.setProperty("idenAuthz", "identity", "O=this, OU=is expected, CN=identity");<br>// Property used by CustomAuthz: scope, property name, property value<br>config.setProperty("custom", "someProp", "foo");<br>desc.setAuthzChain(authzChain, config, "Name of Chain", "Some id");</pre>
 
-<h5><a name="customAuthz" id="customAuthz"></a>5. Writing a custom authorization mechanism</h4> 
-  <p> The authorization handler can be configured to call out to a custom authorization
-    class. The class must implement the interface <code>org.globus.wsrf.impl.security.PDP</code>. </p> 
-  <p>If the authorization fails, then a <code>org.globus.wsrf.impl.security.authorization.AuthorizationException</code> should
-    be thrown.</p> 
-  <p><strong> Example: </strong><br> 
-  </p> 
-  <pre>  public class FooAuthorization implements PDP {<br>      public void authorize(Subject peerSubject, ServiceProperties service,
-			  MessageContext context) 
-	throws AuthorizationException {
-	// Evaluate and throw exception if not authorized.
-      }
-  }
-</pre> 
 
-<h3><a name="container"></a>6. Container-only Security Configuration</h3> 
+
+<h3><a name="container"></a>5. Container-only Security Configuration</h3> 
 <p> Other than the security properties that have been described in <a
 href="#Descriptor">Security Descriptor</a>, two more properties are exclusive
   to the container security descriptor.
@@ -635,6 +622,21 @@ href="#Descriptor">Security Descriptor</a>, two more properties are exclusive
     <pre> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>  &lt;replay-attack-interval value="10000"/&gt;<br>  ...<br> &lt;/securityConfig&gt;</pre> 
   </li> 
 </ul> 
+
+  <h3><a name="configOthers"></a>6 Other Configuration</h3> 
+  <p>Some other security properties that can be configured as a part of the container
+    or service descriptor are described below:</p> 
+  <table width="768" border="1" cellpadding="5"> 
+    <tr> 
+      <td width="162" valign="top"><code>&lt;context-lifetime value="lifetime
+          in seconds"/&gt;</code></td> 
+      <td width="574"><p>This sets the lifetime of the context that is created
+          at the server end; the value is set in seconds. </p> 
+        <p>If this option is <strong>not</strong> specified, the default value
+          is the lifetime of the credential. </p> 
+        <p>Relevant for all operations requiring <em>GSI Secure Conversation</em> authentication.</p></td> 
+    </tr> 
+  </table> 
 
 <b>FIXME</b> Configuring container security descriptor at command line ?
 </body>
