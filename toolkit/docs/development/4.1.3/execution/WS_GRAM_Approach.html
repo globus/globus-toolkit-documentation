@@ -255,6 +255,100 @@ in that local scheduler.</p></dd>
 
 </dl>
 
+<h3>Protocol Model</h3>
+
+<p>
+As described above, the WS_GRAM protocol is centered around the
+creation of a stateful ManagedJob resource using the ManagedJobFactory
+createJob() operation. A simple batch job may involve nothing more
+than this initial client creation step, with all other job lifecycle
+steps occuring automatically in the server. A number of optional
+protocol elements are available for more complex scenarios.
+</p>
+
+<font color="red">VERIFY THESE OPERATION NAMES...</font>
+
+<dl>
+
+<dt>DelegationFactory::createDelegation</dt>
+
+<dd><p> This (optional) step allows a client to delegate credentials
+that will be required for correct operation of WS_GRAM, RFT, or the
+user's job process. Such credentials are only used when referenced in
+the subsequent job request and under the condition that WS_GRAM or RFT
+is configured to make use of the DelegationFactory, respectively.
+</p></dd>
+
+<dt>Delegation::refresh</dt>
+
+<dd><p> This (optional) step allows a client to update the credentials
+already established for use with the previous createDelegation step.
+</p></dd>
+
+<dt>ManagedJobFactory::createJob</dt>
+
+<dd><p> This required step establishes the stateful ManagedJob
+resource which implements the job processing described in the input
+request.
+</p></dd>
+
+<dt>ManagedJob::releaseHold</dt>
+
+<dd><p>This (optional) step allows the ManagedJob to continue through
+a state in its lifecycle where it was previously held or scheduled to
+be held according to details of the original job request.  It is a
+fault to try to release a hold that was not set in the job request
+or that was already released.
+</p></dd>
+
+<dt>ManagedJob::setTerminationTime</dt>
+
+<dd><p> This (optional) step allows the client to reschedule automatic
+termination to be different than was originally set during creation of
+the ManagedJob resource.
+</p></dd>
+
+<dt>ManagedJob::destroy</dt>
+
+<dd><p> This (optional) step allows the client to explicitly abort a
+job and destroy the ManagedJob resource, in the event that the
+scheduled automatic termination time is not adequate.
+</p></dd>
+
+<dt>ManagedJob::subscribe</dt>
+
+<dd><p> This (optional) step allows a client to subscribe for
+notifications of status (and particularly lifecycle status) of the
+ManagedJob resource. For responsiveness, it is possible to establish
+an initial subscription in the createJob() operation without an
+additional round-trip communication to the newly created job.
+</p></dd>
+
+<dt>ManagedJob::queryProperty and queryMultipleProperties</dt>
+
+<dd><p> These (optional) steps allow a client to query the status (and
+particularly lifecycle status) of the ManagedJob resource.
+</p></dd>
+
+</dl>
+
+<p>
+
+</p>
+
+<h3>ManagedJob Resource Lifecycle Logic</h3>
+
+<p>
+The ManagedJob resource has a complex lifecycle. The generic behavior
+is depicted in the following flowchart as a partially ordered sequence
+of processes and decision points. The status of the ManagedJob
+resource, including its "job state" is set as a side-effect of this
+control flow.  The processes in the flowchart do not all directly
+correspond to client-visible job states.
+</p>
+
+<img src="WS_GRAM_lifecycle.png">
+
 <h3>Software for local system interaction</h3>
 
 <dl>
@@ -263,7 +357,9 @@ in that local scheduler.</p></dd>
 
 <dd><p>Support to control each local scheduler is provided in the form of
 adapter scripts in the Perl programming language, following the
-proprietary GRAM adapter plugin API.</p></dd>
+proprietary GRAM adapter plugin API. These adapters implement the
+system-specific submission, job exit detection, and (optionally) job
+exit status determination processes.</p></dd>
 
 <dt>gridmap_authorize_and_exec</dt>
 
@@ -344,15 +440,35 @@ omitted as per the client's request.
 
 <img src="WS_GRAM_sequence_delegonly.png">
 
+<h4>Non-staging Delegation Sequence with Hold</h4>
+
+<p>
+An optional protocol sequence allows the cleanup state to be held in
+order to allow a client to safely access output files via the GridFTP
+server after the job has finished writing them and before the cleanup
+step deletes them. This variant adds the cleanup hold handshake to the
+previous scenario.
+</p>
+
+<img src="WS_GRAM_sequence_delegonly_hold.png">
+
 <h4>Staging Sequence</h4>
 
 <p>
-This full staging sequence uses almost all of the protocol elements,
-omitting only the explicit termination step in favor of automatic
-termination.
+This staging sequence uses almost all of the protocol elements.
 </p>
 
 <img src="WS_GRAM_sequence_staging.png">
+
+<h4>Staging Sequence with Hold</h4>
+
+<p>
+This staging sequence adds the cleanup hold handshake to the staging
+example to represent a job that has staged files as well as "streamed"
+output.
+</p>
+
+<img src="WS_GRAM_sequence_staging_hold.png">
 
 <h3>Basic Client-visible Latency Measurements</h3>
 
@@ -419,63 +535,79 @@ future.
 testing scenario.</caption>
 
 <tr>
-<th>Boundary</th>
-<th align="center">Minimal scenario</th>
-<th align="center">Delegating scenario</th>
-<th align="center">Staging scenario</th>
+<th rowspan="2">Boundary</th>
+<th align="center" colspan="5">Scenario</th>
+</tr>
+
+<tr>
+<th align="center">Minimal</th>
+<th align="center">Delegating</th>
+<th align="center">Delegating w/ Hold</th>
+<th align="center">Staging</th>
+<th align="center">Staging w/ Hold</th>
 </tr>
 
 <tr>
 <td>0. Sequence Initiated</td>
 <td align="center">createJob() invoked</td>
-<td align="center" colspan="2">createDelegation() invoked</td>
+<td align="center" colspan="4">createDelegation() invoked</td>
 </tr>
 
 <tr>
 <td>1. Delegation complete</td>
 <td align="center"></td>
-<td align="center" colspan="2">createDelegation() returns</td>
+<td align="center" colspan="4">createDelegation() returns</td>
 </tr>
 
 <tr>
 <td>2. Creation complete</td>
-<td  align="center"colspan="3">createJob() returns</td>
+<td  align="center"colspan="5">createJob() returns</td>
 </tr>
 
 <tr>
 <td>3. Submission complete</td>
 <td align="center">Pending state notified</td>
-<td align="center" colspan="2">StageIn state notified</td>
+<td align="center" colspan="4">StageIn state notified</td>
 </tr>
 
 <tr>
 <td>4. StageIn/Setup complete</td>
 <td align="center"></td>
-<td align="center" colspan="2">Pending state notified</td>
+<td align="center" colspan="4">Pending state notified</td>
 </tr>
 
 <tr>
 <td>5. Pending/Start complete</td>
-<td align="center" colspan="3">Active state notified</td>
+<td align="center" colspan="5">Active state notified</td>
 </tr>
 
 <tr>
 <td>6. Execution complete</td>
 <td align="center">Done state notified</td>
 <td align="center">Cleanup state notified</td>
-<td align="center">StageOut state notified</td>
+<td align="center">CleanupHold state notified</td>
+<td align="center" colspan="2">StageOut state notified</td>
 </tr>
 
 <tr>
 <td>7. StageOut complete</td>
+<td align="center" colspan="3"></td>
+<td align="center">Cleanup state notified</td>
+<td align="center">CleanupHold state notified</td>
+</tr>
+
+<tr>
+<td>8. Hold complete</td>
 <td align="center" colspan="2"></td>
+<td align="center">Cleanup state notified</td>
+<td align="center"></td>
 <td align="center">Cleanup state notified</td>
 </tr>
 
 <tr>
-<td>8. Cleanup complete</td>
+<td>9. Cleanup complete</td>
 <td align="center"></td>
-<td align="center" colspan="2">Done state notified</td>
+<td align="center" colspan="4">Done state notified</td>
 </tr>
 
 </table>

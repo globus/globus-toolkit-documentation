@@ -5,7 +5,10 @@ FIGS=WS_GRAM_components WS_GRAM_software \
 	WS_GRAM_sequence_full \
 	WS_GRAM_sequence_minimal \
 	WS_GRAM_sequence_delegonly \
+	WS_GRAM_sequence_delegonly_hold \
 	WS_GRAM_sequence_staging \
+	WS_GRAM_sequence_staging_hold \
+	WS_GRAM_lifecycle \
 	sequence-times \
 	sequence-times-manual
 
