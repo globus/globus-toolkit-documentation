@@ -13,24 +13,26 @@ href="http://bugzilla.globus.org/bugzilla/enter_bug.cgi?product=Documentation">B
 <ol> 
   <li><a href="#introduction">Introduction</a></li> 
   <li><a href="#client_prereqs">Prerequisites</a></li> 
+  <li><a href="#configClientProperties">Configuring GSI Client Properties</a></li> 
   <li><a href="#GSIProperties">GSI Client Properties</a></li> 
   <li><a href="#limitations">Limitations</a></li> 
 </ol> 
 <h3><a name="introduction"></a>1. Introduction</h3> 
-<p>Unlike the server side where typically security settings are done at deployment,
-  the client side security involves setting properties on the service port instance.
-  The handlers, described in <a
-   href="security.html#deploymentConfig">Message Level Security Configuration</a>,
-  pick up these properties and apply the required security to the message.</p> 
-<p>The properties that determine the client side security, listed in the <a href="#GSIProperties">section
-    3</a>, can be set on any service port instance by casting the instance to <code>javax.xml.rpc.Stub</code> class
-    and calling the <code>._setProperty()</code> method.
-<p>  
-<p> The properties allow for choosing a authentication mechanism and an authorization
-  mechanism, amongst other things. The chosen authentication scheme is applied
-  to the request and the same is expected from the response. The chosen authorization
-  is done when the response is received.</p> 
+<blockquote>
+<p>On the client side the security properties can be set using a
+client security descriptor to specify all the properties or set
+individual properties on the service port instance.  The handlers,
+described in <a href="security.html#deploymentConfig">Message Level
+Security Configuration</a>, pick up these properties and apply the
+required security to the message.</p>
+
+<p>The properties that determine the client side security, listed in the <a href="#GSIProperties">Section 4</a>, can be set on any service port instance by casting the instance to <code>javax.xml.rpc.Stub</code> class and calling the <code>._setProperty()</code> method. Alternatively, a security descriptor file as described in <a href="#clientDescriptor">section 4</a>, can be used to set the properties. If a descriptor is set, it overrides properties that might have been set directly on the stub.</p>
+
+<p> The properties allow for choosing a authentication mechanism and an authorization mechanism, amongst other things. The chosen authentication scheme is applied to the request and the same is expected from the response. The chosen authorization is done when the response is received.</p>
+</blockquote>
+
 <h3><a name="client_prereqs"></a>2. Prerequisites</h3> 
+<blockquote>
 <p>The Java CoG Kit <strong>must</strong> be properly configured to use GSI on
   the client. For more information, refer to the entries about the <strong>cog.properties
   file</strong> in <a
@@ -43,126 +45,225 @@ href="http://www-unix.globus.org/cog/distribution/1.1/FAQ.TXT">Java CoG Kit FAQ<
   </li> 
   <li>Make sure you have a valid proxy before running any GSI-enabled client.</li> 
 </ul> 
-<h3><a name="GSIProperties"></a>3. GSI Client Properties</h3> 
-<table width="650" border="1" cellpadding="5"> 
-  <tr> 
-    <td colspan="2" valign="top"><div align="left"><strong>org.globus.wsrf.impl.security.Constants.GSI_SEC_CONV </strong></div></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Value</th> 
-    <td valign="top"><p>One of the following:</p> 
-      <ul> 
-        <li>Constants.ENCRYPTION </li> 
-        <li> Constants.SIGNATURE</li> 
-      </ul></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Use</th> 
-    <td valign="top"><p>Enables <a href="security.html#gsiSecureConversation">GSI
-          Secure Conversation</a> with specified message protected level.</p> 
+</blockquote>
+<h3><a name="configClientProperties"></a>3. Configuring GSI Client
+Properties</h3>
+<blockquote>
+As mentioned about there are two ways of configuring client side security.
+<ul>
+<li> <b>Setting properties on the stub:</b> The client security configuration can be enabled by setting relevant properties on the stub. The properties are listed and described in section *. 
+
+    For example: <br> 
+    <pre class="command"> // Create endpoint reference<br> EndpointReferenceType endpoint = new EndpointReferenceType();<br> // Set address of service<br> String counterAddr = <br>	"http://localhost:8080/wsrf/services/CounterService";<br> // Get handle to port <br> CounterPortType port = locator.getCounterPortTypePort(endpoint);<br><b> // enable GSI Secure Conversation message level security<br> ((Stub)port)._setProperty(Constants.GSI_SEC_CONV,<br>                              Constants.SIGNATURE);<br> // enable limited delegation<br> ((Stub)port)._setProperty(GSIConstants.GSI_MODE,<br>                              GSIConstants.GSI_MODE_LIMITED_DELEG);<br> // set client authorization to none<br> ((Stub)port)._setProperty(Constants.AUTHORIZATION,<br>                              SelfAuthorization.getInstance());</b><br>
+</pre> 
+
+<li> <b>Setting a client security descriptor:</b> The security
+properties maybe encapuslated in the Client Security Descriptor, which
+can be created programatically or read off a descriptor file. Client
+side handler, <i>ClientPropertiesHandler</i>, installed by default,
+reads the security descriptor object and set the relevant properties
+on the stub.
+
+For example:
+`
+<pre class="command"><b>  // Client security descriptor file<br>  String CLIENT_DESC = <br>    "org/globus/wsrf/samples/counter/client/client-security-config.xml";</b><br> // Create endpoint reference<br> EndpointReferenceType endpoint = new EndpointReferenceType();<br> // Set address of service<br> String counterAddr = <br>	"http://localhost:8080/wsrf/services/CounterService";<br> // Get handle to port <br> CounterPortType port = locator.getCounterPortTypePort(endpoint);<br><b> //Set descriptor on Stub<br> ((Stub)port)._setProperty(Constants.CLIENT_DESCRIPTOR_FILE, CLIENT_DESC);</b><br></pre>
+
+<p>The descriptor file is defined as follows for security settings to be
+equivalent to the previous example (GSE Secure conversation,
+delegation and self authorization):</p>
+
+<pre>  &lt;?xml version="1.0" encoding="UTF-8"?&gt;<br>  &lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;<br>    &lt;authz value=&quot;self&quot;/&gt;<br>    &lt;GSISecureConversation&gt;<br>     &lt;integrity/&gt;<br>    &lt;/GSISecureConversation&gt;<br>  &lt;/securityConfig&gt;</pre>
+</ul>
+
+<b>Note:</b>
+<ul>
+<li> If a descriptor is set using the above mentioned scheme, it
+overrides the properties set directly set on the stub.
+<li> While most commonly used properties can be set using a descriptor,
+not all of them can be set. That is, there are some properties that are
+exclusive to setting directly on the stub and those can be used in
+conjunction with the descriptor and will <b>not</b> be overwritten.
+</ul>
+</blockquote>
+<h3><a name="GSIProperties"></a>4. GSI Client Properties</h3> 
+<blockquote>
+<ol>
+<li> <b>GSI Secure Message</b>: Enable <a href="security.html#gsiSecureMessage">GSI Secure Message</a> with specified message protected level.
+<ul>
+<li> Stubs setting: 
+<ul>
+<li>Property: org.globus.wsrf.impl.security.Constants.GSI_SEC_MSG</li>
+<li>Values: One of 
+    <ul>
+        <li>Constants.ENCRYPTION</li>
+        <li>Constants.SIGNATURE</li>
+    </ul>
+ </ul>
+
+<p>You can set the SOAP Actor of the signed message using the
+<code>x509Actor</code> property, but we do <strong>not</strong>
+recommend this unless you know what you are doing.</p>
+
+<li> Descriptor setting:
+<ul>
+<li>Signature setting:
+  <pre class="command"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>  &lt;GSISecureMessage&gt;<br>   &lt;integrity/&gt;<br>  &lt;/GSISecureMessage/&gt;<br>   ...<br> &lt;/securityConfig&gt;
+
+<li> Encryption setting:
+  <pre class="command"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>  &lt;GSISecureMessage&gt;<br>   &lt;privacy/&gt;<br>  &lt;/GSISecureMessage/&gt;<br>   ...<br> &lt;/securityConfig&gt;
+</ul>
+</ul>
+
+<li> <b>GSI Secure Conversation</b>: <p>Enable <a
+href="security.html#gsiSecureConversation">GSI Secure Conversation</a>
+with specified message protected level.</p> 
+
+<ul>
+<li> Stubs setting: 
+<ul>
+<li>Property: org.globus.wsrf.impl.security.Constants.GSI_SEC_CONV</li>
+<li>Values: One of 
+    <ul>
+        <li>Constants.ENCRYPTION</li>
+        <li>Constants.SIGNATURE</li>
+    </ul>
+ </ul>
+
       <p>Furthermore, you can set the SOAP Actor of the GSI signed/encrypted
         SOAP message by using the <code>gssActor</code> property. We recommend
         that you <strong>not</strong> do this unless you <em>really</em> know
-        what you are doing.</p></td> 
-  </tr> 
-  <tr> 
-    <td colspan="2" valign="top"><div align="left"><strong>org.globus.wsrf.impl.security.Constants.GSI_SEC_MSG</strong></div></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Value</th> 
-    <td valign="top">One of the following:
-      <ul> 
-        <li> Constants.ENCRYPTION</li> 
-        <li> Constants.SIGNATURE</li> 
-      </ul></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Use </th> 
-    <td valign="top"><p>Enables <a href="security.html#gsiSecureMessage">GSI
-          Secure Message</a> with specified message protected level.</p> 
-      <p>You can set the SOAP Actor of the signed message using the <code>x509Actor</code> property,
-        but we do <strong>not</strong> recommend this unless you know what you
-        are doing.</p></td> 
-  </tr> 
-  <tr> 
-    <td colspan="2" valign="top"><strong>org.globus.axis.gsi.GSIConstants.GSI_CREDENTIALS</strong></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Value</th> 
-    <td valign="top"><code>org.ietf.jgss.GSSCredential</code> instance</td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Use </th> 
-    <td valign="top"><p>Passes a specific set of credentials for authentication.
-        If not specified, the default user proxy credential is used.</p> 
-      <p>Please see the <a
+        what you are doing.</p>
 
-    href="http://www-unix.globus.org/cog/distribution/1.1/compatibility.html">Security
-          Library Compatibility Document</a> for some hints on loading and managing
-          different GSI credentials.</p></td> 
-  </tr> 
-  <tr> 
-    <td colspan="2" valign="top"><strong>org.globus.wsrf.impl.security.Constants.AUTHORIZATION</strong></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Value</th> 
-    <td valign="top"><code>org.globus.wsrf.impl.security.authorization.Authorization</code> instance </td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Use</th> 
-    <td valign="top">Sets authorization type to perform. By default, if not specified,
-      host authorization is performed.</td> 
-  </tr> 
-  <tr> 
-    <td colspan="2" valign="top"><b>org.globus.axis.gsi.GSIConstants.GSI_MODE</b></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Value</th> 
-    <td valign="top">One of the following:
-      <ul> 
-        <li>GSIConstants.GSI_MODE_NO_DELEG (Performs no delegation; this is the
-          default)<br> 
-        </li> 
-        <li>GSIConstants.GSI_MODE_LIMITED_DELEG (Performs limited delegation)<br> 
-        </li> 
-        <li>GSIConstants.GSI_MODE_FULL_DELEG (Performs full delegation)</li> 
-      </ul></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Use</th> 
-    <td valign="top"><p>Sets GSI delegation mode. </p> 
-      <p><strong>Used for GSI Secure Conversation only</strong>.</p></td> 
-  </tr> 
-  <tr> 
-    <td colspan="2" valign="top"><strong>org.globus.wsrf.impl.security.Constants.GSI_SEC_CONV_ANON</strong></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Value</th> 
-    <td valign="top">One of:
-      <ul> 
-        <li>Boolean.FALSE (Anonymous authentication is disabled; this is the
-          default)<br> 
-        </li> 
-        <li>Boolean.TRUE (Anonymous authentication is enabled)</li> 
-      </ul></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Use</th> 
-    <td valign="top"><strong>For GSI Secure Conversation only</strong>.</td> 
-  </tr> 
-  <tr> 
-    <td colspan="2" valign="top"><strong>org.globus.wsrf.impl.security.Constants.PEER_SUBJECT</strong></td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Value</th> 
-    <td valign="top"><code>javax.security.auth.Subject</code> instance</td> 
-  </tr> 
-  <tr> 
-    <th valign="top">Use</th> 
-    <td valign="top"><p>Sets the credential to be used to encrypt the client
-        request message (typically, the recipient's public key.)</p> 
-      <p><strong>Used for GSI Secure Message with encryption protection level
-          only.</strong></p> 
+<li> Descriptor setting:
+<ul>
+<li>Signature setting:
+  <pre class="command"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>  &lt;GSISecureConversation&gt;<br>   &lt;integrity/&gt;<br>  &lt;/GSISecureConveration/&gt;<br>   ...<br> &lt;/securityConfig&gt;
+
+<li> Encryption setting:
+  <pre class="command"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>  &lt;GSISecureConversation&gt;<br>   &lt;privacy/&gt;<br>  &lt;/GSISecureConversation/&gt;<br>   ...<br> &lt;/securityConfig&gt;
+</ul>
+</ul>
+
+<li> <b>Credentials: </b> <p>Allows for setting credentials for
+authentication. If not specified, the default user proxy is
+used. Please see the <a
+href="http://www-unix.globus.org/cog/distribution/1.1/compatibility.html">Security
+Library Compatibility Document</a> for some hints on loading and
+managing different GSI credentials.</p>
+
+<ul>
+<li> Stubs setting: 
+<ul>
+<li>Property: org.globus.axis.gsi.GSIConstants.GSI_CREDENTIALS</li>
+<li>Value: instance of <code>org.ietf.jgss.GSSCredential</code>
+ </ul>
+<li> Descriptor setting: The credential can be specified either as a) path to proxy file b) path to certificate and key file.<br>
+
+<p>Example for option (a):<br>
+
+&lt;securityConfig xmlns="http://www.globus.org"&gt;<br> ...<br>   &lt;proxy-file value="proxyFile"/&gt;<br> ...<br> &lt;/securityConfig&gt;</pre> </p>
+
+<p>Example for option (b):<br>
+
+  <pre class="command"> &lt;securityConfig xmlns="http://www.globus.org"&gt;<br>  ...<br>   &ltcredential&gt;<br>     &lt;key-file value="keyFile"/&gt;<br>   &lt;cert-file value="certFile"/&gt;<br>   &lt;/credential&gt<br>  ...<br> &lt;/securityConfig&gt;</p>
+
+</ul>
+
+<li> <b>Authorization:</b> Sets the type of client authorization to perform.
+<ul>
+<li> Stubs setting: 
+<ul>
+<li>Property: org.globus.wsrf.impl.security.Constants.AUTHORIZATION
+<li>Value: <code>org.globus.wsrf.impl.security.authorization.Authorization</code> instance 
+ </ul>
+<li> Descriptor setting: <p>The client side authorization scheme can be configured using the element <i>&lt;authz value=&quot;someMethod&quot;/&gt;</i>. Currently the following methods are supported:</p>
+
+  <table width="650" border="1" cellpadding="5"> 
+    <tr> 
+      <td valign="top"><code>none</code></td> 
+      <td> No authorization is performed. </td> 
+    </tr> 
+    <tr> 
+      <td valign="top"><code>self</code></td> 
+
+      <td><p>Asserts that the client and service have the same identity</p></td> 
+    </tr> 
+    <tr> 
+      <td valign="top"><code>host</code></td> 
+      <td>Host authorization is performed.</td> 
+    </tr> 
+
+    <tr> 
+      <td valign="top"><code><i>identity of service</i></code></td> 
+      <td>Idenity authorization with the specified value is performed.</td> 
+    </tr>
+  </table> 
+
+<p><b>Note:</b> By default, if nothing is specified, host authorization is performed.</p>
+</ul>
+
+<li><b>Delegation:</b> <p>Sets the GSI delegation mode. <b> Used for GSI
+Secure Conversation only.</b></p>
+
+<ul>
+<li> Stubs setting: 
+<ul>
+<li>Property: org.globus.axis.gsi.GSIConstants.GSI_MODE
+<li>Value: One of following:
+<ul>
+<li>GSIConstants.GSI_MODE_NO_DELEG: No delegation is performed.
+<li>GSIConstants.GSI_MODE_LIMITED_DELEG: Limited delegation is performed.
+<li>GSIConstants.GSI_MODE_FULL_DELEG: Full delegation is performed.
+</ul>
+</ul>
+<li> Descriptor setting: <p>Delegation can be configured using the element <i>&lt;delegation value=&quot;value&quot;/&gt;</i>. Currently the following values are supported:</p>
+
+  <table width="650" border="1" cellpadding="5"> 
+    <tr> 
+      <td valign="top"><code>none</code></td> 
+      <td> No delegation is performed. </td> 
+    </tr> 
+    <tr> 
+      <td valign="top"><code>limited</code></td> 
+
+      <td><p>Limited delegation is performed</p></td> 
+    </tr> 
+    <tr> 
+      <td valign="top"><code>full</code></td> 
+      <td>Full delegation is performed.</td> 
+    </tr> 
+  </table> 
+<p><b>Note:</b> By default, if nothing is specified, no delegation is performed.</p>
+</ul>
+
+<li><b>Anonymous authentication:</b> <p>Enables anonymous authentication. <b> Used for GSI Secure Conversation only.</b></p>
+
+<ul>
+<li> Stubs setting: 
+<ul>
+<li>Property: org.globus.wsrf.impl.security.Constants.GSI_SEC_CONV_ANON
+<li>Value: One of following:
+<ul>
+        <li>Boolean.FALSE: Anonymous authentication is disabled</li>
+        <li>Boolean.TRUE: Anonymous authentication is enabled</li> 
+</ul>
+</ul>
+<li> Descriptor setting: <p>Anonyumous authentication can be configured as follows:</p>
+
+<pre>  &lt;?xml version="1.0" encoding="UTF-8"?&gt;<br>  &lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;<br>    &lt;anonymous/&gt;<br>  &lt;/securityConfig&gt;</pre>
+
+<p><b>Note:</b> By default, if nothing is specified, anonymous access is disabled.</p>
+</ul>
+
+<li><b>Peer credentials:</b> <p>Sets the credential that is used to encrypt the message (typically, the receipient's public ket).<b> Used for GSI Secure Message only.</b></p>
+
+<ul>
+<li> Stubs setting: 
+<ul>
+<li>Property: org.globus.wsrf.impl.security.Constants.PEER_SUBJECT
+<li>Value: Instance of <code>javax.security.auth.Subject</code>
+</ul>
+
       <p> The credential object needs to be wrapped in <code>org.globus.wsrf.impl.security.authentication.EncryptionCredentials</code> and
         added to the set of public credentials of the <code>Subject</code> object.</p> 
       <p> For example, if <code>publicKeyFilename</code> was the file that had
@@ -171,22 +272,25 @@ href="http://www-unix.globus.org/cog/distribution/1.1/FAQ.TXT">Java CoG Kit FAQ<
 
 	CertUtil.loadCertificate(publicKeyFilename); <br> EncryptionCredentials encryptionCreds = 
 
-	new EncryptionCredentials(new X509Certificate[] { serverCert }); <br> subject.getPublicCredentials().add(encryptionCreds);<br> stub._setProperty(Constants.PEER_SUBJECT, subject);</pre></td> 
-  </tr> 
-</table> 
-<br> 
+	new EncryptionCredentials(new X509Certificate[] { serverCert }); <br> subject.getPublicCredentials().add(encryptionCreds);<br> stub._setProperty(Constants.PEER_SUBJECT, subject);</pre>
+
+<li> Descriptor setting: <p>Peer credential file name can be configured as follows:</p>
+
+<pre>  &lt;?xml version="1.0" encoding="UTF-8"?&gt;<br>  &lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;<br>    &lt;peer-credentials value=&quot;fileName&quot;/&gt;<br>  &lt;/securityConfig&gt;</pre>
+
+<p> The <i>fileName</i> should be path to the credential file.</p>
+</ul>
+</ol>
+
 <b>Notes</b> 
 <ul> 
   <li> <em>GSI Secure Message</em> and <em>GSI Secure Conversation</em> are not
     mutually exclusive.<br> 
   </li> 
-  <li>If you are dealing directly with the JAX-RPC Call object, use <code>.setProperty()</code> instead.
-    For example: <br> 
-    <pre class="command"> // Create endpoint reference<br> EndpointReferenceType endpoint = new EndpointReferenceType();<br> // Set address of service<br> String counterAddr = <br>	"http://localhost:8080/wsrf/services/CounterService";<br> // Get handle to port <br> CounterPortType port = locator.getCounterPortTypePort(endpoint);<br> // enable GSI Secure Conversation message level security<br> ((Stub)port)._setProperty(Constants.GSI_SEC_CONV,<br>                              Constants.SIGNATURE);<br> // enable limited delegation<br> ((Stub)port)._setProperty(GSIConstants.GSI_MODE,<br>                              GSIConstants.GSI_MODE_LIMITED_DELEG);<br> // set client authorization to none<br> ((Stub)port)._setProperty(Constants.AUTHORIZATION,<br>                              NoAuthorization.getInstance());<br>
-</pre> 
-  </li> 
-</ul> 
-<h3><a name="limitations"></a>4. Limitations</h3> 
+  <li>If you are dealing directly with the JAX-RPC Call object, use <code>.setProperty()</code>.</li>
+</blockquote>
+
+<h3><a name="limitations"></a>5. Limitations</h3> 
 <blockquote> 
   <h4>3.1 ServiceLocator/GridLocator reuse</h4> 
   <p> For <em>GSI Secure Conversation</em>, the same ServiceLocator instance <strong>cannot</strong> be
