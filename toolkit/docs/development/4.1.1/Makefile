@@ -1,14 +1,16 @@
 FILENAME=glossary.xml
 GRAPHICS=--stringparam admon.graphics.path /docbook-images/ --stringparam admon.graphics 1
 NUMBERING=--stringparam  section.autolabel 1 --stringparam  section.label.includes.component.label 1
+TITLES=--stringparam  chapter.autolabel 0 
+TOCS=--stringparam generate.toc 0
 
 all: html pdf
 
 html:
 	xsltproc --stringparam chunk.section.depth 0 \
-           ${GRAPHICS} ${NUMBERING} \
+           ${GRAPHICS} ${NUMBERING} ${TITLES} ${TOCS}\
            admin/docbook/chunk.xsl \
-           ${FILENAME} > glossary.html
+           ${FILENAME}
 
 pdf:
 	docbook2pdf \
