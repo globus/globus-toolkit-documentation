@@ -1,265 +1,530 @@
 <html>
+
 <head>
+
 <title>WebMDS Installation</title>
+
 </head>
+
 <body>
+
 <h1>WebMDS Installation</h1>
+
 <h2>Prerequisites</h2>
+
 You'll need <a href="http://jakarta.apache.org/tomcat/">tomcat</a>
+
 (this has only been tested with tomcat 5.0.28) and the gt4-java-ws-core
+
 bundle.
+
 <h2>Installation Steps</h2>
+
 <h3>Install GT3.9.3</h3>
+
 Install any of the GT3.9.3 bundles available at
+
 <a href="http://www-unix.globus.org/toolkit/">
+
 http://www-unix.globus.org/toolkit/
+
 </a>.
+
 <h3>Install Tomcat.</h3>
+
 <ol>
+
 <li>Download and unpack tomcat.</li>
+
 <li>Set the <code>$CATALINA_HOME</code> environment variable to the
+
 directory in which tomcat is installed.</li>
+
 <li>By default, the tomcat server listens on port 8080.
+
 If you're going to run a Globus container on that port,
+
 change the tomcat port by editing <code>$CATALINA_HOME/conf/server.xml</code>
+
 (see the Tomcat documentation for more information).
+
 </ol>
+
 <h3>A Note on File Permissions</h3>
+
 For the rest of these instructions, the term <i>Globus user</i> will be
+
 used to refer to the owner of the <code>$GLOBUS_LOCATION</code> directory,
+
 and <i>Tomcat user</i> will be used to refer to the owner of the
+
 <code>$CATALINA_HOME</code> directory.  If the Globus and Tomcat installations
+
 were performed from the same user account, the Globus user and Tomcat user
+
 will be the same.
+
 <h3>Install the Webmds Bundle</h3>
+
 <ol>
+
 <li>Set the <code>$GLOBUS_LOCATION</code> environment variable to the
+
 directory in which
-GT4 is installed.
+
+GT 3.9.3 is installed.
+
 <li>Set the <code>$CATALINA_HOME</code> environment variable to the
+
 directory in which tomcat is installed.</li>
+
 <li>Install the WebMDS bundle; as the Globus user, run:
+
 <pre>
+
 $GLOBUS_LOCATION/sbin/gpt-build gt4-webmds-0.1-src_bundle.tar.gz
+
 </pre>
+
 </ol>
+
 <h3>Configure Webmds</h3>
+
 You'll need to create a file called
+
 <code>$GLOBUS_LOCATION/lib/webmds/WEB-INF/web.xml</code>
+
 with appropriate configuration information.  The file
+
 <code>$GLOBUS_LOCATION/lib/webmds/WEB-INF/web.xml.sample</code>
+
 includes some sample configuration; if you want to start out by just
+
 exposing a few services in a container running on port 8080 on the local
+
 host, then you can simply copy that file by typing the following, as the
+
 Globus user:
+
 <pre>
+
     cp ${GLOBUS_LOCATION}/lib/webmds/WEB-INF/web.xml.sample \
+
        ${GLOBUS_LOCATION}/lib/webmds/WEB-INF/web.xml
+
 </pre>
+
 Customization of that <code>web.xml</code> file is
+
 discussed <a href="#config">in a later section</a>.
+
 <h3>Tell Tomcat About Webmds</h3>
+
 Any time you change the servlet configuration (or any jar files used by the
+
 servlet), you'll need to let tomcat know there was a change.  If you have
+
 a preferred way of configuring tomcat, feel free to use it, with
+
 <code>$GLOBUS_LOCATION/lib/webmds</code> as the servlet directory.
+
 These steps need to be performed by the Tomcat user.
+
 <p>
+
 If you're using tomcat 5.0.28 and haven't done any custom configuration (such
+
 as defining additional hosts) other than changing the tomcat port,
+
 you can configure tomcat by doing the following:
+
 <ol>
+
 <li>Create a context descriptor file called <code>webmds.xml</code>
+
 in the location where tomcat will look for it:
+
 <pre>
+
     $GLOBUS_LOCATION/lib/webmds/bin/webmds-create-context-file \
+
          $CATALINA_HOME/conf/Catalina/localhost
+
 </pre>
+
 Note:  if the file
+
 <code>$CATALINA_HOME/conf/Catalina/localhost/webmds.xml</code>
+
 already exists, you can use the <code>-f</code> flag to
+
 <code>create-context-file</code> to overwrite it.
+
 to the tomcat configuration directory.
+
 </li>
+
 <li>If tomcat is running, shut it down.</li>
+
 <pre>
+
     $CATALINA_HOME/bin/shutdown.sh
+
 </pre>
+
 <li>Start tomcat up.</li>
+
 <pre>
+
     $CATALINA_HOME/bin/startup.sh
+
 </pre>
+
 </ol>
+
 At this point, you should be able to access your webmds deployment at
+
 <code>http://<i>yourhost</i>:<i>yourport</i>/webmds</code>.
+
 <h3>Customizing the web forms used to access WebMDS</h3>
+
 The basic WebMDS servlet is located at <code>http://<i>yourhost</i>:<i>yourport</i>/webmds/webmds</code>.
+
 It takes the following arguments:
+
 <table border="1">
+
 <tr>
+
 <td><code>info</code>
+
 <td>The name of an information source configured in the
+
 <code>web.xml</code> file.  This controls where the raw XML data will come
+
 from.
+
 </td>
+
 </tr>
+
 <tr>
+
 <td><code>xsl</code></td>
+
 <td>The name of an information source configured in the
+
 <code>web.xml</code> file.  This controls where the raw XML data will come
+
 from.  If this argument is not specified, the WebMDS servlet will display
+
 raw XML.
+
 </td>
+
 </tr>
+
 <tr>
+
 <td><code>xmlSource.<i>info_name</i>.param.<i>source_specific_options</i></td>
+
 <td>Any additional options recognized by the plugin that is providing
+
 the information for the XML information source; <i>info_name</i> in the
+
 parameter name should be the same as the value of the <i>info</i> argument.
+
 Source-specific options are discussed in the next section.
+
 </td>
+
 </tr>
+
 <tr>
+
 <td><code>xmlSource.<i>xsl_name</i>.param.<i>source_specific_options</i></td>
+
 <td>Any additional options recognized by the plugin that is providing
+
 the XSL transformation; <i>xsl_name</i> in the
+
 parameter name should be the same as the value of the <i>xsl</i> argument.
+
 Source-specific options are discussed in the next section.
+
 </td>
+
 </tr>
+
 </table>
+
 <a name="config"><h3>Configuring WebMDS</h3></a>
+
 All configuration for WebMDS is done through the file
+
 .../webmds/webmds/web/WEB-INF/web.xml.  WebMDS comes with a sample web.xml
+
 file, which includes several examples.
+
 <p />
+
 WebMDS recognizes the following
+
 parameters:
+
 <table border="1">
+
 <tr>
+
 <td><code>xmlSources</code></td>
+
 <td>A space-separated list of <i>sourceNames</i>, short names that identify
+
 sources of XML.</td>
+
 </tr>
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.class</code></td>
+
 <td>the name a class that implements the WebmdsXmlSource interface.
+
 This class will be to be used to acquire XML if sourceName is
+
 specified as an info or xsl parameter</td>
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.<i>class_specific_params</i></code>
+
 <td>additional parameters to be passed to the
+
 <code>xmlSource.<i>sourceName</i>.class</code>.
+
 When these parameters are passed, the class_specific_params names will
+
 be used (i.e., the <code>xmlSource.<i>sourceName</i>.param.</code>
+
 prefix will be stripped off).</td>
+
 </tr>
+
 </table>
+
 <h3>Class-specific parameters for the FileXMLSource Class</h3>
+
 <table border="1">
+
 <tr>
+
 <td><td><code>xmlSource.<i>sourceName</i>.param.<i>file</i></code></td>
+
 <td>The name of the file to read</td>
+
 </tr>
+
 </table>
+
 <h3>Class-specific parameters for The NodeXMLSource Class</h3>
+
 <table border="1">
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.class</code></td>
+
 <td>The name of a class that implements the WebmdsNodeSource interface.
+
 This class will be called to get an XML document</td>.
+
 </tr>
+
 <tr>
+
 <td>
+
 <code>xmlSource.<i>sourceName</i>.param.</code><i>class_specific_parameters</i>
+
 </td>
+
 <td>Additional parameters to be passed to 
+
 <code>xmlSource.<i>sourceName</i>.param.class</code>.</td>
+
 </tr>
+
 </table>
+
 <h3>Class-specific parameters for The ResourcePropertyQueryNodeSource Class</h3>
+
 This class implements the WebmdsNodeSource interface and is used in conjunction
+
 with the NodeXMLSource class.  It recognizes the following configuration
+
 parameters:
+
 <table border="1">
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.endpoint</code></td>
+
 <td>The endpoint name to be used in a resource property query.</td>
+
 </tr>
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.endpointKeyName</code>
+
 and <code>xmlSource.<i>sourceName</i>.param.endpointKeyValue</code></td>
+
 <td>An optional key/value pair to use as reference properties for the
+
 endpoint specified with the
+
 <code>xmlSource.<i>sourceName</i>.param.endpoint</code>
+
 parameter.</td>
+
 </tr>
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.allowUserEndpoints</code></td>
+
 <td>If <code>true</code>, values for
+
 <code>xmlSource.<i>sourceName</i>.param.endpoint</code>,
+
 <code>xmlSource.<i>sourceName</i>.param.endpointKeyName</code>, and
+
 <code>xmlSource.<i>sourceName</i>.param.endpointKeyValue</code> 
+
 specified in the request will override the configured endpoint value.
+
 </tr>
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.endpointFile</code></td>
+
 <td>The name of a file from which the endpoint information (in XML) will
+
 be read.  This configuration parameter can never be overridden by
+
 request arguments.</td>
+
 </tr>
+
 </table>
+
 <h3>Class-specific parameters for The ResourcePropertyNodeSource Class</h3>
+
 This class implements the WebmdsNodeSource interface and is used in conjunction
+
 with the NodeXMLSource class.  It recognizes the following configuration
+
 parameters:
+
 <table border="1">
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.endpoint</code></td>
+
 <td>The endpoint name to be used in a resource property query.</td>
+
 </tr>
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.endpointKeyName</code>
+
 and <code>xmlSource.<i>sourceName</i>.param.endpointKeyValue</code></td>
+
 <td>An optional key/value pair to use as reference properties for the
+
 endpoint specified with the
+
 <code>xmlSource.<i>sourceName</i>.param.endpoint</code>
+
 parameter.</td>
+
 </tr>
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.allowUserEndpoints</code></td>
+
 <td>If <code>true</code>, values for
+
 <code>xmlSource.<i>sourceName</i>.param.endpoint</code>,
+
 <code>xmlSource.<i>sourceName</i>.param.endpointKeyName</code>, and
+
 <code>xmlSource.<i>sourceName</i>.param.endpointKeyValue</code> 
+
 specified in the request will override the configured endpoint value.
+
 </tr>
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.endpointFile</code></td>
+
 <td>The name of a file from which the endpoint information (in XML) will
+
 be read.  This configuration parameter can never be overridden by
+
 request arguments.</td>
+
 </tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.rpNamespace</code></td>
+
 <td>The namespace part of the QName of the resource property to be
+
 queried for.</dd>
+
 </tr>
+
 <tr>
+
 <td><code>xmlSource.<i>sourceName</i>.param.rpName</code></td>
+
 <td>The local name part of the QName of the resource property to be
+
 queried for.</td>
+
 </tr>
+
 <td>
+
 <code>xmlSource.<i>sourceName</i>.param.allowUserResourceProperties</code>
+
 </td>
+
 <td>If <code>true</code>, values of
+
 <code>xmlSource.<i>sourceName</i>.param.rpNamespace</code> and
+
 <code>xmlSource.<i>sourceName</i>.param.rpNames</code>
+
 specified in the request will override the configured resource
+
 property namespace and name.</td>
+
 </tr>
+
 </table>
+
 <hr />
+
 For the latest information on WebMDS, see <a href="http://www-unix.globus.org/toolkit/docs/development/3.9.3/techpreview/webmds">http://www-unix.globus.org/toolkit/docs/development/3.9.3/techpreview/webmds</a>.
+
 </body>
+
 </html>
+
