@@ -1,16 +1,16 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
 <head>
 <title><?php echo $title; ?></title>
 <!-- <link rel="shortcut icon" href="/images/favicon.ico"> -->
 <!-- <link rel="icon" href="/images/favicon.ico"> -->
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
-<?php echo '<LINK href="'.$SITE_PATHS["WEB_CSS"].'default.css" rel="stylesheet" type="text/css" />'; ?>
-
-<?php echo '<LINK rel="stylesheet" type="text/css" href="'.$SITE_PATHS["WEB_ROOT"].'css/print.css" media="print" />'; ?>
-
+<LINK href="<?=$SITE_PATHS["WEB_CSS"]."default.css"; ?>" rel="stylesheet" type="text/css" />
+<LINK rel="stylesheet" type="text/css" href="<?=$SITE_PATHS["WEB_CSS"]."print.css"; ?>" media="print" />
 </head>
-<body class="<?php echo $section; ?>">
+
+<body class="<?=$section; ?>">
 
 <div id="headerlinks">
 <br />
