@@ -47,8 +47,14 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>UCLA's Academic Technology Services group has constructed 
+<a class="newspartners" href="http://grid.ucla.edu/">a Grid Portal based on GT3.2.</a> (2/2005)</p>
+
 <p><a class="newsalliance" href="http://www.globusworld.org/">We had 
 a great time at GlobusWORLD 2005.</a> (2/2005)</p>
+
+<p><a class="newsmedia" href="http://www.clusterworld.com/issues/jan-05-preview.shtml">ClusterWorld's 
+special issue on Grid Computing</a> features a story on Grid3. (1/2005)</p>
 
 <p><a class="newsalliance" href="consortium.php">We welcome 
 the formation of the Globus Consortium.</a> (1/2005)</p>
@@ -128,6 +134,9 @@ the X.509 Public Key Infrastructure (PKI) proxy certificate profile. (7/2004)</p
 <p> <a href="http://www.linuxelectrons.com/article.php?story=20040129080349733"> IBM and Charles Schwab announced results</a> of their joint research and develoment efforts to apply Grid technologies to financial services problems. (1/2004)</p>
 
 <p>GlobusWORLD 2004 co-sponsor Cal IT<sup>2</sup> has posted a <a href="http://www.calit2.net/technology/features/1-23_globus_foster.html"> summary of the keynote address</a> delivered by Ian Foster of the Globus Alliance. (1/2004)</p>
+
+<p><a class="newsmedia" href="http://www.nbirn.net/Publications/Papers/BIRN-ClusterWorld.pdf">ClusterWorld</a>
+reports on the BIRN project's use of Grid technology and the Globus Toolkit. (1/2004)</p>
 
 <p>Announcement of the WS-Resource Framework prompted extensive press coverage, including <a href="http://www.infoworld.com/article/04/01/22/HNglobusmap_1.html"> InfoWorld</a>, <a href="http://zdnet.com.com/2100-1104_2-5143733.html">CNet</a>, <a href="http://www.internetnews.com/infra/article.php/3301191">Internet News</a>, <a href="http://xml.coverpages.org/ni2004-01-20-a.html">Cover Pages</a> and <a href="http://www.informationweek.com/story/showArticle.jhtml?articleID=17500168">Information Week</a>. For related press coverage, see the <a href="http://www.globusworld.org/news/default.asp">GlobusWORLD news archive</a>.(1/2004)</p>
 
