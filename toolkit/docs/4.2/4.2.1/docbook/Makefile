@@ -8,6 +8,8 @@ html:
 pdf:
 	docbook2pdf -l /usr/share/sgml/docbook/dsssl-stylesheets/dtds/decls/xml.dcl \
           ${FILENAME}
+man:
+	docbook2x-man function.xml && docbook2x-man command.xml
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
           /usr/share/xml/docbook/stylesheet/nwalsh/xhtml/chunk.xsl ${FILENAME}
