@@ -1,7 +1,10 @@
 
 
 # update these with basenames of figures
-FIGS=WS_GRAM_components WS_GRAM_software
+FIGS=WS_GRAM_components WS_GRAM_software \
+	WS_GRAM_sequence_full \
+	WS_GRAM_sequence_minimal
+
 EPS=
 
 # leave these alone
@@ -33,7 +36,7 @@ cgmfigs: $(CGMFIGS)
 
 # generate PNG form of a FIG file
 %.png: %.fig
-	fig2dev -L png -b 1 -S 2 $< $@
+	fig2dev -L png -b 1 -S 4 $< $@
 
 # generate CGM form of a FIG file
 %.cgm: %.fig
