@@ -1,4 +1,142 @@
 <h3>Configuration overview</h3>
-<p><font color="purple">[high-level characterization of the configuration options for the component here]</font></p>
+<p>
+The configuration information of a service is mainly encapsulated in two separate configuration files: the Web Service Deployment Descriptor (<code>server-config.wsdd</code>) and the JNDI configuration file (<code>jndi-config.xml</code>). These configuration files are dropped into the <code>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/</code> directory during the deployment. The deployment descriptor contains the information about the web service, and the JNDI configuration file mainly contains the information about the resource management.
+</p>
+
 <h3>Syntax of the interface</h3>
-<p><font color="purple">[list and describe detailed config info here]</font></p>
+<p>
+
+<h3>WSDD</h3>
+<p>
+An example of a deployment descriptor for a CounterService:
+</p>
+<pre>
+&lt;service name="CounterService" provider="Handler"
+         use="literal" style="document"&gt;
+ &lt;parameter name="className"
+            value="org.globus.wsrf.samples.counter.CounterService"/&gt;
+ &lt;parameter name="handlerClass"
+            value="org.globus.axis.providers.RPCProvider"/&gt;
+ &lt;parameter name="scope"
+            value="Application"/&gt;
+ &lt;wsdlFile&gt;share/schema/core/samples/counter/counter_service.wsdl&lt;/wsdlFile&gt;
+ &lt;parameter name="allowedMethodsClass"
+            value="com.counter.CounterPortType"/&gt;
+ &lt;parameter name="providers" value="
+            DestroyProvider SetTerminationTimeProvider GetRPProvider 
+            SubscribeProvider GetCurrentMessageProvider"/&gt;
+&lt;/service&gt;
+</pre>
+<p>
+
+Services are defined in a &lt;service&gt; tag. The <i>name</i> attribute of the &lt;service&gt; tag defines the remotely accessible name of the service. The service handle will have the form of &lt;hosting environment URL&gt;/foo, where hosting environment URL typically is <code>http://&lt;host&gt;:&lt;port&gt;/wsrf/services</code> and <i>foo</i> is the name of the service (&lt;service name="foo" ...&gt;). The <i>use</i> attribute should be set to <i>literal</i> and the <i>style</i> attribute to <i>document</i> for all WSRF/WSN based services.
+<br>
+The configuration information for a service is defined by various <i>parameter</i> sub-elements within a &lt;service&gt; tag. 
+<br><br>
+
+<h3>Axis Standard Parameters</h3>
+
+<table border="0" cellpadding="2" width="100%" >
+<tr>
+ <td><i>Name</i></td>
+ <td><i>Value</i></td>
+ <td><i>Description</i></td>
+ <td><i>Comments</i></td>
+</tr>
+<tr  valign="top" >
+ <td><b>className</b></td>
+ <td>&lt;class&gt;</td>
+ <td>
+      This parameter specifies a class that implements the web 
+      service methods. 
+ </td>
+ <td>Required</td>
+</tr>
+<tr valign="top">
+ <td><b>handlerClass</b></td>
+ <td>&lt;class&gt;</td>
+ <td>
+      This parameter specifies what dispatcher to use, to dispatch a request
+      to a service method. This parameter is required if the <i>provider</i> 
+      attribute of the <i>service</i> is set to <code>Provider</code>.
+      The default dispatcher we provide is called 
+      <i>org.globus.axis.providers.RPCProvider</i>. It enables special features
+      such as operation providers or security support.
+ </td>
+ <td>Recommended in our environment</td>
+</tr>
+<tr valign="top">
+ <td><b>scope</b></td>
+ <td>&lt;value&gt;</td>
+ <td>
+     Scope value can be one of: <i>Request</i> (the default), <i>Application</i>, or <i>Session</i>. If <i>Request</i> scope is used, a new service object is created for each SOAP request that comes in for the service. If <i>Application</i> scope is used, only a single instance of the service object is created and used for all SOAP requests that come in for the service. If <i>Session</i> scope is used, a new service object is created for each session-enabled client who accesses the service. <b>Note:</b> Only <i>Request</i> and <i>Application</i> scope is supported when used with <i>org.globus.axis.providers.RPCProvider</i> handlerClass.
+ </td>
+ <td><i>Application</i> scope is recommended</td>
+</tr>
+<tr valign="top">
+ <td><b>wsdlFile</b></td>
+ <td>&lt;path&gt;</td>
+ <td>
+      This parameter points to a wsdl file for the service. The wsdl file
+      must contain the <i>wsdl:service</i> entry. The file location
+      can be relative or absolute. A relative file location is recommended.
+ </td>
+ <td>Required in our environment</td>
+</tr>
+<tr valign="top">
+ <td><b>allowedMethods</b></td>
+ <td>&lt;list of methods&gt;</td>
+ <td>
+      This parameter specifies a space or comma separated list of method names
+      that can be called via SOAP. <code>"*"</code> indicates that all methods
+      of the service class can be invoked via SOAP.
+ </td>
+ <td>Optional. By default all methods are allowed.</td>
+</tr>
+</table>
+<h3>Java WS Core Parameters</h3>
+<table border="0" cellpadding="2" width="100%" >
+<tr>
+ <td><i>Name</i></td>
+ <td><i>Value</i></td>
+ <td><i>Description</i></td>
+ <td><i>Comments</i></td>
+</tr>
+<tr valign="top">
+ <td><b>loadOnStartup</b></td>
+ <td>&lt;boolean&gt;</td>
+ <td>
+      This parameter will cause if set to <i>true</i> the web service, the corresponding ResourceHome (if any) to be initialized (with proper security settings if configured) at container startup. This is useful for restarting some tasks, etc. at container startup without calling the service.
+ </td>
+ <td>Optional</td>
+</tr>
+
+<tr valign="top">
+ <td><b>allowedMethodsClass</b></td>
+ <td>&lt;class&gt;</td>
+ <td>
+      This parameter is similar to the <i>allowedMethods</i> standard Axis property but it specifies a Java class or an interface that is introspected to come up with a list of allowed methods that can be called remotely on the service. To is useful to easily restrict the SOAP-accessible methods of the service. Usually the class specified in this parameter would be the remote interface class generated for the service. This parameter only has effect if used with <i>org.globus.axis.providers.RPCProvider</i> handlerClass. 
+ </td>
+ <td>Optional</td>
+</tr>
+
+<tr valign="top">
+ <td><b>providers</b></td>
+ <td>&lt;list of providers&gt;</td>
+ <td>
+      This parameter specifies a space separated list of provider names or class names. Please see operation provider support for details. This parameter only has effect if used with <i>org.globus.axis.providers.RPCProvider</i> handlerClass.
+ </td>
+ <td>Optional</td>
+</tr>
+
+</table>
+
+</p>
+
+
+
+Please see <a href="http://ws.apache.org/axis/java/user-guide.html#PublishingServices">Custom Deployment</a> for details on Axis Web Services Deployment Descriptor.
+
+<h3>JNDI</h3>
+
+</p>
