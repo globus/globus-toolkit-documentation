@@ -89,7 +89,12 @@ directory containing the IODBC driver.  If you do not, the build of
 RLS will be skipped.  You may finish the installation of RLS
 separately from the main build.</p>
 
-<p>Create a user named "globus".  As the globus user, run:</p>
+<p>Create a user named "globus". This non-privileged user will be
+  used to perform administrative tasks such as starting and stopping the container,
+  deploying services, etc. Make sure this account has read and write permissions
+  in the $GLOBUS_LOCATION
+directory. </p>
+<p>As the globus user, run:</p>
 <p class="command">globus$ export GLOBUS_LOCATION=/usr/local/globus-3.9.3<br>
 globus$ ./install-wsrf $GLOBUS_LOCATION</p>
 
@@ -107,7 +112,7 @@ this, run:</p>
 <p class="command">
 $ export GLOBUS_LOCATION=/usr/local/globus-3.9.3<br>
 $ $GLOBUS_LOCATION/sbin/gpt-build
-    schedulers/gt4-gram-<scheduler>-3.9-src_bundle.tar.gz<br>
+    schedulers/gt4-gram-3.9-src_bundle.tar.gz<br>
 $ $GLOBUS_LOCATION/sbin/gpt-postinstall</p>
 
 
@@ -174,7 +179,8 @@ Repository</a>.</p>
 CA for your own use with the Globus SimpleCA package. SimpleCA
 provides a wrapper around the openssl CA functionality and is
 sufficient for simple Grid services.  Alternatively,  you can use
-openssl's <code>CA.sh</code> command on its own. </p>
+openssl's <code>CA.sh</code> command on its own. Instructions on how to use the
+SimpleCA can be found <a href="simpleca.html">here</a>.</p>
               <p>You can also use an online certificate
 service. However, this option should only be used as a last resort
 because it does not fulfill some of the duties of a real Certificate
@@ -195,206 +201,27 @@ to use SimpleCA, continue with <a href="#step3">step 3</a>.</li>
 	      href="http://www.globus.org/security/config.html#Configuring%20a%20Trusted%20CA">Configuring
 	      a Trusted CA</a> for more details.  Then proceed to <a
 	      href="#step11">step 11</a>.</li>
-	      </ul></td>
+	          </ul>
+            <p>The rest of this guide assumes that you have access to a CA.</p></td>
           </tr>
           <tr>
             <td colspan="2" valign="top"><div align="center"
-class="box-header"><a name=simplecausers id="simplecausers"></a>SimpleCA: Creating users </div></td>
+class="box-header"><a name="hostcert"></a>Requesting  host certificate</div></td>
           </tr>
           <tr>
-            <td width="40" valign="top"><a name="step3">3</a></td>
-            <td width="578" valign="top"><p>Make sure you have the following users on your machine:</p>
-              <ul>
-                <li>Your <code>user</code> account, which will be used to run the client programs.<br>
-                </li>
-                <li>A generic <code>globus</code> account, which will
-be used to perform administrative tasks such as starting and stopping
-the container, deploying services, etc. This user will also be in
-charge of managing the SimpleCA. To do this, make sure this account
-has read and write permissions in the <code>$GLOBUS_LOCATION</code>
-directory. </li>
-            </ul></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><div align="center" class="box-header"><a name="simplecasetup"></a>SimpleCA:
-                  Running the setup script</div></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top">A script was installed to set up a new
-              SimpleCA.
-            You only need to run this script <b>once</b> per grid. </td>
-          </tr>
-          <tr>
-            <td valign="top"><a name="step4">4</a></td>
-            <td valign="top"><p>Run the setup script:</p>
-            <pre class="command">$GLOBUS_LOCATION/setup/globus/setup-simple-ca 
-</pre></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><p><em>Subject name:</em> This script
-                prompts you for information about the CA you wish to create:</p>
-              <pre class="command">The unique subject name for this CA is:
-
-cn=Globus Simple CA, ou=simpleCA-mayed.mcs.anl.gov, ou=GlobusTest, o=Grid
-
-Do you want to keep this as the CA subject (y/n) [y]:
-              </pre>              <p> The <strong>common name (cn)</strong> is Globus Simple CA ,
-                which identifies this particular certificate as the CA certificate
-              within the <em>GloubusTest/simpleCA-hostname </em>domain. </p>
-              <p>The <strong>organizational unit (ou) </strong>is GlobusTest
-                , and the second ou is specific to your hostname. That identifies
-              this CA from other CAs created by SimpleCA by other people.</p>
-              <p>The <strong>organization</strong> is Grid.</p>              </td>
-          </tr>
-          <tr>
-            <td valign="top"><a name="step5" id="step5">5</a></td>
-            <td valign="top"><p>Press <code>y</code> to keep the default subject name (recommended). </p>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><p><em>Email:</em> The next prompt looks like:</p>
-            <pre class="command">
-Enter the email of the CA (this is the email where certificate
-requests will be sent to be signed by the CA):</pre></td>
-          </tr>
-          <tr>
-            <td valign="top"><a name="step6" id="step6">6</a></td>
-            <td valign="top"><p>Enter the email address
-    where you intend to receive certificate requests.  It should be
-    your real email address that you check, not the address of the
-    globus user.</p>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><em>Expiration:</em> Then you'll see:
-              <pre class="command">
-The CA certificate has an expiration date. Keep in mind that 
-once the CA certificate has expired, all the certificates 
-signed by that CA become invalid.  A CA should regenerate 
-the CA certificate and start re-issuing ca-setup packages 
-before the actual CA certificate expires.  This can be done 
-by re-running this setup script.  Enter the number of DAYS 
-the CA certificate should last before it expires.
-[default: 5 years (1825 days)]:</pre><p>This is the number of days
-  for which the CA certificate is valid. Once this time expires, the CA
-  certificate will have to be recreated, and all of its certificates
-  regranted.  </p></td>
-          </tr>
-          <tr>
-            <td valign="top"><a name="step7" id="step7">7</a></td>
-            <td valign="top">Accept the default (recommended). </td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><p><em>Passphrase</em>:</p>
-              <pre class="command">
-Generating a 1024 bit RSA private key
-........++++++
-................++++++
-writing new private key to '/home/globus/.globus/simpleCA//private/cakey.pem'
-Enter PEM pass phrase:
-              </pre>              <p>The passphrase of the CA certificate will
-                be used only when signing certificates (with <code>grid-cert-sign</code>).
-                It should be hard to guess, as its compromise may compromise
-                all the certificates signed by the CA.</p>            </td>
-          </tr>
-          <tr>
-            <td valign="top"><a name="step8" id="step8">8</a></td>
-            <td valign="top"><p>Enter your passphrase. </p>
-            <p><strong>Important:</strong> Your passphrase must <strong>not</strong> contain
-            any spaces. </p></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><p>Finally you'll see the following: </p>
-              <pre class="command">
-A self-signed certificate has been generated 
-for the Certificate Authority with the subject: 
-
-/O=Grid/OU=GlobusTest/OU=simpleCA-mayed.mcs.anl.gov/CN=Globus Simple CA
-
-If this is invalid, rerun this script 
-
-setup/globus/setup-simple-ca
-
-and enter the appropriate fields.
-
--------------------------------------------------------------------
-
-The private key of the CA is stored in /home/globus/.globus/simpleCA//private/cak
-ey.pem
-The public CA certificate is stored in /home/globus/.globus/simpleCA//cacert.pem
-
-The distribution package built for this CA is stored in
-
-/home/globus/.globus/simpleCA//globus_simple_ca_68ea3306_setup-0.17.tar.gz
-              </pre>              <p>This information will be important for setting up other machines
-                in your grid. The number <code>68ea3306</code> in the last line is known
-                as your <em>CA hash</em>. It will be some 8 hexadecimal digit
-            string. </p></td>
-          </tr>
-          <tr>
-            <td valign="top"><a name="step9" id="step9">9</a></td>
-            <td valign="top"><p>Press any key to acknowledge this screen.</p>            </td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top">Your CA setup package 
-                finishes installing and ends the procedure  with
-              the following reminder:
-              <pre class="command">
-***************************************************************************
-
-Note: To complete setup of the GSI software you need to run the
-following script as root to configure your security configuration
-directory:
-
-/opt/gt3/setup/globus_simple_ca_68ea3306_setup/setup-gsi
-
-For further information on using the setup-gsi script, use the -help
-option.  The -default option sets this security configuration to be 
-the default, and -nonroot can be used on systems where root access is 
-not available.
-
-***************************************************************************
-
-setup-ssl-utils: Complete
-</pre>            <p>We'll cover this last step in the next section.  For
-              now, just notice that it refers to your
-              <code>$GLOBUS_LOCATION</code> and the <em>CA Hash</em>
-          from the last message.</p>          </td></tr>
-          <tr>
-            <td colspan="2" valign="top"><div align="center"
-            class="box-header"><a name="Finalizing"></a>Finalizing
-            GSI</div></td>
-          </tr>
-              <td valign="top"><a name="step10" id="step10">10</a></td>
-            <td valign="top"><p>To finish the setup of GSI, run as root (or,
-                if no root privileges are available, add the <kbd>-nonroot</kbd> option
-                to the command line):</p>
-              <p class="command">$GLOBUS_LOCATION/setup/globus_simple_ca_<em>CA_Hash</em>_setup/setup-gsi
-            -default</p>
-	    <p>The output should look like:</p>
-              <pre class="command">
-setup-gsi: Configuring GSI security
-Installing /etc/grid-security/certificates//grid-security.conf.CA_Hash...
-Running grid-security-config...
-Installing Globus CA certificate into trusted CA certificate directory...
-Installing Globus CA signing policy into trusted CA certificate directory...
-setup-gsi: Complete</pre></td>
-            
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><div align="center"
-class="box-header"><a name="hostcert"></a>Requesting and signing host certificates </div></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><p>You must request and sign
-a host certificate and then copy it into the appropriate directory for
-secure services.  The certificate must be for a machine which has a
+            <td colspan="2" valign="top"><p>You must have a host certificate
+                in the appropriate directory for secure services. The certificate
+                must be for a
+                machine which
+                has a
 consistent name in DNS; you should not run it on a computer using DHCP
 where a different name could be assigned to your computer. </p></td>
           </tr>
           <tr>
-            <td valign="top"><a name="step11" id="step11">11</a></td>
-            <td valign="top"><p>Request a host certificate: As root, run:</p>
+            <td valign="top"><a name="step3" id="step3">3</a></td>
+            <td valign="top"><p>For most CAs (SimpleCA and the Globus Certficate
+                Authority included) you can request a host certificate using
+                the grid-cert-request program: As root, run:</p>
                 <p class="command">grid-cert-request -host 'hostname'</p>
                 <p>This creates the following files:</p>
                 <ul>
@@ -404,121 +231,53 @@ where a different name could be assigned to your computer. </p></td>
             </ul><p><b>Note:</b> If you are using your own CA, follow their
                 instructions about creating a hostcert (one which has
                 a commonName (CN) of your hostname), then place the
-                cert and key in the /etc/grid-security/ location.  You
-                may then proceed to <a href="#step14">user certificates</a>.</p></td>
+                cert and key in the /etc/grid-security/ location.  </p></td>
           </tr>
           <tr>
-            <td valign="top"><a name="step12" id="step12">12</a></td>
-            <td valign="top"><p>Sign the host certificate: as globus, run:</p>
-                <p class="command">grid-ca-sign -in
-		hostcert_request.pem -out hostsigned.pem</p>
-                <p>A signed host certificate, named <code>hostsigned.pem</code> is
-            written to the current directory.</p>
-            <p> When prompted for a passphrase, enter the one you specified in <a href="#step8">step
-            8</a> (for the private key of the CA certificate.)</p></td>
+            <td valign="top"><a name="step4" id="step4">4</a></td>
+            <td valign="top">Get your host certificate signed.</td>
           </tr>
           <tr>
-            <td valign="top"><a name="step13" id="step13">13</a></td>
-            <td valign="top"> <p>As root, move the signed host
-  certificate to <code>/etc/grid-security/hostcert.pem</code>. </p>
+            <td valign="top"><a name="step5" id="step5">5</a></td>
+            <td valign="top"> <p>Once you receive the signed host certificate
+                from the CA, as root, move the signed host certificate to <code>/etc/grid-security/hostcert.pem</code>. </p>
               <p>                The certificate should be owned by root, and read-only for
               other users. </p>
               <p>            The key should be read-only by root.</p></td>
           </tr>
           <tr>
             <td colspan="2" valign="top"><div align="center"
-class="box-header"><a name="usercert"></a>Requesting and signing user
-certificates</div></td>
+class="box-header"><a name="perms"></a>Making the host credentials accessible
+            by the container</div></td>
           </tr>
           <tr>
-            <td colspan="2" valign="top">Users also must request user
-certificates, which you will sign using the globus user. </td>
+            <td colspan="2" valign="top">The host key (/etc/grid-security/hostkey.pem)
+              is only readable to root. The container will be running as a non-root
+              user (probably the globus user) and in order to have a set of host
+              credentials which are readable by the container, we need to copy
+              the host certficiate and key and change the ownership to the container
+              user. Note that this step assumes you have obtained a signed host
+              certficate from your CA.</td>
           </tr>
           <tr>
-            <td valign="top"><a name="step14" id="step14">14</a></td>
-            <td valign="top"><p><em>Request a user certificate:</em> As your
-normal user account (<strong>not</strong> <code>globus</code>),
-run:</p>
-            <p class="command">grid-cert-request</p>
-            <p>After you enter a passphrase, this creates
-	        <ul>
-              <li><code>~$USER/.globus/usercert.pem</code> (empty)</li>
-              <li><code>~$USER/.globus/userkey.pem</code></li>
-              <li><code>~$USER/.globus/usercert_request.pem</code></li>
-	          </ul>
-	        <p>Email the
-            usercert_request.pem file to the SimpleCA maintainer.
-</p>
-<p><b>Note:</b> If you are using your own CA, follow their
-                instructions about creating a usercert (one which has
-                a commonName (CN) of your real name), then place the
-                cert and key in the ~USER/.globus/ location.  You may
-                then proceed to <a href="#step17">verifying proxy
-                creation</a>.
-</td>
-          </tr>
-          <tr>
-            <td valign="top"><a name="step15" id="step15">15</a></td>
-            <td valign="top"><p><em>Sign the user certificate:</em> as the
-          SimpleCA owner <code>globus</code>, run:</p>
-              <p class="command">grid-ca-sign -in usercert_request.pem
-          -out signed.pem</p>
-              <p>When prompted for a password, enter the one you specified in <a href="#step8">step
-              8</a> (for the private key of the CA certificate.)</p>
-              <p>Now send the signed copy (<code>signed.pem</code>) back to the
-        user who requested the certificate.</span></p></td>
-          </tr>
-          <tr>
-            <td valign="top"><a name="step16" id="step16">16</a></td>
-            <td valign="top"><p>As your normal user account
-(<strong>not</strong> <code>globus</code>), copy the signed user
-certificate into <font face="Courier New"><code>~/.globus/</code></font> and
-rename it as <code>usercert.pem</code>, thus replacing the empty file.</p>
-              <p>                The certificate should be owned by the user, and
-read-only for other users. <br>
-  The key should be read-only by the owner</p>              </td>
-          </tr>
-          <tr>
-            <td valign="top"><a name="step17" id="step17">17</a></td>
-            <td valign="top"><p>To test that the SimpleCA certificate is installed
-                in <code>/etc/grid-security/certificates</code> and that your
-                certificate is in place with the correct permissions, run:</p>
-              <p class="command">user$ grid-proxy-init -debug -verify</p>
-              <p>After entering your passphrase, successful output looks like:</p>
-            <pre class="command">
-[bacon@mayed schedulers]$ grid-proxy-init -debug -verify
-
-User Cert File: /home/user/.globus/usercert.pem
-User Key File: /home/user/.globus/userkey.pem
-
-Trusted CA Cert Dir: /etc/grid-security/certificates
-
-Output File: /tmp/x509up_u1817
-Your identity: /O=Grid/OU=GlobusTest/OU=simpleCA-mayed.mcs.anl.gov/OU=mcs.anl.gov/CN=User Name
-Enter GRID pass phrase for this identity:
-Creating proxy ..............................++++++++++++
-...............++++++++++++
- Done
-Proxy Verify OK
-Your proxy is valid until: Sat Mar 20 03:01:46 2004</pre></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><div align="center"
-class="box-header"><a name="perms"></a>Change the ownership and access
-permissions</div></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top">Run the
-<code>setperms.sh</code> script to change the ownership of some Globus
-files under the <code>$GLOBUS_LOCATION/bin </code>directory. This step
-allows resource management tools to run as root. </td>
-          </tr>
-          <tr>
-            <td valign="top"><a name="step18" id="step18">18</a></td>
+            <td valign="top"><a name="step6" id="step6">6</a></td>
             <td valign="top"><p>As root, run:</p>
-              <p class="command"> $GLOBUS_LOCATION/bin/setperms.sh</p>              </td>
+              <p class="command"> $ cd /etc/grid-security<br>
+			  $ cp hostkey.pem containerkey.pem<br>
+			  $ cp hostcert.pem containercert.pem<br>
+			  $ chown globus.globus containerkey.pem containercert.pem</p>
+            </td>
           </tr>
 
+          <tr>
+            <td colspan="2" valign="top"><p>At this point the certificates in /etc/grid-security
+              should look something like:</p>
+              <pre>rynge@ned-0:/etc/grid-security$ ls -l *.pem
+-rw-r--r-- 1 globus globus 1785 Oct 14 14:47 containercert.pem
+-r-------- 1 globus globus  887 Oct 14 14:47 containerkey.pem
+-rw-r--r-- 1 root   root   1785 Oct 14 14:42 hostcert.pem
+-r-------- 1 root   root    887 Sep 29 09:59 hostkey.pem </pre></td>
+          </tr>
           <tr>
             <td colspan="2" valign="top"><div align="center" class="box-header"><a name="authorization"></a>Add Authorization </div></td>
           </tr>
@@ -526,7 +285,7 @@ allows resource management tools to run as root. </td>
             <td colspan="2" valign="top">Add authorizations for users:</td>
           </tr>
           <tr>
-            <td width="40" valign="top"><a name="step19" id="step19">19</a></td>
+            <td width="40" valign="top"><a name="step7" id="step7">7</a></td>
             <td width="578" valign="top"><p>Create <code>/etc/grid-security/grid-mapfile</code> as root.  </p>
               <p>You need
           two pieces of information - the subject name of a user, and
@@ -545,31 +304,6 @@ allows resource management tools to run as root. </td>
 
             <p>The quotes around the subject name are important,
           because it contains spaces.</p></td>
-          </tr>
-          <tr>
-            <td colspan="2" valign="top"><div align="center"
-          class="box-header">Next Steps </div></td>
-          <tr>
-            <td valign="top"><a name="step20" id="step20">20</a></td>
-            <td valign="top"><p>At this step, you have a single
-          machine configured.  Recall that in <a href="#step8">Step
-          8</a> a CA setup package was created in
-          <code>.globus/simpleCA//globus_simple_ca_HASH_setup-0.17.tar.gz</code>.
-          If you want to use your certificates on another machine, you
-          will have to install that CA setup package on that machine.
-          To install it, copy that package to the second machine and run:
-           </p>
-              <p class="command"> $GLOBUS_LOCATION/sbin/gpt-build
-          globus_simple_ca_HASH_setup-0.17.tar.gz gcc32dbg</p>
-	  <p>Then you will have to perform the setup-gsi -default from
-	      <a href="#step10">step 10</a>.  If you are going to run
-	      services on the second host, it will need a <a
-	      href="#step11">host certificate</a> and a <a
-	      href="#step19">grid-mapfile</a> also.  You may re-use
-	      your user certificates on the new host.  You will need
-	      to copy the requests to the host where the SimpleCA was
-	      first installed in order to sign them.
-	      </td>
           </tr>
           </tr>
 </table>
