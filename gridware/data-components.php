@@ -1,12 +1,8 @@
 <?
-
-// 2004-10-15, robinett: created, copied information from www.globus.org/gridware/data-components.html
-
 $title = "Grid Ecosystem - Data Management";
 $section = "section-4";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
-
 ?>
 
 <div id="left">
@@ -40,6 +36,17 @@ Building on the availability of high-capacity storage systems and networks, the 
 of components for working with and managing data on the Grid.
 </p>
 
+<p>
+<strong>Related solutions:</strong> The 
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> section of this website 
+provides examples of these components being used in scientific projects. See especially the 
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."tgcp/"; ?>">TeraGrid TGCP</a></strong>,
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."ldr/"; ?>">Lightweight Data Replicator</a></strong>,
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."pegasus/"; ?>">Pegasus</a></strong>, and
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."striped-gridftp/"; ?>">Striped GridFTP Server</a></strong>
+solutions.
+</p>
+
 <p><strong><a name="mechanisms" class="title">Basic Data Management Mechanisms</a></strong></p>
 
 <p>
@@ -60,15 +67,11 @@ file-based storage systems on the Grid</li>
 or user needs and some also provides interfaces to specialized storage systems.</p>
 
 <ul>
-<li><strong><a href='data/gridftp.php'>GridFTP</a></strong> -  In addition to its role as a standard interface to remote
-filesystems, GridFTP 
-is also a high-performance data transfer protocol optimized for high-bandwidth wide-area networks.</li>
+<li><strong><a href='data/globus-url-copy.php'>globus-url-copy</a></strong> - A command-line tool for requesting GridFTP transfers
 <li><strong><a href="data/rft.php">Reliable File Transfer (RFT) Service</a></strong> - An OGSA service that allows 
 clients to request data transfers and then "disconnect" while the transfer takes place</li>
-<li><strong><a href='data/scp.php'>GSI-SCP/SFTP</a></strong> - Popular OpenSSH tools that support Grid authentication</li>
 <li><strong><a href='data/uberftp.php'>UberFTP</a></strong> - A text-based interactive client for GridFTP</li>
-<li><strong><a href='data/stripedftp.php'>Striped GridFTP Services</a></strong> - A very high-performance distributed 
-GridFTP service that runs on storage clusters</li>
+<li><strong><a href='data/scp.php'>GSI-SCP/SFTP</a></strong> - Popular OpenSSH tools that support Grid authentication</li>
 </ul>
 
 <p><strong><a name="optimizing" class="title">Components for Optimizing Data Access</a></strong></p>
@@ -78,26 +81,21 @@ GridFTP service that runs on storage clusters</li>
 <ul>
 <li><strong><a href='data/rls.php'>Replica Location Service (RLS)</a></strong> - A distributed mechanism for 
 keeping track of the locations of replicated data on a Grid</li>
-<li><strong><a href='data/nest.php'>NeST</a></strong> - A "storage applicance" that provides remote access to 
+<li><strong><a href='data/nest.php'>NeST</a></strong> - A "storage appliance" that provides remote access to 
 local data when computation jobs are running</li>
+<li><strong><a href="data/datacutter.php">DataCutter</a></strong> - A system that uses data filters and 
+streams to segment datasets in efficient ways on a Grid
 </ul>
 
-<p><strong><a name="virtualdata" class="title">Components for Virtual Data</a></strong></p>
-
-<p>Virtual data tools help manage the trade-off between the resources required to store data and the
-resources required to (re)produce it.</p>
-
-<ul>
-<li><strong><a href='computation/chimera.php'>Chimera</a></strong> - Chimera captures the steps in a data analysis process
- and stores them in a catalog for later reuse.</li>
-<li><strong><a href='computation/pegasus.php'>Pegasus</a></strong> - Pegasus converts abstract workflows into concrete workflows and executes them using Chimera and Condor tools.</li>
-</ul>
-
+<p>
+<strong>Note:</strong> The <strong><a href="computation/chimera.php">Chimera</a></strong>
+virtual data catalog described in the 
+<strong><a href="computation-components.php">Computation</a></strong> section is another component
+related to this area.
+</p>
 
 </div>
 
 <?
-
 include($SITE_PATHS["SERV_INC"].'footer.inc');
-
 ?>
