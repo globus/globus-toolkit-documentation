@@ -26,19 +26,16 @@ In order to ensure that the distributed services that comprise the Earth System 
 The ESG monitoring system uses the following components. 
 </p>
 
-<p>
 <ul>
 <li><a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."monitoring/index-service.php"; ?>">Globus Index 
 Service</a> (version 3.2)</li>
-<li><a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."monitoring/archiver-service.php"; ?>">Globus 
-Archiver Service</a> (version 3.2)</li>
+<li>Service Data Archiver Service</li>
 <li><a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."monitoring/trigger-service.php"; ?>">Globus 
 Trigger Service</a> (version 3.2)</li>
 <li>Web-based OGSI Service Data Viewer</li>
 <li>Email alerts</li>
 <li>Python test scripts</li>
 </ul>
-</p>
 
 <p>Although these tools were developed for the Earth System Grid, they are 
 generalized and flexible and can be reused easily in other Grid applications.
