@@ -52,7 +52,100 @@ to gather information.
    one installed later. Details of the supplied sources are in the
    <a href="../aggregator/developer/#introduction">Aggregator developer
    guide</a>.</p>
-<a name="configuring_poll"></a><h4>Configuring QueryAggregatorSource</h4>
+<a name="configuring_source"></a><h4>Configuring the Aggregator Source</h4>
+Configuration options are specified by creating a configuration file and
+running <a href="http://localhost:8088/4.0-drafts/info/index/WS_MDS_Index_Public_Interfaces.html#mds-servicegroup-add">mds-servicegroup-add</a> to perform the
+registrations specified in that configuration file.  The syntax of that file
+is:
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
+&lt;ServiceGroupRegistrations
+  xmlns="http://mds.globus.org/servicegroup/client" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+
+   &lt;<b>defaultServiceGroupEPR</b>&gt;
+      <i>Default service group EPR</i>
+   &lt;/<b>defaultServiceGroupEPR</b>&gt;
+
+   &lt;<b>defaultRegistrantEPR</b>&gt;
+      <i>Default registrant EPR</i>
+   &lt;/<b>defaultRegistrantEPR</b>&gt;
+
+   &lt;<b>defaultSecurityDescriptorFile</b>&gt;
+      <i>Path name of security descriptor file</i>
+   &lt;/<b>defaultSecurityDescriptorFile</b>&gt;
+
+   <i>One or more of the following:</i>
+   &lt;<b>ServiceGroupRegistrationParameters</b>&gt;
+      &lt;<b>ServiceGroupEPR</b>&gt;
+         <i>EPR of the service group to register to</i>
+      &lt;<b>/ServiceGroupEPR</b>&gt;
+      &lt;<b>RegistrantEPR</b>&gt;
+         <i>EPR of the entity to be monitored.</i>
+      &lt;<b>/RegistrantEPR</b>&gt;
+      &lt;<b>InitialTerminationTime</b>&gt;
+         <i>Initial termination time</i>
+      &lt;<b>/InitialTerminationTime</b>&gt;
+      &lt;<b>RefreshIntervalSecs</b>&gt;
+         <i>Refresh interval, in seconds</i>
+      &lt;<b>/RefreshIntervalSecs</b>&gt;
+      &lt;<b>Content</b>&gt;
+         <i>Aggregator-source-specific configuration parameters</i>
+      &lt;<b>/Content</b>&gt;
+   &lt;/<b>ServiceGroupRegistrationParameters</b>&gt;
+
+&lt;/ServiceGroupRegistrations&gt;
+</pre>
+
+Each <code>ServiceGroupRegistrationParameters</code> block specifies
+the parameters used to register a resource to a service group.  The
+parameters specified in this block are:
+<table border="1">
+<tr>
+<td><code>ServiceGroupEPR</code></td>
+<td>The EPR of the service group to register to.  This parameter may be omitted
+if a <code>defaultServiceGroupEPR</code> block is specified; in this case, the
+value of <code>defaultServiceGroupEPR</code> will be used instead.</td>
+</tr>
+<tr>
+<td><code>RegistrantEPR</code></td>
+<td>The EPR of the resource to register.  This parameter may be omitted
+if a <code>defaultRegistrantEPR</code> block is specified; in this case, the
+value of <code>defaultRegistrantEPR</code> will be used instead.</td>
+</tr>
+<tr>
+<td><code>InitialTerminationTime</code></td>
+<td>The initial termination time of this registration (this may be omitted).</td>
+</tr>
+<tr>
+<td><code>RefreshIntervalSecs</code></td>
+<td>The refresh interval, in seconds.</td>
+</tr>
+<tr>
+<td><code>Content</code></td>
+<td>Aggregator-source-specific registration parameters.  The content blocks
+for the various aggregator sources are described in detail in the following sections.</td>
+</tr>
+</table>
+<p>
+The <code>defaultServiceGroupEPR</code> block provides a convenient way to
+register a number of resources to a single service group -- for example, if
+you wish to register several resources to your default VO index, you can
+specify that index as the default service group and omit the
+<code>ServiceGroupEPR</code> blocks from each 
+<code>ServiceGroupRegistrationParameters</code> block.
+</p>
+<p>
+The <code>defaultRegistrantEPR</code> block provides a convenient way to
+register a single resource to several service groups -- for example, if
+you wish to register your local GRAM server to several index servers,
+you can specify your GRAM server as the default registrant and omit
+the
+<code>RegistrantEPR</code> blocks from each 
+<code>ServiceGroupRegistrationParameters</code> block.
+</p>
+<a name="configuring_poll"></a><h4>ServiceGroupRegistration Content Blocks for QueryAggregatorSource</h4>
 The QueryAggregatorSource can use one of the following three configuration
 blocks.
 <h5>GetResourcePropertyPollType</h5>
@@ -121,7 +214,7 @@ The <code>PollIntervalMillis</code> parameter is the poll refresh period in
 milliseconds.  The <code>QueryExpression</code> is an <code>xsd:any</code>
 element; the <code>Dialect</code> attribute specifies the dialect of the
 query expression.
-<a name="configuring_subscription"></a><h4>Configuring SubscriptionAggregatorSource</h4>
+<a name="configuring_subscription"></a><h4>ServiceGroupRegistration Content Blocks for SubscriptionAggregatorSource</h4>
 The SubscriptionAggregatorSource gathers resource property values from
 the registered resource using WS-Notification subscriptions.
 The configuration block for <code>SubscriptionAggregatorSource</code> looks
@@ -155,7 +248,7 @@ The only required parameter is the <code>TopicExpression</code>, which
 specifies the topic expression to use in the subscription request.
 [TODO:  link to generic notification/subscription docs].
 
-<a name="configuring_execution"></a><h4>Configuring ExecutionAggregatorSource</h4>
+<a name="configuring_execution"></a><h4>ServiceGroupRegistration Content Blocks for ExecutionAggregatorSource</h4>
 The ExecutionAggregatorSource gathers arbitrary XML information about
 a registered resource by executing an external script and passing
 registration as parameters.
@@ -167,12 +260,14 @@ like this:
       &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
          &lt;agg:ExecutionPollType&gt;
             &lt;agg:<b>PollIntervalMillis</b>&gt;<i>interval_in_ms</i>&lt;/agg:<b>PollIntervalMillis</b>&gt;
-            &lt;agg:<b>ProbeName</b>&gt;<i>namespace</i>:<i>localname</i>&lt;/agg:<b>ProbeName</b>&gt;
+            &lt;agg:<b>ProbeName</b>&gt;<i>dummy_namespace</i>:<i>filename</i>&lt;/agg:<b>ProbeName</b>&gt;
          &lt;/agg:ExecutionPollType&gt;
       &lt;/agg:AggregatorConfig&gt;
       &lt;agg:AggregatorData/&gt;
    &lt;/Content&gt;
 </pre>
 The <code>PollIntervalMillis</code> parameter is the poll refresh period in
-milliseconds.  [TODO:  figure out what ProbeName is -- should be an executable,
-but why is it a QName?]
+milliseconds.  The <code>ProbeName</code> parameter specifies the path name
+to the executable file, relative to the
+<code>$GLOBUS_LOCATION/libexec/aggrexec</code> directory.  The path name should
+be specified as the local name part of this QName; the namespace part is ignored.
