@@ -1,11 +1,470 @@
-<p><font color="gray">Click <a href="http://www-unix.globus.org/toolkit/docs/development/3.9.2/gram/rsl-converter.html">here</a> to see a nice example of content describing a command-line tool<br>
-  If there is more than one command-line tool, put bullets up top and copy these
-      topics for each tool</font></p>
-<h3><font color="purple">[tool name]</font> for <font color="purple">[component
-name]</font></h3>
+
+<h3><font color="purple">Java-based Tool for Submitting Jobs</font> 
+to <font color="purple">GRAM Services</font></h3>
+
 <h4>Tool description</h4>
-<p><font color="purple">[Description of the command-line tool here.  ]</font></p>
+<p><font color="purple">
+This is the job submission tool for the Globus Toolkit 3.9.3. The job 
+startup is done by submitting a client-side provided job description 
+to the GRAM services.<p>
+<p>
+In addition to starting jobs, it is possible to query the state of a previously 
+started job and parse a job description file without making any submission.<p>
+<p>
+The existence of a valid proxy is required for essentially all
+supported operations but job description file parsing (<code>-p</code>).
+</font></p>
+
 <h4>Command syntax</h4>
-<p><font color="purple">[list and describe command-line args here]</font></p>
+<p><font color="purple">
+<h5>Arguments</h5>
+<pre>
+managed-job-globusrun [options] [&lt;factory&gt;] &lt;RSL&gt;
+managed-job-globusrun -p -file &lt;RSL filename&gt;
+managed-job-globusrun (-state | -release | -kill) &lt;job handle&gt;
+managed-job-globusrun -help | -usage | -version</pre>
+<p>with</p>
+<pre>&lt;RSL&gt; = -file &lt;RSL filename&gt; | &lt;command line&gt;
+&lt;factory&gt; = -factory &lt;contact&gt; [-type &lt;type&gt;]
+&lt;contact&gt; = [&lt;protocol&gt;://]&lt;host&gt;[:[port]][/&lt;service&gt;]<br>
+[options] = [-s] [-w] [-o] [-q] [-n]
+[-b] [-duration] [-terminate-at]
+[-auth &lt;auth&gt;] [-xmlsec &lt;sec&gt;] [-personal]</pre>
+  
+<h5> Options    </h5>
+  <table width="650" border="1" cellpadding="5">
+    <tr>
+      <td colspan="2" class="box-header"><div align="center">Help options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-help</code></td>
+      <td>Displays help information about the command. </td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-usage</code></td>
+      <td>Displays usage of the command.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-v, -version</code></td>
+      <td>Displays version of the command.</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="box-header"> <div align="center">Job Factory Contact  options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-factory &lt;contact&gt;</code></td>
+      <td><p>Specifies the URL of the Job Factory Service
+  to contact when submitting or listing jobs.
+  A factory contact string can be specified in
+  the following ways:</p>
+        <ul>
+          <li> host</li>
+          <li> host:</li>
+          <li> host:port</li>
+          <li> host:port/service</li>
+          <li> host/service</li>
+          <li> host:/service</li>
+        </ul>        <p>          It is also possible to specify the protocol
+          by prepending <code>protocol://</code> to each of the
+          previous possibilities, bringing the total
+          number of supported syntaxes to 12.</p>
+        <p>          For those factory contacts which omit the
+          protocol, port or service field, the following default values
+          are used, as the following table explains:</p>
+        <table width="400" border="1" cellpadding="5">
+          <tr>
+            <th><br>
+URL part</th>
+            <th>default value</th>
+          </tr>
+          <tr>
+            <td>port</td>
+            <td>8080</td>
+          </tr>
+          <tr>
+            <td>protocol</td>
+            <td>http</td>
+          </tr>
+          <tr>
+            <td>service</td>
+            <td> /wsrf/services/ManagedJobFactoryService</td>
+          </tr>
+        </table>        <p> Omitting altogether the -factory option is
+  equivalent to specifying the local host as
+  the contact string (with the implied default
+  protocol, port and service).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-type &lt;factory type&gt;</code></td>
+      <td valign="top"> Specifies the type of factory resource to use. This is
+the name of the local resource manager. 
+The default value is Fork</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="box-header"><div align="center">Job Specification
+          options</div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>&lt;command line&gt;</code></td>
+      <td><p>Creates a simple job description that only
+  consists of a command line of the form:</p>
+        <pre>'executable (argument)*'</pre>
+        <p>          Quotes must be used if there is one or more
+      arguments.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-file &lt;RSL filename&gt;</code></td>
+      <td valign="top"><p> Reads RSL from the local file &lt;RSL filename&gt;.</p>
+        <p>      The RSL must be a single job request.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-p</code></td>
+      <td valign="top"><p>This option only parses the RSL, and then prints either
+        a
+success message or a parser failure. No job
+will be submitted to any factory service.</p>
+        <p>      The RSL must be a single job request.</p></td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">Internal
+      GASS Server options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-s, -server </code></td>
+      <td valign="top"><p>Starts the GASS server with read access to local 
+  files, providing the remote job with 
+  read-only access to the local filesystem.</p>
+        <p>          The GASS server URL will be prepended to the 
+      source file path of each stage-in directive.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-w, -write</code></td>
+      <td valign="top">Allows the GASS server to start with read/write access
+        to
+local files. Similar to -server, except the
+GASS server will also allow writing to the
+local filesystem. The GASS server URL will
+also be prepended to the destination path of
+each stage-out directive. Implies -server.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-o, -output</code></td>
+      <td valign="top"><p>Starts the GASS server and displays the job's 
+  standard output and error streams on the 
+  standard output and error of the command's 
+  process. Special paths starting with the 
+  GASS server URL will be added to the stdout 
+  and stderr directives.</p>
+        <p>          No other read/write access will be provided
+          by this option alone. 
+      Implies -quiet.</p></td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">Batch Operations options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-b, -batch</code></td>
+      <td valign="top"><p>Do not wait for started
+        job to complete (and
+do not destroy started job service on exit.) 
+The handle of the job service will be
+printed on the standard output.
+Incompatible with internal GASS options
+(-server, -write-allow, and -output.)</p>
+        <p>          The job must use an external GASS server if
+          it needs to access local files. This option is 
+          incompatible with multi-request jobs. 
+      Implies -quiet.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-l, -list </code></td>
+      <td valign="top"><p>This option is NOT FUNCTIONAL YET (see below)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-state &lt;handle&gt;</code></td>
+      <td valign="top">Print out the state of the specified job. 
+For a list of valid states, see the GRAM 
+documentation [need link]; the current valid states are 
+Pending, Active, Done, Suspended, and Failed.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-r, -release &lt;handle&gt; </code></td>
+      <td valign="top"><p>release the specified job from hold. </p>
+      </td>
+    </tr>    
+    <tr>
+      <td valign="top"><code>-k, -kill &lt;handle&gt; </code></td>
+      <td valign="top"><p>Kill the specified job. </p>
+      <p>Note: The &lt;handle&gt; argument is printed out
+when executing in batch mode or when using
+the -list option.</p>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">Job Resource Lifetime
+          options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-duration &lt;duration&gt;</code></td>
+      <td valign="top"><p>Specify the duration of the job resource. The job
+  resource will destroy itself automatically
+  after the specified duration starting from
+  service creation.</p>
+        <ul>
+          <li> Format: HH:mm</li>
+          <li> Default: 24 hours.</li>
+        </ul>        <p>          Incompatible with -date-time. 
+      Useful with -batch.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-terminate-at &lt;date&gt;</code></td>
+      <td valign="top"><p>Specify termination date/time of job. 
+  Same as -duration but with an absolute<br>
+  date/time value.</p>
+        <p>          Format: MM/dd/yyyy HH:mm</p>
+        <p>          Default: see -duration.</p>
+        <p>          The date expression may need to be quoted, 
+        as in: </p>
+        <pre>-terminate-at '08/15/2005 11:30'</pre>
+        <p>          Incompatible with -duration. 
+      Useful with -batch.</p></td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">Security options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-auth &lt;auth&gt;</code></td>
+      <td valign="top"><p>Set authorization type. </p>
+        <p>&lt;auth&gt; can be:</p>
+        <ul>
+          <li> 'host' for host authorization (default)</li>
+          <li> 'self' for self authorization</li>
+          <li>&lt;id&gt; for identity authorization.</li>
+        </ul></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-xmlsec &lt;sec&gt;</code></td>
+      <td valign="top"> <p>Set message protection level. </p>
+        <p>&lt;sec&gt; can be:</p>
+        <ul>
+          <li> 'sig' for XML Signature (default)</li>
+          <li> 'enc' for XML Encryption.</li>
+        </ul></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-personal</code></td>
+      <td valign="top">Shortcut for -auth self.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-proxy &lt;proxy file&gt;</code></td>
+      <td valign="top">Use &lt;proxy file&gt; instead of the default 
+proxy credential file.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-deleg &lt;deleg&gt;</code></td>
+      <td valign="top"> <p>Set delegation type. </p>
+        <p>&lt;deleg&gt; can be:</p>
+        <ul>
+          <li> 'limited' for limited delegation (default).</li>
+          <li> 'full' for full delegation</li>
+        </ul></td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">Miscellaneous options </div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-q, -quiet</code></td>
+      <td valign="top"><p>Set quiet mode to ON (do not print diagnostic
+  messages when job state changes, in
+  non-batch mode). </p>
+        <p>This option is useful when job output is
+      redirected to the local process and parsed.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-n, -no-interrupt</code></td>
+      <td valign="top">Disable interrupt handling. By default,
+interrupt signals (typically generated by
+        <em>Ctrl</em> + <em>C</em>) cause the program to terminate the
+currently submitted job. This flag disables
+that behavior.</td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-timeout &lt;integer&gt;</code></td>
+      <td valign="top"> <p>Set timeout for HTTP socket, in milliseconds.</p>
+        <p>          Applies to job submission only. The default value is 120000.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-submission-id &lt;ID&gt;</code></td>
+      <td valign="top"> <p>Set the submission ID of a previous job submission 
+          for which no server response was received.<p>The ID can be used after 
+          an attempted job submission in order to recover the handle to the job.</p></td>
+    </tr>    
+    <tr>
+      <td colspan="2" valign="top" class="box-header"><div align="center">        GT2 globusrun
+          options NOT functional (yet)</div></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-l, -list</code></td>
+      <td valign="top"><p>NOT IMPLEMENTED ON SERVER SIDE YET.</p>
+        <p>List previously started and not destroyed
+          job services for this user. The output of 
+          this command consists of the handles and RSL
+        of the submitted jobs.</p>
+        <p>      Requires the -factory &lt;URL&gt; argument.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-dryrun</code></td>
+      <td valign="top"><p>NOT IMPLEMENTED ON SERVER SIDE YET.</p>
+        <p>Augment the RSL in order to mark this job as
+          a dry run, if the RSL does not already say
+          so. This causes the job manager to stop
+          short of starting the job, but still detect
+          other RSL errors (such as bad directory,
+          bad executable, etc). An error message will
+        be displayed if the dry run fails.</p>
+        <p>          Otherwise, a message will be displayed
+      indicating that the dryrun was successful.</p></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>-authenticate-only</code></td>
+      <td valign="top">NOT IMPLEMENTED ON SERVER SIDE YET.</td>
+    </tr>
+  </table>
+  <p>&nbsp;  </p>
+</font></p>
+
+<h4>Tool-triggered Automatic Job Resource Destruction</h4>
+<p><p><font color="purple">
+ <p>
+ Execution errors and user interrupt events are handled by automatically
+ destroying the requested job service(s), unless the -batch option
+ is on the command-line. The -batch option prevents the tool from
+ listening to job state changes and from waiting for the job to finish.
+ If -batch is selected, the command will return as soon as the remote
+ job has been submitted.
+ <p>
+ The behavior of the tool with respect to job service destruction will vary
+ in response to several kinds of events:
+ <ul>
+ <li> The command exits normally after the job(s) finish(es), and destroys
+      the job service(s) it requested. In batch mode, the requested job
+      is never destroyed.
+  <li> The command is terminated in response to a user interrupt, such as
+      typing <em>Ctrl</em> + <em>C</em>, or a system-wide event, such as user logoff or system
+      shutdown. If the -no-interrupt option is on the command-line,
+      and the command-line has been successfully parsed when the interrupt
+      occurs, the tool does not destroy any job service(s) it requested.
+      Otherwise the tool destroys the requested job service(s).
+  <li> In case of any error of execution, the command will exit and
+      destroy the job(s) it successfully requested.
+ </ul>
+ <p>
+ <p>
+ If the Java virtual machine of the tool aborts, that is, stops running without shutting down
+ cleanly, for instance because it received a SIGKILL signal on Unix, then no
+ guarantee can be made about whether or not the job service(s) will be
+ destroyed.
+ <p>
+ Note: the shutdown behavior explained above cannot be guaranteed if the
+ JVM option -Xrs is entered.
+ The recommended way to disable service destruction is to specify
+ the -batch option on the command-line.
+</font></p>
+
+<h4>Examples</h4>
+<p><font color="purple">
+
+With the command:<p>
+
+% bin/managed-job-globusrun -f share/gram-client/test.xml<p>
+
+The output should be:<p>
+
+SubmissionID: uuid:661AA7F0-2573-11D9-99B2-D4755757F903
+WAITING FOR JOB TO FINISH
+========== State Notification ==========
+Job State: CleanUp
+========================================
+========== State Notification ==========
+Job State: Done
+========================================
+Exit Code: 0
+DESTROYING SERVICE
+========== State Notification ==========
+Job State: Active
+========================================
+SERVICE DESTROYED
+
+<p>
+In this example the job description specifies the standard output 
+stream path of the job to be: ${GLOBUS_USER_HOME}/stdout. The GRAM 
+services replace the substitution variable ${GLOBUS_USER_HOME} 
+with the path to the Home directory of the submitting user 
+as seen by the machine were the invoked GRAM services are hosted.
+You can thus verify the output of the job with the following 
+command:<p>
+
+% cat ~/stdout
+<p>
+which will display the string:<p>
+12 abc 34 pdscaex_instr_GrADS_grads23_28919.cfg pgwynnel was here
+
+</font></p>
+
+<h4>New Functionality</h4>
+<p><font color="purple">
+
+<p><h5>Submission ID</h5><p>
+<p>
+
+<p><h5>Hold/Release</h5><p>
+<p>
+
+<p><h5>MultiJobs</h5>
+<p>
+
+<p><h5>Job and Process Rendezvous</h5>
+</font><p>
+
+
 <h4>Limitations</h4>
-<p><font color="purple">[describe limitations of the tool here]</font></p>
+<p><font color="purple">
+
+With the porting of existing GRAM functionality from OGSI to WSRF, 
+this new version of the job submission tool suffers from a few limitations 
+comparatively to previous versions of the tool.
+These limitations will be dealt with in the next version of the tool, which 
+will be implemented in C and thus will also be more performant.
+
+<p><h5>No more file staging using GASS</h5><p>
+The GASS server is not being used anymore by GRAM, so the options 
+-server and -write are not available anymore. This is not a limitation 
+per se, since instead, file staging is done in a reliable fashion 
+by using GridFTP servers installed on the client machine and 
+the remote machine hosting the GRAM services. The file staging directives 
+in the job description must now contain paths that can be resolved 
+to GridFTP URLs.
+TODO add link to HowTo StageFiles here.
+<p>
+
+<p><h5>No standard output redirection yet</h5><p>
+Unlike the GT3.2 managed-job-globusrun used with the option -output, 
+this version of the tool does not offer any streamed redirection of 
+the standard streams. This is because the GASS server is not used anymore 
+by GRAM. Instead, a future version of the tool will allow for streaming 
+of any server-side file (including the standard streams of the job 
+execution) using GridFTP "tailing" of remote files.<p>
+
+<p><h5>No listing of submitted jobs yet</h5><p>
+The -list option, which made the 3.2 tool print the identifiers of the jobs 
+submitted by the user on the standard output, is not available in this version 
+of the tool.
+<p>
+</font></p>
+
+TODO remove GASS options: from Java code too...CHECK NO MORE GASS SERVER
+TODO talk about "hold" state
+TODO update the "no DUROC thingy: new feature/way to do DUROC - use Karl's phrasing
+TODO variable substitutions (with reference: link to Joe's generated HTML)
