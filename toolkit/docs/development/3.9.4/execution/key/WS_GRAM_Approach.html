@@ -1,0 +1,712 @@
+<?php include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); ?>
+
+<?php
+include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/draft.inc" );
+?>
+
+<h1>GT 4.0 WS GRAM Approach</h1>
+<ul>
+  <li><a href="#intro">Introduction</a></li>
+  <li><a href="#approach">Component architecture approach </a></li>
+  <li><a href="#security">Security model</a></li>
+  <li> <a href="#arch">Software architecture</a></li>
+  <li><a href="#protocol">Protocol variations</a></li>
+  <li><a href="#perf">Performance and scalability </a></li>
+</ul>
+<h2><a name="intro"></a>Introduction</h2>
+
+<p>
+
+The WS GRAM software implements a solution to the job-management
+problem described in the <a href="index.html">GT 4.0
+WS GRAM Key Concepts</a> document, providing Web services interfaces
+consistent with the WSRF model. This solution is specific to operating
+systems following the Unix programming and security model.
+
+</p>
+
+<h2><a name="approach"></a>Component architecture approach</h2>
+
+<p>
+WS GRAM combines job-management services and local system adapters
+with other service components of GT 4.0 in order to support job
+execution with coordinated file staging.
+</p>
+
+<img src="../wsgram/WS_GRAM_components.png">
+
+<h3>WS GRAM Web Services</h3>
+
+<p>The heart of the WS GRAM service architecture is a set of Web
+services designed to be hosted in the Globus Toolkit's WSRF core
+hosting environment. Note, these services, described below, make use
+of platform-specific callouts to other software components described
+in the next section.</p>
+
+<dl>
+
+<dt>ManagedJob</dt>
+
+<dd><p> Each submitted job is exposed as a distinct resource
+qualifying the generic ManagedJob service. The service provides an
+interface to monitor the status of the job or to terminate the job (by
+terminating the ManagedJob resource).  The behavior of the service,
+i.e. the local scheduler adapter implementation, is selected by the
+specialized <em>type</em> of the resource.</p></dd>
+
+<dt>ManagedJobFactory</dt>
+
+<dd><p> Each compute element, as accessed through a local scheduler,
+is exposed as a distinct resource qualifying the generic
+ManagedJobFactory service. The service provides an interface to create
+ManagedJob resources of the appropriate type in order to perform a job
+in that local scheduler.</p></dd>
+
+</dl>
+
+<h3>Major Protocol Steps</h3>
+
+<p>
+The components in the WS GRAM solution are organized to support a
+range of optional features that together address different usage
+scenarios.  These scenarios are explored in depth in terms of protocol
+exchanges in the Protocol Variations section. However, at a high level
+we can consider the main client activities around a WS GRAM job to be
+a partially ordered sequence.
+</p>
+
+<img src="../wsgram/WS_GRAM_functions.png">
+
+<h4>Creation of Job</h4>
+<p>
+The main component of the WS GRAM service model is the ManagedJob
+resource created by a ManagedJobFactory::createJob invocation. A
+meaningful WS GRAM client MUST create a job that will then go through
+a lifecycle where it eventually completes execution and the resource
+is eventually destroyed (the core black-and-white nodes in the
+high-level picture).
+</p>
+
+<h4>Optional Staging Credentials</h4>
+<p>
+Optionally, the client MAY request staging activities to occur before
+or after the job. If these are requested in the create call, suitable
+delegated credential EPRs MUST be passed in as part of the creation
+input, meaning that delegation operations MUST be performed sometime
+before createJob when staging is enabled (the light-blue delegation
+nodes in the high-level picture). Two credential fields must be
+initialized: the staging and transfer credentials, which may refer to
+distinct credentials or may both refer to the same credential.  The
+staging credential gives WS GRAM the right to interact with the RFT
+service, while the transfer credential gives RFT the right to interact
+with GridFTP servers.
+</p>
+
+<h4>Optional Job Credential</h4>
+<p>
+Optionally, the client MAY request that a credential be stored into
+the user account for use by the job process. When this is requested in
+the create call, a suitable delegated credential EPR is passed as part
+of the creation input. As for staging, the credential MUST have been
+delegated before the job is created (the green nodes in the picture).
+</p>
+
+<h4>Optional Credential Refresh</h4>
+<p>
+Optionally, credentials delegated for use with staging, transfer, or
+job processes may be refreshed using the Delegation service
+interface. This operation may be performed on any valid Delegation
+EPR (the blue/green striped node in the picture).
+</p>
+
+<h4>Optional Hold of Cleanup for Streaming Output</h4>
+<p>
+If the client wishes to directly access output files written by the
+job (as opposed to waiting for the stage-out step to transfer files
+from the job host), the client should request that the file cleanup
+process be held until released. This gives the client an opportunity
+to fetch all remaining/buffered data after the job completes but
+before the output files are deleted. (See the pink nodes in the
+high-level picture).
+</p>
+<p>
+The cleanup hold and release are not necessary if the client will not
+be accessing files that are scheduled for cleanup in the job request,
+either because the client is not accessing any files or because the
+files it is accessing will remain on the job host after ManagedJob
+termination.
+</p>
+
+<h4>ManagedJob Destruction</h4>
+<p>
+Under nearly all circumstances, ManagedJob resources will be
+eventually destroyed after job cleanup has completed. Clients may
+hasten this step via an explicit destroy request or by manipulation of
+the scheduled termination time. Most system administrators will set a
+default and maximum ManagedJob linger time after which automatic
+purging of completed ManagedJob resources will occur.
+</p>
+
+<h3>Globus Toolkit Components used by WS GRAM</h3>
+
+<p>
+<dl>
+
+<dt>ReliableFileTransfer</dt>
+
+<dd>
+  <p>The ReliableFileTransfer (RFT) service of GT 4.0 is invoked by the
+WS GRAM services to effect file staging before and after job
+computations.</p>
+
+  <p>
+The integration with RFT provides a much more robust file staging
+manager than the ad-hoc solution present in previous versions of the
+GRAM job manager logic. RFT has better support for retry, restart, and
+fine-grained control of these capabilities. WS GRAM exposes the full
+flexibility of the RFT request language in the job staging clauses of
+the job submission language.
+</p>
+</dd>
+
+<dt>GridFTP</dt>
+
+<dd><p>GridFTP servers are required to access remote storage elements
+as well as filesystems accessible to the local compute elements that
+may host the job. The ReliableFileTransfer Web service acts as a
+so-called third-party client to the GridFTP servers in order to manage
+transfers of data between remote storage elements and the compute
+element filesystems. It is not necessary that GridFTP be deployed on
+the same host/node as the WS GRAM services, but staging will only be
+possible to the subset of filesystems that are shared by the GridFTP
+server that is registered with the WS GRAM service. (REF TO
+DEPLOY/CONFIG HERE) If no such server or shared fileystems are
+registered, staging is disallowed to that WS GRAM compute
+element.</p>
+
+<p>
+GridFTP is also used to monitor the contents of files written by the
+job during job execution. The standard GridFTP protocol is used by a
+slightly unusual client to efficiently and reliably check the status
+of files and incrementally fetch new content as the file grows. This
+method supports "streaming" of file content from any file accessible
+by GridFTP, rather than only the standard output and error files named
+in the job request--the limitation of previous GRAM solutions. This
+approach also simplifies failover and restart of streaming to multiple
+clients.
+</p>
+
+<p>The integration with GridFTP replaces the legacy GASS (Globus
+Access to Secondary Storage) data transfer protocol. This changeover
+is advantageous both for greater performance and reliability of data
+staging as well as to remove redundant software from the GRAM
+codebase.
+</p>
+</dd>
+
+<dt>Delegation</dt>
+
+<dd>
+  <p>The Delegation service of GT 4.0 is used by clients to delegate
+credentials into the correct hosting environment for use by WS GRAM
+or RFT services.</p>
+
+  <p>
+The integration of the Delegation service replaces the implicit,
+binding-level delegation of previous GRAM solutions with explicit
+service operations. This change not only reduces the requirements on
+client tooling for interoperability purposes, but also allows a new
+separation of the lifecycle of jobs and delegated credentials.
+Credentials can now be shared between multiple short-lived jobs or
+eliminated entirely on an application-by-application basis to make
+desired performance and security tradeoffs. Meanwhile, for unique
+situations WS GRAM retains the ability to refresh credentials for
+long-lived jobs and gains an ability to designate different delegated
+credentials for different parts of the job's lifecycle.
+</p>
+</dd>
+
+</dl>
+
+<h3>External Components used by WS GRAM</h3>
+<p>
+
+<dl>
+
+<dt>Local job scheduler</dt>
+
+<dd><p>An optional local job scheduler is required in order to manage the
+resources of the compute element. WS GRAM has the ability to spawn
+simple time-sharing jobs using standard Unix <tt>fork()</tt> methods,
+but most large-scale compute elements will be under the control of a
+schedule such as PBS, LSF, Loadleveler, etc.</p></dd>
+
+<dt>sudo</dt>
+
+<dd><p>The defacto standard Unix <tt>sudo</tt> utility is used by
+WS GRAM to gain access to target user accounts without requiring
+WS GRAM to have general super-user privelege on the system. The sudo
+command is used to execute WS GRAM adapter tools in the user account
+context; these adapters perform the local system-specific operations
+needed to initialize and run user jobs.</p>
+
+<p>The <tt>sudo</tt> utility not only provides a simple way for
+WS GRAM to run programs as other users without "root" privelege, but
+it provides fine-grained controls for the system administrator to
+restrict which user accounts are valid WS GRAM targets as well as
+secure auditing of all operations requested by WS GRAM.
+
+This mechanism replaces the root-priveleged Gatekeeper component of
+the Pre_WS GRAM service in order to avoid running an entire WSRF
+hosting environment as root.  This change provides enhanced security,
+at the expense of slightly more complicated deployment effort, and is
+motivated by the relative increase in the size of the WS GRAM and WSRF
+codebase as compared to the traditional Gatekeeper.</p>
+</dd>
+</dl>
+
+</p>
+
+
+<h2><a name="security"></a>Security model</h2>
+
+<h3>Secure operations</h3>
+
+<p>WS GRAM utilizes secure Web service invocation, as provided by the
+WSRF core of the Globus Toolkit, for all job-management and
+file-management messages. This security provides for authentication of
+clients, tamper-resistant messaging, and optional privacy of message
+content.</p>
+
+<h3>Local system protection domains</h3>
+
+<p>User jobs are executed within separate Unix user accounts. WS GRAM
+authentication mechanisms allow the administrator to control to which
+local accounts a Grid-based client may submit jobs.  WS GRAM uses the
+Unix <tt>sudo</tt> command to access user accounts after determining
+that the client has the right to access the account. Additionally, the
+administrator may use access and allocation policy controls in the
+local scheduler to further restrict the access of specific clients and
+Unix users to local computing resources.</p>
+
+<h3>Credential delegation and management</h3>
+
+<p>A client may optionally delegate some of its rights to WS GRAM and
+related services in order to facilitate file staging. Additionally,
+the client may delegate rights for use by the job process itself. If
+no delegation is performed, staging is disallowed and the job will
+have no ability to request priveleged Grid operations.</p>
+
+<h3>Audit</h3>
+
+<p>WS GRAM provides three types of logging or auditing support:
+<dl>
+
+<dt>WSRF core message logging</dt>
+
+<dd><p>Detailed logging of the underlying client messages may be logged
+if such logging is enabled in the container configuration. (IS THIS
+CORRECT? REF?)</p></dd>
+
+<dt>WS GRAM custom logging</dt>
+
+<dd><p>WS GRAM generates domain-specific logging information about job
+requests and exceptional conditions</p></dd>
+
+<dt>Local scheduler logging</dt>
+
+<dd><p>For systems using a local batch scheduler, all of the
+accounting and logging facilities of that scheduler remain available
+for the administrator to track jobs whether submitted through WS GRAM
+or directly to the scheduler by local users.</p></dd>
+
+<dt>Local system logging</dt>
+
+<dd><p>The use of <tt>sudo</tt> for all operations against target user
+accounts allows the administrator to log the low-level system
+operations requested by WS GRAM using <tt>sudo</tt>'s native auditing
+support.</p></dd>
+
+</dl>
+</p>
+
+</dl>
+
+<h3>Protocol Overview</h3>
+
+<p>
+As depicted above, the WS GRAM protocol is centered around the
+creation of a stateful ManagedJob resource using the ManagedJobFactory
+createJob() operation. A simple batch job may involve nothing more
+than this initial client creation step, with all other job lifecycle
+steps occuring automatically in the server. A number of optional
+protocol elements are available for more complex scenarios.
+</p>
+
+<font color="red">VERIFY THESE OPERATION NAMES...</font>
+
+<dl>
+
+<dt>DelegationFactory::createDelegation</dt>
+
+<dd><p> This (optional) step allows a client to delegate credentials
+that will be required for correct operation of WS GRAM, RFT, or the
+user's job process. Such credentials are only used when referenced in
+the subsequent job request and under the condition that WS GRAM or RFT
+is configured to make use of the DelegationFactory, respectively.
+</p></dd>
+
+<dt>Delegation::refresh</dt>
+
+<dd><p> This (optional) step allows a client to update the credentials
+already established for use with the previous createDelegation step.
+</p></dd>
+
+<dt>ManagedJobFactory::createJob</dt>
+
+<dd><p> This required step establishes the stateful ManagedJob
+resource which implements the job processing described in the input
+request.
+</p></dd>
+
+<dt>ManagedJob::releaseHold</dt>
+
+<dd><p>This (optional) step allows the ManagedJob to continue through
+a state in its lifecycle where it was previously held or scheduled to
+be held according to details of the original job request.  It is a
+fault to try to release a hold that was not set in the job request
+or that was already released.
+</p></dd>
+
+<dt>ManagedJob::setTerminationTime</dt>
+
+<dd><p> This (optional) step allows the client to reschedule automatic
+termination to be different than was originally set during creation of
+the ManagedJob resource.
+</p></dd>
+
+<dt>ManagedJob::destroy</dt>
+
+<dd><p> This (optional) step allows the client to explicitly abort a
+job and destroy the ManagedJob resource, in the event that the
+scheduled automatic termination time is not adequate.
+</p></dd>
+
+<dt>ManagedJob::subscribe</dt>
+
+<dd><p> This (optional) step allows a client to subscribe for
+notifications of status (and particularly lifecycle status) of the
+ManagedJob resource. For responsiveness, it is possible to establish
+an initial subscription in the createJob() operation without an
+additional round-trip communication to the newly created job.
+</p></dd>
+
+<dt>ManagedJob::queryProperty and queryMultipleProperties</dt>
+
+<dd><p> These (optional) steps allow a client to query the status (and
+particularly lifecycle status) of the ManagedJob resource.
+</p></dd>
+
+</dl>
+
+<h2><a name="arch"></a>WS GRAM software architecture</h2>
+
+<h3>Overview</h3>
+
+<img src="../wsgram/WS_GRAM_software.png">
+
+<p>
+
+</p>
+
+<h3>ManagedJob Resource Lifecycle Logic</h3>
+
+<p>
+The ManagedJob resource has a complex lifecycle. The generic behavior
+is depicted in the following flowchart as a partially ordered sequence
+of processes and decision points. The status of the ManagedJob
+resource, including its "job state" is set as a side-effect of this
+control flow.  The processes in the flowchart do not all directly
+correspond to client-visible job states.
+</p>
+
+<img src="../wsgram/WS_GRAM_lifecycle.png">
+
+<h3>Software for local system interaction</h3>
+
+<dl>
+
+<dt>Scheduler adapters</dt>
+
+<dd><p>Support to control each local scheduler is provided in the form of
+adapter scripts in the Perl programming language, following the
+proprietary GRAM adapter plugin API. These adapters implement the
+system-specific submission, job exit detection, and (optionally) job
+exit status determination processes.</p></dd>
+
+<dt>gridmap_authorize_and_exec</dt>
+
+<dd><p>The <tt>gridmap_authorize_and_exec</tt> tool is a default, but
+optional, program that is invoked in the target user account as a
+wrapper around WS GRAM operations in order to make a final safety
+check for whether WS GRAM should be allowed to operate in that
+account. This tool provides reasonable privelege limits to guard
+against service compromise without requiring additional system
+administrator efforts to manage user policies.</p></dd>
+
+</dl>
+
+<h2><a name="protocol"></a>Protocol Variations</h2>
+
+<p>
+From a protocol perspective, the longest latency WS GRAM submission
+scenario involves credential delegation, staging before and after the
+job, and an explicit hold handshake on file cleanup after the job. The
+credential refresh feature of WS GRAM can be repeated any number of
+times, so by longest sequence we mean the longest fixed sequence with
+at most one credential delegation. Explicit termination is not
+necessary with WS GRAM so we will not consider that case further.
+</p>
+
+<p>
+To understand the following figures which illustrate the protocol
+sequence: the arrows show communication, signalling, or causal links
+between tiers in the architecture and the vertical span indicates
+elapsed time (with the start time at the top of the diagram). Due to
+unpredictable implementation delays, client and job-observed times are
+not necessarily ordered with respect to the WS GRAM observed times and
+the WS GRAM generated state notification messages. The diagrams show
+one possible ordering but applications (and our measurement methods)
+must tolerate other orderings as well.
+</p>
+
+<h3>Minimal Protocol Sequence</h3>
+
+<p>
+The simplest WS GRAM scenario involves a job that requires neither
+delegated credentials nor staging and that makes use of the automatic
+termination of resources to avoid an explicit termination request.  In
+this case, we can measure the latency and throughput for job
+submission and notification alone.
+</p>
+
+<img src="../wsgram/WS_GRAM_sequence_minimal.png">
+
+<p>
+Note: Any difference between this case and the same measurement points in
+the full scenario must be due to the additional overhead of the
+delegation and staging services on the front-end node?
+</p>
+
+<h3>Non-staging Delegation Sequence</h3>
+
+<p>
+A slightly longer form of job than the minimal sequence is to include
+credential delegation for use by the job itself, without any staging
+directives. This sequence is comparable in functionality to previous
+GRAM releases where delegation was mandatory but staging could be
+omitted as per the client's request.
+</p>
+
+<img src="../wsgram/WS_GRAM_sequence_delegonly.png">
+
+<h3>Non-staging Delegation Sequence with Hold</h3>
+
+<p>
+An optional protocol sequence allows the cleanup state to be held in
+order to allow a client to safely access output files via the GridFTP
+server after the job has finished writing them and before the cleanup
+step deletes them. This variant adds the cleanup hold handshake to the
+previous scenario.
+</p>
+
+<img src="../wsgram/WS_GRAM_sequence_delegonly_hold.png">
+
+<h3>Staging Sequence</h3>
+
+<p>
+This staging sequence uses almost all of the protocol elements.
+</p>
+
+<img src="../wsgram/WS_GRAM_sequence_staging.png">
+
+<h3>Staging Sequence with Hold</h3>
+
+<p>
+This staging sequence adds the cleanup hold handshake to the staging
+example to represent a job that has staged files as well as "streamed"
+output.
+</p>
+
+<img src="../wsgram/WS_GRAM_sequence_staging_hold.png">
+
+<h2><a name="perf"></a>Performance and scalability</h2>
+
+<p>
+There are several optional parts to the WS GRAM job workflow and
+protocol. To understand the performance and scalability
+characteristics of WS GRAM, we must consider variations where
+different parts of the protocol are used or omitted.
+</p>
+
+<h3>Basic Client-visible Latency Measurements</h3>
+
+<p>
+We report average performance for #TRIALS submissions of each of the
+three variant sequences described above, using an instrumented version
+of the <tt>globusrun-ws</tt> client command-line tool. Each trial is
+an independent run with no other client load on the test WS GRAM
+server.
+</p>
+
+<p>
+The columns in the figure correspond to the three scenarios described
+above, and the horizontal bands correspond to the distinct phases of
+the protocol.
+</p>
+
+<p>
+<b>NOTE: these charts currently just illustrate the visualization
+technique using fictional measurements and do not represent measured
+data!!</b>
+</p>
+
+<img src="../wsgram/sequence-times.png"> <img src="../wsgram/sequence-times-manual.png">
+
+<p>
+The chart on the left is automatically generated from data files and
+therefore up to date with any experiments.  The chart on the right has
+been hand-retouched from a snapshot, to color the phases with the same
+coloring as in the sequence diagrams. Final release documents will
+include only the retouched chart with consistent coloring.
+</p>
+
+<p>
+<b>NOTE: these charts currently just illustrate the visualization
+technique using fictional measurements and do not represent measured
+data!!</b>
+</p>
+
+<h4>Methodology</h4>
+
+<p>
+We use an instrumented version of our command-line client tool to
+submit one dummy job at a time and log each relevant protocol event
+with a timestamp. For each of the above scenarios, the protocol events
+are mapped to the appropriate lifecycle boundary for comparison,
+taking into account the presence or absence of optional protocol
+sequences in each scenario.  The instrumented client measures the
+initial time by generating a timestamp <i>before</i> issuing the first
+operation request.
+</p>
+
+<p>
+The times from one thousand (1000) independent trials are converted to
+intervals relative to the initiating protocol event and then these
+intervals are averaged for all trials.  The raw timestamped event logs
+are preserved in case other analysis methods are preferred in the
+future.
+</p>
+
+<table border="1">
+
+<caption>Mapping of protocol events to lifecycle boundaries for each
+testing scenario.</caption>
+
+<tr>
+<th rowspan="2">Boundary</th>
+<th align="center" colspan="5">Scenario</th>
+</tr>
+
+<tr>
+<th align="center">Minimal</th>
+<th align="center">Delegating</th>
+<th align="center">Delegating w/ Hold</th>
+<th align="center">Staging</th>
+<th align="center">Staging w/ Hold</th>
+</tr>
+
+<tr>
+<td>0. Sequence Initiated</td>
+<td align="center">createJob() invoked</td>
+<td align="center" colspan="4">createDelegation() invoked</td>
+</tr>
+
+<tr>
+<td>1. Delegation complete</td>
+
+<td align="center" colspan="5">createDelegation() returns</td>
+</tr>
+
+<tr>
+<td>2. Creation complete</td>
+<td  align="center"colspan="5">createJob() returns</td>
+</tr>
+
+<tr>
+<td>3. Submission complete</td>
+<td align="center">Pending state notified</td>
+<td align="center" colspan="4">StageIn state notified</td>
+</tr>
+
+<tr>
+<td>4. StageIn/Setup complete</td>
+
+<td align="center" colspan="5">Pending state notified</td>
+</tr>
+
+<tr>
+<td>5. Pending/Start complete</td>
+<td align="center" colspan="5">Active state notified</td>
+</tr>
+
+<tr>
+<td>6. Execution complete</td>
+<td align="center">Done state notified</td>
+<td align="center">Cleanup state notified</td>
+<td align="center">CleanupHold state notified</td>
+<td align="center" colspan="2">StageOut state notified</td>
+</tr>
+
+<tr>
+<td>7. StageOut complete</td>
+<td align="center" colspan="3">&nbsp;</td>
+<td align="center">Cleanup state notified</td>
+<td align="center">CleanupHold state notified</td>
+</tr>
+
+<tr>
+<td>8. Hold complete</td>
+<td align="center" colspan="2">&nbsp;</td>
+<td align="center">Cleanup state notified</td>
+<td align="center">&nbsp;</td>
+<td align="center">Cleanup state notified</td>
+</tr>
+
+<tr>
+<td>9. Cleanup complete</td>
+<td align="center">&nbsp;</td>
+<td align="center" colspan="4">Done state notified</td>
+</tr>
+
+</table>
+
+<h3>Pipelined Measurements</h3>
+
+<p>
+For these measurements, we repeat the trials with differing numbers of
+concurrent (pipelined) submissions from a single client, using a
+customized test client tool. This leads to a relatively steady-state
+measurement condition with a parameterized amount of concurrent load
+on the WS GRAM server.
+</p>
+
+<h4>Throughput</h4>
+
+<p>
+The submission rate is reported for varying levels of concurrency.
+</p>
+
+<h3>Concurrency Limits</h3>
+<p>[TODO]</p>
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>

@@ -1,0 +1,381 @@
+<?php include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); ?>
+<?php
+include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/draft.inc" );
+?><h1>GT 4.0 CAS : System Administrator's Guide</h1>
+<ul>
+  <li><a href="#introduction">Introduction</a></li>
+  <li> <a href="#installing">Building and Installing</a></li>
+  <li><a href="#configuring">Configuring</a></li>
+  <li><a href="#deploying">Deploying</a></li>
+  <li><a href="#testing">Testing</a></li>
+  <li> <a href="#admin-example">Example of CAS Server Administration</a></li>
+  <li><a href="#security_considerations">Security Considerations </a></li>
+  <li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+<h2><a name="introduction"></a>Introduction</h2>
+
+<p>This document contains information about deploying a CAS server and is not
+  needed for a CAS client installation.</p>
+<h2><a name="installing"></a>Building and Installing</h2>
+<p>The CAS server is built and installed as part of a normal GT 4.0 installation.</p>
+<h2><a name="configuring"></a>Configuring </h2>
+<p>Information on configuration settings and environment variables can be found
+  in the <a href="../WS_AA_CAS_Public_Interfaces.html">public interface guide</a>.</p>
+<h2><a name="deploying"></a>Deploying</h2>
+<h3> <a name="casCreds"></a>Obtaining credentials for the CAS server</h3>
+<p> The CAS service could run with its own set of credentials. Instructions to
+  obtain service credentials may be found <a
+ href="http://www.globus.org/gt2.2/admin/guide-verify.html#ldapcert">here</a>.
+  
+<p> The standard administrator clients that come with the distribution can be
+  used to perform host authorization and expect that the CAS service have credentials
+  that have service name "cas". The command in the above mentioned <a href="http://www.globus.org/gt2.2/admin/guide-verify.html#ldapcert">web
+  page</a> may be altered as follows:
+<pre>  casadmin$ grid-cert-request -service <i>cas</i> -host <i>FQDN</i></pre>
+<p> The certificate and private key are typically placed in <i>/etc/grid-security/cas-cert.pem</i> and <i>/etc/grid-security/cas-key.pem</i>,
+  respectively. In this document, the location of certificate and key files is
+  referred to as CAS_CERT_FILE and CAS_KEY_FILE, respectively.
+  
+<h3><a name="dbInstall"></a>Database Install and Configuration </h3>
+CAS uses a backend database to store all user data. Any JDBC compliant database
+may be used. This section describes briefly the installation of such a database
+and the creation of the database using schema required for the CAS backend.
+<h4> Installing the Database </h4>
+Any JDBC compliant database may be used. PostgreSQL has been used for development
+and testing. The drivers for the same are included in the distribution. If a
+different database is used, the corresponding driver should be added to GLOBUS_LOCATION/lib.
+<p> Brief instructions to install a JDBC compliant database and specifically
+  PostGres can be found <a
+href="http://www-unix.globus.org/toolkit/3.0/ogsa/docs/admin/installation.html">here</a>.
+  For more detailed instructions, please refer to specific database documentation.
+  
+<h4> Initializing the CAS database </h4>
+<p> The schema of the database that needs to be created for CAS can be found
+  at <code> $GLOBUS_LOCATION/globus_cas_service/casDbSchema/cas_pgsql_database_schema.sql</code></p>
+<p> To create a database, for example <i>casDatabase</i>, on a PostgreSQL, install
+  on local machine:</p>
+<pre>casadmin$ createdb casDatabase  
+casadmin$ psql -U casadmin -d casDatabase -f  \
+          $GLOBUS_LOCATION/globus_cas_service/casDbSchema/cas_pgsql_database_schema.sql</pre>
+<p> You will see a list of notices on the screen. Unless any of them say "ERROR",
+  these are just output for information.</p>
+<p>Information about the database needs to be configured as described <a href="./../WS_AA_CAS_Public_Interfaces.html#config">here</a> for
+  the CAS service to be able to use it.</p>
+<h2><a name="testing"></a>Testing</h2>
+<p> CAS has two sets of tests, one for the backend database access module and
+  another set to test the service itself. To install both tests, install the
+  CAS test package (<i>gt4-cas-delegation-test-3.9-src_bundle.tar.gz</i>) using
+  GPT <b>FILLME: instructions </b> into <i>GLOBUS_LOCATION</i>.</p>
+<p> It is assumed that:</p>
+<ul>
+  <li> a backend database has been set up and configured</li>
+  <li> CAS service and tests are installed in <i>$GLOBUS_LOCATION</i></li>
+  <li> the service is running on localhost and port 8080 (for the sample commands)</li>
+  <li>the database is set up with:
+      <ol type="a">
+        <li> username as <em>tester</em></li>
+        <li> database name as <em>casDatabase</em></li>
+        <li> host as <em>foo.bar.gov</em> and default port.</li>
+      </ol>
+  </li>
+</ul>
+<h3> Testing the backend database module </h3>
+<ol>
+  <li>Run:
+      <pre> cd $GLOBUS_LOCATION </pre>
+  </li>
+  <li> Populate the file <i>etc/globus_cas_unit_test/casTestProperties</i> with
+    the following database configuration information:<a name="testDbConfig"></a><br />
+        <br />
+        <table>
+          <tr>
+            <td>dbDriver </td>
+            <td> The JDBC driver to be used</td>
+          </tr>
+          <tr>
+            <td>dbConnectionURL </td>
+            <td> JDBC connection url to be used to connect to database</td>
+          </tr>
+          <tr>
+            <td>dbUsername </td>
+            <td> user name to connect to database as</td>
+          </tr>
+          <tr>
+            <td>dbPassword </td>
+            <td> database password for the said username </td>
+          </tr>
+        </table>
+        <br />
+  </li>
+  <li> The database needs to be empty for these tests to work. To delete all
+    the data in the database, run:
+      <pre>psql -d casDatabase -U tester -h foo.bar.gov -f etc/globus_cas_utils/database_delete.sql </pre>
+  </li>
+  <li> Run:
+      <pre>ant -f share/globus_cas_unit_test/cas-test-build.xml testDatabase </pre>
+  </li>
+  <li> Test reports are placed in $GLOBUS_LOCATION/share/globus_cas_unit_test/cas-test-reports.</li>
+</ol>
+<h3> Testing CAS service module </h3>
+<p> These tests can be set up so as to be able to test multiple user scenario
+  or it can be configured to run just as a single identity. The first set of
+  tests are used to test admin functionality and sets up the database for second
+  user. As the second user the permissions and queries are tested to ensure that
+  the set up worked.</p>
+<p> All the configuraiton information for the test, needs to be configured in <i>etc/globus_cas_unit_test/casTestProperties</i> file.
+  The database section of the properties file needs to be configured as described <a
+href="testDbConfig">here</a>. Other than those, the following properties also
+  need to be configured for these tests:</p>
+<table>
+  <tr>
+    <td>user1SubjectDN</td>
+    <td> The DN of the user running the first set of tests.</td>
+  </tr>
+  <tr>
+    <td>user2SubjectDN</td>
+    <td> The DN of the user running the second set of tests. Can be the same
+      as previous property</td>
+  </tr>
+  <tr>
+    <td>maxAssertionLifetime</td>
+    <td> Should match the value set in service configuration as shown in <a
+href="./../WS_AA_CAS_Public_Interfaces.html#config">Configuration information</a></td>
+  </tr>
+</table>
+<p> Steps for testing:</p>
+<ol>
+  <li>Run:
+      <pre> cd $GLOBUS_LOCATION                </pre>
+  <li> The database needs to be empty for these tests to work. To delete all
+    the data in the database, run:
+      <pre>psql -d casDatabase -U tester -h foo.bar.gov -f etc/globus_cas_utils/database_delete.sql </pre>
+  <li> In the test properties file, set <i>user2SubjectDN</i> to be the subject
+    in your regular proxy. The following returns the appropriate string:
+      <pre>casadmin$ bin\grid-cert-info -subject -globus</pre>
+  <li> Generate an independent proxy using the following command:
+      <pre>casadmin$ bin\grid-proxy-init -independent</pre>
+  <li> Set the identity in the proxy generated from the above step as <i>user1SubjectDN</i> in
+    the test properties file. The following command will return the relevant
+    string:
+      <pre>casadmin$ java org.globus.tools.ProxyInfo -subject -globus</pre>
+  <li> Start a container on port (for example, testPort) and host (for example,
+    hostPort).
+                  
+<li> The following command runs tests for self permissions and sets up the database
+  for user with subjectDN that is user2SubjectDN:
+        <pre>casadmin$ ant -f share/globus_cas_unit_test/cas-test-build.xml -Dtest.port=testPort \
+            -Dtest.host=testHost user1TestService</pre>
+  <li> To test as the second user, generate proxy for the subject DN specified
+      for the second user:
+        <pre>casadmin$ bin/grid-proxy-init </pre>
+  </li>
+    <li> To test as second user, run the following. If you are not running container
+      on default host/port, set properties as shown <a href="#testParams">here.</a>
+        <pre>casadmin$ ant -f share/globus_cas_unit_test/cas-test-build.xml -Dtest.port=testPort \
+            -Dtest.host=testHost user2TestService</pre>
+    <li> Test reports are placed in $GLOBUS_LOCATION/share/globus_cas_unit_test/cas-test-reports.
+    <li>After these tests, the CAS database needs to be reset. The following
+      command will delete all entries from the database:
+        <pre> casadmin$ psql -U casadmin -d casDatabase -f GLOBUS_LOCATION/share/cas/database_delete.sql</pre>
+    </li>
+</ol>
+<h2> <a name="admin-example"></a>Example of CAS Server Administration </h2>
+The following contains an example of administering the CAS server policies using
+the CAS administrative clients described <a href="../WS_AA_CAS_Public_Interfaces.html#cmd">here</a>.
+<p> Alice, Bob and Carol are three members of a community who have set up a Community
+  Authorization service:
+<ul>
+  <li> Alice's role is primarily to administer the CAS server. </li>
+  <li>Bob is an analyst who needs read access to much of the community data. </li>
+  <li>Carol is a scientist who needs to be able to both read and write community
+    data. </li>
+</ul>
+<p>These examples show how:
+<ol>
+  <li> Alice adds the users Bob and Carol to the CAS server</li>
+  <li>Adds a FTP server with some data available to the community</li>
+  <li>Adds permissions for the users using the CAS administration clients. </li>
+</ol>
+<p>These examples assume the following:
+<ul>
+  <li> Alice has installed the CAS server and bootstrapped the database with
+    herself as super user. Please refer to <a
+href="./installGuide.html">installation documentation</a> for details. </li>
+  <li> Alice's nickname on the CAS server is <i>alice</i> and at bootstrap she
+    has created a user group, <i>suGroup</i>,which has super user permissions
+    on the database. </li>
+  <li>The CAS service URL is http://localhost:8080/ogsa/services/base/cas/CASService. </li>
+  <li> For all commands listed below, the enviroment variable, GLOBUS_LOCATION,
+    has been set to point to the GT core install and the commands are run from
+    GLOBUS_LOCATION/bin.</li>
+  <li>An environment variable, CAS_SERVER_URL, has been set to point to the CAS
+    server URL, http://localhost:8080/ogsa/services/base/cas/CASService. </li>
+</ul>
+<h3> 1. Adding a user group </h3>
+<p> Since at the time of booting up the CAS server, only one user group that
+  has super user permissions on the CAS server is created, Alice might want to
+  create another user group to which new users maybe added and permissions to
+  newly enrolled CAS entities may be given. This also eases the process of giving
+  same rights to many users.Given they are two types of roles in the community
+  she might want to create two groups, <i>analysts</i> and <i>scientists</i>.
+  
+
+<p>Also, all permissions on the newly created group will be given to users of
+  a particular user group. Say, Alice would like all users of the user group <i>analysts</i> to
+  be able to manipulate the group.
+  
+<p>To create a new user group Alice uses the <i>cas-group-admin</i> client.It
+  requires a name for the new group being created, say <i>analysts</i>. 
+  
+<pre>
+alice%  cas-group-admin user create analysts analysts
+</pre>
+<p>This will create a user group <i>analysts</i> and give all users in that group
+  the permission to manage the group (i.e add users, remove users and so on).
+  She can similarly create a group called <i>scientist</i> </p>
+<h3> 2. Adding a trust anchor</h3>
+<p> Prior to adding Bob and Carol to CAS server, Alice needs to ensure that the
+  trust anchors for both have been added. If they share the same trust anchor
+  with Alice then this step can be skipped, since at bootstrap Alice's trust
+  anchor would have been added to the database. 
+  
+<p>In our example, Alice and Carol share a trust anchor different from Bob's.
+  Therefore, Alice needs to add Bob's trust anchor by using <i>cas-enroll</i> client
+  with the <i>trustAnchor</i> option. She needs to provide details about the
+  trust anchor such as the authentication method and authentication data used.
+  
+<pre>
+alice%  cas-enroll trustAnchor analysts AbcTrust X509 "/C=US/O=some/CN=ABC CA"
+</pre>
+The above will enroll a trust anchor with nickname <i>AbcTrust</i>, who uses <i>X509</i> as
+authentication method and has the DN specified in the command. The members of
+the <i>analysts</i> user group are given all rights on this object. This implies
+that any user who has this trust anchor, would present credentials signed by
+this trust anchor.
+<h3> <b>3. Adding users</b></h3>
+<p> Now, Alice can add Bob and Carol as users using the <i>cas-enroll</i> command
+  with the <i>user</i> option. She needs to provide the user's subject DN and
+  a reference to the trust anchor used by the user. As with any entity added
+  to the CAS server, the admin needs to choose a user group whose members will
+  have all permissions on that entity. In this example, Alice would like the
+  members of user group <i>suUser</i> to be able to maninipulate the user entity <i>Bob</i>.
+  
+<pre>
+alice% cas-enroll user suUser bob "/O=Our Community/CN=Bob Foo" AbcTrust
+</pre>
+Alice uses a simliar command to add Carol to the CAS database.
+<h3> <b>4. Adding users to a user group</b></h3>
+<p>CAS server allows rights to be assigned only to user groups and not to individual
+  users. Hence before Alice can assign rights to Bob or Carol, she needs to add
+  them to some user group. She does this by using <i>cas-group-add-entry</i> client
+  with the <i>user</i> option to indicate she is adding to a user group. This
+  client requires the group name and nick name of the user who needs to be added.
+  To add Bob to the <i>analysts</i> group, the command would be:
+<pre>
+alice% cas-group-add-entry user analysts bob
+</pre>
+<p>If a user group <i>scientists</i> was created, Carol could similarly be added
+  as a member.
+  
+
+<h3> <b>4. Adding a new FTP server</b></h3>
+<p>Alice now has the community users in the database and organized. She now wants
+  to add some resources. Because the community currently has a single FTP server,
+  foo.bar.edu, available to it, she will add this to the CAS database.
+  
+<p>Each resource or object in the CAS server has a namespace associated to it
+  that defines certain features. For example, it can define the comparison algorithm
+  that needs to be used when this object name is used for comparison. It may
+  also define the base URL that should be prefixed to objects that belong to
+  this namespace. In this case, Alice chooses to use the <i>FTPDirectoryTree</i> namespace
+  that is added to the CAS server at bootup. She uses the <i>cas-enroll</i> client
+  with the <i>object</i> option to add the FTP server to the CAS database:
+<pre>
+alice% cas-enroll object suGroup ftp://foo.bar.edu/* FTPDirectoryTree</pre>
+This command adds the FTP server as an object and gives all members of the <i>suGroup</i> rights
+to manipulate the object.
+<p> To be able to grant/revoke access on an indiviual directory, add an object
+  for the directory. For example, if Alice would like to be able to manipulate
+  the <i>data</i> on the server as a separate entity, the following command will
+  add an object for that.
+  
+<pre>
+alice% cas-enroll object suGroup ftp://foo.bar.edu/data/* FTPDirectoryTree
+</pre>
+<h3> 4. Creating an object group </h3>
+<p> Alice suspects the community will end up with more directories containing
+  data on other servers that will have identical polices as the /data directory
+  on foo.bar.edu. So she is going to create an object group called <i>data</i> and
+  assign foo.bar.edu/data to this group. This will allow her to grant rights
+  on this group and easily add other directories to this group later.
+<p>To create a group called <i>data</i>, she uses the <i>cas-group-admin</i> client
+  with the <i>group</i> and <i>create</i> options:
+<pre>
+alice% cas-group-admin object create suGroup data
+</pre>
+This creates an object group called <i>data</i> and the members of <i>suGroup</i> get
+all rights on this group and hence should be able to add/remove members, grant
+rights to add/delete from this group to others and also delete this group.
+<h3> <b>5. Adding members to an object group </b></h3>
+<p> Alice now can add foo.bar.edu/data to the <i>data</i> group. She can do this
+  by using the <i>cas-group-add-entry</i> with the <i>object</i> option. To add
+  the above described object, <i>ftp://foo.bar.edu/data/*</i> in namespace <i>FooFTPNamespace</i>,
+  to object group <i>data</i>, Alice uses the following command:
+<pre>
+alice% cas-group-add-entry object data object FooFTPNamespace ftp://foo.bar.edu/data/*
+</pre>
+<p>In the above command:</p>
+<ul>
+  <li>the first <i>object</i> refers to the group type.</li>
+  <li><i>data</i> is the name of the object group.</li>
+  <li>the second <i>object</i> refers to the type of CAS entity that is being
+    added as a member.</li>
+  <li> the last two parameters define the namespace and the object that needs
+    to be added. </li>
+</ul>
+<h3> 6. Adding service types </h3>
+<p> Alice now needs to add information about the kinds of rights that can be
+  granted for these objects. These are stored as <i>service types</i> and relevant
+  actions are mapped to these service types.</p>
+<p>In this scenario, the kind of service types that Alice should add would be <i>file</i>, <i>directory</i> and
+  so on. To do so, the <i>cas-enroll</i> client with <i>serviceType</i> option
+  may be used. To add a service type called <i>file</i> and give members of <i>suGroup</i> all
+  rights on this service type, Alice uses the following command.</p>
+<pre>
+alice% cas-enroll serviceType suGroup file
+</pre>
+<h3> 7. Adding action mappings</h3>
+<p> The relevant action mappings to the above mentioned service types would be <i>read</i>, <i>write</i> and
+  so on. Alice needs to add these mappings to the database so that she can grant
+  rights that allow a user to have <i>file/read</i> or <i>file/write</i> permissions
+  on some object.
+  
+
+<p> To add action mappings to a service type, she uses the <i>cas-action</i> client
+  with <i>add</i> option. The following command should add a mapping of action <i>read</i> to
+  service type <i>file</i>.
+  
+<pre>
+alice% cas-action add file add
+</pre>
+Similarly, she can add other mappings, like <i>write</i>, to this service type.
+<h3> <b>8. Granting permissions</b></h3>
+<p> Alice now has resources in the object group <i>data</i> and users in the
+  user groups <i>analysts</i> and <i>scientists</i>. She now wants to grant permissions
+  on <i>data</i> group to the analysts and scientists, namely read permissions
+  to the analysts and read and write permissions to the scientists.
+  
+
+<p> To grant permissions, Alice needs to use the <i>cas-rights-admin</i> with
+  the <i>grant</i> option. To give read permissions to the analysts group, Alice
+  runs: 
+<pre>
+alice% cas-rights-admin grant analysts objectGroup data serviceAction file read</pre>
+She similarly grants rights to <i>scientists</i> group.
+<h2><a name="security_considerations"></a>Security Considerations </h2>
+<?php
+include_once( "./../WS_AA_CAS_Security_Considerations_Frag.html" );
+?>
+<h2><a name="troubleshooting"></a>Troubleshooting</h2>
+<p><font color="purple">[help for common problems sysadmins may experience] </font></p>
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
