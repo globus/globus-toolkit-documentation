@@ -217,16 +217,16 @@ support.</p></dd>
 
 </dl>
 
-<h2>WS_GRAM Software Architecture</h2>
+<h2>Features and Scenarios</h2>
 
-<h3>Overview</h3>
-
-<img src="WS_GRAM_software.png">
-
-
-
-
-<h3>Web services for Job Management</h3>
+<p>
+The components in the WS_GRAM solution are organized to support a
+range of optional features that together address different usage
+scenarios.  These scenarios are explored in depth in terms of protocol
+exchanges in the Protocol Variations section. However, at a high level
+we can consider the main activities around a WS_GRAM job to be a
+partially ordered set of functions.
+</p>
 
 <p>The heart of the WS_GRAM service architecture is a set of Web
 services designed to be hosted in the Globus Toolkit's WSRF core
@@ -255,10 +255,82 @@ in that local scheduler.</p></dd>
 
 </dl>
 
-<h3>Protocol Model</h3>
+<img src="WS_GRAM_functions.png">
+
+<h4>Creation of Job</h4>
+<p>
+The main component of the WS_GRAM service model is the ManagedJob
+resource created by a ManagedJobFactory::createJob invocation. A
+meaningful WS_GRAM client MUST create a job that will then go through
+a lifecycle where it eventually completes execution and the resource
+is eventually destroyed (the core black-and-white nodes in the
+high-level picture).
+</p>
+
+<h4>Optional Staging Credentials</h4>
+<p>
+Optionally, the client MAY request staging activities to occur before
+or after the job. If these are requested in the create call, suitable
+delegated credential EPRs MUST be passed in as part of the creation
+input, meaning that delegation operations MUST be performed sometime
+before createJob when staging is enabled (the light-blue delegation
+nodes in the high-level picture). Two credential fields must be
+initialized: the staging and transfer credentials, which may refer to
+distinct credentials or may both refer to the same credential.  The
+staging credential gives WS_GRAM the right to interact with the RFT
+service, while the transfer credential gives RFT the right to interact
+with GridFTP servers.
+</p>
+
+<h4>Optional Job Credential</h4>
+<p>
+Optionally, the client MAY request that a credential be stored into
+the user account for use by the job process. When this is requested in
+the create call, a suitable delegated credential EPR is passed as part
+of the creation input. As for staging, the credential MUST have been
+delegated before the job is created (the green nodes in the picture).
+</p>
+
+<h4>Optional Credential Refresh</h4>
+<p>
+Optionally, credentials delegated for use with staging, transfer, or
+job processes may be refreshed using the Delegation service
+interface. This operation may be performed on any valid Delegation
+EPR (the blue/green striped node in the picture).
+</p>
+
+<h4>Optional Hold of Cleanup for Streaming Output</h4>
+<p>
+If the client wishes to directly access output files written by the
+job (as opposed to waiting for the stage-out step to transfer files
+from the job host), the client should request that the file cleanup
+process be held until released. This gives the client an opportunity
+to fetch all remaining/buffered data after the job completes but
+before the output files are deleted. (See the pink nodes in the
+high-level picture).
+</p>
+<p>
+The cleanup hold and release are not necessary if the client will not
+be accessing files that are scheduled for cleanup in the job request,
+either because the client is not accessing any files or because the
+files it is accessing will remain on the job host after ManagedJob
+termination.
+</p>
+
+<h4>ManagedJob Destruction</h4>
+<p>
+Under nearly all circumstances, ManagedJob resources will be
+eventually destroyed after job cleanup has completed. Clients may
+hasten this step via an explicit destroy request or by manipulation of
+the scheduled termination time. Most system administrators will set a
+default and maximum ManagedJob linger time after which automatic
+purging of completed ManagedJob resources will occur.
+</p>
+
+<h3>Protocol Overview</h3>
 
 <p>
-As described above, the WS_GRAM protocol is centered around the
+As depicted above, the WS_GRAM protocol is centered around the
 creation of a stateful ManagedJob resource using the ManagedJobFactory
 createJob() operation. A simple batch job may involve nothing more
 than this initial client creation step, with all other job lifecycle
@@ -332,6 +404,12 @@ particularly lifecycle status) of the ManagedJob resource.
 
 </dl>
 
+<h2>WS_GRAM Software Architecture</h2>
+
+<h3>Overview</h3>
+
+<img src="WS_GRAM_software.png">
+
 <p>
 
 </p>
@@ -373,44 +451,31 @@ administrator efforts to manage user policies.</p></dd>
 
 </dl>
 
-<h2>Performance and Scalability</h2>
-
-<h3>Protocol Variations</h3>
-
-<p>
-There are several optional parts to the WS_GRAM job workflow and
-protocol. To understand the performance and scalability
-characteristics of WS_GRAM, we must consider variations where
-different parts of the protocol are used or omitted.
-</p>
+<h2>Protocol Variations</h2>
 
 <p>
 From a protocol perspective, the longest latency WS_GRAM submission
 scenario involves credential delegation, staging before and after the
-job, file cleanup after the job, and explicit termination of the job
-resource following job completion. The credential refresh feature of
-WS_GRAM can be repeated any number of times, so by longest sequence we
-mean the longest fixed sequence with at most one credential
-delegation. However, explicit termination is not necessary with
-WS_GRAM so we will not study that.
+job, and an explicit hold handshake on file cleanup after the job. The
+credential refresh feature of WS_GRAM can be repeated any number of
+times, so by longest sequence we mean the longest fixed sequence with
+at most one credential delegation. Explicit termination is not
+necessary with WS_GRAM so we will not consider that case further.
 </p>
 
 <p>
 To understand the following figures which illustrate the protocol
 sequence: the arrows show communication, signalling, or causal links
 between tiers in the architecture and the vertical span indicates
-elapsed time (with the start time at the top of the diagram). Also, we
-assume a user-supplied job that can independently measure its start
-and end times as well as checking in with the client so that the
-client may measure these times (modulo messaging delays). Due to
-unspecified implementation delays, client and job-observed times are
+elapsed time (with the start time at the top of the diagram). Due to
+unpredictable implementation delays, client and job-observed times are
 not necessarily ordered with respect to the WS_GRAM observed times and
 the WS_GRAM generated state notification messages. The diagrams show
-one possible ordering but our measurement methods must tolerate other
-orderings as well.
+one possible ordering but applications (and our measurement methods)
+must tolerate other orderings as well.
 </p>
 
-<h4>Minimal Protocol Sequence</h4>
+<h3>Minimal Protocol Sequence</h3>
 
 <p>
 The simplest WS_GRAM scenario involves a job that requires neither
@@ -428,7 +493,7 @@ the full scenario must be due to the additional overhead of the
 delegation and staging services on the front-end node?
 </p>
 
-<h4>Non-staging Delegation Sequence</h4>
+<h3>Non-staging Delegation Sequence</h3>
 
 <p>
 A slightly longer form of job than the minimal sequence is to include
@@ -440,7 +505,7 @@ omitted as per the client's request.
 
 <img src="WS_GRAM_sequence_delegonly.png">
 
-<h4>Non-staging Delegation Sequence with Hold</h4>
+<h3>Non-staging Delegation Sequence with Hold</h3>
 
 <p>
 An optional protocol sequence allows the cleanup state to be held in
@@ -452,7 +517,7 @@ previous scenario.
 
 <img src="WS_GRAM_sequence_delegonly_hold.png">
 
-<h4>Staging Sequence</h4>
+<h3>Staging Sequence</h3>
 
 <p>
 This staging sequence uses almost all of the protocol elements.
@@ -460,7 +525,7 @@ This staging sequence uses almost all of the protocol elements.
 
 <img src="WS_GRAM_sequence_staging.png">
 
-<h4>Staging Sequence with Hold</h4>
+<h3>Staging Sequence with Hold</h3>
 
 <p>
 This staging sequence adds the cleanup hold handshake to the staging
@@ -469,6 +534,15 @@ output.
 </p>
 
 <img src="WS_GRAM_sequence_staging_hold.png">
+
+<h2>Performance and Scalability</h2>
+
+<p>
+There are several optional parts to the WS_GRAM job workflow and
+protocol. To understand the performance and scalability
+characteristics of WS_GRAM, we must consider variations where
+different parts of the protocol are used or omitted.
+</p>
 
 <h3>Basic Client-visible Latency Measurements</h3>
 

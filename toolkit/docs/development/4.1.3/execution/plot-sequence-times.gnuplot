@@ -12,10 +12,10 @@ set title "Simple WS_GRAM sequence timing (averaged)"
 
 set noxtics
 set xrange [-0.5:4.5]
-#set yrange [0:10]
+set yrange [0:1.9]
 
 set ylabel "Elapsed time (s)"
-set xlabel "GRAM scenarios"
+set xlabel "Scenarios: Minimal; Deleg.; Deleg. w/ Hold; Staging; Staging w/ Hold."
 
 plot 	"sequence-times.dat" i 0 notitle with boxes, \
      	"sequence-times.dat" i 1 notitle with boxes, \

@@ -2,6 +2,7 @@
 
 # update these with basenames of figures
 FIGS=WS_GRAM_components WS_GRAM_software \
+	WS_GRAM_functions \
 	WS_GRAM_sequence_full \
 	WS_GRAM_sequence_minimal \
 	WS_GRAM_sequence_delegonly \
