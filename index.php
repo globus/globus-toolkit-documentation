@@ -27,13 +27,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               databases, instruments, and other on-line tools securely across corporate, institutional, 
               and geographic boundaries without sacrificing local autonomy.  
               <a href="alliance/">Learn more...</a></p>
-             <center><p><img src="img/isabel-1.jpg" alt="Hurricane Isabel, Sept. 2003"></p></center>
+             <center><p><img src="img/isabel-1.jpg" alt="Hurricane Isabel, Sept. 2003" /></p></center>
 
           <p>The <b>Globus Toolkit</b> is an open source software toolkit used for building Grid systems and
              applications. It is being developed by the Globus Alliance and many others all over the world. 
              A growing number of projects and companies are using the Globus Toolkit to unlock the potential 
              of grids for their cause. <a href="http://www-unix.globus.org/toolkit/">Learn more...</a></p>
-             <center><p><img src="img/globustoolkit-nourl.gif" alt="The Globus Toolkit"></p></center>
+             <center><p><img src="img/globustoolkit-nourl.gif" alt="The Globus Toolkit" /></p></center>
 
           <!--end div of main-->
         </div>
