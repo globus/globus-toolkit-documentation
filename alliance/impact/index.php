@@ -25,6 +25,10 @@ advances that have been helped by Globus technology.</p>
 <td><?php include("isabel.inc"); ?></td>
 <td><?php include("leadimpact.inc"); ?></td>
 </tr>
+<tr>
+<td><?php include("gravitywaves.inc"); ?></td>
+<td><br></td>
+</tr>
 </table>
 
 
