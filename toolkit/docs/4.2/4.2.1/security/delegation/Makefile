@@ -2,6 +2,14 @@ FILENAME=index.xml
 
 all: html pdf
 
+cygwin-html:
+	xsltproc --stringparam chunk.section.depth 0 \
+           --stringparam suppress.navigation 1 \
+	   --stringparam  chapter.autolabel 0 \
+	   --stringparam  section.autolabel 1 \
+            c:/cygwin/usr/share/docbook-xsl/html/chunk.xsl \
+           ${FILENAME}
+
 html:
 	xsltproc --stringparam chunk.section.depth 0 \
            --stringparam suppress.navigation 1 \

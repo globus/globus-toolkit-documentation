@@ -4,11 +4,10 @@
 <section id="s-delegation-developer-introduction">
   <title>Introduction</title>
   <para>The Delegation Service provides an interface  that,  given the endpoint reference to the
-credential resource, allows service developers to retrieve a delegated credential. Currently no remote interface is provided for this
-functionality,  that is   all access is through shared Java state. </para>
+credential resource, allows service developers to retrieve a delegated credential. While there is remote interface to delegate and refresh a credential,  no remote interface is provided for acquiring the delegated credential   (that is   all access is through shared Java state.)</para>
   <para>In addition, the
 component provides  a utility API that can be used for developing
-client side code to generate a  credential and delegate it.</para>
+client side code to generate a  credential, delegate and refresh it</para>
 </section>
 <section id="s-delegation-developer-archdes">
   <title>Architecture and design overview</title>
@@ -143,14 +142,35 @@ associated with the current message context. Once the listener has been authoriz
 <section id="s-delegation-developer-security_considerations">
   <title>Security considerations </title>
 &WS_AA_Delegation_Service_Security_Considerations_Frag;
+  <section>
+    <title>Authorizing Server prior to delegation</title>
+    <para>The delegation client that is distributed with the toolkit allows for delegation of credential even when no authorization of the server is done. Also, when using secure message authentication, the authorization of the server is done after the completion of the operation. These two scenarios could lead to delegation of credential to some malicious server.</para>
+    <para> To prevent this, secure transport or GSI secure conversation, with some client side authorization enabled can be used.</para>
+  </section>
 </section>
 <section id="s-delegation-developer-debugging">
   <title>Debugging</title>
-  <para>[information on standard debugging] </para>
+  <para>Log output from the delegation service is a useful tool for debugging
+  issues. Logging in delegation service code is based on  the <ulink url="http://jakarta.apache.org/commons/logging/">Jakarta Commons Logging</ulink> API and is described in more detail <ulink url="../../../common/javawscore/developer/index.html#debugging">here</ulink>. As
+  described in above section, configuration files need to be edited to
+  enable logging at different levels. For example, to see all logging
+  for delegation service, the following lines need to be added:<screen>log4j.category.org.globus.delegation.service=DEBUG 
+log4j.category.org.globus.delegation.factory=DEBUG </screen></para>
+  <para>Debugging information  from the delegation clients can be obtained by setting the following line in configuration file for logging <screen> log4j.category.org.globus.delegation.client=DEBUG</screen>Note: the client logging configuration has to done in $GLOBUS_LOCATION/logging</para>
 </section>
 <section id="s-delegation-developer-troubleshooting">
   <title>Troubleshooting</title>
-  <para>[help for common problems developers may experience]</para>
+  <section>
+    <title> Unable to retrieve caller DN, cannot register</title>
+    <para>This error occurs when attempting to register a listener with a delegated credential without a  subject DN. There are two ways of registering - either the subject DN can be explicitly specified using API or the subject DN is picked up from the current message context (the client&apos;s  DN). If the second API is used and there is no client credentials associated with that thread, then this exception is thrown. Ensure that API with explicit DN is used in such scenarios.</para>
+  </section>
+  <section>
+    <title><emphasis>test user DN </emphasis> is not authorized to access this resource</title>
+    <para>Only the user who created the delegated credential is allowed to access it. There are two sets of API for getting the credential and registering listeners: one in which the caller&apos;s DN is picked up from the current thread and the other in which an explicit subject DN to be used  for authorization is specified. If the caller subject DN (picked up from thread or specified explicitly)  does not match the DN of the user who created the credential, this error is thrown. Ensure that DN explicitly specified or the client DN associated with the thread matches the creator&apos;s DN.</para>
+    <note>
+      <para>The <emphasis>test user</emphasis> specified in the error message is just a sample and will contain the DN of the user attempting to access the credential.</para>
+    </note>
+  </section>
 </section>
 <section id="s-delegation-developer-relateddocs">
   <title>Related Documentation</title>
