@@ -40,7 +40,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <ul>
                 <li><a href="publications/papers.php">Research Papers</a></li>
                 <li>Mass Media</li>
-                <li>Books</li>
+                <li><a href="publications/books/">Books</a></li>
                 <li>Presentations</li>
                 <li>Globus Toolkit Documentation</li>
               </ul>

@@ -23,6 +23,7 @@ topics.</p>
 <ul>
 <li><a href="papers.php">Research Papers</a></li>
 <li>Mass Media</li>
+<li><a href="books/">Books</a></li>
 <li>Presentations</li>
 <li>Globus Toolkit Documentation</li>
 </ul>
