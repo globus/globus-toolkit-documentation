@@ -6,6 +6,9 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
 ?>
 
 
+
+
+
 <p class="small"><a href="http://www.globus.org">Globus</a> &gt;
 <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt;
 <a href="http://www-unix.globus.org/toolkit/docs/">Documentation</a> &gt;
@@ -22,43 +25,115 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
     <a href="install_test.html">Testing</a><br>
     <a href="install_trouble.html">Troubleshooting</a></p>
 <h2>Configuring RFT - Basic </h2>
-<table width="650" border="0" cellpadding="5">
+<ul>
+  <li>Prerequisites</li>
+  <li>Setting up PostgreSQL</li>
+  <li>Configuring server-config.wsdd</li>
+  <li>Configuring GridFTP  </li>
+</ul>
+<table width="650" border="1" cellpadding="5">
   <tr>
-    <td colspan="2" valign="top"><div align="center" class="box-header">Requirements</div></td>
+    <td colspan="2" valign="top"><div align="center" class="box-header"><a name="prerequisites"></a>Prerequisites</div></td>
   </tr>
   <tr>
-    <td colspan="2" valign="top"><p>Before configuring RFT, you must have a host certificate (see <a href="install_config_req.html">Required Configuration</a>.) </p> </td>
+    <td colspan="2" valign="top"><p>The Prerequisites to RFT are: </p>
+      <ul>
+        <li>Core Final Distribution
+        <li>a Host Certificate (see <a href="install_config_req.html">Required
+        Configuration</a>.)        
+        <li>GridFTP Server
+        <li>PostgreSQL </li>
+      </ul>
+      <p>PostgreSQL is used to store the state of the transfer to allow for restart
+        after failures. The interface to PostgreSQL is JDBC so any DBMS that
+        supports JDBC can be used, although no other has been tested. We used
+        PostgreSQL version 7.3.2 for our testing and the instructions provided
+        to set up the database are good for the same. </p>
+      <p>GridFTP perfoms the actual file transfer. </p>
+      <p>GridFTP server can only be run on Unix or Linux. There are two ways
+        to get GridFTP: </p>
+      <ul>
+        <li>Packaged with the core GT3 Final installation
+        <li>As part of the Globus Toolkit 2.4 distribution </li>
+      </ul>
+      <p>If you don't already have GridFTP from GT2 installed, use the GT3 bundled
+        version. In either case, configuration instructions are documented <a href="../../installation/install_config_gridftp.html">here</a>. </p>
+    </td>
   </tr>
   <tr>
-    <td colspan="2" valign="top"><div align="center" class="box-header">Basic Procedure </div></td>
+    <td colspan="2" valign="top"><div align="center" class="box-header"><a name="settinguppostgresql"></a>Setting
+        up PostgreSQL </div></td>
   </tr>
   <tr>
     <td width="40" valign="top"><a name="step1">1</a></td>
-    <td width="578" valign="top"><p>Create a postgres database for RFT to use. <br>
+    <td width="578" valign="top"><p>Create a PostgreSQL database for RFT to use. <br>
         <br>
-There's an example .sql file included in the distribution you can use to create the database.<br>
-    </p>
-    </td>
+There's an example .sql file included in the distribution you can use to create the database.</p>
+      <p>PostgreSQL can be installed both on Unix and on Windows. For setup instructions,
+      see: </p>
+      <ul>
+        <li><a href="http://www.us.postgresql.org/sitess.html">Detailed Unix
+            PostgreSQL Instructions </a>
+        <li><a href="http://www.ejip.net/faq/postgresql_win_setup_faq.jsp">Detailed
+            Windows PostgreSQL Instructions </a><br>
+    (Only the first four steps are needed). </li>
+      </ul>
+      <p>Here is a summary of what you need to do after installation: </p>        <h3>Unix Specific Setup </h3>      <p>Login as root. </p>
+      <pre class="command"># adduser postgres 
+# mkdir /usr/local/pgsql/data 
+# chown postgres /usr/local/pgsql/data       
+# su - postgres        </pre>      <h3>Windows Specific Setup </h3>      <p>To run postgreSQL under Windows you need to install <a href="http://www.cygwin.com">Cygwin </a>,
+          and enable the following features: </p>      <ul>
+          <li>Database -&gt; postgresql
+          <li>Utils -&gt; bzip2
+          <li>Base -&gt; libreadline5 </li>
+        </ul>      <p>After installing these components you also need to install <a href="http://www.neuro.gatech.edu/users/cwilson/cygutils/cygipc/index.html">CygIPC </a>. </p>      <p>Now start the ipc_daemon from a cygwin shell e.g: </p>
+        <pre class="command">$ /cygdrive/c/cygwin/usr/local/bin/ipc-daemon.exe&amp;      </pre>      <p>You should
+        now be able to use psql and postgres as if on a Unix machine. </p>
+      <p><strong>Note:</strong> You will be using the username <strong>Administrator</strong>        as
+        opposed to <strong>postgres</strong>.</p></td>
   </tr>
   <tr>
     <td valign="top"><a name="step2">2</a></td>
-    <td valign="top"><p>Open <span class="code">$GLOBUS_LOCATION/server-config.wsdd</span> and look for the ReliableFileTransferFactoryService record.<br>
-        <br>
-Change the <span class="code">dbname</span> and <span class="code">dbuser</span> to match your database name and database user. <br>
-<br>
-(It's probably a good idea to suggest the default dbname and dbuser so that this edit won't be required if they follow our instructions exactly)</p>
-    </td>
+    <td valign="top"><p>After completing either the Unix or Windows specific
+        setup above, do the following from your user shell (user who runs the
+        MultiRFT service, for eg: globus). </p>
+      <pre class="command">$ export PGDATA=/usr/local/pgsql/data 
+$ initdb 
+$ createdb ogsa 
+$ psql -d ogsa -f rft_schema_ogsa.sql </pre>      <p><strong>Note:</strong> <code>rft_schema_ogsa.sql</code> is
+  provided in the ogsa distribution root, under the <code>etc/ </code>directory.</p></td>
   </tr>
   <tr>
     <td valign="top"><a name="step3">3</a></td>
-    <td valign="top"><p>Configure a GridFTP server.<br>
-        <br> 
-        See <a href="install_config_gridftp.html">Configuring GridFTP</a> for instructions.
+    <td valign="top"><p>To start the db server run: </p>
+      <pre class="command">$ pg_ctl -o&nbsp; "-i" -l logfile start </pre></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top"><div align="center" class="box-header">Configuring
+        server-config.wsdd </div></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step4">4</a></td>
+    <td valign="top"><p>Open <code>$GLOBUS_LOCATION/server-config.wsdd</code> and look for the <code>ReliableFileTransferFactoryService</code> record.<br>
+        <br>
+Change the <span class="code"><em>dbname</em></span> and <span class="code"><em>dbuser</em></span> to
+match your database name and database user.</p>
+      <p><strong>Note:</strong> If you are willing to keep the default names,
+        you can safely skip this step. </p></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top"><div align="center" class="box-header">Configuring
+    GridFTP </div></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step5">5</a></td>
+    <td valign="top"><p>        See <a href="install_config_gridftp.html">Configuring GridFTP</a> for instructions.
 </p>
     </td>
   </tr>
 </table>
-<p>For more information, see the <a href="../rft/admin/index.html"><em>RFT System Administrator's Guide</em></a>.</p>
-
-
+<p>You should now be able to use RFT. For more information, see the <a href="../rft/developer/index.html">RFT:
+    Developer's Guide</a>. </p>
+<p>&nbsp;</p>
 <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
