@@ -37,45 +37,93 @@ deploying, and testing the installation.</p>
       see the <a href="../../../admin/index.html">GT 4.0 System Administrator's
       Guide</a>. No extra installation steps
 are required for this component.</p>
-<h2><a name="configuring"></a>Configuring </h2>
-<?php
-include_once( "./../RFT_Interface_Config_Frag.html" );
-?>
-<p>RFT can be registered to an MDS index service to facilitiate 
-   monitoring and discovery. The MDS documentation contains a note 
-   on <a href="../../../info/index/admin/registering-rft.html">registering
-   RFT to an Index Service</a>.</p>
-<h2><a name="deploying"></a>Deploying</h2>
+<p>[The following cvs instructions should not be in sys admin guide and need
+  to be moved. These are specialized instructions for a very small number of
+  developers and can be confusing in this context:]</p>
 <p>If you want to deploy latest code from CVS do this:</p>
 <table border="1" cellpadding="5" cellspacing="0" width="100%">
   <tbody>
     <tr>
       <td valign="top">1</td>
-      <td><p>Configure your CVSROOT to point to globus cvs location.</p>
-      </td>
+      <td><p>Configure your CVSROOT to point to globus cvs location.</p></td>
     </tr>
     <tr>
       <td valign="top">2</td>
       <td><p>Run:</p>
-      <pre>cvs co ws-transfer</pre></td>
+          <pre>cvs co ws-transfer</pre></td>
     </tr>
     <tr>
       <td valign="top">3</td>
       <td><p>Run:</p>
-      <pre>cd ws-transfer/reliable</pre></td>
+          <pre>cd ws-transfer/reliable</pre></td>
     </tr>
     <tr>
       <td valign="top">4</td>
-      <td><p>Set GLOBUS_LOCATION to point to your globus installation.</p>
-      </td>
+      <td><p>Set GLOBUS_LOCATION to point to your globus installation.</p></td>
     </tr>
     <tr>
       <td valign="top">5</td>
       <td><p>Run:</p>
-      <pre>ant deploy </pre></td>
+          <pre>ant deploy </pre></td>
     </tr>
   </tbody>
 </table>
+<h2><a name="configuring"></a>Configuring </h2>
+<ul>
+  <li><a href="config_overview">Configuration overview</a></li>
+  <li><a href="config_settings">Configuration settings</a></li>
+  <li><a href="postgresql">Required configuration: configuring the PostgreSQL
+      database</a></li>
+</ul>
+<?php
+include_once( "./../RFT_Interface_Config_Frag.html" );
+?>
+<h3><a name="postgresql"></a>Required configuration: configuring the PostgreSQL
+  database</h3>
+<p>PostgreSQL (Version 7.1 or greater ) needs to be installed and configured&nbsp; for
+  RFT to work. You can either use the packages which came with your operating
+system (RPMs, DEBs, ...) or build from source. We used
+    PostgreSQL version 7.3.2 for our testing and the following instructions are
+  good for the same. </p>
+<ol>
+  <li>Install Postgresql. Instructions on how to install/configure
+postgresql can be found <a
+ href="http://www.postgresql.org/docs/manuals/">here</a>.</li>
+  <li><a name="step2" id="step2"></a>Configure the postmaster daemon
+    so that it accepts TCP connections. This can be done by adding -o "-i" switch
+    to postmaster script.</li>
+  <li>To create the database that is used for RFT, run:<br>
+      <code>createdb rftDatabase</code></li>
+  <li>To populate the RFT database with appropriate schemas, run:<br>
+      <code>psql -d rftDatabase -f $GLOBUS_LOCATION/share/globus_wsrf_rft/rft_schema.sql<br>
+      <br>
+      </code>Now that you have created a database to store RFT's state, the following
+      steps configure RFT to find the database:<br>
+  </li>
+  <li>Open <code> $GLOBUS_LOCATION/etc/globus_wsrf_rft/jndi-config.xml</code></li>
+  <li>Find the <code>dbConfiguration</code> section under <code>ReliableFileTransferService &lt;service&gt;</code> section. </li>
+  <li>Change the <code>connectionString</code> to point to the machine on which
+    you installed Postgres and name of the database you used in step 2. <br>
+    If you installed Postgres on the same machine as your Globus install, the
+    default should work fine for you.</li>
+  <li>Change the <code>userName</code> to the name of the user who owns/created
+    the database and do the same for the password. (It also depends on how you
+    configured your database.)</li>
+  <li>Don't worry about the other parameters in that section. The defaults should
+    work fine for now.</li>
+  <li>Edit the configuration section under <code>ReliableFileTransferService</code>.
+    There are two values that can be edited in this section. </li>
+  <ul>
+    <li><code>backOff</code>&nbsp; : Time in seconds you want RFT to backoff
+      before a failed transfer is retried by RFT. Default should work fine for
+      now.</li>
+    <li><code>maxActiveAllowed</code>:&nbsp; This is the number of transfers
+      the container can do at given point. Default should be fine for now.</li>
+  </ul>
+</ol>
+<h2><a name="deploying"></a>Deploying</h2>
+<p>[need to include deploying instructions - if nothing apart from default, use
+'stock phrase'] </p>
 <h2><a name="testing"></a>Testing</h2>
 <p>You need to checkout the tests from CVS because RFT tests are not
 included in the installer. Please follow these steps to run RFT unit
@@ -123,8 +171,15 @@ directory:</p>
 include_once( "./../RFT_Security_Considerations_Frag.html" );
 ?>
 <h2><a name="troubleshooting"></a>Troubleshooting</h2>
-<p>&nbsp;You can find instructions for common problems <a
- href="../RFT_Public_Interfaces.html#config">here</a>.<br>
-</p>
+<p><strong>Problem:</strong> If RFT is not configured properly to talk to a PostgreSQL
+  database, you will see this message displayed on the console when you start
+the container : </p>
 
+<pre>"Error creating RFT Home: Failed to connect to database ... 
+Until this is corrected all RFT request will fail and all GRAM jobs that require staging will fail". </pre>
+<p><strong>Solution:</strong> Usual mistake is Postmaster is not accepting TCP
+  connections which&nbsp; means that you must restart Postmaster with -i option&nbsp; (
+  see <a href="#step2">step 2 </a>). </p>
+<p><br>
+</p>
 <?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
