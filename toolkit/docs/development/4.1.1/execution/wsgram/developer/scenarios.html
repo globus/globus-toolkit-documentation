@@ -1,6 +1,189 @@
 <p>
 <h3>Java</h3>
-    No Java developer scenarios have been created yet.
+The following is a general scenario for submitting a job using the Java stubs
+and APIs. Please consult the
+<a href="../../../common/javawscore/Java_WS_Core_Public_Interfaces.html#apis">Java WS Core API</a>,
+<a href="../../../security/delegation/WS_AA_Delegation_Service_Public_Interfaces.html#apis">Delegation API</a>,
+<a href="../../../data/rft/RFT_Public_Interfaces.html#apis">Reliable File Transfer API</a>, and
+<a href="../WS_GRAM_Public_Interfaces.html#apis">WS-GRAM API</a>
+documentation for details on package names for classes referenced in the code
+excerpts.
+<ol>
+<li><b>Load the RSL</b><bn>
+<pre>
+File rslFile = new File("myrsl.xml");
+JobDescriptionType rsl = RSLHelper.readRSL(rslFile);
+</pre>
+The object <code>rsl</code> will be of sub-type MultiJobDescriptionType if the
+file contents is a multi-job RSL.</li>
+<li><b>Create the factory service stub</b><bn>
+<pre>
+URL factoryUrl = ManagedJobFactoryClientHelper.getServiceURL(
+    contactString).getURL();
+String factoryType
+    = ManagedJobFactoryConstants.FACTORY_TYPE.<i>&lt;factory type constant&gt;</i>;
+EndpointReferenceType factoryEndpoint
+    = ManagedJobFactoryClientHelper.getFactoryEndpoint(factoryUrl, factoryType);
+ManagedJobFactoryPortType factoryPort
+    = ManagedJobFactoryClientHelper.getPort(factoryEndpoint);
+</pre>
+The format of <code>contactString</code> is
+<i>[protocol://]host[:port][/servicepath].</i></li>
+<li><b>Set stub security parameters</b><bn>
+<pre>
+ClientSecurityDescriptor secDesc = new ClientSecurityDescriptor();
+secDesc.setGSITransport(Constants.<i>&lt;protection level constant&gt;</i>);
+secDesc.setAuthz(<i>&lt;<code>Authorization</code> sub-class instance&gt;</i>);
+if (proxy != null) {
+    secDesc.setGSSCredential(proxy);
+}
+((Stub) port)._setProperty(Constants.CLIENT_DESCRIPTOR, secDesc);
+</pre>
+Use setGSISecureMsg() for GSI Secure Message.
+</li>
+<li><b>Query factory resource properties</b><bn>
+<p>
+<i>One at a time</i>
+<pre>
+GetResourcePropertyResponse response
+    = factoryport.getResourceProperty(ManagedJobConstants.<i>&lt;RP constant&gt;</i>);
+
+SOAPElement[] any = response.get_any();
+
+... = ObjectDeserializer.toObject(any[0], <i>&lt;RP type&gt;</i>.class);
+</pre>
+</p>
+<p>
+<i>Many at a time</i>
+<pre>
+GetMultipleResourceProperties_Element rpRequest
+    = new GetMultipleResourceProperties_Element();
+rpRequest.setResourceProperty(new QName[] {
+    ManagedJobFactoryConstants.<i>&lt;RP constant #1&gt;</i>,
+    ManagedJobFactoryConstants.<i>&lt;RP constant #2&gt;</i>,
+    ManagedJobFactoryConstants.<i>&lt;RP constant #N&gt;</i>
+});
+GetMultipleResourcePropertiesResponse response
+    = factoryPort.getMultipleResourceProperties(rpRequest);
+
+SOAPElement[] any = response.get_any();
+
+... = ObjectDeserializer.toObject(any[0], <i>&lt;RP #1 type&gt;</i>.class);
+... = ObjectDeserializer.toObject(any[0], <i>&lt;RP #2 type&gt;</i>.class);
+... = ObjectDeserializer.toObject(any[0], <i>&lt;RP #N type&gt;</i>.class);
+</pre>
+</p>
+</li>
+<li><b>Delegate credentials (if needed)</b><bn>
+<pre>
+X509Certificate certToSign = DelegationUtil.getCertificateChainRP(
+    delegFactoryEndpoint,   //EndpointReferenceType
+    secDesc,                //ClientSecurityDescriptor
+)[0];   //first element in the returned array
+EndpointReferenceType credentialEndpoint = DelegationUtil.delegate(
+    delegFactoryurl,        //String
+    credential,             //GlobusCredential
+    certToSign,             //X509Certificate
+    lifetime,               //int (seconds)
+    fullDelegation,         //boolean
+    secDesc);               //ClientSecurityDescriptor
+</pre>
+There are three types of delegated credentials:
+<ol>
+<li>Credential used by the job to generate user-owned proxy:<bn>
+    <pre>rsl.setJobCredential(credentialEndpoint);</pre></li>
+<li>Credential used to contact RFT for staging and file clean up:<bn>
+    <pre>rsl.setStagingCredentialEndpoint(credentialEndpoint);</pre></li>
+<li>Credential used by RFT to contact GridFTP servers:<bn>
+    <pre>TransferRequestType stageOut = rsl.getFileStageOut();
+         stageOut.setTransferCredential(credentialEndpoint);</pre>
+    Do the same for fileStageIn and fileCleanUp.</li>
+</ol>
+</li>
+<li><b>Create the job resource</b><bn>
+<pre>
+CreateManagedJobInputType jobInput = new CreateManagedJobInputType();
+jobInput.setJobID(new AttributedURI("uuid:" + UUIDGenFactory.getUUIDGen()));
+jobInput.setInitialTerminationTime(<i>&lt;Calendar instance&gt;</i>);
+if (multiJob) jobInput.setMultiJob(rsl) else jobInput.setJob(rsl);
+if (subscribeOnCreate) jobInput.setSubscribe(subscriptionReq);
+CreateManagedJobOutputType createResponse
+    = factoryPort(createManagedJob(jobInput);
+EndpointReferenceType jobEndpoint = createResponse.getManagedJobEndpoint();
+</pre>
+</li>
+<li><b>Create the job service stub</b><bn>
+<pre>
+ManagedJobPortType jobPort = ManagedJobClientHelper.getPort(jobEndpoint);
+</pre>
+You must set the appropriate security parameters for the job service stub
+(<code>jobPort</code>) as well.
+</li>
+<li><b>Subscribe for job state notifications</b><bn>
+<pre>
+NotificationConsumerManager notifConsumerManager
+    = NotificationConsumerManager.getInstance();
+
+List topicPath = new LinkedList();
+topicPath.add(ManagedJobConstants.RP_STATE);
+
+ResourceSecurityDescriptor resourceSecDesc = new ResourceSecurityDescriptor();
+resourceSecDesc.setAuthz(Authorization.<i>&lt;authz type constant&gt;</i>);
+
+Vector authMethods = new Vector();
+authMethods.add(GSISecureTransportAuthMethod.BOTH);
+resourceSecDesc.setAuthMethods(authMethods);
+
+EndpointReferenceType notificationConsumerEndpoint
+    = notifConsumerManager.createNotificationConsumer(
+        topicPath,
+        this,
+        resourceSecDesc);
+
+
+Subscribe subscriptionReq = new Subscribe();
+subscriptionReq.setConsumerReference(
+    notificationConsumerEndpoint);
+
+TopicExpressionType topicExpression = new TopicExpressionType(
+    WSNConstants.SIMPLE_TOPIC_DIALECT,
+    ManagedJobConstants.RP_STATE);
+subscriptionReq.setTopicExpression(topicExpression);
+
+EndpointReferenceType subscriptionEndpoint;
+</pre>
+<ul>
+<li>Subscribe on creation<bn>
+<pre>jobInput.setSubscribe(subscriptionReq);</pre></li>
+<li>Subscribe after creation<bn>
+<pre>SubscribeResponse subscribeResponse
+        = jobPort.subscribe(subscriptionRequest);
+     subscriptionEndpoint = subscribeResponse.getSubscriptionReference();
+</pre></li>
+</ul>
+</li>
+<li><b>Release any state holds (if necessary)</b><bn>
+<pre>
+jobPort.release(new ReleaseInputType());
+</pre>
+</li>
+<li><b>Destroy resources</b><bn>
+<pre>
+/*destroy subscription resource*/
+SubscriptionManager subscriptionManagerPort
+    = new WSBaseNotificationServiceAddressingLocator()
+    .getSubscriptionManagerPort(subscriptionEndpoint);
+
+//set stub security parameters on subscriptionManagerPort
+
+subscriptionManagerPort.destroy(new Destroy());
+
+
+/*destroy the job resource*/
+jobPort.destroy(new Destroy());
+</pre>
+</li>
+</ol>
 <h3>C</h3>
     No C developer scenarios have been created yet.
 </p>
