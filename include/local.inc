@@ -6,8 +6,8 @@ define("LOCAL_INC",1);
     $SITE_PATHS = array();
     // SERV_ROOT   set this to the webserver root.
     // WEB_ROOT    this must be set to include the 'planning' sub folder of this system
-    $SITE_PATHS["SERV_ROOT"]              = "/Users/liming/Sites/alliance/";
-    $SITE_PATHS["WEB_ROOT"]               = "/~liming/alliance/";
+    $SITE_PATHS["SERV_ROOT"]              = "/mcs/www-unix.globus.org/r3/";
+    $SITE_PATHS["WEB_ROOT"]               = "/r3/";
 
     $SITE_PATHS["SERV_INC"]               = $SITE_PATHS["SERV_ROOT"]."include/";
 
