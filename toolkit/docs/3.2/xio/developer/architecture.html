@@ -1,0 +1,141 @@
+<?php
+
+$title = "XIO: Developer's Guide";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt;
+
+<a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt;
+
+<a href="http://www-unix.globus.org/toolkit/docs/">Documentation</a> &gt; <a href="../../index.html">3.2</a> &gt; <a href="../index.html">XIO</a> &gt;
+Developer's Guide &lt; </p>
+
+<h1>XIO: Developer's Guide </h1>
+<p><a href="index.html">Overview</a><br>
+  <a href="http://www-unix.globus.org/developer/xio/doc/html/index.html">API</a><br>
+  &gt;Architecture</p>
+<h2>Architecture</h2>
+<p> This page  explains the external view of the Globus XIO architecture. </p>
+<ul>
+  <li><a href="#graphicaloverview">Graphical Overview</a></li>
+  <li><a href="#framework">Framework</a></li>
+  <li><a href="#drivers">Drivers</a></li>
+  <li><a href="#example">Example</a></li>
+  <li><a href="#driverinterface">Driver Interface </a></li>
+</ul>
+<h3><a name="graphicaloverview"></a>Graphical Overview </h3>
+<p>Globus XIO is broken down into two main components,
+    framework and drivers. The following picture illustrates the architecture: </p>
+<div align="center"><img src="xio_arch.jpg" width="298" height="382">
+</div>
+<h3><a name="framework"></a>Framework </h3>
+<p>The Globus XIO framework manages IO operation requests that an application
+  makes via the <a href="api/index.html">user API</a>. The framework does <strong>not</strong>  work
+  to deliver the data in an IO operation <strong>nor</strong> does it manipulate
+  the data. All of that work is done by the drivers. The framework's job is to
+  manage requests and map them to the drivers' interface. It is the drivers themselves
+  that are responsible for manipulating and transporting the data. 
+<h3><a name="drivers"></a>Drivers </h3>
+<p>A driver is the component of Globus XIO that is responsible for manipulating
+  and transporting the user's data. There are two types of drivers:</p>
+<ul>
+  <li><strong>Transform drivers</strong> manipulate the data buffers
+    passed to it via the user API and the XIO framework.</li>
+  <li><strong>Transport drivers</strong> are capable of sending the data over
+    a wire.</li>
+</ul>
+<p> 
+  Drivers are grouped into stacks, that is, one driver on top of
+another. When an IO operation is requested by the Globus XIO, the framework passes
+the operation request to every driver in the order they are in the stack.
+When the bottom level driver (the transport driver) finishes shipping the
+data, it passes the data request back to the XIO framework. Globus XIO
+ then delivers the request back up the stack in this manner until it
+reaches the top, at which point the application is notified that the
+request is complete.<br>
+    <br>
+  In a driver stack there can only be <strong>one</strong> transport driver.
+  The reason for this is simple. The transport driver is the one responsible
+  for sending or receiving the data. Once this type of operation is performed,
+  it makes no sense to pass the request down the stack, the data has just been
+  transfered. It is now time to pass the operation back up the stack. <br>
+    <br>
+  There can be many transform drivers in any given driver stack. A transform
+driver can manipulate the requested operations as they pass.
+Some good examples of transport drivers are security wrappers and compression.
+However a transport driver can also add additional protocols.
+For example, a stack could consist of a TCP transport driver and an HTTP
+transform driver. The HTTP driver would be responsible for marshalling the
+HTTP protocol and the TCP driver would be responsible for shipping that
+protocol over the wire. </p>
+<h3><a name="example"></a>Example</h3>
+<p>The following picture  illustrates a user application using Globus XIO
+  to speak the GridFTP protocol across a TCP connection: </p>
+<div align="center"><img src="xio_app.jpg" alt="Example of XIO Architecture" width="300" height="358">
+</div>
+<p>The user has built a stack consisting of one transform driver and one transport
+  driver. TCP is the transport driver in this stack, and as all transport modules
+  must be, it is at the bottom of the stack. Above TCP is the GSI transform driver
+  which performs necessary messaging to authenticate a user and the integrity
+  of the data.</p>
+<p>The first thing the user application does after building the stack is call
+the XIO user API function <code>globus_xio_open()</code>.</p>
+<p>The Globus XIO framework creates internal data structures for tracking this
+operation and then passes the operation request to the GSI driver.</p>
+<p>The GSI driver has nothing to do before the underlying stack has opened a
+handle so it simply passes the request down the stack. </p>
+<p>The request is then
+  passed to the TCP driver.</p>
+<p>The TCP driver then executes the socket level transport code contained within
+to establish a connection to the given contact string.</p>
+<p>Once the TCP connection has been established the TCP driver will notify the
+  XIO framework that it has completed its request and thereby the GSI driver
+  will be notified that the open operation it had previously passed down the
+stack has now completed.</p>
+<p>At this point the GSI driver will start the authentication processes (note
+  that at this point the user does not yet have an open handle). The GSI driver
+  has an open handle and upon it several sends and receives are performed to
+authenticate the connection.<br>
+<br>
+If the GSI driver is not satisfied with the authentication
+  process it closes the handle it has to the stack below it and tells the XIO
+  framework that it has completed the open request with an error. <br>
+  <br>
+  If it is satisfied
+it simply tells the XIO framework that it has completed the open operation.</p>
+<p>The user is now notified that the open operation completed, and if it was
+successful they now have an open handle.</p>
+<p>  Other operations work in much the same way:</p>
+<ol>
+  <li>A user posts a read.</li>
+  <li> The read request is first delivered to the GSI driver. </li>
+  <li>The GSI driver
+            wraps the buffer and passes the modified buffer down the stack. </li>
+  <li>The
+              framework delivers the write request with the newly modified
+              buffer to the TCP driver. </li>
+  <li>The TCP driver  writes the data across
+        the socket mapped to this handle. When it finishes it notifies the framework.</li>
+  <li>The framework notifies the GSI driver. </li>
+  <li>The GSI driver has nothing more
+      to do so it notifies the framework that it is complete.</li>
+  <li> Framework
+        then notifies the user. </li>
+</ol>
+<p><strong>Note:</strong> The above example is simplified for the purposes of
+  understanding. There are optimizations built into Globus XIO which alter the
+  course of events outlined above. However, conceptually the above is accurate.</p>
+<h2><a name="driverinterface"></a>Driver Interface </h2>
+<p>There is a well-defined interface to a driver. Drivers are modular components
+  with specific tasks. The purpose of drivers in the Globus XIO library is extensibility.
+  As more and more protocols are developed, more and more drivers can be written
+  to implement these protocols. As new drivers are written they can be added
+  to Globus XIO as either statically linked libraries or dynamically loaded libraries.
+  In the case of dynamic loading, it is not even necessary to recompile existing
+  source code. Each driver has a unique name according to the Globus XIO driver
+  naming convention. A program simply needs to be aware of this name (this can
+  obviously be passed in via the command line) and the Globus XIO framework is
+  responsible for loading that driver. </p>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
