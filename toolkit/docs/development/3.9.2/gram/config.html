@@ -1,28 +1,109 @@
 <?php
 
-$title = "Globus Toolkit 3.9.2 Documentation: GRAM";
+$title = "Globus Toolkit 3.9.2 Documentation: WS GRAM";
 
 include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
 ?>
 
 <p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/">Documents</a> &gt; <a href="http://www-unix.globus.org/toolkit/docs/development/index.html">Development</a> &gt;  <a href="../index.html">3.9.2</a> &lt; </p>
-<h1>Globus Toolkit 3.9.2 Documentation: GRAM </h1>
+<h1>Globus Toolkit 3.9.2 Documentation: WS GRAM </h1>
 <h2>Configuring the WS GRAM Service </h2>
 <p>This topic describes how to configure and troubleshoot your GRAM service.</p>
-<p><strong>Important:</strong> Any user can run globus-start-container from a GLOBUS_LOCATION
-  even if it was not the account that built/installed it. However for the GRAM
-  service to run correctly, the file <code>$GLOBUS_LOCATION/var/globus-fork.log</code>  must be owned by the account running the container.</p>
+<p><strong>Important:</strong> Any user can run globus-start-container from a
+  GLOBUS_LOCATION even if it was not the account that built/installed it. However
+  for the GRAM service to run correctly, the file <code>$GLOBUS_LOCATION/var/globus-fork.log</code> must
+be owned by the account running the container.</p>
 <ul>
-  <li><a href="#sudo">Configuring sudo for multi-user mode </a></li>
-  <li><a href="#hostcertlocation">Configuring hostcert and hostkey locations</a> </li>
-  <li><a href="#addingPBS">Adding PBS as a target</a></li>
-  <li><a href="#submittingjobs">Submitting jobs to the PBS scheduler</a> </li>
-  <li><a href="#PBSremoteshell">Setting the PBS remote shell</a></li>
+  <li><a href="#security">Configuring GRAM Security</a></li>
+  <li><a href="#multiusersetup">Configuring  multi-user setup</a></li>
+  <li><a href="#PBSschedulersetup">Configuring the PBS Scheduler</a>
+    <ul>
+      <li><a href="#addingPBS">Adding PBS as a target</a></li>
+      <li><a href="#submittingjobs">Submitting jobs to the PBS scheduler</a> </li>
+      <li><a href="#PBSremoteshell">Setting the PBS remote shell</a></li>
+    </ul>
+  </li>
   <li><a href="#troubleshooting">Troubleshooting</a> </li>
 </ul>
-<h3><a name="sudo"></a>Configuring sudo for multi-user mode </h3>
-<p>Add the following lines to the
-<code>/etc/sudoers</code> file. These commands are added as root using the <code>visudo</code> command. </p>
+<h3><a name="security"></a>Configuring GRAM Security</h3>
+<p>  By default, the gram service is configured to use a host certificate and
+  key for security. The account the container is run as must own the
+files: hostcert.pem and hostkey.pem in /etc/grid-security.</p>
+<p>  Here is more information about obtaining host certs: </p>
+<p><a href="http://www-unix.globus.org/toolkit/docs/3.2/installation/install_config_req.html#hostcert">http://www-unix.globus.org/toolkit/docs/3.2/installation/install_config_req.html#hostcert</a></p>
+<p>If this is not an option on the installation host, then here are two
+  alternatives:</p>
+<p>One alternative is to copy the /etc/grid-security/hostcert.pem and hostkey.pem
+  to a new filename/location and make the owner of the files the same as the
+  container account. Change the security configuration as follows: </p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top">1</td>
+    <td valign="top"><p>Open factory-security-config.xml in edit mode: </p>
+        <pre class="command">% cd $GLOBUS_LOCATION/gt3.9.2rc3-wsrf-source-installer/BUILD/globus_wsrf_gram_service_java_source-src
+% vi src/org/globus/exec/service/factory/factory-security-config.xml</pre></td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td valign="top"><p>Edit the key-file and cert-file lines with the new locations.</p></td>
+  </tr>
+  <tr>
+    <td valign="top">3</td>
+    <td valign="top"><p>Open factory-security-config.xml in edit mode: </p>
+        <pre class="command">% vi src/org/globus/exec/service/job/security-config.xml</pre></td>
+  </tr>
+  <tr>
+    <td valign="top">4</td>
+    <td valign="top">Edit the key-file and cert-file lines with the new locations. </td>
+  </tr>
+  <tr>
+    <td valign="top">5</td>
+    <td valign="top"><pre class="command">% ant deploy</pre></td>
+  </tr>
+</table>
+<p>The other alternative is to configure the container to use a user proxy credential
+instead of a host cert and key. Change the security configuration as follows:</p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top">1</td>
+    <td valign="top"><p>Open factory-security-config.xml in edit mode: </p>
+        <pre class="command">% cd $GLOBUS_LOCATION/gt3.9.2rc3-wsrf-source-installer/BUILD/globus_wsrf_gram_service_java_source-src
+% vi src/org/globus/exec/service/factory/factory-security-config.xml</pre></td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td valign="top"><p>Remove the entire &lt;credential&gt; element and replace
+        with a &lt;proxy-file&gt; element.
+        Complete details are at:</p>
+      <p><a href="http://www-unix.globus.org/toolkit/docs/development/wsrf/3.9.1/service_security.html#descFile">http://www-unix.globus.org/toolkit/docs/development/wsrf/3.9.1/service_security.html#descFile</a></p>
+      <p>For example:</p>
+      <pre class="command">&lt;proxy-file value=&quot;/tmp/x509up_u688&quot;/&gt;</pre></td>
+  </tr>
+  <tr>
+    <td valign="top">3</td>
+    <td valign="top"><p>Open factory-security-config.xml in edit mode: </p>
+        <pre class="command">% vi src/org/globus/exec/service/job/security-config.xml</pre></td>
+  </tr>
+  <tr>
+    <td valign="top">4</td>
+    <td valign="top"><p>Remove the entire &lt;credential&gt; element and replace
+        with a &lt;proxy-file&gt; element. Complete details are at:</p>
+    <p><a href="http://www-unix.globus.org/toolkit/docs/development/wsrf/3.9.1/service_security.html#descFile">http://www-unix.globus.org/toolkit/docs/development/wsrf/3.9.1/service_security.html#descFile</a></p>
+    <p>For example:</p>
+    <pre class="command">&lt;proxy-file value=&quot;/tmp/x509up_u688&quot;/&gt;</pre></td>
+  </tr>
+  <tr>
+    <td valign="top">5</td>
+    <td valign="top"><pre class="command">% ant deploy</pre></td>
+  </tr>
+</table>
+<h3><a name="multiusersetup"></a>Configuring Multi-user setup</h3>
+<p>  By default, if the user submitting the gram job is not the same as the user
+  running the service container, then the GRAM service will use sudo to execute
+  commands as the submitting user. Sudo must be configured for that to work
+  correctly. </p>
+<p>Our recommendation is to add the following lines to the <code>/etc/sudoers</code> file.
+    These commands are added as root using the <code>visudo</code> command. </p>
 <pre class="command">globus ALL=(<strong>&lt;username list&gt;</strong>) NOPASSWD: /bin/mv /tmp/x509up_*_deleg <strong>&lt;container owner's home dir&gt;</strong>/.globus/job/*/user/proxy 
 globus ALL=(<strong>&lt;username list&gt;</strong>) NOPASSWD: <strong>&lt;GLOBUS_LOCATION&gt;</strong>/libexec/globus-job-manager-script.pl<br>globus ALL=(root) NOPASSWD: /bin/chown * /tmp/x509up_*_deleg 
 globus ALL=(root) NOPASSWD: /bin/chown * <strong>&lt;container owner's home dir&gt;</strong>/.globus/job/*/user</pre>
@@ -34,12 +115,12 @@ globus ALL=(root) NOPASSWD: /bin/chown * <strong>&lt;container owner's home dir&
   </tr>
   <tr>
     <td valign="top"><code>&lt;container owner's home dir&gt;</code></td>
-    <td>is replaced with  the home directory of the user who started the container
-    which hosts the GRAM services. </td>
+    <td>is replaced with the home directory of the user who started the container
+      which hosts the GRAM services. </td>
   </tr>
   <tr>
     <td valign="top"><code>&lt;GLOBUS_LOCATION&gt;</code></td>
-    <td>is replaced  with the path of the Globus Toolkit installation.</td>
+    <td>is replaced with the path of the Globus Toolkit installation.</td>
   </tr>
 </table>
 <p>For example,</p>
@@ -48,44 +129,22 @@ globus ALL=(smartin,lane) NOPASSWD: /opt/globus/GT392_Alpha/libexec/globus-job-m
 globus ALL=(root) NOPASSWD: /bin/chown * /tmp/x509up_*_deleg 
 globus ALL=(root) NOPASSWD: /bin/chown * /home/globus/.globus/job/*/user
 </pre>
-<h3><a name="hostcertlocation"></a>Configuring hostcert and hostkey locations</h3>
-<p>Use the following procedure to change the location that the GRAM service will
-look for the hostcert and hostkey files. The default is to use the existing hostcert.pem
-  and hostkey.pem files that come distributed in /etc/grid-security/:</p>
-<table width="650" border="1" cellpadding="5">
-  <tr>
-    <td valign="top">1</td>
-    <td valign="top"><p>Open factory-security-config.xml in edit mode: </p>
-      <pre class="command">% cd $GLOBUS_LOCATION/gt3.9.2rc3-wsrf-source-installer/BUILD/globus_wsrf_gram_service_java_source-src
-% vi src/org/globus/exec/service/factory/factory-security-config.xml</pre></td>
-  </tr>
-  <tr>
-    <td valign="top">2</td>
-    <td valign="top"><p>Edit the key-file and cert-file lines with the new
-        locations.</p>
-    </td>
-  </tr>
-  <tr>
-    <td valign="top">3</td>
-    <td valign="top"><p>Open factory-security-config.xml in edit mode: </p>
-    <pre class="command">% vi src/org/globus/exec/service/job/security-config.xml</pre></td>
-  </tr>
-  <tr>
-    <td valign="top">4</td>
-    <td valign="top">Edit the key-file and cert-file lines with the new locations. </td>
-  </tr>
-  <tr>
-    <td valign="top">5</td>
-    <td valign="top"><pre class="command">% ant deploy</pre></td>
-  </tr>
-</table>
-<h3><a name="addingPBS"></a>Adding PBS as a target </h3>
-<p>Use the following procedure toadd PBS as a target for job submission.
+<h3><a name="PBSschedulersetup"></a>Configuring the PBS scheduler</h3>
+<p>  By default only the Fork scheduler is installed. If your site has the 
+  PBS scheduler and you'd like to have gram submit jobs to PBS, then follow these
+  steps:</p>
+<ul>
+  <li><a href="#addingPBS">Adding PBS as a target</a></li>
+  <li><a href="#submittingjobs">Submitting jobs to the PBS scheduler</a> </li>
+  <li><a href="#PBSremoteshell">Setting the PBS remote shell  </a></li>
+</ul>
+<h4>  <a name="addingPBS"></a>Adding PBS as a target </h4>
+<p>Use the following procedure to add PBS as a target for job submission.
   Default is that only Fork is available.</p>
 <table width="650" border="1" cellpadding="5">
   <tr>
     <td valign="top">1</td>
-    <td valign="top"><p>stop the service container</p></td>
+    <td valign="top"><p>Stop the service container.</p></td>
   </tr>
   <tr>
     <td valign="top">2</td>
@@ -115,12 +174,12 @@ look for the hostcert and hostkey files. The default is to use the existing host
     <td valign="top">Restart the service container.</td>
   </tr>
 </table>
-<h3><a name="submittingjobs"></a>Submitting jobs to the PBS scheduler </h3>
+<h4><a name="submittingjobs"></a>Submitting jobs to the PBS scheduler </h4>
 <p>To submit jobs to the PBS scheduler, simply add the -type PBS argument to
 the job submission command, like so:</p>
 <pre class="command">managed-job-globusrun -factory lucky0.mcs.anl.gov:4444 -file hello.xml -o -type PBS
 </pre>
-<h3><a name="PBSremoteshell" id="PBSremoteshell"></a>Setting the PBS remote shell</h3>
+<h4><a name="PBSremoteshell" id="PBSremoteshell"></a>Setting the PBS remote shell</h4>
 <p>Ssh is the default method for starting jobs on all assigned nodes of a
   cluster.  </p>
 <p>If ssh is not setup properly on your cluster and rsh is allowed, then run
