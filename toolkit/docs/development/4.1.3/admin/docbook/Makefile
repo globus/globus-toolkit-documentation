@@ -7,7 +7,7 @@ all: html pdf
 html:
 	xsltproc --stringparam chunk.section.depth 0 \
            ${GRAPHICS} ${NUMBERING} \
-           /usr/share/sgml/docbook/xsl-stylesheets/html/chunk.xsl \
+           chunk.xsl \
            ${FILENAME}
 
 pdf:
