@@ -6,8 +6,8 @@
 <!-- <link rel="shortcut icon" href="/images/favicon.ico"> -->
 <!-- <link rel="icon" href="/images/favicon.ico"> -->
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
-<LINK href="<?=$SITE_PATHS["WEB_CSS"]."default.css"; ?>" rel="stylesheet" type="text/css" />
-<LINK rel="stylesheet" type="text/css" href="<?=$SITE_PATHS["WEB_CSS"]."print.css"; ?>" media="print" />
+<link href="<?=$SITE_PATHS["WEB_CSS"]."default.css"; ?>" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" type="text/css" href="<?=$SITE_PATHS["WEB_CSS"]."print.css"; ?>" media="print" />
 </head>
 
 <body class="<?=$section; ?>">
