@@ -44,7 +44,7 @@ research; to provide a program of tutorials, workshops, Q&A, and demonstrations 
 the Globus Alliance; to develops a roadmap for continued Globus activities with
 significant contributions from UK and European experiences and expertise; to document 
 the event's proceedings as a UK eScience Technical Report.
-
+<a class="learnmore" href="http://www.nesc.ac.uk/esi/events/519/">Learn more...</a>
 </p>
 
 <p><b><a href="http://www.globusworld.org/">GlobusWORLD 2005</a></b>
