@@ -5,13 +5,13 @@
 // each various can include text, html formating, etc
 function app_info($software, $developer, $distros, $contact)
 {
-  print "<table border='0' cellspacing='0' cellpadding='4'>\n<tr valign='top'>\n";
-  print "<td><small><strong>Software:</strong></small></td>\n<td><small>$software</small></td>\n</tr>\n";
-  print "<tr valign='top'>\n<td><small><strong>Developed by:</strong></small></td>\n";
-  print "<td><small>$developer</small></td>\n</tr>\n";
-  print "<tr valign='top'>\n<td><small><strong>Distributions:</strong></small></td>\n";
-  print "<td><small>$distros</small></td>\n</tr>\n<tr valign='top'>\n";
-  print "<td><small><strong>Contact:</strong></small></td>\n<td><small>$contact</small></td>\n</tr>\n";
+  print "<table>\n<tr>\n";
+  print "<td class='tablekey'>Software:</td>\n<td>$software</td>\n</tr>\n";
+  print "<tr>\n<td class='tablekey'>Developed by:</td>\n";
+  print "<td>$developer</td>\n</tr>\n";
+  print "<tr>\n<td class='tablekey'>Distributions:</td>\n";
+  print "<td>$distros</td>\n</tr>\n<tr>\n";
+  print "<td class='tablekey'>Contact:</td>\n<td>$contact</td>\n</tr>\n";
   print "</table>\n";
 }
 
