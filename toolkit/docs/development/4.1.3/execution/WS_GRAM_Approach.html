@@ -29,6 +29,118 @@ execution with coordinated file staging.
 
 <img src="WS_GRAM_components.png">
 
+<h3>WS_GRAM Web Services</h3>
+
+<p>The heart of the WS_GRAM service architecture is a set of Web
+services designed to be hosted in the Globus Toolkit's WSRF core
+hosting environment. Note, these services, described below, make use
+of platform-specific callouts to other software components described
+in the next section.</p>
+
+<dl>
+
+<dt>ManagedJob</dt>
+
+<dd><p> Each submitted job is exposed as a distinct resource
+qualifying the generic ManagedJob service. The service provides an
+interface to monitor the status of the job or to terminate the job (by
+terminating the ManagedJob resource).  The behavior of the service,
+i.e. the local scheduler adapter implementation, is selected by the
+specialized <em>type</em> of the resource.</p></dd>
+
+<dt>ManagedJobFactory</dt>
+
+<dd><p> Each compute element, as accessed through a local scheduler,
+is exposed as a distinct resource qualifying the generic
+ManagedJobFactory service. The service provides an interface to create
+ManagedJob resources of the appropriate type in order to perform a job
+in that local scheduler.</p></dd>
+
+</dl>
+
+<h3>Major Protocol Steps</h3>
+
+<p>
+The components in the WS_GRAM solution are organized to support a
+range of optional features that together address different usage
+scenarios.  These scenarios are explored in depth in terms of protocol
+exchanges in the Protocol Variations section. However, at a high level
+we can consider the main client activities around a WS_GRAM job to be
+a partially ordered sequence.
+</p>
+
+<img src="WS_GRAM_functions.png">
+
+<h4>Creation of Job</h4>
+<p>
+The main component of the WS_GRAM service model is the ManagedJob
+resource created by a ManagedJobFactory::createJob invocation. A
+meaningful WS_GRAM client MUST create a job that will then go through
+a lifecycle where it eventually completes execution and the resource
+is eventually destroyed (the core black-and-white nodes in the
+high-level picture).
+</p>
+
+<h4>Optional Staging Credentials</h4>
+<p>
+Optionally, the client MAY request staging activities to occur before
+or after the job. If these are requested in the create call, suitable
+delegated credential EPRs MUST be passed in as part of the creation
+input, meaning that delegation operations MUST be performed sometime
+before createJob when staging is enabled (the light-blue delegation
+nodes in the high-level picture). Two credential fields must be
+initialized: the staging and transfer credentials, which may refer to
+distinct credentials or may both refer to the same credential.  The
+staging credential gives WS_GRAM the right to interact with the RFT
+service, while the transfer credential gives RFT the right to interact
+with GridFTP servers.
+</p>
+
+<h4>Optional Job Credential</h4>
+<p>
+Optionally, the client MAY request that a credential be stored into
+the user account for use by the job process. When this is requested in
+the create call, a suitable delegated credential EPR is passed as part
+of the creation input. As for staging, the credential MUST have been
+delegated before the job is created (the green nodes in the picture).
+</p>
+
+<h4>Optional Credential Refresh</h4>
+<p>
+Optionally, credentials delegated for use with staging, transfer, or
+job processes may be refreshed using the Delegation service
+interface. This operation may be performed on any valid Delegation
+EPR (the blue/green striped node in the picture).
+</p>
+
+<h4>Optional Hold of Cleanup for Streaming Output</h4>
+<p>
+If the client wishes to directly access output files written by the
+job (as opposed to waiting for the stage-out step to transfer files
+from the job host), the client should request that the file cleanup
+process be held until released. This gives the client an opportunity
+to fetch all remaining/buffered data after the job completes but
+before the output files are deleted. (See the pink nodes in the
+high-level picture).
+</p>
+<p>
+The cleanup hold and release are not necessary if the client will not
+be accessing files that are scheduled for cleanup in the job request,
+either because the client is not accessing any files or because the
+files it is accessing will remain on the job host after ManagedJob
+termination.
+</p>
+
+<h4>ManagedJob Destruction</h4>
+<p>
+Under nearly all circumstances, ManagedJob resources will be
+eventually destroyed after job cleanup has completed. Clients may
+hasten this step via an explicit destroy request or by manipulation of
+the scheduled termination time. Most system administrators will set a
+default and maximum ManagedJob linger time after which automatic
+purging of completed ManagedJob resources will occur.
+</p>
+
 <h3>Globus Toolkit Components used by WS_GRAM</h3>
 
 <p>
@@ -216,116 +328,6 @@ support.</p></dd>
 </p>
 
 </dl>
-
-<h2>Features and Scenarios</h2>
-
-<p>
-The components in the WS_GRAM solution are organized to support a
-range of optional features that together address different usage
-scenarios.  These scenarios are explored in depth in terms of protocol
-exchanges in the Protocol Variations section. However, at a high level
-we can consider the main activities around a WS_GRAM job to be a
-partially ordered set of functions.
-</p>
-
-<p>The heart of the WS_GRAM service architecture is a set of Web
-services designed to be hosted in the Globus Toolkit's WSRF core
-hosting environment. Note, these services, described below, make use
-of platform-specific callouts to other software components described
-in the next section.</p>
-
-<dl>
-
-<dt>ManagedJob</dt>
-
-<dd><p> Each submitted job is exposed as a distinct resource
-qualifying the generic ManagedJob service. The service provides an
-interface to monitor the status of the job or to terminate the job (by
-terminating the ManagedJob resource).  The behavior of the service,
-i.e. the local scheduler adapter implementation, is selected by the
-specialized <em>type</em> of the resource.</p></dd>
-
-<dt>ManagedJobFactory</dt>
-
-<dd><p> Each compute element, as accessed through a local scheduler,
-is exposed as a distinct resource qualifying the generic
-ManagedJobFactory service. The service provides an interface to create
-ManagedJob resources of the appropriate type in order to perform a job
-in that local scheduler.</p></dd>
-
-</dl>
-
-<img src="WS_GRAM_functions.png">
-
-<h4>Creation of Job</h4>
-<p>
-The main component of the WS_GRAM service model is the ManagedJob
-resource created by a ManagedJobFactory::createJob invocation. A
-meaningful WS_GRAM client MUST create a job that will then go through
-a lifecycle where it eventually completes execution and the resource
-is eventually destroyed (the core black-and-white nodes in the
-high-level picture).
-</p>
-
-<h4>Optional Staging Credentials</h4>
-<p>
-Optionally, the client MAY request staging activities to occur before
-or after the job. If these are requested in the create call, suitable
-delegated credential EPRs MUST be passed in as part of the creation
-input, meaning that delegation operations MUST be performed sometime
-before createJob when staging is enabled (the light-blue delegation
-nodes in the high-level picture). Two credential fields must be
-initialized: the staging and transfer credentials, which may refer to
-distinct credentials or may both refer to the same credential.  The
-staging credential gives WS_GRAM the right to interact with the RFT
-service, while the transfer credential gives RFT the right to interact
-with GridFTP servers.
-</p>
-
-<h4>Optional Job Credential</h4>
-<p>
-Optionally, the client MAY request that a credential be stored into
-the user account for use by the job process. When this is requested in
-the create call, a suitable delegated credential EPR is passed as part
-of the creation input. As for staging, the credential MUST have been
-delegated before the job is created (the green nodes in the picture).
-</p>
-
-<h4>Optional Credential Refresh</h4>
-<p>
-Optionally, credentials delegated for use with staging, transfer, or
-job processes may be refreshed using the Delegation service
-interface. This operation may be performed on any valid Delegation
-EPR (the blue/green striped node in the picture).
-</p>
-
-<h4>Optional Hold of Cleanup for Streaming Output</h4>
-<p>
-If the client wishes to directly access output files written by the
-job (as opposed to waiting for the stage-out step to transfer files
-from the job host), the client should request that the file cleanup
-process be held until released. This gives the client an opportunity
-to fetch all remaining/buffered data after the job completes but
-before the output files are deleted. (See the pink nodes in the
-high-level picture).
-</p>
-<p>
-The cleanup hold and release are not necessary if the client will not
-be accessing files that are scheduled for cleanup in the job request,
-either because the client is not accessing any files or because the
-files it is accessing will remain on the job host after ManagedJob
-termination.
-</p>
-
-<h4>ManagedJob Destruction</h4>
-<p>
-Under nearly all circumstances, ManagedJob resources will be
-eventually destroyed after job cleanup has completed. Clients may
-hasten this step via an explicit destroy request or by manipulation of
-the scheduled termination time. Most system administrators will set a
-default and maximum ManagedJob linger time after which automatic
-purging of completed ManagedJob resources will occur.
-</p>
 
 <h3>Protocol Overview</h3>
 
