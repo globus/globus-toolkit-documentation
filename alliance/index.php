@@ -30,7 +30,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <ul>
                 <li><a href="team/">The Globus Team</a></li>
                 <li>e-Science/e-Business Project Partners</li>
-                <li>Academic Affiliates</li>
+                <li><a href="affiliates.php">Academic Affiliates</a></li>
                 <li>Sponsors</li>
                 <li>Job Opportunities</li>
               </ul>
