@@ -1,0 +1,104 @@
+
+OVERVIEW
+==================
+
+The WS_GRAM client tools shall be instrumented to generate basic event
+timing information in a simple, stable format.  Because we will be
+using gnuplot to visualize the data, simple line-record data formats
+are preferred which can be easily post-processed with shell scripts
+(as opposed to using XML and XML-based data analysis tools).
+
+The format of each event record will be a single line with quite a bit
+of auxilliary data.  Fields will be separated by a '%' character and
+some subfields with ',' character (to avoid conflict with shell
+operators etc.).  Some static test information will be repeated on
+each event record rather than using a more structured data file format
+(to simplify post-processing of data).
+
+Furthermore, all identifying metadata is in the record format so it is
+OK to append all logs to one file or to keep separate files as
+appropriate for easy testing.
+
+Depending on the type of test, some events will not occur.  Event
+records should only be generated for actual events, i.e. only emit
+pre/post delegate events when the client is performing
+delegation. Similarly, log actual notification reception events; we
+will identify and cope with "missing" or "optional" notifications
+during the post-processing.
+
+Where the client must perform any costly steps to generate the logged
+event format, it is important that these steps occur either before or
+after the timed run is perfomed so as not to skew the results.  For
+example, precompute static info that can be output during the run
+along with the timestamps, or alternatively save timestamp data to an
+array during the run and perform all outputs afterwards.
+
+
+RECORD FORMAT SYNTAX
+====================
+
+record := UUID '%' jobtype '%' event '%' timestamp '%' client '%' service '%' client-host '%' service-host \n ;
+
+
+UUID: the UUID chosen by the client tool for the job
+
+   This should be practically unique across all tests we ever do.
+
+
+jobtype: a unique reference to a well-defined test mode
+
+   This will be used to correlate tests for statistical analysis as
+   well as to log the methodology used for the test.  Appropriate
+   references might be: a filepath in CVS or URL to a test RSL, or
+   similarly a path or URL to a detailed English description of the
+   test regime.
+
+
+event := 'pre-delegate'
+      |  'post-delegate'
+      |  'pre-create'
+      |  'post-create'
+      |	 'pre-remove-hold'
+      |  'post-remove-hold'
+      |	 'notify-stagein'
+      |  'notify-pending'
+      |  'notify-active'
+      |  'notify-stageout'
+      |  'notify-cleanup-hold'
+      |  'notify-cleanup'
+      |  'notify-done'
+      ;
+
+
+timestamp := unix-seconds.fraction ',' date-time ;
+
+   Put the timestamp of the event in two formats for easy
+   post-processing: the raw unix seconds since epoch with floating
+   point fractional seconds, and the human-friendly date-time string
+   with timezone info etc.
+
+
+client := client-type ',' client version ;
+
+client-type := 'managed-job-globusrun' | 'globusrun-ws' ;
+
+   Version info is intended primarily for human consumption but would
+   be best if derived from a package version or other automatic
+   source.  maybe CVS date or version is best to be precise?
+
+
+service := adapter-type ',' service version ;
+
+   Can we get precise version info as an RP or something that can be
+   automatically probed by the client tool?  pick apart factory EPR if
+   necessary to get type, e.g. fork/lsf/pbs.
+
+
+client-host: a hostname
+server-host: a hostname
+
+   These should ideally be FQDNs so that we keep track of remoteness
+   of tests as well as actual hardware/OS configuration via name.  It
+   could be a problem if tests just say "localhost".
+
+
