@@ -31,14 +31,14 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
                 <a href="http://www.globusworld.org/">Learn more...</a></td>
             </tr>
             <tr>
+              <td><span class="newsdate">02.09.2005</span></td>
+              <td><b>UCLA's campus Grid portal is based on GT3.2.</b> 
+                <a href="http://grid.ucla.edu/">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">01.25.2005</span></td>
               <td><b>Globus Alliance welcomes formation of Consortium.</b> 
                 <a href="alliance/news/consortium.php">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">12.01.2005</span></td>
-              <td><b>We welcome Univa Corporation to the Globus community.</b> 
-                <a href="alliance/news/univa.php">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
