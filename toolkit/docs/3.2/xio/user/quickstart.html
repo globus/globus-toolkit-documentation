@@ -1,0 +1,179 @@
+<?php
+
+$title = "XIO: User's Guide";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+
+
+
+
+
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt;
+
+<a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt;
+
+<a href="http://www-unix.globus.org/toolkit/docs/">Documentation</a> &gt; <a href="../../index.html">3.2</a> &gt; <a href="../index.html">XIO</a> &gt;
+User's Guide &lt; </p>
+
+<h1>XIO: User's Guide </h1>
+<p class="small"><a href="index.html">Overview</a><br>
+  &gt;User Quick Start<br>
+    <a href="driverquickstart.html">XIO Driver Quick Start</a></p>
+<h2>User Quick Start Guide </h2>
+<p>This Guide explains how to use the Globus XIO API for IO operations within
+  C programs. Since Globus XIO is a simple API it is pretty straight forward.
+  The best way to become familiar with it is by looking at an <a href="example.html">example</a>.</p>
+<p>This guide will examine the case where a user wishes to use
+Globus XIO for reading data from a file:</p>
+<ul>
+  <li><a href="#ActivateGlobus">Activate Globus</a></li>
+  <li><a href="#LoadDriver">Load Driver</a></li>
+  <li><a href="#CreateStack">Create a Driver Stack</a></li>
+  <li><a href="#OpeningHandle">Opening Handle using Active Open</a></li>
+  <li><a href="#PayOff">Pay Off  </a></li>
+</ul>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td colspan="3" valign="top"><div align="center"><a name="ActivateGlobus"></a>Activate Globus</div></td>
+  </tr>
+  <tr>
+    <td valign="top">1</td>
+    <td colspan="2" valign="top"><p>As in all globus programs the first thing that must be
+        done is to activate the globus module by running:</p>
+      <pre class="command">globus_module_activate(GLOBUS_XIO_MODULE); </pre>      <p>Until activated, <strong>no</strong> <code>globus_xio</code> function
+    calls can be successfully executed.</p>      </td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top"><div align="center"><a name="LoadDriver"></a>Load
+    Driver</div></td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td colspan="2" valign="top"><p>The next step is to load all the drivers needed to complete
+        the IO operations in which you are interested. Do this with the <code>globus_xio_load_driver()</code>function.     
+      <p>In order to successfully call this function
+      you must know the name of all the drivers you wish to load.       
+      <p>For this
+        example we only want to load the file io driver. The prepackaged file
+        io driver's name is: <strong>&quot;file&quot;</strong>. This driver would
+        be loaded with the following code:       
+      <pre class="command">globus_result_t res; 
+globus_xio_driver_t driver; 
+res = globus_xio_driver_load(&amp;driver, "file");</pre>      
+      <p>The driver was successfully loaded if the above function call:
+      <pre class="command">res == GLOBUS_SUCCESS</pre>
+      <p>You can now reference the driver with 
+    variable <strong><code>driver</code></strong>.</td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top"><div align="center"><a name="CreateStack">Create
+    a Driver Stack</a></div></td>
+  </tr>
+  <tr>
+    <td valign="top">3</td>
+    <td colspan="2" valign="top"><p>Now that globus_xio is activated and we have a driver
+        load we need to build a driver stack. </p>
+      <p>In our example the stack is very
+      simple as it consists of only one driver, the <code>file</code> driver. </p>
+      <p>The stack is established with the following code (building
+      off of the above code snips):</p>
+      <pre class="command">globus_xio_stack_t stack; 
+globus_xio_stack_init(&amp;stack);     
+globus_xio_stack_push_driver(stack, driver); </pre></td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top"><div align="center"><a name="OpeningHandle">Opening
+    Handle</a> using Active Open </div></td>
+  </tr>
+  <tr>
+    <td rowspan="3" valign="top">4</td>
+    <td colspan="2" valign="top"><p>Now that the stack is created we can open a handle to
+        the file. </p>
+      <p>There are two ways that a handle can be opened. </p>
+      <ol>
+        <li>The first is
+              a <strong>passive open</strong>. An example of this is a TCP listener.
+              The open is performed passively by waiting for some other entity
+              to act upon it. <br>
+</li>
+        <li>The second is an <strong>active open</strong>. An active open
+          is the opposite of a passive open. The TCP counter example for this
+          is a connect. The user initiates the open. In our example we shall
+          be performing an active open:</li>
+      </ol></td>
+  </tr>
+  <tr>
+    <td valign="top"><div align="right">a</div></td>
+    <td valign="top"><p>Before opening a handle it must be intialized. </p>
+      <p><strong>Initializing client side handles </strong></p>
+      <p>The following
+          illustrates initialization for client side handles: </p>
+      <pre>globus_xio_handle_t handle; 
+res = globus_xio_handle_create(&amp;handle, stack);       </pre>      
+      <p><strong>Initializing server side handles </strong></p>
+      <p>Server side handles are a bit more complicated. First we must introduce
+        the data structure <code>globus_xio_server_t</code>. This structure shares
+        many concepts with a TCP listener, mainly that it spawns handles ("connections")
+        as passive open requests are made. If the user wishes to accept a new
+        connection, a call to <code>globus_xio_accept()</code> or <code>globus_xio_register_accept()</code>        will initialize a new handle: </p>
+    <pre class="command">globus_xio_server_t server; 
+globus_xio_handle_t handle; 
+globus_result_t res; 
+res = globus_xio_server_create(&amp;server_handle, NULL, stack); 
+res = globus_xio_server_accept(&amp;handle, server);</pre></td>
+  </tr>
+  <tr>
+    <td valign="top"><div align="right">b</div></td>
+    <td valign="top"><p>Once the handle is initialized, it should be open in
+        order to perform read and write operations upon it.     
+      <p>If the handle is
+        a client, then a "contact string" is required. This string represents
+      the target that the user wishes to open:       
+      <pre class="command">globus_xio_attr_t attr; 
+char * contact_string = "file:/etc/groups"; 
+globus_xio_attr_init(&amp;attr);
+globus_xio_open(xio_handle, contact_string, attr); 
+globus_xio_attr_destroy(attr);       </pre>      <p><strong>Note:</strong> <code>attr</code>s
+  can be used to color behaviors of a handle. For conceptual undertanding at
+  this point they are not important and a user is free to simple pass <code>NULL</code> wherever
+  an <code>attr</code> is required. </p></td>
+  </tr>
+  <tr>
+    <td valign="top">5</td>
+    <td colspan="2" valign="top"><p>Now that you have an open handle to a file,
+        you can</p>
+      <ul>
+        <li> read data with <code>globus_xio_read()</code></li>
+        <li> write data to it with <code>globus_xio_write()</code>. </li>
+    </ul></td>
+  </tr>
+  <tr>
+    <td valign="top">6</td>
+    <td colspan="2" valign="top">Once you are finished performing IO operations
+    on the handle, call <code>globus_xio_close(handle)</code>. </td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top"><div align="center"><a name="PayOff">Pay Off</a></div></td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top"><p>This may seem like quite a bit of effort
+        for simple reading a file, and it is. However the advantages become clear
+        when exploring the swapping of other drivers. </p>
+      <p>In the above example it
+          would be trivial to change the IO operations from file IO to TCP, or
+      HTTP, or FTP. All the the user would need to do is change two things: </p>
+      <ul>
+        <li>the driver
+            name string passed to <code>globus_xio_load_driver()</code> </li>
+        <li>and the contact string
+              passed to <code>globus_xio_target_init()</code></li>
+      </ul>      <p>This can easily be done at runtime
+            as the program <a href="globus_xio_example.c">globus_xio_example.c </a>demonstrates.</p>      
+      <p>So the little program <a href="globus_xio_example.c">globus_xio_example.c </a> has
+        the ability to be any reading client, or server, (HTTP, FTP, TCP, file,
+    etc) as long as the proper drivers are in the <code>LD_LIBRARY_PATH</code>.</p></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
