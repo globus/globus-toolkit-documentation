@@ -127,8 +127,90 @@ MyService port = locator.getMyServicePort(url);
 
 port.hello();
 </pre>
-
 </table>
+</p>
+<h3><a name="CustonExpressionEval">Custom QueryExpression/TopicExpression Dialects</a></h3>
+<p>
+Java WS Core allows for custom query/topic expression evaluators to be plugged in. The process of adding a new query/topic expression evaluator is composed of three steps:
+<ul>
+ <li>Implementation of the evaluator</li>
+ <li>Registration of the evaluator</li>
+ <li>Registration of the serializer/deserializer for the evaluator</li>
+</ul>
+</p>
+
+<h4>Implementation</h4>
+<p>
+The query expression evaluators must implement the <code>org.globus.wsrf.query.ExpressionEvaluator</code> while the topic expression evaluators must implement the <code>org.globus.wsrf.topicexpression.TopicExpressionEvaluator</code> interface.
+</p>
+
+<h4>Registration</h4>
+<p>
+The evaluators must be registered in order for Java WS Core to recognize them. The registration is done through the JNDI configuration file. The expression evaluators must be deployed as global resources under a specific subcontext. The query expression evaluators they must be put under <b><code>query/eval/</code></b> subcontext while the topic expression evaluators must be put under <b><code>topic/eval/</code></b> subcontext. 
+</p>
+<p>
+Example of query expression evaluator registration:
+</p>
+<pre>
+ &lt;global&gt;
+  &lt;resource name="query/eval/MyQueryExpressionEval"
+            type="foo.bar.MyQueryExpressionEvaluator">
+    &lt;resourceParams&gt;
+     &lt;parameter&gt;
+      &lt;name&gt;factory&lt;/name&gt;
+      &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+     &lt;/parameter&gt;
+    &lt;/resourceParams&gt;
+   &lt;/resource&gt;
+ &lt;/global&gt;
+</pre>
+<p>
+Example of topic expression evaluator registration:
+</p>
+<pre>
+ &lt;global&gt;
+  &lt;resource name="topic/eval/MyTopicExpressionEval"
+            type="foo.bar.MyTopicExpressionEvaluator">
+    &lt;resourceParams&gt;
+     &lt;parameter&gt;
+      &lt;name&gt;factory&lt;/name&gt;
+      &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+     &lt;/parameter&gt;
+    &lt;/resourceParams&gt;
+   &lt;/resource&gt;
+ &lt;/global&gt;
+</pre>
+<p>
+Please note that the <b><code>type</code></b> attribute specifies the class that implements the expression evaluator. The <b><code>name</code></b> attribute specifies the name of the evaluator in JNDI space. The name can be arbitrary as long as it is unique and is in the right subcontext as explained above.
+</p>
+<h4>Registration serializers/deserializers</h4>
+<p>
+A serializer/deserializer must be registered for the dialect of the evaluator in order for the expression to be properly serialized and deserialized. The serializers/deserializers for the dialect are deployed as almost any other type mapping. In general each type mapping specifies a type QName. For dialect serializers/deserializers that type QName takes a slightly different name.<br>
+In case of query expression evaluator that QName must have the local name part set to <b><code>QueryExpressionDialect</code></b> and namespace part set to the dialect of the query expression evaluator. For example:
+</p>
+<pre>
+ &lt;typeMapping 
+    encodingStyle="" 
+    deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+    serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+    type="java:java.lang.String"
+    qname="ns12:QueryExpressionDialect" 
+    xmlns:ns12="http://foo.bar/MyQueryDialect"/&gt;
+</pre>
+<p>
+Similarly, in case of topic expression evaluator that QName must have the local name part set to <b><code>TopicExpressionDialect</code></b> and namespace part set to the dialect of the topic expression evaluator. For example:
+</p>
+<pre>
+ &lt;typeMapping 
+    encodingStyle="" 
+    deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+    serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+    type="java:java.lang.String"
+    qname="ns12:TopicExpressionDialect" 
+    xmlns:ns12="http://foo.bar/MyTopicDialect"/&gt;
+</pre>
+<p>
+Please note that these type mappings must be deployed both on the client and the server. 
 </p>
 
 <h2><a name="tutorials"></a>Tutorials</h2>
