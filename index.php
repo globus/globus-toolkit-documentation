@@ -21,6 +21,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
         <div id="main">
          
+          <p></p>
+
           <hr>
 
           <!--<h2>Recent News</h2> -->
