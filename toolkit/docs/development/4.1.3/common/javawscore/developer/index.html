@@ -13,6 +13,7 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
   <li><a href="#pubinterfaces">Public interface</a></li>
   <li><a href="#scenarios">Usage scenarios</a> 
    <ul>
+    <li><a href="#ApacheAddressing">Using Apache Addressing API</a></li>
     <li><a href="#NotificationConsumer">Notification Consumer</a></li>
     <li><a href="#EndpointInfo">Container Endpoint Information</a></li>
     <li><a href="#LocalInvocations">Local Invocations</a></li>
@@ -31,6 +32,8 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
   <li><a href="#relateddocs">Related Documentation</a></li>
   <li><a href="#miscellaneousinfo">Miscellaneous information</a>
    <ul>
+    <li><a href="#DocumentLiteral">Document/literal notes</a></li> 
+    <li><a href="#JNDIDetails">JNDI Details</a></li>
     <li><a href="#ContextProperties">MessageContext Properties</a></li>
     <li><a href="#testing">Writing and Running Tests</li>
     <li><a href="#gardetails">GAR</li>
@@ -52,8 +55,87 @@ include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/dr
 <p>The semantics and syntax of the APIs and WSDL for the component, along with
   descriptions of domain-specific structured interface data, can be found in
   the <a href="../Java_WS_Core_Public_Interfaces.html">public interface guide</a>.</p>
+
 <h2><a name="scenarios"></a>Usage scenarios</h2>
 
+<h3><a name="ApacheAddressing">Using Apache Addressing API</a></h3>
+
+<p>
+The WS-RF and WS-N specifications distributed with Java WS Core use WS-Addressing (the March 2004 version of the specification) for addressing services and resources. Java WS Core uses <a href="http://ws.apache.org/ws-fx/addressing/">Apache
+Addressing</a> library for WS-Addressing support. The API are pretty straightforward and easy to use. Most of the work is done in <code>AddressingHandler</code> deployed in the client and server configuration files. See Apache Addressing documentation for details.
+
+<h3><a name="call"></a>Call object</h3>
+
+<p>If you are using the <code>javax.xml.rpc.Call</code> object directly, you can pass the addressing information by setting a <code>Constants.ENV_ADDRESSING_REQUEST_HEADERS</code> property on the call object. </p>
+<p>For example: </p>
+<pre>
+        Service service = new Service();
+        Call call = (Call) service.createCall();
+
+        AddressingHeaders headers = new AddressingHeaders();
+        Action a = new Action(new URI("urn:action"));
+        headers.setAction(a);
+        EndpointReference epr = new EndpointReference("http://www.apache.org");
+        headers.setFaultTo(epr);
+
+        call.setProperty(Constants.ENV_ADDRESSING_REQUEST_HEADERS, headers);
+        call.setTargetEndpointAddress(new URL(url));
+        call.setOperationName(new QName(
+                "http://localhost:8080/axis/services/Version", "getVersion"));
+        String ret = (String) call.invoke(new Object[]
+</pre>
+
+<h3><a name="addressinglocator"></a>AddressingLocator class</h3>
+
+<p>The Apache Addressing library also contains a version of Axis' WSDL2Java tool.
+  It extends the Axis' WSDL2Java tool functionality by generating, in addition
+  to all the regular classes, the <code>&lt;service&gt;Addressing</code> interface
+and <code>&lt;service&gt;AddressingLocator</code> class. </p>
+<p>The <code>AddressingLocator</code>  class can be used to get a stub for a service by passing Apache Addressing <code>EndpointReferenceType</code> parameter. </p>
+<p>For example: </p>
+<pre>
+        EndpointReferenceType epr = new EndpointReferenceType();
+        epr.setAddress(
+            new Address("http://localhost:8080/axis/services/Version")
+        );
+
+        VersionServiceAddressingLocator locator =
+            new VersionServiceAddressingLocator();
+
+        VerionServicePortType port = locator.getVersionPort(epr);
+
+        port.getVersion();
+</pre>
+
+<h3><a name="referenceproperties"></a>ReferenceProperties</h3>
+
+<p>In the WS-RF, WS-N specifications, the WS-Addressing <code>ReferenceProperties</code> are used to carry resource identity information. The resource identity can be anything as long as it serializes as a XML element.
+</p>
+<p> Apache Addressing library only allows a DOM <code>Element</code> or a <code>SOAPElement</code> to
+  be a reference property. </p>
+<p>For example: </p>
+<pre>
+        // this will be a reference property
+        SimpleResourceKey key = new SimpleResourceKey(Counter.KEY, "123");
+
+        ReferencePropertiesType props = new ReferencePropertiesType();
+
+        // convert to SOAPElement and add to the list
+        props.add(key.toSOAPElement()); 
+
+        EndpointReferenceType epr = new EndpointReferenceType();
+        epr.setAddress(
+            new Address("http://localhost:8080/axis/services/Version")
+        );
+        epr.setProperties(props);
+
+        VersionServiceAddressingLocator locator =
+            new VersionServiceAddressingLocator();
+
+        VerionServicePortType port = locator.getVersionPort(epr);
+
+        port.getVersion();
+</pre>
 
 <h3><a name="NotificationConsumer">Notification Consumer</a></h3>
 <p>
@@ -475,6 +557,45 @@ include_once( "./../Java_WS_Core_Troubleshooting_Frag.html" );
 
 <h2><a name="miscellaneousinfo"></a>Miscellaneous information</h2>
 
+<h3><a name="DocumentLiteral">Document/literal notes</a></h3>
+
+<p>
+The WS-RF and WS-N specifications schemas follow the <b>document/literal</b> mode as described in <a href="http://www.ws-i.org/Profiles/BasicProfile-1.0-2004-04-16.html">WS-I Basic Profile</a>. The Basic Profile defines certain rules to follow for document/literal and
+other modes to ensure interoperability. 
+</p>
+<p>
+For example, for document/literal mode, at most one &lt;wsdl:part&gt; is allowed in the &lt;wsdl:message&gt; element and it has to define the 'element' attribute. Also, the wire signatures must be unique (cannot use the same 'element' attribute in &lt;wsdl:part&gt; in two different &lt;wsdl:message&gt; elements). 
+</p>
+<p>
+Java WS Core relies on these restrictions so please keep them in mind when designing your own schema. 
+</p>
+<p>
+<strong>Note:</strong> Axis' WSDL2Java tool might sometimes incorrectly detect
+that schema follows the wrapped/literal mode and generate wrong stub and type
+classes. To ensure that document/literal mode is always used:
+<ul>
+  <li> use Java WS Core's <code>generateStub*</code> Ant tasks in <code>&lt;install&gt;/share/globus_wsrf_tools/build-stubs.xml</code> file</li>
+  <li> if you are using Axis' WSDL2Java tool directly, you can alternatively specify the <code>-W</code> command line option.
+  </li>
+</ul>
+<p>  
+Also, with wrapped/literal mode, the element name had to match the operation
+ name in wsdl. This is <strong>not</strong> necessary with document/literal mode.
+</p>
+
+<h3><a name="JNDIDetails">JNDI Details</a></h3>
+<p>
+Java WS Core provides <a href="http://jakarta.apache.org/tomcat/tomcat-5.0-doc/jndi-resources-howto.html">Tomcat's JNDI</a> implementation. The file format of Java WS Core's <code>jndi-config.xml</code> is slightly different from the Tomcat's <code>server.xml</code> file. One main difference is that the <code>&lt;resourceParams&gt;</code> are specified as children of <code>&lt;resource&gt;</code> objects. Also, Java WS Core's <code>jndi-config.xml</code> parser is case sensitive and all elements names are lowercase. 
+</p>
+<p>All elements defined in the <code>&lt;global&gt;</code> section of the JNDI configuration file are deployed into the <code>java:comp/env</code> context under the name specified in the 'name' attribute. All <code>&lt;service&gt;</code> elements are deployed into <code>java:comp/env/&lt;service name&gt;</code> context. New objects and contexts can be added or modified dynamically at runtime but they will not be persisted. The only way to always have some object around is to deploy it in the <code>jndi-config.xml</code> file. All services <b>share</b> the same <code>java:comp/env</code> context. This is different from EJBs where each EJB has a separate <code>java:comp/env</code> context. 
+</p>
+<p>  
+When deploying <code>&lt;resource&gt;</code> in <code>jndi-config.xml</code> make sure to use the <code>org.globus.wsrf.tools.jndi.BeanFactory</code> as a BeanFactory (value of a 'factory' parameter) instead of <code>org.apache.naming.factory.BeanFactory</code>. Your bean must have a default constructor. If your bean implements the <code>org.globus.wsrf.tools.jndi.Initializable</code> interface, the <code>initialize()</code> function will be automatically called after all parameters are set on the bean. 
+</p>
+<p> 
+Please see <a href="http://java.sun.com/products/jndi/tutorial/">The JNDI Tutorial</a> for more information on JNDI programming. 
+</p>
+
 <h3><a name="ContextProperties">MessageContext Properties</a></h3>
 
 The following properties can be obtained from the SOAPContext/MessageContext associated with the current thread:
@@ -500,7 +621,7 @@ The <code>Constants.MC_CONFIGPATH</code> property should be used to load any typ
 In the standalone container the <code>Constants.MC_HOME_DIR</code> and <code>Constants.MC_CONFIGPATH</code> properties will usually point to the same directory. However, in Tomcat they will point to two different directories.
 </p>
 
-<h3><a name="testing">Writting and Running Tests</a></h3>
+<h3><a name="testing">Writing and Running Tests</a></h3>
 <p>Tests in the Java WS Core are based on the <a href="http://www.junit.org/">JUnit</a> API. JUnit must first be installed with Ant. To install JUnit with Ant copy the <code>junit.jar</code> found in JUnit distribution to the <code>$ANT_HOME/lib</code> directory.
 </p>
 
