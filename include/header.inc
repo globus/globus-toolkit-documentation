@@ -32,13 +32,23 @@
     <li id="nav-5"><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></li>
   </ul>
 
-  <div id="searchbar">
-    <form method="post" action="http://tiger.mcs.anl.gov/htdig/cgi-bin/htsearch.cgi">
-    Site Search:&nbsp;<input type="text" name="words" size="20" maxlength="2033" value="" />
-    <input type="hidden" name="config" value="globus" />
-    <input type="hidden" name="exclude" value="mail_archive" />
-    </form> 
-  </div>
+  <table class="navbartable" width="100%">
+    <tr>
+      <th>
+	<?php 
+		include_once( $SITE_PATHS["LOCAL_INC"] . "breadcrumb2.php" ); 
+		globus_current_location(); ?>
+      </th>
+      <td>
+        <form method="post" action="http://tiger.mcs.anl.gov/htdig/cgi-bin/htsearch.cgi">
+        Site Search:&nbsp;<input type="text" name="words" size="20" maxlength="2033" value="" />
+        <input type="hidden" name="config" value="globus" />
+        <input type="hidden" name="exclude" value="mail_archive" />
+        </form>
+      </td>
+    </tr>
+  </table>
+
 </div>
 
 <div id="outer_wrapper">
