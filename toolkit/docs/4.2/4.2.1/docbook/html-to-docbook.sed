@@ -1,3 +1,9 @@
+s/^<?php include(.*//
+s/^<?php//g
+s/\$title=".*";//
+s/^include_once(.*//
+s/^?>//
+s/<h1><?php echo $title; ?><\/h1>//
 s/<p>/<para>/g
 s/<\/p>/<\/para>/g
 s/<p \/>/<para>/g
@@ -39,12 +45,19 @@ s/<\/i>/<\/emphasis>/g
 s/<em>/<emphasis>/g
 s/<\/em>/<\/emphasis>/g
 s/strong>/emphasis>/g
+s/<h.><a name="\(.*\)"><\/a>/<\/section>\n<section id="\1"><title>/
 s/<a /<ulink /g
 s/href=/url=/g
 s/<\/a>/<\/ulink>/g
 s/pre>/screen>/g
-s/<h2>/<\/section>\n<section><title>/g
-s/<\/h2>/<\/title>/g
-s/<h3>/<\/section>\n<section><title>/g
-s/<\/h3>/<\/title>/g
+s/<h.>/<\/section>\n<section><title>/g
+s/<\/h.>/<\/title>/g
 s/<br>//g
+s/<br \/>//g
+s/<dl>/<table><title>TITLE<\/title>\n<tgroup cols="2"><tbody>/g
+s/<dl class="command-option">/<table><title>TITLE<\/title>\n<tgroup cols="2"><tbody>/g
+s/<\/dl>/<\/tbody><\/tgroup>\n<\/table>/g
+s/<dt>/<row><entry>/g
+s/<\/dt>/<\/entry>/g
+s/<dd>/<entry>/g
+s/<\/dd>/<\/entry>\n<\/row>/g
