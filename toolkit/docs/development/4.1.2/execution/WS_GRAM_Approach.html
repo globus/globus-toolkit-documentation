@@ -64,6 +64,17 @@ DEPLOY/CONFIG HERE) If no such server or shared fileystems are
 registered, staging is disallowed to that WS_GRAM compute
 element.</p>
 
+<p>
+GridFTP is also used to monitor the contents of files written by the
+job during job execution. The standard GridFTP protocol is used by a
+slightly unusual client to efficiently and reliably check the status
+of files and incrementally fetch new content that is written to their
+ends. This method supports "streaming" of file content from any file
+accessible by GridFTP, rather than only the standard output and error
+files named in the job request--the limitation of previous GRAM
+solutions.
+</p>
+
 <p>The integration with GridFTP replaces the legacy GASS (Globus
 Access to Secondary Storage) data transfer protocol. This changeover
 is advantageous both for greater performance and reliability of data
@@ -187,6 +198,13 @@ CORRECT? REF?)</p></dd>
 <dd><p>WS_GRAM generates domain-specific logging information about job
 requests and exceptional conditions</p></dd>
 
+<dt>Local scheduler logging</dt>
+
+<dd><p>For systems using a local batch scheduler, all of the
+accounting and logging facilities of that scheduler remain available
+for the administrator to track jobs whether submitted through WS_GRAM
+or directly to the scheduler by local users.</p></dd>
+
 <dt>Local system logging</dt>
 
 <dd><p>The use of <tt>sudo</tt> for all operations against target user
@@ -261,16 +279,37 @@ administrator efforts to manage user policies.</p></dd>
 
 <h2>Performance and Scalability</h2>
 
-<h3>Overview</h3>
+<h3>Protocol Variations</h3>
+
+<p>
+There are several optional parts to the WS_GRAM job workflow and
+protocol. To understand the performance and scalability
+characteristics of WS_GRAM, we must consider variations where
+different parts of the protocol are used or omitted.
+</p>
 
 <p>
 From a protocol perspective, the longest latency WS_GRAM submission
 scenario involves a client delegating credentials for a job run that
-will involve staging before and after the job.  To understand this
-figure depicting the protocol sequence, assume a user-supplied job
-that can independently measure its start and end times as well as
+will involve staging before and after the job and explicitly
+terminating the job resource following job completion. (Note, the
+credential refresh feature of WS_GRAM can be repeated any number of
+times, so by longest sequence we mean the longest fixed sequence with
+at most one credential delegation.)
+</p>
+
+<p>
+To understand this figure depicting the protocol sequence, the arrows
+show communication, signalling, or causal links between tiers in the
+architecture and the vertical span indicates elapsed time (with the
+start time at the top of the diagram). Also, we assume a user-supplied
+job that can independently measure its start and end times as well as
 checking in with the client so that the client may measure these times
-(modulo messaging delays).
+(modulo messaging delays). Due to unspecified implementation delays,
+client and job-observed times are not necessarily ordered with respect
+to the WS_GRAM observed times and the WS_GRAM generated state
+notification messages. The diagrams show one possible ordering but our
+measurement methods must tolerate other orderings as well.
 </p>
 
 <img src="WS_GRAM_sequence_full.png">
@@ -281,14 +320,14 @@ sequence, i.e. where optional WS_GRAM features such as staging or
 delegation are omitted.
 </p>
 
-<h3>Without staging</h3>
-
-<h4>No delegation</h4>
+<h4>Minimal Protocol Sequence</h4>
 
 <p>
 The simplest WS_GRAM scenario involves a job that requires neither
-delegated credentials nor staging.  In this case, we can measure the
-latency and throughput for job submission and notification alone.
+delegated credentials nor staging and that makes use of the automatic
+termination of resources to avoid an explicit termination request.  In
+this case, we can measure the latency and throughput for job
+submission and notification alone.
 </p>
 
 <img src="WS_GRAM_sequence_minimal.png">
@@ -299,32 +338,53 @@ the full scenario must be due to the additional overhead of the
 delegation and staging services on the front-end node?
 </p>
 
-<h4>Using existing delegation</h4>
+<h4>Non-staging Delegation Sequence</h4>
 
 <p>
-A more complex scenario provides a job credential from a previous
-delegation.  This may incur additional setup costs on the resource but
-requires no additional protocol steps involving the client.
+A slightly longer form of job than the minimal sequence is to include
+credential delegation for use by the job itself, without any staging
+directives. This sequence is comparable in functionality to previous
+GRAM releases where delegation was mandatory but staging could be
+omitted as per the client's request.
 </p>
 
-<h4>Using new delegation</h4>
+<img src="WS_GRAM_sequence_delegonly.png">
+
+<h4>Staging Sequence</h4>
 
 <p>
-The most complex non-staging scenario requires the client to perform a
-delegation operation but does not require any staging.
+This full staging sequence uses almost all of the protocol elements,
+omitting only the explicit termination step in favor of automatic
+termination.
 </p>
 
-<h3>With trivial staging</h3>
+<img src="WS_GRAM_sequence_staging.png">
 
-<p>Staging is not possible without delegated credentials, but we can
-compare two approaches to obtaining credentials.</p>
+<h3>Pipelined Measurements</h3>
 
-<h4>Using existing delegation</h4>
+<p>
+We report average performance for #TRIALS submissions of each of the
+three variant sequences described above.  For these measurements, we
+repeat the trials with differing numbers of concurrent (pipelined)
+submissions from the same client. This leads to a relatively
+steady-state measurement condition with a parameterized amount of
+concurrent load.
+</p>
 
-<h4>Using new delegation</h4>
+<h4>Latency</h4>
 
+<p>
+The average latency of each sequence interval is reported for varying
+levels of concurrency.
+</p>
 
-<h3>Methodology</h3>
+<h4>Throughput</h4>
+
+<p>
+The submission rate is reported for varying levels of concurrency.
+</p>
+
+<h3>Concurrency Limits</h3>
 
 </body>
 </html>
