@@ -11,8 +11,8 @@
 
 </head>
 <body class="<?php echo $section; ?>">
-<div id="header"> <div align="right"> 
-<?php echo '<img src="'.$SITE_PATHS["WEB_IMG"].'globusalliance.jpg" alt="The Globus Alliance" width="201" height="76" />'; ?>
+<div id="header"> <div align="left"> 
+<?php echo '<img src="'.$SITE_PATHS["WEB_IMG"].'globusalliance-nourl.gif" alt="The Globus Alliance" width="170" height="76" />'; ?>
 </div>
 <div id="menu">
   <ul>
