@@ -42,7 +42,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
                 <li>Mass Media</li>
                 <li><a href="publications/books/">Books</a></li>
                 <li>Presentations</li>
-                <li>Globus Toolkit Documentation</li>
+                <li><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/"; ?>">Globus 
+                    Toolkit Documentation</a></li>
               </ul>
             </td>
             <td width="33%">
