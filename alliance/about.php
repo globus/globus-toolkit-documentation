@@ -5,9 +5,11 @@ $section = "section-2";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 ?>
+<!--
 <div id="left">
 <?php include($SITE_PATHS["SERV_INC"].'alliance.inc'); ?>
 </div>
+-->
 
 <div id="main">
 <!-- content STARTS here -->
