@@ -67,7 +67,7 @@ service.</p>
 <h3><a name="dbInstall"></a>Database installation and configuration </h3>
 CAS uses a backend database to store all user data. Any JDBC compliant database
 may be used. This section describes briefly the <a href="#installingdb">installation
-of such a database</a>and the <a href="#initializingCASdb">creation of the database</a> using schema required for the CAS backend.
+of such a database</a>and the <a href="#creatingCASdb">creation of the database</a> using schema required for the CAS backend.
 <h4> <a name="installingdb"></a>Installing the database </h4>
 Any JDBC compliant database may be used. PostgreSQL has been used for development
 and testing. The drivers for the same are included in the distribution. If a
@@ -77,7 +77,7 @@ different database is used, the corresponding driver should be added to GLOBUS_L
 href="http://www-unix.globus.org/toolkit/3.0/ogsa/docs/admin/installation.html">here</a>.
   For more detailed instructions, please refer to specific database documentation.
   
-<h4> <a name="initializingCASdb"></a>Initializing the CAS database </h4>
+<h4> <a name="creatingCASdb"></a>Creating CAS database </h4>
 <p> The schema of the database that needs to be created for CAS can be found
   at <code> $GLOBUS_LOCATION/globus_cas_service/casDbSchema/cas_pgsql_database_schema.sql</code></p>
 <p> To create a database, for example <i>casDatabase</i>, on a PostgreSQL, install
@@ -89,6 +89,62 @@ casadmin$ psql -U casadmin -d casDatabase -f  \
   these are just output for information.</p>
 <p>Information about the database needs to be configured as described <a href="./../WS_AA_CAS_Public_Interfaces.html#config">here</a> for
   the CAS service to be able to use it.</p>
+
+<h4> <a name="bootstrapDb"></a>Bootstrap the CAS database </h4>
+
+<p> The CAS database needs to be initialized with data implicit to CAS and information about a super user to bootstrap CAS operations. The command line script <i>cas-server-bootstrap</i> can be used to do the same.</p>
+
+<pre>
+     cas-server-bootstrap [<options>] -d <dbPropFile> [ -implicit | -b <bootstrapFile> ]
+</pre>
+
+<table>
+<tr>
+  <td width=127 valign=top><p><b>-help</b> </p></td>
+  <td width=463 valign=top>Prints help message</td>
+</tr>
+<tr>
+  <td width=127 valign=top><p><b>-debug</b> </p></td>
+  <td width=463 valign=top>Runs script with debug trace</td>
+</tr>
+<tr>
+  <td width=127 valign=top><p><b>-d</b>  <i>dbPropertiesFile</i></p></td>
+  <td width=463 valign=top>File name with database properties as follows:
+  <pre>    dbDriver=<i>database driver name</i><br>    dbConnectionURL=<i>database connection URL</i><br>    dbUserName=<i>Username to access database</i><br>    dbPassword=<i>Password for the above username</i>
+  </pre>
+</td>
+</tr>
+<tr>
+  <td width=127 valign=top><p><b>-b</b>  <i>bootstrapFile</i></p></td>
+  <td width=463 valign=top> This option populates database with super
+user data and points to file with data to bootstrap database
+with. Template file for the same can be found at
+<i>$GLOBUS_LOCATION/share/globus_cas_service/bootstrapTemplate</i> and
+a sample file can be found at
+<i>$GLOBUS_LOCATION/share/globus_cas_service/bootstrapSample</i> </td>
+</tr>
+<tr>
+  <td width=127 valign=top><p><b> -implicit</b> </p></td>
+  <td width=463 valign=top> Populates database with CAS server
+  implicit data and service/action and namespace relevant to FTP</td>
+</tr>
+</table>
+
+<b>Sample bootstrap command:</b> 
+
+<p>To bootstrap the CAS datbase with both implicit and user data the following command can be used. Prior to running that, the following files need to be created with appropriate values filled in.<br>
+
+<ul>
+<li> $GLOBUS_LOCATION/share/globus_cas_service/casDbProperties
+<pre>     dbDriver=org.postgresql.Driver<br>     dbConnectionURL=jdbc:postgresql://127.0.0.1/casDatabase<br>     dbUsername=tester<br>     dbPassword=foobar</pre>
+</li>
+<li> $GLOBUS_LOCATION/share/globus_cas_service/bootstrapProperties
+<pre>     ta-name=defaultTrustAnchor<br>     ta-authMethod=X509<br>     ta-authData=/C=US/O=Globus/CN=Default CA<br>     user-name=superUser<br>     user-subject=/O=Grid/O=Globus/OU=something/CN=someone<br>     userGroupname=superUserGroup</pre></li>
+<li> Command to run
+<pre>$GLOBUS_LOCATION/bin/cas-server-bootstrap -d $GLOBUS_LOCATION/share/globus_cas_service/casDbProperties -implicit -b $GLOBUS_LOCATION/share/globus_cas_service/bootstrapProperties</pre>
+</ul>
+</p>
+
 <h2><a name="testing"></a>Testing</h2>
 <p> CAS has two sets of tests, one for the backend database access module and
   another set to test the service itself. To install both tests, install the
