@@ -5,21 +5,6 @@ $section = "section-1";
 include_once( "./include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 ?>
-        <!--    COMMENTED OUT 
-        <div id="left">
-<h2>Latest News:</h2>
-          <p> (08.04.2004) Researchers at Lawrence Berkeley National Laboratory have created a
-              <a href="#">data distribution system</a> for LIGO using PyGlobus.</p>
-          <p> (07.14.2004) <a href="#">GlobusWORLD 2005</a> will be
-              held in Boston, Massachusetts USA, on February 7 - 11, 2005.</p>
-          <p> (06.10.2004) The IETF has published their <a href="#">official RFC</a> for the X.509 Public Key 
-              Infrastructure (PKI) proxy certificate profile.</p>
-          <p> (06.10.2004) See our <a href="#">WSRF section</a> for recent documents about the WS Resource Framework specification.</p>
-          <p> (06.10.2004) The <a href="#">Globus Toolkit 3.2</a> is the most recent stable software release.
-              The <a href="#">Globus Toolkit 4.0</a> is coming soon!</p>
-          <p> <a href="#">more... </a></p>
-        </div>
-        -->
 
         <div id="coverimage">
              <p><img src="img/isabel-1.jpg" alt="Hurricane Isabel, Sept. 2003" /></p>
@@ -39,12 +24,23 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <hr>
 
           <!--<h2>Recent News</h2> -->
-          <p>
-          <span class="newsdate">03.21.2005</span> <b>This is the news!</b> Learn more...<br>
-          <span class="newsdate">02.21.2005</span> <b>Still more news, but this a little older.</b> Learn more...<br>
-          <span class="newsdate">01.02.2005</span> <b>Here's something from the New Year.</b> Learn more...<br>
-          <span class="newsdate">12.11.2004</span> <b>We still have stuff from last year on here.</b> Learn more...<br>
-          </p>
+          <table class="news">
+            <tr>
+              <td><span class="newsdate">02.11.2005</span></td>
+              <td><b>We had a great time at GlobusWORLD 2005.</b> 
+                <a href="http://www.globusworld.org/">Learn more...</a></td>
+            </tr>
+            <tr>
+              <td><span class="newsdate">01.25.2005</span></td>
+              <td><b>Globus Alliance welcomes formation of Consortium.</b> 
+                <a href="alliance/news/consortium.php">Learn more...</a></td>
+            </tr>
+            <tr>
+              <td><span class="newsdate">12.01.2005</span></td>
+              <td><b>We welcome Univa Corporation to the Globus community.</b> 
+                <a href="alliance/news/univa.php">Learn more...</a></td>
+            </tr>
+          </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
 
           <hr>
