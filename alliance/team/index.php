@@ -13,7 +13,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <div id="main">
 
-<h1>The Globus Team</h1>
+<h1 class="first">The Globus Team</h1>
 
 <p>The following people are currently members of the core Globus Alliance team.  
 (See also our <a href="alumni.php">Alliance alumni</a>.)</p>
