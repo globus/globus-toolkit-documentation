@@ -1,8 +1,6 @@
 <?
 
-// 2004-10-13, robinett: created, copied information from www.globus.org/gridware/ecology.html
-
-$title = "An \"Ecosystem\" of Grid Components";
+$title = "Globus: An \"Ecosystem\" of Grid Components";
 $section = "section-4";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
@@ -17,7 +15,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <div id="main">
 
-	<h1 class="first">An "Ecosystem" of Grid Components</h1>
+<h1 class="first">An "Ecosystem" of Grid Components</h1>
 
 <p><strong>Sections</strong></p>
 
@@ -31,22 +29,29 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     
 <p><strong><a name="vision" class="title">Our Vision of the Grid</a></strong><p>
 
-<p>
-In the early 90s, a number of computer scientists, including several of the current GRIDS Center leaders, found
-that they enjoyed helping scientists apply distributed computing to ambitious projects that pushed the limits of what 
-could be done with conventional computing technology. Their motivations were a mixture of personal, professional,
-and financial. One important professional motivation was the recognition that the process of using technology
-to support applications in other fields almost always uncovers new and interesting requirements and challenges 
-for the technology. The prospect of supporting scientific teams was sure to uncover a wide variety of issues 
-that would never arise in the computer science "laboratory".</p>
+<p>In the early 90s, a number of computer scientists, 
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
+including several of the Globus Alliance leaders, 
+<?php } ?> 
+<?php if ($SITE_CONTENT["GRIDS"]) { ?>
+including several of the current GRIDS Center leaders, 
+<?php } ?> 
+found that they enjoyed helping scientists apply 
+distributed computing to ambitious projects that pushed the limits of what 
+could be done with conventional computing technology. Their motivations were a 
+mixture of personal, professional, and financial. One important professional 
+motivation was the recognition that the process of using technology to support 
+applications in other fields almost always uncovers new and interesting 
+requirements and challenges for the technology. The prospect of supporting 
+scientific teams was sure to uncover a wide variety of issues that would never 
+arise in the computer science "laboratory".</p>
 
-<p>
-Three general classes of applications seemed most likely to benefit from the application of distributed computing technologies.
-</p>
+<p>Three general classes of applications seemed most likely to benefit from the 
+application of distributed computing technologies.</p>
 
 <ul>
 <li><em>Computation intensive</em> applications, including interactive simulation (climate modeling), very large-scale simulation and analysis (galaxy formation, gravity wave detection, battlefield simulation), and engineering (parameter studies, linked component models)</li>
-<li><em>Data intensive</em> applications, including experimental data analysis (high-enery physics) and image and sensor analysis (astronomy, climate study, ecology)</li>
+<li><em>Data intensive</em> applications, including experimental data analysis (high-energy physics) and image and sensor analysis (astronomy, climate study, ecology)</li>
 <li><em>Distributed collaboration</em> applications, including online instrumentation (microscopes, x-ray devices, etc.), remote visualization (climate studies, biology), and engineering (large-scale structural testing, chemical engineering)</li>
 </ul>
 
@@ -235,11 +240,17 @@ reasonably well understood and the Grid Ecosystem can be used to develop a wide 
 useful applications.
 </p>
 
-<p>
-The remaining sections of this web explore many of the components of the current Grid Ecosystem. The 
-components that have been selected are those that GRIDS Center team members have used or seen used
-effectively in successful Grid application or system deployment projects. The components are classified
-based on the functional areas they address, as follows.</p>
+<p>The remaining sections of this website explore many of the components of 
+the current Grid Ecosystem. The components that have been selected are those that 
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
+Globus Alliance members 
+<?php } ?> 
+<?php if ($SITE_CONTENT["GRIDS"]) { ?>
+GRIDS Center team members 
+<?php } ?> 
+have used or seen used effectively in successful Grid application or system 
+deployment projects. The components are classified based on the functional areas 
+they address, as follows.</p>
 
     <blockquote><b><a href="security/">Security</a></b> describes a number of useful software tools for meeting the
     security requirements in Grid systems.</blockquote>
@@ -264,8 +275,4 @@ and
 
 </div>
 
-<?
-
-include($SITE_PATHS["SERV_INC"].'footer.inc');
-
-?>
+<?  include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
