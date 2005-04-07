@@ -14,25 +14,51 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 	<h1 class="first">Software Components for Grid Systems And Applications</h1>
 
-    <p>Software is a vital part of Grid projects.  The open source community has produced a wide
-    variety of Grid software components. Understanding the capabilities of each component, the strengths
-    and weaknesses of each, and the types of problems that are currently covered (or not covered)
-    by these components can be a bewildering challenge for new Grid projects.  Moreover, each new Grid 
-    project has a unique set of requirements that must be met by a unique combination of software 
-    components.</p>
+    <p>Software is a vital part of Grid projects.  The open source community has 
+       produced a wide variety of Grid software components. Understanding the 
+       capabilities of each component, the strengths and weaknesses of each, and 
+       the types of problems that are currently covered (or not covered) by these 
+       components can be a bewildering challenge for new Grid projects.  Moreover, 
+       each new Grid project has a unique set of requirements that must be met by 
+       a unique combination of software components.</p>
 
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
+    <p>Globus Alliance members have gained experience with using software 
+       components in a number of successful Grid projects.  (The Globus Alliance
+       section of this website contains a 
+       <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."projects.php"; ?>">list of 
+       e-Science/e-Business projects</a> in which our members participate.) 
+       This section of our website provides a 
+       description of the role that software plays in Grid projects and 
+       descriptions of many of the software tools that we
+       and our partners have used successfully in ambitious Grid applications.</p>
+<?php } ?> 
+
+<?php if ($SITE_CONTENT["GRIDS"]) { ?>
     <p>GRIDS Center team members have gained experience with using software components in a number 
     of successful Grid projects.  This section of our website provides a description of the role 
     that software plays in Grid projects and descriptions of many of the software tools that GRIDS 
     Center members and our partners have used successfully in ambitious Grid applications.
     You may choose from the following areas.</p>
+<?php } ?> 
 
-    <blockquote><b><a href="ecology.php">An Ecosystem of Grid Components</a></b> describes the GRIDS Center's general 
-    approach to using software components in Grid projects and applications.</blockquote>
     
-    <blockquote><b><a href="role-of-gt.php">Role of the Globus Toolkit</a></b> explains the special role that the 
-    Globus Toolkit<sup>&reg;</sup> plays in Grid projects and why the Globus Alliance uses it in this 
-    way.</b></blockquote>
+
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
+    <blockquote><b><a href="ecology.php">An Ecosystem of Grid Components</a></b> 
+    describes the Globus Alliance's general approach to using software components in 
+    Grid projects and applications.</blockquote>
+    
+    <blockquote><b><a href="role-of-gt.php">Role of the Globus Toolkit</a></b> 
+    explains the special role that the Globus<sup>&reg;</sup> Toolkit plays in 
+    Grid projects and why we use it this way.</b></blockquote>
+<?php } ?> 
+
+<?php if ($SITE_CONTENT["GRIDS"]) { ?>
+    <blockquote><b><a href="ecology.php">An Ecosystem of Grid Components</a></b> 
+    describes the GRIDS Center's general approach to using software components in 
+    Grid projects and applications.</blockquote>
+<?php } ?> 
 
     <blockquote><b><a href="security/">Security</a></b> describes a number of useful software 
     tools for meeting the security requirements in Grid systems.</blockquote>
