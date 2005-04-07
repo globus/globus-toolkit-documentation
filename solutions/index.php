@@ -18,12 +18,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <p>Although every Grid application and system is unique, there are some things that
        they typically have in common. To meet these common needs, the Globus Alliance and
        the Grid community have identified a number of "integrated solutions" that combine
-       components from the <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">Grid Ecosystem</a> with specialized code. These solutions can be
-       reused to ease the work of developing new applications and systems.</p>
-
-    <blockquote>
-    <b><a href="overview.html">Overview</a></b> describes the Globus Alliance's general approach to identifying and delivering solutions for common Grid requirements
-    </blockquote>
+       <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">Grid Software</a> components with 
+       specialized code. These solutions can be reused to ease the work of developing 
+       new applications and systems.</p>
 
     <blockquote>
     <strong><a href="purse/">PURSE</a></strong> 
