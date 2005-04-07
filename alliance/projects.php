@@ -30,25 +30,25 @@ collaborators.</p>
     <th width="16%">Computer Science</th>
   </tr>
   <tr>
-    <td>Sloane Digital Sky Survey<br>
-        National Virtual Observatory</td>
-    <td>CMCS</td>
-    <td>NEES</td>
-    <td>LEAD<br>
-        Earth System Grid</td>
-    <td>Access Grid</td>
-    <td>Condor<br>
+    <td><a href="http://www.sdss.org/">Sloan Digital Sky Survey</a><br>
+        <a href="http://www.us-vo.org/">National Virtual Observatory</a></td>
+    <td><a href="http://cmcs.ca.sandia.gov/">CMCS</a></td>
+    <td><a href="http://www.nees.org/">NEES</a></td>
+    <td><a href="http://lead.ou.edu/">LEAD</a><br>
+        <a href="http://www.earthsystemgrid.org/">Earth System Grid</a></td>
+    <td><a href="http://www.accessgrid.org/">Access Grid</a></td>
+    <td><a href="http://www.cs.wisc.edu/condor/">Condor</a><br>
         DOE e-Services<br>
-        GridLab<br>
-        GriPhyN<br>
-        NMI GridShib<br>
-        NMI Performance Monitoring<br>
-        OGCE<br>
-        OGSA-DAI<br>
-        SciDAC CoG<br>
-        SciDAC Data Grid<br>
-        SciDAC Security<br>
-        vGRADS</td>
+        <a href="http://www.gridlab.org/">GridLab</a><br>
+        <a href="http://www.griphyn.org/">GriPhyN</a><br>
+        <a href="http://grid.ncsa.uiuc.edu/GridShib/">NMI GridShib</a><br>
+        <a href="http://www-unix.mcs.anl.gov/~schopf/PerfInside/">NMI Performance Monitoring</a><br>
+        <a href="http://www.ogce.org/">OGCE</a><br>
+        <a href="http://www.ogsadai.org.uk/">OGSA-DAI</a><br>
+        <a href="http://www.doecollaboratory.org/research2/cogkits/homepage.html">SciDAC CoG</a><br>
+        <a href="http://www-fp.mcs.anl.gov/dsl/scidac/datagrid/">SciDAC Data Grid</a><br>
+        <a href="http://www-fp.mcs.anl.gov/dsl/scidac/security/">SciDAC Security</a><br>
+        <a href="http://vgrads.rice.edu/">vGRADS</a></td>
   </tr>
   <tr>
     <th>Ecology</th>
@@ -59,24 +59,24 @@ collaborators.</p>
     <th>Physics</th>
   </tr>
   <tr>
-    <td>LTER<br>
-        SEEK</td>
-    <td>GEON<br>
-        SCEC</td>
-    <td>ASCI (HPSS)<br>
-        EGEE<br>
-        Grid3<br>
-        GRIDS Center<br>
-        iVDGL<br>
-        NorduGrid<br>
-        Open Science Grid<br>
-        TeraGrid<br>
-        UK e-Science</td>
-    <td>BIRN</td>
-    <td>LOOKING</td>
-    <td>LIGO<br>
-        SciDAC Fusion<br>
-        Particle Physics Data Grid</td>
+    <td><a href="http://www.lternet.edu/">LTER</a><br>
+        <a href="http://seek.ecoinformatics.org/">SEEK</a></td>
+    <td><a href="http://www.geongrid.org/">GEON</a><br>
+        <a href="http://www.scec.org/">SCEC</a></td>
+    <td><a href="http://www.llnl.gov/asci/pse/dts/dts.html">ASCI (HPSS)</a><br>
+        <a href="http://public.eu-egee.org/">EGEE</a><br>
+        <a href="http://www.ivdgl.org/grid2003/">Grid3</a><br>
+        <a href="http://www.grids-center.org/">GRIDS Center</a><br>
+        <a href="http://www.ivdgl.org/">iVDGL</a><br>
+        <a href="http://www.nordugrid.org/">NorduGrid</a><br>
+        <a href="http://www.opensciencegrid.org/">Open Science Grid</a><br>
+        <a href="http://www.teragrid.org/">TeraGrid</a><br>
+        <a href="http://www.rcuk.ac.uk/escience/">UK e-Science</a></td>
+    <td><a href="http://www.nbirn.net/">BIRN</a></td>
+    <td><a href="http://lookingtosea.ucsd.edu/">LOOKING</a></td>
+    <td><a href="http://www.fusiongrid.org/">FusionGrid</a><br>
+        <a href="http://www.ligo.org/">LIGO</a><br>
+        <a href="http://www.ppdg.net/">Particle Physics Data Grid</a></td>
   </tr>
 </table>
 
