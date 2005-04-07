@@ -29,12 +29,12 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     
 <p><strong><a name="vision" class="title">Our Vision of the Grid</a></strong><p>
 
-<p>In the early 90s, a number of computer scientists, 
+<p>In the early 90s, a number of computer scientists
 <?php if ($SITE_CONTENT["GLOBUS"]) { ?>
-including several of the Globus Alliance leaders, 
+(including several of the Globus Alliance leaders)
 <?php } ?> 
 <?php if ($SITE_CONTENT["GRIDS"]) { ?>
-including several of the current GRIDS Center leaders, 
+(including several of the current GRIDS Center leaders)
 <?php } ?> 
 found that they enjoyed helping scientists apply 
 distributed computing to ambitious projects that pushed the limits of what 
