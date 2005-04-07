@@ -1,12 +1,8 @@
 <?
-
-// 2004-10-15, robinett: created, copied information from www.globus.org/gridware/role-of-gt.html
-
-$title = "Grid Ecosystem - Role of the Globus Toolkit";
+$title = "Globus: Role of the Globus Toolkit";
 $section = "section-4";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
-
 ?>
 
 <!--
@@ -17,7 +13,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <div id="main">
 
-	<h1 class="first">The Role of the Globus Toolkit<sup>&reg;</sup> in the GRIDS Center</h1>
+<h1 class="first">The Role of the Globus Toolkit<sup>&reg;</sup> in the Grid Ecosystem</h1>
 
 <p><strong>Sections</strong></p>
 
