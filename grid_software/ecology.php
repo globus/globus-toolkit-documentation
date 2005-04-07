@@ -241,16 +241,25 @@ useful applications.
 </p>
 
 <p>The remaining sections of this website explore many of the components of 
-the current Grid Ecosystem. The components that have been selected are those that 
+the current Grid Ecosystem. 
 <?php if ($SITE_CONTENT["GLOBUS"]) { ?>
-Globus Alliance members 
+The components that have been selected are those that Globus Alliance members 
+have used or seen used effectively in successful Grid application or system 
+deployment projects.
 <?php } ?> 
 <?php if ($SITE_CONTENT["GRIDS"]) { ?>
-GRIDS Center team members 
-<?php } ?> 
+The components that have been selected are those that GRIDS Center team members 
 have used or seen used effectively in successful Grid application or system 
-deployment projects. The components are classified based on the functional areas 
+deployment projects.
+<?php } ?> 
+The components are classified based on the functional areas 
 they address, as follows.</p>
+
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
+    <blockquote><b><a href="role-of-gt.php">Role of the Globus Toolkit</a></b> 
+    explains the special role that the Globus<sup>&reg;</sup> Toolkit plays in 
+    Grid projects and why we use it this way.</b></blockquote>
+<?php } ?> 
 
     <blockquote><b><a href="security/">Security</a></b> describes a number of useful software tools for meeting the
     security requirements in Grid systems.</blockquote>
