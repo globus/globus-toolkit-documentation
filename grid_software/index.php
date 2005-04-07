@@ -1,8 +1,6 @@
 <?php
 
-// 2004-10-13, robinett: changed links to *.php
-
-$title = "The Grid Ecosystem";
+$title = "Globus: Grid Software";
 $section = "section-4";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
@@ -13,9 +11,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 -->
 
 <div id="main">
-<!-- content STARTS here -->
 
-	<h1 class="first">The Grid Ecosystem: Software Components for Grid Systems And Applications</h1>
+	<h1 class="first">Software Components for Grid Systems And Applications</h1>
 
     <p>Software is a vital part of Grid projects.  The open source community has produced a wide
     variety of Grid software components. Understanding the capabilities of each component, the strengths
@@ -55,7 +52,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <blockquote><b><a href="packaging/">Packaging and Distribution</a></b> describes tools 
     for helping to create integrated software distributions for use in Grid projects.</b></blockquote>
 
-<!-- content ENDS here -->
-
 </div>
+
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
