@@ -1,10 +1,8 @@
 <?
-
-$title = "Globus: An \"Ecosystem\" of Grid Components";
+$title = "Grid Ecosystem - An \"Ecosystem\" of Grid Components";
 $section = "section-4";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
-
 ?>
 
 <!--

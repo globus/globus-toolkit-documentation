@@ -1,5 +1,5 @@
 <?
-$title = "Globus: Role of the Globus Toolkit";
+$title = "Grid Ecosystem - Role of the Globus Toolkit";
 $section = "section-4";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
