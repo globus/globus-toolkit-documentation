@@ -29,7 +29,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <h4>People and Organizations</h4>
               <ul>
                 <li><a href="team/">The Globus Team</a></li>
-                <li>e-Science/e-Business Project Partners</li>
+                <li><a href="projects.php">e-Science/e-Business Projects</a></li>
                 <li><a href="affiliates.php">Academic Affiliates</a></li>
                 <li><a href="sponsors.php">Sponsors</a></li>
                 <li><a href="employment/">Job Opportunities</a></li>
