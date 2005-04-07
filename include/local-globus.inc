@@ -9,6 +9,11 @@ define("LOCAL_INC",1);
     $SITE_PATHS["SERV_ROOT"]              = "/mcs/www-unix.globus.org/r3/";
     $SITE_PATHS["WEB_ROOT"]               = "/r3/";
 
+    // Which types of content do we want to display? 1 means "include content," 0 means 
+    // "don't include content." Most likely, you only want one of these set to 1.
+    $SITE_CONTENT["GLOBUS"]               = 1;
+    $SITE_CONTENT["GRIDS"]                = 0;
+
     $SITE_PATHS["SERV_INC"]               = $SITE_PATHS["SERV_ROOT"]."include/";
     $SITE_PATHS["SERV_ALLIANCE"]          = $SITE_PATHS["SERV_ROOT"]."alliance/";
 
