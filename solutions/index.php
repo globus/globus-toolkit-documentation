@@ -20,18 +20,17 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
        have identified a number of "integrated solutions" that illustrate how to
        overcome specific application challenges using Grid software.</p>
 
+    <p>
 <?php if ($SITE_CONTENT["GLOBUS"]) { ?>
-    <p>The <b>Globus Alliance</b> section of this website includes a 
+       The <b>Globus Alliance</b> section of this website includes a 
        <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."projects.php"; ?>">list of 
        e-Science/e-Business projects</a> in which our members participate. 
        The <b>Grid Software</b> section describes many of the 
        <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">individual Grid software 
        components</a> that we have used.
-<?php } else { ?> 
-       <p>
 <?php } ?>
        This section of the website describes how we and our partners used 
-       Grid software to overcome specific challenges in these projects.
+       Grid software to overcome specific challenges in Grid projects.
        These solutions can be reused or used as roadmaps to ease the work of 
        developing new applications.</p>
 
