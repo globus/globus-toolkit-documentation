@@ -16,9 +16,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <h1 class="first">Solutions for Grid Systems And Applications</h1>
 
     <p>Although every Grid application is unique, there are some challenges
-       that are common to many applications. To meet these common needs, we
-       have identified a number of "integrated solutions" that illustrate how to
-       overcome specific application challenges using Grid software.</p>
+       that are common to many applications. Because these challenges come up often,
+       and because they can appear daunting at first, we have documented
+       instances where we and our partners have solved specific challenges using 
+       Grid software.</p>
 
     <p>
 <?php if ($SITE_CONTENT["GLOBUS"]) { ?>
@@ -34,61 +35,56 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
        These solutions can be reused or used as roadmaps to ease the work of 
        developing new applications.</p>
 
+    <h2>Security Challenges</h2>
+
     <ul>
       <li>
-        <strong><a href="purse/">PURSE</a></strong> 
-        combines several Grid security components and a Web portal to provide 
-        an easy way for new users to sign up to use Grid applications on the 
-        Web. Using a Web browser and email, users can establish a sign-on for 
-        their application and then use sophisticated Grid-enabled software with 
-        high-quality security.
-      </li>
-
-      <li>
-        <strong><a href="vomrs/">VOMRS</a></strong> 
-        combines security components from the Physics community to provide a Web-based registration 
-        form for people who already have Grid credentials. VOMRS also includes a group membership 
-        capability that can be used by the application to make authorization decisions.
-      </li>
-
-      <li>
-        The <strong><a href="esg-monitoring/">ESG Monitoring System</a></strong> 
-        links system monitoring tools together to provide a service that keeps track 
-        of the critical components that make up the Earth System Grid (ESG), notifies system 
-        administrators if a critical service fails, and records availability of the services over time
-        for later analysis.
-      </li>
-
-      <li>
-        The TeraGrid project's <strong><a href="tgcp/">TGCP Tool</a></strong> 
-        simplifies TeraGrid's sophisticated data services for users by giving them a simple file transfer
-        command that fills in the details about network protocols and parameters, server names, etc.
-        in order to get the fastest transfer based on their request.
-      </li>
-
-      <li>
-        The <strong><a href="ldr/">Lightweight Data Replicator</a></strong> 
-        combines data management tools to create an easy-to-use tool for system managers to create
-        replicas of large datasets on multiple servers while keeeping track of where the replicas
-        are and ensuring that each replica site has all of the necessary files.
-      </li>
-
-      <li>
-        <strong><a href="pegasus/">Pegasus</a></strong> 
-        combines data management and virtual data tools into a powerful data processing system.
-        Pegasus accepts application-level requests for data and uses a metadata catalog, a virtual
-        data catalog, a workflow engine, and Grid data and computation services to provide the
-        requested data with minimal processing.
-      </li>
-
-      <li>
-        <strong><a href="striped-gridftp/">Striped GridFTP Servers</a></strong> provide a data 
-        transfer capability that can use high-bandwidth wide area network connections (10-30Gbps) 
-        to their maximum capacity.
+        Add a simple user registration interface to your Grid application
+        so that users need only a simple ID/password combination to "sign in."
+        At the same time, make certain that the application uses "strong"
+        Grid security internally.
       </li>
     </ul>
 
-<!-- content ENDS here -->
+    <h2>Monitoring/Managability Challenges</h2>
+
+    <ul>
+      <li>
+        <a href="esg-monitoring/">Monitor critical system components, notifying 
+        system administrators when services fail and recording availability of 
+        the services over time for later analysis.</a>
+      </li>
+    </ul>
+
+    <h2>Data Challenges</h2>
+
+    <ul>
+      <li>
+        <a href="striped-gridftp/">Use the maximum capacity of a 10-30 Gb/s wide area network connection 
+        when transfering either a large file or a set of small files.</a>
+      </li>
+
+      <li>
+        <a href="tgcp/">Give your users a simple tool for transfering 
+        files between sites on a wide area network that takes advantage of your
+        sophisticated data movement facilities and networks without your users 
+        needing to know how they work.</a>
+      </li>
+
+      <li>
+        <a href="ldr/">Replicate large datasets on servers in several locations 
+        to improve access times for local users in each place, keeping track of 
+        where the replicas are and ensuring that each replica site has all 
+        of the necessary files.</a>
+      </li>
+
+      <li>
+        Provide analyzed data on demand using a combination of analysis "recipes," 
+        results or partial results from previous analyses, replicas of these 
+        results, and a limited set of computation and storage facilities.
+      </li>
+    </ul>
 
 </div>
+
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
