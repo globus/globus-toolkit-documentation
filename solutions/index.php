@@ -50,7 +50,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
     <ul>
       <li>
-        <a href="esg-monitoring/">Monitor critical system components, notifying 
+        <a href="system_monitoring/">Monitor critical system components, notifying 
         system administrators when services fail and recording availability of 
         the services over time for later analysis.</a>
       </li>
