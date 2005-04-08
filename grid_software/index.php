@@ -10,7 +10,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 </div>
 -->
 
-<div id="main">
+<div id="home">
 
 	<h1 class="first">Software Components for Grid Systems And Applications</h1>
 
@@ -44,40 +44,43 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <?php } ?> 
 
     
+    <ul>
 
 <?php if ($SITE_CONTENT["GLOBUS"]) { ?>
-    <blockquote><b><a href="ecology.php">An Ecosystem of Grid Components</a></b> 
+    <li><b><a href="ecology.php">An Ecosystem of Grid Components</a></b> 
     describes the Globus Alliance's general approach to using software components in 
-    Grid projects and applications.</blockquote>
+    Grid projects and applications.</li>
     
-    <blockquote><b><a href="role-of-gt.php">Role of the Globus Toolkit</a></b> 
+    <li><b><a href="role-of-gt.php">Role of the Globus Toolkit</a></b> 
     explains the special role that the Globus<sup>&reg;</sup> Toolkit plays in 
-    Grid projects and why we use it this way.</b></blockquote>
+    Grid projects and why we use it this way.</b></li>
 <?php } ?> 
 
 <?php if ($SITE_CONTENT["GRIDS"]) { ?>
-    <blockquote><b><a href="ecology.php">An Ecosystem of Grid Components</a></b> 
+    <li><b><a href="ecology.php">An Ecosystem of Grid Components</a></b> 
     describes the GRIDS Center's general approach to using software components in 
-    Grid projects and applications.</blockquote>
+    Grid projects and applications.</li>
 <?php } ?> 
 
-    <blockquote><b><a href="security/">Security</a></b> describes a number of useful software 
-    tools for meeting the security requirements in Grid systems.</blockquote>
+    <li><b><a href="security/">Security</a></b> describes a number of useful software 
+    tools for meeting the security requirements in Grid systems.</li>
     
-    <blockquote><b><a href="monitoring/">Monitoring and Discovery</a></b> describes software 
-    components that can provide monitoring and discovery features in Grid systems.</blockquote>
+    <li><b><a href="monitoring/">Monitoring and Discovery</a></b> describes software 
+    components that can provide monitoring and discovery features in Grid systems.</li>
     
-    <blockquote><b><a href="computation/">Computation</a></b> describes software tools that can 
-    be used to manage computational tasks in Grid applications.</blockquote>
+    <li><b><a href="computation/">Computation</a></b> describes software tools that can 
+    be used to manage computational tasks in Grid applications.</li>
     
-    <blockquote><b><a href="data/">Data</a></b> describes software tools that can be used to 
-    manage data and datasets in data-intensive applications.</blockquote>
+    <li><b><a href="data/">Data</a></b> describes software tools that can be used to 
+    manage data and datasets in data-intensive applications.</li>
     
-    <blockquote><b><a href="collaboration/">Collaboration</a></b> describes software for 
-    facilitating and encouraging collaboration in distributed projects.</blockquote>
+    <li><b><a href="collaboration/">Collaboration</a></b> describes software for 
+    facilitating and encouraging collaboration in distributed projects.</li>
     
-    <blockquote><b><a href="packaging/">Packaging and Distribution</a></b> describes tools 
-    for helping to create integrated software distributions for use in Grid projects.</b></blockquote>
+    <li><b><a href="packaging/">Packaging and Distribution</a></b> describes tools 
+    for helping to create integrated software distributions for use in Grid projects.</b></li>
+
+    </ul>
 
 </div>
 
