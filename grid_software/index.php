@@ -24,15 +24,15 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <?php if ($SITE_CONTENT["GLOBUS"]) { ?>
     <p>Globus Alliance members have experience using Grid software components in 
-       a variety of ambitious and successful projects.  The Globus Alliance 
+       a variety of ambitious and successful projects.  The <b>Globus Alliance</b> 
        section of this website contains a 
        <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."projects.php"; ?>">list of 
        e-Science/e-Business projects</a> in which our members participate, and the 
-       <a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a> 
-       section describes how we used Grid software to overcome challenges in these 
-       projects.  This section of our website provides a description of the role that 
-       software plays in Grid projects and descriptions of many of the software 
-       tools that we and our partners have used successfully.</p>
+       <b>Grid Solutions</b> section describes how we 
+       <a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">used Grid software to overcome 
+       challenges</a> in these projects.  This section of our website explains
+       the role that software plays in Grid projects and describes many of the 
+       software tools that we and our partners have used successfully.</p>
 <?php } ?> 
 
 <?php if ($SITE_CONTENT["GRIDS"]) { ?>
