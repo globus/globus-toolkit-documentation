@@ -15,12 +15,25 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
     <h1 class="first">Solutions for Grid Systems And Applications</h1>
 
-    <p>Although every Grid application and system is unique, there are some things that
-       they typically have in common. To meet these common needs, the Globus Alliance and
-       the Grid community have identified a number of "integrated solutions" that combine
-       <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">Grid Software</a> components with 
-       specialized code. These solutions can be reused to ease the work of developing 
-       new applications and systems.</p>
+    <p>Although every Grid application is unique, there are some challenges
+       that are common to many applications. To meet these common needs, we
+       have identified a number of "integrated solutions" that illustrate how to
+       overcome specific application challenges using Grid software.</p>
+
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
+    <p>The <b>Globus Alliance</b> section of this website includes a 
+       <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."projects.php"; ?>">list of 
+       e-Science/e-Business projects</a> in which our members participate. 
+       The <b>Grid Software</b> section describes many of the 
+       <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">individual Grid software 
+       components</a> that we have used.
+<?php } else { ?> 
+       <p>
+<?php } ?>
+       This section of the website describes how we and our partners used 
+       Grid software to overcome specific challenges in these projects.
+       These solutions can be reused or used as roadmaps to ease the work of 
+       developing new applications.</p>
 
     <blockquote>
     <strong><a href="purse/">PURSE</a></strong> 
