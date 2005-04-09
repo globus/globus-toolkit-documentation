@@ -7,9 +7,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 ?>
 
         <div id="coverimage">
-             <?php 
-               include( $SITE_PATHS["SERV_ALLIANCE"]."impact/isabel.inc" );
-             ?>
+             <?php include( $SITE_PATHS["SERV_ALLIANCE"]."impact/isabel.inc" ); ?>
         </div>
 
         <div id="main">
@@ -26,14 +24,14 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
             <tr>
+              <td><span class="newsdate">02.11.2005</span></td>
+              <td><b>UK Globus Week was a big success.</b> 
+                <a class="learnmore" href="http://www.nesc.ac.uk/esi/events/519/">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">02.25.2005</span></td>
               <td><b>GT 3.9.5 is available for testing.</b> 
                 <a class="learnmore" href="http://www-unix.globus.org/toolkit/staging/news.html#02252005">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">02.11.2005</span></td>
-              <td><b>Good times at GlobusWORLD 2005!</b> 
-                <a class="learnmore" href="http://www.globusworld.org/">Learn more...</a></td>
             </tr>
             <tr>
               <td><span class="newsdate">02.09.2005</span></td>
