@@ -47,6 +47,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p><a class="newsalliance" href="http://www.nesc.ac.uk/esi/events/519/">UK Globus Week</a> brought 
+training and Globus Alliance leaders to Edinburgh. (4/2005)</p>
+
 <p>The <a class="newsalliance" href="http://www-unix.globus.org/toolkit/staging/news.html#02252005">Globus 
 Toolkit 3.9.5 beta release</a> is available for testing. (2/2005)</p>
 
