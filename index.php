@@ -22,7 +22,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <table class="news">
             <tr>
               <td><span class="newsdate">04.01.2005</span></td>
-              <td><b>See us in Edinburgh (April) and San Diego (May)!</b> 
+              <td><b>See us in San Diego in May!</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
             <tr>
