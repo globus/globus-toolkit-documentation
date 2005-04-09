@@ -19,12 +19,12 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
-              <td><span class="newsdate">04.01.2005</span></td>
+              <td><span class="newsdate">04.09.2005</span></td>
               <td><b>See us in San Diego in May!</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
             <tr>
-              <td><span class="newsdate">02.11.2005</span></td>
+              <td><span class="newsdate">04.09.2005</span></td>
               <td><b>UK Globus Week was a big success.</b> 
                 <a class="learnmore" href="http://www.nesc.ac.uk/esi/events/519/">Learn more...</a></td>
             </tr>
