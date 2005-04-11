@@ -39,9 +39,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <h4>Publications</h4>
               <ul>
                 <li><a href="publications/papers.php">Research Papers</a></li>
-                <li>Articles</li>
+                <!-- <li>Articles</li> -->
                 <li><a href="publications/books/">Books</a></li>
-                <li>Presentations</li>
+                <!-- <li>Presentations</li> -->
                 <li><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/"; ?>">Globus 
                     Toolkit Documentation</a></li>
               </ul>
