@@ -62,16 +62,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
     <ul>
       <li>
-        Use the maximum capacity of a 10-30 Gb/s wide area network connection 
-        when transfering either a large file or a set of small files.
-        <a class="learnmore" href="striped-gridftp/">Learn how...</a>
-      </li>
-
-      <li>
-        Give your users a simple tool for transfering 
-        files between sites on a wide area network that takes advantage of your
-        sophisticated data movement facilities and networks without your users 
-        needing to know how they work.
+        Give your users a way to transfer files between sites on a wide area 
+        network that utilizes the maximum capacity of a 10-30 Gb/s network 
+        connection when transfering either a large file or a set of small 
+        files. This mechanism <em>must not</em> require users to learn the 
+        details about service configurations, networks, or system architecture.
         <a class="learnmore" href="tgcp/">Learn how...</a>
       </li>
 
