@@ -23,7 +23,7 @@ implementation.
 
 <table class="boxed">
 <tr>
-<td class="tablekey">GridFTP Service</td>
+<td class="tablekey">GridFTP</td>
 <td>A GridFTP service that supports the striped configuration and its 
     related tools are available in the Globus Toolkit 4.0:<br>
 <a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/gridftp/">http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/gridftp/</a></td>

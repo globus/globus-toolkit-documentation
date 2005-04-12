@@ -21,7 +21,8 @@ include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
    <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."data/rft.php"; ?>">RFT service</a>, 
    and the tgcp shell script.  The tgcp script uses the 
    <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."data/globus-url-copy.php"; ?>">globus-url-copy</a>
-   and RFT client tools.</p>
+   and RFT client tools. (See the <a href="resources.php">Resources</a> section 
+   for details on availability of each of these components.</p>
 
 <h2>Striped GridFTP Servers</h2>
 
