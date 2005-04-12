@@ -1,7 +1,6 @@
      <p><img src="<?=$SITE_PATHS["WEB_ALLIANCE"]."impact/ag-desktop2.jpg"; ?>" 
              alt="Using the Access Grid" width=266 height=186 /></p>
-     <p>The Access Grid is a powerful way to bring distributed teams together 
-        to work on scientific challenges.  For example, scientists in the 
+     <p>Scientists in the 
         <a href="http://www.fusiongrid.org/">National Fusion Collaboratory</a> 
         are learning to use the Access Grid and Globus Web services to 
         <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/clade_submitted_corrected.pdf"; ?>">participate 
