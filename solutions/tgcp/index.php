@@ -23,10 +23,6 @@ such as massive computation power, data archiving facilities, or visualization
 services. The sites are linked by dedicated 10 and 30 Gb/s network connections.</p>
 
 
-<p>
-<img border=0 src="teragrid-map.jpg" width=473 height=266 alt="Map of TeraGrid">
-</p>
-
 <p>Because of the various specializations of each site and because some applications 
 require use of more than one site, it is common for application users to have to 
 move data from one site to another. The output of a large simulation computed at 
@@ -49,6 +45,31 @@ large files or a large number of smaller files.</p>
 minimized. Above all, the "hands on" time spent by scientists or application users 
 to accomplish the data movement must be minimized.</p>
 
+<p>The challenge faced by TeraGrid was to deliver a sophisticated data 
+movement capability that could attain very high transfer speeds on the TeraGrid 
+network without requiring users to learn the ins and outs of the system to use it 
+effectively. This need was met using Grid technology. Specifically, it was 
+satisfied using a high-performance data movement architecture that includes the
+Globus Toolkit 4.0's striped GridFTP service and the Reliable File Transfer (RFT)
+service, combined with a front-end command-line tool called "tgcp" (TeraGrid 
+copy) that makes the architecture accessible to TeraGrid users.</p>
+
+<p>The resulting system provides TeraGrid with the following benefits.</p>
+
+<ul>
+<li>Simple user interface
+<li>Very high performance data transfer capability
+<li>Ability to recover from both client and server software failures, continuing any incomplete transfers
+<li>Extensible configuration that can be changed dynamically by administrators
+<li>Administrators can move users to/from specific services without users needing to know about it
+</ul>
+
+<p>
+<img border=0 src="teragrid-map.jpg" width=473 height=266 alt="Map of TeraGrid">
+</p>
+
+<h2>Requirements</h2>
+
 <p>Taking full advantage of a 10 or 30 Gb/s network link for an individual file 
 transfer (or for a large number of small file transfers) is a challenging prospect. 
 Most TeraGrid systems have at best 1 Gb/s network interfaces, so even the best 
@@ -65,24 +86,6 @@ deployed at each site, how the network behaves between each site (tuning the
 software to fit these properties optimally), and, in general, what strategy to use 
 to get the optimal transfer time. TeraGrid users expect that they will not have to 
 learn these details to get good transfer times.</p>
-
-<p>The challenge faced by TeraGrid, therefore, was to deliver a sophisticated data 
-movement capability that could attain very high transfer speeds on the TeraGrid 
-network without requiring users to learn the ins and outs of the system to use it 
-effectively. This need was met using Grid technology. Specifically, it was 
-satisfied using the Globus Toolkit 4.0's GridFTP server in a striped configuration, 
-the Reliable File Transfer (RFT) service, the GridFTP and RFT client tools, and a 
-scripted command-line tool called "tgcp" (TeraGrid copy).</p>
-
-<p>The resulting system provides TeraGrid with the following benefits.</p>
-
-<ul>
-<li>Simple user interface
-<li>Very high performance data transfer capability
-<li>Ability to recover from both client and server software failures, continuing any incomplete transfers
-<li>Extensible configuration that can be changed dynamically by administrators
-<li>Administrators can move users to/from specific services without users needing to know about it
-</ul>
 
 <h2>The tgcp Command</h2>
 
