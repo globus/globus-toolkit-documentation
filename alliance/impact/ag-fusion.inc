@@ -1,5 +1,5 @@
-     <p><img src="<?=$SITE_PATHS["WEB_ALLIANCE"]."impact/AG-bigroom.jpg";  ?>" 
-             alt="Using the Access Grid" width=266 height=172 /></p>
+     <p><img src="<?=$SITE_PATHS["WEB_ALLIANCE"]."impact/AG-desktop.jpg"; ?>" 
+             alt="Using the Access Grid" width=266 height=199 /></p>
      <p>The Access Grid is a powerful way to bring distributed teams together 
         to work on scientific challenges.  For example, scientists in the 
         <a href="http://www.fusiongrid.org/">National Fusion Collaboratory</a> 
