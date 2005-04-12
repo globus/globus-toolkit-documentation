@@ -1,4 +1,4 @@
-     <p><img src="<?=$SITE_PATHS["WEB_ALLIANCE"]."impact/AG-desktop2.jpg"; ?>" 
+     <p><img src="<?=$SITE_PATHS["WEB_ALLIANCE"]."impact/ag-desktop2.jpg"; ?>" 
              alt="Using the Access Grid" width=266 height=186 /></p>
      <p>The Access Grid is a powerful way to bring distributed teams together 
         to work on scientific challenges.  For example, scientists in the 
