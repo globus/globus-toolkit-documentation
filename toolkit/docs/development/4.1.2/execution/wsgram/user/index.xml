@@ -1,0 +1,428 @@
+<title>GT 4.0 WS GRAM: User's Guide</title>
+<titleabbrev>User's Guide</titleabbrev>
+
+
+<section id="s-wsgram-user-introduction"><title>Introduction</title>
+<para>
+GRAM services provide secure job submission to many types of job schedulers 
+for users who have the right to access a job hosting resource in a Grid environment.
+The existence of a <ulink url="#proxygen">valid proxy</ulink> is in fact required for job submission.
+All GRAM job submission options are supported transparently through the embedded request 
+document input. In fact, the job startup is done by submitting a client-side provided job 
+description to the GRAM services. This submission can be made by end-users with the 
+GRAM <ulink url="#commandline">command-line tools</ulink>.
+
+</para>
+</section>
+
+
+
+
+
+<section id="s-wsgram-user-newfunctionality"><title>New Functionality</title>
+
+<section id="s-wsgram-user-substitutionvariables"><title>Substitution variables</title>
+<para>In GT 3.9.2, RSL substitution variables had been removed from GRAM. 
+Starting with GT 3.9.5, substitution variables are available again, 
+while preserving the simplicity of the job description XML schema 
+(relatively to the GT3.2 RSL schema).
+Substitution variables can be used in any path-like string or URL 
+specified in the job description. They are special strings that are 
+replaced by the GRAM services with actual values that the client-side 
+does not <emphasis>a priori</emphasis> know. An example of substitution variable is 
+<computeroutput>${GLOBUS_USER_HOME}</computeroutput>, which represents the path to the 
+HOME directory on the file system visible by the GRAM services of the 
+user on behalf of whom the job is executed.
+</para>
+<para>Details of the RSL variables are in <ulink url="../../../execution/wsgram/schemas/mjs_job_description.html#SchemaProperties">job description doc</ulink>
+</para></section>
+
+<section id="s-wsgram-user-submissionid"><title>Submission ID</title>
+<para>A submission ID may be used in the GRAM protocol for robust
+reliability in the face of message faults or other transient errors in order 
+to ensure that at most one instance of a job is executed, i.e. to prevent
+accidental duplication of jobs under rare circumstances with client
+retry on failure. The managed-job-globusrun tool always uses this feature,
+requiring either a submission ID to be passed in as input or a new
+unique ID to be created by the tool itself. If a new ID is created, it
+should be captured by the user who wishes to exploit this reliability
+interface. The ID in use, whether created or passed as input, will be
+written to the first line of standard output unless the <emphasis>quiet mode</emphasis> 
+is in effect.</para>
+
+<para>If a user is unsure whether a job was submitted successfully, he
+should resubmit using the same ID as was used for the previous
+attempt.</para>
+
+</section>
+
+
+<section id="s-wsgram-user-jobholdandrelease"><title>Job hold and release</title>
+<para>
+It is possible to specify in a job description that the job be 
+put on hold when it reaches a chosen state (see <ulink url="../../../execution/wsgram/WS_GRAM_Approach.html">GRAM
+Approach</ulink>
+documentation for more information about the executable 
+job state machine, and see the<ulink url="../../../execution/wsgram/schemas/mj_types.html#element_holdState"> job
+description XML schema documentation</ulink>for information about how to specify a held
+state).
+This is useful for instance when a GRAM client wishes to directly 
+access output files written by the job (as opposed to waiting for 
+the stage-out step to transfer files from the job host). The client would  
+request that the file cleanup process be held until released, 
+giving the client an opportunity to fetch all remaining/buffered 
+data after the job completes but <emphasis>before</emphasis> the output files are 
+deleted. </para>
+<para>
+This is used by <computeroutput>globusrun-ws</computeroutput> in order to ensure client-side 
+streaming of remote files in batch mode.
+</para>
+</section>
+
+
+
+<section id="s-wsgram-user-multijobs"><title>MultiJobs</title>
+<para>The new job description XML schema allows for specification of a <emphasis>multijob</emphasis> 
+i.e. a job that is itself composed of several executable jobs.
+This is useful in order to bundle a group of jobs together and submit 
+them as a whole to a remote GRAM installation.</para>
+</section>
+<section id="s-wsgram-user-jobandprocessrendezvous"><title>Job and process rendezvous</title>
+<para>WS GRAM services implement a <ulink url="../../../execution/wsrendezvous/index.html">rendezvous</ulink> 
+mechanism to perform synchronization between job processes in a multiprocess job and 
+between subjobs in a multijob. The job application can in fact register binary information, for 
+instance process information or subjob information, and get notified when 
+all the other processes or subjobs have registered their own information.
+This is for instance useful for parallel jobs which need to rendezvous 
+at a "barrier" before proceeding with computations, in the case when no 
+native application API is available to help do the rendezvous.</para>
+</section>
+</section>
+
+
+
+
+
+
+
+
+<section id="s-wsgram-user-howto"><title>Common job submission tasks</title>
+
+<section id="s-wsgram-user-proxygen"><title>Generating a valid proxy</title>
+<para>In order to generate a valid proxy file, use the 
+<ulink url="../../../security/prewsaa/user/index.html#grid-proxy-init">grid-proxy-init</ulink> 
+tool available under <computeroutput>$GLOBUS_LOCATION/bin</computeroutput>:
+<screen>
+% bin/grid-proxy-init
+Your identity: /O=Grid/OU=GlobusTest/OU=simpleCA.mymachine/OU=mymachine/CN=John Doe
+Enter GRID pass phrase for this identity:
+Creating proxy ................................. Done
+Your proxy is valid until: Tue Oct 26 01:33:42 2004
+</screen>
+</para>
+</section>
+
+<section id="s-wsgram-user-specifyingsimplejob"><title>Specifying and submitting a simple job</title>
+
+<para>The specification of a job to submit is to be written by the user in a 
+  job description XML file. 
+</para>
+<para>Here is an example of a simple job description:</para>
+<screen>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;job&gt;
+    &lt;executable&gt;/bin/echo&lt;/executable&gt;
+    &lt;argument&gt;this is an example_string &lt;/argument&gt;
+    &lt;argument&gt;Globus was here&lt;/argument&gt;
+    &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout&lt;/stdout&gt;
+    &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr&lt;/stderr&gt;
+&lt;/job&gt;
+</screen>
+
+<para>Submitting this job description using the <computeroutput>globusrun-ws</computeroutput> tool will give:
+</para>
+<screen>
+% bin/globusrun-ws -submit -f test_super_simple.xml
+Submitting job...Done.
+Job ID: uuid:c51fe35a-4fa3-11d9-9cfc-000874404099
+Termination time: 12/17/2004 20:47 GMT
+Current job state: Active
+Current job state: CleanUp
+Current job state: Done
+Destroying job...Done.
+</screen>
+<para>
+
+Note the usage of the substitution variable <computeroutput>${GLOBUS_USER_HOME}</computeroutput> 
+wich resolves to the user home directory.</para>
+<para>
+Here is an example with more job description parameters:</para>
+<screen>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;job&gt;
+    &lt;executable&gt;/bin/echo&lt;/executable&gt;
+    &lt;directory&gt;/tmp&lt;/directory&gt;
+    &lt;argument&gt;12&lt;/argument&gt;
+    &lt;argument&gt;abc&lt;/argument&gt;
+    &lt;argument&gt;34&lt;/argument&gt;
+    &lt;argument&gt;this is an example_string &lt;/argument&gt;
+    &lt;argument&gt;Globus was here&lt;/argument&gt;
+    &lt;environment&gt;
+        &lt;name&gt;PI&lt;/name&gt;
+        &lt;value&gt;3.141&lt;/value&gt;
+    &lt;/environment&gt;
+    &lt;stdin&gt;/dev/null&lt;/stdin&gt;
+    &lt;stdout&gt;stdout&lt;/stdout&gt;
+    &lt;stderr&gt;stderr&lt;/stderr&gt;
+    &lt;count&gt;2&lt;/count&gt;
+&lt;/job&gt;
+</screen>
+
+<para>Note that in this example, a <computeroutput>&lt;directory&gt;</computeroutput> element specifies the current directory for the execution 
+  of the command on the execution machine to be <computeroutput>/tmp</computeroutput>, and the standard output is 
+  specified as the relative path <computeroutput>stdout</computeroutput>. The output is therefore written to <computeroutput>/tmp/stdout</computeroutput>: 
+</para>
+<screen>
+% cat /tmp/stdout
+12 abc 34 this is an example_string  Globus was here
+</screen>
+
+</section>
+<section id="s-wsgram-user-delegating"><title>Obtaining reusable delegated credentials</title>
+<para>It is possible to use delegation 
+  <ulink url="../../../security/delegation/user/index.html#commandline">command-line clients</ulink> 
+to obtain and potentially refresh delegated credentials in order to use them 
+when submitting jobs to WS GRAM. This for instance enables the submission 
+of many jobs using the same delegated credentials (or set thereof) for all 
+submissions, which can significantly decrease the number of remote calls 
+if the number of jobs is important.
+</para>
+
+
+</section>
+<section id="s-wsgram-user-findingschedulers"><title>Finding which schedulers are interfaced by the WS GRAM installation</title>
+
+<para>Unfortunately there is no option yet to print the list of local resource 
+managers supported by a given GRAM service installation. 
+Such information must currently be provided out of band to the user. The <emphasis>GRAM name</emphasis> 
+of  local resource managers for which GRAM support has been installed can be obtained 
+by looking at the GRAM configuration on the GRAM server-side machine, as explained 
+<ulink url="../../../execution/wsgram/WS_GRAM_Interface_Config_Frag.html#managerconfig">here</ulink>.
+</para><para>
+The GRAM name of the local resource manager can be used with the <emphasis>factory type</emphasis> 
+option of the job submission command-line tool to specify which factory resource to 
+use when submitting a job. 
+</para>
+
+</section>
+<section id="s-wsgram-user-specifyingstaging"><title>Specifying file staging in the job description</title>
+
+<para>In order to do file staging one must add specific elements to the job description. The 
+  file transfer directives follow the <ulink url="../../../data/rft/rft_job_description.html">RFT syntax</ulink>, 
+  which enables third-party transfers.
+  Each file transfer must therefore specify a source URL and a destination URL.  
+  URLs are specified as GridFTP URLs (for remote files) or as file URLs (for local files).
+</para>
+<para>
+For instance, in the case of staging a file <emphasis>in</emphasis>, the source URL would be a 
+GridFTP URL (for instance <computeroutput>gsiftp://job.submitting.host:2811/tmp/mySourceFile</computeroutput>) 
+resolving to a source document accessible on the file system of the job submission 
+machine (for instance <computeroutput>/tmp/mySourceFile</computeroutput>). At run-time the 
+Reliable File Transfer service used by the GRAM service on the remote machine 
+would fetch the remote file using the GridFTP protocol and write it reliably 
+to the specified local file (for instance 
+<computeroutput>file:///${GLOBUS_USER_HOME}/my_transfered_file</computeroutput>, which resolves to  
+<computeroutput>~/my_transfered_file</computeroutput>). Here is how the stage-in directive would look like:
+
+<screen>
+    &lt;fileStageIn&gt;
+        &lt;transfer&gt;
+            &lt;sourceUrl&gt;<computeroutput>gsiftp://job.submitting.host:2811/tmp/mySourceFile</computeroutput>&lt;/sourceUrl&gt;
+            &lt;destinationUrl&gt;<computeroutput>file:///${GLOBUS_USER_HOME}/my_transfered_file</computeroutput>&lt;/destinationUrl&gt;
+        &lt;/transfer&gt;
+    &lt;/fileStageIn&gt;
+</screen> 
+</para>
+<para><emphasis>Note:</emphasis> additional RFT-defined quality of service requirements can be specified 
+      for each transfer. See the RFT documentation for more information.
+</para>
+<para>
+Here is an example job description with file stage-in and stage-out:</para>
+
+<screen>
+&lt;job&gt;
+    &lt;executable&gt;my_echo&lt;/executable&gt;
+    &lt;directory&gt;${GLOBUS_USER_HOME}&lt;/directory&gt;
+    &lt;argument&gt;Hello&lt;/argument&gt;
+    &lt;argument&gt;World!&lt;/argument&gt;
+    &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout&lt;/stdout&gt;
+    &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr&lt;/stderr&gt;
+    &lt;fileStageIn&gt;
+        &lt;transfer&gt;
+            &lt;sourceUrl&gt;gsiftp://job.submitting.host:2811/bin/echo&lt;/sourceUrl&gt;
+            &lt;destinationUrl&gt;file:///${GLOBUS_USER_HOME}/my_echo&lt;/destinationUrl&gt;
+        &lt;/transfer&gt;
+    &lt;/fileStageIn&gt;
+    &lt;fileStageOut&gt;
+        &lt;transfer&gt;
+            &lt;sourceUrl&gt;file://${GLOBUS_USER_HOME}/stdout&lt;/sourceUrl&gt;
+            &lt;destinationUrl&gt;gsiftp://job.submitting.host:2811/tmp/stdout&lt;/destinationUrl&gt;
+        &lt;/transfer&gt;
+    &lt;/fileStageOut&gt;
+    &lt;fileCleanUp&gt;
+        &lt;deletion&gt;
+            &lt;file&gt;file://${GLOBUS_USER_HOME}/my_echo&lt;/file&gt;
+        &lt;/deletion&gt;
+    &lt;/fileCleanUp&gt;
+&lt;/job&gt;
+</screen>
+
+<para>Note that the job description XML does not need to include a reference to the schema 
+  that describes its syntax. As a matter of fact it is possible to omit the namespace 
+  in the GRAM job description XML elements as well. The submission of this job to the GRAM services causes the following sequence 
+  of actions:
+</para>
+<orderedlist>
+<listitem><simpara> The <computeroutput>/bin/echo</computeroutput> executable is transfered from the submission machine 
+    to the GRAM host file system. The destination location is the HOME directory of the 
+    user on behalf of whom the job is executed by the GRAM services 
+    (see <computeroutput>&lt;fileStageIn&gt;</computeroutput>).</simpara></listitem>
+<listitem><simpara> The transfered executable is used to print a test string  
+     (see <computeroutput>&lt;executable&gt;</computeroutput>, <computeroutput>&lt;directory&gt;</computeroutput> and 
+      the <computeroutput>&lt;argument&gt;</computeroutput> elements) on the standard output, which is 
+      redirected to a local file (see <computeroutput>&lt;stdout&gt;</computeroutput>).</simpara></listitem>
+<listitem><simpara> The standard output file is transfered to the submission machine 
+     (see <computeroutput>&lt;fileStageOut&gt;</computeroutput>).</simpara></listitem>
+<listitem><simpara> The file that was initially transfered during the stage-in phase is removed 
+     from the file system of the GRAM installation (see <computeroutput>&lt;fileCleanup&gt;</computeroutput>).</simpara></listitem>
+</orderedlist>
+
+</section>
+
+
+
+<section id="s-wsgram-user-specifyingmultijob"><title>Specifying and submitting a multijob</title>
+<para>The job description XML schema allows for specification of a <emphasis>multijob</emphasis>
+  i.e. a job that is itself composed of several executable jobs, which we 
+  will refer to as <emphasis>subjobs</emphasis> 
+  (<emphasis>note:</emphasis> subjobs cannot be multijobs, so the structure is not recursive).
+  This is useful for instance in order to bundle a group of jobs together and submit 
+  them as a whole to a remote GRAM installation.</para>
+<para>
+Note that no relationship can be specified between the subjobs of a multijob.
+The subjobs are submitted to job factory services 
+in their order of appearance in the multijob description.</para>
+<para>
+Within a <ulink url="../../../execution/wsgram/schemas/mjs_job_description.html#element_multiJob">multijob description</ulink>, 
+each subjob description must come along with an endpoint for the factory to submit the subjob to. This 
+enables the at-once submission of several jobs to different hosts.
+The factory to which the multijob is submitted acts as an intermediary tier 
+between the client and the eventual executable job factories. </para>
+<para>
+Here is an example of a multijob description:</para>
+
+<screen>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;multiJob xmlns:gram="http://www.globus.org/namespaces/2004/10/gram/job" 
+     xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/03/addressing"&gt;
+    &lt;factoryEndpoint&gt;
+        &lt;wsa:Address&gt;
+            https://localhost:8443/wsrf/services/ManagedJobFactoryService
+        &lt;/wsa:Address&gt;
+        &lt;wsa:ReferenceProperties&gt;
+            &lt;gram:ResourceID&gt;Multi&lt;/gram:ResourceID&gt;
+        &lt;/wsa:ReferenceProperties&gt;
+    &lt;/factoryEndpoint&gt;
+    &lt;directory&gt;${GLOBUS_LOCATION}&lt;/directory&gt;
+    &lt;count&gt;1&lt;/count&gt;
+
+    &lt;job>
+        &lt;factoryEndpoint&gt;
+            &lt;wsa:Address&gt;https://localhost:8443/wsrf/services/ManagedJobFactoryService&lt;/wsa:Address&gt;
+            &lt;wsa:ReferenceProperties&gt;
+                &lt;gram:ResourceID&gt;Fork&lt;/gram:ResourceID&gt;
+            &lt;/wsa:ReferenceProperties&gt;
+        &lt;/factoryEndpoint&gt;
+        &lt;executable&gt;/bin/date&lt;/executable&gt;
+        &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout.p1&lt;/stdout&gt;
+        &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr.p1&lt;/stderr&gt;
+        &lt;count&gt;2&lt;/count&gt;
+    &lt;/job&gt;
+
+    &lt;job&gt;
+        &lt;factoryEndpoint&gt;
+            &lt;wsa:Address&gt;https://localhost:8443/wsrf/services/ManagedJobFactoryService&lt;/wsa:Address&gt;
+            &lt;wsa:ReferenceProperties&gt;
+                &lt;gram:ResourceID>Fork&lt;/gram:ResourceID&gt;
+            &lt;/wsa:ReferenceProperties&gt;
+        &lt;/factoryEndpoint&gt;
+        &lt;executable&gt;/bin/echo&lt;/executable&gt;
+        &lt;argument&gt;Hello World!&lt;/argument&gt;        
+        &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout.p2&lt;/stdout&gt;
+        &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr.p2&lt;/stderr&gt;
+        &lt;count&gt;1&lt;/count&gt;
+    &lt;/job&gt;
+
+&lt;/multiJob&gt;
+</screen>
+<para><emphasis>Notes:</emphasis>
+</para>
+<itemizedlist>
+<listitem><simpara>The <computeroutput>&lt;ResourceID&gt;</computeroutput> element within the <computeroutput>&lt;factoryEndpoint&gt;</computeroutput> WS-Addressing endpoint structures must be qualified with the 
+appropriate GRAM namespace.</simpara></listitem>
+<listitem><simpara>Apart from the <computeroutput>factoryEndpoint</computeroutput> element, all elements at the enclosing multijob level 
+act as defaults for the subjob parameters, in this example <computeroutput>&lt;directory&gt;</computeroutput> and <computeroutput>&lt;count&gt;</computeroutput>.</simpara></listitem>
+<listitem><simpara>The default <computeroutput>&lt;count&gt;</computeroutput> value is overridden in the subjob descriptions.</simpara></listitem>
+</itemizedlist>
+<para>
+
+In order to submit a multijob description, use a job submission <ulink url="#commandline">command-line tool</ulink> 
+and specify the Managed Job Factory resource to be <computeroutput>Multi</computeroutput>.
+
+For instance, submitting the multijob description above using <computeroutput>globusrun-ws</computeroutput>, we obtain:</para>
+
+<screen>
+% bin/globusrun-ws -submit -f test_multi.xml
+Delegating user credentials...Done.
+Submitting job...Done.
+Job ID: uuid:bd9cd634-4fc0-11d9-9ee1-000874404099
+Termination time: 12/18/2004 00:15 GMT
+Current job state: Active
+Current job state: CleanUp
+Current job state: Done
+Destroying job...Done.
+Cleaning up any delegated credentials...Done.
+</screen>
+
+<para>A multijob resource is created by the factory and exposes a set of 
+  WSRF resource properties different than the resource properties of 
+  an executable job. The state machine of a multijob is also different 
+  since the multijob represents the <emphasis>overall</emphasis> execution of all the 
+  executable jobs it is composed of.
+  
+</para>
+</section>
+</section>
+
+
+
+<section id="s-wsgram-user-commandline"><title>Command-line tools</title>
+<para><xref linkend="r-wsgram-reference"/></para>
+</section>
+
+<section id="s-wsgram-user-domain"><title>Semantics and syntax of domain-specific interface data</title>
+&WS_GRAM_Interface_Domain_Frag;
+</section>
+
+<section id="s-wsgram-user-gui"><title>Graphical user interfaces</title>
+&WS_GRAM_Interface_GUI_Frag;
+</section>
+
+<section id="s-wsgram-user-usage"><title>Usage statistics collection by the Globus Alliance</title>
+&WS_GRAM_Usage_Statistics_Frag;
+</section>
+
+
+
+
+

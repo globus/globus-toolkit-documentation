@@ -1,0 +1,345 @@
+<section id="s-wsgram-Interface_Config_Frag-configfilelocation"><title>Locating configuration files</title>
+<para>
+All the GRAM service configuration files are located in subdirectories of 
+the <computeroutput>$GLOBUS_LOCATION/etc</computeroutput> directory. The names of the GRAM 
+configuration directories all start with <computeroutput>gram-service</computeroutput>.
+For instance, with a default GRAM installation, the command line:
+<screen>
+% ls etc | grep gram-service
+</screen>
+
+gives the following output:
+
+<screen>
+gram-service
+gram-service-Fork
+gram-service-Multi
+</screen>
+</para>
+</section>
+
+<section id="s-wsgram-Interface_Config_Frag-serverconfig"><title>Web service deployment configuration</title>
+<para>
+The file <computeroutput>$GLOBUS_LOCATION/etc/gram-service/server-config.wsdd</computeroutput>
+contains information necessary to deploy and instantiate the GRAM
+services in the Globus container.
+</para><para>
+Three GRAM services are deployed:</para>
+<itemizedlist>
+<listitem><simpara>ManagedExecutableJobService: service invoked when querying or
+managing an <emphasis>executable job</emphasis> </simpara></listitem>
+
+<listitem><simpara>ManagedMultiJobService: service invoked when querying or managing
+a <emphasis>multijob</emphasis> </simpara></listitem>
+
+<listitem><simpara>ManagedJobFactoryService: service invoked when submitting a job
+</simpara></listitem>
+
+</itemizedlist>
+<para>
+Each service deployment information contains the name of the Java
+service implementation class, the path to the WSDL service file, the
+name of the operation providers that the service reuses for its
+implementation of WSDL-defined operations, etc. More information about
+the service deployment configuration information can be found <ulink
+url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/common/javawscore/Java_WS_Core_Public_Interfaces.html#config">here</ulink>.
+</para>
+</section>
+
+<section id="s-wsgram-Interface_Config_Frag-jndiconfig"><title>JNDI application configuration</title>
+<para>
+The configuration of WSRF resources and application-level service
+configuration not related to service deployment is contained in <ulink
+url="http://java.sun.com/products/jndi/">JNDI</ulink> files.  The
+JNDI-based GRAM configuration is of two kinds:
+</para>
+
+<section id="s-wsgram-Interface_Config_Frag-commonfactoryconfig"><title>Common job factory configuration</title>
+<para>
+The file <computeroutput>$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml</computeroutput> contains 
+configuration information that is common to every local resource manager.
+</para><para>
+More precisely, the configuration data it contains pertains to the implementation 
+of the GRAM WSRF resources (factory resources and job resources), 
+as well as initial values of WSRF resource properties that are always 
+published by any Managed Job Factory WSRF resource. 
+</para><para>
+The data is categorized by service, because according to WSRF, 
+in spite of the service/resource separation of concern, a given service 
+will use only one XML Schema type of resource. In practice it is therefore clearer
+to categorize the configuration resource implementation by service, 
+even if theoretically speaking a given resource implementation could be 
+used by several services. For more information, refer to the <ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/common/javawscore/index.html">Java
+WS Core documentation</ulink>.
+ </para><para>
+Here is the decomposition, in JNDI objects, of the common configuration 
+data, categorized by service. Each XYZHome object contains the same 
+Globus Core-defined information for the implementation of the WSRF resource, 
+such as the Java implementation class for the resource (<computeroutput>resourceClass</computeroutput> datum), 
+the Java class for the resource key (<computeroutput>resourceKeyType</computeroutput> datum), etc. 
+</para>
+<itemizedlist>
+<listitem><para>ManagedExecutableJobService
+   <itemizedlist>
+     <listitem><simpara>ManagedExecutableJobHome: configuration of the implementation of resources for the service.</simpara></listitem>
+   </itemizedlist>
+</para></listitem>
+
+<listitem><para>ManagedMultiJobService
+   <itemizedlist>
+     <listitem><simpara>ManagedMultiJobHome: configuration of the implementation of resources for the service</simpara></listitem>
+   </itemizedlist>
+</para></listitem>
+
+<listitem><para>ManagedJobFactoryService
+   <itemizedlist>
+   <listitem><simpara>FactoryServiceConfiguration: this encapsulates configuration information 
+       used by the factory service. Currently this identifies the service to associate 
+       to a newly created job resource in order to create an endpoint reference and 
+       return it.
+   </simpara></listitem>
+   
+   <listitem><simpara>ManagedJobFactoryHome: implementation of resources for the service
+      resourceClass</simpara></listitem>
+      
+   <listitem><simpara>FactoryHomeConfiguration: this contains GRAM application-level configuration data 
+       i.e. values for resource properties common to all factory resources. For instance, 
+       the path to the Globus installation, host information such as CPU type, manufacturer, 
+       operating system name and version, etc.</simpara></listitem>
+   </itemizedlist>
+</para></listitem>
+ 
+</itemizedlist>     
+
+</section>
+
+<section id="s-wsgram-Interface_Config_Frag-managerconfig"><title>Local resource manager configuration</title>
+
+<para>When a SOAP call is made to a GRAM factory service in order to submit a job, 
+the call is actually made to a GRAM service-resource pair, where the 
+factory resource represents the local resource manager to be used to execute the job.</para>
+<para>
+There is one directory <computeroutput>gram-service-&lt;manager&gt;/</computeroutput> 
+for each local resource manager supported by the GRAM installation. 
+</para>
+<para>For instance, let's assume the command line:
+<screen>
+% ls etc | grep gram-service-
+</screen>
+
+gives the following output:
+
+<screen>
+gram-service-Fork
+gram-service-LSF
+gram-service-Multi
+</screen>
+</para>
+<para>In this example, the Multi, Fork and LSF job factory resources have been 
+installed. <computeroutput>Multi</computeroutput> is a special kind of local resource manager 
+which enables the GRAM services to support <ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/execution/wsgram/user/commandline_java_managed_globus_run.html#multijobs">multijobs</ulink>.</para>
+
+
+<para>The JNDI configuration file located under each manager directory 
+contains configuration information for the GRAM support of the given 
+local resource manager, such as the name that GRAM uses to designate 
+the given resource manager. This is referred to as the <emphasis>GRAM name</emphasis> 
+of the local resource manager.</para><para>
+For instance, <computeroutput>$GLOBUS_LOCATION/etc/gram-service-Fork/jndi-config.xml</computeroutput> 
+contains the following XML element structure:</para>
+<screen>
+    &lt;service name="ManagedJobFactoryService"&gt;
+        &lt;!-- LRM configuration:  Fork --&gt;
+        &lt;resource
+            name="ForkResourceConfiguration"
+            type="org.globus.exec.service.factory.FactoryResourceConfiguration"&gt;
+            &lt;resourceParams&gt;
+                [...]
+                &lt;parameter&gt;
+                    &lt;name&gt;
+                        <emphasis>localResourceManagerName</emphasis>
+                    &lt;/name&gt;
+                    &lt;value&gt;
+                        <emphasis>Fork</emphasis>
+                    &lt;/value&gt;
+                &lt;/parameter&gt;           
+                &lt;parameter&gt;
+                    &lt;name&gt;
+                        <emphasis>scratchDirectory</emphasis>
+                    &lt;/name&gt;
+                    &lt;value&gt;
+                        <emphasis>${GLOBUS_USER_HOME}</emphasis>
+                    &lt;/value&gt;
+                &lt;/parameter&gt;           
+            &lt;/resourceParams&gt;
+        &lt;/resource&gt;        
+    &lt;/service&gt;
+</screen>
+<para>In the example above, the <emphasis>GRAM name</emphasis> of the local resource manager is <computeroutput>Fork</computeroutput>. 
+This value can be used with the GRAM command line client in order to specify which factory resource to use when submitting a job.  Similarly, it is used to create contruct an endpoint reference to the chosen factory service-resource pair when using the GRAM client API. </para>
+<para>In the example above, the <emphasis>scratchDirectory</emphasis> is set to <computeroutput>${GLOBUS_USER_HOME}</computeroutput>.  This is the default setting, it can be configured to point to an alternate netowrk file sustem path that is common to the compute cluster and is typically less reliable (auto purging), while offering a greater amount of disk space.  (e.g. /scratch)
+</para>
+</section>
+</section>
+
+
+<section id="s-wsgram-Interface_Config_Frag-securitydesc"><title>Security descriptor</title>
+<para>
+The file <computeroutput>$GLOBUS_LOCATION/etc/gram-service/managed-job-factory-security-config.xml</computeroutput> contains the Core security configuration for the GRAM <computeroutput>ManagedJobFactory</computeroutput> service:
+<itemizedlist>
+   <listitem><para>default security information for all remote invocations, such as:
+       <itemizedlist>
+	  <listitem><simpara>the authorization method, based on a Gridmap file (in order to resolve user credentials to local user names) </simpara></listitem>
+	  <listitem><simpara>limited proxy credentials will be rejected</simpara></listitem>
+       </itemizedlist></para></listitem>
+   <listitem><simpara>security information for the <computeroutput>createManagedJob</computeroutput> operation</simpara></listitem>   
+</itemizedlist>
+
+The file <computeroutput>$GLOBUS_LOCATION/etc/gram-service/managed-job-security-config.xml</computeroutput> contains the Core security configuration for the GRAM job resources:
+<itemizedlist>
+    <listitem><simpara>The default is to only allow the identity that called the createManagedJob operation to access the resource.
+    </simpara></listitem>
+</itemizedlist>
+</para>
+
+<para>
+Note: GRAM does not override the container security credentials defined in <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml</computeroutput>.  These are the credentials used to authenticate all service requests.
+</para>
+</section>
+
+
+
+
+<section id="s-wsgram-Interface_Config_Frag-filesysmap"><title>GRAM and GridFTP file system mapping</title>
+<para>The file <computeroutput>$GLOBUS_LOCATION/etc/gram-service/globus_gram_fs_map_config.xml</computeroutput> 
+contains information to associate local resource managers with GridFTP servers.  GRAM uses the GridFTP server (via RFT) to perform all file staging directives.
+Since the GridFTP server and the Globus service container can be run on separate hosts, a mapping is needed between the common file system paths of these 2 hosts.
+This enables the GRAM services to resolve file:/// staging directives to the local GridFTP URLs.
+</para><para>
+
+below is the default Fork entry.  mapping a jobPath of / to ftpPath of / will allow any file staging directive to be attempted.</para>
+<screen>
+    &lt;map&gt;
+        &lt;scheduler&gt;Fork&lt;/scheduler&gt;
+        &lt;ftpServer&gt;
+           &lt;protocol&gt;gsiftp&lt;/protocol&gt;
+           &lt;host&gt;myhost.org&lt;/host&gt;
+           &lt;port&gt;2811&lt;/port&gt;
+        &lt;/ftpServer&gt;
+        &lt;mapping&gt;
+           &lt;jobPath&gt;/&lt;/jobPath&gt;
+           &lt;ftpPath&gt;/&lt;/ftpPath&gt;
+        &lt;/mapping&gt;
+    &lt;/map&gt;
+</screen>
+<para>
+For a scheduler, where jobs will typically run on a compute node, a default entry is not provided.  This means staging directives will fail until a mapping is entered.
+Here is an example of a compute cluster with PBS installed and has 2 common mount points between the front end host and the GridFTP server host.
+</para>
+<screen>
+    &lt;map&gt;
+        &lt;scheduler&gt;PBS&lt;/scheduler&gt;
+        &lt;ftpServer&gt;
+           &lt;protocol&gt;gsiftp&lt;/protocol&gt;
+           &lt;host&gt;myhost.org&lt;/host&gt;
+           &lt;port&gt;2811&lt;/port&gt;
+        &lt;/ftpServer&gt;
+        &lt;mapping&gt;
+           &lt;jobPath&gt;/pvfs/mount1/users&lt;/jobPath&gt;
+           &lt;ftpPath&gt;/pvfs/mount2/users&lt;/ftpPath&gt;
+        &lt;/mapping&gt;
+        &lt;mapping&gt;
+           &lt;jobPath&gt;/pvfs/jobhome&lt;/jobPath&gt;
+           &lt;ftpPath&gt;/pvfs/ftphome&lt;/ftpPath&gt;
+        &lt;/mapping&gt;
+    &lt;/map&gt;
+</screen>
+<para>
+The file system mapping schema doc is <ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/execution/wsgram/schemas/fs_mapping.html">here</ulink>.
+</para>
+</section>
+
+<section id="s-wsgram-Interface_Config_Fragscheduler_specific_config"><title>Scheduler-Specific Configuration Files</title>
+<para>In addition to the service configuration described above, there are
+scheduler-specific configuration files for the Scheduler Event Generator
+modules. These files consist of name=value pairs separated by newlines.
+These files are:
+</para>
+
+<table><title>TITLE</title>
+<tgroup cols="2"><tbody>
+  <row><entry>$GLOBUS_LOCATION/etc/globus-fork.conf</entry>
+  <entry><para>Configuration for the Fork SEG module implementation. The attributes
+      names for this file are:
+    <table><title>TITLE</title>
+<tgroup cols="2"><tbody>
+      <row><entry>log_path</entry>
+      <entry>Path to the SEG Fork log (used by the globus-fork-starter and
+      the SEG). The value of this should be the path to a world-writable file.
+      The default value for this created by the Fork setup package is 
+      $GLOBUS_LOCATION/var/globus-fork.log. This file must be readable by the
+      account that the SEG is running as.</entry>
+</row>
+    </tbody></tgroup>
+</table>
+  </para></entry>
+</row>
+
+  <row><entry>$GLOBUS_LOCATION/etc/globus-condor.conf</entry>
+  <entry><para>Configuration for the Condor SEG module implementation. The attributes
+      names for this file are:
+    <table><title>TITLE</title>
+<tgroup cols="2"><tbody>
+      <row><entry>log_path</entry>
+      <entry>Path to the SEG Condor log (used by the
+      Globus::GRAM::JobManager::condor perl module and Condor
+      SEG module. The value of this should be the path to a world-readable and
+      world-writable file.  The default value for this created by the Fork
+      setup package is $GLOBUS_LOCATION/var/globus-condor.log</entry>
+</row>
+    </tbody></tgroup>
+</table>
+  </para></entry>
+</row>
+
+  <row><entry>$GLOBUS_LOCATION/etc/globus-pbs.conf</entry>
+  <entry><para>Configuration for the PBS SEG module implementation. The attributes
+      names for this file are:
+    <table><title>TITLE</title>
+<tgroup cols="2"><tbody>
+      <row><entry>log_path</entry>
+      <entry>Path to the SEG PBS logs (used by the
+      Globus::GRAM::JobManager::pbs perl module and PBS
+      SEG module. The value of this should be the path to the directory
+      containing the server logs generated by PBS. For the SEG to operate,
+      these files must have file permissions such that the files may be read
+      by the user the SEG is running as.
+      </entry>
+</row>
+    </tbody></tgroup>
+</table>
+  </para></entry>
+</row>
+
+  <row><entry>$GLOBUS_LOCATION/etc/globus-lsf.conf</entry>
+  <entry><para>Configuration for the PBS SEG module implementation. The attributes
+      names for this file are:
+    <table><title>TITLE</title>
+<tgroup cols="2"><tbody>
+      <row><entry>log_path</entry>
+      <entry>Path to the SEG LSF log directory. This is used by the LSF
+      SEG module. The value of this should be the path to the directory
+      containing the server logs generated by LSF. For the SEG to operate,
+      these files must have file permissions such that the files may be read
+      by the user the SEG is running as.
+      </entry>
+</row>
+    </tbody></tgroup>
+</table>
+  </para></entry>
+</row>
+</tbody></tgroup>
+</table>
+</section>
+
+

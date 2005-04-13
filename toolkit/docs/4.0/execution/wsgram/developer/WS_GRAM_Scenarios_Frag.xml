@@ -1,0 +1,534 @@
+<section><title>Java</title>
+<para>The following is a general scenario for submitting a job using the Java stubs
+and APIs. Please consult the
+<ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/common/javawscore/Java_WS_Core_Public_Interfaces.html#apis">Java WS Core API</ulink>,
+<ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/security/delegation/WS_AA_Delegation_Service_Public_Interfaces.html#apis">Delegation API</ulink>,
+<ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/rft/RFT_Public_Interfaces.html#apis">Reliable File Transfer API</ulink>, and
+<ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/execution/wsgram/WS_GRAM_Public_Interfaces.html#apis">WS-GRAM API</ulink>
+documentation for details on package names for classes referenced in the code
+excerpts.
+</para>
+
+<orderedlist>
+<listitem><para><emphasis>Load the RSL</emphasis>
+<screen>
+File rslFile = new File("myrsl.xml");
+JobDescriptionType rsl = RSLHelper.readRSL(rslFile);
+</screen>
+The object <computeroutput>rsl</computeroutput> will be of sub-type MultiJobDescriptionType if
+the file contents is a multi-job RSL.</para></listitem>
+<listitem><para><emphasis>Create the factory service stub</emphasis>
+<screen>
+URL factoryUrl = ManagedJobFactoryClientHelper.getServiceURL(
+    contactString).getURL();
+String factoryType
+    = ManagedJobFactoryConstants.FACTORY_TYPE.<emphasis>&lt;factory type constant&gt;</emphasis>;
+EndpointReferenceType factoryEndpoint
+    = ManagedJobFactoryClientHelper.getFactoryEndpoint(factoryUrl, factoryType);
+ManagedJobFactoryPortType factoryPort
+    = ManagedJobFactoryClientHelper.getPort(factoryEndpoint);
+</screen></para>
+<para>The format of <computeroutput>contactString</computeroutput> is
+<emphasis>[protocol://]host[:port][/servicepath].</emphasis></para></listitem>
+<listitem><para><emphasis>Set stub security parameters</emphasis>
+<screen>
+ClientSecurityDescriptor secDesc = new ClientSecurityDescriptor();
+secDesc.setGSITransport(Constants.<emphasis>&lt;protection level constant&gt;</emphasis>);
+secDesc.setAuthz(<emphasis>&lt;<computeroutput>Authorization</computeroutput> sub-class instance&gt;</emphasis>);
+if (proxy != null) {
+    secDesc.setGSSCredential(proxy);
+}
+((Stub) port)._setProperty(Constants.CLIENT_DESCRIPTOR, secDesc);
+</screen>
+Use setGSISecureMsg() for GSI Secure Message.</para></listitem>
+<listitem><para><emphasis>Query factory resource properties</emphasis></para>
+<para><emphasis>One at a time</emphasis>
+<screen>
+GetResourcePropertyResponse response
+    = factoryport.getResourceProperty(ManagedJobConstants.<emphasis>&lt;RP constant&gt;</emphasis>);
+
+SOAPElement[] any = response.get_any();
+
+... = ObjectDeserializer.toObject(any[0], <emphasis>&lt;RP type&gt;</emphasis>.class);
+</screen>
+<emphasis>Many at a time</emphasis>
+<screen>
+GetMultipleResourceProperties_Element rpRequest
+    = new GetMultipleResourceProperties_Element();
+rpRequest.setResourceProperty(new QName[] {
+    ManagedJobFactoryConstants.<emphasis>&lt;RP constant #1&gt;</emphasis>,
+    ManagedJobFactoryConstants.<emphasis>&lt;RP constant #2&gt;</emphasis>,
+    ManagedJobFactoryConstants.<emphasis>&lt;RP constant #N&gt;</emphasis>
+});
+GetMultipleResourcePropertiesResponse response
+    = factoryPort.getMultipleResourceProperties(rpRequest);
+
+SOAPElement[] any = response.get_any();
+
+... = ObjectDeserializer.toObject(any[0], <emphasis>&lt;RP #1 type&gt;</emphasis>.class);
+... = ObjectDeserializer.toObject(any[0], <emphasis>&lt;RP #2 type&gt;</emphasis>.class);
+... = ObjectDeserializer.toObject(any[0], <emphasis>&lt;RP #N type&gt;</emphasis>.class);
+</screen>
+</para>
+</listitem>
+
+<listitem><para><emphasis>Delegate credentials (if needed)</emphasis>
+<screen>
+X509Certificate certToSign = DelegationUtil.getCertificateChainRP(
+    delegFactoryEndpoint,   //EndpointReferenceType
+    secDesc,                //ClientSecurityDescriptor
+)[0];   //first element in the returned array
+EndpointReferenceType credentialEndpoint = DelegationUtil.delegate(
+    delegFactoryurl,        //String
+    credential,             //GlobusCredential
+    certToSign,             //X509Certificate
+    lifetime,               //int (seconds)
+    fullDelegation,         //boolean
+    secDesc);               //ClientSecurityDescriptor
+</screen>
+There are three types of delegated credentials:
+
+<orderedlist>
+<listitem><para>Credential used by the job to generate user-owned proxy:
+    <screen>rsl.setJobCredential(credentialEndpoint);</screen></para></listitem>
+<listitem><para>Credential used to contact RFT for staging and file clean up:
+    <screen>rsl.setStagingCredentialEndpoint(credentialEndpoint);</screen></para></listitem>
+<listitem><para>Credential used by RFT to contact GridFTP servers:
+    <screen>TransferRequestType stageOut = rsl.getFileStageOut();
+         stageOut.setTransferCredential(credentialEndpoint);</screen>
+    Do the same for fileStageIn and fileCleanUp.</para></listitem>
+</orderedlist>
+
+</para></listitem>
+
+
+
+<listitem><para><emphasis>Create the job resource</emphasis>
+<screen>
+CreateManagedJobInputType jobInput = new CreateManagedJobInputType();
+jobInput.setJobID(new AttributedURI("uuid:" + UUIDGenFactory.getUUIDGen()));
+jobInput.setInitialTerminationTime(<emphasis>&lt;Calendar instance&gt;</emphasis>);
+if (multiJob) jobInput.setMultiJob(rsl) else jobInput.setJob(rsl);
+if (subscribeOnCreate) jobInput.setSubscribe(subscriptionReq);
+CreateManagedJobOutputType createResponse
+    = factoryPort(createManagedJob(jobInput);
+EndpointReferenceType jobEndpoint = createResponse.getManagedJobEndpoint();
+</screen>
+</para></listitem>
+<listitem><para><emphasis>Create the job service stub</emphasis>
+<screen>
+ManagedJobPortType jobPort = ManagedJobClientHelper.getPort(jobEndpoint);
+</screen>
+You must set the appropriate security parameters for the job service stub
+(<computeroutput>jobPort</computeroutput>) as well.</para>
+</listitem>
+<listitem><para><emphasis>Subscribe for job state notifications</emphasis>
+<screen>
+NotificationConsumerManager notifConsumerManager
+    = NotificationConsumerManager.getInstance();
+
+notifConsumerManager.startListening();
+List topicPath = new LinkedList();
+topicPath.add(ManagedJobConstants.RP_STATE);
+
+ResourceSecurityDescriptor resourceSecDesc = new ResourceSecurityDescriptor();
+resourceSecDesc.setAuthz(Authorization.<emphasis>&lt;authz type constant&gt;</emphasis>);
+
+Vector authMethods = new Vector();
+authMethods.add(GSITransportAuthMethod.BOTH);
+resourceSecDesc.setAuthMethods(authMethods);
+
+EndpointReferenceType notificationConsumerEndpoint
+    = notifConsumerManager.createNotificationConsumer(
+        topicPath,
+        this,
+        resourceSecDesc);
+
+
+Subscribe subscriptionReq = new Subscribe();
+subscriptionReq.setConsumerReference(
+    notificationConsumerEndpoint);
+
+TopicExpressionType topicExpression = new TopicExpressionType(
+    WSNConstants.SIMPLE_TOPIC_DIALECT,
+    ManagedJobConstants.RP_STATE);
+subscriptionReq.setTopicExpression(topicExpression);
+
+EndpointReferenceType subscriptionEndpoint;
+</screen>
+<itemizedlist>
+<listitem><para>Subscribe on creation
+<screen>jobInput.setSubscribe(subscriptionReq);</screen></para></listitem>
+<listitem><para>Subscribe after creation
+<screen>SubscribeResponse subscribeResponse
+        = jobPort.subscribe(subscriptionRequest);
+     subscriptionEndpoint = subscribeResponse.getSubscriptionReference();
+</screen></para></listitem>
+</itemizedlist>
+</para></listitem>
+
+<listitem><para><emphasis>Release any state holds (if necessary)</emphasis>
+<screen>
+jobPort.release(new ReleaseInputType());
+</screen>
+</para></listitem>
+<listitem><para><emphasis>Destroy resources</emphasis>
+<screen>
+/*destroy subscription resource*/
+SubscriptionManager subscriptionManagerPort
+    = new WSBaseNotificationServiceAddressingLocator()
+    .getSubscriptionManagerPort(subscriptionEndpoint);
+
+//set stub security parameters on subscriptionManagerPort
+
+subscriptionManagerPort.destroy(new Destroy());
+
+
+/*destroy the job resource*/
+jobPort.destroy(new Destroy());
+</screen>
+</para></listitem>
+</orderedlist>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+<section><title>C</title>
+<para>
+The following is a general scenario for submitting a job using the C stubs
+and APIs. Please consult the
+<ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/common/cwscore/C_WS_Core_Public_Interfaces.html#apis">C WS Core API</ulink>,
+<ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/execution/wsgram/WS_GRAM_Public_Interfaces.html#apis">WS-GRAM API</ulink>
+documentation for details on package names for classes referenced in the code
+excerpts.
+</para>
+
+<orderedlist>
+<listitem><para><emphasis>Load the RSL</emphasis>
+<screen>
+    const char *                        file = "job.xml";
+    globus_soap_message_handle_t        message;
+    wsgram_CreateManagedJobInputType    input;
+
+    globus_soap_message_handle_init_from_file(&amp;message, file);
+
+    globus_soap_message_deserialize_element_unknown(message, &amp;element);
+
+    if(strcmp(element.local, "job") == 0)
+    {
+        wsgram_JobDescriptionType *     jd;
+
+        input.choice_value.type = wsgram_CreateManagedJobInputType_job;
+        jd = &amp;input.choice_value.value.job;
+
+        wsgram_JobDescriptionType_deserialize(&amp;element, jd, message, 0);
+    }
+    else if(strcmp(element.local, "multiJob") == 0)
+    {
+        wsgram_MultiJobDescriptionType *       mjd;
+
+        input.choice_value.type = wsgram_CreateManagedJobInputType_multiJob;
+        mjd = &amp;input.choice_value.value.multiJob;
+
+        wsgram_MultiJobDescriptionType_deserialize(&amp;element, mjd, message, 0);
+    }
+    xsd_QName_destroy_contents(&amp;element);
+    globus_soap_message_handle_destroy(message);
+</screen>
+
+This code sets the choice value of the wsgram_CreateManagedJobInputType to
+be the appropriate type depending on whether the job description is a job or
+multijob request.
+</para></listitem>
+<listitem><para><emphasis>Set the security attributes</emphasis>
+<screen>
+globus_soap_message_attr_t               message_attr;
+
+globus_soap_message_attr_init(&amp;message_attr);
+
+/*
+ * Set authentication mode to host authorization: other possibilities are
+ * GLOBUS_SOAP_MESSAGE_AUTHZ_HOST_IDENTITY or
+ * GLOBUS_SOAP_MESSAGE_AUTHZ_HOST_SELF.
+ */
+globus_soap_message_attr_set(
+    message_attr,
+    GLOBUS_SOAP_MESSAGE_AUTHZ_METHOD_KEY,
+    NULL,
+    NULL,
+    (void *) GLOBUS_SOAP_MESSAGE_AUTHZ_HOST);
+
+/*
+ * Set message protection level. GLOBUS_SOAP_MESSAGE_AUTH_PROTECTION_PRIVACY
+ * for encryption.
+ */
+globus_soap_message_attr_set(
+    message_attr,
+    GLOBUS_SOAP_MESSAGE_AUTH_PROTECTION_KEY,
+    NULL,
+    NULL,
+    (void *) GLOBUS_SOAP_MESSAGE_AUTH_PROTECTION_PRIVACY);
+</screen>
+</para></listitem>
+
+<listitem><para><emphasis>Create the factory client handle</emphasis>
+<screen>
+ManagedJobFactoryService_client_handle_t    factory_handle;
+
+result = ManagedJobFactoryService_client_init(
+    &amp;factory_handle,
+    message_attr,
+    NULL);
+</screen>
+</para></listitem>
+<listitem><para><emphasis>Query factory resource properties</emphasis></para>
+<para><emphasis>One at a time</emphasis>
+<screen>
+/*
+ * localResourceManager, or other resource property names as defined in the
+ * WSDL
+ */
+xsd_QName                                property_name =
+{
+    "http://www.globus.org/namespaces/2004/10/gram/job",
+    "localResourceManager"
+};
+wsrp_GetResourcePropertyResponseType *   property_response;
+int                                      fault_type;
+xsd_any *                                fault;
+
+ManagedJobFactoryPortType_GetResourceProperty(
+    factory_handle,
+    endpoint,
+    &amp;property_name,
+    &amp;property_response,
+    (ManagedJobFactoryPortType_GetResourceProperty_fault_t *) &amp;fault_type,
+    &amp;fault);
+</screen>
+
+If this is successful, then <computeroutput>property_response</computeroutput>'s
+<computeroutput>any</computeroutput> field will contain the deserialized data in the
+<computeroutput>value</computeroutput> field of the first element in the array.
+</para><para>
+<screen>
+xsd_string * localResourceManager = property_response-&gt;any.elements[0].value;
+
+printf("local resource manager is %s\n", *localResourceManager);
+</screen>
+</para></listitem>
+
+<!--
+<listitem><para><emphasis>Delegate credentials (if needed)</emphasis>
+<screen>
+/* TODO: Fill this section in */
+</screen>
+There are three types of delegated credentials:
+<orderedlist>
+<listitem><para>Credential used by the job to generate user-owned proxy:
+    <screen>rsl.setJobCredential(credentialEndpoint);</screen></para></listitem>
+<listitem><para>Credential used to contact RFT for staging and file clean up:
+    <screen>rsl.setStagingCredentialEndpoint(credentialEndpoint);</screen></para></listitem>
+<listitem><para>Credential used by RFT to contact GridFTP servers:
+    <screen>TransferRequestType stageOut = rsl.getFileStageOut();
+         stageOut.setTransferCredential(credentialEndpoint);</screen>
+    <para>Do the same for fileStageIn and fileCleanUp.</para></para></listitem>
+</orderedlist>
+</para></listitem>
+-->
+
+<listitem><para><emphasis>Create Notification Consumer</emphasis></para>
+<para>The notification consumer can be either passed in as part of the
+<computeroutput>wsgram_CreateManagedJobInputType</computeroutput> or through a separate invocation
+of <computeroutput>ManagedJobPortType_Subscribe_epr()</computeroutput>.
+<screen>
+    globus_service_engine_t             engine;
+    wsa_EndpointReferenceType           consumer_reference;
+    
+    globus_service_engine_init(&amp;engine, NULL, NULL, NULL, NULL, NULL);
+
+    globus_notification_create_consumer(
+            &amp;consumer_reference,
+            engine,
+            notify_callback,
+            NULL);
+</screen>
+</para></listitem>
+<listitem><para><emphasis>Create the job resource</emphasis></para>
+<para>First, prepare the other parts of the
+<computeroutput>wsgram_CreateManagedJobInputType</computeroutput> structure.
+<screen>
+/*
+ * You can set input.InitialTerminationTime to be a timeout if interested.
+ * The xsd_dateTime type is a struct tm pointer.
+ */
+time_t                                  term_time = time(NULL);
+globus_uuid_t                           uuid;
+wsa_AttributedURI *                     job_id;
+wsa_EndpointReferenceType *             factory_epr;
+xsd_any *                               reference_property;
+wsgram_CreateManagedJobOutputType *     output = NULL;
+xsd_QName                               factory_reference_id_qname =
+{
+    "http://www.globus.org/namespaces/2004/10/gram/job",
+    "ResourceID"
+};
+
+term_time += 60 * 60; /* 1 hour later */
+xsd_dateTime_copy(&amp;input.InitialTerminationTime, gmtime(&amp;term_time));
+
+/*
+ * Set unique JobID. This is used to reliably create jobs and check for status.
+ */
+globus_uuid_create(&amp;uuid);
+wsa_AttributedURI_init(&amp;job_id);
+job_id-&gt;base_value = globus_common_create_string("uuid:%s", uuid.text);
+
+/* To subscribe to notifications at create time, add the consumer's EPR to
+ * the input message. Otherwise, use the EPR created above in a 
+ * call to  
+ */
+wsnt_SubscribeType_init(&amp;input.Subscribe);
+wsa_EndpointReferenceType_copy_contents(
+        &amp;input.Subscribe.ConsumerReference,
+        &amp;consumer_reference);
+
+xsd_any_init(&amp;input.Subscribe-&gt;TopicExpression.any);
+&amp;input.Subscribe-&gt;TopicExpression.any-&gt;any_info =
+        &amp;xsd_QName_contents_info;
+xsd_QName_copy(
+    (xsd_QName **) &amp;input.Subscribe-&gt;TopicExpression.any-&gt;any.value,
+    &amp;ManagedJobPortType_state_rp_qname);
+
+xsd_anyURI_copy_cstr(
+    &amp;input.Subscribe-&gt;TopicExpression._Dialect,
+    "http://docs.oasis-open.org/wsn/2004/06/TopicExpression/Simple");
+xsd_boolean_init(&amp;input.Subscribe-&gt;UseNotify);
+
+*(&amp;input.Subscribe-&gt;UseNotify) = GLOBUS_TRUE;
+
+/* Construct the EPR of the job factory */
+wsa_EndpointReferenceType_init(&amp;factory_epr);
+wsa_AttributedURI_init_contents(&amp;factory_epr-&gt;Address);
+xsd_anyURI_init_contents_cstr(&amp;factory_epr-&gt;Address.base_value,
+        globus_common_create_string(
+                "https://%s:%hu/wsrf/services/%s",
+                factory_host,
+                factory_port,
+                MANAGEDJOBFACTORYSERVICE_BASE_PATH);
+wsa_ReferencePropertiesTypeinit(&amp;factory_epr-&gt;ReferenceProperties);
+reference_property = xsd_any_array_push(
+        &amp;factory_epr-&gt;ReferenceProperties.any);
+reference_property-&gt;any_info = &amp;xsd_string_info;
+xsd_QName_copy(
+        &amp;reference_property-&gt;element,
+        &amp;factory_reference_id_qname);
+
+xsd_string_copy_cstr(
+        (xsd_string **) &amp;reference_property-&gt;value,
+        "Fork");
+        
+/* Submit the request to the service container */
+ManagedJobFactoryPortType_createManagedJob_epr(
+        factory_handle,
+        factory_epr,
+        input,
+        &amp;output,
+        (ManagedJobFactoryPortType_createManagedJob_fault_t *) &amp;fault_type,
+        &amp;fault);
+</screen>
+If this is successful, then the <computeroutput>output</computeroutput> structure will be
+initialized with the results of the operation. Of particular interest is the
+<computeroutput>managedJobEndpoint</computeroutput> which contains the reference to the
+newly-created job resource.
+</para></listitem>
+
+<listitem><para><emphasis>Subscribe for job state notifications</emphasis>
+</para><para>In order to subscribe for job state change notifications to an existing job
+resource, initialize the <computeroutput>subscribe_input</computeroutput> used below in the same
+way as <computeroutput>input.Subscribe</computeroutput> was initialized above.
+<screen>
+    ManagedJobService_client_handle_t   job_handle;
+    wsnt_SubscribeType                  subscribe_input;
+    wsnt_SubscribeResponseType *        subscribe_response;
+
+ManagedJobService_client_init(
+    &amp;job_handle,
+    message_attr,
+    NULL);
+
+ManagedJobPortType_Subscribe_epr(
+    job_handle,
+    output-&gt;managedJobEndpoint,
+    subscribe_input,
+    &amp;subscribe_response,
+    (ManagedJobPortType_Subscribe_fault_t *) &amp;fault_type,
+    &amp;fault);
+</screen>
+</para></listitem>
+
+<listitem><para><emphasis>Release any state holds (if necessary)</emphasis>
+<screen>
+    wsgram_ReleaseInputType             release;
+    wsgram_ReleaseOutputType *          release_response = NULL;
+
+    wsgram_ReleaseInputType_init_contents(&amp;release);
+
+ManagedJobPortType_release_epr(
+    job_handle,
+    output-&gt;managedJobEndpoint,
+    &amp;release,
+    &amp;release_response,
+    (ManagedJobPortType_release_fault_t *) &amp;fault_type,
+    &amp;fault);
+</screen>
+</para></listitem>
+<listitem><para><emphasis>Destroy resources</emphasis>
+<screen>
+/* destroy subscription resource */
+    SubscriptionManagerService_client_init    subscription_handle;
+    wsnt_DestroyType                          destroy;
+    wsnt_DestroyResponseType *                destroy_response = NULL;
+
+    SubscriptionManagerService_client_init(
+        &amp;subscription_handle,
+        message_attr,
+        NULL);
+    /* if subscription done at job creation time, use
+     * output-&gt;subscriptionEndpoint in place of 
+     * subscribe_response-&gt;SubscriptionReference,
+     */
+    SubscriptionManager_Destroy_epr(
+        subscription_handle,
+        subscribe_response-&gt;SubscriptionReference,
+        &amp;destroy,
+        &amp;destroy_response,
+        (SubscriptionManager_Destroy_fault_t *) &amp;fault_type,
+        &amp;fault);
+
+    /* destroy the job resource */
+    jobPort.destroy(new Destroy());
+    ManagedJobPortType_Destroy_epr(
+        job_handle,
+        output-&gt;managedJobEndpoint,
+        &amp;destroy,
+        &amp;destroy_response,
+        (ManagedJobPortType_Destroy_fault_t *) &amp;fault_type,
+        &amp;fault);
+</screen>
+</para></listitem>
+</orderedlist>
+</section>
+
+
+
+
+
