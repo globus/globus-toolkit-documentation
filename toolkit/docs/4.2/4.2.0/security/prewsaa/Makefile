@@ -7,7 +7,7 @@ html:
            --stringparam suppress.navigation 1 \
 	   --stringparam  chapter.autolabel 0 \
 	   --stringparam  section.autolabel 1 \
-	   --stringparam  toc.section.depth 1 \
+	   --stringparam  toc.max.depth 1 \
            ../../admin/docbook/chunk.xsl \
            ${FILENAME}
 
