@@ -86,9 +86,12 @@ would provide an additional layer of availablity and robustness.</p>
 
 <p>The number of striped GridFTP server nodes required to fully use the 10-30 Gb/s 
 network for transfers depends on the bandwidth of the network links used on the 
-nodes and the performance of the nodes themselves (processor and disk I/O). For 
-example, one node with a 10 Gb/s network interface card may not be able to use 10 
-Gb/s of network bandwidth because of limitations in its disk I/O performance.</p>
+nodes and the performance of the nodes themselves (processor, disk I/O, and competing 
+use). For example, one node with a 1 Gb/s network interface card may not be able 
+to use a full Gb/s of network bandwidth because of limitations in its disk I/O 
+performance.</p>
+
+<p><span class="comment">[argonne's configuration]</span></p>
 
 <h3>TGCP Client Configuration Issues</h3>
 
