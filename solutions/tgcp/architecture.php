@@ -122,6 +122,25 @@ transfer status.</td>
    the database is used to recover transfer request information and complete the 
    transfers when the service is restarted.</p>
 
+<h2>A Note on Security</h2>
+
+<p>The RFT service uses the Grid Security Infrastructure (GSI) <i>delegation</i>
+capability to authenticate GridFTP transfer requests on behalf of the user. When
+the GridFTP service receives a transfer request from the RFT service, that request 
+is authenticated using the user's credentials.  The GridFTP service can therefore 
+make appropriate authorization decisions exactly as if the user had connected 
+directly to the service rather than going through the RFT service.</p>
+
+<p>The exact authentication
+process works as follows.  The RFT client tool uses the user's Grid proxy certificate 
+to authenticate to the RFT service.  During this authentication, the RFT service 
+requests a <i>delegated user proxy</i>.  This proxy is essentially the same as the
+user's original proxy, but it is available to the RFT service for use on the user's
+behalf.  The RFT service uses the delegated user proxy to authenticate to the GridFTP 
+services involved in the transfer. From the GridFTP service's perspective, the
+delegated user proxy is essentially the same as the user's original proxy, so it
+treats the RFT service's request as it would treat a direct request from the user..</p>
+
 </div>
 
 <? include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
