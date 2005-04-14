@@ -35,14 +35,15 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         <li>Tim Freeman</li>
 	<li><a href="http://www.mcs.anl.gov/~gawor">Jarek Gawor</a></li>
         <li>Scott Gose</li>
+        <li>Mihael Hategan</li>
 	<li><a href="http://www-unix.mcs.anl.gov/~keahey/">Kate Keahey</a></li>
 	<li><a href="http://www-unix.mcs.anl.gov/~kettimut/">Raj Kettimuthu</a></li>
-	<li><a href="http://www-unix.mcs.anl.gov/~lane/">Peter Lane</a></li></li>
-	<li>Sam Lang</li>
+        <li>Deepti Kodeboyina</li>
       </ul>
     </td>
     <td width="50%">
       <ul>
+	<li><a href="http://www-unix.mcs.anl.gov/~lane/">Peter Lane</a></li></li>
 	<li><a href="http://www.mcs.anl.gov/~gregor/">Gregor von Laszewski</a></li>
 	<li><a href="http://www-unix.mcs.anl.gov/~liming/">Lee Liming</a></li>
 	<li><span lang="en-us">Mike Link</span></li>
@@ -52,11 +53,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         <li>Neill Miller</li>
 	<li>Veronika Nefedova</li>
 	<li><a href="http://www-fp.mcs.anl.gov/~rohder/">Gigi Rohder</a></li>
+        <li>Doug Scheftner</li>
 	<li><a href="http://www-unix.mcs.anl.gov/~schopf/">Jennifer Schopf</a></li>
 	<li><a href="http://www-unix.mcs.anl.gov/~franks/">Frank Siebenlist</a></li>
         <li><a href="http://www-unix.mcs.anl.gov/~voeckler/">Jens-Soenke Voeckler</a>
 	<li><a href="http://www-unix.mcs.anl.gov/~wilde/">Mike Wilde</a></li>
- 	<li><a href="http://www-fp.mcs.anl.gov/~wulf/">Julie Wulf-Knoerzer</a></li>
       </ul>
     </td>
     </tr>
@@ -99,6 +100,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 	<ul>
 	<li><a href="http://www.cs.niu.edu/~karonis/">Nicholas T. Karonis</a></li>
+        <li><a href="http://www.mcs.anl.gov/~toonen">Brian Toonen</a></li>
 	</ul>
 	
 	
@@ -126,20 +128,18 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <tr>
     <td width="50%">
     <ul>
-      <li>Alain Andrieux</li>
       <li>Shishir Bharathi</li>
       <li><a href="http://www.isi.edu/~annc">Ann L. Chervenak</a></li>
-      <li>Ben Clifford</li>
       <li>Mike D'Arcy</li>
       <li><a href="http://www.isi.edu/~deelman">Ewa Deelman</a></li>
       <li><a href="http://www.isi.edu/~sridhar">Sridhar Gullapalli</a></li>
       <li><a href="http://www.isi.edu/~carl">Carl Kesselman</a></li>
       <li>Guarang Mehta</li>
+      <li>John McGee</li>
     </ul>
     </td>
     <td width="50%">
     <ul>
-      <li>John McGee</li>
       <li>Laura Pearlman</li>
       <li>Mats Rynge</li>
       <li>Robert Schuler</li>

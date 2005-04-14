@@ -19,36 +19,30 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p>The following former members of the core Globus Alliance team made significant
       contributions to our work.</p>
 
-<h2><a href="http://www.mcs.anl.gov">Argonne National Laboratory</a></h2>
+<h2><a href="http://www.mcs.anl.gov">Argonne National Laboratory</a>, 
+    <a href="http://www.cs.uchicago.edu/">The University of Chicago</a></h2>
 
       <ul>
-      <li>Olle Mulmo (Larson) (Rejoined Globus Alliance in 
-      September 2003 via 
-      Swedish Royal Institute of Technology)</li>
+	<li><a href="http://people.cs.uchicago.edu/~dangulo/">Dave Angulo</a></li>
+	<li>Tom Garritano</li>
+      <li>Sam Lang</li>
+      <li>Greg Nawrocki (now President of the Globus Consortium)</li>
       <li>Pawel Plaszczak</li>
       <li>Darcy Quesnel</li>
       <li>Alain Roy</li>
-      <li><a href="http://www.mcs.anl.gov/~sander">Volker Sander</a></li>
-      <li>Thomas Sandholm (Rejoined Globus Alliance in 
-      September 2003 via Swedish Royal Institute of Technology)</li>
-      <li>Rob Seed</li>
-      <li><a href="http://www.mcs.anl.gov/~toonen">Brian Toonen</a></li>
-    </ul>
-	
-<h2><a href="http://www.cs.uchicago.edu/">The University of Chicago</a></h2>
-
-	<ul>
-	<li><a href="http://people.cs.uchicago.edu/~dangulo/">Dave Angulo</a></li>
-	<li>Tom Garritano</li>
 	<li>Michael Russell</li>
+      <li><a href="http://www.mcs.anl.gov/~sander">Volker Sander</a></li>
+      <li>Rob Seed</li>
 	<li>Michelle Wang</li>
-	<li>Von Welch</li>
+        <li><a href="http://www-fp.mcs.anl.gov/~wulf/">Julie Wulf-Knoerzer</a></li>
 	</ul>
 
 <h2><a href="http://www.isi.edu">University of Southern California Information Sciences Institute</a></h2>
 
         <ul>
+        <li>Alain Andrieux</li>
 	<li>Joseph Bannister</li>
+        <li>Ben Clifford</li>
 	<li>Nabil Deeb</li>
 	<li>Steve Fitzgerald</li>
 	<li>Leon Kuntz (in memoriam)</li>
