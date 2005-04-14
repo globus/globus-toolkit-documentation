@@ -87,7 +87,7 @@ software to fit these properties optimally), and, in general, what strategy to u
 to get the optimal transfer time. TeraGrid users expect that they will not have to 
 learn these details to get good transfer times.</p>
 
-<h2>The tgcp Command</h2>
+<h2>How TGCP Works - An Example</h2>
 
 <p>Most users of the TeraGrid system establish remote login shells and use 
 command line interfaces on the TeraGrid systems. These users are familiar 
@@ -107,35 +107,42 @@ SCP-style source and destination specifications. (Local paths can be relative
 or absolute, remote paths look the same but have the hostname and a colon 
 as a prefix.) </p>
 
-<blockquote>% tgcp my-big-file.dat tg-login.anl.gov:/scratch/myproject</blockquote>
+<blockquote>tgcp smallfile.dat tg-login.sdsc.teragrid.org:/users/ux454332</blockquote>
 
-<p>In the command above, the local file my-big-file.dat in the working directory 
-is transferred to the /scratch/myproject directory on the system named 
-tg-login.anl.gov.</p>
+<p>In the command above, the user wants a file in the current working directory 
+(smallfile.dat) to be transferred to a home directory on the system named 
+tg-login.sdsc.teragrid.org.</p>
 
-<p>The tgcp command uses a configuration file set up by the system administrator 
-to translate the source and destination specifications to GridFTP/RFT URL 
-format. This translation can also change the hostname and/or port number for 
-the source or destination in the event that a "designated transfer service" is 
-provided for that system. In the example above, if the source file 
-(my-big-file.dat) can be accessed by a striped GridFTP server on the local 
-network, tgcp may translate the local filename into one that uses the local 
-striped GridFTP server. This could result in the following transfer using four 
-nodes on the local system and eight nodes on the remote system.</p>
+<p>As it happens, the source file (smallfile.dat) can be accessed by a 
+well-connected GridFTP server on the local network. This GridFTP server has 
+a much faster network interface card than the local system. Rather than 
+using the local system's slow network interface, tgcp translates the local 
+filename into the corresponding name on the local GridFTP server. (This behavior
+is configured by the system administrator who installs the tgcp command on the
+local system.)</p>
 
-<blockquote>% globus-url-copy \<br>
-     gsiftp://tg-gridftp1.sdsc.edu/homes/user3094/my-big-file.dat \<br>
-gsiftp://tg-gridftp4.anl.gov:2121/scratch/myproject/my-big-file.dat </blockquote>
+<p>The tgcp command above might result in a transfer that looks like the following.</p>
+
+<blockquote>globus-url-copy -p 8 -tcp-bs 1198372 \<br>
+ gsiftp://tg-gridftprr.uc.teragrid.org:2811/home/navarro/smallfile.dat \<br>
+ gsiftp://tg-login.sdsc.teragrid.org:2811/users/ux454332/smallfile.dat</blockquote>
+
+<p>Note that in addition to translating the source filename into local GridFTP
+source, tgcp also adds protocol parameters in order to attain the optimal network
+performance for this specific source and destination. (In this case, the transfer
+will use 8 parallel TCP streams and will use a TCP buffer size of 1,198,372 bytes.)
+This behavior is also configured by the system administrator and is derived from a 
+table of optimal parameters between specific TeraGrid sites.</p>
 
 <p>This translation mechanism allows system administrators to direct transfers 
-through the high-performance services at their sites without users needing to 
-know that those services exist or where they are located.</p>
+through the high-performance services at their sites and ensure that transfers are
+performed with optimal network parameters without users needing to know how the
+TeraGrid system is constructed.</p>
 
 <p>Unlike gsi-scp, tgcp allows both source and destination to be remote. When 
 this happens, the transfer goes directly from the remote source to the remote 
-destination without any of the data passing through the client system.</p>
-
-<p>The tgcp command also allows the source to be a directory, in which case the 
+destination without any of the data passing through the client system.  The tgcp 
+command also allows the source to be a directory, in which case the 
 entire contents of the directory are transferred to the destination, which must 
 also be a directory.</p>
 
@@ -156,7 +163,7 @@ their transfers further using these additional features.</p>
 <h2>Detailed Information</h2>
 
 <p>
-The following links provide more detail about the ESG Monitoring System.
+The following links provide more detail about the TeraGrid Copy (TGCP) solution.
 </p>
 
 <ul>

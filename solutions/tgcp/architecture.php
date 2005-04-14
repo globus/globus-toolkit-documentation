@@ -61,7 +61,7 @@ to fully utilize the network for individual transfers.</td>
    instances and paths that are known to those services. During this translation,
    the hostname may be changed to use a "designated transfer service" for the
    host that was originally specified (or the local system). A port number may
-   be substituted, and striping may be enabled to maximize performance. The
+   also be substituted. The
    second configuration file is a set of network parameters that are used to
    optimize the TCP buffer size based on where the source and destination are
    on the network. Both of these configuration files are managed by the 
