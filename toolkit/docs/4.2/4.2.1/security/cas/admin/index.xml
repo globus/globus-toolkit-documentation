@@ -17,7 +17,7 @@ including installing, configuring, deploying, and testing the installation.</par
 <section id="installing">
   <title>Building and Installing</title>
   <para>The CAS server and client are built and installed as part of
-    a default GT 4.0 installation. For basic installation instructions, see the<ulink url="../../../admin/docbook/">GT 4.0 System Administrator&apos;s Guide</ulink>.
+    a default GT 4.0 installation. For basic installation instructions,  refer to the <ulink url="../../../admin/docbook/">GT 4.0 System Administrator&apos;s Guide</ulink>.
     No extra installation steps are required for this component.</para>
   <para id="casClientInstall">The CAS client can be installed by
 itself. Please refer to <emphasis>FILL ME(link to top level install guide for installing a given package)</emphasis></para>
@@ -37,24 +37,23 @@ service.</para>
     <para>The CAS service can run with its own service specific credentials. Instructions 
   for obtaining service credentials may be found <ulink url="http://www.globus.org/gt2.2/admin/guide-verify.html#ldapcert">here</ulink>.
 </para>
-    <para>The standard administrator clients that come with the distribution by default use host authorization  to authorize the service they are running against and expect that the CAS service has credentials
-  that have service name &quot;cas&quot;. (Command line options can be used to specify the identity of the CAS service, if default identity is not used). The command in the above mentioned <ulink url="http://www.globus.org/gt2.2/admin/guide-verify.html#ldapcert">web page</ulink> may be altered as follows:
-</para>
+    <para>The standard administrator clients that come with the distribution by default use  identity authorization  to authorize the service they are running against (and expect that the CAS service has credentials
+  that have the FQDN of the host the server is running on and the service name &quot;cas&quot; as part of DN). Command line options can be used to specify the identity of the CAS service, if default identity is not used. The command in the above mentioned <ulink url="http://www.globus.org/gt2.2/admin/guide-verify.html#ldapcert">web page</ulink> may be altered as follows to get credentials for CAS server:</para>
     <screen>casadmin$ grid-cert-request -service <emphasis>cas</emphasis> -host <emphasis>FQDN</emphasis></screen>
     <para>The certificate and private key are typically placed in <filename>/etc/grid-security/cas-cert.pem</filename> and <filename>/etc/grid-security/cas-key.pem</filename>,
   respectively. In this document, the location of certificate and key files is
   referred to as CAS_CERT_FILE and CAS_KEY_FILE, respectively.
-  </para>
+(The subject name in these credentials is expected by CAS clients by default.)</para>
   </section>
   <section id="dbInstall">
     <title>Database installation and configuration </title>
-    <para>CAS uses a backend database to store all user data. This section briefly describes the <link linkend="dbInstall">installation of such a database</link>and the <link linkend="createDb">creation of the database</link> using  the schema required  by the CAS backend.
+    <para>CAS uses a backend database to store all user data. This section briefly describes the <link linkend="dbInstall">installation of such a database</link> and the <link linkend="createDb">creation of the database</link> using  the schema required  by the CAS backend.
 </para>
     <section id="installDb">
       <title>Installing the database </title>
       <para>While any database with a JDBC driver and support for a reasonable set of SQL may be used, PostgreSQL has been used for development
 and testing. The driver for the same  is included in the distribution. If a
-different database is used, the corresponding driver should be added to GLOBUS_LOCATION/lib.
+different database is used, the corresponding driver should be added to $GLOBUS_LOCATION/lib.
 </para>
       <para>Brief instructions on how to install a database (specifically
   PostGres) can be found <ulink url="http://www-unix.globus.org/toolkit/3.0/ogsa/docs/admin/installation.html">here</ulink>.
@@ -69,13 +68,13 @@ different database is used, the corresponding driver should be added to GLOBUS_L
   on local machine run the following commands:</para>
       <screen>casadmin$ createdb casDatabase  
 casadmin$ psql -U casadmin -d casDatabase -f  \
-$GLOBUS_LOCATION/globus_cas_service/casDbSchema/cas_pgsql_database_schema.sql</screen>
+$GLOBUS_LOCATION/etc/globus_cas_service/casDbSchema/cas_pgsql_database_schema.sql</screen>
       <para>You will see a list of notices on the screen. Unless any of them say &quot;ERROR&quot;,
   these are just informational output.</para>
-      <para>Once the database has been created the CAS service needs to be configured to use it         as described <ulink url="./../WS_AA_CAS_Public_Interfaces.html#config">here</ulink>.</para>
     </section>
     <section id="bootstrapingDb">
       <title>Bootstraping the CAS database </title>
+      <para>The CAS database needs to be initialized with data  specific to CAS and information about a super user to allow bootstraping  of CAS operations. The command line script <emphasis>cas-server-bootstrap</emphasis> can be used to achieve this.</para>
       <screen>cas-server-bootstrap [&lt;options&gt;] -d &lt;dbPropFile&gt; [ -implicit | -b &lt;bootstrapFile&gt; ]</screen>
       <table>
         <title>Command line options</title>
@@ -127,7 +126,6 @@ dbPassword=<replaceable>Password for the above username</replaceable></screen>
       <para>Sample bootstrap command:</para>
       <para>To bootstrap the CAS database with both implicit and user data the following command can be used. Prior to running the command, the following files need to be created with appropriate values filled in.
 </para>
-      <para>The CAS database needs to be initialized with data  specific to CAS and information about a super user to allow bootstraping  of CAS operations. The command line script <emphasis>cas-server-bootstrap</emphasis> can be used to achieve this.</para>
       <itemizedlist>
         <listitem>
           <para><filename>$GLOBUS_LOCATION/share/globus_cas_service/casDbProperties</filename>
@@ -155,6 +153,7 @@ casadmin$ bin/cas-server-bootstrap \
 </para>
         </listitem>
       </itemizedlist>
+      <para>Once the database has been created the CAS service needs to be configured to use it         as described <ulink url="./../WS_AA_CAS_Public_Interfaces.html#s-cas-public-config">here</ulink>.</para>
     </section>
   </section>
 </section>
@@ -237,9 +236,9 @@ casadmin$ bin/cas-server-bootstrap \
         </listitem>
       </orderedlist>
 </para>
-    <note>
+    <important>
       <para>The <link linkend="bootstrapingDb">database bootstrap</link> needs to be done again for the server to be ready to receive client requests. </para>
-    </note>
+    </important>
   </section>
   <section>
     <title> Testing the CAS service module </title>
@@ -249,7 +248,7 @@ casadmin$ bin/cas-server-bootstrap \
   user. As the second user the permissions and queries are tested to ensure that
   the set up worked.</para>
     <para>All the configuraton information for the test needs to be configured in  the <filename>etc/globus_cas_unit_test/casTestProperties</filename> file.
-  The database section of the properties file needs to be configured as described <ulink url="testDbConfig">here</ulink>. In addition the following properties need to be configured  to run the tests:</para>
+  The database section of the properties file needs to be configured as described <link linkend="testDbConfig">here</link>. In addition the following properties need to be configured  to run the tests:</para>
     <table id="testPropertiesConfig">
       <title>Test properties</title>
       <tgroup cols="2">
@@ -264,7 +263,7 @@ casadmin$ bin/cas-server-bootstrap \
           </row>
           <row>
             <entry>maxAssertionLifetime</entry>
-            <entry>Should match the value set in the service configuration as shown in <ulink url="./../WS_AA_CAS_Public_Interfaces.html#config">Configuration information</ulink></entry>
+            <entry>Should match the value set in the service configuration as shown in <ulink url="./../WS_AA_CAS_Public_Interfaces.html#s-cas-public-config">Configuration Information</ulink></entry>
           </row>
           <row>
             <entry>host</entry>
@@ -336,15 +335,15 @@ casadmin$ bin/cas-server-bootstrap \
   </para>
       </listitem>
     </orderedlist>
-    <note>
+    <important>
       <para>The <link linkend="bootstrapingDb">database bootstrap</link> needs to be done again for the server to be ready to receive client requests. </para>
-    </note>
+    </important>
   </section>
 </section>
 <section id="admin-example">
   <title>Example of CAS Server Administration </title>
   <para>The following contains an example of administering the CAS server policies using
-the CAS administrative clients described <ulink url="../WS_AA_CAS_Public_Interfaces.html#cmd">here</ulink>.
+the CAS administrative clients described  <link linkend="s-cas-user-commandline">here</link>.
 </para>
   <para>Alice, Bob and Carol are three members of a community who have set up a Community
   Authorization service:
@@ -376,7 +375,7 @@ the CAS administrative clients described <ulink url="../WS_AA_CAS_Public_Interfa
   <para>These examples assume the following:
 <itemizedlist>
       <listitem>
-        <simpara>Alice has installed the CAS server and bootstrapped the database with herself as super user. Please refer to <ulink url="./installGuide.html">installation documentation</ulink> for details.</simpara>
+        <simpara>Alice has installed the CAS server and bootstrapped the database with herself as super user. Please refer to previous chapters in this guide for details on setting up server and bootstrapping with data.</simpara>
       </listitem>
       <listitem>
         <simpara>Alice&apos;s nickname on the CAS server is <emphasis>alice</emphasis> and at bootstrap she has created a user group, <emphasis>suGroup</emphasis>,which has super user permissions on the database.</simpara>
@@ -385,7 +384,7 @@ the CAS administrative clients described <ulink url="../WS_AA_CAS_Public_Interfa
         <simpara>The CAS service URL is http://localhost:8080/wsrf/services/CASService. </simpara>
       </listitem>
       <listitem>
-        <simpara>For all commands listed below the enviroment variable GLOBUS_LOCATION has been set to point to the Globus Toolkit installation and the commands are run from GLOBUS_LOCATION/bin.</simpara>
+        <simpara>For all commands listed below the enviroment variable $GLOBUS_LOCATION has been set to point to the Globus Toolkit installation and the commands are run from $GLOBUS_LOCATION.</simpara>
       </listitem>
       <listitem>
         <simpara>The environment variable CAS_SERVER_URL has been set to point to the CAS server URL, http://localhost:8080/wsrf/services/CASService. </simpara>
