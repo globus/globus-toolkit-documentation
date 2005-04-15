@@ -1,4 +1,4 @@
-FILENAME=contents.xml
+FILENAME=index.xml
 
 all: html pdf
 
