@@ -1,4 +1,4 @@
-FILENAME=WS_AA_Features.xml
+FILENAME=index.xml
 
 all: html pdf
 
