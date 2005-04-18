@@ -39,7 +39,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <h2>Security Challenges</h2>
 
     <ul>
-      <li><b>Registering Users for the Earth System Grid</b><br>
+      <li><b>Registering Users For The Earth System Grid</b><br>
         The challenge: Add a simple user registration interface to your Grid application
         so that users need only a simple ID/password combination to "sign in."
         At the same time, make certain that the application uses "strong"
