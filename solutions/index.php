@@ -21,8 +21,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
        instances where we and our partners have solved specific challenges using 
        Grid software.</p>
 
-    <p>
 <?php if ($SITE_CONTENT["GLOBUS"]) { ?>
+    <p>
        The <b>Globus Alliance</b> section of this website includes a 
        <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."projects.php"; ?>">list of 
        e-Science/e-Business projects</a> in which our members participate. 
@@ -31,12 +31,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
        that describe how Grid software has been used to enable science.
        The <b>Grid Software</b> section describes many of the 
        <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">individual Grid software 
-       components</a> that we have used.
+       components</a> that we have used.</p>
 <?php } ?>
+    <p>
        This section of the website describes how we and our partners overcame
        specific challenges in Grid projects using a combination of Grid software
        components and application code.  Each solution is presented in the context
-       of a specific Grid project.  These solutions can be reused or used 
+       of a specific Grid project.  These solutions can be reused or treated 
        as roadmaps to ease the work of developing new applications.</p>
 
     <h2>Security Challenges</h2>
