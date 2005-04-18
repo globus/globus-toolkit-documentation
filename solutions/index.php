@@ -26,6 +26,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
        The <b>Globus Alliance</b> section of this website includes a 
        <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."projects.php"; ?>">list of 
        e-Science/e-Business projects</a> in which our members participate. 
+       It also includes many 
+       <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers.php"; ?>">research papers</a> 
+       that describe how Grid software has been used to enable science.
        The <b>Grid Software</b> section describes many of the 
        <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">individual Grid software 
        components</a> that we have used.
