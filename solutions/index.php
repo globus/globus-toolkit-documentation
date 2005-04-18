@@ -39,8 +39,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <h2>Security Challenges</h2>
 
     <ul>
-      <li>
-        Add a simple user registration interface to your Grid application
+      <li><b>Registering Users for the Earth System Grid</b><br>
+        The challenge: Add a simple user registration interface to your Grid application
         so that users need only a simple ID/password combination to "sign in."
         At the same time, make certain that the application uses "strong"
         Grid security internally. 
@@ -50,8 +50,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <h2>Monitoring/Managability Challenges</h2>
 
     <ul>
-      <li>
-        Monitor critical system components, notifying system administrators 
+      <li><b><a href="system_monitoring/">A Monitoring System For The 
+             Earth System Grid</a></b><br>
+        The challenge: Monitor critical system components, notifying system administrators 
         when services fail and recording availability of the services over time 
         for later analysis.
         <a class="learnmore" href="system_monitoring/">Learn how...</a>
@@ -61,8 +62,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <h2>Data Challenges</h2>
 
     <ul>
-      <li>
-        Give your users a way to transfer files between sites on a wide area 
+      <li><b><a href="tgcp/">Moving Data Fast On The TeraGrid</a></b><br>
+        The challenge: Give your users a way to transfer files between sites on a wide area 
         network that utilizes the maximum capacity of a 10-30 Gb/s network 
         connection when transfering either a large file or a set of small 
         files. This mechanism <em>must not</em> require users to learn the 
@@ -70,16 +71,16 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         <a class="learnmore" href="tgcp/">Learn how...</a>
       </li>
 
-      <li>
-        Replicate large datasets on servers in several locations 
+      <li><b>Making Copies For The Laser Interferometer Gravitational Wave Observatory</b><br>
+        The challenge: Replicate large datasets on servers in several locations 
         to improve access times for local users in each place, keeping track of 
         where the replicas are and ensuring that each replica site has all 
         of the necessary files.
         <a class="learnmore" href="ldr/">Learn how...</a>
       </li>
 
-      <li>
-        Provide analyzed data on demand using a combination of analysis "recipes," 
+      <li><b>Balancing Computation And Storage For The Sloan Digital Sky Survey</b><br>
+        The challenge: Provide analyzed data on demand using a combination of analysis "recipes," 
         results or partial results from previous analyses, replicas of these 
         results, and a limited set of computation and storage facilities.
       </li>
