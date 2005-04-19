@@ -70,9 +70,10 @@ The data management challenge faced by LIGO is therefore to replicate approximat
 200 GB/day of data to multiple sites securely, efficiently, robustly, and 
 automatically; to keep track of where replicas have been made for each piece of the
 data; and to use the data in a multitude of independent analysis runs. 
-The multiples sites each use different large-scale storage systems.  Scientists 
-and analysts need a coherent mechanism to learn which data is currently available, 
-where it is, and how to get it.  More specific requirements include the following.
+The nine sites each use mass storage systems, but different systems are used at
+different sites. Scientists and analysts need a coherent mechanism to learn which 
+data items are currently available, where they are, and how to accesss them.  
+More specific requirements include the following.
 </p>
 
 <ul>
