@@ -71,7 +71,7 @@ automatically; to keep track of where replicas have been made for each piece of 
 data; and to use the data in a multitude of independent analysis runs. 
 The multiples sites each use different large-scale storage systems.  Scientists 
 and analysts need a coherent mechanism to learn which data is currently available, 
-where it is, and how to get it.  More specific requirements included the following.
+where it is, and how to get it.  More specific requirements include the following.
 </p>
 
 <ul>
