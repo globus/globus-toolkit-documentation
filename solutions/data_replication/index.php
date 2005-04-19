@@ -1,5 +1,5 @@
 <?php
-$title = "Grid Solutions - Data Replication in LIGO";
+$title = "Grid Solutions - Data Replication for LIGO";
 $section = "section-5";
 include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
@@ -12,7 +12,7 @@ include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
 
 <div id="main">
 
-<h1 class="first">Making Copies for LIGO</h1>
+<h1 class="first">Large-scale Data Replication for LIGO</h1>
 
 <div style="float: right; margin-left: 10px; margin-bottom: 10px;">
 <img border=0 src="ligo-livingston.jpg" width=406 height=275>

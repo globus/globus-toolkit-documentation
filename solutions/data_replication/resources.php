@@ -1,5 +1,5 @@
 <?php
-$title = "Grid Solutions - Data Replication in LIGO (Resources)";
+$title = "Grid Solutions - Data Replication for LIGO (Resources)";
 $section = "section-5";
 include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
