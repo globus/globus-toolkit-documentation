@@ -116,8 +116,8 @@ contains, which can be queried directly. The catalogs update each
 other so that so that one can query any member site's catalog to 
 locate a particular file.</li>
 
-<li>Information about data files, the so-called metadata, is also 
-stored using a database backend. This allows site administrators to 
+<li>Information about data files (metadata) is also 
+stored in a database. This allows site administrators to 
 select groups of files for replication based on the characteristics of 
 data files rather than just the names of the files.</li>
 
