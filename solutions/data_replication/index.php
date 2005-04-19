@@ -72,7 +72,7 @@ automatically; to keep track of where replicas have been made for each piece of 
 data; and to use the data in a multitude of independent analysis runs. 
 The nine sites each use mass storage systems, but different systems are used at
 different sites. Scientists and analysts need a coherent mechanism to learn which 
-data items are currently available, where they are, and how to accesss them.  
+data items are currently available, where they are, and how to access them.  
 More specific requirements include the following.
 </p>
 
