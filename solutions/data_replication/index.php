@@ -77,13 +77,16 @@ More specific requirements include the following.
 </p>
 
 <ul>
-<li>High-bandwidth network links (10+ Gb/s) are utilized efficiently 
-    (transfers use all available bandwidth).</li>
-<li>All network links are used efficiently (minimize idle time).</li>
-<li>Data can be located and understood using application-level terms (metdata).</li>
-<li>Replicas (copies) can be located via database queries.</li>
-<li>Data transfer endpoints are authenticated using "strong" security and
-data integrity is maintained during transfers.</li>
+<li>High-bandwidth network links (10+ Gb/s) should be utilized efficiently,
+    meaning that there should not be unused bandwidth while data transfers are 
+    taking place.</li>
+<li>All network links should be used efficiently, meaning that there should not
+    be idle time on the network between transfers.</li>
+<li>It should be possible to locate data and understand data items using 
+    application-level terms (metdata).</li>
+<li>It should be possible to locate replicas (copies) via database queries.</li>
+<li>Data transfer endpoints should be authenticated using "strong" security and
+transfers should preserve data integrity.</li>
 </ul>
 
 <h2>The Solution</h2>
