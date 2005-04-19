@@ -75,13 +75,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         <a class="learnmore" href="tgcp/">Learn how...</a>
       </li>
 
-      <li><b><a  href="ldr/">Making Copies For The Laser Interferometer 
+      <li><b><a  href="data_replication/">Data Replication For The Laser Interferometer 
              Gravitational Wave Observatory</a></b><br>
         The challenge: Replicate large datasets on servers in several locations 
         to improve access times for local users in each place, keeping track of 
         where the replicas are and ensuring that each replica site has all 
         of the necessary files.
-        <a class="learnmore" href="ldr/">Learn how...</a>
+        <a class="learnmore" href="data_replication/">Learn how...</a>
       </li>
 
       <li><b>Balancing Computation And Storage For The Sloan Digital Sky Survey</b><br>
