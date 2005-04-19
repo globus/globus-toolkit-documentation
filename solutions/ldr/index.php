@@ -14,16 +14,24 @@ include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
 
 <h1 class="first">Making Copies for LIGO</h1>
 
+<div style="float: right; margin-left: 10px; margin-bottom: 10px;">
+<img border=0 src="ligo-livingston.jpg" width=406 height=275>
+</div>
+
 <p>
 The Laser Interferometer Gravitational Wave Observatory (LIGO) is a multi-site 
 national research facility whose objective is the detection of gravitational waves.
-LIGO consists of two facilities, one in Livingston, LA, and one in Richland, WA.
+LIGO consists of two facilities, one in Livingston, LA, and one in Richland, WA,
+operated jointly by the California Institute of Technology (CalTech) and the
+Massachusetts Institute of Technology (MIT).
 The LIGO detectors at these two sites work together to detect gravitational waves:
 tiny distortions of space and time caused when very large masses, such as stars, 
-move suddenly. The LIGO detectors are used together and sometimes in cooperation with 
+move suddenly. The LIGO detectors are used together and in cooperation with 
 detectors in other countries to look for coincident signals that may be indications
 of gravitational waves.
 </p>
+
+<h2>The Challenge</h2>
 
 <p>
 The LIGO facility includes three interferometers at the two sites and records 
@@ -47,6 +55,15 @@ data from the LIGO detectors to the sites where analysis happens and to make tho
 sites accessible to the participating scientists.
 </p>
 
+<div id="solutions-sidebar" style="float: right; margin-right: 1em">
+<h2>More Information</h2>
+<ul>
+<li>Architecture of the data replication system
+<li>Software availability
+<li><a href="http://www.ligo.caltech.edu/LIGO_web/about/">Overview of the LIGO facility</a>
+</ul>
+</div>
+
 <p>
 The computational challenge faced by LIGO is therefore to replicate approximately
 200 GB/day to multiple sites securely (ensuring data integrity), efficiently,
@@ -58,25 +75,51 @@ where it is, and how to get it.  More specific requirements included the followi
 </p>
 
 <ul>
-<li>High-bandwidth network links (10+ Gb/s) are utilized efficiently.</li>
-<li>All network links are used efficiently (minimizing idle time).</li>
+<li>High-bandwidth network links (10+ Gb/s) are utilized efficiently 
+    (transfers use all available bandwidth).</li>
+<li>All network links are used efficiently (minimize idle time).</li>
 <li>Data can be located and understood using application-level terms (metdata).</li>
 <li>Replicas (copies) can be located via database queries.</li>
 <li>Data transfer endpoints are authenticated using "strong" security and
 data integrity is maintained during transfers.</li>
 </ul>
 
+<h2>The Solution</h2>
+
 <p>
 To meet this challenge, the LIGO partnership (a cooperation between 
 physicists, computer scientists, and information technology experts)
-developed the Lightweight Data Replicator (LDR), an integrated solution
-that combines several basic Grid components with other tools to provide
-an end-to-end system for managing LIGO's data. By April 2005, the LIGO 
-team had used LDR to replicate 20 terabytes of data from CalTech to the 
-University of Wisconsin Milwaukee, and had just deployed the software 
-at MIT, Penn State University, the Albert Eistein Institute (AEI) in
-Germany, and Cardiff University, Wales.
+developed the <a href="http://www.lsc-group.phys.uwm.edu/LDR/">Lightweight 
+Data Replicator (LDR)</a>, an integrated solution that combines several 
+basic Grid components with other tools to provide an end-to-end system 
+for managing LIGO's data. LDR's features make it very useful for
+replicating data sets to multiple sites in a collaboration.
 </p>
+
+<ul>
+<li>LDR uses network links efficiently because it uses parallel data 
+streams, tunable TCP windows, and tunable write/read buffers.
+LDR also manages continuous data
+transfers between sites, ensuring that the network is always being
+used when there are transfers that need to happen.</li>
+
+<li>LDR tracks where copies of specific files can be found, given
+that it may have been replicated at several sites.  This information 
+can be queried by user applications so that local data is used when 
+it is available. Each site maintains a catalog of the data it
+contains, which can be queried directly. The catalogs update each
+other so that so that one can query any member site's catalog to 
+locate a particular file.</li>
+
+<li>Information about data files, the so-called metadata, is also 
+stored using a database backend. This allows site administrators to 
+select groups of files for replication based on the characteristics of 
+data files rather than just the names of the files.</li>
+
+<li>The Grid Security Infrastructure (GSI) is used to authenticate 
+clients and services.</li>
+</ul>
+
 
 <p>
 LDR combines the 
@@ -88,21 +131,27 @@ to provide a solution that meets the requirements above.  The developers plan to
 <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."data/mcs.php"; ?>">Metadata Catalog Service (MCS)</a> in the future.
 </p>
 
-<?
+<p>
+The LIGO detectors went online and began producing data in 2002.  By April 
+2005, the LIGO team had used LDR to replicate 20 terabytes of 
+data from CalTech to the University of Wisconsin Milwaukee, and had just 
+deployed the software at MIT, Penn State University, the Albert Eistein 
+Institute (AEI) in Germany, and Cardiff University, Wales.
+</p>
 
-$software = "<a href='http://www.lsc-group.phys.uwm.edu/LDR/'>Lightweight Data Replicator</a>";
-$developer = "<a href='http://www.griphyn.org/'>GriPhyN</a>, <a href='http://www.ivdgl.org/'>iVDGL</a>";
-$distros = "Download from <a href='http://www.lsc-group.phys.uwm.edu/LDR/doc/install.html'>Univ. of 
-Wisconsin - Milwaukee";
-$contact = "<a href='mailto:ldr-discuss@gravity.phys.uwm.edu'>ldr-discuss@gravity.phys.uwm.edu</a><br>
-(must be <a href='http://www.lsc-group.phys.uwm.edu/mailman/listinfo/ldr-discuss'>subscribed</a> 
-before posting messages)</a>";
+<h2>Detailed Information</h2>
 
-app_info($software, $developer, $distros, $contact);
+<p>LDR was developed primarily by GriPhyN, iVDGL, and LIGO staff at the 
+University of Wisconsin-Milwaukee in cooperation with the NSF-funded 
+GriPhyN and iVDGL projects and the DOE-funded SciDAC Data Grid Middleware 
+project. The following links provide more detail about the Lightweight 
+Data Replicator (LDR).</p>
 
-?>
-
-<p></p>
+<ul>
+<li>Architecture of the data replication system
+<li>Software availability
+<li><a href="http://www.ligo.caltech.edu/LIGO_web/about/">Overview of the LIGO facility</a>
+</ul>
 
 </div>
 
