@@ -12,7 +12,7 @@ include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
 
 <div id="main">
 
-<h1 class="first">Making Copies for LIGO<h1>
+<h1 class="first">Making Copies for LIGO</h1>
 
 <p>
 The Laser Interferometer Gravitational Wave Observatory (LIGO) is a multi-site 
