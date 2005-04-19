@@ -955,7 +955,7 @@ submitting bibliographic citations</a>.</b></p>
 	<h2><a name="Applications">Applications</a></h2>
       
       <font SIZE="2">
-      <p><b>Grids for Experimental Science The Virtual Control Room</b>, K.
+      <p><b>Grids for Experimental Science: The Virtual Control Room</b>, K.
       Keahey, M. E. Papka, Q. Peng, D. Schissel, G. Abla, T. Araki, J. Burruss,
       E. Feibush, P. Lane, S. Klasky, T. Leggett, D. McCune, L. Randerson, <i>in
       proceedings of the Challenges of Large Applications in Distributed
