@@ -12,9 +12,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 -->
 
 <div id="main">
-<!-- content STARTS here -->
-
-<p>&lt;&lt; <a href="index.php">Employment Opportunities</a></p>
 
 <h1> Research programmers </h1>
 
@@ -54,15 +51,6 @@ high-quality software.</p>
 
 <p><b>If you want a job where you can <i>define</i> the leading edge, this is it.
 Send your resume to <a href="mailto:jobs@globus.org">jobs@globus.org</a>.</b></p>
-
-<p>&lt;&lt; <a href="index.php">Employment Opportunities</a></p>
-
-
-
-
-
-
-<!-- content ENDS here -->
 
 </div>
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>

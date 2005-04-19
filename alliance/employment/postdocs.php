@@ -12,12 +12,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 -->
 
 <div id="main">
-<!-- content STARTS here -->
 
-
-<p>&lt;&lt; <a href="index.php">Employment Opportunities</a></p>
-
-<h1> Postdoctoral Researchers </h1>
+<h1 class="first"> Postdoctoral Researchers </h1>
  <p>Recent PhD recipients can work with senior researchers at Argonne
 National Laboratory, the  
 the University of Southern California's Information Sciences Institute, or the University of Chicago.  Postdoctoral 
@@ -37,15 +33,6 @@ and/or networking concepts and a commitment to research at the forefront of
 applied computing.</p>
 
 <p><b>To find out more about Globus Project postdoctoral research positions, send your resume or CV to <a href="mailto:jobs@globus.org">jobs@globus.org</a>.</b></p>
-
-<p>&lt;&lt; <a href="index.php">Employment Opportunities</a></p>
-
-
-
-
-
-
-<!-- content ENDS here -->
 
 </div>
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>

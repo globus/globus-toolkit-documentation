@@ -12,14 +12,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 -->
 
 <div id="main">
-<!-- content STARTS here -->
 
-<p>&lt;&lt; <a href="index.php">Employment Opportunities</a></p>
-
-	<h1 class="first">Scientific/Engineering Staff</h1>
-
-
-
+<h1 class="first">Scientific/Engineering Staff</h1>
 
 <p>The Globus Project employs scientists and engineers with outstanding records of 
 accomplishment to lead explorations into applied Computer and Computational 
@@ -42,18 +36,6 @@ research.</p>
 <p><b>If you are interested in a scientific position with the Globus Project, 
 send your CV to <a href="mailto:jobs@globus.org">jobs@globus.org</a>.</b></p>
 
-<p>&lt;&lt; <a href="index.php">Employment Opportunities</a></p>
-
-
-<!-- content ENDS here -->
 
 </div>
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
-
-
-
-
-
-
-
-
