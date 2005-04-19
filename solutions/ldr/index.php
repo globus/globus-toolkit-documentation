@@ -58,9 +58,10 @@ sites accessible to the participating scientists.
 <div id="solutions-sidebar" style="float: right; margin-right: 1em">
 <h2>More Information</h2>
 <ul>
-<li>Architecture of the data replication system</li>
-<li><a href="resources.php">Software availability</a></li>
-<li><a href="http://www.ligo.caltech.edu/LIGO_web/about/">Overview of the LIGO facility</a></li>
+<li><a href="http://www.ligo.caltech.edu/LIGO_web/about/">LIGO Overview</a></li>
+<li><a href="architecture.php">System Architecture</a></li>
+<li><a href="resources.php">Software Availability</a></li>
+<li><a href="http://www.lsc-group.phys.uwm.edu/LDR/">Lightweight Data Replicator</a></li>
 </ul>
 </div>
 
@@ -148,8 +149,9 @@ project. The following links provide more detail about the Lightweight
 Data Replicator (LDR).</p>
 
 <ul>
-<li>Architecture of the data replication system</li>
+<li><a href="architecture.php">Architecture of the data replication system</a></li>
 <li><a href="resources.php">Software availability</a></li>
+<li><a href="http://www.lsc-group.phys.uwm.edu/LDR/">Lightweight Data Replicator website</a></li>
 <li><a href="http://www.ligo.caltech.edu/LIGO_web/about/">Overview of the LIGO facility</a></li>
 </ul>
 
