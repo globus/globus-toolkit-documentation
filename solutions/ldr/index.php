@@ -65,10 +65,10 @@ sites accessible to the participating scientists.
 </div>
 
 <p>
-The computational challenge faced by LIGO is therefore to replicate approximately
-200 GB/day to multiple sites securely (ensuring data integrity), efficiently,
-robustly, and (most importantly) in an automated fashion without immediate human 
-supervision, and then to use the data in a multitude of independent analysis runs. 
+The data management challenge faced by LIGO is therefore to replicate approximately
+200 GB/day of data to multiple sites securely, efficiently, robustly, and 
+automatically; to keep track of where replicas have been made for each piece of the
+data; and to use the data in a multitude of independent analysis runs. 
 The multiples sites each use different large-scale storage models.  Scientists 
 and analysts need a coherent mechanism to learn which data is currently available, 
 where it is, and how to get it.  More specific requirements included the following.
