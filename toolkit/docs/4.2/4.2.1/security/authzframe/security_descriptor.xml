@@ -3,39 +3,57 @@
 <section id="s-authzframe-secdesc-introduction">
   <title>Introduction</title>
   <para>Security descriptors contain various security properties like credentials,
-  the gridmap file location, required authentication and authorization mechanisms and so on. There are three
-  kinds of security descriptors in the code base for setting container, service
-  and resource security properties, respectively:</para>
-  <itemizedlist>
-    <listitem>
-      <simpara>the service security descriptor</simpara>
-    </listitem>
-    <listitem>
-      <simpara>the container security descriptor</simpara>
-    </listitem>
-    <listitem>
-      <simpara>the resource security descriptor</simpara>
-    </listitem>
-  </itemizedlist>
+  the gridmap file location, required authentication and authorization mechanisms and so on. There are four
+  types of security descriptors in the code base for setting container, 
+  service, resource and client security properties, respectively:</para>
+  <informaltable>
+  <tgroup cols="2">
+  <tbody>
+    <row>
+      <entry>container security descriptor</entry>
+      <entry>determines the container level security requirement that needs to be enforced.</entry>
+    </row>
+    <row>
+      <entry>service security descriptor</entry>
+      <entry>deteremines the service level security requirement that needs to be enforced.</entry>
+    </row>      
+    <row>
+      <entry>resource security descriptor</entry>
+      <entry>determines the resource level security requirement that needs to be enforced.</entry>
+    </row>
+    <row>
+      <entry>client security descriptor</entry>
+      <entry>determines the security properties that need to be used for a particular invocation.</entry>
+    </row>
+  </tbody>
+  </tgroup>
+  </informaltable>
+
   <para>Each of these is represented as an object and can
   be altered programmatically. Service and container security
   descriptors can be configured as  XML files in the deployment
   descriptor as shown below.  Resource security descriptors can only
   be created dynamically, either programmatically or from a descriptor
-  file. If the security descriptor file is altered at runtime, it
+  file. Client security descriptor can be configured as a XML file and set as proeprty on Stub.If the security descriptor file is altered at runtime, it
   will <emphasis>not</emphasis> be reloaded</para>
 </section>
 <section id="s-authzframe-secdesc-configDesc">
   <title>Configuring security descriptors </title>
   <para>The following shows how the service and container security descriptor files
 are configured:</para>
-  <screen>&lt;globalConfiguration&gt;
-   ...&lt;parameter name=&quot;containerSecDesc&quot;
+  <screen>
+   &lt;globalConfiguration&gt;
+   ...
+   &lt;parameter name=&quot;containerSecDesc&quot;
               value=&quot;etc/container-security-config.xml&quot;&gt;
-   ...&lt;globalConfiguration&gt;
-...&lt;service name=&quot;MyDummyService&quot; provider=&quot;Handler&quot; style=&quot;document&quot;&gt;
-   ...&lt;parameter name=&quot;securityDescriptor&quot; value=&quot;org/globus/wsrf/impl/security/descriptor/security-config.xml&quot;/&gt;
-   ...&lt;/service&gt;</screen>
+   ...
+   &lt;globalConfiguration&gt;
+   ...
+   &lt;service name=&quot;MyDummyService&quot; provider=&quot;Handler&quot; style=&quot;document&quot;&gt;
+   ...
+   &lt;parameter name=&quot;securityDescriptor&quot; value=&quot;org/globus/wsrf/impl/security/descriptor/security-config.xml&quot;/&gt;
+   ...
+   &lt;/service&gt;</screen>
   <para>If the security descriptor is configured to be read from a file, it is loaded as follows:<orderedlist>
       <listitem>
         <simpara>As a file if a absolute file path is specified</simpara>
@@ -51,14 +69,28 @@ are configured:</para>
     descriptor file uses the same schema as the service security
     descriptor. In all cases, the security descriptor is contained
     within the <constant>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;</constant> element.</para>
+
+<para> Client security descriptors are configured as shown below
+<screen>
+// Client security descriptor file 
+String CLIENT_DESC = &quot;org/globus/wsrf/samples/counter/client/client-security-config.xml&quot;;
+//Set descriptor on Stub 
+((Stub)port)._setProperty(Constants.CLIENT_DESCRIPTOR_FILE, CLIENT_DESC);
+</screen>
+
+The client security descriptor files need to comply with the <ulink url="client_security_descriptor.xsd">client security descriptor schema</ulink>.</para>
 </section>
-<section id="s-authzframe-secdesc-descFile">
-  <title>Writing security descriptor files </title>
-  <para>The next few sections deal with writing security descriptor
-  files to set various properties. Please note that not all parameters
-  are applicable for all three types of descriptors and are
-  appropriately  annotated in the relevant sections. The few parameters
-  relevant only for container security descriptor are described in <ulink url="#container">Section 5</ulink>.</para>
+<section id="s-authzframe-server-secdesc-descFile">
+  <title>Writing server-side security descriptor files </title>
+
+  <para>The next few sections deal with writing server side security
+  descriptor, that is container, service and resource descriptor files
+  to set various properties. Please note that not all parameters are
+  applicable for all three types of descriptors and are appropriately
+  annotated in the relevant sections. The few parameters relevant only
+  for container security descriptor are described in <ulink
+  url="#container">Section 5</ulink>.</para>
+
   <section id="s-authzframe-secdesc-configCred">
     <title>Configuring credentials</title>
     <para>The container and each service can each be configured with a
@@ -683,6 +715,122 @@ public class FooPDP implements PDP
     <para>Note that the parameter <parameter>foo1-authorizedIdentity</parameter> in the above configures the identity the PDP uses  for authorizing incoming requests. The parameter name is derived by composing the prefix (<parameter>foo1</parameter>) used when specifying the PDP in the security descriptor with the property  (<parameter>authorizedIdentity</parameter>) used in the PDP code.</para>
   </section>
 </section>
+<section id="s-authzfram-client-secdesc">
+  <title>Writing client side security descriptors </title>
+
+  <section id="s-authzfram-client-secdesc-cred">
+  <title>Configuring credentials </title>
+  <para> Client side credentials are configured similar to server side credentials as described in <xref linkend="s-authzframe-secdesc-configCred"/>.</para>
+  </section>
+
+  <section id="s-authzfram-client-secdesc-authz">
+  <title>Configuring authorization mechanism </title>
+  <para> The &lt;authz&gt; element is used to determine the mechanism to use to authorize the server that is being contacted. The following values are currently supported:
+<informaltable>
+  <tgroup cols="2">
+  <tbody>
+    <row>
+      <entry>none</entry>
+      <entry>No authorization is done.</entry>
+    </row>
+    <row>
+      <entry>self</entry>
+      <entry>Self authorization is done, i.e the server should be running with same credentials as server.</entry>
+    </row>      
+    <row>
+      <entry>host</entry>
+      <entry>Host authorization is done, i.e the server should be running with credentials that has the host name it is running on embedded in it.</entry>
+    </row>
+    <row>
+      <entry><emphasis>any other string</emphasis></entry>
+      <entry>Identity authorization is done using the value as the identity, i.e the server should be running with identity specified as value. </entry>
+    </row>
+  </tbody>
+  </tgroup>
+  </informaltable>
+The following sample configured self authorization:
+<screen>
+  &lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
+     ...
+     &lt;authz value=&quot;self&quot;/&gt;
+     ...
+  &lt;/securityConfig&gt;
+</screen>
+</para>
+</section>
+<section id="s-authzfram-client-secdesc-secConv">
+  <title>Configuring GSI Secure Conversation </title>
+  <para> The client can be configured to do GSI secure conversation using the element &lt;GSISecureConversation&gt;. The following subelements can be used to set various properties 
+  <informaltable>
+  <tgroup cols="2">
+  <tbody>
+    <row>
+      <entry>&lt;integrity&gt;</entry>
+      <entry>Sets protection level to signature </entry>
+    </row>
+    <row>
+      <entry>&lt;privacy&gt;</entry>
+      <entry>Sets protection level to encryption (signature is also done) </entry>
+    </row>      
+    <row>
+      <entry>&lt;anonymous&gt;</entry>
+      <entry>Server is accessed as anonymous </entry>
+    </row>
+    <row>
+      <entry>&lt;delegation value=&quot;<emphasis>type of delegation</emphasis>&quot;&gt;</entry>
+      <entry>Determines the type of delegation to be done and value can be set to <constant>full</constant> or <constant>limited</constant>. If the <emphasis>delegation</emphasis> element is not used, no delegation is done.</entry>
+    </row>
+  </tbody>
+  </tgroup>
+  </informaltable>  
+The following sample sets GSI secure conversation with privacy and full delegation
+<screen>
+  &lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
+     ...
+     &lt;GSISecureConversation&gt;
+         &lt;privacy/&gt;
+         &lt;delegation value=&quot;full&quot;/&gt;
+     &lt;/GSISecureConversation&gt;
+     ...
+  &lt;/securityConfig&gt;
+</screen>
+</para>
+ </section>
+<section id="s-authzfram-client-secdesc-secMsg">
+  <title>Configuring GSI Secure Message </title>
+  <para> The client can be configured to do GSI secure message using the element &lt;GSISecureMessage&gt;. The following subelements can be used to set various properties 
+  <informaltable>
+  <tgroup cols="2">
+  <tbody>
+    <row>
+      <entry>&lt;integrity&gt;</entry>
+      <entry>Sets protection level to signature </entry>
+    </row>
+    <row>
+      <entry>&lt;privacy&gt;</entry>
+      <entry>Sets protection level to encryption (signature is also done) </entry>
+    </row>      
+    <row>
+      <entry>&lt;peer-credential value=&quot;<emphasis>path to file with credentials to encrypt with</emphasis>&quot;&gt;</entry>
+      <entry>Sets the path to file containing credential to use if privacy protection is chosen.</entry>
+    </row>
+  </tbody>
+  </tgroup>
+  </informaltable>  
+
+The following sample sets GSI secure message with integrity
+<screen>
+  &lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
+     ...
+     &lt;GSISecureMessage&gt;
+         &lt;integrity/&gt;
+     &lt;/GSISecureMessage&gt;
+     ...
+  &lt;/securityConfig&gt;
+</screen>
+</para>
+ </section>
+</section>
 <section id="s-authzfram-secdesc-descProgram">
   <title>Programmatic altering of security descriptors </title>
   <para>The security descriptor (container, security and resource) can be
@@ -722,8 +870,16 @@ public class FooPDP implements PDP
           <entry>
             <para>This is represented by <constant>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</constant>. </para>
             <para>To initialize the descriptor, i.e. load credentials and gridmap, use
-          the API in <constant>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</constant> .
+          the API in <constant>org.globus.wsrf.impl.security.descriptor.ResourceSecurityConfig</constant> .
           Refer to the description of resource security descriptors in <xref linkend="s-authzframe-secdesc-resDesc"/> for more details.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>Client Security Descriptor</entry>
+          <entry>
+            <para>This is represented by <constant>org.globus.wsrf.impl.security.descriptor.ClientSecurityDescriptor</constant>. </para>
+            <para>To initialize the descriptor, use
+          the API in <constant>org.globus.wsrf.impl.security.descriptor.ClientSecurityConfig</constant>.</para>
           </entry>
         </row>
       </tbody>
@@ -742,9 +898,9 @@ interface has a method that returns an instance of
 on the resource. </para>
   <para>The resource security descriptor is identical to the service
     security descriptor and exposes a API to set and get all properties
-    that are described in <xref linkend="s-authzframe-secdesc-descFile"/>. A 
+    that are described in <xref linkend="s-authzframe-server-secdesc-descFile"/>. A 
     resource security descriptor object can also be created by reading settings from a descriptor file. The file
-    needs to be written as described in <xref linkend="s-authzframe-secdesc-descFile"/>.</para>
+    needs to be written as described in <xref linkend="s-authzframe-server-secdesc-descFile"/>.</para>
   <para><emphasis>Examples: </emphasis> 
   </para>
   <para>The following code snippet creates a resource descriptor object directly: 
