@@ -62,7 +62,7 @@ V1.0 specification in a manner that exploits recent developments in Web services
 architecture (e.g.,
 <a href="http://www-106.ibm.com/developerworks/webservices/library/ws-add/">WS-Addressing</a>). 
 We discuss the relationship between the WS-Resource 
-framework and OGSI in the document <cite>From OGSI to WSRF: Refactoring and Extension.</cite>
+framework and OGSI in the document <cite>From OGSI to WSRF: Refactoring and Evolution.</cite>
 (See "Relevant Documents" below.)</p>
 
 <h2><a name="announcement">Announcement</a></h2>
@@ -81,7 +81,7 @@ WS-Resource Framework announcement</a> was issued January 20, 2004.</p>
       WS-Resource construct is rendered in terms of six Web services 
       specifications. (Added on March 5, 2004.)</li>
   <li><a href="specs/ogsi_to_wsrf_1.0.pdf">From Open Grid Services Infrastructure 
-      to WS-Resource Framework: Refactoring and Extension</a> describes how OGSI 
+      to WS-Resource Framework: Refactoring and Evolution</a> describes how OGSI 
       constructs map to WS-Resource Framework constructs.</li>
   <li><a href="http://www-106.ibm.com/developerworks/library/ws-pubsub/">Publish-Subscribe 
        Notification for Web Services</a> white paper.</li>
