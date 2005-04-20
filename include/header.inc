@@ -15,7 +15,7 @@
 <div id="headerlinks">
   <br />
   <a href="<?=$SITE_PATHS["WEB_ROOT"]."faq.php"; ?>">FAQ</a><br />
-  <a href="<?=$SITE_PATHS["WEB_ROOT"]."site_index.php"; ?>">Site Index</a><br />
+  <a href="<?=$SITE_PATHS["WEB_ROOT"]."site_map.php"; ?>">Site Map</a><br />
   <a href="<?=$SITE_PATHS["WEB_ROOT"]."contacts.php"; ?>">Contact Us</a>
 </div>
 
