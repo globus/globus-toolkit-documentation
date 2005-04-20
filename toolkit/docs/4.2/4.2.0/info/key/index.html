@@ -6,334 +6,212 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); ?>
 include_once( "http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/draft.inc" );
 ?>
 
+
 <h1><?php echo $title; ?></h1>
+<h2>Overview
+</h2>
+<p> <strong>Note:</strong> If you have not done so already, we recommend reading
+  the <a href="../../key/index.html">GT4
+  Primer</a> before continuing. Also keep in mind that in this documentation,
+  the concepts of MDS are written for the latest version, <em>WS
+  MDS</em> (also known
+  as <em>MDS4</em>). The GT4 release includes the Pre-WS component, <em>MDS2</em>, for legacy purposes
+  only - it will be deprecated at some future time as experience is gained with
+the WS implementation (for information about MDS2, click <a href="http://www-fp.globus.org/mds/mds2/">here</a>.) </p>
+<p>The <em>Monitoring and Discovery System (MDS)</em> is a suite of web services
+  to monitor and discover resources and services on Grids. This system allows
+  users to discover what resources are considered part of a <em>Virtual
+  Organization (VO)</em> and to monitor those resources. MDS services provide
+  query and subscription interfaces to arbitrarily detailed resource data and
+  a trigger interface that can be configured to take action when pre-configured
+  trouble conditions are met. The services included in the WS MDS implementation
+  (<em>MDS4</em>), provided with
+  the Globus Toolkit 4, acquire their information through an extensible interface
+  which can be used to:</p>
 <ul>
-  <li><a href="#overview">Overview</a></li>
-  <li><a href="#concepts">Conceptual details</a>
+  <li> query WSRF services for resource property information,</li>
+  <li> execute a program
+          to acquire data, or </li>
+  <li>interface with third-party monitoring systems.</li>
+</ul>
+<p>Grid computing resources and services can advertise a large amount of data
+  for many different use cases.  MDS4 was specifically designed to address
+  the needs of a Grid monitoring system &ndash; one that publishes data that
+  is available to multiple people at multiple sites. As such, it is not an
+  event handling system, like NetLogger, or a cluster monitor on its own, but
+  can interface to more detailed monitoring systems and archives, and can publish
+  summary data using standard interfaces.
+</p>
+<h2> MDS4 Services</h2>
+<p>MDS4 includes two WSRF-based services: an <em>Index Service</em>, which collects data
+  from various sources and provides a query/subscription interface to that data,
+  and a <em>Trigger service</em>, which collects data from various sources and can be
+  configured to take action based on that data. An <em>Archive
+  Service</em>, which will
+  provide access to historic data, is planned for a future release.
+</p>
+<p>The Index Service is a registry similar to UDDI, but much more flexible. Indexes
+  collect information and publish that information as <em>resource
+  properties</em>. Clients
+  use the standard WSRF resource property query and subscription/notification
+  interfaces to retrieve information from an Index. Indexes can register to each
+  other in a hierarchical fashion in order to aggregate data at several levels.
+  Indexes are &ldquo;self-cleaning&rdquo;; each Index entry has a lifetime and
+  will be removed from the Index if it is not refreshed before it expires.</p>
+<p>Each Globus container that has MDS4 installed will automatically have a default
+  Index Service instance. By default, any GRAM, RFT, or CAS service running in
+  that container will register itself to the container&rsquo;s default Index
+  Service.</p>
+<p>The Trigger Service collects information and compares that data against a
+  set of conditions defined in a configuration file. When a condition is met,
+  or triggered, an action takes place, such as emailing a system administrator
+  when the disk space on a server reaches a threshold.    </p>
+<h2> MDS4 Information Interfaces and Providers</h2>
+<p>In addition to the services described above, MDS4 includes several additional
+  software components, including an <em>Aggregator Framework</em>, which provides a unified
+  mechanism used by the Index and Trigger services to collect data.</p>
+<h3>Aggregator Framework</h3>
+<p>The Aggregator Framework is a software framework used to build services that
+  collect and aggregate data. Services (such as the Index and Trigger services)
+  built on the Aggregator Framework are sometimes called <em>aggregator
+  services</em>,
+and have the following in common:</p>
+<ul>
+  <li> They collect information via <em>Aggregator Sources</em>. An Aggregator Source
+      is a Java class that implements an interface (defined as part of the Aggregator
+      Framework) to collect XML-formatted data.</li>
+  <li>They use a common configuration mechanism to maintain information about
+      which Aggregator Source to use and its associated parameters (which
+    generally specify what data to get, and from where). The Aggregator Framework
+    WSDL defines an [aggregating service group entry type] that holds both configuration
+    information and data. Administrative client programs use standard [WSRF Service
+    Group registration mechanisms] to register these service group entries to
+    the aggregator service.</li>
+  <li>They are self-cleaning &ndash; each registration has a lifetime; if a
+      registration expires without being refreshed, it and its associated data
+    are removed from the server.</li>
+</ul>
+<p>MDS4 includes the following three Aggregator Sources: </p>
+<ul>
+  <li>the <em>Query Aggregator Source</em>, which
+        polls a WSRF service for resource property information, </li>
+  <li>the <em>Subscription
+        Aggregator Source</em>, which collect data from a WSRF service via WSRF
+    subscription/notification, </li>
+  <li>the <em>Execution Aggregator Source</em>, which executes an administrator-supplied
+            program to collect information.</li>
+</ul>
+<h3> Information Providers</h3>
+<p>Depending on the implementation, an Aggregator Source may use an external
+  software component (for example, the Execution Aggregator Source uses an executable
+  program), or a WSRF service may use an external component to create and update
+  its resource properties (which may then be registered to an Index or other
+  aggregator service, using the Query or Subscription Aggregator Source). We
+  refer to this set of components as <em>Information Providers</em>.</p>
+<p> Currently, the set of MDS4 Information Providers consists of: 
+</p>
+<ul>
+  <li><em>Hawkeye Information Provider</em>: An Information Provider that gathers
+    Hawkeye data about Condor pool resources using the XML mapping of the GLUE
+    schema, and detailing:
     <ul>
-      <li><a href="#gridresources">Grid resources</a> </li>
-      <li><a href="#infosources">Information sources </a></li>
-      <li><a href="#aggregatorservices">Aggregator services</a> </li>
-      <li><a href="#basicframework">Basic framework</a>
-          <ul>
-            <li><a href="#registering">Registering Grid resources</a></li>
-            <li><a href="#collecting">Collecting information</a></li>
-            <li><a href="#publishing">Publishing information </a></li>
-          </ul>
-      </li>
-      <li><a href="#basicdeployment">Basic WS MDS deployment</a></li>
+      <li> basic host data (name, ID)</li>
+      <li>processor information</li>
+      <li>memory size</li>
+      <li>OS name and version</li>
+      <li>file system data</li>
+      <li>processor load data</li>
+      <li>other basic Condor host data. </li>
     </ul>
   </li>
-  <li><a href="#relateddocs">Performance characteristics</a></li>
-  <li><a href="#related"> Related documents</a> </li>
-</ul>
-<h2><a name=overview></a>Overview</h2>
-<p><strong>Note:</strong> If you haven't done so already, we recommend reading
-  the <a href="#">GT4 Key Concepts guide</a> before continuing. Also keep in
-  mind that in this documentation, the concepts of MDS are written for the latest
-  version, WS MDS (also known as MDS4). The GT4 release includes the Pre-WS component,
-  MDS2, for legacy purposes only - it will be deprecated at some future time
-  as experience is gained with the WS implementation (for information about MDS2,
-  click <a href="http://www-fp.globus.org/mds/mds2/">here</a>.) </p>
-<p>The Monitoring and Discovery System (MDS) component of Globus Toolkit V4
-  (GT4) can streamline the tasks of monitoring and discovering services and resources  in a distributed system or Grid :</p>
-<ul>
-  <li><em>Monitoring</em> is the process of observing Grid resources (e.g.,
-    computers and schedulers), for such purposes as fixing problems and tracking
-    usage. For example, a user might use a monitoring system to identify resources
-    that are running low on disk space, in order to take corrective action.</li>
-  <li><em>Discovery</em> is the process of finding a suitable Grid resource to
-    perform a task: for example, finding a compute host on which to run a job.
-    This process may involve both finding which Grid resources are suitable (e.g.,
-    have the correct CPU architecture) and choosing a suitable member from that
-    set (e.g., the one with the shortest submission queue).</li>
-</ul>
-<font color="#800080"></font>
-<p>Both monitoring and discovery applications require the ability to collect
-   information about Grid resources from multiple, perhaps distributed,
-  sources (referred to as<em> information sources</em>.) To meet this need, WS MDS provides:</p>
-<ul>
-  <li>so-called <em>aggregator  services</em> (primarily the MDS-Index service)
-    that collect recent state information from registered Grid resources, and
-    then [does something with it.]</li>
-  <li>browser-based interfaces, command
-    line tools, and Web service interfaces that allow users/machines
-  to query and access the collected information.</li>
-</ul>
-<p>WS MDS is based on the <a href="link_to_WSRF_info">WSRF</a> implementation.
-  It makes heavy use of XML and Web service interfaces to simplify the tasks
-  of registering information sources and locating and accessing information of
-  interest. In particular, all information collected by aggregator services is
-  maintained as XML, and can be queried via XPath queries (as well as other Web
-  services mechanisms.) </p>
-<p>WS MDS has similar features to, but does not interoperate
-      with MDS2. The following  is a
-    breakdown of the differences:</p>
-<ul>
-  <li>More powerful query language: XPath instead of LDAP
-[Is xpath more powerful?  --Laura]</li>
-  <li>Simpler
-        and therefore more robust implementation, due to fewer components</li>
-  <li>GT 4.0 Final is intended to have simpler
-          (indeed, in simple cases, totally automated) configuration, due to
-    fewer components and tight integration with the GT4 implementation</li>
-  <li>Convenient
-            interface to arbitrary information sources due to extensible architecture.
-[Wasn't this also true of MDS2?  --Laura]</li>
-  <li>No
-              requirement for pre-defined schema in information providers. </li>
-  <li>Different performance characteristics:  in some cases, lower performance
-    than MDS2 (such as raw query rate) due to the immaturity of the underlying
-    technologies, while in other places higher performance due to architectural
-    changes (such as removal of cascading queries.)</li>
-</ul>
-<p><font color="purple">[TODO: mention differences with GT3's version of WS MDS
-    - may make a table] </font></p>
-<h2><a
-name=concepts></a>Conceptual details</h2>
-<p>This section will define the major players of WS MDS, then describe how
-  they fit together in a basic framework:</p>
-<ul>
-  <li><a href="#gridresources">Grid resources</a> </li>
-  <li><a href="#infosources">Information sources </a></li>
-  <li><a href="#aggregatorservices">Aggregator services</a> </li>
-  <li><a href="#basicframework">Basic framework</a>
+  <li><em>Ganglia Information Provider</em>: An Information Provider that gathers
+    cluster data from resources running Ganglia using the XML mapping of the
+    GLUE schema, and detailing:
     <ul>
-      <li><a href="#registering">Registering Grid resources</a></li>
-      <li><a href="#collecting">Collecting information</a></li>
-      <li><a href="#publishing">Publishing information  </a></li>
+      <li> basic host data (name, ID)</li>
+      <li> memory size</li>
+      <li> OS name
+        and version</li>
+      <li> file system data</li>
+      <li> processor load data</li>
+      <li> other basic
+              cluster data. </li>
     </ul>
   </li>
-  <li><a href="#basicdeployment">Basic WS MDS deployment</a></li>
-</ul>
-<h3><a name="gridresources"></a>Grid resources</h3>
-<p><em>Grid resources</em> are essentially any entity in a virtual organization
-  (VO) from which a user wants to obtain information: for example, a file, a
-program, a Web service, or another network-enabled service. </p>
-<h3><a name="infosources"></a>Information sources</h3>
-<p><em>Information sources</em> are basically sources of information about a
-  Grid resource you want to monitor. An information source collects the information
-  from the Grid resource and formats it so that it is compatible with WS MDS.
-  Information sources can either be Java classes in the Aggregator framework
-or executables. </p>
-<p>Java classes are supported for WSRF-compliant Web services.   Such services
-  need simply to&nbsp;make
-  status and state information available as WSRF resource properties .&nbsp;The
-  following are provided in WS MDS (custom ones can be written): </p>
-<ul>
-  <li>    the WSRF polling source, a Java
-    class which polls WSRF services for resource properties</li>
-  <li>the WSRF subscription source,  a Java class which receives resource properties
-  from WSRF services through subscription/notification  </li>
-</ul>
-<p>[I think that tou don't need to talk in the key concepts level about the fact
-that these happen to be implemented in java --Ben] </p>
-<p>Executables are user-supplied programs that 
-  allow information to be obtained from an arbitrary Grid resource (whether or
-  not it's a WSRF-compliant Web service). The program runs periodically to obtain
-  up-to-date data and can either generate the information locally
-  or use a source-specific protocol to access the information remotely. The program
-  must convert non-XML data into an appropriate XML representation.</p>
-<h4>GT4's built-in information sources </h4>
-<p>GT4 is configured to use WS MDS components for discovery and monitoring of
-GT4 services and provides built-in information sources, as follows:</p>
-<ul>
-  <li>Two GT4 services, GRAM and RFT, also publish a larger set of service-specific
-    information. These values are documented in the service descriptions for
-    GRAM and RFT <font color="purple">[provide list/links]</font> and also in
-    the <a href="#">GT4 resource properties catalog</a>.</li>
-  <li>The following are intended to be implemented for GT 4.0 Final:
-      <ul>
-        <li>Every GT4 service supports a minimal set of resource properties (an
-          informal service name and a service startup time) and thus can be registered
-          easily into one or more aggregator  services for monitoring and discovery. <font color="purple">[provide
-          list/links]</font></li>
-        <li>The GT4 distribution also includes information source executables
-          to enable registering GridFTP and RLS (which are <strong>not</strong> WSRF-compliant
-          Web services) into aggregator  services <font color="purple">[provide
-          list/links].</font></li>
-      </ul>
+  <li><em>WS GRAM</em>: The job submission service component of GT4. This WSRF
+    service publishes information about the local scheduler, including:
+    <ul>
+      <li> queue
+        information</li>
+      <li> number of CPUs available and free</li>
+      <li> job count information</li>
+      <li>some memory statistics. </li>
+    </ul>
   </li>
+  <li><em>Reliable File Transfer Service (RFT)</em>: The file transfer service
+    component of GT4. This WSRF service publishes:
+    <ul>
+      <li> status
+          data of the server</li>
+      <li> transfer status for a file or set of files</li>
+      <li> number
+            of active transfers</li>
+      <li> some status information about the resource running
+                the service. </li>
+    </ul>
+  </li>
+  <li>[And all WSRF services publish a basic <code>ServiceMetaDataInfo</code> element.
+    All GT4 services, that includes start time, version, and service type name.] </li>
 </ul>
-<h3><a name="aggregatorservices"></a>Aggregator services </h3>
-<p>A service that collects information using the WS-MDS aggregator  framework,
-and then [does something with it]. WS-MDS includes two aggregator  services: </p>
+<h2> WebMDS user interface</h2>
+<p>WebMDS is a web-based interface to WSRF resource property information that
+  is available as a user-friendly front-end to the Index Service. [WebMDS uses
+  standard resource property requests to query resource property data and displays
+  the results in various formats.]</p>
+<h2> Putting it all together</h2>
+<p>A typical deployment of MDS4 will enable a project to: </p>
 <ul>
-  <li>MDS-Index, which is the main component
-  for collecting structured data from information sources and making the information
-    available via a Web Services interface. </li>
-  <li>MDS-Trigger, which passes this information to an executable (configured
-    by the administrator), which may take an action such as sending email.&nbsp;</li>
+  <li>discover needed data
+        from services in order to make job submission or replica selection decisions; </li>
+  <li>evaluate the status of Grid services for a project testbed; </li>
+  <li>be notified when
+        disks are full or other error conditions happen; </li>
+  <li> visualize the state
+      of services. </li>
 </ul>
-<p>A third aggregator  service is planned: an MDS-Archive, which will maintain
-  an archive of historical information.</p>
-<p>WS MDS aggregator  services are distinguished from a traditional static registry
-  such as UDDI by their soft-state registration of information sources and periodic
-  refresh of the structured data that they store. This dynamic behavior enables
-  scalable discovery by allowing users to access &ldquo;recent&rdquo; information
-without accessing the information sources directly. </p>
-<p>However, note that the information obtained may not be the absolute latest.
-  Also, as aggregator  services do not interpret policy information, there is
-  no guarantee that a user will be allowed to access a service discovered in
-  this way.</p>
-<h4>MDS-Index service</h4>
-<p>The <em>MDS-Index</em> service makes the collected data available as XML documents.
-More specifically, the data is maintained as WSRF resource properties, thus:</p>
-<ul>
-  <li>Users can write their own applications that collect information using <em>Web
-      services interfaces</em>, namely the WSRF get-property and WS-Notification
-      subscribe operations, for which GT4 provides C, Java, and Python APIs.</li>
-  <li>The command line tool <a href="../../common/javawscore/user/index.html#wsrf-get-property"><code>wsrf-get-property</code></a> can
-    be used to retrieve resource properties, with the desired resource property
-    specified via an XPath expression.
-[I think you're confusing two tools -- wsrf-query lets you specify an
-xpath query; wsrf-get-property lets you get a single resource property
-(specified as the name of the resource property, which is a QName, not
-an xpath query). -- Laura]</li>
-  <li>A tool called <a href="../../info/webmds/">WebMDS</a> presents MDS-Index information in a standard web browser.
-    WebMDS is highly configurable, using XSLT transformations to describe how
-    MDS-Index resource properties are converted to HTML. Standard transformations
-    included in GT4 provide an interface that displays overview information,
-    with hyperlinks giving the ability to drill down and view more detailed information
-    about each monitored resource. </li>
-</ul>
-<p>For more information, see the <a href="../index/">MDS-Index service documentation</a>.</p>
-<h4>MDS-Trigger service </h4>
-<p>The <em>MDS-Trigger</em> service performs user-specified actions (such as
-  sending email or generating a log-file entry) whenever collected information
-  matches criteria determined by the users. MDS-Trigger defines:</p>
-<ul>
-  <li> a Web service interface that allows a client to register an XPath query;
-    and</li>
-  <li>a program to be executed whenever a new value matches a user-supplied matching
-    rule.</li>
-</ul>
-<p>For more information, see the <a href="../trigger/">MDS-Trigger service documentation</a>.</p>
-<h3><a name="basicframework"></a>Basic framework</h3>
-<p>The key to understanding WS MDS is the aggregator  service/information
-  source framework. The basic process is as follows:</p>
+<p>MDS should be deployed in a distributed fashion. Some components
+            should be deployed central to a VO, while others should be deployed
+    on individual resources.</p>
+<p>In order to deploy a project or VO-wide MDS4 setup, we recommend the following
+  steps. </p>
+<p><strong>Note:</strong> The services deployed do <strong>not</strong> need to be run on the
+    same host or be at the same location.</p>
 <ol>
-  <li><em>Grid resources</em> are
-        explicitly registered with an <em>aggregator  service</em>.  </li>
-  <li>The aggregator  service periodically collects up-to-date state or status
-        information from all registered Grid resources using specific <em>information
-        sources</em>. </li>
-  <li>The aggregator  service then publishes this information to the user [makes
-    this information available to the user].</li>
-</ol>
-<h4><a name="registering"></a>Registering Grid resources </h4>
-<p> [In general, I think the next few pictures could do a better job of showing
-  how information about non-Grid-Service resources are monitored. For example,
-  it's not necessarily true that an information source that monitors GridFTP
-  gets all its information from the GridFTP server -- it might look at log files,
-  do system calls to figure out how much disk space is available, etc. You might
-  even want to consider showing something that monitors something other than
-  a service (like an information source that monitors free disk space by doing
-  system calls, independent of GridFTP). -- Laura] </p>
-<p>An aggregator  service registers with a  Grid resource via
-  a Web service (WS-ServiceGroup) Add operation. Registrations can be configured
-  either at an MDS-Index service or at a Grid resource. </p>
-<p>Registrations have a
-    lifetime: if not renewed periodically, they expire. Thus, an aggregator 
-  service is self-cleaning: outdated entries disappear automatically when they
-  do not renew their registrations.</p>
-<p>Two registration modes are supported; each also defines the access mechanism
-  for the associated Grid resource. </p>
-<p>The more general registration mode allows information to be obtained from
-  an arbitrary source (whether or not it's a WSRF-compliant Web service). In
-  this mode, a Grid resource is registered by providing a user-supplied program
-  that is run periodically to obtain up-to-date data .&nbsp;This user program
-  can either generate the information locally or use a source-specific protocol
-  to access the information remotely. The program must convert non-XML data into
-  an appropriate XML representation.</p>
-<p>[this is the only mode that exists at the moment -- Ben]</p>
-<p>A more streamlined form of registration is supported for WSRF-compliant Web
-  services. Such services need simply to&nbsp;make status and state information
-  available as WSRF resource properties.&nbsp;At registration time, the user
-  specifies whether the aggregator  service should either: use pull resource
-  properties, using the WSRF &ldquo;get resource property&rdquo; interface; or subscribe
-  to resource property changes so that values are pushed via WS-Notification
-subscription methods.</p>
-<p>[This 'streamlined reg mode' paragraph doesn't make sense to me. What is 
-  described doesn't sound very streamlined at all. There is a different 
-  streamlined registration mode that will be implemented in future (by 3.9.5
-   hopefully), that will be specifically for registering one index to 
-  another. It will have no parameters other than the URL to an index 
-service. -- Ben] </p>
-<p align="center"><br>
-  <img src="registering_grid_resources_650.jpg" width="650" height="376"></p>
-<p>&nbsp;</p>
-<h4><a name="collecting"></a>Collecting the information </h4>
-<p>The information source is the 'compatibility' link between the Grid resource
-  and the aggregator  service; its purpose is to ensure the information
-  is formatted in a way the aggregator  service understands (namely,
-  well-formed XML). In the following diagram, RFT and WS GRAM, both WSRF services,
-  simply pass their information using WSRF protocols to the appropriate Java
-  class whereas GridFTP and RLS use an executable that &quot;talks&quot; to them and converts
-  the information. All information is sent as XML to the MDS-Index
-  service. </p>
-<p align="center"><img src="collecting_info_650.jpg" width="650" height="478"></p>
-<p align="left">&nbsp;</p>
-<h4><a name="publishing"></a>Publishing the information </h4>
-<p>Aggregator services 
-  publish the collected information for the user in many different formats. The
-    following diagram show the user receiving information via WebMDS (in the
-    form of a Web browser interface) and the Trigger service (in the form of
-    an email triggered by conditions set by the user.)</p>
-<p align="center"><img src="publishing_info_650.jpg" width="650" height="588"></p>
-<h3><a name="basicdeployment"></a>Basic WS MDS Deployment</h3>
-<p>Every standard GT4 Web services hosting environment includes a default MDS-Index
-  service. Any GT4 services running in that hosting environment (e.g.,
-  GRAM, CAS, RFT) are automatically registered. Thus, each installation on a
-  platform has an MDS-Index that allows you to discover what services are available.</p>
-<p>Since virtual organizations (VOs) often need to keep track of all available
-  Grid resources,  GT4
-  also provides a simple method for registering one or more default indexes to
-  be a VO-wide MDS-Index. In this setup,  each Grid resource registered
-  to a default MDS-Index is also registered in the VO MDS-Index.</p>
-<p>For a more detailed description of a basic deployment within a VO, see <a href="deployment_overview.html">Deploying
-    WS MDS in a Virtual Organization</a>. </p>
-<h2><a name=relateddocs></a>Performance Characteristics</h2>
-<p>We only have very preliminary performance data at this time. These data suggest
-  that WS MDS aggregator  services can support query rates of the order of tens
-  of queries per second (depending on data sizes) and a few hundred information
-  sources, depending on registration and information update rates. We emphasize
-  that these are not accurate data. We welcome feedback on application requirements.</p>
-<p><strong>Note:</strong> As stated above, in some cases WS MDS has lower performance
-  than MDS2 (such as raw query rate) due to the immaturity of the underlying
-  technologies, while in other cases it has higher performance than MDS2 due
-  to architectural changes (such as removal of cascading queries.)</p>
-<h2><a name="related"></a>Related Documents</h2>
-<p>The following links include internal or external documents that expand on
-  some of these key concepts:</p>
-<ul>
-  <li>Documentation for the various component described in this guide: 
-    <ul>
-      <li><a href="../index/">MDS-Index</a></li>
-      <li><a href="../trigger/">MDS-Trigger</a></li>
-      <li><a href="../aggregator/">Aggregator framework</a></li>
-      <li><a href="../../info/webmds/">WebMDS</a> </li>
-    </ul>
+  <li>For clusters (or Condor pools), make sure that Ganglia (or Hawkeye)
+    is configured and running properly to view cluster information in
+    the Index Service. Please see <a href="gluerp.html">Cluster Monitoring Information
+    and the GLUE Resource Property</a>  for more information. Once properly deployed,
+    you can view the scheduler and cluster information, whose format is defined
+    by XML schema definitions, located at
+    <code>$GLOBUS_LOCATION/share/schema/mds/usefulrp/batchproviders.xsd</code> and
+    <code>$GLOBUS_LOCATION/share/schema/mds/usefulrp/ce.xsd</code>.</li>
+  <li>Set up the Index Service:
+    <ol type="a">
+      <li>If you want to set up a site-wide Index Service with all services and
+        resources for the project at that site registered to it, including those
+          provided by Ganglia or Hawkeye, please refer to the <a href="../index/admin/index.html">MDS
+          Index System Administrator's Guide</a>.</li>
+      <li> If you want to deploy an Index Service to act as the centralized data
+        source for the VO to collect information about all of the resources in
+        the VO, please see <a href="deployment_overview.html">Deploying WS MDS in a
+          Virtual Organization</a>.</li>
+    </ol>
   </li>
-  <li><a href="deployment_overview.html">Deploying WS MDS in a Virtual Organization</a></li>
-  <li> <a href="gluerp.html">Cluster Monitoring Information and the GLUE Resource
-      Property</a></li>
-</ul>
-<p>SHOULD BE IN OTHER DOCS.</p>
-<p>[Index | but which guide? Dev/Admin/User? --Cris ] In the default installation,
-  the most useful information collected and made available by MDS is from:</p>
-<ul>
-  <li> GRAM
-      compute job submission service - the collected information includes details
-      of each queue to which jobs can be submitted, including name of the queue
-    and number of jobs in the queue. The information also includes information
-    about the underlying cluster or host that will be used to execute the compute
-    job, with details such as CPU type and disk space</li>
-  <li>RFT reliable file transfer service
-        interface to GridFTP - the collected information includes a number of
-    numerical statistics such as the
-      total number of files transferred, total number of bytes transferred, and
-    the number of transfers underway at present</li>
-</ul>
-<p>&nbsp;</p>
+  <li> Install the WebMDS release to view the contents of a central
+      Index Service in a web browser (please see the <a href="../webmds/admin/">WebMDS
+      System Administrator's Guide</a> for more information).</li>
+  <li>Deploy a Trigger Service notification script to alert interested
+      parties about changes in the status of the VO (please see the <a href="../trigger/admin/">Trigger
+      Service System Administrator's Guide</a>).</li>
+</ol>
 <?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
