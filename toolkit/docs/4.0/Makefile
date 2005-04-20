@@ -9,7 +9,7 @@ all: html pdf
 html:
 	xsltproc --stringparam chunk.section.depth 0 \
            ${GRAPHICS} ${NUMBERING} ${TITLES} ${TOCS}\
-           admin/docbook/chunk.xsl \
+           glossary.xsl \
            ${FILENAME}
 
 pdf:
