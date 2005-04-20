@@ -41,7 +41,7 @@ of components for working with and managing data on the Grid.
 <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> section of this website 
 provides examples of these components being used in scientific projects. See especially the 
 <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."tgcp/"; ?>">TeraGrid Copy</a></strong>,
-<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."ldr/"; ?>">LIGO Data Replication</a></strong>, and
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."data_replication/"; ?>">LIGO Data Replication</a></strong>, and
 <strong>SDSS Data Analysis</strong>
 solutions.
 </p>
