@@ -32,8 +32,8 @@ This model of availability creates requirements for <em>monitoring</em> and <em>
 <strong>Related solutions:</strong>
 The <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> section 
 of this website provides examples of these components being used in scientific projects. See 
-especially the <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."esg-monitoring/"; ?>">ESG 
-Monitoring System</a></strong> solution.
+especially the <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."system_monitoring/"; ?>">ESG 
+System Monitoring</a></strong> solution.
 </p>
 
 <p><strong><a name="mechanisms" class="title">Basic Monitoring and Discovery Mechanisms</a></strong></p>
