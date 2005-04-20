@@ -1,6 +1,6 @@
 <?php
 
-$title = "Globus: Alliance - Paricipants";
+$title = "Globus: Alliance - Participants";
 $section = "section-2";
 include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
