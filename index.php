@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">04.20.2005</span></td>
+              <td><b>PURSE makes user registration easy.</b> 
+                <a class="learnmore" href="http://www.grids-center.org/solutions/purse/">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">04.09.2005</span></td>
               <td><b>See us in San Diego in May!</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">02.25.2005</span></td>
               <td><b>GT 3.9.5 is available for testing.</b> 
                 <a class="learnmore" href="http://www-unix.globus.org/toolkit/staging/news.html#02252005">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">02.09.2005</span></td>
-              <td><b>UCLA builds Grid portal using GT3.2.</b> 
-                <a class="learnmore" href="http://grid.ucla.edu/">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>

@@ -47,6 +47,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>The Globus Alliance and GRIDS Center have released 
+<a class="newspartners" href="http://www.grids-center.org/solutions/purse/">PURSE</a>, 
+a Portal Based User Registration Service. (4/2005)</p>
+
 <p><a class="newsalliance" href="http://www.nesc.ac.uk/esi/events/519/">UK Globus Week</a> brought 
 training and Globus Alliance leaders to Edinburgh. (4/2005)</p>
 
