@@ -19,8 +19,8 @@ An AggregatorContent object is composed of two xsd:any arrays: AggregatorConfig
 <h3>Syntax of the interface</h3>
 <ul>
   <li><a href="#aggregatortypes">aggregator-types.xsd</a></li>
-  <li><a href="#specifying-source">Specifying the aggregator  source</a></li>
-  <li><a href="#configuring_source">Configuring the aggregator  source</a></li>
+  <li><a href="#specifying-source">Specifying the Aggregator Sources</a></li>
+  <li><a href="#configuring_source">Configuring the Aggregator Sources</a></li>
   <li>  <a href="#configuring_poll">ServiceGroupRegistration Content Blocks for QueryAggregatorSource</a></li>
   <li><a href="#configuring_subscription">ServiceGroupRegistration Content Blocks for SubscriptionAggregatorSource</a></li>
   <li><a href="#configuring_execution">ServiceGroupRegistration Content Blocks for ExecutionAggregatorSource</a></li>
@@ -67,14 +67,16 @@ An AggregatorContent object is composed of two xsd:any arrays: AggregatorConfig
     &lt;/xsd:sequence&gt;
 &lt;/xsd:complexType&gt; </pre>
 
-<h4><a name="specifying-source"></a>Specifying the Aggregator Source</h4>
-<p>The aggregation source used to collect data can be changed from default
-   by editing the aggregatorSource parameter in the index configuration
-   in <code>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/jndi-config.xml</code>:
+<h4><a name="specifying-source"></a>Specifying the Aggregator Sources</h4>
+<p>The aggregator sources used to collect data can be set by editing the 
+   aggregatorSources parameter in the implementing service's JNDI configuration file.
+
+   See <code>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/jndi-config.xml</code>
+   or <code>$GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/jndi-config.xml</code>:
 </p>
 <pre>
   &lt;resource name="configuration"
-               type="org.globus.mds.index.impl.IndexConfiguration"&gt;
+               type="org.globus.mds.aggregator.impl.AggregatorConfiguration"&gt;
     &lt;resourceParams&gt;
       &lt;parameter&gt;
         &lt;name&gt; factory&lt;/name&gt;
@@ -82,16 +84,17 @@ An AggregatorContent object is composed of two xsd:any arrays: AggregatorConfig
       &lt;/parameter&gt;
       &lt;parameter&gt;
         &lt;name&gt;aggregatorSource&lt;/name&gt;
-        <b>&lt;value&gt;org.globus.mds.aggregator.impl.QueryAggregatorSource&lt;/value&gt;</b>
+        <b>&lt;value&gt;org.globus.mds.aggregator.impl.QueryAggregatorSource 
+               org.globus.mds.aggregator.impl.SubscriptionAggregatorSource 
+               org.globus.mds.aggregator.impl.ExecutionAggregatorSource
+        &lt;/value&gt;</b>
       &lt;/parameter&gt;
     &lt;/resourceParams&gt;
 </pre>
 
 
-<p>This parameter specifies a java class that will be used to collect data
-   for the index. By default it is set to the QueryAggregatorSource. It can
-   be changed to one of the other sources supplied with the toolkit, or to
-   one installed later. Details of the supplied sources are in the
+<p>This parameter specifies one or more Java classes that may be used to collect data
+   for the service. Details of the supplied sources are in the
    <a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/aggregator/developer/#introduction">Aggregator
    Framework Developers Guide</a>.</p>
 <h4><a name="configuring_source"></a>Configuring the Aggregator Source</h4>
@@ -190,11 +193,19 @@ value of <code>defaultRegistrantEPR</code> will be used instead.</td>
 </tr>
 <tr>
   <td><code>InitialTerminationTime</code></td>
-<td>The initial termination time of this registration (this may be omitted).</td>
+<td>The initial termination time of this registration (this may be omitted). If 
+the initial termination time is omitted, then the registrant lifetime is considered 
+infinite, i.e., equivalent to the lifetime of the container running the service. 
+Note that infinite-lifetime registrations which specify poll-based 
+QueryAggregatorSource parameters will attempt to poll infinitely as well. 
+Use caution when using infinite initial termination times in this manner.</td>
 </tr>
 <tr>
   <td><code>RefreshIntervalSecs</code></td>
-<td>The refresh interval, in seconds.</td>
+<td>The refresh interval of the registration, in seconds. If the initial 
+termination time for the registration has expired, and a registration refresh 
+is not made within approximately 2 times this interval, the registration will 
+be subject to removal.</td>
 </tr>
 <tr>
   <td><code>Content</code></td>
@@ -258,7 +269,7 @@ number of <code>ResourcePropertyNames</code> that may be specified.
 <h5><a name="QueryResourcePropertiesPollType"></a>QueryResourcePropertiesPollType</h5>
 If a <code>QueryResourcePropertiesPollType</code> block is used,
 QueryAggregatorSource will request that a query be executed against the Resource Property Set of the remote resource.
-In the GT3.9.5 implementation of core, the only query language that is
+In the GT4 implementation of WSRF Core, the only query language that is
 supported is XPath.  The block has this form:
 <pre>
    &lt;Content
@@ -312,7 +323,7 @@ like this:
 </pre>
 The only required parameter is the <code>TopicExpression</code>, which
 specifies the topic expression to use in the subscription request.
-[TODO:  link to generic notification/subscription docs].
+[TODO:  link to generic notification/subscription docs ].
 
 <h4><a name="configuring_execution"></a>ServiceGroupRegistration Content Blocks
   for ExecutionAggregatorSource</h4>
