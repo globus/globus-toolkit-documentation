@@ -11,13 +11,13 @@
   <title>Architecture and design overview</title>
   <itemizedlist>
     <listitem>
-      <simpara>Java WS Core Design Document [<ulink url="JavaWSCoreDesign.doc">doc</ulink> | <ulink url="JavaWSCoreDesign.pdf">pdf</ulink>]</simpara>
+      <simpara>Java WS Core Design Document [<ulink url="developer/JavaWSCoreDesign.doc">doc</ulink> | <ulink url="developer/JavaWSCoreDesign.pdf">pdf</ulink>]</simpara>
     </listitem>
     <listitem>
-      <simpara>Java WS Core UML [<ulink url="JavaWSCoreUML.vsd">vsd</ulink> | <ulink url="Resource.gif">Resource (.gif)</ulink>, <ulink url="ResourceProperty.gif">Resource Property (gif)</ulink>, <ulink url="Notification.gif">Notification (gif)</ulink>]</simpara>
+      <simpara>Java WS Core UML [<ulink url="developer/JavaWSCoreUML.vsd">vsd</ulink> | <ulink url="developer/Resource.gif">Resource (.gif)</ulink>, <ulink url="developer/ResourceProperty.gif">Resource Property (gif)</ulink>, <ulink url="developer/Notification.gif">Notification (gif)</ulink>]</simpara>
     </listitem>
     <listitem>
-      <simpara>Java WS Core Notification UML Sequence Diagrams [<ulink url="NotificationSequences.vsd">vsd</ulink> | <ulink url="NotificationSequence1.jpg">Subscription (jpg)</ulink>, <ulink url="NotificationSequence2.jpg">Notification (jpg)</ulink>]</simpara>
+      <simpara>Java WS Core Notification UML Sequence Diagrams [<ulink url="developer/NotificationSequences.vsd">vsd</ulink> | <ulink url="developer/NotificationSequence1.jpg">Subscription (jpg)</ulink>, <ulink url="developer/NotificationSequence2.jpg">Notification (jpg)</ulink>]</simpara>
     </listitem>
   </itemizedlist>
 </section>
@@ -29,6 +29,232 @@
 </section>
 <section id="s-javawscore-developer-scenarios">
   <title>Usage scenarios</title>
+
+  <section id="s-javawscore-developer-basics">
+  <title>Basics</title>
+
+  <section id="s-javawscore-developer-DocumentLiteral">
+    <title>Document/literal rules </title>
+    <para>The WS-RF and WS-N specifications schemas follow the <emphasis>document/literal</emphasis> mode as described in <ulink url="http://www.ws-i.org/Profiles/BasicProfile-1.0-2004-04-16.html">WS-I Basic Profile</ulink>. The Basic Profile defines certain rules to follow for document/literal and
+other modes to ensure interoperability. 
+</para>
+    <para>For example, for document/literal mode, at most one &lt;wsdl:part&gt; is allowed in the &lt;wsdl:message&gt; element and it has to define the &apos;element&apos; attribute. Also, the wire signatures must be unique (cannot use the same &apos;element&apos; attribute in &lt;wsdl:part&gt; in two different &lt;wsdl:message&gt; elements). 
+</para>
+    <para>Java WS Core relies on these restrictions so please keep them in mind when designing your own schema. 
+</para>
+    <para><note>
+        <para>Axis&apos; WSDL2Java tool might sometimes incorrectly detect
+that schema follows the wrapped/literal mode and generate wrong stub and type
+classes. To ensure that document/literal mode is always used:
+<itemizedlist>
+            <listitem>
+              <simpara>use Java WS Core&apos;s <computeroutput>generateStub*</computeroutput> Ant tasks in <computeroutput>&lt;install&gt;/share/globus_wsrf_tools/build-stubs.xml</computeroutput> file</simpara>
+            </listitem>
+            <listitem>
+              <simpara>if you are using Axis&apos; WSDL2Java tool directly, you can alternatively specify the <computeroutput>-W</computeroutput> command line option.</simpara>
+            </listitem>
+          </itemizedlist>Also, with wrapped/literal mode, the element name had to match the operation
+ name in wsdl. This is <emphasis>not</emphasis> necessary with document/literal mode.</para>
+      </note></para>
+    <para>
+</para>
+  </section>
+
+  <section id="s-javawscore-developer-OperationProvider">
+    <title>Operation providers and its configuration</title>
+    <para>GT3 introduced a concept of <emphasis>operation providers</emphasis> where a service could be composed
+of different parts/classes. Java WS Core also supports this functionality. In
+  GT3 operation providers had to implement a specific interface. In Java WS Core <emphasis>no</emphasis> such
+  interface is required. In fact, an operation provider is not in
+  any way different from a standard web service. That means that <emphasis>any</emphasis> web
+service implementation can automatically be used as an operation provider (as
+long as it uses common or standard interfaces to operate on resources.)
+</para>
+    <para>To enable operation provider support for your service, make the following
+  changes to the service deployment descriptor: <orderedlist>
+        <listitem>
+          <simpara>Change the value of the <computeroutput>provider</computeroutput> attribute to <computeroutput>Handler</computeroutput>.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>Add a <computeroutput>handleClass</computeroutput> parameter with a value of <classname>org.globus.axis.providers.RPCProvider</classname>.</simpara>
+        </listitem>
+        <listitem>
+          <para>Specify providers in the <computeroutput>providers</computeroutput> parameter. </para>
+          <para>The value
+        of the parameter is a space-separated list of either provider names or
+        class names. If provider names are used, they must  first be defined
+        as  parameters in the <computeroutput>&lt;globalConfiguration&gt;</computeroutput> element
+    of the <emphasis>main</emphasis> deployment descriptor (<computeroutput>etc\globus_wsrf_core\server-config.wsdd</computeroutput>). </para>
+          <para>For example: </para>
+          <screen>&lt;globalConfiguration&gt;
+  ...
+  &lt;parameter name=&quot;s-javawscore-developer-GetRPProvider&quot; 
+              value=&quot;org.globus.wsrf.impl.properties.GetResourcePropertyProvider&quot;/&gt;
+  ...
+&lt;/globalConfiguration&gt;</screen>
+        </listitem>
+        <listitem>
+          <simpara>Add or change the value of the <computeroutput>scope</computeroutput> parameter to <computeroutput>Application</computeroutput> or <computeroutput>Request</computeroutput></simpara>
+        </listitem>
+      </orderedlist></para>
+    <para>The following is an example of a modified service deployment descriptor:
+  
+<screen>&lt;service name=&quot;SubscriptionManagerService&quot; <emphasis> provider=&quot;Handler&quot;</emphasis> use=&quot;literal&quot; style=&quot;document&quot;&gt;
+  &lt;parameter name=&quot;allowedMethods&quot; value=&quot;*&quot;/&gt;
+  <emphasis>&lt;parameter name=&quot;scope&quot; value=&quot;Application&quot;/&gt;</emphasis>
+  <emphasis>&lt;parameter name=&quot;providers&quot; value=&quot;GetRPProvider org.globus.wsrf.impl.lifetime.SetTerminationTimeProvider PauseSubscriptionProvider&quot;/&gt;</emphasis>
+  <emphasis>&lt;parameter name=&quot;handlerClass&quot; value=&quot;org.globus.axis.providers.RPCProvider&quot;/&gt;</emphasis>
+  &lt;parameter name=&quot;className&quot; 
+            value=&quot;org.globus.wsrf.impl.notification.ResumeSubscriptionProvider&quot;/&gt;
+  &lt;wsdlFile&gt;share/schema/core/notification/subscription_manager_service.wsdl&lt;/wsdlFile&gt;
+&lt;/service&gt;</screen>
+
+<note>
+        <simpara>The operations defined in the <computeroutput>className</computeroutput> service always overwrite the providers&apos; operations. That is, if one provider defines the same method as the service specified in the <computeroutput>className</computeroutput> parameter, the operation will be invoked on the service. Also, if two providers define the same method, the first one specified in the <computeroutput>providers</computeroutput> parameter will be invoked.</simpara>
+      </note></para>
+  </section>
+
+  <section id="s-javawscore-developer-JNDIDetails">
+    <title>JNDI configuration file</title>
+    <para>Java WS Core provides <ulink url="http://jakarta.apache.org/tomcat/tomcat-5.0-doc/jndi-resources-howto.html">Tomcat&apos;s JNDI</ulink> implementation. The file format of Java WS Core&apos;s <computeroutput>jndi-config.xml</computeroutput> is slightly different from the Tomcat&apos;s <computeroutput>server.xml</computeroutput> file. One main difference is that the <computeroutput>&lt;resourceParams&gt;</computeroutput> are specified as children of <computeroutput>&lt;resource&gt;</computeroutput> objects. Also, Java WS Core&apos;s <computeroutput>jndi-config.xml</computeroutput> parser is case sensitive and all elements names are lowercase. 
+</para>
+    <para>All elements defined in the <computeroutput>&lt;global&gt;</computeroutput> section of the JNDI configuration file are deployed into the <computeroutput>java:comp/env</computeroutput> context under the name specified in the &apos;name&apos; attribute. All <computeroutput>&lt;service&gt;</computeroutput>elements are deployed into <computeroutput>java:comp/env/services/&lt;service name&gt;</computeroutput> context. New objects and contexts can be added or modified dynamically at runtime but they will not be persisted. The only way to always have some object around is to deploy it in the <computeroutput>jndi-config.xml</computeroutput> file. All services <emphasis>share</emphasis> the same <computeroutput>java:comp/env</computeroutput> context. This is different from EJBs where each EJB has a separate <computeroutput>java:comp/env</computeroutput> context. 
+</para>
+    <para>When deploying <computeroutput>&lt;resource&gt;</computeroutput> in <computeroutput>jndi-config.xml</computeroutput>,
+make sure to use the <computeroutput>org.globus.wsrf.tools.jndi.BeanFactory</computeroutput> as a
+BeanFactory (value of a &apos;factory&apos; parameter) instead of <computeroutput>org.apache.naming.factory.BeanFactory</computeroutput>.
+Your bean must have a default constructor. If your bean implements the <computeroutput>org.globus.wsrf.jndi.Initializable</computeroutput> interface,
+the <computeroutput>initialize()</computeroutput> function will be automatically called after all
+parameters are set on the bean. 
+</para>
+    <para>Please see <ulink url="http://java.sun.com/products/jndi/tutorial/">The JNDI Tutorial</ulink> for more information on JNDI programming. 
+</para>
+  </section>
+
+
+  <section id="Activation">
+    <title>Lifecycle and activation</title>
+    <section>
+      <title>Activating a service</title>
+      <para>To activate a service, an RPCProvider is available from both Axis and Globus. </para>
+    </section>
+    <section>
+      <title>Activating a service using the Axis RPCProvider</title>
+      <para>
+The <computeroutput>scope</computeroutput> setting of the service dictates when and how service instances
+are created:</para>
+      <table>
+        <title>Scope settings</title>
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <emphasis>Application</emphasis>
+              </entry>
+              <entry>One instance of the service is used for all invocations.</entry>
+            </row>
+            <row>
+              <entry>
+                <emphasis>Request</emphasis>
+              </entry>
+              <entry>One instance is created per invocation. This is the default (if scope parameter is not set in the deployment descriptor).</entry>
+            </row>
+            <row>
+              <entry>
+                <emphasis>Session</emphasis>
+              </entry>
+              <entry> One instance is created per session. </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>If the service
+        implements the <ulink url="http://java.sun.com/j2ee/1.4/docs/api/javax/xml/rpc/server/ServiceLifecycle.html">javax.xml.rpc.server.ServiceLifecycle</ulink> interface,
+        the lifecycle methods  will be called according to the <computeroutput>scope</computeroutput> setting
+  as a service instance is created and destroyed. </para>
+      <para>For example, in <emphasis>Application</emphasis> scope, <emphasis>destroy()</emphasis> will
+          be called on container shutdown, and in <emphasis>Request</emphasis> scope it will
+be called after the service method is called. </para>
+      <para>  With Axis RPCProvider, JAAS credentials are never associated with the
+invocation thread. </para>
+    </section>
+    <section>
+      <title>Activating a service using the Globus RPCProvider</title>
+      <para>
+The <computeroutput>scope</computeroutput> setting of the service dictates when and how service instances
+are created (only <emphasis>Application</emphasis> and <emphasis>Request</emphasis> scopes are supported
+with Globus RPCProvider):</para>
+      <table>
+        <title>Scope settings and activation</title>
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <emphasis>Application</emphasis>
+              </entry>
+              <entry>
+                <para>Service/provider instances are created either on first invocation
+        or on container startup. The behavior is determined by the value 
+        of the 
+        &quot;loadOnStartup&quot; 
+        parameter. This will work in the same way in both the stand-alone 
+        container and in Tomcat. </para>
+                <para>        If the service or the container is configured with a security
+        descriptor, the appropriate credentials will be associated with the thread
+        during activation (using JAAS). Also, during activation a basic Axis
+        MessageContext will be associated with the thread with only <emphasis>Constants.MC_HOME_DIR</emphasis>, <emphasis>Constants.MC_CONFIGPATH</emphasis>,
+    and the right target service properties set (see <xref linkend="s-javawscore-developer-ContextProperties"/> for details). If service or providers implement the <ulink url="http://java.sun.com/j2ee/1.4/docs/api/javax/xml/rpc/server/ServiceLifecycle.html">javax.xml.rpc.server.ServiceLifecycle</ulink> interface,
+    the lifecycle methods will be called accordingly. </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <emphasis>Request</emphasis>
+              </entry>
+              <entry>
+                <para>One instance is created per invocation. This is the default (if scope
+      parameter is not set in the deployment descriptor).</para>
+                <para>Behaves more or less just like the Axis RPCProvider (service/providers
+        instances are created per invocation, ServiceLifecycle methods called
+        right before and after service method invocation, no JAAS credentials
+      during ServiceLifecycle methods). </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section>
+      <title>Activating a ResourceHome</title>
+      <para>A ResourceHome will be activated either on the first service invocation or, 
+if <emphasis>&quot;loadOnStartup&quot;</emphasis> parameter  is set to <emphasis>&quot;true&quot;</emphasis>, during container 
+startup. Both mechanisms trigger actual activation by looking up the ResourceHome 
+in the JNDI directory. This initial lookup causes a proper MessageContext 
+and/or JAAS subject to be associated with the current thread, instantiation of 
+the object implementing the ResourceHome and, if the ResourceHome implements the 
+<emphasis>org.globus.wsrf.jndi.Initializable</emphasis> interface, the invocation of the 
+<emphasis>initialize()</emphasis> function.
+</para>
+      <para>In fact, the same steps are performed upon initial lookup of any JNDI <emphasis>resource</emphasis> entry that 
+uses the <emphasis>org.globus.wsrf.jndi.BeanFactory</emphasis> class for its factory and is defined directly 
+under a <emphasis>service</emphasis> entry in a <emphasis>jndi-config.xml</emphasis> file.
+</para>
+    </section>
+    <section>
+      <title>Activating ServiceResourceHome</title>
+      <para>If you are using a ServiceResourceHome please make sure to deploy the service with the <emphasis>&quot;loadOnStartup&quot;</emphasis> option enabled and in <emphasis>Application</emphasis> scope. That will ensure that the ResourceHome is initialized with the right service/resource.
+</para>
+    </section>
+  </section>
+
+  </section>
+
+  <section id="s-javawscore-developer-programming">
+    <title>Programming</title>
+
+  <section id="s-javawscore-developer-programming-general">
+    <title>General</title>
+
   <section id="s-javawscore-developer-ApacheAddressing">
     <title>Using Apache Addressing API</title>
     <para>The WS-RF and WS-N specifications distributed with Java WS Core use <emphasis>WS-Addressing</emphasis> (the
@@ -37,7 +263,6 @@ Java WS Core uses the <ulink url="http://ws.apache.org/ws-fx/addressing/">Apache
 and easy to use. Most of the work is done in <computeroutput>AddressingHandler</computeroutput> deployed
 in the client and server configuration files. See <ulink url="http://ws.apache.org/ws-fx/addressing/">Apache Addressing documentation</ulink> for details.
 </para>
-  </section>
   <section id="s-javawscore-developer-call">
     <title>Call object</title>
     <para>If you are using the <computeroutput>javax.xml.rpc.Call</computeroutput> object directly, you can pass the addressing information by setting a <computeroutput>Constants.ENV_ADDRESSING_REQUEST_HEADERS</computeroutput> property on the call object. </para>
@@ -134,6 +359,8 @@ VerionServicePortType port = locator.getVersionPort(epr);
 port.getVersion();</screen>
 </para>
   </section>
+  </section>
+
   <section id="s-javawscore-developer-NotificationConsumer">
     <title>Setting up and receiving notifications (Notification Consumer)</title>
     <para>There are a few steps involved in setting up and receiving notifications:</para>
@@ -213,7 +440,7 @@ SubscribeResponse subResponse = port.subscribe(request);
       <formalpara>
         <title>Step 5a: Destroy subscriptions resource</title>
         <para>Make sure to
-    explicitly destroy the subscription resource or set its termination time.Example: 
+    explicitly destroy the subscription resource or set its termination time. Example: 
 <screen>import org.globus.wsrf.core.notification.SubscriptionManager;
 import org.globus.wsrf.core.notification.service.SubscriptionManagerServiceAddressingLocator;
 import org.oasis.wsrf.lifetime.Destroy;
@@ -227,7 +454,7 @@ SubscriptionManager manager = sLocator.getSubscriptionManagerPort(
 </para>
       </formalpara>
       <formalpara>
-        <title>Step 5b: Un-register the callback </title>
+        <title>Step 5b: Un-register the callback</title>
         <para>
 Make sure to  call (especially in error cases) the <emphasis>
             <computeroutput>NotificationConsumerManager.removeNotificationConsumer()</computeroutput>
@@ -236,7 +463,7 @@ Make sure to  call (especially in error cases) the <emphasis>
 </para>
       </formalpara>
       <formalpara>
-        <title>Step 5c: Release resources </title>
+        <title>Step 5c: Release resources</title>
         <para>In addition, make sure to always call the <emphasis>
             <computeroutput>NotificationConsumerManager.stopListening()</computeroutput>
           </emphasis> function
@@ -255,6 +482,12 @@ Example:
       </formalpara>
     </section>
   </section>
+
+  </section>
+
+    <section id="s-javawscore-developer-programming-server">
+    <title>Service-side specific</title>
+
   <section id="s-javawscore-developer-EndpointInfo">
     <title>Obtaining container endpoint information</title>
     <para>In most cases, a service will need to return an endpoint information of the container to a client. Unfortunately, getting that information might not be easy. The only reliable way of getting the container endpoint information is to extract it from the <computeroutput>MessageContext.TRANS_URL</computeroutput> property of the <computeroutput>MessageContext/ResourceContext</computeroutput> associated with the current thread. We provide <computeroutput>ServiceHost</computeroutput> API to obtain that information easily, for example:
@@ -278,8 +511,56 @@ EndpointReferenceType containerEndpoint =
         <simpara>The <computeroutput>ServiceHost</computeroutput> API will return the correct information and <computeroutput>AddressingUtils</computeroutput> API will work correctly, only if called from the same thread as the service method was invoked from.</simpara>
       </note> </para>
   </section>
+
+    <section>
+      <title>Obtaining service parameters</title>
+      <para>While we  strongly recommend that you use the JNDI mechanism to provide your service with configuration information, it is sometimes necessary to obtain the value of parameters set in the WSDD file. Java WS Core provides some helper functions to ease this process:<screen>import org.globus.wsrf.utils.ContextUtils;
+import org.apache.axis.MessageContext;
+...
+MessageContext context = MessageContext.getCurrentContext();
+String sampleProperty = (String)
+    ContextUtils.getServiceProperty(context, &quot;myProperty&quot;);
+...</screen></para>
+      <para>Note that this function requires that a <classname>MessageContext</classname> is associated with the current thread,  which in general means that the call needs to happen within the context of a web service invocation.</para>
+      <note>
+        <simpara>Specifying parameters using WSDD files depends on Axis and will likely not be supported in future versions of the toolkit.</simpara>
+      </note>
+    </section>
+
+ <section id="s-javawscore-developer-ContextProperties">
+    <title>Obtaining standard MessageContext properties</title>
+    <para>The following properties can be obtained from the SOAPContext/MessageContext associated with the current thread:
+
+<itemizedlist>
+        <listitem>
+          <simpara><emphasis>
+              <computeroutput>org.apache.axis.Constants.MC_HOME_DIR</computeroutput>
+            </emphasis> - the base directory from which the wsdl files are loaded from.</simpara>
+        </listitem>
+        <listitem>
+          <simpara><emphasis>
+              <computeroutput>org.apache.axis.Constants.MC_CONFIGPATH</computeroutput>
+            </emphasis> - the base directory from which different configuration files are loaded from.</simpara>
+        </listitem>
+        <listitem>
+          <simpara><emphasis>
+              <computeroutput>org.apache.axis.Constants.MC_REMOTE_ADDR</computeroutput>
+            </emphasis> - contains the IP address of the client</simpara>
+        </listitem>
+        <listitem>
+          <simpara><emphasis>
+              <computeroutput>org.apache.axis.MessageContext.TRANS_URL</computeroutput>
+            </emphasis> - the URL of the request</simpara>
+        </listitem>
+      </itemizedlist></para>
+    <para>The <computeroutput>Constants.MC_CONFIGPATH</computeroutput> property should be used to load any type of configuration files. Only <computeroutput>Constants.MC_CONFIGPATH</computeroutput> and <computeroutput>Constants.MC_HOME_DIR</computeroutput> are associated with thread during activation.
+
+In the standalone container the <computeroutput>Constants.MC_HOME_DIR</computeroutput> and <computeroutput>Constants.MC_CONFIGPATH</computeroutput> properties will usually point to the same directory. However, in Tomcat they will point to two different directories.
+</para>
+  </section>
+
   <section id="s-javawscore-developer-LocalInvocations">
-    <title>Invoking services locally</title>
+    <title>Making local calls</title>
     <para>Services in the container can be invoked locally. Local invocations work just like remote invocations (all handlers are called, messages get serialized/deserialized) but messages do not travel over the network - everything happens in memory. 
 </para>
     <para>Local invocations can only be made on the server side and only when a Axis MessageContext is associated with a current thread. URLs with &quot;<emphasis>local</emphasis>&quot; protocol name are used for local invocations. </para>
@@ -308,6 +589,305 @@ port.hello();</screen></para>
         </listitem>
       </orderedlist></para>
   </section>
+
+    </section>
+
+    <section id="s-javawscore-developer-programming-client">
+    <title>Client-side specific</title>
+
+    <section id="s-javawscore-developer-WritingClients">
+    <title>Client notes</title>
+    <para>Any program that is based on Java WS Core should contain as a first entry in its classpath the directory of the Java WS Core installation. This is to ensure that the right <computeroutput>client-config.wsdd</computeroutput> is used by the client. That configuration file contains important client-side information such as handlers, type mappings, etc.
+</para>
+    <para>Also, any program that is a notification consumer should be initialized with
+  the appropriate <computeroutput>GLOBUS_LOCATION</computeroutput> system property (set to the installation
+  directory of Java WS Core). If the system property is not set, the notification
+  consumer might not initialize or work properly.
+</para>
+  </section>
+
+    </section>
+
+  </section>
+
+
+  <section id="s-javawscore-developer-deploying">
+  <title>Deploying</title>
+
+  <section id="s-javawscore-developer-gardetails">
+    <title>Grid Archive (GAR) </title>
+    <para>The GAR (Grid Archive) file is a single file which contains all the files and information that the container needs to deploy a service. The GAR files are deployed using globus-deploy-gar (<xref linkend="deployGar"/>) and undeployed using globus-undeploy-gar (<xref linkend="undeployGar"/> tools.
+</para>
+  <section>
+      <title>GAR file structure</title>
+      <table>
+        <title>GAR file structure</title>
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <computeroutput>docs/</computeroutput>
+              </entry>
+              <entry>This directory contains service documentation files. </entry>
+            </row>
+            <row>
+              <entry>
+                <computeroutput>share/</computeroutput>
+              </entry>
+              <entry>This directory contains files that can be accessed or used by all services. </entry>
+            </row>
+            <row>
+              <entry>
+                <computeroutput>schema/</computeroutput>
+              </entry>
+              <entry>This directory contains service WSDL and schema files. </entry>
+            </row>
+            <row>
+              <entry>
+                <computeroutput>etc/</computeroutput>
+              </entry>
+              <entry>This directory contains service configuration files and a <computeroutput>post-deploy.xml</computeroutput> Ant script.</entry>
+            </row>
+            <row>
+              <entry>
+                <computeroutput>bin/</computeroutput>
+              </entry>
+              <entry>This directory contains service executables such as command line tools, GUI, etc. </entry>
+            </row>
+            <row>
+              <entry>
+                <computeroutput>lib/</computeroutput>
+              </entry>
+              <entry>This directory contains service and third party library files and any LICENSE files. </entry>
+            </row>
+            <row>
+              <entry>
+                <computeroutput>server-deploy.wsdd</computeroutput>
+              </entry>
+              <entry>This file is the server side deployment descriptor. </entry>
+            </row>
+            <row>
+              <entry>
+                <computeroutput>client-deploy.wsdd</computeroutput>
+              </entry>
+              <entry>This file is the client side deployment descriptor. </entry>
+            </row>
+            <row>
+              <entry>
+                <computeroutput>jndi-config-deploy.xml</computeroutput>
+              </entry>
+              <entry>This file is the JNDI configuration file. </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="s-javawscore-developer-gardeploy">
+      <title>Deployment process</title>
+      <para>The contents of the GAR file are processed in the following way (all steps
+  are performed only if necessary):</para>
+      <itemizedlist>
+        <listitem>
+          <simpara>Any files in the <computeroutput>docs/</computeroutput> directory in the GAR are copied into <computeroutput>$GLOBUS_LOCATION/docs/&lt;gar.id&gt;/</computeroutput> directory.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>Any files in the <computeroutput>share/</computeroutput> directory in the GAR are copied into <computeroutput>$GLOBUS_LOCATION/share/&lt;gar.id&gt;/</computeroutput> directory.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>Any files in the <computeroutput>schema/</computeroutput> directory in the GAR are copied into <computeroutput>$GLOBUS_LOCATION/share/schema/</computeroutput> directory.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>Any files in the <computeroutput>etc/</computeroutput> directory in the GAR are copied into <computeroutput>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/</computeroutput> directory.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>Any files in the <computeroutput>bin/</computeroutput> directory in the GAR are copied into <computeroutput>$GLOBUS_LOCATION/bin/</computeroutput> directory.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>Any <computeroutput>.jar</computeroutput> files in the <computeroutput>lib/</computeroutput> directory of the GAR are copied into <computeroutput>$GLOBUS_LOCATION/lib/</computeroutput> directory.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>Any file that contains the word &quot;LICENSE&quot; in the name in the <computeroutput>lib/</computeroutput> directory of the GAR is copied into <computeroutput>$GLOBUS_LOCATION/share/licenses/</computeroutput> directory.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>The <computeroutput>server-deploy.wsdd</computeroutput> in the GAR is copied to <computeroutput>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/server-config.wsdd</computeroutput>. If a profile name was specified during deployment, the <computeroutput>server-deploy.wsdd</computeroutput> will be copied to <computeroutput>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/&lt;profile.name&gt;-server-config.wsdd</computeroutput>. The <computeroutput>server-config.wsdd</computeroutput> file will be set with user-only access permissions.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>The <computeroutput>jndi-config-deploy.xml</computeroutput> in the GAR is copied to <computeroutput>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/jndi-config.xml</computeroutput>. If a profile name was specified during deployment the <computeroutput>jndi-config-deploy.xml</computeroutput> will be copied to <computeroutput>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/&lt;profile.name&gt;-jndi-config.xml</computeroutput>. The <computeroutput>jndi-config.xml</computeroutput> file will be set with user only-access permissions.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>The <computeroutput>client-deploy.wsdd</computeroutput> in the GAR is merged into a common <computeroutput>$GLOBUS_LOCATION/client-config.wsdd</computeroutput> file.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>An undeploy script (<computeroutput>$GLOBUS_LOCATION/etc/globus_packages/&lt;gar.id&gt;/undeploy.xml</computeroutput>) is created.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>A <computeroutput>etc/post-deploy.xml</computeroutput> Ant script is called if the GAR contains one. The <emphasis>setup</emphasis> target is called automatically.</simpara>
+        </listitem>
+      </itemizedlist>
+      <para>Notes:</para>
+      <itemizedlist>
+        <listitem>
+          <simpara>If <computeroutput>post-deploy.xml</computeroutput> script creates some files, they will <emphasis>not</emphasis> be removed by <computeroutput>undeploy</computeroutput>.</simpara>
+        </listitem>
+        <listitem>
+          <simpara>During deployment, filtering is done for contents of <computeroutput>server-deploy.wsdd</computeroutput> and <computeroutput>jndi-config-deploy.xml</computeroutput> files to replace the <computeroutput>@config.dir@</computeroutput> token with the &quot;<computeroutput>etc/&lt;gar.id&gt;</computeroutput>&quot; value, and the <computeroutput>@gar.id@</computeroutput> token with the &quot;<computeroutput>&lt;gar.id&gt;</computeroutput>&quot; value.</simpara>
+        </listitem>
+      </itemizedlist>
+    </section>
+    <section>
+      <title>Creating a GAR file through Ant</title>
+      <section>
+        <title>Creating GAR file</title>
+        <para>
+To create a GAR file use the following (for example):
+</para>
+        <screen>&lt;property name=&quot;build.packages&quot; location=
+      &quot;${deploy.dir}/share/globus_wsrf_common/build-packages.xml&quot;/&gt;
+...
+&lt;property name=&quot;garjars.id&quot; value=&quot;garjars&quot;/&gt;
+&lt;fileset dir=&quot;lib&quot; id=&quot;garjars&quot;/&gt;
+
+&lt;property name=&quot;garetc.id&quot; value=&quot;garetc&quot;/&gt;
+&lt;fileset dir=&quot;etc&quot; id=&quot;garetc&quot;/&gt;
+...
+&lt;target name=&quot;dist&quot; depends=&quot;...&quot;&gt;
+  &lt;ant antfile=&quot;${build.packages}&quot; target=&quot;makeGar&quot;&gt;
+    &lt;property name=&quot;gar.name&quot; value=&quot;mygar.gar&quot;/&gt;
+    &lt;reference refid=&quot;${garjars.id}&quot;/&gt;
+    &lt;reference refid=&quot;${garetc.id}&quot;/&gt;
+  &lt;/ant&gt;            
+&lt;/target&gt;</screen>
+        <para>The <computeroutput>gar.name</computeroutput> property must be passed. That property specifies the gar file to create. The <computeroutput>makeGar</computeroutput> task will look for <computeroutput>deploy-client.wsdd</computeroutput>, <computeroutput>deploy-server.wsdd</computeroutput>, and <computeroutput>deploy-jndi-config.xml</computeroutput> files in the base directory of the calling Ant process. All of these files are optional and do not have exist. The list of files to be included in the GAR file is passed via Ant references. The <computeroutput>makeGar</computeroutput> accpets the following references: <computeroutput>garjars.id</computeroutput>, <computeroutput>garschema.id</computeroutput>, <computeroutput>garetc.id</computeroutput>, <computeroutput>garshare.id</computeroutput>, <computeroutput>gardocs.id</computeroutput>, and <computeroutput>garbin.id</computeroutput>. All of these references are optional and do not have to be defined.</para>
+        <para>In the above example, all files in the <computeroutput>etc</computeroutput> and <computeroutput>lib</computeroutput> directories, and <computeroutput>deploy-client.wsdd</computeroutput>, <computeroutput>deploy-server.wsdd</computeroutput>, <computeroutput>deploy-jndi-config.xml</computeroutput> files (if they exist) will be included into the GAR file.
+</para>
+      </section>
+      <section>
+        <title>Deploying GAR file</title>
+        <para>
+To deploy a GAR file use the following (for example):
+</para>
+        <screen>&lt;property name=&quot;build.packages&quot; location=
+      &quot;${deploy.dir}/share/globus_wsrf_common/build-packages.xml&quot;/&gt;
+...
+&lt;target name=&quot;deploy&quot; depends=&quot;...&quot;&gt;
+  &lt;ant antfile=&quot;${build.packages}&quot; target=&quot;deployGar&quot;&gt;
+    &lt;property name=&quot;gar.name&quot; value=&quot;mygar.gar&quot;/&gt;
+  &lt;/ant&gt;
+&lt;/target&gt;</screen>
+        <para>The <computeroutput>gar.name</computeroutput> property must be passed. That property specifies the gar file to deploy. Optionally, <computeroutput>profile</computeroutput> property can be passed to indicate which configuration profile the gar should be deployed under.
+</para>
+      </section>
+      <section>
+        <title>Undeploying GAR file</title>
+        <para>To undeploy a GAR file use the following (for example):
+</para>
+        <screen>&lt;property name=&quot;build.packages&quot; location=
+      &quot;${deploy.dir}/share/globus_wsrf_common/build-packages.xml&quot;/&gt;
+...
+&lt;target name=&quot;undeploy&quot;&gt;
+  &lt;ant antfile=&quot;${build.packages}&quot; target=&quot;undeployGar&quot;&gt;
+    &lt;property name=&quot;gar.id&quot; value=&quot;mygar&quot;/&gt;
+  &lt;/ant&gt;
+&lt;/target&gt;</screen>
+        <para>The <computeroutput>gar.id</computeroutput> property must be passed. That property specifies the base name of the gar to undeploy.
+</para>
+      </section>
+    </section>
+  </section>
+
+  <section id="CreatingLaunchers">
+    <title>Generating launcher scripts</title>
+    <para>Bourne Shell and Windows batch scripts can be automatically generated to hide the details of launching a Java program from the command line. 
+</para>
+    <para>To generate such a command line script, write a Ant task that calls <computeroutput>generateLauncher</computeroutput> target
+    in <computeroutput>$GLOBUS_LOCATION/share/globus_wsrf_common/build-launcher.xml</computeroutput>.
+    The following properties/parameters must be specified: </para>
+    <itemizedlist>
+      <listitem>
+        <simpara><emphasis>
+            <computeroutput>${launcher-name}</computeroutput>
+          </emphasis> - the base name of script to generate</simpara>
+      </listitem>
+      <listitem>
+        <simpara><emphasis>
+            <computeroutput>${class.name}</computeroutput>
+          </emphasis> - the name of Java class the script must call.</simpara>
+      </listitem>
+    </itemizedlist>
+    <para>
+For example:
+
+<screen>...
+&lt;property name=&quot;env.GLOBUS_LOCATION&quot; value=&quot;.&quot;/&gt;
+&lt;property name=&quot;deploy.dir&quot; location=&quot;${env.GLOBUS_LOCATION}&quot;/&gt;
+&lt;property name=&quot;abs.deploy.dir&quot; location=&quot;${deploy.dir}&quot;/&gt;
+&lt;property name=&quot;build.launcher&quot;
+        location=&quot;${abs.deploy.dir}/share/globus_wsrf_common/build-launcher.xml&quot;&gt;
+...
+&lt;ant antfile=&quot;${build.launcher}&quot; target=&quot;generateLauncher&quot;&gt;
+  &lt;property name=&quot;launcher-name&quot; value=&quot;myClient&quot;/&gt;
+  &lt;property name=&quot;class.name&quot; value=&quot;org.mypackage.MyClient&quot;/&gt;
+&lt;/ant&gt;</screen>It is also possible to specify defaults JVM options and command-line
+via the <computeroutput>default.jvm.options</computeroutput> and <computeroutput>default.cmd.line</computeroutput> parameters.</para>
+    <para>In general the generation of the command line scripts is done in <computeroutput>post-deploy.xml</computeroutput> script
+    during GAR deployment (<xref linkend="deployGar"/>). </para>
+  </section>
+
+  </section>
+
+
+ <section id="s-javawscore-developer-testing">
+    <title>Testing</title>
+    <para>Tests in the Java WS Core are based on the <ulink url="http://www.junit.org/">JUnit</ulink> API. JUnit must first be installed with Ant. To install JUnit with Ant copy the <computeroutput>junit.jar</computeroutput> found in JUnit distribution to the <computeroutput>$ANT_HOME/lib</computeroutput> directory.
+</para>
+    <section id="s-javawscore-developer-writingtests">
+      <title>Writing Tests</title>
+      <para>Always make sure to group your tests under <computeroutput>PackageTests.java</computeroutput> and/or <computeroutput>SecurityTests.java</computeroutput> test
+suites. Put all tests that require any type of credentials in the <computeroutput>SecurityTests.java</computeroutput> test
+suite. 
+</para>
+      <para>If you are writing  basic unit tests that do not require a container to run,
+just use the regular JUnit classes to write such tests. </para>
+      <para>If you are writing
+    tests that require a container to execute, use the <computeroutput>org.globus.wsrf.test.GridTestCase</computeroutput> class
+    instead of <computeroutput>junit.framework.TestCase</computeroutput> as your base class for your
+    tests. Also ensure your <computeroutput>PackageTests.java</computeroutput> or <computeroutput>SecurityTests.java</computeroutput> extends
+    the <computeroutput>org.globus.wsrf.test.GridTestSuite</computeroutput> instead of <computeroutput>junit.framework.TestSuite</computeroutput>. </para>
+      <para>The <computeroutput>org.globus.wsrf.test.GridTestSuite</computeroutput> and <computeroutput>org.globus.wsrf.test.GridTestCase</computeroutput> <emphasis>must</emphasis> be
+used together. The <computeroutput>org.globus.wsrf.test.GridTestCase</computeroutput> class exposes
+a <computeroutput>TEST_CONTAINER</computeroutput> variable that can be used to obtain the URL of
+the container (<computeroutput>TEST_CONTAINER.getBaseURL()</computeroutput>). By default an embedded
+container will be started for all tests in the test suite. To specify an external
+container, pass <computeroutput>-Dweb.server.url=&lt;base.url&gt;</computeroutput> system property
+on the <computeroutput>java</computeroutput> command line.
+</para>
+    </section>
+    <section id="s-javawscore-developer-runningtests">
+      <title>Running Tests</title>
+      <para>To execute the tests on the Java WS Core install, run the following (assuming
+  the tests have been deployed into that install):
+
+<screen>$ cd $GLOBUS_LOCATION
+$ ant -f share/globus_wsrf_test/runtests.xml runServer -Dtests.jar=&lt;test.jar&gt;</screen>Where <computeroutput>&lt;test.jar&gt;</computeroutput> is an <emphasis>absolute</emphasis> path to the jar file that contains the tests. </para>
+      <para>By default, the tests that use a container will try to access a container
+running at <computeroutput>http://localhost:8080/wsrf/services/</computeroutput>. </para>
+      <para>To specify a
+    different container, use the <computeroutput>-Dtest.server.url=&lt;url&gt;</computeroutput> property.
+</para>
+      <para>To execute PackageTests only, specify <computeroutput>-DbasicTestsOnly=true</computeroutput>.
+</para>
+      <para>To execute SecurityTests only, specify <computeroutput>-DsecurityTestsOnly=true</computeroutput>. </para>
+      <para>The test reports will be put in <computeroutput>$GLOBUS_LOCATION/share/globus_wsrf_test/test-reports</computeroutput> directory
+            by default. The different test reports directory can be specified
+    by passing <computeroutput>-Djunit.reports.dir=&lt;directory&gt;</computeroutput>.
+</para>
+    </section>
+  </section>
+
+
+ <section id="s-javawscore-developer-other">
+ <title>Other</title>
+
   <section id="s-javawscore-developer-CustomExpressionEval">
     <title>Adding a new query/topic expression evaluator</title>
     <para>Java WS Core allows for custom query/topic expression evaluators to be plugged in. The process of adding a new query/topic expression evaluator is composed of three steps:</para>
@@ -477,9 +1057,8 @@ serializers/deserializers, that type QName takes a slightly different name.</par
           </note></para>
       </section>
     </section>
-  </section>
   <section id="s-javawscore-developer-GetCurrentMessageProvider">
-    <title>Configuring a helper serializer for GetCurrentMessageProvider</title>
+    <title>Step 4: Configuring a helper serializer for GetCurrentMessageProvider</title>
     <para>
 The standard <computeroutput>GetCurrentMessageProvider</computeroutput> might not know how to properly
 serialize the notification message currently associated with the specified topic.
@@ -521,6 +1100,8 @@ serializer for a given notification message type. </para>
         </tbody>
       </tgroup>
     </table>
+  </section>
+ </section>
   </section>
 </section>
 <section id="s-javawscore-developer-tasks">
@@ -597,7 +1178,7 @@ serializer for a given notification message type. </para>
       <para>Another method for tracing SOAP messages is to enable logging for selected
 Axis classes. Add the following lines to the appropriate <computeroutput>log4j.properties</computeroutput> files: 
 <screen>log4j.category.org.apache.client.Call=DEBUG
- log4j.category.org.apache.axis.transport.http.HTTPSender=DEBUG
+log4j.category.org.apache.axis.transport.http.HTTPSender=DEBUG
 # enable the following logger for HTTPS/HTTPG transport handlers
 log4j.category.org.globus.axis.axis.transport=DEBUG</screen>This will log Axis client side calls and Axis HTTP messages.
 </para>
@@ -663,407 +1244,7 @@ Information about ongoing standards work can be found here:
 </section>
 <section id="s-javawscore-developer-miscellaneousinfo">
   <title>Appendices</title>
-  <section id="s-javawscore-developer-DocumentLiteral">
-    <title>Document/literal rules </title>
-    <para>The WS-RF and WS-N specifications schemas follow the <emphasis>document/literal</emphasis> mode as described in <ulink url="http://www.ws-i.org/Profiles/BasicProfile-1.0-2004-04-16.html">WS-I Basic Profile</ulink>. The Basic Profile defines certain rules to follow for document/literal and
-other modes to ensure interoperability. 
-</para>
-    <para>For example, for document/literal mode, at most one &lt;wsdl:part&gt; is allowed in the &lt;wsdl:message&gt; element and it has to define the &apos;element&apos; attribute. Also, the wire signatures must be unique (cannot use the same &apos;element&apos; attribute in &lt;wsdl:part&gt; in two different &lt;wsdl:message&gt; elements). 
-</para>
-    <para>Java WS Core relies on these restrictions so please keep them in mind when designing your own schema. 
-</para>
-    <para><note>
-        <para>Axis&apos; WSDL2Java tool might sometimes incorrectly detect
-that schema follows the wrapped/literal mode and generate wrong stub and type
-classes. To ensure that document/literal mode is always used:
-<itemizedlist>
-            <listitem>
-              <simpara>use Java WS Core&apos;s <computeroutput>generateStub*</computeroutput> Ant tasks in <computeroutput>&lt;install&gt;/share/globus_wsrf_tools/build-stubs.xml</computeroutput> file</simpara>
-            </listitem>
-            <listitem>
-              <simpara>if you are using Axis&apos; WSDL2Java tool directly, you can alternatively specify the <computeroutput>-W</computeroutput> command line option.</simpara>
-            </listitem>
-          </itemizedlist>Also, with wrapped/literal mode, the element name had to match the operation
- name in wsdl. This is <emphasis>not</emphasis> necessary with document/literal mode.</para>
-      </note></para>
-    <para>
-</para>
-  </section>
-  <section id="s-javawscore-developer-OperationProvider">
-    <title>Configuring operation providers</title>
-    <para>GT3 introduced a concept of <emphasis>operation providers</emphasis> where a service could be composed
-of different parts/classes. Java WS Core also supports this functionality. In
-  GT3 operation providers had to implement a specific interface. In Java WS Core <emphasis>no</emphasis> such
-  interface is required. In fact, an operation provider is not in
-  any way different from a standard web service. That means that <emphasis>any</emphasis> web
-service implementation can automatically be used as an operation provider (as
-long as it uses common or standard interfaces to operate on resources.)
-</para>
-    <para>To enable operation provider support for your service, make the following
-  changes to the service deployment descriptor: <orderedlist>
-        <listitem>
-          <simpara>Change the value of the <computeroutput>provider</computeroutput> attribute to <computeroutput>Handler</computeroutput>.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>Add a <computeroutput>handleClass</computeroutput> parameter with a value of <classname>org.globus.axis.providers.RPCProvider</classname>.</simpara>
-        </listitem>
-        <listitem>
-          <para>Specify providers in the <computeroutput>providers</computeroutput> parameter. </para>
-          <para>The value
-        of the parameter is a space-separated list of either provider names or
-        class names. If provider names are used, they must  first be defined
-        as  parameters in the <computeroutput>&lt;globalConfiguration&gt;</computeroutput> element
-    of the <emphasis>main</emphasis> deployment descriptor (<computeroutput>etc\globus_wsrf_core\server-config.wsdd</computeroutput>). </para>
-          <para>For example: </para>
-          <screen>&lt;globalConfiguration&gt;
-  ...
-  &lt;parameter name=&quot;s-javawscore-developer-GetRPProvider&quot; 
-              value=&quot;org.globus.wsrf.impl.properties.GetResourcePropertyProvider&quot;/&gt;
-  ...
-&lt;/globalConfiguration&gt;</screen>
-        </listitem>
-        <listitem>
-          <simpara>Add or change the value of the <computeroutput>scope</computeroutput> parameter to <computeroutput>Application</computeroutput> or <computeroutput>Request</computeroutput></simpara>
-        </listitem>
-      </orderedlist></para>
-    <para>The following is an example of a modified service deployment descriptor:
-  
 
-<screen>&lt;service name=&quot;s-javawscore-developer-SubscriptionManagerService&quot; <emphasis> provider=&quot;Handler&quot;</emphasis> use=&quot;literal&quot; style=&quot;document&quot;&gt;
-  &lt;parameter name=&quot;allowedMethods&quot; value=&quot;*&quot;/&gt;
-  <emphasis>&lt;parameter name=&quot;scope&quot; value=&quot;Application&quot;/&gt;</emphasis>
-  <emphasis>&lt;parameter name=&quot;providers&quot; value=&quot;GetRPProvider org.globus.wsrf.impl.lifetime.SetTerminationTimeProvider PauseSubscriptionProvider&quot;/&gt;</emphasis>
-  <emphasis>&lt;parameter name=&quot;handlerClass&quot; value=&quot;org.globus.axis.providers.RPCProvider&quot;/&gt;</emphasis>
-  &lt;parameter name=&quot;className&quot; 
-            value=&quot;org.globus.wsrf.impl.notification.ResumeSubscriptionProvider&quot;/&gt;
-  &lt;wsdlFile&gt;share/schema/core/notification/subscription_manager_service.wsdl&lt;/wsdlFile&gt;
-&lt;/service&gt;</screen>
-
-<note>
-        <simpara>The operations defined in the <computeroutput>className</computeroutput> service always overwrite the providers&apos; operations. That is, if one provider defines the same method as the service specified in the <computeroutput>className</computeroutput> parameter, the operation will be invoked on the service. Also, if two providers define the same method, the first one specified in the <computeroutput>providers</computeroutput> parameter will be invoked.</simpara>
-      </note></para>
-  </section>
-  <section id="s-javawscore-developer-JNDIDetails">
-    <title>JNDI configuration file (<computeroutput>jndi-config.xml</computeroutput>)</title>
-    <para>Java WS Core provides <ulink url="http://jakarta.apache.org/tomcat/tomcat-5.0-doc/jndi-resources-howto.html">Tomcat&apos;s JNDI</ulink> implementation. The file format of Java WS Core&apos;s <computeroutput>jndi-config.xml</computeroutput> is slightly different from the Tomcat&apos;s <computeroutput>server.xml</computeroutput> file. One main difference is that the <computeroutput>&lt;resourceParams&gt;</computeroutput> are specified as children of <computeroutput>&lt;resource&gt;</computeroutput> objects. Also, Java WS Core&apos;s <computeroutput>jndi-config.xml</computeroutput> parser is case sensitive and all elements names are lowercase. 
-</para>
-    <para>All elements defined in the <computeroutput>&lt;global&gt;</computeroutput> section of the JNDI configuration file are deployed into the <computeroutput>java:comp/env</computeroutput> context under the name specified in the &apos;name&apos; attribute. All <computeroutput>&lt;service&gt;</computeroutput>elements are deployed into <computeroutput>java:comp/env/services/&lt;service name&gt;</computeroutput> context. New objects and contexts can be added or modified dynamically at runtime but they will not be persisted. The only way to always have some object around is to deploy it in the <computeroutput>jndi-config.xml</computeroutput> file. All services <emphasis>share</emphasis> the same <computeroutput>java:comp/env</computeroutput> context. This is different from EJBs where each EJB has a separate <computeroutput>java:comp/env</computeroutput> context. 
-</para>
-    <para>When deploying <computeroutput>&lt;resource&gt;</computeroutput> in <computeroutput>jndi-config.xml</computeroutput>,
-make sure to use the <computeroutput>org.globus.wsrf.tools.jndi.BeanFactory</computeroutput> as a
-BeanFactory (value of a &apos;factory&apos; parameter) instead of <computeroutput>org.apache.naming.factory.BeanFactory</computeroutput>.
-Your bean must have a default constructor. If your bean implements the <computeroutput>org.globus.wsrf.jndi.Initializable</computeroutput> interface,
-the <computeroutput>initialize()</computeroutput> function will be automatically called after all
-parameters are set on the bean. 
-</para>
-    <para>Please see <ulink url="http://java.sun.com/products/jndi/tutorial/">The JNDI Tutorial</ulink> for more information on JNDI programming. 
-</para>
-  </section>
-  <section id="s-javawscore-developer-WritingClients">
-    <title>Client notes</title>
-    <para>Any program that is based on Java WS Core should contain as a first entry in its classpath the directory of the Java WS Core installation. This is to ensure that the right <computeroutput>client-config.wsdd</computeroutput> is used by the client. That configuration file contains important client-side information such as handlers, type mappings, etc.
-</para>
-    <para>Also, any program that is a notification consumer should be initialized with
-  the appropriate <computeroutput>GLOBUS_LOCATION</computeroutput> system property (set to the installation
-  directory of Java WS Core). If the system property is not set, the notification
-  consumer might not initialize or work properly.
-</para>
-  </section>
-  <section id="s-javawscore-developer-ContextProperties">
-    <title>MessageContext properties</title>
-    <para>The following properties can be obtained from the SOAPContext/MessageContext associated with the current thread:
-
-<itemizedlist>
-        <listitem>
-          <simpara><emphasis>
-              <computeroutput>org.apache.axis.Constants.MC_HOME_DIR</computeroutput>
-            </emphasis> - the base directory from which the wsdl files are loaded from.</simpara>
-        </listitem>
-        <listitem>
-          <simpara><emphasis>
-              <computeroutput>org.apache.axis.Constants.MC_CONFIGPATH</computeroutput>
-            </emphasis> - the base directory from which different configuration files are loaded from.</simpara>
-        </listitem>
-        <listitem>
-          <simpara><emphasis>
-              <computeroutput>org.apache.axis.Constants.MC_REMOTE_ADDR</computeroutput>
-            </emphasis> - contains the IP address of the client</simpara>
-        </listitem>
-        <listitem>
-          <simpara><emphasis>
-              <computeroutput>org.apache.axis.MessageContext.TRANS_URL</computeroutput>
-            </emphasis> - the URL of the request</simpara>
-        </listitem>
-      </itemizedlist></para>
-    <para>The <computeroutput>Constants.MC_CONFIGPATH</computeroutput> property should be used to load any type of configuration files. Only <computeroutput>Constants.MC_CONFIGPATH</computeroutput> and <computeroutput>Constants.MC_HOME_DIR</computeroutput> are associated with thread during activation.
-
-In the standalone container the <computeroutput>Constants.MC_HOME_DIR</computeroutput> and <computeroutput>Constants.MC_CONFIGPATH</computeroutput> properties will usually point to the same directory. However, in Tomcat they will point to two different directories.
-</para>
-  </section>
-  <section id="s-javawscore-developer-testing">
-    <title>Writing and running tests</title>
-    <para>Tests in the Java WS Core are based on the <ulink url="http://www.junit.org/">JUnit</ulink> API. JUnit must first be installed with Ant. To install JUnit with Ant copy the <computeroutput>junit.jar</computeroutput> found in JUnit distribution to the <computeroutput>$ANT_HOME/lib</computeroutput> directory.
-</para>
-    <section id="s-javawscore-developer-writingtests">
-      <title>Writing Tests</title>
-      <para>Always make sure to group your tests under <computeroutput>PackageTests.java</computeroutput> and/or <computeroutput>SecurityTests.java</computeroutput> test
-suites. Put all tests that require any type of credentials in the <computeroutput>SecurityTests.java</computeroutput> test
-suite. 
-</para>
-      <para>If you are writing  basic unit tests that do not require a container to run,
-just use the regular JUnit classes to write such tests. </para>
-      <para>If you are writing
-    tests that require a container to execute, use the <computeroutput>org.globus.wsrf.test.GridTestCase</computeroutput> class
-    instead of <computeroutput>junit.framework.TestCase</computeroutput> as your base class for your
-    tests. Also ensure your <computeroutput>PackageTests.java</computeroutput> or <computeroutput>SecurityTests.java</computeroutput> extends
-    the <computeroutput>org.globus.wsrf.test.GridTestSuite</computeroutput> instead of <computeroutput>junit.framework.TestSuite</computeroutput>. </para>
-      <para>The <computeroutput>org.globus.wsrf.test.GridTestSuite</computeroutput> and <computeroutput>org.globus.wsrf.test.GridTestCase</computeroutput> <emphasis>must</emphasis> be
-used together. The <computeroutput>org.globus.wsrf.test.GridTestCase</computeroutput> class exposes
-a <computeroutput>TEST_CONTAINER</computeroutput> variable that can be used to obtain the URL of
-the container (<computeroutput>TEST_CONTAINER.getBaseURL()</computeroutput>). By default an embedded
-container will be started for all tests in the test suite. To specify an external
-container, pass <computeroutput>-Dweb.server.url=&lt;base.url&gt;</computeroutput> system property
-on the <computeroutput>java</computeroutput> command line.
-</para>
-    </section>
-    <section id="s-javawscore-developer-runningtests">
-      <title>Running Tests</title>
-      <para>To execute the tests on the Java WS Core install, run the following (assuming
-  the tests have been deployed into that install):
-
-<screen>$ cd $GLOBUS_LOCATION
-$ ant -f share/globus_wsrf_test/runtests.xml runServer -Dtests.jar=&lt;test.jar&gt;</screen>Where <computeroutput>&lt;test.jar&gt;</computeroutput> is an <emphasis>absolute</emphasis> path to the jar file that contains the tests. </para>
-      <para>By default, the tests that use a container will try to access a container
-running at <computeroutput>http://localhost:8080/wsrf/services/</computeroutput>. </para>
-      <para>To specify a
-    different container, use the <computeroutput>-Dtest.server.url=&lt;url&gt;</computeroutput> property.
-</para>
-      <para>To execute PackageTests only, specify <computeroutput>-DbasicTestsOnly=true</computeroutput>.
-</para>
-      <para>To execute SecurityTests only, specify <computeroutput>-DsecurityTestsOnly=true</computeroutput>. </para>
-      <para>The test reports will be put in <computeroutput>$GLOBUS_LOCATION/share/globus_wsrf_test/test-reports</computeroutput> directory
-            by default. The different test reports directory can be specified
-    by passing <computeroutput>-Djunit.reports.dir=&lt;directory&gt;</computeroutput>.
-</para>
-    </section>
-  </section>
-  <section id="s-javawscore-developer-gardetails">
-    <title>Building and deploying Grid services (GAR) </title>
-    <para>The GAR (Grid Archive) file is a single file which contains all the files and information that the container needs to deploy a service. The GAR files are deployed using deployGar (xref linkend=&quot;s-javawscore-Public_Interfaces-deployGar&quot;/&gt;)and undeployed using undeployGar (<xref linkend="undeployGar"/> Ant tasks.
-</para>
-    <section>
-      <title>GAR file structure</title>
-      <table>
-        <title>TITLE</title>
-        <tgroup cols="2">
-          <tbody>
-            <row>
-              <entry>
-                <computeroutput>docs/</computeroutput>
-              </entry>
-              <entry>This directory contains service documentation files. </entry>
-            </row>
-            <row>
-              <entry>
-                <computeroutput>share/</computeroutput>
-              </entry>
-              <entry>This directory contains files that can be accessed or used by all services. </entry>
-            </row>
-            <row>
-              <entry>
-                <computeroutput>schema/</computeroutput>
-              </entry>
-              <entry>This directory contains service WSDL and schema files. </entry>
-            </row>
-            <row>
-              <entry>
-                <computeroutput>etc/</computeroutput>
-              </entry>
-              <entry>This directory contains service configuration files and a <computeroutput>post-deploy.xml</computeroutput> Ant script.</entry>
-            </row>
-            <row>
-              <entry>
-                <computeroutput>bin/</computeroutput>
-              </entry>
-              <entry>This directory contains service executables such as command line tools, GUI, etc. </entry>
-            </row>
-            <row>
-              <entry>
-                <computeroutput>lib/</computeroutput>
-              </entry>
-              <entry>This directory contains service and third party library files and any LICENSE files. </entry>
-            </row>
-            <row>
-              <entry>
-                <computeroutput>server-deploy.wsdd</computeroutput>
-              </entry>
-              <entry>This file is the server side deployment descriptor. </entry>
-            </row>
-            <row>
-              <entry>
-                <computeroutput>client-deploy.wsdd</computeroutput>
-              </entry>
-              <entry>This file is the client side deployment descriptor. </entry>
-            </row>
-            <row>
-              <entry>
-                <computeroutput>jndi-config-deploy.xml</computeroutput>
-              </entry>
-              <entry>This file is the JNDI configuration file. </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-    </section>
-    <section>
-      <title>Creating a GAR file through Ant</title>
-      <section>
-        <title>Creating GAR file</title>
-        <para>
-To create a GAR file use the following (for example):
-</para>
-        <screen>&lt;property name=&quot;build.packages&quot; location=
-      &quot;${deploy.dir}/share/globus_wsrf_common/build-packages.xml&quot;/&gt;
-...
-&lt;property name=&quot;garjars.id&quot; value=&quot;garjars&quot;/&gt;
-&lt;fileset dir=&quot;lib&quot; id=&quot;garjars&quot;/&gt;
-
-&lt;property name=&quot;garetc.id&quot; value=&quot;garetc&quot;/&gt;
-&lt;fileset dir=&quot;etc&quot; id=&quot;garetc&quot;/&gt;
-...
-&lt;target name=&quot;dist&quot; depends=&quot;...&quot;&gt;
-  &lt;ant antfile=&quot;${build.packages}&quot; target=&quot;makeGar&quot;&gt;
-    &lt;property name=&quot;gar.name&quot; value=&quot;mygar.gar&quot;/&gt;
-    &lt;reference refid=&quot;${garjars.id}&quot;/&gt;
-    &lt;reference refid=&quot;${garetc.id}&quot;/&gt;
-  &lt;/ant&gt;            
-&lt;/target&gt;</screen>
-        <para>The <computeroutput>gar.name</computeroutput> property must be passed. That property specifies the gar file to create. The <computeroutput>makeGar</computeroutput> task will look for <computeroutput>deploy-client.wsdd</computeroutput>, <computeroutput>deploy-server.wsdd</computeroutput>, and <computeroutput>deploy-jndi-config.xml</computeroutput> files in the base directory of the calling Ant process. All of these files are optional and do not have exist. The list of files to be included in the GAR file is passed via Ant references. The <computeroutput>makeGar</computeroutput> accpets the following references: <computeroutput>garjars.id</computeroutput>, <computeroutput>garschema.id</computeroutput>, <computeroutput>garetc.id</computeroutput>, <computeroutput>garshare.id</computeroutput>, <computeroutput>gardocs.id</computeroutput>, and <computeroutput>garbin.id</computeroutput>. All of these references are optional and do not have to be defined.</para>
-        <para>In the above example, all files in the <computeroutput>etc</computeroutput> and <computeroutput>lib</computeroutput> directories, and <computeroutput>deploy-client.wsdd</computeroutput>, <computeroutput>deploy-server.wsdd</computeroutput>, <computeroutput>deploy-jndi-config.xml</computeroutput> files (if they exist) will be included into the GAR file.
-</para>
-      </section>
-      <section>
-        <title>Deploying GAR file</title>
-        <para>
-To deploy a GAR file use the following (for example):
-</para>
-        <screen>&lt;property name=&quot;build.packages&quot; location=
-      &quot;${deploy.dir}/share/globus_wsrf_common/build-packages.xml&quot;/&gt;
-...
-&lt;target name=&quot;deploy&quot; depends=&quot;...&quot;&gt;
-  &lt;ant antfile=&quot;${build.packages}&quot; target=&quot;deployGar&quot;&gt;
-    &lt;property name=&quot;gar.name&quot; value=&quot;mygar.gar&quot;/&gt;
-  &lt;/ant&gt;
-&lt;/target&gt;</screen>
-        <para>The <computeroutput>gar.name</computeroutput> property must be passed. That property specifies the gar file to deploy. Optionally, <computeroutput>profile</computeroutput> property can be passed to indicate which configuration profile the gar should be deployed under.
-</para>
-      </section>
-      <section>
-        <title>Undeploying GAR file</title>
-        <para>To undeploy a GAR file use the following (for example):
-</para>
-        <screen>&lt;property name=&quot;build.packages&quot; location=
-      &quot;${deploy.dir}/share/globus_wsrf_common/build-packages.xml&quot;/&gt;
-...
-&lt;target name=&quot;undeploy&quot;&gt;
-  &lt;ant antfile=&quot;${build.packages}&quot; target=&quot;undeployGar&quot;&gt;
-    &lt;property name=&quot;gar.id&quot; value=&quot;mygar&quot;/&gt;
-  &lt;/ant&gt;
-&lt;/target&gt;</screen>
-        <para>The <computeroutput>gar.id</computeroutput> property must be passed. That property specifies the base name of the gar to undeploy.
-</para>
-      </section>
-    </section>
-    <section id="s-javawscore-developer-gardeploy">
-      <title>GAR file deployment</title>
-      <para>The contents of the GAR file are processed in the following way (all steps
-  are performed only if necessary):</para>
-      <itemizedlist>
-        <listitem>
-          <simpara>Any files in the <computeroutput>docs/</computeroutput> directory in the GAR are copied into <computeroutput>$GLOBUS_LOCATION/docs/&lt;gar.id&gt;/</computeroutput> directory.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>Any files in the <computeroutput>share/</computeroutput> directory in the GAR are copied into <computeroutput>$GLOBUS_LOCATION/share/&lt;gar.id&gt;/</computeroutput> directory.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>Any files in the <computeroutput>schema/</computeroutput> directory in the GAR are copied into <computeroutput>$GLOBUS_LOCATION/share/schema/</computeroutput> directory.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>Any files in the <computeroutput>etc/</computeroutput> directory in the GAR are copied into <computeroutput>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/</computeroutput> directory.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>Any files in the <computeroutput>bin/</computeroutput> directory in the GAR are copied into <computeroutput>$GLOBUS_LOCATION/bin/</computeroutput> directory.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>Any <computeroutput>.jar</computeroutput> files in the <computeroutput>lib/</computeroutput> directory of the GAR are copied into <computeroutput>$GLOBUS_LOCATION/lib/</computeroutput> directory.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>Any file that contains the word &quot;LICENSE&quot; in the name in the <computeroutput>lib/</computeroutput> directory of the GAR is copied into <computeroutput>$GLOBUS_LOCATION/share/licenses/</computeroutput> directory.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>The <computeroutput>server-deploy.wsdd</computeroutput> in the GAR is copied to <computeroutput>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/server-config.wsdd</computeroutput>. If a profile name was specified during deployment, the <computeroutput>server-deploy.wsdd</computeroutput> will be copied to <computeroutput>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/&lt;profile.name&gt;-server-config.wsdd</computeroutput>. The <computeroutput>server-config.wsdd</computeroutput> file will be set with user-only access permissions.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>The <computeroutput>jndi-config-deploy.xml</computeroutput> in the GAR is copied to <computeroutput>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/jndi-config.xml</computeroutput>. If a profile name was specified during deployment the <computeroutput>jndi-config-deploy.xml</computeroutput> will be copied to <computeroutput>$GLOBUS_LOCATION/etc/&lt;gar.id&gt;/&lt;profile.name&gt;-jndi-config.xml</computeroutput>. The <computeroutput>jndi-config.xml</computeroutput> file will be set with user only-access permissions.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>The <computeroutput>client-deploy.wsdd</computeroutput> in the GAR is merged into a common <computeroutput>$GLOBUS_LOCATION/client-config.wsdd</computeroutput> file.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>An undeploy script (<computeroutput>$GLOBUS_LOCATION/etc/globus_packages/&lt;gar.id&gt;/undeploy.xml</computeroutput>) is created.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>A <computeroutput>etc/post-deploy.xml</computeroutput> Ant script is called if the GAR contains one. The <emphasis>setup</emphasis> target is called automatically.</simpara>
-        </listitem>
-      </itemizedlist>
-      <para>Notes:</para>
-      <itemizedlist>
-        <listitem>
-          <simpara>If <computeroutput>post-deploy.xml</computeroutput> script creates some files, they will <emphasis>not</emphasis> be removed by <computeroutput>undeploy</computeroutput>.</simpara>
-        </listitem>
-        <listitem>
-          <simpara>During deployment, filtering is done for contents of <computeroutput>server-deploy.wsdd</computeroutput> and <computeroutput>jndi-config-deploy.xml</computeroutput> files to replace the <computeroutput>@config.dir@</computeroutput> token with the &quot;<computeroutput>etc/&lt;gar.id&gt;</computeroutput>&quot; value, and the <computeroutput>@gar.id@</computeroutput> token with the &quot;<computeroutput>&lt;gar.id&gt;</computeroutput>&quot; value.</simpara>
-        </listitem>
-      </itemizedlist>
-    </section>
-  </section>
-  <section id="CreatingLaunchers">
-    <title>Generating launcher scripts</title>
-    <para>Bourne Shell and Windows batch scripts can be automatically generated to hide the details of launching a Java program from the command line. 
-</para>
-    <para>To generate such a command line script, write a Ant task that calls <computeroutput>generateLauncher</computeroutput> target
-    in <computeroutput>$GLOBUS_LOCATION/share/globus_wsrf_common/build-launcher.xml</computeroutput>.
-    The following properties/parameters must be specified: </para>
-    <itemizedlist>
-      <listitem>
-        <simpara><emphasis>
-            <computeroutput>${launcher-name}</computeroutput>
-          </emphasis> - the base name of script to generate</simpara>
-      </listitem>
-      <listitem>
-        <simpara><emphasis>
-            <computeroutput>${class.name}</computeroutput>
-          </emphasis> - the name of Java class the script must call.</simpara>
-      </listitem>
-    </itemizedlist>
-    <para>
-For example:
-
-<screen>...
-&lt;property name=&quot;env.GLOBUS_LOCATION&quot; value=&quot;.&quot;/&gt;
-&lt;property name=&quot;deploy.dir&quot; location=&quot;${env.GLOBUS_LOCATION}&quot;/&gt;
-&lt;property name=&quot;abs.deploy.dir&quot; location=&quot;${deploy.dir}&quot;/&gt;
-&lt;property name=&quot;build.launcher&quot;
-        location=&quot;${abs.deploy.dir}/share/globus_wsrf_common/build-launcher.xml&quot;&gt;
-...
-&lt;ant antfile=&quot;${build.launcher}&quot; target=&quot;generateLauncher&quot;&gt;
-  &lt;property name=&quot;launcher-name&quot; value=&quot;myClient&quot;/&gt;
-  &lt;property name=&quot;class.name&quot; value=&quot;org.mypackage.MyClient&quot;/&gt;
-&lt;/ant&gt;</screen>It is also possible to specify defaults JVM options and command-line
-via the <computeroutput>default.jvm.options</computeroutput> and <computeroutput>default.cmd.line</computeroutput> parameters.</para>
-    <para>In general the generation of the command line scripts is done in <computeroutput>post-deploy.xml</computeroutput> script
-    during GAR deployment (<xref linkend="deployGar"/>). </para>
-  </section>
   <section id="s-javawscore-developer-ProxySupport">
     <title>Proxy support</title>
     <para>A basic proxy support is provided. A <emphasis>
@@ -1077,122 +1258,9 @@ The <emphasis>
         <computeroutput>org.globus.wsrf.proxy.port</computeroutput>
       </emphasis> system property can be passed to <computeroutput>globus-start-container</computeroutput> script via <computeroutput>GLOBUS_OPTIONS</computeroutput> environment property. For example:
 
-<screen>setenv GLOBUS_OPTIONS=&quot;-Dorg.globus.wsrf.proxy.port=5555&quot;
-globus-start-container</screen>Please note that not all of the core code will obey the proxy port setting.
+<screen> $ setenv GLOBUS_OPTIONS=&quot;-Dorg.globus.wsrf.proxy.port=5555&quot;
+ $ globus-start-container</screen>Please note that not all of the code will obey the proxy port setting.
 </para>
   </section>
-  <section id="Activation">
-    <title>Lifecycle and activation</title>
-    <section>
-      <title>Activating a service</title>
-      <para>To activate a service, an RPCProvider is available from both Axis and Globus. </para>
-    </section>
-    <section>
-      <title>Activating a service using the Axis RPCProvider</title>
-      <para>
-The <computeroutput>scope</computeroutput> setting of the service dictates when and how service instances
-are created:</para>
-      <table>
-        <title>Scope settings</title>
-        <tgroup cols="2">
-          <tbody>
-            <row>
-              <entry>
-                <emphasis>Application</emphasis>
-              </entry>
-              <entry>One instance of the service is used for all invocations.</entry>
-            </row>
-            <row>
-              <entry>
-                <emphasis>Request</emphasis>
-              </entry>
-              <entry>One instance is created per invocation. This is the default (if scope parameter is not set in the deployment descriptor).</entry>
-            </row>
-            <row>
-              <entry>
-                <emphasis>Session</emphasis>
-              </entry>
-              <entry> One instance is created per session. </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <para>If the service
-        implements the <ulink url="http://java.sun.com/j2ee/1.4/docs/api/javax/xml/rpc/server/ServiceLifecycle.html">javax.xml.rpc.server.ServiceLifecycle</ulink> interface,
-        the lifecycle methods  will be called according to the <computeroutput>scope</computeroutput> setting
-  as a service instance is created and destroyed. </para>
-      <para>For example, in <emphasis>Application</emphasis> scope, <emphasis>destroy()</emphasis> will
-          be called on container shutdown, and in <emphasis>Request</emphasis> scope it will
-be called after the service method is called. </para>
-      <para>  With Axis RPCProvider, JAAS credentials are never associated with the
-invocation thread. </para>
-    </section>
-    <section>
-      <title>Activating a service using the Globus RPCProvider</title>
-      <para>
-The <computeroutput>scope</computeroutput> setting of the service dictates when and how service instances
-are created (only <emphasis>Application</emphasis> and <emphasis>Request</emphasis> scopes are supported
-with Globus RPCProvider):</para>
-      <table>
-        <title>Scope settings and activation</title>
-        <tgroup cols="2">
-          <tbody>
-            <row>
-              <entry>
-                <emphasis>Application</emphasis>
-              </entry>
-              <entry>
-                <para>Service/provider instances are created either on first invocation
-        or on container startup. The behavior is determined by the value 
-        of the 
-        &quot;loadOnStartup&quot; 
-        parameter. This will work in the same way in both the stand-alone 
-        container and in Tomcat. </para>
-                <para>        If the service or the container is configured with a security
-        descriptor, the appropriate credentials will be associated with the thread
-        during activation (using JAAS). Also, during activation a basic Axis
-        MessageContext will be associated with the thread with only <emphasis>Constants.MC_HOME_DIR</emphasis>, <emphasis>Constants.MC_CONFIGPATH</emphasis>,
-    and the right target service properties set (see <xref linkend="s-javawscore-developer-ContextProperties"/> for details). If service or providers implement the <ulink url="http://java.sun.com/j2ee/1.4/docs/api/javax/xml/rpc/server/ServiceLifecycle.html">javax.xml.rpc.server.ServiceLifecycle</ulink> interface,
-    the lifecycle methods will be called accordingly. </para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <emphasis>Request</emphasis>
-              </entry>
-              <entry>
-                <para>One instance is created per invocation. This is the default (if scope
-      parameter is not set in the deployment descriptor).</para>
-                <para>Behaves more or less just like the Axis RPCProvider (service/providers
-        instances are created per invocation, ServiceLifecycle methods called
-        right before and after service method invocation, no JAAS credentials
-      during ServiceLifecycle methods). </para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-    </section>
-    <section>
-      <title>Activating a ResourceHome</title>
-      <para>A ResourceHome will be activated either on the first service invocation or, 
-if <emphasis>&quot;loadOnStartup&quot;</emphasis> parameter  is set to <emphasis>&quot;true&quot;</emphasis>, during container 
-startup. Both mechanisms trigger actual activation by looking up the ResourceHome 
-in the JNDI directory. This initial lookup causes a proper MessageContext 
-and/or JAAS subject to be associated with the current thread, instantiation of 
-the object implementing the ResourceHome and, if the ResourceHome implements the 
-<emphasis>org.globus.wsrf.jndi.Initializable</emphasis> interface, the invocation of the 
-<emphasis>initialize()</emphasis> function.
-</para>
-      <para>In fact, the same steps are performed upon initial lookup of any JNDI <emphasis>resource</emphasis> entry that 
-uses the <emphasis>org.globus.wsrf.jndi.BeanFactory</emphasis> class for its factory and is defined directly 
-under a <emphasis>service</emphasis> entry in a <emphasis>jndi-config.xml</emphasis> file.
-</para>
-    </section>
-    <section>
-      <title>Activating ServiceResourceHome</title>
-      <para>If you are using a ServiceResourceHome please make sure to deploy the service with the <emphasis>&quot;loadOnStartup&quot;</emphasis> option enabled and in <emphasis>Application</emphasis> scope. That will ensure that the ResourceHome is initialized with the right service/resource.
-</para>
-    </section>
-  </section>
+
 </section>
