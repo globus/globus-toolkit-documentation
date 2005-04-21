@@ -236,14 +236,26 @@ created by the <emphasis>createBlogTopic</emphasis> invocation.
 In our example code, we export the EndpointFeference to a file, which
 allows us to access it after the createBlogTopic process has completed.
 <screen>
-#include "globus_wsrf_core_tools.h"
+    globus_soap_message_handle_t        epr_out_handle;
 
 ...
 
-    result = globus_wsrf_core_export_endpoint_reference(
-        createBlogTopicResponse->EndpointReference,
-        "emacs_vi_blog.xml",
-        NULL);
+    result = globus_soap_message_handle_init_to_file(
+        &epr_out_handle,
+        "emacs_vi_epr.xml",
+        GLOBUS_XIO_FILE_CREAT);
+
+...
+
+    result = wsa_EndpointReferenceType_serialize(
+        &BlogEPR_qname,
+        &createBlogTopicResponse->EndpointReference,
+        epr_out_handle,
+        0);
+...
+
+    globus_soap_message_handle_destroy(epr_out_handle);
+
 </screen>
 Now we must destroy the response from <emphasis>createBlogTopic</emphasis> invocation:
 <screen>
@@ -260,14 +272,29 @@ This is what the <ulink url="developer/tutorials/blog/client/add_blog_entry.c">a
 client example does.  The EndpointReference for the blog resource
 is first imported from the file:
 <screen>
-#include "globus_wsrf_core_tools.h"
+    globus_soap_message_handle_t        epr_in_handle;
 
 ...
 
-    wsa_EndpointReferenceType *         blog_resource_reference;
+    result = globus_soap_message_handle_init_from_file(
+        &epr_in_handle,
+        "emacs_vi_epr.xml");
 
-    result = globus_wsrf_core_import_endpoint_reference(
-        "emacs_vi_blog.xml", &amp;blog_resource_reference, NULL);
+...
+
+    result = wsa_EndpointReferenceType_init(&blog_resource_reference);
+
+...
+
+    result = wsa_EndpointReferenceType_deserialize(
+        &BlogEPR_qname,
+        blog_resource_reference,
+        epr_in_handle,
+        0);
+
+...
+
+    globus_soap_message_handle_destroy(epr_in_handle);
 </screen>
 
 Once the EndpointReference is imported, the addEntry operation 
