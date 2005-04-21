@@ -1,156 +1,127 @@
 <title>GT 4.0 WS GRAM : System Administrator's Guide</title>
 <titleabbrev> System Administrator's Guide</titleabbrev>
  
-
 <section id="s-wsgram-admin-introduction"><title>Introduction</title>
+
 <para>This guide contains advanced configuration information
-    for system administrators working with WS GRAM. It provides references to
-    information on procedures typically performed by system administrators, including
-    installation, configuring, deploying, and testing the installation. It also
-    describes additional prerequisites and host settings necessary for WS GRAM
-    operation. Readers should be familiar with the <ulink url="../../key/">Key Concepts</ulink> and <ulink url="../../key/WS_GRAM_Approach.html">Implementation
-    Approach</ulink> for WS GRAM to understand the motivation for and interaction
-    between the various deployed components.</para>
-<para>This information is in addition to the basic installation
-instructions in the <ulink url="../../admin/index.html">GT 4.0 System Administrator's
-Guide</ulink>.</para>
-</section>
-
-
-<section id="s-wsgram-admin-installing"><title>Building and Installing</title>
-
-<section id="s-wsgram-admin-localprereq"><title>Local Prerequisites</title>
-<para>WS GRAM requires the following:</para>
-
-
-<section id="s-wsgram-admin-hostcredentials"><title>Host credentials</title>
-<para> In order to use WS GRAM, the services running in the WSRF hosting environment
-  require access to an appropriate host certificate.</para>
-</section>
-
-<section id="s-wsgram-admin-serviceaccount"><title>GRAM service account</title>
-<para> WS GRAM requires a <emphasis>dedicated local account</emphasis> within which the WSRF hosting
-  environment and GRAM services will execute. This account will often be a <computeroutput>globus</computeroutput> account
-  used for all local services, but may also be specialized to only host WS GRAM.
-  User jobs will run in separate accounts as specified in the <computeroutput>grid-mapfile</computeroutput> or
-  associated authorization policy configuration of the host. 
+  for system administrators working with WS GRAM. It provides references to
+  information on procedures typically performed by system administrators,
+  including installation, configuring, deploying, and testing the
+  installation. It also describes additional prerequisites and host settings
+  necessary for WS GRAM operation. Readers should be familiar with the
+  <ulink url="../../key/">Key Concepts</ulink> and
+  <ulink url="../../key/WS_GRAM_Approach.html">Implementation Approach</ulink>
+  for WS GRAM to understand the motivation for and interaction between the
+  various deployed components.
 </para>
-</section>
 
-<section id="s-wsgram-admin-gridmap"><title>Gridmap authorization of user account</title>
-  <para>In order to authorize a user to call GRAM services, the security configuration must map 
-  the Distinguished Name (DN) of the user to the name of the user in the system where the 
-  GRAM services run. Here are the configuration steps:
-  </para>
-  <orderedlist>
-  <listitem><para>
-  In order to obtain the DN, which is the subject of the user certificate, 
-  run the <computeroutput>bin/grid-cert-info</computeroutput> command in $GLOBUS_LOCATION on
-   the submission machine:
-  <screen>
-% bin/grid-cert-info -identity
-/O=Grid/OU=GlobusTest/OU=simpleCA-foo.bar.com/OU=bar.com/CN=John Doe
-  </screen>
-  </para></listitem>
-  <listitem><para>
-  Create a <computeroutput>/etc/grid-security/grid-mapfile</computeroutput>. 
-  The syntax is to have one line per user, with the distinguished name 
-  followed by a whitespace and then the user account name on the GRAM machine. 
-  Since the distinguished name usually contains whitespace, it is placed between quotation marks, 
-  as in:
-<screen>
-"/O=Grid/OU=GlobusTest/OU=simpleCA-foo.bar.com/OU=bar.com/CN=John Doe" johndoe</screen></para></listitem>
-  </orderedlist>
+<para>
+  This information is in addition to the basic installation instructions in the
+  <ulink url="../../admin/index.html">GT 4.0 System Administrator's Guide</ulink>.
+</para>
+</section><!-- introduction -->
 
-</section>
-<section id="s-wsgram-admin-sudo"><title>Functioning sudo</title>
-<para> WS GRAM requires that the <computeroutput>sudo</computeroutput> command is installed and functioning
-  on the service host where WS GRAM software will execute. </para>
-<para> Authorization rules will need to be added to the <computeroutput>sudoers</computeroutput> file
-  to allow the WS GRAM service account to execute (without a password) local
-  scheduler adapters in the accounts of authorized GRAM users. This topic is
-  covered in detail in the <ulink url="#configsudo">Configuring sudo</ulink>
-  section.</para>
-</section>
+<section id="s-wsgram-admin-installing"><title>Installation Requirements</title>
+
+<section id="s-wsgram-admin-security"><title>Transport Level Security (TLS)</title>
+<para>
+  In order to use WS GRAM, the container must be started with Transport Level
+  security.  The "-nosec" option should *not* be used with
+  globus-start-container.
+</para>
+</section><!-- transport level security -->
+
+<section id="s-wsgram-admin-sudo"><title>Functioning sudo</title> <para>
+  WS GRAM requires that the <computeroutput>sudo</computeroutput> command is
+  installed and functioning on the service host where WS GRAM software will
+  execute.
+</para>
+<para>
+  Authorization rules will need to be added to the
+  <computeroutput>sudoers</computeroutput> file to allow the WS GRAM service
+  account to execute (without a password) the scheduler adapter in the
+  accounts of authorized GRAM users.  For configuration details, see the
+  <ulink url="#configsudo">Configuring sudo</ulink> section.
+</para>
+</section><!-- functioning sudo -->
+
 <section id="s-wsgram-admin-localscheduler"><title>Local scheduler</title>
-<para> WS GRAM depends on a local mechanism for starting and controlling jobs. If
-  the fork-based WS GRAM mode is to be used, no special software is required.
-  For batch scheduling mechanisms, the local scheduler must be installed and
-  configured for local job submission prior to deploying and operating WS GRAM.
-  The supported batch schedulers in the GT 4.0 release are: PBS, Condor, LSF</para>
-<para> RFT prerequisites include PostgreSQL to be installed and configured. The
-  instructions are <ulink url="../../data/rft/admin/index.html">here</ulink>. WS
-  GRAM depends on RFT for file staging and cleanup. File staging from client
-  host to compute host and visa versa. <emphasis>Important:</emphasis> Jobs requesting
-  these functions will fail if RFT is not properly setup. </para>
-</section>
-</section>
+<para> 
+  WS GRAM depends on a local mechanism for starting and controlling jobs.
+  Included in the WS GRAM software is a Fork "scheduler", which requires no
+  special software installed to execute jobs on the local host.  However, to
+  enable WS GRAM to execute and manage jobs to a batch scheduler, the scheduler
+  software must be installed and configured prior to configuring WS GRAM.
 
-<section id="s-wsgram-admin-fullinstall"><title>Full GT 4.0.0 Installation including WS GRAM</title>
+  The WS GRAM scheduler adapters (interface to the batch schedulers) included
+  in the GT 4.0 release are:
+  <ulink url="http://www.openpbs.org/">PBS</ulink>,
+  <ulink url="http://www.cs.wisc.edu/condor/">Condor</ulink>,
+  <ulink url="http://www.platform.com/products/LSF/">LSF</ulink>
+
+  For configuration details, see the
+  <ulink url="#configuringscheduleradapters">Configuring scheduler adapters</ulink> section.
+</para>
+
+</section><!-- local scheduler -->
+
+<section id="s-wsgram-admin-rft"><title>Reliable File Transfer Service (RFT)</title>
+<para> 
+  WS GRAM depends on RFT to perform file staging and cleanup directives in 
+  a job description.  For configuration details, see the
+  <ulink url="../../data/rft/admin/index.html">RFT admin guide</ulink>
+  <emphasis>Important:</emphasis> Jobs requesting these functions will fail if
+  RFT is not properly setup.
+</para>
+</section><!-- RFT -->
+
+</section><!-- Installation Requirements -->
+
+
+<section id="s-wsgram-admin-configuring"><title>Typical Configuration</title>
+
+<section id="s-wsgram-admin-configsudo"><title>Configuring sudo</title>
+<para>When the credentials of the service account and the job submitter are different
+  (multi user mode), then GRAM will prepend a call to sudo to the local adapter
+  callout command. <emphasis>Important:</emphasis> If sudo is not configured properly, the command
+  and thus job will fail.</para>
 <para>
-Please refer to the <ulink url="../../admin/#installinggt">GT 4.0 System
-Administrator's Guide</ulink> for instructions on how to install the toolkit.</para>
-<para>
-If you wish to install only the WS-GRAM component and it's dependencies, do
-the following instead of the final <computeroutput>make</computeroutput> step in the above
-mentioned instructions:
-<screen>
-    globus$ make wsgram
-    globus$ gpt-postinstall
+  As <emphasis>root</emphasis>, here are the two lines to add to the
+  /etc/sudoers file for each GLOBUS_LOCATION installation, where
+  /opt/globus/GT4.0.0 should be replaced with the GLOBUS LOCATION for your
+  installation:
+<screen># Globus GRAM entries
+   globus  ALL=(username1,username2) 
+           NOPASSWD: /opt/globus/GT4.0.0/libexec/globus-gridmap-and-execute 
+           -g /etc/grid-security/grid-mapfile
+           /opt/globus/GT4.0.0/libexec/globus-job-manager-script.pl *
+   globus  ALL=(username1,username2) 
+           NOPASSWD: /opt/globus/GT4.0.0/libexec/globus-gridmap-and-execute 
+           -g /etc/grid-security/grid-mapfile
+           /opt/globus/GT4.0.0/libexec/globus-gram-local-proxy-tool *
 </screen>
 </para>
-</section>
-</section>
+</section><!-- Configuring sudo -->
 
-
-<section id="s-wsgram-admin-configuring"><title>Configuring </title>
-
-<section id="s-wsgram-admin-configsettings"><title>Configuration settings </title>
-<para><xref linkend="s-wsgram-Public_Interfaces-config"/></para>
-</section>
-
-<section id="s-wsgram-admin-setupservicecred"><title>Setting up service credentials</title>
-<para>  In a default build and install of the Globus Toolkit, the local account is configured to use host credentials at /etc/grid-service/containercert.pem and containerkey.pem.  If you already have host certs, then you can just copy them to the new name and set ownership.
-
-<screen>
-	% cd /etc/grid-security
-	% cp hostcert.pem containercert.pem
-	% cp hostkey.pem containerkey.pem
-	% chown globus.globus container*.pem
-</screen>
-</para>
-<para>Replace globus.globus with the user and group the container is
-  installed as.</para>
-<para> You should now have something like:
-<screen>
-/etc/grid-security$ ls -l *.pem
--rw-r--r--  1 globus globus 1785 Oct 14 14:47 containercert.pem
--r--------  1 globus globus  887 Oct 14 14:47 containerkey.pem
--rw-r--r--  1 root   root   1785 Oct 14 14:42 hostcert.pem
--r--------  1 root   root    887 Sep 29 09:59 hostkey.pem
-</screen>
-
-The result is a copy of the host credentials which are accessible by the
-container.
-</para>
+<section id="s-wsgram-admin-configuringscheduleradapters"><title>Configuring Scheduler Adapters</title>
 <para>
-  If this is not an option, then you can configure an alternate location to point to host credentials -or- configure to use just a user proxy (personal mode).
-</para>
-</section>
+  The WS GRAM scheduler adapters included in the release tarball
+  are: PBS, Condor and LSF. To install, follow these steps (shown for pbs):
 
-<section id="s-wsgram-admin-enablelocalscheduler"><title>Enabling Local Scheduler Adapter</title>
-<para>The batch scheduler interface implementations included in the release tarball
-  are: PBS, Condor and LSF. To install one of the batch scheduler adapters, follow
-  these steps (shown for pbs):
 <screen>    % cd $GLOBUS_LOCATION\gt4.0.0-all-source-installer
 
-    % make gt4-gram-pbs
+    % ./configure --prefix=$GLOBUS_LOCATION --enable-wsgram-pbs
 
-    % gpt-postinstall
+    % make
 
-</screen></para>
-<para>Using PBS as the example, make sure the batch scheduler commands are in your
-  path (qsub, qstat, pbsnodes). </para>
+    % make install
+
+</screen>
+</para>
+<para>
+  Using PBS as the example, make sure the scheduler commands are in your
+  path (qsub, qstat, pbsnodes).
+</para>
 <para> For PBS, another setup step is required to configure the remote shell for
   rsh access: 
 
@@ -162,60 +133,35 @@ container.
 
 </screen>
 </para>
-<para>The last thing is to define the <ulink url="WS_GRAM_Public_Interfaces.html#filesysmap">GRAM
-    and GridFTP file system mapping</ulink> for PBS.</para>
-<para>Done! You have added the PBS scheduler adapters to your GT installation.</para>
-</section>
-
-<section id="s-wsgram-admin-configsudo"><title>Configuring sudo</title>
-<para>When the credentials of the service account and the job submitter are
-different (multi user mode), then GRAM will prepend a call to sudo to the local
-adapter callout command. <emphasis>Important:</emphasis> If sudo is not
-configured properly, the command, and consequently the job, will fail.</para>
-<para>As <emphasis>root</emphasis>, here are the two lines to add to the
-/etc/sudoers file for each installation, where
-/opt/globus/GT4.0.0 should be replaced with the GLOBUS LOCATION for your
-installation:
-<screen># Globus GRAM entries
-   globus  ALL=(username1,username2) 
-           NOPASSWD: /opt/globus/GT4.0.0/libexec/globus-gridmap-and-execute
-           -g /etc/grid-security/grid-mapfile
-           /opt/globus/GT4.0.0/libexec/globus-job-manager-script.pl *
-   globus  ALL=(username1,username2) 
-           NOPASSWD: /opt/globus/GT4.0.0/libexec/globus-gridmap-and-execute 
-           -g /etc/grid-security/grid-mapfile
-           /opt/globus/GT4.0.0/libexec/globus-gram-local-proxy-tool *
-      </screen></para>
-</section>
-
-
-
-
-<section id="s-wsgram-admin-nondefaultinstall"><title>Extra steps for non-default installation</title>
-
-<section id="s-wsgram-admin-nondefaultservicecreds"><title>Non-default service credentials</title>
-
-<section id="s-wsgram-admin-altlocationhostcreds"><title>Alternate location for host credentials</title>
-<para>If setting up host credentials in the default location of /etc/grid-security/containercert.pem and containerkey.pem is <emphasis>not</emphasis> an option for you, then you can configure an alternate location to point to host credentials.
+<para>
+  The last thing is to define the <ulink url="WS_GRAM_Public_Interfaces.html#filesysmap">GRAM and GridFTP file system mapping</ulink> for PBS.  A default
+  mapping in this file is created to allow simple jobs to run.  However, the
+  actual file system mappings for your compute resource should be entered to
+  ensure file staging is performed correctly, or jobs with erroneous file path
+  directives are rejected.
 </para>
-<para>Security descriptor configuration details are <ulink url="../../security/authzframe/security_descriptor.html#descFile">here</ulink>,
-  but the quick change is to edit this file - <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml</computeroutput>
-  - by changing the cert and key paths to point to host credentials that the
-  service account owns.</para>
-</section>
+<para>
+  Done! You have added the PBS scheduler adapters to your GT installation.
+</para>
+</section><!-- enabling scheduler adapters -->
 
-<section id="s-wsgram-admin-userproxy"><title>User proxy</title>
-<para>  To run the container using just a user proxy, simply comment out the ContainerSecDesc
-  parameter in this file <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_core/server-config.wsdd</computeroutput> as
+</section><!-- Typical Configuration -->
+
+<section id="s-wsgram-admin-nondefaultinstall"><title>Non-default Configuration</title>
+
+<section id="s-wsgram-admin-userproxy"><title>Non-default Credentials</title>
+<para>
+  To run the container using just a user proxy, instead of host creds,
+  simply comment out the ContainerSecDesc parameter in this file <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_core/server-config.wsdd</computeroutput> as
   follows:
-  <screen>
+<screen>
     &lt;!--
         &lt;parameter 
             name="containerSecDesc" 
             value="etc/globus_wsrf_core/global_security_descriptor.xml"/&gt;
      --&gt;
-      </screen>
-Running in personal mode (user proxy), another GRAM configuration setting
+</screen>
+  Running in personal mode (user proxy), another GRAM configuration setting
   is required. For GRAM to authorize the RFT service when performing
   staging functions, it needs to know the subject DN for verification. Here are
   the steps:
@@ -227,62 +173,59 @@ Running in personal mode (user proxy), another GRAM configuration setting
 You can get your subject DN by running this command:
 <screen>
 	% grid-cert-info -subject
-</screen></para>
-</section>
-</section>
-
+</screen>
+</para>
+</section><!-- Non-default Credentials -->
 
 <section id="s-wsgram-admin-nondefaultgridftp"><title>Non-default GridFTP server </title>
-<para>By default, the GridFTP server is assumed to run as root on localhost:2811.  If this is not true for your site then change it by running this command with the proper GridFTP URL values:
+<para>
+  By default, the GridFTP server is assumed to run as root on localhost:2811.
+  If this is not true for your site then change it by editting the GridFTP host
+  and/or port in the <ulink url="WS_GRAM_Public_Interfaces.html#filesysmap">GRAM and GridFTP file system mapping</ulink> config file: <computeroutput>$GLOBUS_LOCATION/etc/gram-service/globus_gram_fs_map_config.xml</computeroutput>.
+</para>
 
-<screen>
-	% cd $GLOBUS_LOCATION/setup/globus
-	% ./setup-gram-service-common --gridftp-server="gsiftp://gridftp.host.org:1234"
-      </screen>
-Also, the GridFTP host and/or port must be updated by editing the <ulink url="WS_GRAM_Public_Interfaces.html#filesysmap">GRAM
-    and GridFTP file system mapping</ulink> config file: <computeroutput>$GLOBUS_LOCATION/etc/gram-service/globus_gram_fs_map_config.xml</computeroutput>. </para>
-</section>
+</section><!-- Non-default GridFTP server -->
 
 <section id="s-wsgram-admin-nondefaultcontainerport"><title>Non-default container port</title>
-<para>By default, the globus services will assume 8443 is the port the Globus container
-  is using. However the container can be run under a non-standard port, for example:
+<para>
+  By default, the globus services will assume 8443 is the port the Globus
+  container is using.  However the container can be run under a non-standard
+  port, for example:
 <screen>
 	% globus-start-container -p 4321
-      </screen>
-When doing this, GRAM needs to be told the port to use to contact the RFT
+</screen>
+  When doing this, GRAM needs to be told the port to use to contact the RFT
   service, like so:
 <screen>
 	% cd $GLOBUS_LOCATION/setup/globus
-	% ./setup-gram-service-common --staging-port="4321"</screen>
-      
-</para></section>
+	% ./setup-gram-service-common --staging-port="4321"
+</screen>
+</para>
+</section><!-- Non-default container port -->
 
 <section id="s-wsgram-admin-nondefaultgridmap"><title>Non-default gridmap</title>
-<para>If you wish to specify a non-standard gridmap file path in a multi-user
-installation, two basic configurations need to be changed:</para>
+<para>
+  If you wish to specify a non-standard gridmap file in a multi-user
+  installation, two basic configurations need to be changed:</para>
 
 <itemizedlist>
     <listitem><para>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml
-        <itemizedlist><listitem><simpara>As specified in the <ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/security/authzframe/security_descriptor.html#configGridmap">gridmap config</ulink> instructions, change
-        the &lt;gridmap value="..."/&gt; element to the non-standard gridmap
-        file path appropriately.</simpara></listitem>
-    </itemizedlist>
+        <itemizedlist><listitem><simpara>As specified in the <ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/security/authzframe/security_descriptor.html#configGridmap">gridmap config</ulink> instructions, add a &lt;gridmap value="..."/&gt;
+                element to the file appropriately.</simpara></listitem>
+	</itemizedlist>
     </para></listitem>
 
     <listitem><para>/etc/sudoers
         <itemizedlist>
-            <listitem><para>Change the path in both instances of the
-            <emphasis>-g /etc/grid-security/grid-mapfile</emphasis> argument
-            of <emphasis>globus-gridmap-and-execute</emphasis> to
-            the path of the non-standard gridmap file.
+            <listitem><para>Add <screen>-g /path/to/grid-mapfile</screen> as the first argument to all instances of the <screen>globus-gridmap-and-exec</screen> command.
             </para></listitem>
         </itemizedlist>
     </para></listitem>
 </itemizedlist>
 
-<para>Example:</para>
-
 <para>
+Example:
+
 <emphasis>global_security_descriptor.xml</emphasis>
 <screen>
     ...
@@ -290,9 +233,9 @@ installation, two basic configurations need to be changed:</para>
     &lt;gridmap value="/opt/grid-mapfile"/&gt;
 
     ...
-    </screen>
+</screen>
 <emphasis>sudoers</emphasis>
-    <screen>
+<screen>
    ...
 
    # Globus GRAM entries
@@ -306,12 +249,10 @@ installation, two basic configurations need to be changed:</para>
            /opt/globus/GT4.0.0/libexec/globus-gram-local-proxy-tool *
 
     ...
-    </screen>
+</screen>
 </para>
-<para>If no gridmap file is specified in the
-<emphasis>global_security_descriptor.xml</emphasis> file, then remove the -g and
-gridmap file path from both lines in the sudoers file.</para>
-</section>
+</section><!-- Non-default gridmap file -->
+
 <section id="s-wsgram-admin-nondefaultjoblimit"><title>Non-default job resource limit</title>
 <para>The current limit on the number of job resources (both exec and multi)
 allowed to exist at any one time is 1000.  This limit was chosen from
@@ -321,17 +262,13 @@ To change this value to, say, 150, use the setup-gram-service-common script as f
 	% cd $GLOBUS_LOCATION/setup/globus
 	% ./setup-gram-service-common --max-job-limit="150"
 </screen>
+</section><!-- Non-default job resource limit -->
 
-
-</section>
-</section>
-</section>
-
+</section><!-- Non-default Configuration -->
 
 
 <section id="s-wsgram-admin-testing"><title>Testing</title>
-<para>See the WS GRAM <ulink url="../user/commandline_java_managed_globus_run.html#interactivemode">users
-    guide</ulink> for information about submitting a test job.</para>
+<para>See the WS GRAM <ulink url="../user/commandline_java_managed_globus_run.html#interactivemode">users guide</ulink> for information about submitting a test job.</para>
 </section>
 
 
@@ -346,8 +283,3 @@ To change this value to, say, 150, use the setup-gram-service-common script as f
 <section id="s-wsgram-admin-usage"><title>Usage statistics collection by the Globus Alliance</title>
 &WS_GRAM_Usage_Statistics_Frag;
 </section>
-
-
-
-
-
