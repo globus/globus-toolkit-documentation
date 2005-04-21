@@ -2,6 +2,12 @@
 #include "BlogService_client.h"
 #include "globus_wsrf_core_tools.h"
 
+static xsd_QName                        BlogEPR_qname =
+{
+    ADDENTRYTYPE_NS,
+    "BlogEndpointReference"
+};
+
 int main(int argc, char * argv[])
 {
     int                                 rc = 0;
@@ -17,6 +23,9 @@ int main(int argc, char * argv[])
 
     /* EndpointReference for the blog resource */
     wsa_EndpointReferenceType *         blog_resource_reference;
+
+    /* message handle for importing EPR from file */
+    globus_soap_message_handle_t        epr_in_handle;
 
     if(argc < 5)
     {
@@ -39,11 +48,32 @@ int main(int argc, char * argv[])
         globus_panic(NULL, result, "Failed client handle init");
     }
 
-    result = globus_wsrf_core_import_endpoint_reference(
-        argv[1], &blog_resource_reference, NULL);
+    result = globus_soap_message_handle_init_from_file(
+        &epr_in_handle,
+        argv[1]);
     if(result != GLOBUS_SUCCESS)
     {
-        globus_panic(NULL, result, NULL);
+        globus_panic(NULL, result, 
+                     "Failed to initialize message handle for "
+                     "reading EPR from file");
+    }
+
+    result = wsa_EndpointReferenceType_init(&blog_resource_reference);
+    if(result != GLOBUS_SUCCESS)
+    {
+        globus_panic(NULL, result,
+                     "Failed to initialize EPR");
+    }
+
+    result = wsa_EndpointReferenceType_deserialize(
+        &BlogEPR_qname,
+        blog_resource_reference,
+        epr_in_handle,
+        0);
+    if(result != GLOBUS_SUCCESS)
+    {
+        globus_panic(NULL, result,
+                     "Failed to deserialize EPR from file");
     }
 
     /* create blog resource with createBlogTopic operation */

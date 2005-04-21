@@ -2,6 +2,12 @@
 #include "BlogService_client.h"
 #include "globus_wsrf_core_tools.h"
 
+static xsd_QName BlogEPR_qname =
+{
+    CREATEBLOGTOPICTYPE_NS,
+    "BlogEndpointReference"
+};
+
 int main(int argc, char * argv[])
 {
     int                                 rc = 0;
@@ -17,8 +23,8 @@ int main(int argc, char * argv[])
     Blog_createBlogTopic_fault_t        create_fault_type;
     xsd_any *                           fault;
 
-    /* EndpointReference for the blog resource */
-    wsa_EndpointReferenceType *         blog_resource_reference;
+    /* message handle for serializing the EPR to a file */
+    globus_soap_message_handle_t        epr_out_handle;
 
     if(argc < 5)
     {
@@ -62,16 +68,35 @@ int main(int argc, char * argv[])
         globus_panic(NULL, result, "Failed createCounter");
     }
 
+
     /* export the resource reference to the specified file */
-    result = globus_wsrf_core_export_endpoint_reference(
-        createBlogTopicResponse->EndpointReference,
+    
+    /* first initialize the message handle 
+     * to write to the specified file
+     */
+    result = globus_soap_message_handle_init_to_file(
+        &epr_out_handle,
         argv[4],
-        NULL);
+        GLOBUS_XIO_FILE_CREAT);
     if(result != GLOBUS_SUCCESS)
     {
-        globus_panic(NULL, result, "Failed to export EPR");
+        globus_panic(NULL, result, 
+                     "Failed to create message handle for exporting EPR");
     }
 
+    result = wsa_EndpointReferenceType_serialize(
+        &BlogEPR_qname,
+        &createBlogTopicResponse->EndpointReference,
+        epr_out_handle,
+        0);
+    if(result != GLOBUS_SUCCESS)
+    {
+        globus_panic(NULL, result,
+                     "Failed to serialize EPR for blog resource to file");
+    }
+
+    globus_soap_message_handle_destroy(epr_out_handle);
+    
     /* destroy response from createBlogTopic */
     createBlogTopicResponseType_destroy(createBlogTopicResponse);
     
