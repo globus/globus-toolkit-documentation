@@ -6,7 +6,7 @@
         Hurricane Isabel in September 2003.  
         A desktop application uses the Globus Toolkit to launch parallel 
         visualization tasks on multiple TeraGrid graphics nodes.
-        The appication allows users to connect to and interact with these
+        The application allows users to connect to and interact with these
         tasks.
         Data provided by the 
         <a href="http://www.ncar.ucar.edu/">National Center for Atmospheric Research</a>.</p>
