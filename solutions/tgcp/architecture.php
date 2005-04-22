@@ -139,7 +139,7 @@ user's original proxy, but it is available to the RFT service for use on the use
 behalf.  The RFT service uses the delegated user proxy to authenticate to the GridFTP 
 services involved in the transfer. From the GridFTP service's perspective, the
 delegated user proxy is essentially the same as the user's original proxy, so it
-treats the RFT service's request as it would treat a direct request from the user..</p>
+treats the RFT service's request as it would treat a direct request from the user.</p>
 
 </div>
 
