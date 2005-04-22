@@ -15,39 +15,128 @@
 
 
 <section id="s-csf-admin-installing"><title>Building and installing</title>
-<para>[provide information about building and installing this component (that is
-  in addition to the default installation instructions in the <ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/admin/docbook/">GT
-  4.0 System Administrator's Guide</ulink>).  If no further information is necessary,
-  please state as much.]</para>
+  <para>  If you are going to submit jobs to a local batch scheduler, make sure that the 
+    scheduler is installed according to the instructions provided with the scheduling 
+    software. For LSF, you will need to install and run the gabd service that is used by 
+    CSF's RM Adapter to communicate with LSF clusters. The gabd is part of the LSF 
+    WebGUI package, or can be acquired by contacting Platform Computing's support 
+    department.</para>
+  
+<para>  Make sure that there is a full installation of the Globus Toolkit as detailed in the 
+  GT 4.0 System Administrator's Guide). If you are going to run jobs through the 
+  WS GRAM interface, make sure and follow all the instructions for setting up 
+  WS GRAM, including running the test cases.</para>
+  
+<para>  CSF is distributed in a gzipped tarfile that can be installed using gpt-build. Since 
+  CSF is built from java source, you must make sure that you have an environment 
+  set up properly so that you can build GT 4.0 services.</para>
+  
+<para>  Set up your GT 4.0 build environment as follows:</para>
+  
+  <itemizedlist>
+    <listitem>Make sure JAVA_HOME and ANT_HOME are set to the correct installation locations.</listitem>
+<listitem>Add JAVA_HOME/bin and ANT_HOME/bin to your PATH environment variable.</listitem>
+<listitem>Set GLOBUS_LOCATION to the top level directory of your GT 4.0 installation.</listitem>
+<listitem>Source either globus-user-env.csh or globus-user-env.sh depending on your shell.</listitem>
+  </itemizedlist>
+  
+ <para> In order to install CSF, do the following as the Globus container user (i.e. as the 
+  user who owns the Globus installation in GLOBUS_LOCATION):</para>
+  
+ <screen>globus$ gpt-build csf-4.0-src.tar.gz
+globus$ gpt-postinstall</screen>
+  
+   
+  
 </section>
 
 
 <section id="s-csf-admin-configuring"><title>Configuring </title>
-<para>[provide information on configuration settings and environment variables  specific
-  to this component (that is in addition to any such information in the <ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/admin/docbook/">GT
-4.0 System Administrator's Guide</ulink>).  If no further information is necessary,
-please state as much.]</para>
+  <para> In order to make CSF operational, you must configure the following files:</para>
+  
+  <itemizedlist>
+    <listitem>resourcemanager-config.xml</listitem>
+    <listitem>metascheduler-config.xml</listitem>
+    <listitem>Queue configuration</listitem>
+    <listitem>Support for multiple GT 4.0 hosting environments</listitem>
+  </itemizedlist>
+ 
+  <para> The files contain some commented out settings as examples.</para>
+  
+ <section id="s-csf-admin-config-rmfs"> <title>Configuring the Resource Manager Factory Service</title>
+  
+  <para>Edit $GLOBUS_LOCATION/etc/metascheduler/resourcemanager-config.xml and specify a "cluster" section 
+   for each resource manager you will be accessing through the RM Adapter. </para>
+   
+  <para> You must define the following elements:</para>
+  
+<itemizedlist>  
+  <listitem>name: the name by which this cluster can be referenced.</listitem>
+  <listitem>type: the type of resource manager. Currently only supports type "LSF".</listitem>
+  <listitem>host: the host where the resource manager can be contacted. For LSF, this is the host which is running the gabd.</listitem>
+  <listitem>port: the port number where the resource manager can be contacted. For LSF, this is specified in $LSF_ENVDIR/ga.conf.</listitem>
+</itemizedlist>
+  
+ </section>
+  <section id="s-csf-admin-config-csf">
+<title>Configuring CSF</title>
+  
+<para>  Edit $GLOBUS_LOCATION/etc/metascheduler/metascheduler-config.xml and specify:</para>
+<itemizedlist>  
+ <listitem>GISHandle: the endpoint of the local Index Service.</listitem>
+  <listitem>registryHandle: the endpoint of the local container registry.</listitem>
+  </itemizedlist>
+  <note><simpara>Do not use 'localhost' or 127.0.0.1 within the endpoint. Use the actual host IP address or fully qualified host name.</simpara></note>
+  </section>
+  <section id="s-csf-admin-config-queuing">
+<title>  Configuring the Queuing Service</title>
+  
+<para>  Edit $GLOBUS_LOCATION/etc/metascheduler/metascheduler-config.xml in the section "queueConfig". 
+    By default, there are no queues configured in CSF. Any job submission to a queue will fail. 
+    Each queue has its own configuration section, in which you can specify:</para>
+<itemizedlist>  
+  <listitem>name: this attribute on the queueConfig element specifies the name by which this queue is referenced.</listitem>
+  <listitem>plugin: the name of the class that implements the com.platform.metascheduler.impl.schedPlugin interface. The default plugin (schedPluginDefault) is always loaded for a queue regardless whether it is defined in the queue configuration. If the plugin doesn't exist or does not implement the schedPlugin interface, it will not be loaded. You can specify as many plugins for a queue as you wish.</listitem>
+  <listitem>scheduleInterval: the interval in seconds between scheduling cycles. Its value is and integer between 5 and 600. This parameter is optional, and if not defined will default to 30 seconds. This is a parameter of schedPluginDefault.</listitem>
+  <listitem>throttle: this is a parameter for the throttle scheduler plugin (com.platform.metascheduler.impl.schedThrottle), and sets the maximum number of jobs that can be dispatched to a back end resource manager in each scheduling cycle. The value is an integer greater than 0.</listitem>
+  </itemizedlist>
+  </section>
+  <section id="s-csf-admin-config-multi-hosting">
+  <title>Support for multiple GT 4.0 hosting environments</title>
+  
+  <para>CSF supports the management of jobs and reservations across resource managers hosted in multiple GT 4.0 
+    containers which are part of the same Virtual Organization (VO) (i.e. they trust the same CAs). The multiple 
+    container support allows CSF services running in one container to send jobs to the Resource Manager Adapters 
+    in another container,etc. In order to support this behaviour, there needs to be a central Index Service for storing 
+    information about the different RM Adapters in the VO. This Index Service must be hosted in a container that 
+    doesn&apos;t host the CSF services.</para>
+  
+<para>  In order to set up this configuration, the following steps should be taken:</para>
+  <itemizedlist>
+   <listitem>On the hosts running the CSF services for the VO (1 or more hosts), edit $GLOBUS_LOCATION/etc/metascheduler/metascheduler-config.xml and set the endpoint of the central Index Service for the VO in:
+   <listitem>The ReservationConfig section, in the CommunityGISHandle element.</listitem>
+   <listitem>The queueConfig section for each queue you want to use remote RM Adapters, in the communityGisHandle parameter.</listitem>
+   </listitem>
+   <listitem>On the host running the central Index Service, edit $GLOBUS_LOCATION/etc/globus_wsrf_mds_index/hierarchy.xml, and configure the location of the Index Services running in the containers running CSF as downstream elements.</listitem>
+  </itemizedlist>
+  </section>
+  
+  
 </section>
 
 
 <section id="s-csf-admin-deploying"><title>Deploying</title>
-<para>[provide information about deploying this component into various containers/environments
-  (that is in addition to any such information in the <ulink url="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/admin/index.html">GT
-  4.0 System Administrator's Guide</ulink>). If no further information is necessary,
-  please state as much.] </para>
+  <para>There are no further deployment instructions other than what is detail in the  
+    <ulink url="../../admin/docbook/">GT 4.0 System Administrator's Guide</ulink>.</para>
 </section>
 
 
 <section id="s-csf-admin-testing"><title>Testing</title>
-<para>[include procedures for how to test the configuration. must include examples
-  of the tests ]</para>
+  <para>Please see the CSF User's Guide for information on how to use the services provided by CSF.</para>
 </section>
 
 
 <section id="s-csf-admin-security_considerations"><title>Security considerations</title>
-<para><emphasis>Note to writer:</emphasis> do not edit this section - the Security_Considerations_Frag.html
-  is embedded below. </para>
-
 &CSF_Security_Considerations_Frag;
 
 </section>
@@ -55,5 +144,18 @@ please state as much.]</para>
 
 <section id="s-csf-admin-troubleshooting"><title>Troubleshooting</title>
 <para>[provide help for common problems sysadmins may experience with this component] </para>
+  
+<section id="s-csf-admin-troubleshooting-queue">  
+  <title>Cannot create a queue</title>
+  <para>If you can't create a queue, check out if the queue is configured in 
+  $GLOBUS_LOCATION/etc/metascheduler/metascheduler-config.xml.</para>
+</section>
+  
+  <section id="s-csf-admin-troubleshooting-rmadapter">
+<title>  RM Adapter cannot connect to resource manager</title>
+<para>If the container log shows messages that the RM Adapter can't connect to the back end resource manager 
+  (i.e. LSF), check that LSF daemons are started and that the LSF gabd is also running. 
+  Also check that the host name and port number in $GLOBUS_LOCATION/etc/metascheduler/resourcemanager-config.xml corresponds to the settings in ga.conf.</para>
+  </section>
 </section>
 
