@@ -1,5 +1,5 @@
-     <p><img src="<?=$SITE_PATHS["WEB_ALLIANCE"]."impact/scec-terashake-x.jpg"; ?>" 
-             width=266 height=176 alt="SCEC Terashake" /></p>
+     <p><img src="<?=$SITE_PATHS["WEB_ALLIANCE"]."impact/scec-terashake-x.gif"; ?>" 
+             width=266 height=184 alt="SCEC Terashake" /></p>
      <p>The <a href="http://www.scec.org/">Southern California Earthquake 
         Collaboratory</a> uses Globus software to visualize earthquake simulation data.
         Scientists simulate earthquakes by calculating the effect of shock 
