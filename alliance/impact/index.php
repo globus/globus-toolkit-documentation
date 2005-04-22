@@ -22,7 +22,11 @@ advances that have been helped by Globus technology.</p>
 
 <table>
 <tr>
+<td width="50%"><?php include("scec-1.inc"); ?></td>
 <td width="50%"><?php include("ag-fusion.inc"); ?></td>
+</tr>
+<tr>
+<td width="50%"><?php include("scec-2.inc"); ?></td>
 <td width="50%"><?php include("isabel.inc"); ?></td>
 </tr>
 <tr>
