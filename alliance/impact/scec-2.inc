@@ -6,4 +6,4 @@
         calculating the effect of shock waves as they propagate through 
         various layers of a geological model. This image shows the velocity 
         of motion from a simulated earthquake through a uniform earth. The 
-        image is provided in stereo so that it can be viewed in 3D with glasses.</p>
+        image is provided in stereo so that it can be viewed in 3D.</p>
