@@ -1,15 +1,14 @@
 FILENAME=toolkit.xml
-GRAPHICS=--stringparam admon.graphics.path /docbook-images/ --stringparam admon.graphics 1
-NUMBERING=--stringparam  section.autolabel 1 --stringparam  section.label.includes.component.label 1
-TITLES=--stringparam  chapter.autolabel 0 
-TOCS=--stringparam generate.toc 0
 
 all: html pdf
 
 html:
 	xsltproc --stringparam chunk.section.depth 0 \
-           ${GRAPHICS} ${NUMBERING} ${TITLES} ${TOCS}\
-           glossary.xsl \
+	--stringparam suppress.navigation 1 \
+	--stringparam  chapter.autolabel 0 \
+	--stringparam  section.autolabel 1 \
+	--stringparam toc.section.depth 1\
+           admin/docbook/chunk.xsl  \
            ${FILENAME}
 
 pdf:
