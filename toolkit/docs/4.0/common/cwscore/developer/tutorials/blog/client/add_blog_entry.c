@@ -102,7 +102,7 @@ int main(int argc, char * argv[])
     }
 
     printf("BLOG ENTRIES:\n\n");
-    for(i = addEntryResponse->BlogEntries.length; i >= 0; --i)
+    for(i = addEntryResponse->BlogEntries.length - 1; i >= 0; --i)
     {
         char *                          entry_timestamp = 
         globus_wsrf_core_export_timestamp(

@@ -34,7 +34,7 @@ int main(int argc, char * argv[])
 
     int                                 i = 0;
     
-    if(argc < 4)
+    if(argc < 2)
     {
         fprintf(stderr, 
                 "usage: get-blog-entries "
@@ -102,7 +102,7 @@ int main(int argc, char * argv[])
         }
 
         globus_panic(NULL, result, 
-                     "Failed to perform add operation on resource");
+                     "Failed to perform GetRP operation on resource");
     }
 
     printf("BLOG ENTRIES:\n\n");
@@ -115,7 +115,9 @@ int main(int argc, char * argv[])
 
         /* check the type of the RP value in the response */
         if(RPResponse->any.elements[i].any_info->type !=
-           (&BlogEntry_qname))
+           (&BlogEntry_qname) && 
+	   RPResponse->any.elements[i].any_info->type !=
+	    (&Blog_BlogEntry_rp_qname))
         {
             globus_fatal("GetResourceProperty response type: {%s}%s\n"
                          "does not match expected: {%s}%s\n",

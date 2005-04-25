@@ -27,10 +27,10 @@ int main(int argc, char * argv[])
     /* message handle for importing EPR from file */
     globus_soap_message_handle_t        epr_in_handle;
 
-    if(argc < 5)
+    if(argc < 2)
     {
         fprintf(stderr, 
-                "usage: create-blog <epr file>\n");
+                "usage: destroy-blog <epr file>\n");
         exit(1);
     }
 

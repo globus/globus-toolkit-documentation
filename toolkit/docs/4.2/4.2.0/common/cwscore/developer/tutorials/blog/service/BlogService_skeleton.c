@@ -1,6 +1,9 @@
 
+#include "globus_wsrf_resource.h"
+#include "globus_wsrf_core_tools.h"
 #include "BlogService_skeleton.h"
 #include "BlogService_internal_skeleton.h"
+#include "BlogEntryType.h"
 
 globus_result_t
 BlogService_init(
@@ -396,6 +399,8 @@ Blog_addEntry_impl(
     globus_result_t                     result = GLOBUS_SUCCESS;
     globus_resource_t                   blog_resource;
     BlogEntryType_array *               blog_entries;
+    BlogEntryType *                     new_entry;
+    time_t                              tstamp;
 
     /* initialize trace debugging info */
     GlobusFuncName(Blog_addEntry_impl);
@@ -406,7 +411,7 @@ Blog_addEntry_impl(
      */
     result = globus_wsrf_core_get_resource(
         message,
-        service,
+        descriptor,
         &blog_resource);
     if(result != GLOBUS_SUCCESS)
     {
@@ -432,9 +437,10 @@ Blog_addEntry_impl(
     /* add a new entry onto the array and set its values */
     new_entry = BlogEntryType_array_push(blog_entries);
 
+    tstamp = time(NULL);
     result = xsd_dateTime_copy_contents(
         &new_entry->Timestamp,
-        (xsd_dateTime *)localtime(time(NULL)));
+        (xsd_dateTime *)localtime(&tstamp));
     if(result != GLOBUS_SUCCESS)
     {
         result = Blog_addEntry_chain_error(
@@ -466,7 +472,7 @@ Blog_addEntry_impl(
     }
 
     /* copy the blog entries to the response output */
-    result = BlogEntryType_array_copy(
+    result = BlogEntryType_array_copy_contents(
         &addEntryResponse->BlogEntries,
         blog_entries);
     if(result != GLOBUS_SUCCESS)
@@ -541,7 +547,7 @@ Blog_createBlogTopic_impl(
 
     /* create the resource id */
     blog_id = globus_common_create_string(
-        "%s#%s", createBlogTopic->Author, createBlogTopic->Topic);
+        "%s#%s", createBlogTopic->Creator, createBlogTopic->Topic);
 
     /* create a new resource with specified resource id */
     result = globus_resource_create(
@@ -581,7 +587,7 @@ Blog_createBlogTopic_impl(
     reference_property->any_info = &xsd_string_info;
 
     /* initialize the containing element of the reference property */
-    result = xsd_QName_init(reference_property->element);
+    result = xsd_QName_init(&reference_property->element);
     if(result != GLOBUS_SUCCESS)
     {
         result = Blog_createBlogTopic_chain_error(
@@ -596,7 +602,7 @@ Blog_createBlogTopic_impl(
 
     /* set the actual value of the reference property */
     result = xsd_string_copy_cstr(
-        &reference_property->value, 
+        (xsd_string **)&reference_property->value, 
         blog_id);
     if(result != GLOBUS_SUCCESS)
     {
@@ -605,6 +611,15 @@ Blog_createBlogTopic_impl(
         goto destroy_reference_property;
     }
 
+    result = wsa_EndpointReferenceType_init_contents(
+	&createBlogTopicResponse->EndpointReference);
+    if(result != GLOBUS_SUCCESS)
+    {
+	result = Blog_createBlogTopic_chain_error(
+            result, "Failed to initialize endpoint reference for resource");
+        goto destroy_reference_property;
+    }
+	
     /* create the endpoint reference from the resource id, path, 
        and handle to the service engine */
     result = globus_wsrf_core_create_endpoint_reference(
@@ -662,7 +677,7 @@ Blog_createBlogTopic_impl(
     result = globus_resource_create_property(
         blog_resource, 
         &Blog_BlogEntry_rp_qname, 
-        &BlogEntry_array_info,
+        &BlogEntryType_array_info,
         blog_entries);
     if(result != GLOBUS_SUCCESS)
     {
@@ -682,14 +697,14 @@ destroy_blog_entries:
 
 destroy_endpoint_reference:
     wsa_EndpointReferenceType_destroy(
-        createBlogTopicResponse->EndpointReference);
+        &createBlogTopicResponse->EndpointReference);
     goto destroy_resource;
 
 destroy_reference_property:
     xsd_any_destroy(reference_property);
 
 destroy_resource:
-    globus_resource_finish_and_destroy(blog_topic);
+    globus_resource_finish_and_destroy(blog_resource);
 
 exit:
 

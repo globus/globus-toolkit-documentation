@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
     rc = globus_module_activate(BLOGSERVICE_MODULE);
     if(rc != 0)
     {
-        globus_panic(NULL, rc, "Failed BlogService module activate");
+        globus_fatal("Failed BlogService module activate");
     }
 
     /* initialize client handle */
