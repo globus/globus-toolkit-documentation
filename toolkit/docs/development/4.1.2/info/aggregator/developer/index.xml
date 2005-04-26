@@ -1,0 +1,191 @@
+<section id="s-aggregator-developer-introduction"><title>Introduction</title>
+<para>The aggregator framework allows pluggable data sources and sinks
+to be written and connected together. Generally a source collects
+data from or about a particular grid resource, and passes it to a
+sink which does something interesting with it.</para>
+<para>The aggregator sinks supplied with the toolkit implement the
+<ulink url="../index">WS MDS Index Service</ulink> and <ulink url=
+"../trigger">WS MDS Trigger Service</ulink>. The aggregator sources
+supplied with the toolkit collect information using resource
+property queries, subscription/notification, and execution of
+external programs.</para>
+<para>This document describes the programmatic interfaces to the
+aggregator framework. General Globus Toolkit coding guidelines and
+best practices can be found in the <ulink url="../../../">Globus
+Toolkit general documentation</ulink>.</para>
+</section>
+<section><title>Before you begin</title>
+</section>
+<section id="s-aggregator-developer-features"><title>Feature summary</title>
+&WS_MDS_Aggregator_Feature_Summary_Frag;
+</section>
+<section id="s-aggregator-developer-platforms"><title>Tested platforms</title>
+&WS_MDS_Aggregator_Platform_Summary_Frag;
+</section>
+<section id="s-aggregator-developer-compatibility"><title>Backward
+compatibility summary</title>
+&WS_MDS_Aggregator_Compatibility_Summary_Frag;
+</section>
+<section id="s-aggregator-developer-dependencies"><title>Technology
+dependencies</title>
+&WS_MDS_Aggregator_Dependencies_Summary_Frag;
+</section>
+<section id="s-aggregator-developer-security_considerations"><title>
+Security considerations</title>
+&WS_MDS_Aggregator_Security_Considerations_Frag;
+</section>
+<section id="s-aggregator-developer-archdes"><title>Architecture and design
+overview</title>
+<para>The WS-MDS Aggregator is the software framework on which WS-MDS
+services are built. The aggregator framework collects data from an
+<emphasis>aggregator source</emphasis> and sends that data to an <emphasis>aggregator
+sink</emphasis> for processing. Aggregator sources distributed with the
+Globus Toolkit include modules that query service data, acquire
+data through subscription/notification, and execute programs to
+generate data.</para>
+<graphic fileref="info_flow.jpg" format="JPEG"/>
+<para>The Aggregator framework is designed to facilitate the
+collecting of information from or about WS-Resources via plugin
+aggregator sources and the feeding of that information to plugin
+aggregator sinks, which can then perform actions such as
+re-publishing, logging, or archiving the information.</para>
+<para>Aggregators work on a type of service group called an
+<code>AggregatorServiceGroupRP</code>. Resources may be
+<emphasis>registered</emphasis> to an AggregatorServiceGroupRP using the service
+group <code>add</code> operation, which will cause an entry to be
+added to the service group. The entry will include configuration
+parameters for the aggregator source; when the registration is
+made, the appropriate aggregation source and sinks will be
+informed; the aggregator source will begin collecting data and
+inserting it into the corresponding service group entry, and the
+aggregator sink will begin processing the information in the
+service group entries.</para>
+<para>The method of collection by source and processing by the sink is
+dependent on the particular instantiation of the aggregator
+framework.</para>
+<para>The aggregator sinks distributed with the toolkit
+(<code>org.globus.mds.aggregator.impl.ServiceGroupEntryAggregatorSink</code>
+and <code>org.globus.mds.trigger.impl.TriggerResource</code>) are
+described in the following table.</para>
+<table><title>Standard aggregator sinks</title>
+<tgroup cols="3">
+<thead>
+<row>
+<entry>Aggregator Sink</entry>
+<entry>Service Implemented</entry>
+<entry>Description</entry>
+</row></thead>
+<tbody>
+<row>
+<entry><code>ServiceGroupEntryAggregatorSink</code></entry>
+<entry>Index Service</entry>
+<entry>The servicegroup sink (used by the Index Service)
+publishes received data as content in the AggregatingServiceGroup
+entry used to manage the registration. This data can therefore be
+retrieved by querying the index for its 'entries' resource
+property.</entry>
+</row>
+<row>
+<entry><code>TriggerResource</code></entry>
+<entry>Trigger Service</entry>
+<entry>The trigger service provides an aggregator sink
+which receives data, applies tests to that data, and if the tests
+match, runs a specified executable. See the <ulink url=
+"../trigger/">trigger service</ulink> documentation for more
+information.</entry>
+</row>
+</tbody></tgroup>
+</table>
+<para>The aggregator sources supplied with the toolkit are listed in
+the following table. Note: all aggregator sources listed in this
+table are in the <code>org.globus.mds.aggregator.impl</code>
+package, so for example the aggregator source listed as
+<code>QueryAggregatorSource</code> is actually
+<code>org.globus.mds.aggregator.impl.QueryAggregatorSource</code></para>
+<table><title>Standard aggregator sources</title>
+<tgroup cols="2">
+<thead>
+<row>
+<entry>Aggregator Source</entry>
+<entry>Description</entry>
+</row>
+</thead><tbody>
+<row>
+<entry>QueryAggregatorSource</entry>
+<entry>The query source collects information from a
+registered resource by using WS-Resource Properties polling
+mechanisms (the GetResourceProperty, GetResourceProperties and
+QueryResourceProperties operations). Polls are made periodically,
+with both the period and target Resource Properties specified in
+the registration message.</entry>
+</row>
+<row>
+<entry>SubscriptionAggregatorSource</entry>
+<entry>The subscription source collects information from
+a registered resource using WS-Notification mechanisms. Data is
+delivered when property values change, rather than
+periodically.</entry>
+</row>
+<row>
+<entry>ExecutionAggregatorSource</entry>
+<entry>The execution source collects information about
+(not necessarily from) a registered resource by execution of a
+local executable, which is passed as input the identity of the
+registered resource. Details of the interface between the execution
+source and local executables are in <ulink url=
+"../WS_MDS_Aggregator_Public_Interfaces.html#domain">the domain
+specific interfaces section of the Aggregator Framework Public
+Interface Guide</ulink>.</entry>
+</row>
+</tbody></tgroup>
+</table>
+</section>
+<section id="s-aggregator-developer-pubinterfaces"><title>Public
+interface</title>
+<para>The semantics and syntax of the APIs and WSDL for the component,
+along with descriptions of domain-specific structured interface
+data, can be found in the <ulink url=
+"../WS_MDS_Aggregator_Public_Interfaces.html">public interface
+guide</ulink>.</para>
+</section>
+<section id="s-aggregator-developer-scenarios"><title>Usage scenarios</title>
+</section>
+<section><title>Creating WS MDS services</title>
+<para>The aggregator framework is used to create MDS services by
+linking an <emphasis>aggregator source</emphasis> (a java class that implements
+the AggregatorSource interface to collect data) to an <emphasis>aggregator
+sink</emphasis> (a java class that implements the AggregatorSink interface
+to process data, e.g., by providing a service interface for it).
+The AggregatorSource and AggregatorSink interfaces are documented
+in the aggregator <ulink url=
+"WS_MDS_Aggregator_Public_Interfaces.html">Public Interface
+Guide</ulink>.</para>
+</section>
+<section id="s-aggregator-developer-tutorials"><title>Tutorials</title>
+<para>There are no tutorials available at this time.</para>
+</section>
+<section id="s-aggregator-developer-debugging"><title>Debugging</title>
+<para>See the <ulink url=
+"../../common/javawscore/developer/#debugging">Debug section of
+the Java WS Core Developer's Guide</ulink> for general information on
+logging, including which files to edit to set logging
+properties.</para>
+<para>To turn on debug logging for the Aggregator framework, add the
+line:</para>
+<screen>
+log4j.category.org.globus.mds.aggregator=DEBUG
+</screen>
+<para>to the appropriate properties file.</para>
+</section>
+<section id="s-aggregator-developer-troubleshooting"><title>
+Troubleshooting</title>
+<para>General troubleshooting information can be found in the <ulink url=
+"../../common/javawscore/developer/#troubleshooting">GT 4.0 Java
+WS Core Developer's Guide</ulink>.</para>
+</section>
+<section id="s-aggregator-developer-relateddocs"><title>Related
+Documentation</title>
+<para>Specifications for resource properties, service groups, and
+subscription/notification are available at <ulink url=
+"http://www.globus.org/wsrf/">http://www.globus.org/wsrf/</ulink>.</para>
+</section>

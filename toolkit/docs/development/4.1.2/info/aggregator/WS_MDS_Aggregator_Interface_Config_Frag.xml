@@ -1,0 +1,412 @@
+<section><title>Configuration overview</title>
+<para>Configuring an Aggregating Service Group to perform a data
+aggregation is performed by specifying an AggregatorContent object
+as the content parameter of a ServiceGroup <emphasis><emphasis>add</emphasis></emphasis> method
+invocation. An AggregatorContent object is composed of two
+xsd:any arrays: AggregatorConfig and AggregatorData:</para>
+<itemizedlist>
+<listitem><simpara>AggregatorConfig is used to specify parameters that are to be
+passed to the underlying AggregatorSource when the ServiceGroup
+<emphasis><emphasis>add</emphasis></emphasis> method is invoked. These parameters are
+generally type-specific to the implementation of the
+AggregatorSource and/or AggregatorSink being used.</simpara></listitem>
+<listitem><simpara>The AggregatorData xsd:any array is used as the storage
+location for aggregated data that is the result of message
+deliveries to the AggregatorSink. Generally, the
+AggregatorData parameter of the AggregatorContent is not populated
+when the ServiceGroup <emphasis><emphasis>add</emphasis></emphasis> method is invoked, but
+rather is populated by message delivery from the
+AggregatorSource.</simpara></listitem>
+</itemizedlist>
+</section>
+<section><title>Syntax of the interface</title>
+<itemizedlist>
+<listitem><simpara><ulink url="#aggregatortypes">aggregator-types.xsd</ulink></simpara></listitem>
+<listitem><simpara><ulink url="#specifying-source">Specifying the Aggregator
+Sources</ulink></simpara></listitem>
+<listitem><simpara><ulink url="#configuring_source">Configuring the Aggregator
+Sources</ulink></simpara></listitem>
+<listitem><simpara><ulink url="#configuring_poll">ServiceGroupRegistration Content
+Blocks for QueryAggregatorSource</ulink></simpara></listitem>
+<listitem><simpara><ulink url="#configuring_subscription">ServiceGroupRegistration
+Content Blocks for SubscriptionAggregatorSource</ulink></simpara></listitem>
+<listitem><simpara><ulink url="#configuring_execution">ServiceGroupRegistration
+Content Blocks for ExecutionAggregatorSource</ulink></simpara></listitem>
+<listitem><simpara><ulink url="#configuring_aggregatorsink">Configuring the
+Aggregator Sink</ulink></simpara></listitem>
+</itemizedlist>
+</section>
+<section id="aggregatortypes"><title>
+aggregator-types.xsd</title>
+<para>The basic structure of the AggregatorContent type is defined in
+the file <emphasis>aggregator-types.xsd</emphasis>, the relevant fragment
+of which is shown below. In addition, there are per-source and
+per-sink configuration elements, which should be placed in the
+AggregatorConfig element of a registration if the appropriate
+source or sink is being used. These are detailed in a table
+below.</para>
+<screen>
+&lt;xsd:complexType name="AggregatorConfig"&gt;
+  &lt;annotation&gt;&lt;documentation&gt;
+    This type encapsulates multiple arbitrary aggregator configuration data
+  &lt;/documentation&gt;&lt;/annotation&gt;
+  &lt;xsd:sequence&gt;
+    &lt;xsd:any namespace="##any" minOccurs="0" maxOccurs="unbounded"/&gt;
+  &lt;/xsd:sequence&gt;
+&lt;/xsd:complexType&gt;
+
+&lt;xsd:complexType name="AggregatorData"&gt;
+  &lt;annotation&gt;&lt;documentation&gt;
+    This type encapsulates multiple arbitrary aggregated content data.
+  &lt;/documentation&gt;&lt;/annotation&gt;
+  &lt;xsd:sequence&gt;
+    &lt;xsd:any namespace="##any" minOccurs="0" maxOccurs="unbounded"/&gt;
+  &lt;/xsd:sequence&gt;
+&lt;/xsd:complexType&gt;
+
+&lt;xsd:complexType name="AggregatorContent"&gt;
+  &lt;annotation&gt;&lt;documentation&gt;
+    This type encapsulates the Aggregator's ServiceGroup content element, 
+    which is composed of two xsd:any arrays, one storing the aggregator  
+    configuration, the other storing the aggregated data. 
+   &lt;/documentation&gt;&lt;/annotation&gt;
+  &lt;xsd:sequence&gt;
+    &lt;xsd:element name="AggregatorConfig"
+                 type="tns:AggregatorConfig" 
+                 minOccurs="1" maxOccurs="1"/&gt; 
+    &lt;xsd:element name="AggregatorData"
+                 type="tns:AggregatorData"
+                 minOccurs="1" maxOccurs="1"/&gt; 
+    &lt;/xsd:sequence&gt;
+&lt;/xsd:complexType&gt; 
+</screen>
+</section>
+<section id="specifying-source"><title>
+Specifying the Aggregator Sources</title>
+<para>The aggregator sources used to collect data can be set by
+editing the aggregatorSources parameter in the implementing
+service's JNDI configuration file. See
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/jndi-config.xml</filename>
+or
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/jndi-config.xml</filename>:</para>
+<screen>
+  &lt;resource name="configuration"
+               type="org.globus.mds.aggregator.impl.AggregatorConfiguration"&gt;
+    &lt;resourceParams&gt;
+      &lt;parameter&gt;
+        &lt;name&gt; factory&lt;/name&gt;
+        &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+      &lt;/parameter&gt;
+      &lt;parameter&gt;
+        &lt;name&gt;aggregatorSource&lt;/name&gt;
+        <emphasis>&lt;value&gt;org.globus.mds.aggregator.impl.QueryAggregatorSource 
+               org.globus.mds.aggregator.impl.SubscriptionAggregatorSource 
+               org.globus.mds.aggregator.impl.ExecutionAggregatorSource
+        &lt;/value&gt;</emphasis>
+      &lt;/parameter&gt;
+    &lt;/resourceParams&gt;
+</screen>
+<para>This parameter specifies one or more Java classes that may be
+used to collect data for the service. Details of the supplied
+sources are in the <ulink url=
+"http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/aggregator/developer/#introduction">
+Aggregator Framework Developers Guide</ulink>.</para>
+</section>
+<section id="configuring_source"><title>
+Configuring the Aggregator Source</title>
+<para>
+Configuration options are specified by creating a configuration
+file and running <ulink url=
+"http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/index/WS_MDS_Index_Public_Interfaces.html#mds-servicegroup-add">
+mds-servicegroup-add</ulink> to perform the registrations specified in
+that configuration file. See
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-aggregator-registration.xml</filename>
+for several specific examples. The general syntax of a <ulink url=
+"http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/index/WS_MDS_Index_Public_Interfaces.html#mds-servicegroup-add">
+mds-servicegroup-add</ulink> configuration file is:
+</para>
+<screen>
+&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
+&lt;ServiceGroupRegistrations
+  xmlns="http://mds.globus.org/servicegroup/client"&gt;
+
+   &lt;<emphasis>defaultServiceGroupEPR</emphasis>&gt;
+      <emphasis>Default service group EPR</emphasis>
+   &lt;/<emphasis>defaultServiceGroupEPR</emphasis>&gt;
+
+   &lt;<emphasis>defaultRegistrantEPR</emphasis>&gt;
+      <emphasis>Default registrant EPR</emphasis>
+   &lt;/<emphasis>defaultRegistrantEPR</emphasis>&gt;
+
+   &lt;<emphasis>defaultSecurityDescriptorFile</emphasis>&gt;
+      <emphasis>Path name of security descriptor file</emphasis>
+   &lt;/<emphasis>defaultSecurityDescriptorFile</emphasis>&gt;
+
+   <emphasis>One or more of the following:</emphasis>
+   &lt;<emphasis>ServiceGroupRegistrationParameters</emphasis>&gt;
+      &lt;<emphasis>ServiceGroupEPR</emphasis>&gt;
+         <emphasis>EPR of the service group to register to</emphasis>
+      &lt;<emphasis>/ServiceGroupEPR</emphasis>&gt;
+      &lt;<emphasis>RegistrantEPR</emphasis>&gt;
+         <emphasis>EPR of the entity to be monitored.</emphasis>
+      &lt;<emphasis>/RegistrantEPR</emphasis>&gt;
+      &lt;<emphasis>InitialTerminationTime</emphasis>&gt;
+         <emphasis>Initial termination time</emphasis>
+      &lt;<emphasis>/InitialTerminationTime</emphasis>&gt;
+      &lt;<emphasis>RefreshIntervalSecs</emphasis>&gt;
+         <emphasis>Refresh interval, in seconds</emphasis>
+      &lt;<emphasis>/RefreshIntervalSecs</emphasis>&gt;
+      &lt;<emphasis>Content</emphasis>&gt;
+         <emphasis>Aggregator-source-specific configuration parameters</emphasis>
+      &lt;<emphasis>/Content</emphasis>&gt;
+   &lt;/<emphasis>ServiceGroupRegistrationParameters</emphasis>&gt;
+
+&lt;/ServiceGroupRegistrations&gt;
+</screen>
+<para>The following table describes the different blocks of the file
+and any parameters:</para>
+<table><title>TITLE</title>
+<tgroup cols="1"><tbody>
+<row>
+<entry><code>defaultServiceGroupEPR</code> block</entry>
+</row>
+<row>
+<entry>The provides a convenient way to register a number
+of resources to a single service group -- for example, if you wish
+to register several resources to your default VO index, you can
+specify that index as the default service group and omit the
+<code>ServiceGroupEPR</code> blocks from each
+<code>ServiceGroupRegistrationParameters</code> block.</entry>
+</row>
+<row>
+<entry><code>defaultRegistrantEPR</code></entry>
+</row>
+<row>
+<entry>The provides a convenient way to register a single
+resource to several service groups -- for example, if you wish to
+register your local GRAM server to several index servers, you can
+specify your GRAM server as the default registrant and omit the
+<code>RegistrantEPR</code> blocks from each
+<code>ServiceGroupRegistrationParameters</code> block.</entry>
+</row>
+<row>
+<entry><code>defaultSecurityDescriptorFile</code></entry>
+</row>
+<row>
+<entry>Simply the path to the <ulink url=
+"http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/security/authzframe/security_descriptor.html">
+security descriptor file</ulink>.</entry>
+</row>
+<row>
+<entry>
+<code>ServiceGroupRegistrationParameters</code></entry>
+</row>
+<row>
+<entry>Each
+<code>ServiceGroupRegistrationParameters</code> block specifies the
+parameters used to register a resource to a service group. The
+parameters specified in this block are:</entry>
+</row>
+<row>
+<entry><code>ServiceGroupEPR</code></entry>
+<entry>The EPR of the service group to register to. This parameter may
+be omitted if a <code>defaultServiceGroupEPR</code> block is
+specified; in this case, the value of
+<code>defaultServiceGroupEPR</code> will be used instead.</entry>
+</row>
+<row>
+<entry><code>RegistrantEPR</code></entry>
+<entry>The EPR of the resource to register. This parameter may be
+omitted if a <code>defaultRegistrantEPR</code> block is specified;
+in this case, the value of <code>defaultRegistrantEPR</code> will
+be used instead.</entry>
+</row>
+<row>
+<entry><code>InitialTerminationTime</code></entry>
+<entry>The initial termination time of this registration (this may be
+omitted). If the initial termination time is omitted, then the
+<ulink url=
+"http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/index/WS_MDS_Index_Public_Interfaces.html#mds-servicegroup-add">
+mds-servicegroup-add</ulink> sets the initial termination time to the
+current wall time plus 2 times that of the specified
+<code>RefreshIntervalSecs</code> parameter.</entry>
+</row>
+<row>
+<entry><code>RefreshIntervalSecs</code></entry>
+<entry>The refresh interval of the registration, in seconds. The
+<ulink url=
+"http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/index/WS_MDS_Index_Public_Interfaces.html#mds-servicegroup-add">
+mds-servicegroup-add</ulink> will attempt to refresh the registration
+according to this interval, by default incrementing the termination
+time of the registration by 2 times this interval for every
+successful refresh. If at any point the termination time for the
+registration expires the registration will be subject to removal
+within a maximum of 5 minutes.</entry>
+</row>
+<row>
+<entry><code>Content</code></entry>
+<entry>Aggregator-source-specific registration parameters. The content
+blocks for the various aggregator sources are described in detail
+in the following sections.</entry>
+</row>
+</tbody></tgroup>
+</table>
+</section>
+<section id="configuring_poll"><title>
+ServiceGroupRegistration Content Blocks for
+QueryAggregatorSource</title>
+<para>The QueryAggregatorSource can use one of the following three
+configuration blocks:</para>
+<itemizedlist>
+<listitem><simpara><ulink url=
+"#GetResourcePropertyPollType">GetResourcePropertyPollType</ulink></simpara></listitem>
+<listitem><simpara><ulink url=
+"#GetMultipleResourcePropertiesPollType">GetMultipleResourcePropertiesPollType</ulink></simpara></listitem>
+<listitem><simpara><ulink url=
+"#QueryResourcePropertiesPollType">QueryResourcePropertiesPollType</ulink></simpara></listitem>
+</itemizedlist>
+</section>
+<section id="GetResourcePropertyPollType"><title>
+GetResourcePropertyPollType</title>
+If a GetResourcePropertyPollType block is used,
+QueryAggregatorSource will request a single resource property. The
+block has this form:
+<screen>
+   &lt;Content xsi:type="agg:AggregatorContent"
+      xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:GetResourcePropertyPollType&gt;
+            &lt;agg:<emphasis>PollIntervalMillis</emphasis>&gt;<emphasis>interval_in_ms</emphasis>&lt;/agg:<emphasis>PollIntervalMillis</emphasis>&gt;
+            &lt;agg:<emphasis>ResourcePropertyName</emphasis>&gt;<emphasis>rp_namespace</emphasis>:<emphasis>rp_localname</emphasis>&lt;/agg:<emphasis>ResourcePropertyName</emphasis>&gt;
+         &lt;/agg:GetResourcePropertyPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</screen>
+The <code>PollIntervalMillis</code> parameter is the poll refresh
+period in milliseconds; the <code>ResourcePropertyName</code>
+parameter is the QName of the resource property to poll for.
+</section>
+<section id="GetMultipleResourcePropertiesPollType"><title>
+GetMultipleResourcePropertiesPollType</title>
+If a <code>GetMultipleResourcePropertiesPollType</code> block is
+used, <code>QueryAggregatorSource</code> will request one or more
+resource properties. The block has this form:
+<screen>
+   &lt;Content
+        xmlns:agg="http://mds.globus.org/aggregator/types"
+        xsi:type="agg:AggregatorContent"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:GetMultipleResourcePropertiesPollType&gt;
+            &lt;agg:<emphasis>PollIntervalMillis</emphasis>&gt;<emphasis>interval_in_ms</emphasis>&lt;/agg:<emphasis>PollIntervalMillis</emphasis>&gt;
+            &lt;agg:<emphasis>ResourcePropertyNames</emphasis>&gt;<emphasis>rp1_namespace</emphasis>:<emphasis>rp1_localname</emphasis>&lt;/agg:<emphasis>ResourcePropertyNames</emphasis>&gt;
+            &lt;agg:<emphasis>ResourcePropertyNames</emphasis>&gt;<emphasis>rp2_namespace</emphasis>:<emphasis>rp3_localname</emphasis>&lt;/agg:<emphasis>ResourcePropertyNames</emphasis>&gt;
+            &lt;agg:<emphasis>ResourcePropertyNames</emphasis>&gt;<emphasis>rp3_namespace</emphasis>:<emphasis>rp3_localname</emphasis>&lt;/agg:<emphasis>ResourcePropertyNames</emphasis>&gt;
+         &lt;/agg:GetMultipleResourcePropertiesPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</screen>
+The <code>PollIntervalMillis</code> parameter is the poll refresh
+period in milliseconds; the <code>ResourcePropertyNames</code>
+parameters are the QNames of the resource properties to poll for.
+There is no limit on the number of
+<code>ResourcePropertyNames</code> that may be specified.
+</section>
+<section id="QueryResourcePropertiesPollType"><title>
+QueryResourcePropertiesPollType</title>
+If a <constant>QueryResourcePropertiesPollType</constant> block is used,
+QueryAggregatorSource will request that a query be executed against
+the Resource Property Set of the remote resource. In the GT4
+implementation of WSRF Core, the only query language that is
+supported is XPath. The block has this form:
+<screen>
+   &lt;Content
+        xmlns:agg="http://mds.globus.org/aggregator/types"
+        xsi:type="agg:AggregatorContent"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:QueryResourcePropertiesPollType&gt;
+            &lt;agg:<emphasis>PollIntervalMillis</emphasis>&gt;<emphasis>interval_in_ms</emphasis>&lt;/agg:<emphasis>PollIntervalMillis</emphasis>&gt;
+            &lt;agg:<emphasis>QueryExpression</emphasis> Dialect="<emphasis>dialect</emphasis>"&gt;
+               <emphasis>Query Expression</emphasis>
+            &lt;/agg:<emphasis>QueryExpression</emphasis>&gt;
+         &lt;/agg:QueryResourcePropertiesPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</screen>
+The <code>PollIntervalMillis</code> parameter is the poll refresh
+period in milliseconds. The <code>QueryExpression</code> is an
+<code>xsd:any</code> element; the <code>Dialect</code> attribute
+specifies the dialect of the query expression.
+</section>
+<section id="configuring_subscription"><title>
+ServiceGroupRegistration Content
+Blocks for SubscriptionAggregatorSource</title>
+The SubscriptionAggregatorSource gathers resource property values
+from the registered resource using WS-Notification subscriptions.
+The configuration block for
+<code>SubscriptionAggregatorSource</code> looks like this:
+<screen>
+   &lt;Content
+        xmlns:agg="http://mds.globus.org/aggregator/types"
+        xsi:type="agg:AggregatorContent"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:AggregatorSubscriptionType&gt;
+             &lt;<emphasis>TopicExpression</emphasis> Dialect="<emphasis>dialect</emphasis>"&gt;
+                <emphasis>Topic Expression</emphasis>
+             &lt;/<emphasis>TopicExpression</emphasis>&gt;
+             &lt;Precondition Dialect="<emphasis>dialect</emphasis>"&gt;
+                <emphasis>Precondition</emphasis>
+             &lt;/Precondition&gt;
+             &lt;Selector Dialect="<emphasis>dialect</emphasis>"&gt;
+                <emphasis>Selector</emphasis>
+             &lt;/Selector&gt;
+             &lt;SubscriptionPolicy&gt;
+                <emphasis>Subscription Policy</emphasis>
+             &lt;/SubscriptionPolicy&gt;
+             &lt;InitialTerminationTime&gt;<emphasis>time</emphasis>&lt;/InitialTerminationTime&gt;
+         &lt;/agg:AggregatorSubscriptionType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</screen>
+The only required parameter is the <code>TopicExpression</code>,
+which specifies the topic expression to use in the subscription
+request. [TODO: link to core notification/subscription docs ].
+</section>
+<section id="configuring_execution"><title>
+ServiceGroupRegistration Content Blocks
+for ExecutionAggregatorSource</title>
+The ExecutionAggregatorSource gathers arbitrary XML information
+about a registered resource by executing an external script and
+passing registration as parameters. The configuration block for
+<code>ExecutionAggregatorSource</code> looks like this:
+<screen>
+   &lt;Content xsi:type="agg:AggregatorContent"
+      xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:ExecutionPollType&gt;
+            &lt;agg:<emphasis>PollIntervalMillis</emphasis>&gt;<emphasis>interval_in_ms</emphasis>&lt;/agg:<emphasis>PollIntervalMillis</emphasis>&gt;
+            &lt;agg:<emphasis>ProbeName</emphasis>&gt;<emphasis>dummy_namespace</emphasis>:<emphasis>filename</emphasis>&lt;/agg:<emphasis>ProbeName</emphasis>&gt;
+         &lt;/agg:ExecutionPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+</screen>
+The <code>PollIntervalMillis</code> parameter is the poll refresh
+period in milliseconds. The <code>ProbeName</code> parameter
+specifies the path name to the executable file, relative to the
+<code>$GLOBUS_LOCATION/libexec/aggrexec</code> directory. The path
+name should be specified as the local name part of this QName; the
+namespace part is ignored.
+</section>
+<section id="configuring_aggregatorsink"><title>
+Configuring the Aggregator
+Sink</title>
+An aggregator sink may require sink-specific configuration (the MDS
+Trigger service requires sink-specific configuration; the MDS Index
+service does not). See the documentation for the specific
+aggregator service being used for details on sink-specific
+documentation.
+</section>
