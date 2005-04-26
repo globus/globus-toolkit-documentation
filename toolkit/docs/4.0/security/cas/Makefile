@@ -1,3 +1,6 @@
+XML_CATALOG_FILES=/etc/xml/catalog ../../catalog
+export XML_CATALOG_FILES
+
 FILENAME=index.xml
 
 all: html pdf
