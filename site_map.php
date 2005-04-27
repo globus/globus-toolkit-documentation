@@ -25,7 +25,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <table>
 <tr>
-<td><h2><a href="<?=$SITE_PATHS["WEB_ALLIANCE"]; ?>">Globus Alliance</a></h2>
+<td width="25%"><h2><a href="<?=$SITE_PATHS["WEB_ALLIANCE"]; ?>">Globus Alliance</a></h2>
 
 <p><a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."about.php"; ?>">About the Globus Alliance</a></p>
 
@@ -53,7 +53,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 </p>
 </td>
 
-<td><h2><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Globus Toolkit</a></h2>
+<td width="25%"><h2><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Globus Toolkit</a></h2>
 
 <p><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."about.html"; ?>">About the Globus Toolkit</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."news.html"; ?>">Archive of Globus Toolkit News</a>
@@ -107,7 +107,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 </p>
 </td>
 
-<td><h2><a href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">Grid Software</a></h2>
+<td width="25%"><h2><a href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">Grid Software</a></h2>
 
 <p>
 <a href="<?=$SITE_PATHS["WEB_SOFTWARE"]."ecology.php"; ?>">An Ecosystem of Grid Components</a><br>
@@ -176,7 +176,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 </p>
 </td>
 
-<td> <h2><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></h2>
+<td width="25%"><h2><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></h2>
 
 <p><b>Security Challenges:</b><br>
 <a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Registering Users For The Earth System Grid</a>
