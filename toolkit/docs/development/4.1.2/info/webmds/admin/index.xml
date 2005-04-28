@@ -1,0 +1,154 @@
+<title>GT 4.0 WS MDS WebMDS: System Administrator's Guide</title>
+<titleabbrev>System Administrator's Guide</titleabbrev>
+
+<section id="s-webmds-admin-introduction"><title>Introduction</title>
+<para>WebMDS enables end users to view monitoring information via a standard
+web browser interface, without installing any additional software on their
+PC.  WebMDS is implemented as a servlet that uses a plugin interface to
+gather monitoring information (or any other information in XML format) and
+XSLT transforms, and present the data to the user in a readable form.
+Web site administrators can customize their own WebMDS deployments by using
+HTML form options, configuring different plugins to collect data and XSLT
+transforms, and creating their own plugins and XSLT transforms.</para>
+<para>This guide contains advanced configuration information for system administrators
+  working with WS MDS WebMDS. It provides references to information on procedures
+  typically performed by system administrators, including installation, configuring,
+deploying, and testing the installation.</para>
+<para>This information is in addition to the basic Globus Toolkit prerequisite,
+  overview, installation, security configuration instructions in the <ulink url="../../admin/docbook/">GT
+  4.0 System Administrator's Guide</ulink>. 
+Read through this guide before continuing!</para>
+</section>
+
+
+<section id="s-webmds-admin-installing"><title>Building and Installing</title>
+<para>WebMDS is built and installed as part of the standard Globus Toolkit
+installation.</para>
+</section>
+
+<section id="s-webmds-admin-configuring"><title>Configuring </title>
+&WS_MDS_WebMDS_Interface_Config_Frag;
+</section>
+
+<section id="s-webmds-admin-deploying"><title>Deploying</title>
+<para>Because WebMDS is implemented as a servlet, it must be deployed into a servlet
+container, such as <ulink url="http://jakarta.apache.org/tomcat/">Tomcat</ulink>.
+The following instructions assume that you've installed Tomcat version 5.0.28.
+and set the $CATALINA_HOME environment
+variable to the directory into which you've installed Tomcat.
+</para>
+
+<section><title>Standard deployment into Tomcat 5.0.28</title>
+<para>The standard deployment consists of two steps:  creating a configuration file
+that tells Tomcat where to find the WebMDS servlet and related files, and
+restarting Tomcat so that it will read this new configuration file.  These
+steps require write permission on files and directories in
+<computeroutput>$CATALINA_HOME</computeroutput>; they do not require write permission
+on anything in <computeroutput>$GLOBUS_LOCATION</computeroutput>.</para>
+
+<para>To create the configuration file, run this command:</para>
+<screen>
+    $GLOBUS_LOCATION/lib/webmds/bin/webmds-create-context-file \
+         $CATALINA_HOME/conf/Catalina/localhost
+</screen>
+<para>
+This will create
+<computeroutput>$CATALINA_HOME/conf/Catalina/localhost/webmds.xml</computeroutput>.
+Note:  if this file already exists (e.g., if you've previously installed another
+varsion of WebMDS), you'll need to use the <computeroutput>-f</computeroutput> option to
+<computeroutput>webmds-create-context-file</computeroutput>.
+</para>
+<para>Next, restart Tomcat.  If Tomcat is already running, stop it:</para>
+<screen>
+    $CATALINA_HOME/bin/shutdown.sh
+</screen>
+<para>Then, start Tomcat:</para>
+<screen>
+    $CATALINA_HOME/bin/startup.sh
+</screen>
+</section>
+
+<section><title>Custom deployment</title>
+<para>If you are already running a Tomcat server (or other server that supports
+servlets) and your preferred mechanism for
+installing servlets is something other than creating a configuration file
+and restarting your web server, feel free to use that mechanism.  The servlet
+root for WebMDS is <computeroutput>$GLOBUS_LOCATION/lib/webmds</computeroutput>.
+</para><para>
+For the rest of these instructions, the term <emphasis>Globus user</emphasis> will be
+used to refer to the owner of the <computeroutput>$GLOBUS_LOCATION</computeroutput> directory,
+and <emphasis>Tomcat user</emphasis> will be used to refer to the owner of the
+<computeroutput>$CATALINA_HOME</computeroutput> directory.  If the Globus and Tomcat installations
+were performed from the same user account, the Globus user and Tomcat user
+will be the same.
+</para>
+<para>
+Any time you change the servlet configuration (or any jar files used by the
+servlet), you'll need to let tomcat know there was a change.  If you have
+a preferred way of configuring tomcat, feel free to use it, with
+<computeroutput>$GLOBUS_LOCATION/lib/webmds</computeroutput> as the servlet directory.
+These steps need to be performed by the Tomcat user.
+</para>
+<para>
+If you're using tomcat 5.0.28 and haven't done any custom configuration (such
+as defining additional hosts) other than changing the tomcat port,
+you can configure tomcat by doing the following:
+</para>
+<orderedlist>
+
+<listitem><para>Create a context descriptor file called <computeroutput>webmds.xml</computeroutput>
+in the location where tomcat will look for it:
+
+<screen>
+
+    $GLOBUS_LOCATION/lib/webmds/bin/webmds-create-context-file \
+         $CATALINA_HOME/conf/Catalina/localhost
+
+</screen>
+
+Note:  if the file
+<computeroutput>$CATALINA_HOME/conf/Catalina/localhost/webmds.xml</computeroutput>
+already exists, you can use the <computeroutput>-f</computeroutput> flag to
+<computeroutput>create-context-file</computeroutput> to overwrite it.
+to the tomcat configuration directory.
+</para></listitem>
+<listitem><para>If tomcat is running, shut it down.
+<screen>
+
+    $CATALINA_HOME/bin/shutdown.sh
+
+</screen></para></listitem>
+<listitem><para>Start tomcat up.
+<screen>
+
+    $CATALINA_HOME/bin/startup.sh
+
+</screen></para></listitem>
+</orderedlist>
+</section>
+</section>
+
+<section id="s-webmds-admin-testing"><title>Testing</title>
+<para>The easiest way to test your installation is to use it to view your
+index service, by pointing your web browser at
+<computeroutput>http://your-tomcat-host:your-tomcat-port/webmds</computeroutput> and clicking on the link labelled "A list of resources registered to
+the local default index service".</para>
+</section>
+
+<section id="s-webmds-admin-security_considerations"><title>Security Considerations </title>
+&WS_MDS_WebMDS_Security_Considerations_Frag;
+</section>
+
+<section id="s-webmds-admin-troubleshooting"><title>Troubleshooting</title>
+<para>Error handling in WebMDS is currently done by throwing exceptions, which
+are displayed by Tomcat as stack traces.  If you attempt to use WebMDS
+to collect information from a service that is not running, you will see a 
+stack trace that begins with:</para>
+<screen>
+org.globus.mds.webmds.xmlSources.resourceProperties.ResourcePropertySourceException: ; nested exception is: 
+	java.net.ConnectException: Connection refused
+</screen>
+</section>
+
+
+
