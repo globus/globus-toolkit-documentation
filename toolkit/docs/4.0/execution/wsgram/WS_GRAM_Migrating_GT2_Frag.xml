@@ -188,14 +188,9 @@ rft dependency
   <table><title>Command Line Option Comparison</title> <tgroup cols="3"> <tbody>
     <thead> <row>
       <entry>Description</entry>
-      <entry>GT2 Globusrun option</entry>
-      <entry>GT4 Globusrun-ws option</entry>
+      <entry>pre-WS GRAM globusrun option</entry>
+      <entry>WS GRAM globusrun-ws option</entry>
     </row> </thead>
-    <row>
-      <entry>Interactive Multirequest Control</entry>
-      <entry>-i</entry>
-      <entry>NO EQUIVALENT</entry>
-    </row>
     <row>
       <entry>Interactive Multirequest Control</entry>
       <entry>-i</entry>
@@ -313,7 +308,13 @@ rft dependency
 
 <section> <title>Developer - API and RSL Migration Guide</title>
 
-  <table><title>API Migration Table</title> <tgroup cols="2"> <tbody>
+<para>
+   This table describes the migration path for applications which use
+   the C language interface to pre-WS gram. This table covers the
+   globus_gram_client API.
+</para>
+
+  <table><title>C API Migration Table</title> <tgroup cols="2"> <tbody>
     <thead> <row>
       <entry>GT2 API Command</entry>
       <entry>GT4 API Command</entry>
@@ -348,11 +349,11 @@ rft dependency
     </row>
     <row>
       <entry>globus_gram_client_job_refresh_credentials()</entry>
-      <entry>xxx</entry>
+      <entry>globus_delegation_client_util_delegate_epr</entry>
     </row>
     <row>
       <entry>globus_gram_client_register_job_refresh_credentials()</entry>
-      <entry>xxx</entry>
+      <entry>globus_delegation_client_util_delegate_epr_register()</entry>
     </row>
     <row>
       <entry>globus_gram_client_register_job_signal()</entry>
@@ -676,5 +677,100 @@ GLOBUS_SOAP_MESSAGE_USER_CREDENTIAL_KEY and the value the gss_cred_id_t</entry>
     </simpara></listitem>
 
   </itemizedlist>
+
+  <para>Here are some examples of converting some pre-WS GRAM RSLs to WS GRAM.
+  </para>
+
+  <table><title>RSL Migration Examples</title> <tgroup cols="2"> <tbody>
+    <thead> <row>
+      <entry>pre-WS GRAM RSL</entry>
+      <entry>WS GRAM Job Description</entry>
+    </row> </thead>
+    <row>
+      <entry>
+        <screen>
+            (* Simple Job Request With Arguments *)
+            &amp;(executable = /bin/echo)
+             (arguments = Hello, Grid)
+        </screen>
+    </entry>
+      <entry>
+        <screen>
+            &lt;?xml version="1.0"?&gt;
+            &lt;!-- Simple Job Request With Arguments --&gt;
+            &lt;job xmlns:ns1="http://www.globus.org/namespaces/2004/10/gram/job/description"&gt;
+            &nbsp;&nbsp;&lt;ns1:executable&gt;/bin/echo&lt;/ns1:executable&gt;
+            &nbsp;&nbsp;&lt;ns1:argument&gt;Hello,&lt;/ns1:argument&gt;
+            &nbsp;&nbsp;&lt;ns1:argument&gt;Grid&lt;/ns1:argument&gt;
+            &lt;/job&gt;
+        </screen>
+      </entry>
+    </row>
+    <row>
+      <entry>
+        <screen>
+            (* Multijob Request *)
+            +(
+              &amp;(executable = /bin/echo)
+               (arguments = Hello, Grid From Subjob 1)
+               (resource_manager_name = resource-manager-1.globus.org)
+               (count = 1)
+             )
+             (
+              &amp;(executable = mpi-hello)
+               (arguments = Hello, Grid From Subjob 2)
+               (resource_manager_name = resource-manager-2.globus.org)
+               (count = 2)
+               (jobtype = mpi)
+             )
+        </screen>
+    </entry>
+      <entry>
+        <screen>
+            &lt;?xml version="1.0"?&gt;
+            &lt;!-- Multijob Request --&gt;
+            &lt;multiJob
+                xmlns:ns1="http://www.globus.org/namespaces/2004/10/gram/job/description"
+                xmlns:ns2="http://www.globus.org/namespaces/2004/10/gram/job"&gt;
+
+                &lt;ns1:job&gt;
+                  &lt;ns1:factoryEndpoint xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/03/addressing"&gt;
+                    &lt;wsa:Address&gt; https://resource-manager-1.globus.org:8443/wsrf/services/ManagedJobFactoryService &lt;/wsa:Address&gt;
+                    &lt;wsa:ReferenceProperties&gt;
+                      &lt;ns2:ResourceID&gt;Fork&lt;/ns2:ResourceID&gt;
+                    &lt;/wsa:ReferenceProperties&gt;
+                    &lt;wsa:ReferenceParameters/&gt;
+                  &lt;/ns1:factoryEndpoint&gt;
+                  &lt;ns1:executable&gt;/bin/echo&lt;/ns1:executable&gt;
+                  &lt;ns1:argument&gt;Hello,&lt;/ns1:argument&gt;
+                  &lt;ns1:argument&gt;Grid&lt;/ns1:argument&gt;
+                  &lt;ns1:argument&gt;From&lt;/ns1:argument&gt;
+                  &lt;ns1:argument&gt;Subjob&lt;/ns1:argument&gt;
+                  &lt;ns1:argument&gt;1&lt;/ns1:argument&gt;
+                  &lt;ns1:count&gt;1&lt;/ns1:count&gt;
+                &lt;/ns1:job&gt;
+
+                &lt;ns1:job&gt;
+                  &lt;ns1:factoryEndpoint xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/03/addressing"&gt;
+                    &lt;wsa:Address&gt;https://resource-manager-2.globus.org:8443/wsrf/services/ManagedJobFactoryService&lt;/wsa:Address&gt;
+                    &lt;wsa:ReferenceProperties&gt;
+                      &lt;ns2:ResourceID&gt;Fork&lt;/ns2:ResourceID&gt;
+                    &lt;/wsa:ReferenceProperties&gt;
+                    &lt;wsa:ReferenceParameters/&gt;
+                  &lt;/ns1:factoryEndpoint&gt;
+                  &lt;ns1:executable&gt;mpi-hello&lt;/ns1:executable&gt;
+                  &lt;ns1:argument&gt;Hello,&lt;/ns1:argument&gt;
+                  &lt;ns1:argument&gt;Grid&lt;/ns1:argument&gt;
+                  &lt;ns1:argument&gt;From&lt;/ns1:argument&gt;
+                  &lt;ns1:argument&gt;Subjob&lt;/ns1:argument&gt;
+                  &lt;ns1:argument&gt;2&lt;/ns1:argument&gt;
+                  &lt;ns1:count&gt;2&lt;/ns1:count&gt;
+                  &lt;ns1:jobType&gt;mpi&lt;/ns1:jobType&gt;
+                &lt;/ns1:job&gt;
+            &lt;/multiJob&gt;
+        </screen>
+      </entry>
+    </row>
+    </tbody> </tgroup> </table>
 
 </section> <!-- Developer -->
