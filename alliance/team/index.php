@@ -134,7 +134,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       <li><a href="http://www.isi.edu/~deelman">Ewa Deelman</a></li>
       <li><a href="http://www.isi.edu/~sridhar">Sridhar Gullapalli</a></li>
       <li><a href="http://www.isi.edu/~carl">Carl Kesselman</a></li>
-      <li>Guarang Mehta</li>
+      <li><a href="http://www.isi.edu/~gmehta">Gaurang Mehta</a></li>
       <li>John McGee</li>
     </ul>
     </td>
