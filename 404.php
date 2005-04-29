@@ -6,10 +6,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 ?>
 
 <div id="main">
-<p>&nbsp;</p>
 
-<hr>
-<h1>Error 404 - file not found</h1>
+<h1 class="first">Error 404 - File not found</h1>
 
 <p>
 The page you requested could not be found. We have recently reorganized
