@@ -171,6 +171,16 @@ reviews and usability reviews of the software prior to the public release and ma
 signficant improvements and feature additions during this work.
 </p>
 
+<h2>More Information</h2>
+<ul>
+<?php if (!$SITE_CONTENT["GRIDS"]) { ?>
+<li><a href="http://www.grids-center.org/solutions/purse/">PURSE at the GRIDS Center</a></li>
+<?php } ?>
+<li><a href="architecture.php">PURSE System Architecture</a></li>
+<li><a href="resources.php">Software Availability</a></li>
+<li><a href="https://www.earthsystemgrid.org/about/overviewPage.do">The Earth System Grid</a></li>
+</ul>
+
 </div>
 
 <?
