@@ -1,14 +1,9 @@
 <?php
-
 $title = "Globus: Subscription Center";
-
-$section = "section-2";
+$section = "section-1";
 include_once( "include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 ?>
-<div id="left">
-<?php include($SITE_PATHS["SERV_INC"].'alliance.inc'); ?>
-</div>
 
 <div id="main">
 
