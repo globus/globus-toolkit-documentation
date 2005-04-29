@@ -18,7 +18,7 @@ define("LOCAL_INC",1);
     $SITE_PATHS["SERV_ALLIANCE"]          = $SITE_PATHS["SERV_ROOT"]."alliance/";
 
     $SITE_PATHS["WEB_ALLIANCE"]           = $SITE_PATHS["WEB_ROOT"]."alliance/";
-    $SITE_PATHS["WEB_TOOLKIT"]            = "http://www-unix.globus.org/toolkit/staging/";
+    $SITE_PATHS["WEB_TOOLKIT"]            = "http://www-unix.globus.org/toolkit/";
     $SITE_PATHS["WEB_SOFTWARE"]           = $SITE_PATHS["WEB_ROOT"]."grid_software/";
     $SITE_PATHS["WEB_SOLUTIONS"]          = $SITE_PATHS["WEB_ROOT"]."solutions/";
     $SITE_PATHS["WEB_CSS"]                = $SITE_PATHS["WEB_ROOT"]."css/";
