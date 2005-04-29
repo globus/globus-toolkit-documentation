@@ -36,7 +36,7 @@ from the massive storage systems that contain the complete datasets.
 <p>
 The ESG data is housed in data centers operated by national 
 organizations. ESG users register with a Web portal 
-(www.earthsystemgrid.org) and can then use that portal to discover, 
+(<a href="https://www.earthsystemgrid.org/">www.earthsystemgrid.org</a>) and can then use that portal to discover, 
 browse, and request subsets of datasets. The requested data is 
 retrieved from appropriate storage systems and downloaded to the 
 user's workstation.
