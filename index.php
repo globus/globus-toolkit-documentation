@@ -72,6 +72,42 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
           <!--end div of main-->
         </div>
+        <!--end div of content-->
+      </div>
+      <!--ending div of container-->
+    </div>
 
 
-<?php include("./include/footer.inc"); ?>
+    <div class="clearing">&nbsp;</div>
+    <!--ending div of wrapper-->
+  </div>
+  <!--ending div of outer_wrapper-->
+</div>
+
+<div id="footer">
+
+<hr class="first" />
+
+<table width="100%">
+  <tr>
+    <td colspan=3><div align="center">Sponsors include:</div></td>
+  </tr>
+  <tr>
+    <td width="33%"><div align="center"><a href="http://www.energy.gov/"><img src="img/doelogo.jpg" width="100" height="100" border="0"></a></div></td>
+    <td width="33%"><div align="center"><a href="http://www.epsrc.ac.uk/"><img src="img/EPSRC2MONO.jpg" width="216" height="70" border="0"></a></div></td>
+    <td width="33%"><div align="center"><a href="http://www.nsf.gov/"><img src="img/nsfd.jpg" width="100" height="100" border="0"></a></div></td>
+  </tr>
+</table>
+
+  <hr class="first"/>
+
+  <p class="panel">Comments? <a href="mailto:webmaster@globus.org">webmaster@globus.org</a></p>
+  <p class="panel">Globus, Globus Alliance, and Globus Toolkit are trademarks<br>
+    held by the University of Chicago.</p>
+  <!--ending div of footer-->
+</div>
+
+
+
+</body>
+</html>
