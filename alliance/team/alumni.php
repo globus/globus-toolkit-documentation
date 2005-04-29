@@ -27,7 +27,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 	<li>Tom Garritano</li>
       <li>Sam Lang</li>
       <li>Greg Nawrocki (now President of the Globus Consortium)</li>
-      <li>Pawel Plaszczak</li>
+      <li><a href="http://www.gridwisetech.com/team">Pawel Plaszczak</a></li>
       <li>Darcy Quesnel</li>
       <li>Alain Roy</li>
 	<li>Michael Russell</li>
