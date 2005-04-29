@@ -35,8 +35,7 @@ Beyond verifying the identities of users and services, basic Grid security mecha
 <p><strong>Related Solutions:</strong>
 The <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></strong> section of this website
 provides examples of these components being used in scientific projects. See especially the
-<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."purse/"; ?>">PURSE</a></strong> (Portal-based User 
-Registration Service) solution.
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."purse/"; ?>">Registering Users for the Earth System Grid</a></strong> solution.
 </p>
 <?php } ?>
 
