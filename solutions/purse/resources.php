@@ -32,12 +32,12 @@ with them.
 <tr>
 <td class="tablekey">Simple CA</td>
 <td>Simple CA is available in the Globus Toolkit 4.0:<br>
-<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/simpleca/"; ?>"><?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/simpleca/"; ?></a></td>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/simpleca/"; ?>">http://www.globus.org/toolkit/docs/4.0/security/simpleca/</a></td>
 </tr>
 <tr>
 <td class="tablekey">MyProxy</td>
 <td>MyProxy is available in the Globus Toolkit 4.0:<br>
-<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/myproxy/"; ?>"><?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/myproxy/"; ?></a></td>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/myproxy/"; ?>">http://www.globus.org/toolkit/docs/4.0/security/myproxy/</a></td>
 </tr>
 <tr>
 <td class="tablekey">PURSE</td>    
