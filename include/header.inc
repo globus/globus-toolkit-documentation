@@ -40,11 +40,21 @@
 		globus_current_location(); ?>
       </th>
       <td>
+        <!--  OLD SEARCH FORM
         <form method="post" action="http://tiger.mcs.anl.gov/htdig/cgi-bin/htsearch.cgi">
         Site Search:&nbsp;<input type="text" name="words" size="20" maxlength="2033" value="" />
         <input type="hidden" name="config" value="globus" />
         <input type="hidden" name="exclude" value="mail_archive" />
         </form>
+        -->
+        <form method="GET" action="http://www.google.com/custom">
+        Site Search:&nbsp;<input type="text" name="q" size="20" maxlength="200" value="" />
+        <input type="hidden" name="cof" VALUE="S:http://www-unix.globus.org/;VLC:#cccccc;AH:center;BGC:#ffffff;LH:76;LC:#003390;L:http://www-unix.globus.org/img/globusalliance-nourl.gif;ALC:#003390;LW:170;T:#000000;AWFID:fb67b77f3237ebb9;">
+        <input type="hidden" name="domains" value="www-unix.globus.org">
+            <br />
+        <input type="hidden" name="sitesearch" value="www-unix.globus.org">
+        </form> 
+
       </td>
     </tr>
   </table>
