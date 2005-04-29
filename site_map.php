@@ -179,7 +179,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <td width="25%"><h2><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></h2>
 
 <p><b>Security Challenges:</b><br>
-<a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Registering Users For The Earth System Grid</a>
+<a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."purse/"; ?>">Registering Users For The Earth System Grid</a>
 </p>
 
 <p><b>Monitoring/Managability Challenges:</b><br>
@@ -187,7 +187,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 </p>
 
 <p><b>Data Challenges:</b><br>
+<!-- NOT READY YET!!!
 <a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Balancing Computation And Storage For SDSS</a><br>
+-->
 <a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."data_replication/"; ?>">Data Replication For LIGO</a><br>
 <a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."tgcp/"; ?>">Moving Data Fast On The TeraGrid</a>
 </p>
