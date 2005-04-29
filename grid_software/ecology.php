@@ -1,5 +1,5 @@
 <?
-$title = "Grid Ecosystem - An \"Ecosystem\" of Grid Components";
+$title = "Grid Software - An \"Ecosystem\" of Grid Components";
 $section = "section-4";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
@@ -115,7 +115,20 @@ It is important to note that when application solutions are decomposed to isolat
 </p>
 
 <p>
-Once a number of generic solutions have been identified and implemented successfully, the reverse process--composition--can be conducted with useful results. Given a set of generic components, one can integrate them in various ways to produce higher-level solutions that are more specialized but also more powerful and more directly useful to applications and systems. The <a href="security/purse.php">PURSE</a> system for user registration is a good example of this kind of &quot;integrated solution.&quot; These integrated solutions can then reduce the amount of work required to use the generic components in new applications through an economy of scale.
+Once a number of generic solutions have been identified and implemented successfully, 
+the reverse process--composition--can be conducted with useful results. Given a set 
+of generic components, one can integrate them in various ways to produce higher-level 
+solutions that are more specialized but also more powerful and more directly useful 
+to applications and systems. The 
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
+<a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."data_replication/"; ?>">Lightweight Data Replicator</a> 
+<?php } else { ?>
+<a href="http://www.lsc-group.phys.uwm.edu/LDR/">Lightweight Data Replicator</a> 
+<?php } ?>
+system for large-scale, wide area data replication in the LIGO community is a good example 
+of this kind of &quot;integrated solution.&quot; These integrated solutions can then 
+reduce the amount of work required to use the generic components in new applications 
+through an economy of scale.
 </p>
 
 <p><strong><a name="healthy" class="title">A Healthy Grid Ecosystem</a></strong></p>
@@ -279,6 +292,14 @@ and
     <blockquote><b><a href="packaging/">Packaging and Distribution</a></b> describes tools for helping to create integrated
     software distributions for use in Grid projects.</b></blockquote>
 
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
+<p>
+The <b><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></b>
+section of this website provides several examples of how these components
+have been put together to overcome difficult challenges in Grid 
+application and infrastructure projects.
+</p>
+<?php } ?>
 
 </div>
 
