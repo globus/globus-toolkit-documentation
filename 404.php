@@ -1,6 +1,5 @@
 <?php
-
-$title = "The Globus Alliance";
+$title = "Globus: Error 404 File not found";
 $section = "section-1";
 include_once( "./include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
@@ -21,12 +20,14 @@ you are looking for:
 
 <ul>
   <li>Use the navigation bar at the top of the page.
-  <li>Use the site search
+  <li>Use the new <a href="<?=$SITE_PATHS["WEB_ROOT"]."site_map.php"; ?>">site map</a>.
+  <li>Use the site search.
   <li>If you got the error by navigating the Globus website and think
       that the link is broken, please report it to
-      <a href="mailto:webmaster@globus.org">webmaster@globus.org</a>
+      <a href="mailto:webmaster@globus.org">webmaster@globus.org</a>.
   <li>If you are looking for GT4 documentation (3.9.x or 4.0-drafts),
-      please go to <a href="http://www-unix.globus.org/toolkit/docs/4.0/">http://www-unix.globus.org/toolkit/docs/4.0/</a>
+      please go to 
+      <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/"; ?>">http://www.globus.org/toolkit/docs/4.0/</a>.
 </ul>
 
 </div>
