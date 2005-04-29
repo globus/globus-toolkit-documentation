@@ -1,5 +1,5 @@
 <?
-$title = "Grid Ecosystem - Security";
+$title = "Grid Software - Security";
 $section = "section-4";
 include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
@@ -31,13 +31,14 @@ Managing the certificates used by Grid applications is simple in principle, but 
 Beyond verifying the identities of users and services, basic Grid security mechanisms leave access control decisions to services. The Grid community has developed authorization and access control tools for storing and providing access to system-wide authorization information and for creating a central data store for supporting decentralized control mechanisms.
 </p>
 
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
 <p><strong>Related Solutions:</strong>
-The <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> section of this website
+The <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></strong> section of this website
 provides examples of these components being used in scientific projects. See especially the
 <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."purse/"; ?>">PURSE</a></strong> (Portal-based User 
-Registration Service) and <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."vomrs/"; ?>">VOMRS</a></strong> 
-(Virtual Organization Management Registration Service) solutions.
+Registration Service) solution.
 </p>
+<?php } ?>
 
 <p><strong><a name="mechanisms" class="title">Basic Security Mechanisms</a></strong></p>
 
