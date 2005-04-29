@@ -37,13 +37,14 @@ to fall into three major categories: metascheduling (aka brokering), distributed
 virtual data.
 </p>
 
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
 <p>
 <strong>Related solutions:</strong>
-The <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> section of this website
-provides examples of these components being used in scientific projects.  See especially the
-<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."pegasus/"; ?>">Pegasus</a></strong> solution.
+The <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> 
+section of this website provides examples of these components being used in 
+scientific projects.
 </p>
-
+<?php } ?>
 
 <p><strong><a name="mechanisms" class="title">Basic Computation Mechanisms</a></strong><p>
 

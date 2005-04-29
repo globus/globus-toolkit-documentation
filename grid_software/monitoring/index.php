@@ -28,13 +28,16 @@ Grid systems and applications are usually intended to be "persistent," meaning t
 This model of availability creates requirements for <em>monitoring</em> and <em>discovering</em> infrastructure elements and services.  The OGSA architecture and the Globus Toolkit provide a core architecture and an implementation (respectively) for publishing, locating, and subscribing to information.  The Grid community has developed several specialized systems for system monitoring that are useful both as stand-alone mechanisms and as elements within the OGSA architecture.
 </p>
 
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
 <p>
 <strong>Related solutions:</strong>
 The <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> section 
 of this website provides examples of these components being used in scientific projects. See 
-especially the <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."system_monitoring/"; ?>">ESG 
-System Monitoring</a></strong> solution.
+especially the solution titled 
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."system_monitoring/"; ?>">A Monitoring
+System for the Earth System Grid</a></strong>.
 </p>
+<?php } ?>
 
 <p><strong><a name="mechanisms" class="title">Basic Monitoring and Discovery Mechanisms</a></strong></p>
 

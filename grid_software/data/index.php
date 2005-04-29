@@ -36,15 +36,16 @@ Building on the availability of high-capacity storage systems and networks, the 
 of components for working with and managing data on the Grid.
 </p>
 
+<?php if ($SITE_CONTENT["GLOBUS"]) { ?>
 <p>
 <strong>Related solutions:</strong> The 
 <strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Solutions</a></strong> section of this website 
 provides examples of these components being used in scientific projects. See especially the 
-<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."tgcp/"; ?>">TeraGrid Copy</a></strong>,
-<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."data_replication/"; ?>">LIGO Data Replication</a></strong>, and
-<strong>SDSS Data Analysis</strong>
-solutions.
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."tgcp/"; ?>">Moving Data Fast on the TeraGrid</a></strong> and
+<strong><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."data_replication/"; ?>">Large-scale Data 
+Replication for LIGO</a></strong> solutions.
 </p>
+<?php } ?>
 
 <p><strong><a name="mechanisms" class="title">Basic Data Management Mechanisms</a></strong></p>
 
