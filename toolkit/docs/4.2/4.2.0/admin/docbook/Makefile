@@ -26,7 +26,7 @@ newpdf:
 	   --stringparam fop.extensions 1 \
 	   /usr/share/sgml/docbook/xsl-stylesheets/fo/docbook.xsl index.xml \
          > index.fo
-	fop.sh index.fo index.pdf
+	# fop.sh index.fo index.pdf
 
 pdf:
 	docbook2pdf \
