@@ -43,11 +43,12 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <h2>Security Challenges</h2>
 
     <ul>
-      <li><b>Registering Users For The Earth System Grid</b><br>
+      <li><b><a href="purse/">Registering Users For The Earth System Grid</a></b><br>
         The challenge: Add a simple user registration interface to your Grid application
         so that users need only a simple ID/password combination to "sign in."
         At the same time, make certain that the application uses "strong"
         Grid security internally. 
+        <a class="learnmore" href="purse/">Learn how...</a>
       </li>
     </ul>
 
@@ -85,11 +86,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         <a class="learnmore" href="data_replication/">Learn how...</a>
       </li>
 
+<!--   Not ready yet!
       <li><b>Balancing Computation And Storage For The Sloan Digital Sky Survey</b><br>
         The challenge: Provide analyzed data on demand using a combination of analysis "recipes," 
         results or partial results from previous analyses, replicas of these 
         results, and a limited set of computation and storage facilities.
       </li>
+-->
     </ul>
 
 </div>
