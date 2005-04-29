@@ -56,7 +56,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         <li>Doug Scheftner</li>
 	<li><a href="http://www-unix.mcs.anl.gov/~schopf/">Jennifer Schopf</a></li>
 	<li><a href="http://www-unix.mcs.anl.gov/~franks/">Frank Siebenlist</a></li>
-        <li><a href="http://www-unix.mcs.anl.gov/~voeckler/">Jens-Soenke Voeckler</a>
+        <li><a href="http://www-unix.mcs.anl.gov/~voeckler/">Jens-S. V&ouml;ckler</a>
 	<li><a href="http://www-unix.mcs.anl.gov/~wilde/">Mike Wilde</a></li>
       </ul>
     </td>
