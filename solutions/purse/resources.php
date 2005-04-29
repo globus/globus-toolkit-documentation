@@ -1,5 +1,5 @@
 <?php
-$title = "Grid Solutions - ESG Monitoring System (Resources)";
+$title = "Grid Solutions - Registering Users for ESG (Resources)";
 $section = "section-5";
 include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
@@ -12,50 +12,42 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 
 <div id="main">
 
-<h1 class="first">ESG Monitoring System Resources</h1>
+<h1 class="first">Registering Users for ESG - Resources</h1>
 
 <p>
-The Earth System Grid Monitoring System builds on components of the Globus Toolkit,
-but it also includes components that are not yet part of the Toolkit.  This page 
-provides information about where and how you can access the tools used in this 
-implementation.
+PURSE builds on components of the Globus Toolkit, but it also includes 
+components that are not yet part of the Toolkit.  This page provides information 
+about where and how you can access the tools used in this implementation.
+</p>
+
+<p>
+If you intend to try PURSE out or reuse it in your project, we encourage you
+to use the integrated package available below. This will install 3.2 versions
+of the Globus Toolkit components rather than 4.0 versions. The 4.0 versions of
+Simple CA and Myproxy should work just as well but PURSE has not yet been tested
+with them.
 </p>
 
 <table class="boxed">
 <tr>
-<td class="tablekey">Index Service</td>
-<td>An OGSI Index Service is available in the Globus Toolkit 3.2:<br>
-<a href="http://www-unix.globus.org/toolkit/downloads/3.2/index.html">http://www-unix.globus.org/toolkit/downloads/3.2/index.html</a><br>
-A WSRF Index Service is available in the Globus Toolkit 4.0:<br>
-<a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/index/">http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/index/</a></td>
+<td class="tablekey">Simple CA</td>
+<td>Simple CA is available in the Globus Toolkit 4.0:<br>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/simpleca/"; ?>"><?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/simpleca/"; ?></a></td>
 </tr>
 <tr>
-<td class="tablekey">Web Service Data Browser</td>
-<td>Developed by Arslan Javed &lt;<a href="mailto:ajaved@isi.edu">ajaved@isi.edu</a>&gt;<br>
-Available (OGSI) from the Grid Technology Repository:<br>
-<a href="http://gtr.globus.org/article.php?story=20030723143444410">http://gtr.globus.org/article.php?story=20030723143444410</a><br>
-Available (WSRF) in the Globus Toolkit 4.0:<br>
-<a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/techpreview/webmds/">http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/techpreview/webmds/</a></td>
+<td class="tablekey">MyProxy</td>
+<td>MyProxy is available in the Globus Toolkit 4.0:<br>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/myproxy/"; ?>"><?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/myproxy/"; ?></a></td>
 </tr>
 <tr>
-<td class="tablekey">Archive Service</td>    
-<td>Developed by June Sup Lee &lt;<a href="mailto:june@isi.edu">june@isi.edu</a>&gt;<br>
-Currently available (OGSI) through the Globus Toolkit CVS Repository</td>
-</tr>
-<tr>
-<td class="tablekey">Trigger Service</td>     
-<td>Developed by Shishir Bharathi &lt;<a href="mailto:shishir@isi.edu">shishir@isi.edu</a>&gt;<br>
-Available (OGSI) through the Globus Toolkit CVS Repsitory<br>
-Available (WSRF) in Globus Toolkit 4.0:<br>
-<a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/trigger/">http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/info/trigger/</a></td>
+<td class="tablekey">PURSE</td>    
+<td>PURSE is available as an integrated package from the NSF Middleware 
+    Initiative's GRIDS Center:<br>
+<a href="http://www.grids-center.org/solutions/purse/">http://www.grids-center.org/solutions/purse/</a></td>
 </tr>
 </table>
 
 <p></p>
-
-<p>
-&lt;&lt; <a href="./">Return to ESG Monitoring System Overview</a>
-</p>
 
 </div>
 
