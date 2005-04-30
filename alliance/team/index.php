@@ -47,7 +47,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 	<li><a href="http://www.mcs.anl.gov/~gregor/">Gregor von Laszewski</a></li>
 	<li><a href="http://www-unix.mcs.anl.gov/~liming/">Lee Liming</a></li>
 	<li><span lang="en-us">Mike Link</span></li>
-	<li>Ravi Madduri</li>     
+	<li><a href="http://www-unix.mcs.anl.gov/~madduri/">Ravi Madduri</a></li>     
 	<li>Stuart Martin</li>
         <li>Samuel Meder</li>
         <li>Neill Miller</li>
