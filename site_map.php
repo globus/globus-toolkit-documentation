@@ -18,7 +18,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
  <a href="<?=$SITE_PATHS["WEB_ROOT"]."contacts.php"; ?>">Contact Us</a> |
  <a href="<?=$SITE_PATHS["WEB_ROOT"]."faq.php"; ?>">FAQ</a> |
  <a href="<?=$SITE_PATHS["WEB_ROOT"]; ?>">Home</a> |
- <a href="<?=$SITE_PATHS["WEB_ROOT"]."site_index.php"; ?>">Site Index</a> |
  <a href="<?=$SITE_PATHS["WEB_ROOT"]."site_map.php"; ?>">Site Map</a>
  </p>
  
