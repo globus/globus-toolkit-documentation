@@ -47,6 +47,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>The <a class="newsalliance" href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Globus 
+Toolkit 4.0</a> is available for download. (4/2005)</p>
+
 <p>The Globus Alliance and GRIDS Center have released 
 <a class="newspartners" href="http://www.grids-center.org/solutions/purse/">PURSE</a>, 
 a Portal Based User Registration Service. (4/2005)</p>

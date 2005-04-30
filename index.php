@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">04.29.2005</span></td>
+              <td><b>GT4.0 is available for download.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">04.20.2005</span></td>
               <td><b>PURSE makes user registration easy.</b> 
                 <a class="learnmore" href="http://www.grids-center.org/solutions/purse/">Learn more...</a></td>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">04.09.2005</span></td>
               <td><b>UK Globus Week was a big success.</b> 
                 <a class="learnmore" href="http://www.nesc.ac.uk/esi/events/519/">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">02.25.2005</span></td>
-              <td><b>GT 3.9.5 is available for testing.</b> 
-                <a class="learnmore" href="http://www-unix.globus.org/toolkit/staging/news.html#02252005">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
