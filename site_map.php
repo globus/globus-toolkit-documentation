@@ -59,7 +59,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 </p>
 
 <p><b>About:</b><br>
-<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."press.html"; ?>">In the Press</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."citations.html"; ?>">How do I cite Globus?</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."success_stories.html"; ?>">Success Stories</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."about.html"; ?>">What is the Globus Toolkit?</a>
