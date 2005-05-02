@@ -91,7 +91,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <h2><a href="http://www.ncsa.uiuc.edu/">National Center for Supercomputing Applications (NCSA)</a></h2>
 
     <ul>
-    <li>Von Welch
+    <li>Jim Basney</li>
+    <li>Tom Scavo</li>
+    <li>Von Welch</li>
     </ul>
     
     
