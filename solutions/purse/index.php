@@ -138,7 +138,7 @@ When a user logs into the application, the application obtains a Grid proxy cert
 
 <p>
 ESG has been using PURSE since 2004 and has registered several hundred users. ESG
-users can register with the system, create a simpel login ID/password combination,
+users can register with the system, create a simple login ID/password combination,
 and then log into the ESG web portal and make requests that utilize services at
 several different institutions--all authenticated with Grid security--without ever
 seeing or having to personally manage their Grid certificates. This significantly
