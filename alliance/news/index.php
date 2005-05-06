@@ -47,6 +47,19 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>In a collaboration between the London e-Science Centre (as a member of the 
+UK Grid Engineering Taskforce), Gridwise and MCNC, 
+<a class="newspartners" href="http://www.lesc.ic.ac.uk/projects/SGE-GT4.html">Sun 
+Grid Engine 6 has been integrated with GT4</a>. (5/2005)</p>
+
+<p>Coinciding with the GT 4.0 release, a 
+<a class="newspartners" href="http://hdl.handle.net/4263537/5018">collaborative project between CNRI and 
+the Globus Alliance</a> has been launched. The goal of the project is to leverage 
+CNRI's sophisticated Handle System (<a href="http://www.handle.net/">www.handle.net</a>) 
+for identifier and resolution services through a tight integration with GT4's Web 
+services protocols.  Please visit this page to learn more and download demo code. 
+(4/2005)</p>
+
 <p>The <a class="newsalliance" href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Globus 
 Toolkit 4.0</a> is available for download. (4/2005)</p>
 
