@@ -81,6 +81,15 @@ submitting bibliographic citations</a>.</b></p>
     55(2):42-47, 2002.<br>
 	[<a href="#physics02">Citation</a>]</font></p>
 
+	<p><font size="2"><b><a name="wsrf-eval">State and Events for Web Services: A 
+           Comparison of Five WS-Resource Framework and WS-Notification  
+           Implementations</a></b>. M. Humphrey, G. Wasson, K. Jackson, J. Boverhof, 
+           M. Rodriguez, Joe Bester, J. Gawor, S. Lang, I. Foster, S. Meder, S. Pickles, 
+           and M. McKeown, 4th IEEE International Symposium on High Performance 
+           Distributed Computing (HPDC-14), Research Triangle Park, NC, 24-27 July 2005.<br>
+	[<a href="#wsrf-eval">Citation</a>, 
+         <a href="papers/WSRFComparison2005-3.pdf">PDF</a>]</font></p>
+
 	<p><font size="2"><b>Grids: Top Ten Questions</b>. J.M. Schopf and B.
     Nitzberg, <i>Scientific Programming, special issue on Grid Computing</i>,
     10(2):103 - 111, August 2002.&nbsp;<br>
