@@ -20,6 +20,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <table class="news">
             <tr>
               <td><span class="newsdate">04.29.2005</span></td>
+              <td><b>The Handle System<sup>&reg;</sup> applies to Grids.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."projects/handle_system.html"; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
+              <td><span class="newsdate">04.29.2005</span></td>
               <td><b>GT4.0 is available for download.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Learn more...</a></td>
             </tr>
@@ -30,14 +35,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
             </tr>
             <tr>
               <td><span class="newsdate">04.09.2005</span></td>
-              <td><b>See us in San Diego in May!</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">04.09.2005</span></td>
               <td><b>UK Globus Week was a big success.</b> 
                 <a class="learnmore" href="http://www.nesc.ac.uk/esi/events/519/">Learn more...</a></td>
             </tr>
+
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
 
@@ -57,18 +58,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
              of grids for their cause. 
              <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Learn more...</a></p>
 
-          <!-- COMMENTED OUT
-          <p>Globus Alliance members have deep experience using <b>Grid Software</b> to overcome challenges 
-             in leading-edge e-Science and e-Business initiatives. Some of this software is now part of the 
-             Globus Toolkit, and some is not. The Globus Alliance is an active member in the community of
-             Grid Software developers. 
-             <a class="learnmore" href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">Learn more...</a></p>
-
-          <p>Together with e-Science and e-Business teams, we've identified <b>Grid Solutions</b> for a variety of
-             problems that appear when sharing resources. These solutions offer roadmaps for new teams,
-             allowing greater focus on challenges in other areas. 
+          <p>The Globus Alliance is an active member in the community of
+             <b>Grid Software</b> developers. 
+             <a class="learnmore" href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">Learn more...</a>
+             As partners in e-Science and e-Business projects, we've built
+             <b>Grid Solutions</b> for a variety of challenges that come up when people
+             share resources.
              <a class="learnmore" href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Learn more...</a></p>
-          -->
 
           <!--end div of main-->
         </div>
