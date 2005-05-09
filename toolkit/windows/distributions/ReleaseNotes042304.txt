@@ -1,0 +1,228 @@
+*******************************************************************************
+
+Preliminary Release Notes for WinGlobus
+
+Version 1.4
+
+Friday, April 23, 2004
+
+Bob Gaffaney
+
+gaffaney@mcs.anl.gov
+
+*******************************************************************************
+
+----------
+What's New
+
+This distribution contains all source files and debug static libraries. 
+
+Some bugs were fixed in this distribution. Windows is fussy that things 
+allocated with the OpenSSL allocation routines be freed with the corresponding
+OPENSSL_free routines or Assertions will be raised. Several of these were
+found and fixed.
+
+Support for Dynamic Link Libraries has been dropped from this release because
+of a serious problem that was discovered. The Globus code base makes extensive
+uses of static (compile time) initialization that reference addresses of
+variables exported from other modules. Unix dynamic library loaders fix up
+these references at runtime. Windows does not. It instead handles this 
+situation by indirecting through the DLL's symbol table. This is a significant
+and pervasive problem for which a solution has not yet been identified. 
+
+Stay tuned for further developments.
+
+
+------------
+Introduction
+
+This document describes important features of the WinGlobus Distribution. Also
+see the WinGlobus Port Document referenced on this page for more information.
+(http://www-unix.mcs.anl.gov/~gaffaney/GT2Port1r3.doc)
+
+This is a completely new distribution of WinGlobus. The previous releases from
+October 2003 were Visual Studio.NET based and were built as Static Libraries
+using a single C Runtime library.
+
+It soon became apparent that various users not only needed different libraries
+but wanted a Visual Studio independent build process. It was obvious that a 
+completely new build process was needed not only to satisfy the needs of the 
+community at large, but also at Argonne in order to properly support Globus 
+on Windows. The new build process is described below.
+
+The Source Code used for this distribution was taken from the CVS trunk. CVS
+was tagged win32_dist_3_tag at this point. A branch will not be created for 
+this distribution.
+
+Note that the new XIO remains to be ported and is not included. XIO and the 
+new version GridFTP still under development will be included in a later
+Distribution.
+
+The OpenSSL libraries included with this Distribution must be used or there
+will be unresolved externals in linking GSI modules. There is an extras
+directory that contains the def files and additional information for building
+compatible OpenSSL libraries yourself if you so choose.
+
+Bugzilla is not yet in place for WinGlobus, please report any issues to
+gaffaney@mcs.anl.gov.
+
+
+-------------
+Build Process
+
+The new build process included in this Distribution has the following features:
+
+  * Command Line: It is based on Perl Scripts and Batch Files and is run from 
+    the Command Line.
+    
+  * Automated: It builds all Libraries and Executables without user
+    intervention.
+         
+  * Makefile Based: The build process creates nmake compatible makefiles that
+    can be invoked singly to build any particular Library or Executable.
+
+ *  'Flavor' Based: Taking a cue from the Linux builds, 'Flavors' define 
+    various combinations of the following build options:
+    
+        Globus Threaded or Nonthreaded
+        Static or Dynamic Libraries
+        Debug or Release Builds
+        Any of Six C Runtime Libraries
+        
+    While libraries and executables based on any combination of the above 
+    may be built, four specific combinations are included in the full
+    distribution:
+    
+        FlavorName          win32dbgmtdthr
+        GlobusThreading     threaded
+        BuildConfig         debug
+        LibraryType         static
+        CRuntimeLib         MTd
+
+        FlavorName          win32relmtthr
+        GlobusThreading     threaded
+        BuildConfig         release
+        LibraryType         static
+        CRuntimeLib         MT
+
+        FlavorName          win32dbgmddthr
+        GlobusThreading     threaded
+        BuildConfig         debug
+        LibraryType         dynamic
+        CRuntimeLib         MDd
+
+        FlavorName          win32relmdthr
+        GlobusThreading     threaded
+        BuildConfig         debug
+        LibraryType         dynamic
+        CRuntimeLib         MDd
+
+    More detailed information on the Build Process and on the WinGlobus Port
+    in general is available in the porting document to which there is a
+    link on this page (http://www-unix.mcs.anl.gov/~gaffaney/).
+    
+
+Build Tree
+----------
+
+The distribution may be copied anywhere, but to build set the $GlobusLocation
+environment variable to the root of the Build Tree.
+
+   $GlobusLocation\
+      BIN                DLLs
+      BIN\FlavorName     Executibles for that Flavor
+      LIB                Static Libraries and Link Libraries   
+      INCLUDE            Include directory tree
+      CORE               Core Module tree
+      COMMON             Common Module tree
+      IO                 IO Module tree
+      GRIDFTP            GridFTP Module tree
+      GSI                GSI Module tree
+      CALLOUT            Callout Module tree
+      GASS               GASS Module tree
+      GRAM               GRAM Module tree
+
+
+Included Libraries
+------------------
+
+   CORE      Include files only, no libraries
+    
+   COMMON    Single-threaded and multi-threaded versions of the Common 
+             library. Also contains fifteen test applications. There is
+             
+   IO        Single-threaded and multi-threaded versions of the IO 
+             library. Also contains several tests.
+             
+   GRIDFTP   Single-threaded and multi-threaded versions of the GridFTP
+             Client and Control Libraries.
+    
+   CALLOUT   Single-threaded version of the Callout library. Also includes
+             a project to build the DLL version of the Callout library 
+             which is not presently used. There is a test application and
+             a project for a DLL that is loaded dynamically by the test.
+             
+   GSI       Multi-threaded versions of the following GSI Libraries:
+
+                  openssl_module
+                  gss_assist
+                  gssapi
+                  cert_utils
+                  gridmap_callout
+                  gridmap_callout_error
+                  gssapi_error
+                  callback
+                  old_gaa
+                  credential
+                  sys-config
+                  openssl_error
+                  proxy_core
+                  proxy_ssl
+                    
+   GASS      Multi-threaded and single-threaded versions of the GASS Copy
+             and GASS Transfer libraries and a single-threaded version of
+             GASS Server EZ. Two test applications are also included.
+             
+   GRAM      Multi-threaded versions of the GASS Client and GASS 
+             Protocol libraries.
+    
+
+   Note: there is minimal documentation on the tests so it may be necessary
+         to look at the source code to see what they do and what arguments 
+         are needed. These are tests developed for the Linux platform and a
+         few of them don't run because they have dependencies on unix things
+         like fork(). Feel free to fix these up and submit the changes!
+
+
+--------------------
+OpenSSL Distribution
+
+Applications must use the SSL link libraries and binaries provided in the 
+release (ssleay32.lib, ssleay32.dll, libeay32.lib, libeay32.dll). The reason
+for this is that GSI makes use of some SSL functions that are not exported in 
+the distribution release of SSL.
+
+This Windows Globus release uses version 9.7c of OpenSSL. The global include
+files and the binaries are included with the Distribution. If you wish to
+build these yourself please contact me for details on how to expose the 
+additional exports needed by GSI.
+
+          
+Issues
+------
+
+Globus threaded and Globus non-threaded versions of the library should not 
+be mixed.
+
+C Runtime Libraries should not be mixed. Use the Library Flavor that uses the
+same Runtime Libraries as your application
+
+This is a huge body of code and has not been run extensively on Windows 
+Platforms. Please let us know how well it runs (or not). Our goal is to make 
+Globus as stable and functional on Windows as it is on the Unix platforms.
+
+Feel free to contact me at gaffaney@mcs.anl.gov with questions, 
+comments or requests.
+
+Bob Gaffaney
+

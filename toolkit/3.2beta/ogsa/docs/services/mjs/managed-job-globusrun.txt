@@ -1,0 +1,280 @@
+
+managed-job-globusrun - submit a job to a (Master) Managed Job Factory Service
+
+NOTE
+
+managed-job-globusrun is the GT3 equivalent of the GT2 globusrun tool
+more or less a few options. Some options have changed (-s, -o, -w).
+
+SYNOPSIS
+
+Given the following grammar:
+     <factory> = -factory <contact> [-type <type>]
+     <contact> = [<protocol>://]<host>[:[<port>]][/<service>]
+     <RSL>     = -file <RSL filename> | <RSL string>
+
+Job service submission:
+-----------------------
+
+managed-job-globusrun [options] [<factory>] <RSL>
+
+with
+     [options] = [-s] [-w] [-o] [-q] [-n]
+                 [-b] [-duration <duration>] [-terminate-at <time>]
+                 [-auth <auth>] [-xmlsec <sec>] [-nogrim] [-personal]
+
+
+RSL parsing only:
+-----------------
+
+managed-job-globusrun -p <RSL>
+
+
+Job listing:
+------------
+
+managed-job-globusrun -list [<factory>]
+managed-job-globusrun (-status | -kill) <job service URL>
+
+
+Help:
+-----
+
+managed-job-globusrun (-help | -usage | -version)
+
+
+DESCRIPTION
+
+This command is used to submit jobs to globus resources. The job
+startup is done using the GT3 GRAM services. Also, the GASS service
+can be used to provide access to remote files and for redirecting
+standard output streams.
+
+In addition to starting jobs, it is possible to list previously
+started jobs, query status of previously started jobs, parse RSL
+request strings or files.
+
+The existence of a valid proxy is required for essentially all
+supported operations but RSL parsing (-p).
+
+
+OPTIONS
+
+Help:
+ -help                 display help.
+ -usage                display usage.
+ -v, -version          display version.
+
+Job Factory Contact:
+ -factory <contact>    specify the URL of the Job Factory Service
+                       to contact when submitting or listing jobs.
+                       A factory contact string can be specified in
+                       the following ways:
+                       host
+                       host:
+                       host:port
+                       host:port/service
+                       host/service
+                       host:/service
+                       It is also possible to specify the protocol
+                       by prepending   protocol://  to each of the
+                       previous possibilities, bringing the total
+                       number of supported syntaxes to 12.
+                       For those factory contacts which omit the
+                       protocol, port or service field, properties
+                       in the file ogsa.properties are used as
+                       defaults, but if the property file cannot be
+                       found or read, the following default values
+                       are used, as the following table explains:
+                       URL part | $property        | default value
+                       port     | $service.port    | 8080
+                       protocol | $binding.protocol| http
+                       service  | none             |/ogsa/services/base/gram/
+                                MasterForkManagedJobFactoryService
+                       Omitting altogether the -factory option is
+                       equivalent to specifying the local host as
+		       the contact string.
+					      
+ -type <factory type>  specify the job factory service as
+                       a shortname instead of specifying a full
+                       service path with -factory or using the
+                       default service path. This is equivalent to
+                       specifying the service with the -factory
+                       option as:
+                       /ogsa/services/base/gram/
+                                Master<factory type>ManagedJobFactoryService
+                       Examples:   -factory myHost -type Fork
+                                   -factory myHost -type PBS
+                       Default: Fork
+
+Job Specification:
+ <RSL string>          read RSL from the string <RSL string>.
+ -file <RSL filename>  read RSL from the local file <RSL filename>.
+                       The RSL must be a single job request.
+ -p                    only parse the RSL, and then print either a
+                       success message or a parser failure. No job
+                       will be submitted to any factory service.
+                       The RSL must be a single job request.
+
+Internal GASS Server:
+ -s, -server           start GASS server with read access to local
+                       files, providing read-only service to the
+                       local filesystem.
+ -w, -write-allow      start GASS server with read/write access to
+                       local files. Similar to -server, except the
+                       GASS server URL will allow writing to the
+                       local filesystem as well as reading to it.
+                       Implies -server.
+ -o, -output           start GASS server and display the job's
+                       standard output and error streams on the
+                       standard output and error of the command's
+                       process. No other read/write access will be
+                       provided by this option alone.
+                       Implies -quiet.
+
+ The substitution variable GLOBUSRUN_GASS_URL can be used in RSL
+ to access files local to the submission machine via GASS.
+
+Batch Operations:
+ -b, -batch            do not wait for started job to complete (and
+                       do not destroy started job service on exit).
+                       The handle of the job service will be
+                       printed on the standard output.
+                       Incompatible with internal GASS options
+                       (-server, -write-allow, and -output).
+                       The job must use an external GASS server if
+                       it needs to access local files.
+                       incompatible with multi-request jobs.
+                       Implies -quiet.
+ -l, -list             list previously started and not destroyed
+                       job services. The output of this command
+                       consists of the job service URLs, and the
+                       job RSL string. Requires the -factory <URL>
+                       argument.
+ -status <URL>         printout the status of the specified job.
+                       For a list of valid states, see the GRAM
+                       documentation; the current valid states are
+                       Pending, Active, Done, Suspended, and Failed.
+                       The <URL> argument should be one printed out
+                       when executing in batch mode or when using
+                       the -list option.
+ -k, -kill <URL>       kill the specified job.
+                       The <URL> argument should be one printed out
+                       when executing in batch mode or when using
+                       the -list option.
+
+Job Service Termination Time:
+ -duration <duration>  specify duration of job service. The job
+                       service will destroy itself automatically
+                       after the specified duration starting from
+                       service creation.
+                       Format: HH:mm
+                       Default job service duration is 24 hours.
+                       Incompatible with -date-time.
+                       Useful with -batch.
+ -terminate-at <date>  specify termination date/time of service.
+                       Same as -duration but with an absolute
+                       date/time value.
+                       Format: MM/dd/yyyy HH:mm
+                       The date expression may need to be quoted,
+                       as in:     -terminate-at '08/15/2005 11:30'
+                       Incompatible with -duration.
+                       Useful with -batch.
+
+Security:
+ -auth <auth>          set authorization type. <auth> can be:
+                           'host' for host authorization,
+                           'self' for self authorization (default).
+                       Otherwise identity authorization is
+                       performed.
+ -xmlsec <sec>         set xml security type to use. <sec> can be:
+                           'sig' for XML Signature (default),
+                           'enc' for XML Encryption.
+ -nogrim               disable grim checks (enabled by default).
+ -personal             shortcut for -nogrim and -auth self.
+ -proxy <proxy_file>   use <proxy_file> instead of the default proxy.
+ -deleg <deleg>        set delegation type. <deleg> can be:
+                            'full' for full delegation
+                            'limited' for limited delegation (default)
+
+Miscellaneous:
+ -q, -quiet            set quiet mode on (do not print diagnostic
+                       messages when job status changes, in
+                       non-batch mode). Useful when job output is
+                       redirected to the local process and parsed.
+ -n, -no-interrupt     disable interrupt handling. By default,
+                       interrupt signals (typically generated by
+                       Ctrl + C) cause the program to terminate the
+                       currently submitted job. This flag disables
+                       that behavior.
+ -timeout <integer>    set timeout for HTTP socket, in milliseconds.
+                       Applies to job submission only.
+                       Default is 1200000.
+
+GT2 globusrun options not functional (yet):
+ -dryrun               NOT IMPLEMENTED ON SERVER SIDE YET.
+                       augment the RSL in order to mark this job as
+                       a dry run, if the RSL does not already say
+                       so. This causes the job manager to stop
+                       short of starting the job, but still detect
+                       other RSL errors (such as bad directory,
+                       bad executable, etc). An error message will
+                       be displayed if the dry run fails.
+                       Otherwise, a message will be displayed
+                       indicating that the dryrun was successful.
+ -authenticate-only    NOT IMPLEMENTED ON SERVER SIDE YET.
+ -interactive          DUROC not supported yet.
+ -stop-manager         doesn't apply in GT3 (yet).
+
+
+
+JOB SERVICE DESTRUCTION
+
+ Execution errors and user interrupt events are handled by automatically
+ destroying the requested job service(s), unless the -batch option
+ is on the command-line. The -batch option prevents the tool from
+ listening to job status changes and from waiting for the job to finish.
+ If -batch is selected, the command will return as soon as the remote
+ job has been submitted.
+ 
+ The behavior of the tool with respect to job service destruction will vary
+ in response to several kinds of events:
+ 
+      The command exits normally after the job(s) finish(es), and destroys
+      the job service(s) it requested. In batch mode, the requested job
+      is never destroyed.
+      The command is terminated in response to a user interrupt, such as
+      typing ^C, or a system-wide event, such as user logoff or system
+      shutdown. If the -no-interrupt option is on the command-line,
+      and the command-line has been successfully parsed when the interrupt
+      occures, the tool does not destroy any job service(s) it requested.
+      Otherwise the tool destroys the requested job service(s).
+
+      In case of any error of execution, the command will exit and
+      destroy the job(s) it successfully requested.
+ 
+
+
+ If the virtual machine aborts, that is, stops running without shutting down
+ cleanly, for instance because it received a SIGKILL signal on Unix, then no
+ guarantee can be made about whether or not the job service(s) will be
+ destroyed.
+
+ Note: the shutdown behavior explained above cannot be guaranteed if the
+ JVM option -Xrs is entered.
+ The recommended way to disable service destruction is to specify
+ the -batch option on the command-line.
+
+
+EXAMPLES AND TESTING
+
+ Assuming the directory $GLOBUS_LOCATION/bin is in the path:
+ % ant startContainer
+ % managed-job-globusrun -factory $HOSTNAME -f etc/test.xml
+ 
+ Cuurently only in CVS, the sub-directory
+ <ogsa-cvs>/program_execution/mjs/test/globusrun
+ contains example RSL documents and a text file describing functional tests
+ for the command-line tool. They can be used as examples to understand
+ most of the features of the tool.
+

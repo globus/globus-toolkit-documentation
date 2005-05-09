@@ -1,0 +1,157 @@
+#
+# Copyright (c) 2002-2003 Northwestern University
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
+
+The Quick Guide to Installing and Using
+the Certificate Information Provider
+----------------------------------------
+
+...in 7 Easy steps
+===================
+
+0) Make sure that your GRIS/GIIS is stopped.
+
+1) Add the following lines to the end of your
+   $GLOBUS_LOCATION/etc/grid-info-resource.schema file:
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.117
+    NAME 'Mds-Authn-CA-Name-hash'
+    DESC 'The hash of a particular certificate'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.118
+    NAME 'Mds-Authn-Cert-file'
+    DESC 'The file location of a certificate'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.119
+    NAME 'Mds-Authn-Policy-file'
+    DESC 'The file location of a certificate signing policy'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.120
+    NAME 'Mds-Authn-CA-name'
+    DESC 'The name of the CA'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.121
+    NAME 'Mds-Authn-CA-policy'
+    DESC 'A policy of the CA'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.122
+    NAME 'Mds-Authn-Trusted-Cert-dir'
+    DESC 'A directory containing one or more certificates'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+objectclass ( 1.3.6.1.4.1.3536.2.6.3536.10.1.123
+    NAME 'MdsCertificatePolicy'
+    DESC 'Information about a certificate policy'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( Mds-Authn-CA-Name-hash $ Mds-Authn-Cert-file $
+           Mds-Authn-Policy-file $ Mds-Authn-CA-name $
+           Mds-Authn-CA-policy )
+ )
+
+objectclass ( 1.3.6.1.4.1.3536.2.6.3536.10.1.124
+    NAME 'MdsAuthnGroup'
+    DESC 'Information about trusted certificate directories'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( Mds-Authn-Trusted-Cert-dir )
+ )
+
+
+2) Add the following lines to your
+   $GLOBUS_LOCATION/etc/grid-info-resource-ldif.conf file:
+
+# generate certificate info every 12 hours
+dn: Mds-Host-hn=glob, Mds-Vo-name=local, o=grid
+objectclass: GlobusTop
+objectclass: GlobusActiveObject
+objectclass: GlobusActiveSearch
+type: exec
+path: /opt/globus/libexec
+base: grid-info-cert-posix
+args: -devclassobj -devobjs -dn Mds-Host-hn=glob,Mds-Vo-name=local,o=grid -valid
+to-secs 900 -keepto-secs 900
+cachetime: 43200
+timelimit: 50
+sizelimit: 100
+
+NOTE: You will need to change the dn line (at the top, and also in the
+args line a little further down) that lists the hostname for your machine.
+My host name is "glob", so replace where it says "glob" with the hostname of
+your machine.
+
+
+3) Download the code linked here and place the script into your
+   $GLOBUS_LOCATION/libexec directory:
+
+   lynx -source http://www.thecodefactory.org/mds/info-providers/cert/updates/grid-info-cert-posix > $GLOBUS_LOCATION/libexec/grid-info-cert-posix
+
+
+4) Change permissions on the freshly downloaded script as follows:
+
+   chmod 755 $GLOBUS_LOCATION/libexec/grid-info-cert-posix
+
+5) Make sure you set the appropriate environment variables for
+   properly using this information provider.  The default location
+   of the certificate directory is /etc/grid-security/certificates.
+   If you have your certificate directory in a different location,
+   you must define the environment variable CERT_DIR to point to it.
+
+
+6) Restart your GRIS/GIIS.
+

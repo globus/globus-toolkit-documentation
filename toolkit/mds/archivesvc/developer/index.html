@@ -1,0 +1,352 @@
+
+<?php
+
+$title = "Archive Service: Developer's Guide";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); ?>
+            <p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="../../">MDS</a> &gt; <a href="../">Archive
+                Service</a> &gt; Developer's Guide &lt; </p>
+<h1><a href="../">Archive Service</a>: Developer's Guide </h1>
+            <ul>
+  <li> <a href="#process">Archive Service Process</a></li>
+  <li><a href="#operationsGUI">Archive Service Operations</a></li>
+  <li><a href="#archiveservicedata">Archive Service Data (ArchiveDataType)</a></li>
+  <li><a href="#asgui">Archive Service GUI</a> </li>
+  <li><a href="#futurechanges">Future Changes and Additions</a> </li>
+</ul>
+<h2><a name="process"></a>Archive Service Process</h2>
+<p>The following table describes the AS process: </p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <th valign="top">Stage</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td valign="top">1</td>
+    <td>The AS subscribes to Service Data Elements (SDEs) and receives notification
+    messages from them. </td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td><p>The AS transforms notification messages into XML documents with the <code>ASElement</code> top
+        element and <code>timeStamp</code> attribute.</p>
+      <p>For example, if the AS receives an SDE:</p>
+      <code>&lt;SDEname1&gt; ....... &lt;/SDEname1&gt;</code>
+<p>it transforms the SDE into:</p>
+    <pre>&lt;?xml version=&quot;1.0&quot;&gt;
+ &lt;<strong>ASElement</strong> <strong>timeStamp</strong>=&quot;2004-04-24T13:36:43.386Z&quot;&gt;
+ &lt;SDEname1&gt; ....... &lt;/SDEname1&gt;
+ &lt;/ASElement&gt;</pre>
+    <p>where <code>timeStamp</code> is created by the Archive Service at the
+      time the SDE was archived. </p>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">3</td>
+    <td><p>The AS  creates special timestamps by converting the <code>goodFrom</code>,
+        <code>goodUntil</code> and <code>availableUntil</code> attributes into
+        new attributes that express the time as the
+        number of milliseconds from GMT on January 1st, 1970 :</p>
+      <ul>
+        <li><code>goodFrom</code> is converted to <code>goodFromMillis</code></li>
+        <li><code>goodUntil</code> is converted to <code>goodUntilMillis</code></li>
+        <li><code>availableUntil</code> is converted to <code>availableUntilMillis</code> </li>
+      </ul>      
+      <p>To save processing time, this conversion is done on the first two nodes
+      (the parent node and the first level of child nodes) </p>
+      <p>These special timestamps allow the AS to index these numbers for faster
+        retrieving of data and clients to use  relational operators
+          in Xpath queries.</p>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">4</td>
+    <td><p>The AS then stores the SDE into the database with the key value of:</p>
+    <pre> &lt;GSH,SDEname,timeStamp&gt;</pre>	
+    <p>When you retrieve data from the AS, this key value is added as an attribute
+	  to each returned data so that you can distinguish sources of the data.</p>
+	<p>Here's an example of a key value:</p>
+	<pre>http:||128.9.31.154:8080|ogsa|services|base|IndexService,SDEname1,
+2004-04-24T13:36:43.386Z </pre>
+	<p><strong>Note:</strong> Archive Service replaces <code>/</code> with <code>|</code> in
+      the GSH part of the key because  currently Xindice does <strong>not</strong> allow <code>/</code> in
+      the key value.</p></td>
+  </tr>
+</table>
+<p><strong>Note:</strong> Subscription information is stored in
+  the <a href="../admin/index.html#archiveserviceconfig">archive-service-config.xml
+  file</a>. Therefore, the AS will not lose this information
+if your container restarts.</p>
+<h2><a name="operationsGUI"></a>Archive Service  Operations</h2>
+<p>The AS provides the following operations/interfaces to clients. You can find
+  examples of using these operations in <code>org.globus.ogsa.gui.ArchivePortTypePanel.java</code>.</p>
+<ul>
+  <li><a href="#subscription">Subscription operations </a></li>
+  <li><a href="#removesubscription">Remove Subscription operations </a></li>
+  <li><a href="#retrievedata">Query operations</a></li>
+</ul>
+<h3><a name="subscription"></a>Subscription operations </h3>
+<p>Subscription can be done with either of these operations:</p>
+<ul>
+  <li><a href="#addArchiveDataAggregation">addArchiveDataAggregation</a></li>
+  <li> <a href="#addDataAggregation">addDataAggregation</a></li>
+</ul>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td colspan="3" class="box-header"><div align="center"><code><a name="addArchiveDataAggregation"></a>addArchiveDataAggregation</code></div></td></tr>
+  <tr>
+    <td width="128"><strong>portType</strong></td>
+    <td colspan="2"><p><code>ArchivePortType</code></p></td>
+  </tr>
+  <tr>
+    <td><strong>Returned string value </strong></td>
+    <td colspan="2"><code>subscriptionID</code></td>
+  </tr>
+  <tr>
+    <td><strong>Example signature </strong></td>
+    <td colspan="2"><pre>String addArchiveDataAggregation(
+org.globus.ogsa.base.aggregator.DataAggregationType dataAggregation,
+float <strong>purgePolicyValue</strong>,
+String <strong>purgePolicyName</strong>)</pre></td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>where:</strong></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="purgePolicyValue"></a>purgePolicyValue</code></td>
+    <td colspan="2" valign="top"><p>See the description of <a href="../admin/index.html#purgePolicyValue"><code>purgePolicyValue</code></a> in
+        the Archive Service configuration file. </p>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="purgePolicyName"></a>purgePolicyName</code></td>
+    <td colspan="2" valign="top"><p>See the description of <a href="../admin/index.html#purgePolicyName"><code>purgePolicyName</code></a> in
+        the Archive Service configuration file.</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="4" valign="top" class="box-header"><div align="center"><a name="addDataAggregation"></a>addDataAggregation</div></td></tr>
+  <tr>
+    <td valign="top"><strong>portType</strong></td>
+    <td colspan="2"><p><code>DataAggregationPortType</code></p></td>
+  </tr>
+  <tr>
+    <td valign="top"><strong>Returned string value </strong></td>
+    <td colspan="2"><code>subscriptionID</code></td>
+  </tr>
+  <tr>
+    <td valign="top"><strong>Example signature </strong></td>
+    <td colspan="2"><pre>String addDataAggregation(
+org.globus.ogsa.base.aggregator.DataAggregationType dataAggregation)</pre>
+    <p><strong>Note:</strong> Because
+    this operation does not contain the <code><a href="../admin/index.html#purgePolicyValue">purgePolicyValue</a></code> and <code><a href="../admin/index.html#purgePolicyName">purgePolicyName</a></code> values,
+    the AS only uses the default values: <code><a href="../admin/index.html#maxDataNumberAsync">maxDataNumberAsync</a></code> and <code>15000</code>.</p></td>
+  </tr>
+
+</table>
+<h3><a name="removesubscription"></a>Remove Subscription operations</h3>
+<p>Removing subscriptions can be done with either:</p>
+<ul>
+  <li><code><a href="#removearchivedataaggregation">removeArchiveDataAggregation</a></code></li>
+  <li><code><a href="#removeDataAggregation">removeDataAggregation</a></code></li>
+</ul>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td colspan="3" valign="top" class="box-header"><div align="center">      <a name="removearchivedataaggregation"></a>removeArchiveDataAggregation</div></td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top"><p>This is the  AS's  own subscription removing
+        operation.
+        When a subscription is removed, this operation removes its corresponding
+    data.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><strong>portType</strong></td>
+    <td colspan="2" valign="top"><code>ArchivePortType</code></td>
+  </tr>
+  <tr>
+    <td valign="top"><strong>Example signature </strong></td>
+    <td colspan="2" valign="top"><pre>void removeArchiveDataAggregation(String subscriptionID, 
+String <strong>removePolicy</strong>)</pre></td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top"><strong>where:</strong></td>
+  </tr>
+  <tr>
+    <td rowspan="3" valign="top"><code>removePolicy</code></td>
+    <td colspan="2" valign="top"><p>Determines what happens to the data corresponding
+      to the subscription being removed.</p>
+      <p>Values can be either: </p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>keepAll</code></td>
+    <td valign="top"><p>This option keeps all data in the database.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>keepNone</code></td>
+    <td valign="top"><p>This option removes all of the data from the database</p></td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top" class="box-header"><div align="center"><a name="removeDataAggregation"></a>removeDataAggregation</div></td></tr>
+  <tr>
+    <td colspan="3" valign="top">Another operation used to remove subscriptions.
+      After the subscription is removed, the data is still kept in the database
+  (also known as Soft Subscription Removal).</td>
+  </tr>
+  <tr>
+    <td valign="top"><strong>portType</strong></td>
+    <td colspan="2" valign="top"><code>DataAggregationPortType</code></td>
+  </tr>
+  <tr>
+    <td valign="top"><strong>Example signature </strong></td>
+    <td colspan="2" valign="top"><pre class="command">void removeDataAggregation(String subscriptionID) </pre></td>
+  </tr>
+</table>
+<h3><a name="retrievedata"></a>Query operation (retrieveData) </h3>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td colspan="3" class="box-header"><div align="center"> <a name="retrieveData" id="retrieveData"></a>retrieveData</div></td>
+  </tr>
+  <tr>
+    <td colspan="3"><p>This operation retrieves data from the database which
+        matches <code>queryStr</code> between the <code>from</code> and <code>to</code> timeStamps
+        and returns an <code>ExtensibilityType</code> which holds a list of matching
+        XML data.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><strong>portType</strong></td>
+    <td colspan="2"><code>ArchivePortType</code></td>
+  </tr>
+  <tr>
+    <td valign="top"><strong>Example signature </strong></td>
+    <td colspan="2"><pre>ExtensibilityType retrieveData(
+String <strong>queryStr</strong>,
+ExtensibilityType <strong>nameSpaces</strong>,
+String <strong>from</strong>,
+String <strong>to</strong>,
+int <strong>granularity</strong>)</pre></td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top"><strong>where:</strong></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>queryStr</code></td>
+    <td colspan="2"><p>Specifies the XPath query string. Use proper prefixes;
+        otherwise, you'll get unexpected return data. The format is: <code>data1/data2/data3</code></p>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top"><code>nameSpaces</code></td>
+    <td colspan="2"><p>Specifies a list of namespaces used in <code>queryStr</code>. </p>
+      <p>This object contains both the prefix and the namespace URI. This
+      prefix should match the prefix in the <code>queryStr</code>.<br>
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top"><code>from</code></td>
+    <td colspan="2"><p>Specifies the timeStamp in the format <code>yyyy-MM-ddTHH:mm:ss.SSSZ</code>.
+        (GMT time zone).</p>
+      <p> If null, this attribute is set to the earliest <code>timeStamp</code> of
+    the data.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>to</code></td>
+    <td colspan="2"><p>Specifies the timeStamp in the format <code>yyyy-MM-ddTHH:mm:ss.SSSZ</code>.
+        (GMT time zone).</p>
+      <p> If null, this attribute is set to the latest <code>timeStamp</code> of
+    the data.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>granularity</code></td>
+    <td colspan="2"><p>Interval, in seconds, at which data will be retrieved
+        between the <code>from</code> and <code>to</code> timeStamps.</p>
+      <p>If 0 seconds, <code>retrieveData</code> returns all the matching data. </p>
+      <p>If 1 or more seconds<em></em>, <code>retrieveData</code> returns a list
+        of data received at those intervals starting at <code>from</code>.</p>
+      <p>For example, if this option is set to 10 seconds, <code>retrieveData</code> returns
+        a list of data received at 10 second intervals since the <code>from</code> timestamp
+    until the <code>to</code> timestamp. </p></td>
+  </tr>
+</table>
+<h2><a name="archiveservicedata"></a>Archive Service Data (ArchiveDataType)</h2>
+<p>In order to represent its own status, the AS subscribes to itself to store
+  its own service data. The AS uses its own service data, <code>ArchiveDataType</code> to
+  specify the current state of the AS. </p>
+<p>The <code>ArchiveDataType</code> includes the following service data:</p>
+<pre> long currentDBSize
+ long maxDBSize
+ long currentNumberRegistrants
+ long maxNumberRegistrants
+ ExtensibilityType registrantInfos
+ String archiveServiceVersion
+ String latestDBEventTime
+ String earliestDBEventTime</pre>
+<p><strong>where:</strong></p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top"><code>currentDBSize</code></td>
+    <td> Specifies the total data size (in bytes) in the database.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>maxDBSize</code></td>
+    <td>Specifies the maximum total data size (in bytes) allowed to keep in the
+      database.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>currentNumberRegistrants</code></td>
+    <td> Specifies the current number of subscriptions.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>maxNumberRegistrants</code></td>
+    <td>Specifies the maximum number of subscriptions allowed.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>registrantInfos</code></td>
+    <td><p>Specifies a list of <code>subscriptionIDs</code> currently subscribed
+        and all  state information for each subscription, which includes: </p>
+      <ul>
+        <li><code>currentDataNumber</code></li>
+        <li><code>currentDataSize</code></li>
+        <li><code>earliestEventTime</code></li>
+        <li><code>latestEventTime</code></li>
+        <li><code>lifetime</code></li>
+        <li><code>purgePolicyName</code></li>
+        <li><code>purgePolicyValue</code></li>
+        <li><code>sdeName</code></li>
+        <li><code>sdeNamespaceURI</code></li>
+        <li><code>sourceHandle</code></li>
+        <li><code>sinkHandle</code></li>
+        <li><code>subscriptionID </code></li>
+      </ul></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>archiveServiceVersion</code></td>
+    <td><p>Specifies the version of the Archive Service.</p>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top"><code>latestDBEventTime</code></td>
+    <td>Specifies the timestamp of the youngest data in the database.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>earliestDBEventTime</code></td>
+    <td>Specifies the timestamp of the oldest data in the database.</td>
+  </tr>
+</table>
+<h2><a name="asgui"></a>Archive Service GUI </h2>
+<p>You can try using the Archive Services' <a href="#operationsGUI">operations</a> in
+  the Archive GUI; however, you must first configure it as described <a href="../admin/index.html#archiveGUI">here</a>. </p>
+<h2><a name="futurechanges"></a>Future Changes and Additions</h2>
+<p>As AS continues to grow, we plan to include the following enhancements: </p>
+<h3>Authorization in Add/Remove Subscriptions</h3>
+<p>Add/Remove subscriptions will only be performed by the request of authorized
+  users.</p>
+<h3>Using findServiceData</h3>
+<p>In the future, the AS will allow you to use the standard <code>findServiceData</code> client
+for retrieving data from the database instead of <code>retrieveData</code> operation.</p>
+<p>&nbsp;</p>
+
+  <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
+

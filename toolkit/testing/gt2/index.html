@@ -1,0 +1,300 @@
+<?php
+
+$title = "Globus Toolkit 2.x Testing";
+
+include( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+
+<h1>GT2 Tests</h1>
+
+<p>The following tests should be run in sequence in order to verify that
+the Globus Toolkit has been properly installed and deployed.  They are
+presented in a "shell-like" pseudo-code style and include what the
+"correct output" should be for each.</p>
+
+<p>Before getting to the tests we need to establish some Globus context
+and terminology.  It is assumed that these tests will be run after
+the Globus Toolkit (GT) v2.4.3 is built, installed, and deployed.
+These tests are they are general enough to be applied to the existing
+GT v2.2.4 install/deployment.</p>
+
+<h2>Globus context and terminology</h2>
+
+<p>To build the GT you need a version of the Grid Packaging Toolkit
+(GPT) and its location needs to be specified in the environment variable
+GPT_LOCATION.</p>
+
+<p>There are two general components of the GT, libraries and tools.
+Libraries come in different Globus "flavors" but tools do not.  So,
+when building GT 2.4.3 you will typically have multiple library flavors
+(e.g., mpicc64dbg, gcc64dbg, etc.) but only one set of the tools
+(grid-proxy-init, globusrun, globus-makefile-header, etc.).  The entire
+GT (tools and libraries of all flavors) reside in a single location
+identified by the environment variable GLOBUS_LOCATION.</p>
+
+<p>When you deploy Globus on your machine you start daemon processes
+called Globus "gatekeepers".  Typically each site has one gatekeeper for
+each GLOBUS_LOCATION, but it is possible to have more than one.  For each
+gatekeeper there are one or more "services" that the gatekeeper can call
+upon.  Each service has a Globus Jobmanger (JM) script.  The purpose of
+the JM script is to translate the Globus RSL into commands that the local
+scheduler (i.e., PBS) can understand and to also accommodate local policy
+requirements, etc.  If you build an MPI flavor of Globus which requires
+an installation of MPI (e.g., MPICH-GM, MPICH-VMI ... <i>not</i> MPICH-G2),
+often called the vendor-supplied MPI or simply vMPI, the PBS JM script
+will need to be modified to call the vMPI's mpirun.  As so, there must
+be a JM script (and hence a service) for each MPI flavor of Globus.
+Throughout the testing instructions below you will see things like:</p>
+
+     foreach gatekeeper-service pair
+
+<p>This means a gatekeeper and one of its services (e.g.,
+"host.domain.org/jobmanager-pbs_gcc").</p>
+
+<p>In summary, after installing and deploying GT 2.4.3 you will have
+many flavors of Globus libraries, a single gatekeeper, and a couple
+of services that gatekeeper can call upon.  You will have a single
+GPT_LOCATION and a single GLOBUS_LOCATION.</p>
+
+
+<h2>Tests</h2>
+
+<p>The tests are:</p>
+
+<ol>
+     <li>verifying coherent package test</li>
+     <li>ping each gatekeeper-service pair</li>
+     <li>/bin/date test</li>
+     <li>/usr/bin/env test</li>
+     <li>fully qualified domain name test</li>
+     <li>the "hello, world" test</li>
+     <li>Environment exported through vendor-supplied mpirun</li>
+</ol>
+
+<p>The testing should start at the site where the GT was just installed
+and deployed.  If all the tests past there then it is also <i>very</i>
+important that testing continues by logging on to at least one other
+site and running tests 2-7 <i>from</i> the remote site <i>to</i> the
+site that is testing its new GT install/deployment.  When logged onto
+a remote site you may use the GPT_LOCATION and the GLOBUS_LOCATION of
+the latest production installation.</p>
+
+<pre>
+# Set your the environment variables GPT_LOCATION and GLOBUS_LOCATION
+# to their proper values.  These must be in your environment throughout
+# all the 7 tests.
+
+setenv GPT_LOCATION  &lt;...blah...&gt;
+setenv GLOBUS_LOCATION &lt;...blah...&gt;
+
+#########################################
+# verifying coherent package test
+#
+# correct output ... at the end you should see:
+# The collection of packages in &lt;..GLOBUS_LOCATION..&gt; appear to be coherent.
+#
+$GPT_LOCATION/sbin/gpt-verify |& tee gpt-verify.log
+
+#
+# Setup your Globus shell and renew your Globus proxy.
+# The remaining 6 tests assume that you have your Globus shell
+# setup properly and that you have a valid Globus proxy.
+#
+source $GLOBUS_LOCATION/etc/globus-user-env.csh, or
+     $GLOBUS_LOCATION/etc/globus-user-env.sh
+
+grid-proxy-init
+
+#########################################
+# ping each gatekeeper-service pair
+#
+# correct output:
+# GRAM Authentication test successful
+#
+foreach gatekeeper-service pair
+     globusrun -a -r "&lt;gatekeeper-service pair&gt;"
+
+#########################################
+# /bin/date test
+#
+# correct output:
+# output from /bin/date
+#
+foreach gatekeeper-service pair
+     globusrun -o -r "&lt;gatekeeper-service pair&gt;" \
+         '&(count=1)(maxtime=10)(executable=/bin/date)'
+
+#########################################
+# /usr/bin/env test
+#
+# For now only specify one env var that is not set in softenv.
+# Later, we need to augment this test by specifying values for
+# env vars that are set by softenv.  At that time we will need to
+#     (a) overwrite a value set by softenv,
+#     (b) prepend a value set by softenv, and
+#     (c) append a value set by softenv.
+# Probably the most important env var to test is LD_LIBRARY_PATH.
+#
+# correct output:
+# verify that the env vars you set are there and have the correct values
+#
+foreach gatekeeper-service pair
+     globusrun -o -r "&lt;gatekeeper-service pair&gt;" \
+         '&(count=1)(maxtime=10)(environment=(FOO bar))(executable=/usr/bin/env)'
+
+#########################################
+# fully qualified domain name test
+#
+# globusrun requires fully qualified domain names for multi-request RSLs
+# (i.e., those RSLs that begin with a plus-sign '+').
+#
+# For this test you will need the following C program, gh.c
+#------- gh.c
+#    #include &lt;globus_common.h&gt;
+#    int main(int argc, char **argv)
+#    {
+#       char hostname[1024];
+#       if (globus_libc_gethostname(hostname, 1024))
+#       {
+#           globus_libc_fprintf(stderr,
+#               "ERROR: failed globus_libc_gethostname()");
+#           exit(1);
+#       } /* endif */
+#       globus_libc_fprintf(stdout, "hostname &gt;%s&lt;\n", hostname);
+#    }
+#------- gh.c
+#
+# and the following Makefile
+#------- Makefile
+#    include makefile_header
+#
+#    gh:
+#           $(GLOBUS_CC) $(GLOBUS_CFLAGS) $(GLOBUS_INCLUDES) -c gh.c
+#           $(GLOBUS_LD) -o gh gh.o \
+#           $(GLOBUS_LDFLAGS) \
+#           $(GLOBUS_PKG_LIBS) \
+#           $(GLOBUS_LIBS)
+#------- Makefile
+#
+# correct output:
+# This is an open question.  If the compute node responds with a fully
+# qualified domain name (FQDN), then that is what should be in the output.
+# Either way, this test will tell us how the compute nodes are configured.
+# For those sites where compute nodes do _not_ return FQDNs then all
+# multi-request RSLs that run on that machine must specify the domain name
+# env var in the env var GLOBUS_DOMAIN_NAME, for example (GLOBUS_DOMAIN_NAME
+# "host.domain.org")
+
+foreach flavor
+     $GLOBUS_LOCATION/bin/globus-makefile-header -flavor=&lt;flavor&gt; \
+         globus_common globus_gram_client globus_io globus_data_conversion \
+         globus_duroc_runtime globus_duroc_bootstrap &gt; makefile_header
+     make gh
+     foreach gatekeeper-service pair
+         globusrun -o -r "&lt;gatekeeper-service pair&gt;" \
+             '&(count=1)(maxtime=10)(executable=/&lt;your dir&gt;/gh)'
+
+#########################################
+# the "hello, world" test
+#
+# This is the first multi-request test.
+# For this test you will need the following C program, hello.c
+#------- hello.c
+#    #include &lt;globus_duroc_runtime.h&gt;
+#    int main(int argc, char **argv)
+#    {
+#    #if defined(GLOBUS_CALLBACK_GLOBAL_SPACE)
+#        globus_module_set_args(&argc, &argv);
+#    #endif
+#        globus_module_activate(GLOBUS_DUROC_RUNTIME_MODULE);
+#        globus_duroc_runtime_barrier();
+#        globus_module_deactivate(GLOBUS_DUROC_RUNTIME_MODULE);
+#        printf("hello, world\n");
+#    }
+#------- hello.c
+#
+# _add_ the following make rule to Makefile from previous step:
+#------- Makefile
+#    hello:
+#           $(GLOBUS_CC) $(GLOBUS_CFLAGS) $(GLOBUS_INCLUDES) -c hello.c
+#           $(GLOBUS_LD) -o hello hello.o \
+#           $(GLOBUS_LDFLAGS) \
+#           $(GLOBUS_PKG_LIBS) \
+#           $(GLOBUS_LIBS)
+#------- Makefile
+#
+# You will need the following multi-request RSL, hello.rsl
+#------- hello.rsl
+#    +
+#    ( &(resourceManagerContact="&lt;gatekeeper-service pair&gt;")
+#       (count=1)
+#       (executable=/&lt;your dir&gt;/hello)
+#    )
+#------- hello.rsl
+#
+# When you compile hello.c with an MPI flavor of Globus then you
+# must add the single line (jobtype=mpi) above (count=1)
+#
+# correct output:
+# hello, world
+#
+foreach flavor
+     $GLOBUS_LOCATION/bin/globus-makefile-header -flavor=&lt;flavor&gt; \
+         globus_common globus_gram_client globus_io globus_data_conversion \
+         globus_duroc_runtime globus_duroc_bootstrap &gt; makefile_header
+     make hello
+     if (an MPI flavor of Globus)
+         add line (jobtype=mpi) above (count=1) to hello.rsl
+     else
+         remove line (jobtype=mpi)  from hello.rsl
+     endif
+     foreach gatekeeper-service pair
+         edit hello.rsl setting
+         resourceManagerContact="&lt;gatekeeper-service&gt;"
+         globusrun -w -f hello.rsl
+
+#########################################
+# Environment exported through vendor-supplied mpirun.
+#
+# For this test you will need the following C program, ge.c
+#------- ge.c
+#    #include &lt;globus_common.h&gt;
+#    int main(int argc, char **argv)
+#    {
+#        char *val;
+#        if (val = globus_libc_getenv("FOO"))
+#        {
+#            globus_libc_printf("env var FOO = %s\n", val);
+#        }
+#        else
+#        {
+#            globus_libc_printf("ERROR: env var FOO is not set\n");
+#        }
+#    }
+#------- ge.c
+#
+# _add_ the following make rule to Makefile from previous step:
+#------- Makefile
+#    ge:
+#           $(GLOBUS_CC) $(GLOBUS_CFLAGS) $(GLOBUS_INCLUDES) -c ge.c
+#           $(GLOBUS_LD) -o ge ge.o \
+#           $(GLOBUS_LDFLAGS) \
+#           $(GLOBUS_PKG_LIBS) \
+#           $(GLOBUS_LIBS)
+#------- Makefile
+#
+# correct output:
+# env var FOO = bar
+#
+foreach MPI flavor
+     $GLOBUS_LOCATION/bin/globus-makefile-header -flavor=&lt;MPI flavor&gt; \
+         globus_common globus_gram_client globus_io globus_data_conversion \
+         globus_duroc_runtime globus_duroc_bootstrap &gt; makefile_header
+     make ge
+     foreach gatekeeper-service pair
+         globusrun -o -r "&lt;gatekeeper-service pair&gt;" \
+     '&(count=1)(environment=(FOO bar))(maxtime=10)(executable=/&lt;your 
+ dir&gt;/ge)'
+</pre>
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>

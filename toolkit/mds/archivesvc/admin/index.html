@@ -1,0 +1,512 @@
+
+<?php
+
+$title = "Archive Service: Installation/System Administrator's Guide";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); ?>
+
+<p class="small"><a href="http://www.globus.org">Globus</a> &gt; <a href="http://www-unix.globus.org/toolkit/">Toolkit</a> &gt; <a href="../../">MDS</a> &gt; <a href="../">Archive
+            Service</a> &gt; Installation/System Administrator's Guide &lt; </p>
+<h1><a href="../">Archive Service</a>: Installation/System Administrator's Guide </h1>
+<ul>
+          <li><a href="#installation">Installing the Archive Service</a></li>
+          <li><a href="#configfiles">Configuring the Archive Service</a>
+            <ul>
+              <li><a href="#archiveserviceconfig">Archive Service configuration
+                  file (<code>archive-service-config.xml</code>)</a></li>
+              <li><a href="#archiveserviceproviderconfigxml">Archive Service
+                  Provider configuration file (<code>archive-service-provider-config.xml</code>)</a> </li>
+              <li><a href="#serverconfigwsdd">Server configuration file (<code>server-config.wsdd</code>)</a></li>
+            </ul>
+          </li>
+          <li><a href="#archiveGUI">Configuring the Archive Service GUI</a></li>
+</ul>
+        <h2><a name="installation"></a>Installing the Archive Service</h2>
+<p>Before installing the AS, you must already have the following installed:</p>
+<ul>
+  <li> the
+      Globus Toolkit 3.2 (at the very least you need the Core and Index Service
+      components  in the <em>All Services</em> and <em>WS Base Installers</em> on <a href="http://www-unix.globus.org/toolkit/downloads/3.2/index.html">http://www-unix.globus.org/toolkit/downloads/3.2/index.html</a>)</li>
+  <li>JDK 1.4 or greater <strong>if</strong> you will be 
+    using Xindice on Linux distributions.</li>
+</ul>
+<p>For more information about installing these, refer to the <a href="http://www-unix.globus.org/toolkit/docs/3.2/installation/">Installation
+    Guide</a>.</p>
+<table border="1" cellpadding="5">
+  <tr>
+    <td valign="top">1</td>
+    <td valign="top"><p>[information about where to get/download the Archive
+        Service]</p>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td valign="top"><p>Install and deploy the AS:</p>
+      <pre class="command">cd your-archive-source-directory
+ant -Dogsa.root=$GLOBUS_LOCATION</pre>      
+<p>For example:</p>      
+<pre class="command">cd /usr/gt3/information_services/archive
+ant -Dogsa.root=/usr/gt3/ogsa/impl/java</pre>      </td>
+  </tr>
+  <tr>
+    <td valign="top">3</td>
+    <td valign="top"><p>Undeploy and clean:</p>
+      <pre class="command">cd $GLOBUS_LOCATION
+ant undeploy -Dgar.id=Archive
+cd your-archive-source-directory
+ant clean</pre>      <p>For example,</p>      
+<pre class="command">cd /usr/gt3/ogsa/impl/java
+ant undeploy -Dgar.id=Archive
+cd /usr/gt3/information_services/archive
+ant clean</pre></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step4"></a>4</td>
+    <td valign="top"><p>Protect against OutofMemory errors by increasing the
+        maximum heap size of the Java Virtual Machine by adding arguments
+        for the container:</p>
+      <p>In <code>$GLOBUS_LOCATION/build-services.xml</code>,
+          add the following tag into the <code>startContainer</code> target: </p>
+      <pre class="command">&lt;jvmarg value=&quot;-Xmx1024M&quot;/&gt;</pre>
+	  <p>so the target reads:</p>
+	  <pre class="command">  &lt;target name=&quot;startContainer&quot;&gt;
+  &lt;java classname = &quot;org.globus.ogsa.server.ServiceContainer&quot;
+         fork      = &quot;yes&quot; &gt;
+		  &lt;jvmarg value=&quot;-Djava.endorsed.dirs=endorsed&quot;/&gt;
+		  <strong>&lt;jvmarg value=&quot;-Xmx1024M&quot;/&gt;</strong>
+		  &lt;arg line=&quot;-p ${service.port}&quot; /&gt;
+		  &lt;arg line=&quot;-${container.initialization}&quot; /&gt;
+      &lt;classpath&gt;
+	  	 &lt;path refid=&quot;classpath&quot;/&gt;
+		 &lt;pathelement location=&quot;${ogsa.jar}&quot;/&gt;
+		 &lt;pathelement location=&quot;${samples.lib}/${samples.jar}&quot;/&gt;
+	   &lt;/classpath&gt;
+	&lt;/java&gt;
+ &lt;/target&gt;</pre></td>
+  </tr>
+</table>
+<h3> <a name="outofmemory"></a>Protecting against OutofMemoryError in Xindice</h3>
+<p>Xindice was originally designed for collections of smaller documents. Therefore,
+  when the AS uses Xindice to retrieve data, if the size of the data is large
+  (2-3 MB on some systems), Xindice returns <strong>OutOfMemoryError</strong> and
+  the Archive client does not receive anything. </p>
+<p>The size issue also poses a problem when removing data. Xindice does not allow
+  you to specify key values when removing data, and therefore retrieves all keys
+  associated with the data. This could easily retrieve 25,000 SDEs, which would
+  result in a large data size, trigger Xindice's OutOfMemoryError and cause the
+  AS to fail.</p>
+<p>To avoid these errors, the AS uses subcollections in the Xindice database
+  to break down the overall data load into smaller parts. This is also why it
+  is necessary to increase the heap size in the container when installing the
+  Archive Service (see <a href="#step4">Step 4</a> above).</p>
+<h3>&nbsp;</h3>
+<h2><a name="configfiles" id="configfiles"></a>Configuring the Archive Service </h2>
+<p>There are three files that configure the Archive Service: </p>
+<ul>
+  <li> <a href="#archiveserviceconfig"> Archive Service configuration file (<code>archive-service-config.xml</code>)</a></li>
+  <li><a href="#archiveserviceproviderconfigxml">Archive Service Provider configuration file (<code>archive-service-provider-config.xml</code>)</a> </li>
+  <li><a href="#serverconfigwsdd">Server configuration file (<code>server-config.wsdd</code>)</a></li>
+</ul>
+<h3><a name="archiveserviceconfig"></a>Archive Service configuration file (archive-service-config.xml)</h3>
+<p>The Archive Service (AS) configuration file (<code>archive-service-config.xml</code>)
+  stores subscription information including:</p>
+<ul>
+  <li> limits on data size</li>
+  <li> the number of subscriptions</li>
+  <li> information about each subscription.</li>
+</ul>
+<p>This file is modified and saved by the AS both  after it adds a new subscription
+  and removes an existing subscription and at the time of start up to synchronize
+  the file with the actual data in the database.</p>
+<p>The default location is: <code>$GLOBUS_LOCATION/etc/archive-service-config.xml</code> where <code>$GLOBUS_LOCATION</code> is
+  your GT3.2 installation directory.</p>
+<h4><a name="example"></a>Example</h4>
+<p>For an example  of the Archive Service  config file, click <a href="archiveserviceconfigexample.txt" target="_blank">here</a>.
+  This example makes
+      the AS subscribe to a service data <em>Grid3Result</em> with the namespace
+      of <code>http://www.globus.org/namespaces/2004/04/Grid3</code> from the
+  Index Service on the same machine as the Archive Service.</p>
+<h4><a name="options"></a>Options</h4>
+<p>The following table describes the options in the Archive Service Configuration
+  file:</p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td colspan="3" valign="top"><div align="center" class="box-header">archiveAttributes</div></td>
+  </tr>
+  <tr>
+    <td rowspan="7" valign="top"><code><a name="purgePolicyName"></a>purgePolicyName</code></td>
+    <td colspan="2" valign="top"><p>Specifies how data is removed from the Archive
+        Service, otherwise known as the <strong>purge policy</strong>, and
+        whether it is done asynchronously or synchronously.</p>
+        <p>Purge policies  can be one of the following (the values of these policies
+        are specified in <code>purgePolicyValue</code>, below):</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="maxDataSizeAsync"></a>maxDataSizeAsync</code></td>
+    <td valign="top"><p>This purge policy removes data based on the maximum size
+        (in bytes) of service data elements (SDEs) in the database. </p>
+        <p>The data is removed asynchronously by a dedicated thread with minimum
+          priority.</p>
+        <p>The default <code>purgePolicyValue</code> is <code>1500000</code> (in
+          bytes.) </p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="maxDataSizeSync"></a>maxDataSizeSync</code></td>
+    <td valign="top"><p>This purge policy removes data based on the maximum size
+        (in bytes) of service data elements (SDEs) in the database. </p>
+        <p>The data is removed synchronously: the AS removes the oldest data
+          from the database until the current data size is less than the <code>purgePolicyValue</code>.
+          This is done immediately after the AS processes the notification message.</p>
+        <p>The default <code>purgePolicyValue</code> is <code>1500000</code> (in
+          bytes.)</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="maxDataNumberAsync"></a>maxDataNumberAsync</code></td>
+    <td valign="top"><p>This purge policy removes data based on the maximum number
+        of service data elements (SDE) in the database. </p>
+        <p>The data is removed asynchronously by a dedicated thread with minimum
+          priority.</p>
+        <p>The default <code>purgePolicyValue</code> is <code>15000</code> SDEs.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="maxDataNumberSync"></a>maxDataNumberSync</code></td>
+    <td valign="top"><p>This purge policy removes data based on the maximum number
+        of service data elements (SDE) in the database. </p>
+        <p>The data is removed synchronously: the AS removes the oldest data
+          from the database until the current data size is less than the <code>purgePolicyValue</code>.
+          This is done immediately after the AS processes the notification message.</p>
+        <p>The default <code>purgePolicyValue</code> is <code>15000</code> SDEs.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="dataKeepPeriodInDaysAsync"></a>dataKeepPeriodInDaysAsync</code></td>
+    <td valign="top"><p>This purge policy removes data based on the number of
+        days the data has been in the database. </p>
+        <p>For example, if the value is 5, any data older than five days will
+          be removed from the database. </p>
+        <p>The data is removed asynchronously by a dedicated thread with minimum
+          priority.</p>
+        <p>The default <code>purgePolicyValue</code> is <code>5</code> days. </p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="dataKeepPeriodInDaysSync"></a>dataKeepPeriodInDaysSync</code></td>
+    <td valign="top"><p>This purge policy removes data based on the number of
+        days the data has been in the database. </p>
+        <p>For example, if the value is 5, any data older than five days will
+          be removed from the database. </p>
+        <p>The data is removed synchronously: the AS removes the oldest data
+          from the database until the current data size is less than the <code>purgePolicyValue</code>.
+          This is done immediately after the AS processes the notification message.</p>
+        <p>The default <code>purgePolicyValue</code> is <code>5</code> days. </p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="purgePolicyValue"></a>purgePolicyValue</code></td>
+    <td colspan="2" valign="top"><p>The value of the purge policy described in <code>purgePolicyName</code> (see
+        above).</p>
+        <p>For example, if the <code>purgePolicyName</code> is <code>maxDataSizeAsync</code>,
+          the default value of this field is <code>1500000.</code></p></td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top"><div align="center" class="box-header">aggregator:DataAggregation</div></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>ogsi:source</code></td>
+    <td colspan="2" valign="top"><p>Specifies the service to which the subscription
+        is made.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>ogsi:sink</code></td>
+    <td colspan="2" valign="top"><p>Specifies the service to which the messages
+        will be delivered - if not found, the handle of the Archive Service that
+        is processing the configuration file will be used.</p></td>
+  </tr>
+  <tr>
+    <td colspan="3" valign="top"><div align="center" class="box-header">aggregator:AggregationSubscription </div></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>ogsi:serviceDataNames</code></td>
+    <td colspan="2" valign="top">Specifies an array of QNames of the service
+      data elements to which the Archive Service will subscribe. </td>
+  </tr>
+  <tr>
+    <td valign="top"><code>aggregator:lifetime</code></td>
+    <td colspan="2" valign="top"><p>Specifies the lifetime of the subscription,
+        in seconds. </p></td>
+  </tr>
+</table>
+<h3><a name="archiveserviceproviderconfigxml"></a>Archive Service Provider configuration file (archive-service-provider-config.xml)</h3>
+<p>The Archive Service Provider configuration file (archive-service-provider-config.xml)
+  allows the Archive Service to subscribe to its own Service Data providers.
+  This allows the Archive Service to show information about itself. </p>
+<p>The default location is: <code>$GLOBUS_LOCATION/etc/archive-service-provider-config.xml</code> where <code>$GLOBUS_LOCATION</code> is
+your GT3.2 installation directory.</p>
+<h4>Examples</h4>
+<p>For an example of the  Archive Service Provider config file, click <a href="archiveserviceproviderconfigexample.txt" target="_blank">here</a>.
+  This example makes
+    the Archive Service run the script <code>/usr/globus/provider/bin/list-providers.sh</code>.
+    This script runs every 600 seconds, produces a service data <em>Grid3Result</em>    with
+    the namespace of <code>http://www.globus.org/namespaces/2004/04/Grid3</code>,
+  and posts it as the Archive Service's service data.</p>
+<h4>Options</h4>
+<p>The following table describes the configurable options in the Archive Service
+  Provider config file. Note that this file is very similar to the Index Service
+  configuration file (<code><a href="http://www-unix.globus.org/toolkit/docs/3.2/infosvcs/ws/admin/indexsvcconfig.html">index-service-config.xml</a></code>): </p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td colspan="2" valign="top"><div align="center">
+      <div align="center" class="box-header">installedProviders</div>
+    </div></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top">This section specifies the core Service Data
+      Providers for the Archive Service, as well as any Java custom or ported
+      Service Data Providers.&nbsp; Every Java Service Data Provider specified
+      in the <code>executedProviders</code> section (described below) must also
+      be listed in this section; however, MDS2-style Unix information providers
+      are excepted.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>providerEntry class </code></td>
+    <td valign="top">Specifies the path to the class.&nbsp; The class attribute
+      contains a Java class name that implements one of the supplied Service
+    Data Provider interfaces. This attribute is required. </td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top"><div align="center">
+      <div align="center" class="box-header">executedProviders</div>
+    </div></td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top"><p>One or more piece(s) of service data is produced
+        by each execution of each Service Data Provider specified in this section.</p>
+      <p>Each execution of a Service Data Provider here may use the same individual
+        provider in the <code>installedProviders</code> section multiple times, such as the
+        <code>ScriptExecutionProvider</code>.</p>
+      <p>Every Java Service Data Provider specified in this section must also
+        be specified in the <code>installedProviders</code> section (described
+        above) of the configuration file; however, MDS2-style Unix information
+        providers are excepted.</p>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top"><code>serviceDataProviderName</code></td>
+    <td valign="top">Specifies the name of the Service Data Provider. </td>
+  </tr>
+  <tr>
+    <td valign="top"><code>serviceDataProviderImpl</code></td>
+    <td valign="top">Specifies a string representing the fully qualified
+      java class name of the provider implementation code which is loaded when
+    the hosting service executes the provider.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>serviceDataProviderArgs</code></td>
+    <td valign="top">Supplies parameters to the Service Data Providers specified
+    in this entry.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>serviceDataName</code></td>
+    <td valign="top"><p>Specifies the name of the
+        new service data to create.&nbsp; If no name is specified, the name will
+        be created from the tag name of the root element of the XML document
+        resulting from the provider execution.&nbsp; The name may be qualified
+        with a namespace, using standard XML QName syntax.&nbsp; For example:</p>
+    <pre class="command">&lt;provider-exec:serviceDataName 
+xmlns:ns=&quot;http://www.globus.org/example&quot;&gt;
+ns:SystemInformation 	  
+&lt;/provider-exec:serviceDataName&gt;</pre></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>refreshFrequency</code></td>
+    <td valign="top">Indicates how often (in seconds) to run this Service Data
+    Provider.</td>
+  </tr>
+  <tr>
+    <td valign="top"><code>async</code></td>
+    <td valign="top"> Indicates whether the Service Data Provider specified should
+    attempt to run asynchronously if it is capable of doing so.</td>
+  </tr>
+</table>
+<h3><a name="serverconfigwsdd"></a>Server configuration file ( server-config.wsdd)</h3>
+<p>The Server Configuration 
+  file contains all of the deployment descriptors for every service in the hosting
+  environment.&nbsp; When you deploy the Archive Service, there will be a single
+  descriptor for the AS.&nbsp; If you want additional persistent AS instances,
+  you just add more descriptors, but with different service names. </p>
+<p>The Archive Service deployment discriptor includes parameters that configure
+  the Archive Service for:</p>
+<ul>
+  <li>configuring the Xindice database (<code><a href="#xindiceEnabled">xindiceEnabled</a></code>, <code><a href="#xindiceCollectionName">xindiceCollectionName</a></code>,
+    and <code><a href="#xindiceURI">xindiceURI</a></code>)</li>
+  <li>upgrading and reconfiguring the Xindice (<code><a href="#reconfigureDatabase">reconfigureDatabase</a></code>, <code><a href="#upgradeDatabase">upgradeDatabase</a></code>)</li>
+  <li>determining how often the Archive Service updates itself (<code><a href="#archiveStateValidPeriodInMinutes">archiveStateValidPeriodInMinutes</a></code>,
+      <code><a href="#asyncPurgeDataSleepPeriod">asyncPurgeDataSleepPeriod</a></code>)</li>
+  <li>managing the flow of data to avoid OutofMemory errors (<code><a href="#maxDataRetrieveSize">maxDataRetrieveSize</a></code>,
+      <code><a href="#maxDataRetrieveNumber">maxDataRetrieveNumber</a></code>, <code><a href="#dataSizeInSubcollection">dataSizeInSubcollection</a></code> and <code><a href="#dataNumberInSubcollection">dataNumberInSubcollection</a></code>)</li>
+  <li>point to the Archive Service configuration file (<code><a href="#serviceConfig">serviceConfig</a></code>)</li>
+  <li>point to the Archive Service Provider configuration file (<a href="#archiveServiceConfigparam"><code>archiveServiceConfig</code></a>) </li>
+</ul>
+<p>The default location is: $GLOBUS_LOCATION/server-config.wsdd where $GLOBUS_LOCATION
+  is your GT3.2 installation directory.</p>
+<h4><a name="example"></a>Example</h4>
+<p>For an example of a server-config.wsdd file with the Archive Service deployment
+  descriptor, click <a href="serverconfigexample.txt" target="_blank">here</a>.
+  This example shows the configuration of the AS with one subscription.</p>
+<h4><a name="options"></a>Options</h4>
+<p>The following table describes the options in server-config.wsdd that you can
+  use to configure the Archive Service:</p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top"><code><a name="reconfigureDatabase"></a>reconfigureDatabase</code></td>
+    <td valign="top"><p>This parameter is useful if, for example, the AS is stopped
+        abnormally. If <code>value</code> is set to true,
+        when the AS starts up, this parameter  returns the database to its previous
+        state. It does this by:</p>
+      <ul>
+        <li>reading the database</li>
+        <li> checking the service data</li>
+        <li> recalculating the size as a
+              number for each subscription</li>
+        <li>reconfiguring the database to its previous state. </li>
+      </ul>      </td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="upgradeDatabase"></a>upgradeDatabase</code></td>
+    <td valign="top">Use this parameter to upgrade the database when upgrading
+      to a different version of the Archive Service. The <code>reconfigureDatabase</code>      parameter
+      must also be set to <code>true</code>. </td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="archiveStateValidPeriodInMinutes"></a>archiveStateValidPeriodInMinutes</code></td>
+    <td valign="top"><p>In order to show its own status, the AS subscribes
+        to itself to store its own service data. This parameter determines how
+        often the AS subscribes to itself, in minutes.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="maxDataRetrieveSize"></a>maxDataRetrieveSize</code></td>
+    <td valign="top">Maximum number of bytes the <code>retrieveData</code> function can retrieve
+      at one time. </td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="maxDataRetrieveNumber"></a>maxDataRetrieveNumber</code></td>
+    <td valign="top"><p>Maximum number of events (service data) the <code>retrieveData</code>        function can retrieve at one time.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="dataSizeInSubcollection"></a>dataSizeInSubcollection</code></td>
+    <td valign="top"><p>The AS stores the service data in the subcollections
+        of the Xindice database. This parameter specifies the maximum number
+        of bytes a subcollection can contain. </p>
+      <p>When the maximum is reached, the
+          AS starts deleting data from the first subcollection to make room for
+          the new data. When a subcollection is empty, it is deleted. </p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="dataNumberInSubcollection"></a>dataNumberInSubcollection</code></td>
+    <td valign="top"><p>The AS stores the service data in the subcollections
+        of the Xindice database..
+        This parameter specifies the maximum number of events (service data)
+        a subcollection can contain. </p>
+      <p>When the maximum is reached, the AS starts
+          deleting data from the first subcollection to make room for the new
+        data. When a subcollection is empty, it is deleted. </p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="asyncPurgeDataSleepPeriod"></a>asyncPurgeDataSleepPeriod</code></td>
+    <td valign="top"><p>When it starts up, the AS creates a thread which periodically
+        checks the data size and data number of each subscription with an 
+        asynchronous purge policy (<a href="#maxDataSizeAsync">maxDataSizeAsync</a>, <a href="#maxDataNumberAsync">maxDataNumberAsync</a>,
+        <a href="#keepDataInDaysAsync">keepDataInDaysAsync</a>) and deletes
+        any expired data. </p>
+        <p>This parameter specifies the sleep period, in seconds, between any
+          two of these &quot;checkups.&quot; </p>
+        <p><strong>Important:</strong> If this period is too short, the AS performs
+          excessive computings to search for a large amount of data for each
+          subscription. If this period is too long, the AS may store more data
+          in the database than it is configured to handle.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="serviceConfig"></a>serviceConfig</code></td>
+    <td valign="top"><p>This parameter sets the location of the <a href="#archiveserviceproviderconfigxml">AS
+          Provider configuration
+        file</a>. </p>
+      <p>For example, if the value is set to:</p>
+      <code>&quot;etc/archive-service-provider-config.xml&quot;</code>
+<p>The AS will look for the AS Provider configuration file
+        in: </p>
+    <code>$GLOBUS_LOCATION/etc/archive-service-provider-config.xml</code></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="archiveServiceConfigparam" id="archiveServiceConfigparam"></a>archiveServiceConfig</code></td>
+    <td valign="top"><p>This parameter sets the location of the <a href="#archiveserviceconfig">AS
+          configuration file</a>. </p>
+        <p>For example, if the value is set to:</p>
+        <code>&quot;etc/archive-service-config.xml&quot;</code>
+<p>The AS will look for the Archive Service configuration file in: </p>
+        <code>$GLOBUS_LOCATION/etc/archive-service-config.xml </code></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="xindiceEnabled"></a>xindiceEnabled</code></td>
+    <td valign="top"><p>Indicates whether Xindice is enabled for the Archive
+        Service.</p>
+    <p><strong>Note:</strong> JDK 1.4 or greater is <strong>required</strong> to
+    use Xindice on Linux distributions.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="xindiceCollectionName"></a>xindiceCollectionName</code></td>
+    <td valign="top"><p>Specifies the name of the Xindice collection. </p>
+    <p><strong>Note:</strong> JDK 1.4 or greater is <strong>required</strong> to
+    use Xindice on Linux distributions.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><code><a name="xindiceURI"></a>xindiceURI</code></td>
+    <td valign="top"><p>These parameters set the location of the data stored
+        by the Xindice database. </p>
+      <p> The data will be stored in:</p>
+      <code>$GLOBUS_LOCATION/db/ArchiveServiceCollection/ ArchiveServiceCollection.tbl</code>
+      <p><strong>Note:</strong> JDK 1.4 or greater is <strong>required</strong> to
+          use Xindice on Linux distributions.</p>
+    </td>
+  </tr>
+</table>
+<h2> <a name="archiveGUI"></a>Configuring the Archive Service GUI</h2>
+<p>To use the Archive
+        GUI:</p>
+<table width="645" border="1" cellpadding="5">
+  <tr>
+    <td width="21" valign="top">1</td>
+    <td width="592"><p>Add the following lines to the <code>client-gui-config.xml</code> file
+        (located in <code>$GLOBUS_LOCATION</code>).</p>
+      <pre class="command">&lt;panel portType=&quot;ArchivePortType&quot;
+class=&quot;org.globus.ogsa.gui.ArchivePortTypePanel&quot;/&gt;
+</pre></td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td><p> Add Java Virtual Machine arguments for the container.</p>
+      <p>In <code>$GLOBUS_LOCATION/build-services.xml</code>, add the following
+          tag to the <code>gui</code> target:</p>
+      <pre class="command">&lt;jvmarg value=&quot;-Xmx1024M&quot;/&gt;</pre>      
+      <p>so that it reads: 
+      </p>
+    <pre class="command"> &lt;target name=&quot;gui&quot;&gt;
+   &lt;java classname = &quot;org.globus.ogsa.gui.ServiceBrowserFrame&quot;
+         fork      = &quot;yes&quot; &gt;
+		  &lt;jvmarg value=&quot;-Djava.endorsed.dirs=endorsed&quot;/&gt;
+		  <strong>&lt;jvmarg value=&quot;-Xmx1024M&quot;/&gt;</strong>
+		  &lt;sysproperty key=&quot;org.globus.ogsa.server.webroot&quot;
+	                   value=&quot;${basedir}&quot;/&gt;
+		  &lt;sysproperty key=&quot;org.globus.ogsa.container&quot;
+		               value=&quot;client&quot; /&gt;
+		  &lt;arg value=&quot;${service.root}:${service.port}/${gui.path}&quot; /&gt;
+	   &lt;classpath&gt;
+	     &lt;path refid=&quot;classpath&quot;/&gt;
+		 &lt;pathelement location=&quot;${ogsa.jar}&quot;/&gt;
+		 &lt;pathelement location=&quot;${samples.lib}/${samples.jar}&quot;/&gt;
+	   &lt;/classpath&gt;
+	&lt;/java&gt;
+ &lt;/target&gt;</pre></td>
+  </tr>
+
+</table>
+<p>&nbsp;</p>
+<h3>&nbsp;</h3>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
+

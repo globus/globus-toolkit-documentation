@@ -1,0 +1,273 @@
+#! /bin/bash
+#
+# Copyright (c) 2002-2003 Northwestern University
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+# Compatibility note:
+# Tested successfully on GNU/Linux, AIX, and IRIX64
+#
+# NOTE: You MUST export the location of your certificates
+# directory in one of the following environment variables:
+#
+# CERT_DIRS (Generally used if you have multiple certificate dirs), or
+# CERT_DIR
+#
+# The default location is /etc/grid-security/certificates
+#
+# NOTE: If you specify multiple directories in any of these env variables,
+# you MUST use the following format:
+#
+# /path/to/dir1:/path/to/dir2:/path/to/dir3
+# ... etc ...
+
+
+# If CERT_DIRS is defined, use it -- otherwise #2
+if [ ! "x${CERT_DIRS}" = "x" ]; then
+    CERT_DIR=${CERT_DIRS}
+else
+
+    # 2) If CERT_DIR is defined, use it -- otherwise #3
+    if [ "x${CERT_DIR}" = "x" ]; then
+
+        # 3) Use a hard-coded default
+        CERT_DIR="/etc/grid-security/certificates"
+    fi
+fi
+
+# default libexecdir used to bootstrap scripts
+libexecdir=${GLOBUS_LOCATION}/libexec
+
+# load GRIS common code and initialization
+. ${libexecdir}/grid-info-common
+
+######################################################################
+
+
+emit_trusted_ca_summary ()
+{
+    # $1 is dn suffix
+    # $2 .. $N are additional object entries
+${GLOBUS_SH_CAT-cat} <<EOF
+${_line_class_dn}dn: $1
+EOF
+    shift
+    while [ $# -gt 0 ]
+    do
+	${GLOBUS_SH_CAT-cat} <<EOF
+$1
+EOF
+	shift
+    done
+
+    ${GLOBUS_SH_CAT-cat} <<EOF
+${_line_class_oc}objectclass: MdsAuthnGroup
+EOF
+
+    for i in ${_LOCAL_CERT_DIRS}; do
+        echo "Mds-Authn-Trusted-Cert-dir: ${i}"
+    done
+
+    emit_mds_object_timestamps
+    echo ""
+}
+
+
+emit_trusted_ca_summary_attrs ()
+{
+    echo "${_line_class_av}Mds-Authn-Cert-file: ${_current_cert}"
+    echo "${_line_class_av}Mds-Authn-Policy-file: ${_current_policy}"
+
+    for word in `echo ${_current_policy} | ${GLOBUS_SH_AWK-awk} -F/ '{for (i=1; i<=NF; i++) print $i}'`; do
+        _tmp_name="$word"
+        if [ "x`echo ${_tmp_name} | ${GLOBUS_SH_GREP-grep} -c \"signing_policy\"`" = "x1" ]; then
+            break
+        fi
+    done
+
+    if [ ! "x${_tmp_name}" = "x" ]; then
+        _hash_name=`echo ${_tmp_name} | ${GLOBUS_SH_AWK-awk} -F. '{print $1}'`
+    fi
+    echo "${_line_class_av}Mds-Authn-CA-Name-hash: ${_hash_name}"
+    _hash_name=""
+}
+
+get_installed_certs ()
+{
+    # given the signing_policy files, grab the hashes and find the certs
+    for policy in ${INSTALLED_POLICIES}; do
+        _hash_name=""
+
+        for word in `echo ${policy} | ${GLOBUS_SH_AWK-awk} -F/ '{for (i=1; i<=NF; i++) print $i}'`; do
+            _tmp_name="$word"
+            if [ "x`echo ${_tmp_name} | ${GLOBUS_SH_GREP-grep} -c \"signing_policy\"`" = "x1" ]; then
+                break
+            fi
+        done
+
+        if [ ! "x${_tmp_name}" = "x" ]; then
+            _hash_name=`echo ${_tmp_name} | ${GLOBUS_SH_AWK-awk} -F. '{print $1}'`
+
+            INSTALLED_CERTS="`ls ${_current_dir}/${_hash_name}.* | ${GLOBUS_SH_GREP-grep} -v signing_policy` ${INSTALLED_CERTS}"
+        fi
+
+    done
+}
+
+emit_trusted_ca_descriptions ()
+{
+    probe_mds_object_timestamps
+
+    if [ "X${_dump_host_object}" = "Xtrue" ]
+    then
+	emit_trusted_ca_summary "${_suffix}"
+    fi
+
+    if [ "X${_dump_devclass_object}" = "Xtrue" ]
+    then
+	emit_trusted_ca_summary "Mds-Authn-Group=Certificate Directories,${_suffix}"
+    fi
+
+    if [ "X${_dump_dev_objects}" = "Xtrue" ]
+    then
+
+        for _current_dir in ${_LOCAL_CERT_DIRS}; do
+
+            INSTALLED_POLICIES=""
+            INSTALLED_CERTS=""
+
+            # gather all policies and certs in an ordered manner
+            INSTALLED_POLICIES="`ls ${_current_dir}/*.signing_policy`"
+            get_installed_certs
+
+            # emit information about the policies and certs simultaneously
+            for cert in `echo ${INSTALLED_CERTS} | ${GLOBUS_SH_AWK-awk} '{for (i=1; i<=NF; i++) print $i}'`; do
+
+                # this code makes a big assumption that the policy file will be
+                # exactly the name of the cert file with a different extension
+                _current_cert="${cert}"
+                _current_policy=`echo ${cert} | ${GLOBUS_SH_AWK-awk} -F. '{print $1}'`
+                _current_policy="${_current_policy}.signing_policy"
+
+                emit_trusted_ca_details "Mds-Authn-Trusted-Cert-dir=${_current_dir},Mds-Authn-Group=Certificate Directories,${_suffix}"
+            done
+        done
+    fi
+}
+
+emit_trusted_ca_details ()
+{
+${GLOBUS_SH_CAT-cat} <<EOF
+${_line_class_dn}dn: $1
+${_line_class_oc}objectclass: MdsCertificatePolicy
+EOF
+
+    emit_trusted_ca_summary_attrs | sort | uniq
+
+# emit all CA names (access_id_CA fields)
+
+    _access_id_CA=""
+
+    for f in `${GLOBUS_SH_CAT-cat} ${_current_policy} | ${GLOBUS_SH_SED-sed} -ne '/access_id_CA/p' | ${GLOBUS_SH_AWK-awk} '{for (i=3; i<=NF; i++) print $i}'`; do
+
+        if [ "x`echo $f | ${GLOBUS_SH_CUT-cut} -b 1-1`" = "x'" ]; then
+            
+            if [ ! "x${_access_id_CA}" = "x" ]; then
+${GLOBUS_SH_CAT-cat} <<EOF
+${_line_class_av}Mds-Authn-CA-name: ${_access_id_CA}
+EOF
+                _access_id_CA=""
+            fi
+            _access_id_CA=$f
+        else
+            _access_id_CA="${_access_id_CA} $f"
+        fi
+    done
+
+    # emit the last CA name (if any)
+    if [ ! "x${_access_id_CA}" = "x" ]; then
+${GLOBUS_SH_CAT-cat} <<EOF
+${_line_class_av}Mds-Authn-CA-name: ${_access_id_CA}
+EOF
+        _access_id_CA=""
+    fi
+
+# emit all CA policies (cond_subjects fields)
+
+    _cond_subject=""
+
+    for j in `${GLOBUS_SH_CAT-cat} ${_current_policy} | ${GLOBUS_SH_SED-sed} -ne '/cond_subjects/p' | ${GLOBUS_SH_AWK-awk} '{for (i=3; i<=NF; i++) print $i}'`; do
+
+        # trim leading single quote if any
+        if [ "x`echo $j | ${GLOBUS_SH_CUT-cut} -b 1-1`" = "x'" ]; then
+            j="`echo $j | ${GLOBUS_SH_CUT-cut} -b 2-`"
+        fi
+
+        if [ "x`echo $j | ${GLOBUS_SH_CUT-cut} -b 1-1`" = "x/" ] ||
+            [ "x`echo $j | ${GLOBUS_SH_CUT-cut} -b 1-1`" = "x\"" ]; then
+
+            if [ ! "x${_cond_subject}" = "x" ]; then
+
+                #trim trailing single quote if any
+# This line breaks on Solaris...
+#                _cond_subject="`echo ${_cond_subject%\'}`"
+
+                # add double quotes if none
+                if [ "x`echo ${_cond_subject} | ${GLOBUS_SH_CUT-cut} -b 1-1`" = "x/" ]; then
+                    _cond_subject="\"${_cond_subject}\""
+                fi
+
+${GLOBUS_SH_CAT-cat} <<EOF
+${_line_class_av}Mds-Authn-CA-policy: ${_cond_subject}
+EOF
+               _cond_subject=""
+            fi
+            _cond_subject=${j}
+        else
+            _cond_subject="${_cond_subject} $j"
+        fi
+    done
+
+# emit the last CA policy (if any)
+
+    if [ ! "x${_cond_subject}" = "x" ]; then
+        #trim trailing single quote if any
+# This line breaks on Solaris...
+#        _cond_subject="`echo ${_cond_subject%\'}`"
+${GLOBUS_SH_CAT-cat} <<EOF
+${_line_class_av}Mds-Authn-CA-policy: ${_cond_subject}
+EOF
+        _cond_subject=""
+    fi
+
+    emit_mds_object_timestamps
+    echo ""
+}
+
+probe_trusted_ca ()
+{
+    _LOCAL_CERT_DIRS=`echo ${CERT_DIR} | ${GLOBUS_SH_SED-sed} -e 'y/:/ /'`
+
+    emit_trusted_ca_descriptions
+}
+
+#############
+# do the work
+probe_trusted_ca

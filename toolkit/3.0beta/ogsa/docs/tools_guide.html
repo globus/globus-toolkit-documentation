@@ -1,0 +1,381 @@
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+  <title>Grid Service Development Tooling Guide</title>
+                                                                        
+                       
+  <style type="text/css">
+
+
+
+<!--
+
+
+.code { background:#dcccff; font-family:&quot;Courier New&quot; }
+h2 { background-color: #DCE1FF; background-position: left}
+
+
+
+-->
+
+
+
+  </style>
+</head>
+<body>
+<h1>Grid Service Development Tools Guide</h1>
+<p> Globus Toolkit 3 Beta - Last Updated <!--webbot bot="Timestamp"
+S-Type="EDITED" S-Format="%m/%d/%Y" startspan -->05/30/2003<!--webbot bot="Timestamp" i-CheckSum="12516" endspan --></p>
+<h2><i>Contents</i></h2>
+<p><a href="#Introduction"><b>Introduction</b></a>
+</p>
+<p><b><a href="#WritingService">Developing a Service</a></b></p>
+<p><b><a href="#KnownIssues">Known Issues</a><br>
+<br>
+</b></p>
+<h2><a name="Introduction"></a>
+            Introduction</h2>
+<p class="MsoNormal">This document outlines ant commands that grid service
+      developers may use in order to create, add service data to, and archive
+    grid  services. All commands outlined below are provided as targets 
+  in build-tools.xml, which is part of the GT3 distributtion.
+</p>
+<p class="MsoNormal">Basic knowledge of Java and Ant (<a href="http://jakarta.apache.org/ant">
+            http://jakarta.apache.org/ant</a>
+            ) is assumed in this guide. We also assume that you are familiar
+  with   the  basic OGSA environment described in the <a href="users_guide.html">
+       User's   Guide</a>.</p>
+<h2><a name="WritingService"></a>
+ Developing a Service</h2>
+<p class="MsoNormal">The following steps are involved in writing a Grid service:</p>
+<ul>
+  <li>
+    <p class="MsoNormal"><b>Step 1. Generate Grid service code</b></p>
+  </li>
+  <li>
+    <p class="MsoNormal"><b>Step 2. Optionally add service data to the service</b></p>
+  </li>
+  <li>
+    <p class="MsoNormal"><b>Step 3. Create a Grid service archive (GAR)</b></p>
+  </li>
+  <li>
+    <p class="MsoNormal"><b>Step 4. Deploy the Service</b></p>
+  </li>
+</ul>
+<p class="MsoNormal">The complete source code for this example is available
+      in the guide directory in your framework distribution.</p>
+<h3>Step 1. Generate Grid Service Code</h3>
+<p>There are two main approaches to providing a source for your service that
+      is to be exposed to remote clients. &nbsp;</p>
+<p class="MsoNormal"><b>Bottom-Up Approach</b></p>
+<p>If you have existing java code that you would like to expose as a Grid
+      service, it must be compiled and archived into a JAR file. This   JAR
+   file is run through the createBottomUpGridService tool to automatically
+    generate  the stubs, the service locators, the deployment descriptor
+fragment,     and an operation provider that delegates its calls into your
+existing Java    code.<br>
+</p>
+<pre class="code">&lt;ant antfile=&quot;${build.tools}&quot; target=&quot;createBottomUpGridService&quot;&gt;
+  &lt;property name=&quot;verbose&quot; value=&quot;true&quot;/&gt;
+  &lt;property name=&quot;outputDir&quot; value=&quot;./bottomUpFiles&quot;/&gt;
+  &lt;property name=&quot;bottomUp.sourceJar&quot; value=&quot;${ogsa.root}/guide/lib/counter.jar&quot;/&gt;
+  &lt;property name=&quot;bottomUp.classOfPortType&quot; value=&quot;org.globus.ogsa.guide.impl..LegacyCounterImpl&quot;/&gt;
+&lt;/ant&gt;
+</pre>
+<p class="MsoNormal">Other properties that may be used are:<br>
+            &nbsp;<font color="#cc66cc">&nbsp;&nbsp; <font color="#000000">
+  &lt;property      name="help" value="false" /&gt; - can be set to true
+or  false, outputs   a  usage statement<br>
+            &nbsp;&nbsp;&nbsp; &lt;property name="persistent" value="false" 
+ /&gt;    -  can be set to true or false, true would generate a persistent 
+ grid service<br>
+            &nbsp;&nbsp;&nbsp; &lt;property name="bottomUp.handleResolver"
+ value="false"      /&gt; - can be set to true or false, generated service
+ is a handle resolver<br>
+            &nbsp;&nbsp;&nbsp; &lt;property name="bottomUp.notificationSource"
+   value="false"    /&gt; - can be set to true or false, generated service
+ is  a notification   source<br>
+            &nbsp;&nbsp;&nbsp; &lt;property name="bottomUp.notificationSink"
+  value="false"     /&gt; - can be set to true or false, generated service
+ is a notification    sink<br>
+            &nbsp;&nbsp;&nbsp; &lt;property name="bottomUp.factory" value="false" 
+    /&gt;   - can be set to true or false, generated service is a factory<br>
+            &nbsp;&nbsp;&nbsp; &lt;property name="bottomUp.serviceGroup"
+value="false"       /&gt; - can be set to true or false, generated service
+is a service group<br>
+            &nbsp;&nbsp;&nbsp; &lt;property name="bottomUp.serviceGroupRegistration"
+      value="false" /&gt; - can be set to true or false, generated service
+ is   a  service group registration<br>
+            &nbsp;&nbsp;&nbsp; &lt;property name="bottomUp.all" value="false" 
+  /&gt;    - can be set to true or false, if true, methods will be exposed 
+ in the grid   service from classes that classOfPortType inherits from<br>
+            &nbsp; &nbsp; &lt;property name="bottomUp.methodList value=""/&gt;
+   -  a  comma  delimited string that indicates what methods to expose in
+the   grid   service<br>
+            &nbsp; &nbsp; &lt;property name="bottomUp.excludeList value=""/&gt; 
+   -  comma  delimited string that indicates what methds to exclude from the
+   grid  service<br>
+            &nbsp; &nbsp; &lt;property name="bottomUp.stopClassesList value=""/&gt; 
+     - comma delimited string that indicates the class at which to stop the 
+  inheritance   search if bottomUp.all is set to true</font></font><br>
+</p>
+<p class="MsoNormal">See guide/build-tools-usage.xml for the full example.</p>
+<p class="MsoNormal">Note that the ${build.tools} property has to point
+      to the location of build-tools.xml shipped with the framework.&nbsp;</p>
+<p class="MsoNormal">This approach should be used with care because some
+complex java types do not map very well into WSDL and could thus impair the
+ interoperability of your service.</p>
+<p class="MsoNormal">Example:</p>
+<p class="MsoNormal">From the guide directory run <b>ant -f build-tools-usage.xml
+createBottomUpGridService</b></p>
+<p class="MsoNormal">This command results in all files necessary for deployment
+of the Grid service being generated in the guide/bottomUpFiles directory. In
+particular note the file org/globus/ogsa/impl/LegacyCounterImplProvider.java.
+This class&nbsp; hooks the legacy implementation into the Grid service container
+dispatching framework, and delegates the appropriate operations to the existing
+implementation using the OperationProvider approach described in the <a href="java_programmers_guide.html">Programmers
+Guide</a>.</p>
+<p class="MsoNormal"><b>Top-Down Approach</b></p>
+<p class="MsoNormal">A Grid service may also be created using a GWSDL interface.
+When providing a GWSDL interface you only need to provide the abstract  
+   definition of the service including the types, message, and portType parts
+    of WSDL. The binding and service part, the stubs, the service locators, 
+   the  deployment descriptor fragment, an operation provider, and an implementation 
+     class will be generated for you by our tools. After the Grid service 
+code     is generated, you may add the appropriate logic to the generated 
+implementation     class. The generated operation provider will delegate its
+calls into    this class.</p>
+<pre class="code">&lt;ant antfile=&quot;${build.tools}&quot; target=&quot;createTopDownGridService&quot;&gt;
+  &lt;property name=&quot;verbose&quot; value=&quot;true&quot;/&gt;
+  &lt;property name=&quot;outputDir&quot; value=&quot;./topDownFiles&quot;/&gt;
+  &lt;property name=&quot;topDown.gwsdl-uri&quot; value=&quot;${build.dir}/schema/counter_port_type.gwsdl&quot;/&gt;
+&lt;/ant&gt;</pre>
+<p class="MsoNormal">Other properties that may be used are:<br>
+            &nbsp;&nbsp;&nbsp; &lt;property name="help" value="false" /&gt; 
+ -  can   be  set to true or false, outputs a usage statement<br>
+             &nbsp;&nbsp;&nbsp; &lt;property name="persistent" value="false"
+  /&gt;    -  can be set to true or false, true would generate a persistent
+  grid service<br>
+            &nbsp; &nbsp; &lt;property name="topDown.all" value="false"/&gt;
+  -  can   be  set to true or false, true would generate code for all elements,
+   even   unreferenced  ones</p>
+<p class="MsoNormal">See guide/build-tools-usage.xml for the full example.</p>
+<p class="MsoNormal">Note that the ${build.tools} property has to point
+      to the location of build-tools.xml shipped with the framework.<br>
+</p>
+<p class="MsoNormal">Example:</p>
+<p class="MsoNormal">From the guide directory run <b>ant -f build-tools-usage.xml
+createTopDownGridService</b></p>
+<p class="MsoNormal">This command results in all files necessary for deployment
+of the Grid service being generated in the guide/topDownFiles directory. In
+particular note the file org\globus\www\namespaces\_2003\_04\guide\counter\Counter.java.
+This is the implementation skeleton that you have to complete with a meaningful
+implementation.
+</p>
+<p class="MsoNormal"><b>Batch Service Creation Approach</b></p>
+<p class="MsoNormal">A third approach to creating grid services code is the
+      batch service creation approach. This allows you to create multiple
+      grid services from an XML description. The XML description must   adhere
+   to the CreateGridServices.xsd schema that is shipped with the GT3  distribution.
+The following is an example of such an XML description.</p>
+<pre class="code">&lt;createGridServices&gt;
+&nbsp;&lt;createGridServices&gt;
+  &lt;gridService help=&quot;false&quot; 
+               outputDirectory=&quot;./bottomUpFiles&quot; 
+               persistent=&quot;false&quot; 
+               verbose=&quot;true&quot;&gt;
+    &lt;bottomUp excludeMethods=&quot;&quot;
+              factory=&quot;false&quot; 
+              handleResolver=&quot;false&quot; 
+              includeMethods=&quot;&quot; 
+              notificationSink=&quot;false&quot; 
+              notificationSource=&quot;false&quot; 
+              serviceGroup=&quot;false&quot; 
+              serviceGroupRegistration=&quot;false&quot; 
+              sourceClass=&quot;org.globus.ogsa.guide.impl.LegacyCounterImpl&quot; 
+              stopClasses=&quot;&quot; 
+              useInheritedClasses=&quot;false&quot;/&gt;
+  &lt;/gridService&gt;
+  &lt;gridService help=&quot;false&quot; 
+               outputDirectory=&quot;./topDownFiles&quot; 
+               persistent=&quot;false&quot; 
+               verbose=&quot;true&quot;&gt;
+  &lt;topDown generateAllElements=&quot;false&quot; 
+           sourceGWSDL=&quot;./build/schema/guide/Counter/counter_port_type.gwsdl&quot;/&gt;
+  &lt;/gridService&gt;
+&lt;/createGridServices&gt;
+</pre>
+<p>See guide/xml/CreateGridServices.xml for the full example.
+</p>
+<p>The ant task used to create multiple grid services is createGridServicesFromFile. 
+   &nbsp;
+</p>
+<pre class="code">&lt;ant antfile=&quot;${build.tools}&quot; target=&quot;createGridServicesFromFile&quot;&gt;
+  &lt;property name=&quot;verbose&quot; value=&quot;true&quot;/&gt;
+&nbsp; &lt;property name=&quot;file.xml&quot; value=&quot;${ogsa.root}/guide/xml/CreateGridServices.xml&quot;/&gt;
+&lt;/ant&gt;</pre>
+<p>As a special note, all JAR files that contain the source for bottom-up 
+   services that are to be created by the batch processor must be on the classpath
+   prior to running the createGridServicesFromFile target &nbsp;It is also
+  worth noting here that prior to running the gar target, these JAR files
+must  also be copied to the correct output directory that the tooling creates 
+for those  bottom-up services that are created by the batch processor.</p>
+<p>See guide/build-tools-usage.xml for the full example.</p>
+<p>Note that the ${build.tools} property has to point   to the location 
+   of build-tools.xml shipped with the framework.
+</p>
+<p class="MsoNormal">Example:</p>
+<p class="MsoNormal">From the guide directory run <b>ant -f build-tools-usage.xml
+createGridServiceFromFile</b></p>
+<p class="MsoNormal">This command will create the exact same files we created in
+the two examples above.</p>
+<h3>Step 2. Optionally Add Service Data to the Service</h3>
+<p>We also provide an addServiceData target, which adds service data doclets 
+   to the generated operation provider. &nbsp;A removeServiceData target is
+  also available to remove any doclets created in error. These doclets are
+ processed upon running the gar target, which depends on other targets that
+ will create service data annotations and the appropriate wsdl to describe 
+ the service data.<br>
+</p>
+<pre class="code">&lt;ant antfile=&quot;${build.tools}&quot; target=&quot;addServiceData&quot;&gt;
+  &lt;property name=&quot;verbose&quot; value=&quot;true&quot;/&gt;
+  &lt;property name=&quot;outputDir&quot; value=&quot;./bottomUpFiles&quot;/&gt;
+  &lt;property name=&quot;serviceData.class&quot; value=&quot;org.globus.ogsa.guide.impl.LegacyCounterImpl&quot;/&gt;
+  &lt;property name=&quot;serviceData.name&quot; value=&quot;currentValue&quot;/&gt;
+  &lt;property name=&quot;serviceData.method&quot; value=&quot;getValue&quot;/&gt;
+&lt;/ant&gt;
+
+&lt;ant antfile=&quot;${build.tools}&quot; target=&quot;removeServiceData&quot;&gt;
+  &lt;property name=&quot;verbose&quot; value=&quot;true&quot;/&gt;
+  &lt;property name=&quot;outputDir&quot; value=&quot;./bottomUpFiles&quot;/&gt;
+  &lt;property name=&quot;serviceData.class&quot; value=&quot;org.globus.ogsa.guide.impl.LegacyCounterImpl&quot;/&gt;
+  &lt;property name=&quot;serviceData.name&quot; value=&quot;currentValue&quot;/&gt;
+  &lt;property name=&quot;serviceData.method&quot; value=&quot;getValue&quot;/&gt;
+&lt;/ant&gt;
+</pre>
+<p class="MsoNormal">See guide/build-tools-usage.xml for the full example.
+   &nbsp;</p>
+<p class="MsoNormal">Note that the ${build.tools} property has to point
+     to the location of build-tools.xml shipped with the framework.</p>
+<p class="MsoNormal">Example:</p>
+<p class="MsoNormal">Make sure you have completed the topDown approach in step 1
+above either using the basic or the batch approach.&nbsp;<br>
+Then from the guide directory run <b>ant -f build-tools-usage.xml addServiceData</b></p>
+<p class="MsoNormal">This command will add a service data entry to the Counter
+service called currentValue and tie it to the getValue implementation in our
+legacy counter implementation example.</p>
+<p><b>Batch Service Data Creation Approach</b></p>
+<p class="MsoNormal">As with grid service creation, there is also a tool
+which takes an XML description and adds service data doclets to generated
+grid service code. This XML description must adhere to the BatchSD.xsd schema 
+that is shipped with the GT3 distribution. The following is an example of
+such an XML description:</p>
+<pre class="code">&lt;batchServiceData&gt;
+&nbsp; &lt;serviceData class=&quot;org.globus.ogsa.guide.impl.LegacyCounterImpl&quot;&gt;
+&nbsp;&nbsp;&nbsp; &lt;verbose/&gt;
+&nbsp;&nbsp;&nbsp; &lt;outputDirectory dir=&quot;./bottomUpFiles&quot;/&gt;
+&nbsp;&nbsp;&nbsp; &lt;serviceDataName sdname=&quot;currentValue&quot;/&gt;
+&nbsp;&nbsp;&nbsp; &lt;decorateMethod method=&quot;getValue&quot;/&gt;
+&nbsp; &lt;/serviceData&gt;
+&lt;/batchServiceData&gt;
+</pre>
+<p>The command used to create multiple service data doclets is createServiceDataFromFile.</p>
+<pre class="code">&lt;ant antfile=&quot;${build.tools}&quot; target=&quot;createServiceDataFromFile&quot; &gt;
+ &nbsp;&lt;property name=&quot;verbose&quot; value=&quot;true&quot;/&gt;
+&nbsp; &lt;property name=&quot;batchSD.xml&quot; value=&quot;${ogsa.root}/guide/xml/BatchSD.xml&quot;/&gt;
+&lt;/ant&gt;
+</pre>
+<p>See guide/build-tools-usage.xml for the full example.<br>
+</p>
+<p class="MsoNormal">Note that the ${build.tools} property has to point
+     to the location of build-tools.xml shipped with the framework.</p>
+<p class="MsoNormal">Example:</p>
+<p class="MsoNormal">Make sure you have completed the topDown approach in step 1
+above either using the basic or the batch approach.&nbsp;<br>
+Then from the guide directory run <b>ant -f build-tools-usage.xml
+createServiceDataFromFile</b></p>
+<h3>Step 3. Create a Grid Service Archive (GAR)</h3>
+<p>A gar target is available to archive all&nbsp; generated components into
+an archive file that serves as the unit of deployment. &nbsp;The gar target
+depends on several other targets that perform the following steps.<br>
+</p>
+<ol>
+  <li>generateServiceDataAnnotation - goes through all subdirectories of the
+tooling output directory and creates service data annotions for any service 
+data doclet found</li>
+  <li>compile - compiles all Java parts found in all subdirectories of the 
+tooling output directory</li>
+  <li>jar - creates a JAR file of all class files and -sdAnnotation files 
+found in all subdirectories of the tooling output directory</li>
+  <li>generateServiceDataDescriptions - goes through each -sdAnnotation file 
+from the JAR created in the previous step and adds the appropriate service 
+data descriptions to the appropriate wsdl files in the tooling output directory</li>
+  <li>normalizeSchema - goes through all WSDL in the subdirectories of the 
+tooling output directory and changes any imports that point to other WSDL 
+files in the deployment environment to relative paths in the deployment environment</li>
+  <li>gar - all generated parts in the output directory are 
+archived into a GAR file</li>
+</ol>
+<pre class="code">&lt;ant antfile=&quot;${build.tools}&quot; target=&quot;bottomUpGar&quot;&gt;
+  &lt;property name=&quot;outputDir&quot; value=&quot;./bottomUpFiles&quot;/&gt;
+&nbsp; &lt;property name=&quot;jar.name&quot; value=&quot;bottomUpCounterService.jar&quot;/&gt;
+&nbsp; &lt;property name=&quot;gar.name&quot; value=&quot;bottomUpCounterService.gar&quot;/&gt;
+&lt;/ant&gt;
+
+&lt;ant antfile=&quot;${build.tools}&quot; target=&quot;topDownGar&quot;&gt;
+  &lt;property name=&quot;outputDir&quot; value=&quot;./topDownFiles&quot;/&gt;
+&nbsp; &lt;property name=&quot;jar.name&quot; value=&quot;topDownCounterService.jar&quot;/&gt;
+&nbsp; &lt;property name=&quot;gar.name&quot; value=&quot;topDownCounterService.gar&quot;/&gt;
+&lt;/ant&gt;
+</pre>
+<b></b>
+<p>See guide/build-tools-usage.xml for the full example.<br>
+</p>
+<p class="MsoNormal">Note that the ${build.tools} property has to point
+     to the location of build-tools.xml shipped with the framework.</p>
+<p class="MsoNormal">Example:</p>
+<p class="MsoNormal">Make sure that you have generated all the files for both
+the bottomUp and the topDown approaches described above.<br>
+Then from the guide directory run <b>ant -f build-tools-usage.xml bottomUpGar
+topDownGar</b></p>
+<h3>Step 4. Deploy the Service</h3>
+<p class="MsoNormal">Use the deploy target from build.xml to deploy the generated
+gar package   into  a Grid service hosting environment.<br>
+In the distribution directory of your ogsa installation       make the following
+command line call:<span style="mso-spacerun: yes">     &nbsp;    </span>ant
+deploy &#8211;Dgar.name=&lt;path to gar created in previous   step&gt;
+</p>
+<p class="MsoNormal">Example:
+</p>
+<p class="MsoNormal">Make sure you have created both the topDown and the
+bottomUp gar.<br>
+Then run <b>ant -f build-tools-usage.xml deploy</b>
+</p>
+<p class="MsoNormal">You are now ready to try out the generated services in the
+ServiceBrowser gui described in the <a href="users_guide.html">User's Guide</a>.<br>
+Note that to redo all of the setps describe below in one command you can run:<br>
+<b>ant -f build-tools-usage.xml clean all</b>
+</p>
+<p class="MsoNormal">To undeploy the gars run:<br>
+<b>ant -f build-tools-usage.xml undeploy</b>
+</p>
+<p class="MsoNormal">You can now test your generated services in the
+ServiceBrowser GUI. Make sure that the CounterPortType is not mapped in the
+client-gui-config.xml file and that you check the box for the dynamic gui.<br>
+</p>
+<h2><a name="KnownIssues"></a>Known Issues</h2>
+&nbsp;
+<ol>
+  <li>The Top down approach does not yet fully support custom NStoPkg mappings
+    to map XML schema namespaces to more appropriate Java packages than what is
+    default..
+  </li>
+  <li>If you use polymorphic interfaces on the server side you currently have to
+    manually add typemappings to the deployment descriptor for the values to get
+    deserialized correctly <br>
+  </li>
+</ol>
+<br>
+<p></p>
+</body>
+</html>

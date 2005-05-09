@@ -1,0 +1,1038 @@
+<html>
+<head>
+<title>CAS: Administrator's Guide</title>
+</head>
+<body>
+<center>
+<h1>
+CAS: Administrator's Guide
+</h1>
+</center>
+
+<h3>Contents</h3>
+<ul> 
+<li> <a href="#admin-clients">CAS Administrator Clients</a></li>
+<li> <a href="#query-clients">CAS Query Clients</a></li>
+<li> <a href="#admin-example">Example of CAS Server Administration</a></li>
+</ul>
+
+The CAS administrator clients can be used to manipulate and maintain
+the data in CAS database. It allows one to enroll (and unenroll) CAS
+Objects, create (and delete) groups, add (and remove) members from
+groups, add (and remove) service type and action mappings. Typically
+these operation are performed by the CAS Administrator.
+<p>
+All enroll operations involve granting cas/grantAll permission on the
+enrolled object to some user group (to which the user may belong to or
+otherwise).
+<p>
+All operations require that the user have specific permissions to
+perform the operation. Permissions and policies are given and applied
+to user groups. Hence a user is said to have permission to perform an
+operation if one of the user groups that the user belongs to has
+permission to perform that operation.
+<p>
+If some user group to which the user belongs to, has permission
+"superuser" on cas server object, then they may perform any operation,
+even if they donot have specific rights that are outlined below for
+each operation.
+<p>
+If a user has cas/grantAll permission on any object, then the user is
+permitted to perform any operations on that object.
+<p> 
+The CAS Query commands donot alter the state of the database and
+any CAS user who has cas/query permissions may use the commands to
+retrieve data from the CAS server.
+
+<p>
+Scripts have been provided for all command line clients. The scripts
+are placed in GLOBUS_LOCATION/bin. This directory needs to be added to
+the PATH to be able to execute these scripts from other location. An
+environment variable <i>GLOBUS_LOCATION</i> must be set to point to
+GT3 Install Location. Some of the options that are common to all the
+clients are described here.
+
+<h5><a name="client-options">Client Options:</a></h5>
+
+The options that are common to all clients are
+
+<pre> [-debug -help -v -c cas-url -s server-identity] </pre>
+<ul>
+
+<li><b>CAS Service URL: </b>The <i><b>-c cas-url</b></i> option can
+be used to set CAS Service instance, where <i>cas-url</i> is the URL
+of the CAS service instance.  Optionally, an environment varaible
+<i>CAS_SERVER_URL</i> may be set to point to the URL. The <i>-c</i> flag takes precedence between the two.
+
+The instance URL typically looks like
+<pre>
+  http://<i>GT3Host</i>:<i>GT3Port</i>/ogsa/services/base/cas/CASService
+</pre> 
+
+where <i>GT3Host</i> and <i>GT3Port</i> are host and port where
+container with CAS service is running.
+
+<li><b>CAS Service Identity: </b>The <i><b>-s server-identity</b></i>
+option can be used to set the expected CAS server identity, where
+<i>server-identity</i> is the identity of the CAS service. Optionally,
+an environment variable <i>CAS_SERVER_IDENTITY</i> may be set to point
+to the expected server identity. The <i>-s</i> flag takes
+precedence. <br> If neither is set, host authorization is done and the
+expected server credential is <i>cas/&lt;fqdn&gt;</i>, where &lt;fqdn&gt; is the
+fully qualified domain name of the host on which the CAS service is
+up.
+
+<li><b>Debug: </b>To run the client with debug message traces and
+error stack traces, <i><b>-debug</b></i> flag must be used
+
+<li><b>Usage: </b>The <i><b>-help</b></i> flag prints the usage message for the
+client.
+
+<li><b>Version number: </b>The <i><b>-v</b></i> flag prints the version number.
+</ul>
+
+Note: If you have a asterix (*) in your command, you might have to
+escapeit with backslash.
+
+<hr>
+
+<h2>
+<a name="admin-clients">
+Using the CAS administrator command line clients
+</a>
+</h2>
+
+<h3>Enrolling and Unenrolling Trust Anchors</h3>
+<p>
+To enroll a trust anchor, the user must have cas/enroll_trustAnchor
+permission on that cas server object(that is, must have permission to
+perform the enroll_trustAnchor action on the cas service type).  The
+enroll operation allows the user to choose a user group to which
+cas/grantAll permission on the enrolled object should be granted. The
+nickname should be unique across the CAS database and is used to refer
+to this trust anchor.
+
+<pre>
+  casAdmin$ cas-enroll [<i>options</i>] trustAnchor <i>userGpName</i> <i>nickname</i> <i>authMethod</i> <i>authData</i>
+
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>userGpName : the user group to which cas/grantAll permission
+                  should be granted on this trust anchor entity
+  <li>nickname   : trust anchor nickname
+  <li>authMethod : authentication method used by the trust anchor
+  <li>authData   : data used for authentication, typically the DN
+</ul>
+
+To unenroll a trust anchor, the user must have cas/unenroll permission
+on that trust anchor.  The trust anchor must also be unused, that is
+there may not be any users in the database that have this trust
+anchor or it may not be a part of any object group.
+
+<p>
+
+<pre>
+  casAdmin$ cas-remove [<i>options</i>] trustAnchor <i>nickname</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>nickname   : nickname of the trust anchor to be unenrolled
+</ul>
+
+If the trust anchor nickname specified does not exist, an error is
+<b>not</b> thrown. If the unenroll operation is successfull all
+policy data on that trust anchor is purged.
+<p>
+
+<h3>Enrolling and Unenrolling Users</h3>
+<p>
+To enroll a user, the user must have cas/enroll_user permission (that
+is, must have permission to perform the enroll_user action on the cas
+service type).  The enroll operation allows the user to choose a user
+group to which cas/grantAll permission on the enrolled object should
+be granted. The enrolled user also gets all the privileges granted to
+the community. The nickname should be unique across the CAS database
+and is used to refer to this user.
+
+<pre>
+  casAdmin$ cas-enroll [<i>options</i>] user <i>userGpName</i> <i>nickname</i> <i>subjectName</i> <i>trustAnchorNick</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>userGpName : the user group to which cas/grantAll permission should be 
+	   granted on this trust anchor entity
+  <li>nickname   : user nickname 
+  <li>subjectName: subject name from the user's credentails.
+  <li>trustAnchorNick: Name of the user's trust anchor. 
+		 (Must exist in the CAS database)
+</ul>
+
+To unenroll a user, the user must have cas/unenroll permission on that
+user.  The user must also be unused, that is, there may not be any
+user groups in the database that have this user as a member.
+
+<pre>
+  casAdmin$ cas-remove [<i>options</i>] 
+	  user <i>nickname</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>nickname   : nickname of the user to be unenrolled
+</ul>
+
+If the user nickname specified does not exist, an error is
+<b>not</b> thrown. If the unenroll operation is successfull all
+policy data on that user is purged.
+<p>
+<h3>Enrolling and Unenrolling Namespaces</h3>
+<p>
+To enroll a namespace, the user must have cas/enroll_namespace
+permission (that is, must have permission to perform the
+enroll_namespace action on the cas service type).  The enroll
+operation allows the user to choose a userGroup to have cas/grantAll
+permission on the enrolled object. The comparison algorithm specified
+should be the name of the Comparison class that needs to be used to
+compare objects that belong to this namespace. The nickname should be
+unique across the CAS database and is used to refer to this user.
+
+<pre>
+casAdmin$ cas-enroll [<i>options</i>] namespace <i>userGpName</i> <i>nickname</i> <i>basename</i> <i>comparisonAlg</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>userGpName : the user group to which cas/grantAll permission should be
+	   granted on this trust anchor entity
+  <li>nickname   : namespace nickname 
+  <li>basename   : base URL for the name space
+  <li>comparisonAlg : Comparison algorithm to be used. Unless the standard
+	      comparison algorithms described below are used, the
+	      fully qualified name of the class that needs to be used
+	      should be given. The class needs to extend from the
+	      abstract class
+	      org.globus.ogsa.impl.base.cas.server.ObjectComparison.
+</ul>
+
+The two comparison classes provided as a part of the distribution are
+
+<ul>
+  <li>ExactComparison : This class does a case-sensitive exact comparison
+of the object names. If comparisonAlg in the above method is set to
+"ExactComparison", the class in the distribution is loaded and used.
+
+  <li>WildcardComparison: This class does wild card matching as described
+in "CAS Simple Policy Language". (FIXME link to that doc) It assumes
+that the wild card character is "*" and "/" is file separator. If
+comparisonAlg in the above method is set to "WildCardComparison", the
+class in the distribution is loaded and used. 
+</ul>
+
+<p> Also two namespaces are added to the CAS database at bootup time,
+other than the inherent CAS Namespace.
+
+<ul>
+ <li>FTPDirectoryTree : Uses the WildCardComparison Algorithm and has
+                         the base URL set to current directory.
+ <li>FTPExact : Uses the ExactComparison Algorithm and has the base
+                URL set to current directory.
+</ul>
+
+To unenroll a namespace, the user must have cas/unenroll permission on
+that namespace.  The namespace must also be unused, that is, there may
+not be any object in the database that belongs to this namespace.
+
+<pre>
+  casAdmin$ cas-remove [<i>options</i>] namespace <i>nickname</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>nickname   : nickname of the namespace to be unenrolled
+</ul>
+
+If the namespace nickname specified does not exist, an error is
+<b>not</b> thrown. If the unenroll operation is successfull all
+policy data on that namespace is purged.
+<p>
+<h3>Enrolling and Unenrolling Objects</h3>
+<p>
+To enroll a object, the user must have cas/enroll_object permission
+(that is, must have permission to perform the enroll_object action on
+the cas service type).  The enroll operation allows the user to choose a
+userGroup to have cas/grantAll permission on the enrolled object. The
+name of the object and the the namespace this object belongs to
+identifies an object in the database and should be unique across the
+CAS database.
+
+<pre>
+  casAdmin$ cas-enroll [<i>options</i>] object <i>userGpName</i> <i>objectName</i> <i>namespaceNick</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>userGpName : the user group to which cas/grantAll permission should be
+	   granted on this trust anchor entity
+  <li>objectName : name of the object
+  <li>namespaceNick: nickname of the namespace this object belongs to.
+</ul>
+
+To unenroll a object, the user must have cas/unenroll permission on
+that object.  The object must also be unused, that is, there may not
+be any object group in the database that this object belongs to
+
+<pre>
+casAdmin$ cas-remove [<i>options</i>] object <i>objName</i> <i>namespaceNick</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>objName    : name of the object to be unenrolled
+  <li>namespaceNick: nickname of the namespace this object belongs to
+</ul>
+
+If the object specified does not exist, an error is <b>not</b> be
+thrown. If the unenroll operation is successfull all policy data on
+that object is purged.
+<p>
+<h3>Enrolling and Unenrolling Service Type</h3>
+<p>
+To enroll a service type, the user must have cas/enroll_serviceType
+permission (that is, must have permission to perform the
+enroll_serviceType action on the cas service type).  The enroll
+operation allows the user to choose a userGroup to have cas/grantAll
+permission on the enrolled service type. The service type name should
+be unique across the CAS database.
+<pre>
+  casAdmin$ cas-enroll [<i>options</i>] serviceType <i>userGpName</i> <i>serviceTypeName</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>userGpName : the user group to which cas/grantAll permission should be
+	   granted on this trust anchor entity
+  <li>serviceTypeName: service type name
+</ul>
+
+To unenroll a service type, the user must have cas/unenroll permission
+on that service type.  The service type must also be unused, that is,
+there may not have any service type to action mapping.
+
+<pre>
+  casAdmin$ cas-remove [<i>options</i>] serviceType <i>serviceTypeName</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>serviceTypeName: service type name
+</ul>
+
+If the service type specified does not exist, an error is <b>not</b> be
+thrown. If the unenroll operation is successfull all policy data on that
+service type is purged.
+<p>
+<h3>Maintaining Service Types</h3>
+<p>
+To add an action mapping to a service type, the user must have
+cas/create_group_entry permission on the service type.
+<pre>
+  casAdmin$ cas-action [<i>options</i>] add <i>serviceTypeName</i> <i>actionName</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>serviceTypeName: service type name
+  <li>actionName: action name
+</ul>
+
+To remove a service type action mapping, the user must have
+cas/delete_group_entry permission on the service type.
+
+<pre>
+  casAdmin$ cas-action [<i>options</i>] remove <i>serviceTypeName</i> <i>actionName</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>serviceTypeName: service type name
+  <li>actionName: action name
+</ul>
+
+<p>If the group member being removed does not exist, an error is
+<b>not</b> thrown. 
+<p>
+<h3>Maintaining User Groups</h3>
+<p>
+To create a new user group, the user must have cas/create_user_group
+permission(thats is, must have permission to perform create_user_group
+action on cas service type). The user group name should be unique
+across the CAS database. The create operation allows the user to
+choose a user group to have cas/grantAll permission on the created
+user group.  If the user group that is chosen to have cas/grantAll
+permission is the new group created, then the user making this request
+is added to the new group.
+
+<pre>
+  casAdmin$ cas-group-admin [<i>options</i>] user create userGpName <i>groupName</i>
+</pre>
+
+where :
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>userGpName : the user group to which cas/grantAll permission should be
+	   granted on this trust anchor entity
+  <li>groupName  : name of the user group being created
+</ul>
+
+To add to a user to a user group, the user must have
+cas/add_group_entry permission on that particular user group. Only
+user nicknames that exist in the CAS database can be valid members.
+
+<pre>
+  casAdmin$ cas-group-add-entry [<i>options</i>] user <i>groupName</i> <i>nickname</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>groupName  : user group name to which the memeber needs to be added
+  <li>nickname   : nickname of the user to be added to this group.
+</ul>
+
+To remove a user from a user group, the user must have cas/remove_group_entry
+permission on that particular user group.
+
+<pre>
+  casAdmin$ cas-group-remove-entry [<i>options</i>] user <i>groupName</i> <i>nickname</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>groupName  : user group name to which the memeber needs to be added
+  <li>nickname   : nickname of the user to be added to this group.
+</ul>
+
+<p>If the group member being removed does not exist, an error is
+<b>not</b> thrown. 
+<p>
+To delete a user group, the user must have cas/delete_user_group entry
+permission on that user group. The group must be empty and also not be
+referenced from other entities in the database(for example should not
+be a memeber of some object group and such).
+
+<pre>
+  casAdmin$ cas-group-admin [<i>options</i>] user delete <i>groupName</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>groupName  : name of the user group to be deleted
+</ul>
+
+If the user group specified does not exist, an error is <b>not</b> be
+thrown. If the unenroll operation is successfull all policy data on that
+user group is purged.
+<p>
+<h3>Maintaining Object Groups</h3>
+<p>
+To create a new object group, the user must have
+cas/create_object_group permission(thats is, must have permission to
+perform create_object_group action on cas service type). The object
+group name should be unique across the CAS database. The create
+operation allows the user to choose a user group to have cas/grantAll
+permission on the created object group.
+
+<pre>
+  casAdmin$ cas-group-admin [<i>options</i>] object create <i>userGpName</i> <i>groupName</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>userGpName : the user group to which cas/grantAll permission should be
+	   granted on this trust anchor entity
+  <li>groupName  : name of the user group being created
+</ul>
+
+To add to a member, (an object group can have the following CasObjects
+as members, object, user, user group, service type, namespace or trust
+anchor) to a object group, the user must have cas/add_group_entry
+permission on that particular object group.
+
+<pre>
+  casAdmin$ cas-group-add-entry [<i>options</i>] object <i>groupName</i> <i>objectSpecDesc</i> <i>objcetSpec</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>groupName  : object group name to which the memeber needs to be added
+  <li>objectSpecDesc: type of CasObject (trustAnchor (or) user (or)
+		userGroup (or) object (or) namespace (or) service Type)
+  <li>objectSpec : the identifier for the CasObject the user is adding
+	   (nickname (or) nickname (or) groupName (or) 
+	   objectNamespace objectName (or) nickname (or) serviceTypeName)
+</ul>
+
+To remove an object from a object group, the user must have
+cas/remove_group_entry permission on that particular object group:
+
+<pre>
+  casAdmin$ cas-group-remove-entry [<i>options</i>] object <i>groupName</i> <i>objectSpec</i> <i>objectSpecDesc</i>
+</pre>
+
+where
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>groupName  : user group name to which the memeber needs to be added
+  <li>objectSpecDesc: type of CasObject (trustAnchor (or) user (or)
+		userGroup (or) object (or) namespace (or) service Type
+  <li>objectSpec : the identifier for the CasObject the user is adding
+	   (nickname (or) nickname (or) groupName (or) 
+	   objectNamespace objectName (or) nickname (or) serviceTypeName)
+</ul>
+
+If the group member being removed does not exist, an error is
+<b>not</b> thrown.
+<p> 
+To delete a object group, the user must have cas/delete_user_group entry
+permission on that object group. The group must be empty.
+
+<pre>
+  casAdmin$ cas-group-admin [<i>options</i>] object delete <i>groupName</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>groupName  : name of the object group to be deleted
+</ul>
+
+If the object group specified does not exist, an error is <b>not</b> be
+thrown. If the unenroll operation is successfull all policy data on that
+user group is purged.
+<p>
+<h3>Maintaining Service/Action Groups</h3>
+<p>
+To create a new service/action group, the user must have
+cas/create_serviceAction_group permission(that is, must have
+permission to perform create_serviceAction_group action on cas service
+type). The serviceAction group name should be unique across the CAS
+database. The create operation allows the user to choose a user group
+to have cas/grantAll permission on the created serviceAction group.
+
+<pre>
+  casAdmin$ cas-group-admin [<i>options</i>] serviceAction create <i>userGpName</i> <i>groupName</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>userGpName : the user group to which cas/grantAll permission should be
+	   granted on this trust anchor entity
+  <li>groupName  : name of the serviceAction group being created
+</ul>
+
+To add to a service/Action to a serviceAction group, the user must have
+cas/add_group_entry permission on that particular serviceAction group
+(that is, must have permission to perform add_group_entry action on
+that service action group)
+
+<pre>
+  casAdmin$ cas-group-add-entry [<i>options</i>] serviceAction <i>groupName</i> <i>serviceTypeName</i> <i>actionName</i>
+</pre>
+
+where
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>groupName  : user group name to which the member needs to be added
+  <li>serviceTypeName : service type name part of mapping to be added to group
+  <li>actionName : action name part of mapping to be added to group
+</ul>
+
+To remove a service/Action from a serviceAction group, the user must have
+cas/remove_group_entry permission on that particular serviceAction
+group.
+
+<pre>
+  casAdmin$ cas-group-remove-entry [<i>options</i>] serviceAction <i>groupName</i> <i>serviceTypeName</i> <i>actionName</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>groupName  : user group name to which the memeber needs to be added
+  <li>serviceTypeName : service type name part of mapping to be added to group
+  <li>actionName : action name part of mapping to be added to group
+</ul>
+
+If the action being removed does not exist, an error is <b>not</b> thrown.
+<p>
+To delete a serviceAction group, the user must have cas/delete_user_group
+entry permission on that serviceAction group. The group must be empty
+and also must not be referenced from any other entity in the
+database. (for example should not be a memeber of some object group
+and such)
+
+<pre>
+  casAdmin$ cas-group-admin [<i>options</i>] serviceAction delete <i>groupName</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>groupName  : name of the user group to be deleted
+</ul>
+
+If the service action group specified does not exist, an error is
+<b>not</b> thrown. If the unenroll operation is successfull all
+policy data on that serviceAction group is purged.
+<p>
+
+<h3> Maintaining Permissions </h3>
+<p>
+The user may grant permissions to a user group, on a object or object
+group to perform a service action or service action group (that is to
+perform any action that is a member of the service action group to
+which permission is granted), provided the user has has both:
+
+<ul>
+  <li>cas/grant permission on the object or object group
+  <li>permission to perform the service action or service action
+        group on the object or object group.
+</ul>
+
+<pre>
+  casAdmin$ cas-rights-admin [<i>options</i>] grant <i>userGroupName</i>  <i>objectSpecDesc</i> <i>objectSpec</i>  <i>actionSpecDesc</i> <i>actionSpec</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>userGroupName : the user group to grant permission for.
+  <li>objectSpec : identifier for object or object group 
+  <li>objectSpecDesc : type (object or objectGroup)
+  <li>actionSpec : identifier for action or action  group
+  <li>actionSpecDesc : type (serviceAction or serviceActionGp)
+</ul>
+
+The user may revoke a policy in the CAS database provided the user has
+cas/revoke permission on the object or object group on whch the policy
+is defined.
+
+<pre>
+  casAdmin$ cas-rights-admin [<i>options</i>] revoke <i>userGroupName</i>  <i>objectSpecDesc</i> <i>objectSpec</i>  <i>actionSpecDesc</i> <i>actionSpec</i>
+</pre>
+
+where:
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>userGroupName : the user group to grant permission for.
+  <li>objectSpecDesc: type of CasObject (trustAnchor (or) user (or)
+		      userGroup (or) object (or) namespace (or) serviceType
+		      (or) userGroup (or) 
+  <li>objectSpec : identifier for object or object group 
+  <li>actionSpec : identifier for action or action  group
+  <li>actionSpecDesc : type (serviceAction or serviceActionGp)
+</ul>
+
+<hr>
+
+<h2>
+<a name="query-clients">Using CAS Query Command line clients</a>
+</h2>
+
+The following queries can be run against the CAS server. These are
+typically used by CAS clients (who may not be administrators).
+<p>
+The user need cas/query permissions to perform these operations, that
+is the user must have permission to query on the cas server object.
+<p>
+Example 1:
+
+<pre>
+  casUser$ cas-whoami [<i>options</i>]
+</pre>
+
+where
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+</ul>
+
+Returns the CAS user nick of the client.
+<p>
+Example 2:
+
+<pre>
+  casUser$ cas-list-object [<i>options</i>] type
+</pre>
+
+where
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>type : trustAnchor (or) user (or) userGroup (or) object (or)
+     objectGroup (or) objectGroup (or) namespace (or) serviceType (or)
+     serviceAction (or) serviceActionGp
+</ul>
+
+Returns a list of CasObjects in the database of the requested type.
+<p>
+Example 3:
+
+<pre>
+  casUser$ cas-get-object [<i>options</i>] type name
+</pre>
+
+where
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>type : trustAnchor (or) user (or) object (or) namespace (or) service Type
+  <li>name : nickname (or) nickname (or) objectNamesapce objectName
+     (or) nickname (or) serviceTypeName (corresponding to the type)
+</ul>
+
+Returns the particular object of the said type and name.
+<p>
+Eample 4:
+<pre>
+  casUser$ cas-group-list-entries [<i>options</i>] type name
+</pre>
+
+where
+
+<ul>
+  <li>options    : <a href="#client-options">client options</a>
+  <li>type : Type of group. user (or) object (or) serviceAction 
+  <li>name : Name of group
+</ul>
+
+Returns list of group members.
+<p>
+Example 5:
+
+<pre>
+  casUser$ cas-find-policies [-c <i>cas-url</i>] type name
+</pre>
+
+where 
+
+<ul>
+  <li>[-c <i>cas-url</i>] : the URL of the CAS service
+  <li>type : trustAnchor (or) user (or) userGroup (or) object (or)
+     objectGroup (or) namespace (or) service Type (or) serviceAction
+     (or) serviceActionGroup
+  <li>name : nickname (or) nickname (or) groupName (or)
+     objectNamespace|objectName (or) groupName (or) nickname (or)
+     serviceTypeName (or) serviceType/Action (or) groupName
+     (corresponding to the type) 
+</ul>
+
+Returns all applicable policies, both policies that are implicit to
+the CAS server and those that are external.
+
+<hr>
+
+<h2>
+<a name="admin-example">Example of CAS Server Administration</a>
+</h2>
+
+Alice, Bob and Carol are three members of a community who have set up
+a Community Authorization service. Alice's role is primary to
+administer the CAS server. Bob is an analyst who needs read access to
+much of the community data. Carol is a scientist who needs to be able
+to both read and write community data.
+
+<p>These examples show how Alice adds the users Bob and Carol to the CAS
+server, then adds a ftp server with some data available to the
+community and then add permissions for the users using the cas
+administration clients.
+
+<p>These examples assume that Alice has installed the CAS server and
+bootstrap the database with herself as super user. Please refer to <a
+href="./installGuide.html">installation documentation</a> for details. 
+
+<p> Assume Alice's nickname on the CAS server is <i>alice</i> and at
+bootstrap has created a user group <i>suGroup</i>,which has super user
+permissions on the database. Say, the CAS serivce URL is
+<i>http://localhost:8080/ogsa/services/base/cas/CASService</i>
+
+<p>All commands listed below assume that enviroment variable
+GLOBUS_LOCATION has been set to point to the GT3 core install and that
+the commands are run ftom GLOBUS_LOCATION/bin. Also, say an environment
+variable CAS_SERVER_URL has been set to point to the CAS server URL,
+<i>http://localhost:8080/ogsa/services/base/cas/CASService</i>
+<p>
+<b>1. Adding a user group </b>
+
+<p> Since at the time of booting up the CAS server, only one user
+group that has super user permissions on the CAS server is created,
+Alice might want to create another user group to which new users maybe
+added and permissions to newly enrolled CAS entities may be
+given. This also eases the process of giving same rights to many
+users.Given they are two types of roles in the community she might
+want to create two groups, <i>analysts</i> and <i>scientists</i>.
+
+<p>Also, all permissions on the newly created group will be given to
+users of a particular user group. Say, Alice would like all users of
+the user group <i>analysts</i> to be able to manipulate the group.
+
+<p>To create a new user group Alice uses the <i>cas-group-admin</i>
+client.It requires a name for the new group being created, say
+<i>analysts</i>. 
+
+<pre>
+alice%  cas-group-admin user create analysts analysts
+</pre>
+
+This will create a user group <i>analysts</i> and give all users in
+that group the permission to manage the group (i.e add users, remove
+users and so on).
+
+She can similarly create a group called <i>scientist</i>
+<p>
+<b>2. Adding trust anchor.</b>
+
+<p>
+Prior to adding Bob and Carol to CAS server, Alice needs to ensure
+that the trust anchors for both have been added. If they share the
+same trust anchor with Alice then this can be skipped, since at
+bootstrap Alice's trust anchor would have been added to the database. 
+
+<p>Say, Alice and Carol share a trust anchor different from
+Bobs's. Then Alice needs to add the trust anchor used by Bob by using
+<i>cas-enroll</i> client with the <i>trustAnchor</i> option.  She
+needs to provide details about the trust anchor such as the
+authentication method and authentication data used.
+
+<pre>
+alice%  cas-enroll trustAnchor analysts AbcTrust X509 "/C=US/O=some/CN=ABC CA"
+</pre>
+
+The above will enroll a trust anchor with nickname <i>AbcTrust</i>,
+who uses <i>X509</i> as authentication method and has the DN specified
+in the command. The members of the <i>analysts</i> user group are
+given all rights on this object. This implies that any user who has
+this trust anchor, would present credentials signed by this trust
+anchor.
+
+<p>
+<b>3. Adding users.</b>
+<p>
+
+Now, Alice can add Bob and Carol as users using the <i>cas-enroll</i>
+command with the <i>user</i> option. She needs to provide the user's
+subject DN and reference to trust anchor used by the user. As with any
+entity added to the CAS server, a user group whose members will have
+all permissions on that entity needs to be chosen. Say, Alice would
+like the members of user group <i>suUser</i> to be able to
+maninipulate the user entity <i>Bob</i>.
+
+<pre>
+alice% cas-enroll user suUser bob "/O=Our Community/CN=Bob Foo" AbcTrust
+</pre>
+
+Alice uses a simliar command to add Carol to the CAS database.
+
+<p>
+<b>4. Adding users to user group.</b>
+
+<p>CAS server allows rights to be assigned only to user groups and not
+to individual users. Hence before Alice can assign rights to Bob or
+Carol, she needs to add them to some user group. She does this by
+using <i>cas-group-add-entry</i> client with the <i>user</i> option to
+indicate she is adding to a user group. This client requires the group
+name and nick name of the user who needs to be added. So to add Bob to
+<i>analysts</i> group, the command would be,
+
+<pre>
+alice% cas-group-add-entry user analysts bob
+</pre>
+
+<p>If a user group <i>scientists</i> was created, Carol can be added
+as a member similarly.
+
+<p>
+<b>4. Adding a new FTP server.</b>
+
+<p>Alice now has the community users in the database and
+organized. She now wants to add some resources. The community
+currently has a single ftp server, foo.bar.edu, available to it, so
+she is going to add this to the CAS database.
+
+<p>Each resource or object in the CAS server has a namespace
+associated to it that defines some features like the comparison
+algorithm that needs to be used when this object name is used for
+comparison and maybe the base URL that should be prefixed to objects
+that belong to this namespace. In this case, Alice can chooses to use
+<i>FTPDirectoryTree</i> namespace that is added to the CAS server at
+bootup.
+
+Now, she adds the ftp server to the CAS database, using the
+<i>cas-enroll</i> client with the <i>object</i> option.
+
+<pre>
+alice% cas-enroll object suGroup ftp://foo.bar.edu/* FTPDirectoryTree
+</pre>
+
+This adds the ftp server as an object and gives all members of the
+<i>suGroup</i> rights to manipulate the object.
+
+<p> To be able to grant/revoke access on indiviual directories,
+objects with the directory. Say, if Alice would like to be able to
+manipulate the <i>data</i> on the server as a separate entity, the the
+following will add an object for that.
+
+<pre>
+alice% cas-enroll object suGroup ftp://foo.bar.edu/data/* FTPDirectoryTree
+</pre>
+
+<p>
+<b>4. Creating an object group </b>
+<p>
+Alice suspects the community will end up have more directories
+containing data on other servers that will have identical polices as
+the /data directory on foo.bar.edu. So she is going to create an
+object group called <i>data</i> and assign foo.bar.edu/data to this
+group. This will allow her to grant rights on this group and easily
+add other directories to this group later
+
+<p>To create a group called <i>data</i> she uses the
+<i>cas-group-admin</i> client with <i>group</i> and <i>create</i>
+option.
+
+<pre>
+alice% cas-group-admin object create suGroup data
+</pre>
+
+This creates an object group called <i>data</i> and the members of
+<i>suGroup</i> get all rights on this group and hence should be able
+to add/remove members, grant rights to add/delete from this group to
+others and also delete this group.
+
+<p>
+<b>5. Adding members to object group </b>
+<p>
+
+Alice now can add foo.bar.edu/data to the <i>data</i> group. She can
+do this by using the <i>cas-group-add-entry</i> with the <i>object</i>
+option. To add the above described object,
+<i>ftp://foo.bar.edu/data/*</i> in namespace <i>FooFTPNamespace</i>,
+to object group <i>data</i>, the following would be the command.
+
+<pre>
+alice% cas-group-add-entry object data object FooFTPNamespace ftp://foo.bar.edu/data/*
+</pre>
+
+In the above command, the first <i>object</i> refers to the group
+type, <i>data</i> is the name of the object group, <i>object</i>
+refers to the type of CAS entity that is being added as memeber and
+the last two parameters define the namespace and the object that needs
+to be added.
+
+<p>
+<b>6. Adding service types </b>
+<p>
+Alice now needs to add information about the kind of rights that can
+be granted for these objects. These are stored as <i>service types</i>
+and relevant actions are mapped to these service types.
+
+<p>In this scenario, the kind of service types that Alice should add
+would be <i>file</i>, <i>directory</i> and so on. To do so, the
+<i>cas-enroll</i> client with <i>serviceType</i> option maybe used. To
+add a service type called <i>file</i> and give members of
+<i>suGroup</i> all rights on this service type, she uses the following
+command.
+
+<pre>
+alice% cas-enroll serviceType suGroup file
+</pre>
+
+<p>
+<b>7. Adding action mappings </b>
+<p>
+The relevant action mappings to the above mentioned service types
+would be <i>read</i>, <i>write</i> and so on. Alice needs to add these
+mappings to the database so that she can grant rights that allow a
+user to have <i>file/read</i> or <i>file/write</i> permissions on some
+object.
+
+<p> To add action mappings to a service type, she uses the
+<i>cas-action</i> client with <i>add</i> option. The following command
+should add a mapping of action <i>read</i> to service type
+<i>file</i>.
+
+<pre>
+alice% cas-action add file add
+</pre>
+
+Similarly she can add other mapping like <i>write</i> to this service type.
+
+<p>
+<b>8. Grant permissions. </b>
+<p>
+Alice now has resources in the object group <i>data</i> and users in the
+user groups <i>analysts</i> and <i>scientists</i>. She now wants to grant
+permissions on <i>data</i> group to the analysts and scientists, namely
+read permissions to the analysts and read and write permissions to the
+scientists.
+
+<p> To grant permissions the <i>cas-rights-admin</i> with the
+<i>grant</i> option needs to be used. To give read permissions to the
+analysts group, the command that needs to be run would be
+
+<pre>
+alice% cas-rights-admin grant analysts objectGroup data serviceAction file read</pre>
+
+She similarly grants rights to <i>scientists</i> group.
+
+<hr>
+Updated: 07 - 30 - 2003
+</body>
+<html>

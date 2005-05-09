@@ -1,0 +1,160 @@
+#
+# Copyright (c) 2002-2003 Northwestern University
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
+
+The Quick Guide to Installing and Using
+the Software Information Provider
+----------------------------------------
+
+...in 7 Easy steps
+===================
+
+0) Make sure that your GRIS/GIIS is stopped.
+
+1) Add the following lines to the end of your
+   $GLOBUS_LOCATION/etc/grid-info-resource.schema file:
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.109
+    NAME 'Mds-Application-Group-config'
+    DESC 'The location of this application group configuration file'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.110
+    NAME 'Mds-Application-name'
+    DESC 'The name of the application being presented'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.111
+    NAME 'Mds-Application-location'
+    DESC 'The path to the installed application'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.112
+    NAME 'Mds-Application-version'
+    DESC 'The version of the installed application'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.113
+    NAME 'Mds-Application-info'
+    DESC 'Additional information about the installed application'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.3536.2.6.3536.10.1.114
+    NAME 'Mds-Application-Group-name'
+    DESC 'A group name of software applications'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE
+ )
+
+objectclass ( 1.3.6.1.4.1.3536.2.6.3536.10.1.115
+    NAME 'MdsApplicationGroup'
+    DESC 'Information about a Group of Software Applications'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( Mds-Application-Group-name $ Mds-Application-Group-config )
+    MAY ( Mds-Application-name )
+ )
+
+objectclass ( 1.3.6.1.4.1.3536.2.6.3536.10.1.116
+    NAME 'MdsApplication'
+    DESC 'Information about a particular Software Applications'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( Mds-Application-name $ Mds-Application-version )
+    MAY (  Mds-Application-location $ Mds-Application-info )
+ )
+
+
+2) Add the following lines to your
+   $GLOBUS_LOCATION/etc/grid-info-resource-ldif.conf file:
+
+# generate probed software information every 1 day 
+dn: Mds-Host-hn=glob, Mds-Vo-name=local, o=grid
+objectclass: GlobusTop
+objectclass: GlobusActiveObject
+objectclass: GlobusActiveSearch
+type: exec
+path: /opt/globus/libexec
+base: grid-info-soft-posix
+args: -devclassobj -devobjs -dn Mds-Host-hn=glob,Mds-Vo-name=local,o=grid -validto-secs 8640
+0 -keepto-secs 86400
+cachetime: 86400
+timelimit: 100
+sizelimit: 100
+
+NOTE: You will need to change the dn line (at the top, and also in the
+args line a little further down) that lists the hostname for your machine.
+My host name is "glob", so replace where it says "glob" with the hostname of
+your machine.
+
+
+3) Download the code linked here and place both scripts into your
+   $GLOBUS_LOCATION/libexec directory:
+
+   lynx -source http://www.thecodefactory.org/mds/info-providers/updates/grid-info-soft-common > $GLOBUS_LOCATION/libexec/grid-info-soft-common
+
+   lynx -source http://www.thecodefactory.org/mds/info-providers/updates/grid-info-soft-posix > $GLOBUS_LOCATION/libexec/grid-info-soft-posix
+
+
+4) Change permissions on the freshly downloaded scripts as follows:
+
+   chmod 755 $GLOBUS_LOCATION/libexec/grid-info-soft-posix
+   chmod 755 $GLOBUS_LOCATION/libexec/grid-info-soft-common
+
+5) Download the default configuration file into your
+   $GLOBUS_LOCATION/etc/ directory:
+
+   lynx -source http://www.thecodefactory.org/mds/info-providers/grid-info-soft.conf > $GLOBUS_LOCATION/etc/grid-info-soft.conf
+
+   Modify this file as necessary.
+
+6) Restart your GRIS/GIIS.
+

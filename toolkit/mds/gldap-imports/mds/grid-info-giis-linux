@@ -1,0 +1,142 @@
+#! /bin/bash
+#
+# Copyright (c) 2002-2003 Northwestern University
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+#
+# default libexecdir used to bootstrap scripts
+libexecdir=${GLOBUS_LOCATION}/libexec
+
+# load GRIS common code and initialization
+. ${libexecdir}/grid-info-common
+
+######################################################################
+
+emit_registered_giis_summary()
+{
+    # $1 is dn suffix
+    # $2 .. $N are additional object entries
+cat <<EOF
+${_line_class_dn}dn: Mds-Known-GIIS-Host-Group=giis-registration, $1
+EOF
+    shift
+    while [ $# -gt 0 ]
+    do
+	cat <<EOF
+$1
+EOF
+	shift
+    done
+
+    cat <<EOF
+${_line_class_oc}objectclass: MdsJmsNmExtension
+EOF
+
+    _awk_field=1
+    for i in $_registered_giis_names; do
+
+	_tmp_name="echo \"$_registered_giis_names\" | awk '{print \$$_awk_field}'"
+	_tmp_host="echo \"$_registered_giis_hosts\" | awk '{print \$$_awk_field}'"
+
+	_tmp_name=`eval $_tmp_name`
+	_tmp_host=`eval $_tmp_host`
+
+	echo "${_line_class_av}Mds-Known-GIIS-name: ${_tmp_name}"
+	echo "${_line_class_av}Mds-Known-GIIS-Host-hn: ${_tmp_host}"
+
+	_awk_field=$((${_awk_field}+1))
+
+    done
+}
+
+emit_registered_giis_descriptions()
+{
+    probe_mds_object_timestamps
+
+# NOTE: We're essentially ignoring some command line args here
+#    if [ "X${_dump_devclass_object}" = "Xtrue" ]
+#    then
+#    ??
+#    else
+#    fi
+
+    emit_registered_giis_summary "${_suffix}"
+
+    emit_mds_object_timestamps
+}
+
+
+retrieve_giis_names()
+{
+    _registered_giis_info=`cat $_resource_register_filename | grep register`
+    for i in $_registered_giis_info; do
+
+#	_tmp_option=`echo $i | cut -b 1-11`
+	_tmp_option=`echo $i | awk -F= '{print $1}'`
+	_tmp_option=`echo $_tmp_option |
+        sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+	
+	if [ "$_tmp_option" = "MDS-VO-NAME" ]
+	    then
+	    _giis_name=`echo $i | awk -F= '{print $2}' | sed 's/,//'`
+	    _registered_giis_names="$_giis_name $_registered_giis_names"
+	else
+	    if [ "$_tmp_option" = "MDS-VO-OP-NAME" ]
+		then
+		_giis_name=`echo $i | awk -F, '{print $2}' | awk -F= '{print $2}' | sed 's/,//'`
+		_registered_giis_names="$_giis_name $_registered_giis_names"
+	    fi
+	fi
+	
+    done
+}
+
+retrieve_giis_hosts()
+{
+    _registered_giis_hostinfo=`cat $_resource_register_filename | grep -v \# | grep reghn`
+    for i in $_registered_giis_hostinfo; do
+
+	_tmp_option=`echo $i |
+        sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+	
+	if [ ! "$_tmp_option" = "REGHN:" ]
+	    then
+	    _registered_giis_hosts="$i $_registered_giis_hosts"
+	fi
+
+    done
+}
+
+probe_registered_giis_resources ()
+{
+    _registered_giis_names=""
+    _registered_giis_hosts=""
+    _resource_register_filename="$GLOBUS_LOCATION/etc/grid-info-resource-register.conf"
+
+    retrieve_giis_names
+    retrieve_giis_hosts
+
+    emit_registered_giis_descriptions
+}
+
+#############
+# do the work
+probe_registered_giis_resources

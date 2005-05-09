@@ -1,0 +1,258 @@
+#! /bin/bash
+#
+# Copyright (c) 2002-2003 Northwestern University
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+#
+# Compatibility note:
+# Tested successfully on GNU/Linux, Solaris, AIX, and IRIX64
+
+# default libexecdir used to bootstrap scripts
+libexecdir=${GLOBUS_LOCATION}/libexec
+
+# load GRIS common code and initialization
+. ${libexecdir}/grid-info-common
+
+######################################################################
+
+emit_soft_info_summary()
+{
+    # $1 is dn suffix
+    # $2 .. $N are additional object entries
+    ${GLOBUS_SH_CAT-cat} <<EOF
+${_line_class_dn}dn: $1
+${_line_class_oc}objectclass: MdsApplicationGroup
+${_line_class_av}Mds-Application-Group-config: ${_grid_info_soft}
+EOF
+    shift
+    while [ $# -gt 0 ]
+      do
+      ${GLOBUS_SH_CAT-cat} <<EOF
+$1
+EOF
+      shift
+    done
+    emit_soft_info_summary_attrs | sort | uniq
+    echo ""
+}
+
+emit_soft_info_summary_attrs()
+{
+    for i in ${_global_input_data}; do
+        _cap_i=`echo $i |
+     ${GLOBUS_SH_SED-sed} 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+
+        if [ ! "${i}" = "Software:" ] && 
+            [ ! `echo ${_cap_i} | ${GLOBUS_SH_CUT-cut} -b 1-4` = "PATH" ] && 
+            [ ! `echo ${_cap_i} | ${GLOBUS_SH_CUT-cut} -b 1-7` = "VERSION" ] &&
+            [ ! `echo ${_cap_i} | ${GLOBUS_SH_CUT-cut} -b 1-4` = "MISC" ]; then
+            echo "Mds-Application-name: ${i}"
+        fi
+    done
+}
+
+read_input_data()
+{
+    _global_input_data=`${GLOBUS_SH_CAT-cat} ${_grid_info_soft} |
+                          ${GLOBUS_SH_GREP-grep} -v \# |
+                          ${GLOBUS_SH_SED-sed} -ne '/Software: [[:alnum:]]* /p'`
+
+# if the sed line chowdered the input data, re-do it (happens on Solaris)
+
+    if [ -z "${_global_input_data}" ]; then
+        _global_input_data=`${GLOBUS_SH_CAT-cat} ${_grid_info_soft} |
+                          ${GLOBUS_SH_GREP-grep} -v \# |
+                          ${GLOBUS_SH_SED-sed} -e '/Software: [[:alnum:]]* /p'`
+    fi
+}
+
+emit_soft_info_complete_attrs()
+{
+    for i in ${_global_input_data}; do
+
+        _cap_i=`echo $i |
+	 ${GLOBUS_SH_SED-sed} 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+
+# gather all software information we need to probe the system
+
+        if [ "${i}" = "Software:" ]; then
+
+            _out_program_path=""
+            _out_program_version=""
+            _out_program_info=""
+            _get_path=""
+            _version_str=""
+            _version_limit=""
+            _program_name=""
+            _show_misc=""
+            _path_is_valid="1"
+
+        elif [ `echo ${_cap_i} | ${GLOBUS_SH_CUT-cut} -b 1-4` = "PATH" ]; then
+
+            if [ "${_cap_i}" = "PATH=YES" ]; then
+                _get_path="1"
+            else
+                _get_path="0"
+            fi
+
+        elif [ `echo ${_cap_i} | ${GLOBUS_SH_CUT-cut} -b 1-12` = "VERSION_STR=" ]; then
+
+            _version_str=`echo ${i} | ${GLOBUS_SH_CUT-cut} -b 13-`
+
+        elif [ `echo ${_cap_i} | ${GLOBUS_SH_CUT-cut} -b 1-14` = "VERSION_LIMIT=" ]; then
+
+            _version_limit=`echo ${i} | ${GLOBUS_SH_CUT-cut} -b 15-`
+
+        elif [ `echo ${_cap_i} | ${GLOBUS_SH_CUT-cut} -b 1-4` = "MISC" ]; then
+
+            if [ "${_cap_i}" = "MISC=YES" ]; then
+                _show_misc="1"
+            else
+                _show_misc="0"
+            fi
+
+        else
+
+            _program_name="${i}"
+
+        fi
+
+# once we have all the required information, emit the software data
+
+        if [ ! -z "${_program_name}" ] &&
+            [ ! -z "${_get_path}" ] &&
+            [ ! -z "${_version_str}" ] &&
+            [ ! -z "${_version_limit}" ] &&
+            [ ! -z "${_show_misc}" ]; then
+
+            ${GLOBUS_SH_CAT-cat} <<EOF
+${_line_class_dn}dn: Mds-Application-name=${_program_name}, $1
+${_line_class_oc}objectclass: MdsApplication
+${_line_class_av}Mds-Application-name: ${_program_name}
+EOF
+
+            _out_program_info=`${GLOBUS_SH_WHEREIS-whereis} ${_program_name}`
+
+            which ${_program_name} > ${_tmp_file} 2>&1
+            _out_program_path="`${GLOBUS_SH_CAT-cat} ${_tmp_file}`"
+
+# if the program is found, emit appropriate location and version output
+
+            if [ ! "`echo ${_out_program_path} | ${GLOBUS_SH_GREP-grep} -c \"no ${_program_name} in\"`" = "1" ] &&
+               [ ! "`echo ${_out_program_path} | ${GLOBUS_SH_GREP-grep} -c \"${_program_name} not in\"`" = "1" ] &&
+               [ ! -z "${_out_program_path}" ]; then
+
+                if [ "${_get_path}" = "1" ]; then
+
+                    echo "${_line_class_av}Mds-Application-location: ${_out_program_path}"
+                    rm -f ${_tmp_file}
+                fi
+
+                if [ ! "${_version_str}" = "0" ]; then
+
+# extract the version information string
+
+                    ${_out_program_path} ${_version_str} > ${_tmp_file} 2>&1
+                    ${GLOBUS_SH_CAT-cat} ${_tmp_file} |
+                    ${GLOBUS_SH_SED-sed} -e '/^$/d' > ${_tmp_file}
+                    _out_program_version="`${GLOBUS_SH_HEAD-head} -n ${_version_limit} ${_tmp_file} | ${GLOBUS_SH_SED-sed} -e 'y/:/-/'`"
+
+# if the sed line chowdered the version, re-do it (happens on Solaris)
+
+                    if [ -z "${_out_program_version}" ]; then
+                        ${_out_program_path} ${_version_str} > ${_tmp_file} 2>&1
+                        _out_program_version="`cat ${_tmp_file}`"
+                    fi
+
+# ...unless it's really invalid - in which case we report it can't be found
+
+                    if [ -z "${_out_program_version}" ]; then
+                        _out_program_version="\"${_program_name}\" version not available"
+                    fi
+                    echo "${_line_class_av}Mds-Application-version: ${_out_program_version}"
+                    rm -f ${_tmp_file}
+
+                fi
+
+            else
+
+                _out_program_path="\"${_program_name}\" location not available"
+                _out_program_version="\"${_program_name}\" version not available"
+
+                if [ "${_get_path}" = "1" ]; then
+                    echo "${_line_class_av}Mds-Application-location: ${_out_program_path}"
+                fi
+                if [ ! "${_version_str}" = "0" ]; then
+                    echo "${_line_class_av}Mds-Application-version: ${_out_program_version}"
+                fi
+
+            fi
+
+# even if location and version info is not avilable,
+# emit miscellaneous (whereis) info if available
+
+            if [ ! "${_out_program_info}" = "${_program_name}:" ] &&
+                [ "${_show_misc}" = "1" ]; then
+
+                if [ -z "${_out_program_info}" ]; then
+                    _out_program_info="\"${_program_name}\" info not available"
+                fi
+                echo "${_line_class_av}Mds-Application-info: ${_out_program_info}"
+
+            else
+
+                _out_program_info="\"${_program_name}\" info not available"
+
+                if [ "${_show_misc}" = "1" ]; then
+                    echo "${_line_class_av}Mds-Application-info: ${_out_program_info}"
+                fi
+
+            fi
+
+            emit_mds_object_timestamps
+            echo ""
+        fi
+    done
+}
+
+emit_soft_info_descriptions()
+{
+    read_input_data
+
+    probe_mds_object_timestamps
+
+    timestamps=`emit_mds_object_timestamps`
+
+    if [ "X${_dump_host_object}" = "Xtrue" ]
+        then
+        emit_soft_info_summary "${_suffix}"
+    fi
+
+    if [ "X${_dump_devclass_object}" = "Xtrue" ]
+        then
+        emit_soft_info_summary "Mds-Application-Group-name=probed software, ${_suffix}" "${_line_class_av}Mds-Application-Group-name: probed software" "$timestamps"
+    fi
+
+    if [ "X${_dump_dev_objects}" = "Xtrue" ]
+        then
+        emit_soft_info_complete_attrs "Mds-Application-Group-name=probed software, ${_suffix}"
+    fi
+}

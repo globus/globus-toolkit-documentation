@@ -1,0 +1,229 @@
+#! /bin/bash
+#
+# Copyright (c) 2002-2003 Northwestern University
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+#
+# This work is based heavily on Peter Knepley's GridFTP Information Provider:
+# http://www-unix.mcs.anl.gov/~knepleyp/
+#
+# See http://www.thecodefactory.org/mds/info-providers/gridftp
+# for more information on this information provider.
+#
+# Compatibility note
+# ------------------
+# Tested successfully on GNU/Linux and Solaris
+#
+#
+# Installation notes
+# ------------------
+# This information provider consists of 4 parts.  All pieces
+# are required for proper operation.  The following files
+# must be located in $GLOBUS_LOCATION/libexec/ and have
+# executable permissions:
+#
+# $GLOBUS_LOCATION/libexec/gftp_put
+# $GLOBUS_LOCATION/libexec/gftp_get
+# $GLOBUS_LOCATION/libexec/grid-info-gridftp-posix.pl
+# $GLOBUS_LOCATION/libexec/grid-info-gridftp-posix
+#
+#
+# If these files are NOT located in $GLOBUS_LOCATION/libexec,
+# you may specify an appropriate location using GFTP_BIN_LOCATION.
+#
+# Operation notes
+# ---------------
+#
+# If this provider is run as root, your host certificate
+# will be used to authenticate locally with the running
+# gridftp server.  If your host certificate is not located at
+# /etc/grid-security/hostcert.pem, or your host key is not
+# located at /etc/grid-security/hostkey.pem, please specify
+# the exact locations by using the appropriate environment
+# variables (see ENVIRONMENT VARIABLES below)
+#
+# If this provider is run as a user, the user's certificate
+# will be used to authenticate locally with the running
+# gridftp server.  This means that the user MUST appear
+# in the server's grid-mapfile.  A password is needed to
+# generate a user proxy.  At this time, no security measure
+# has been taken to safely handle a user password.
+# (see ENVIRONMENT_VARIABLES below).  If this info-provider
+# is run as a user and no password is stored in the appropriate
+# environment variable, this provider will assume that a user
+# proxy has already been generated and continue running.
+# Externally generating a user proxy is the safest way for this
+# information provider to run.
+#
+# Several temporary files are required for proper operation.
+# They are named after a base tmp file name that defaults to
+# /tmp/__gftp
+# Files created will be /tmp/__gftp0, /tmp/__gftp1, etc.
+# If this base filename is not suitable, please specify a different
+# base filename in the env variable GFTP_TMPBASE.
+#
+#
+# ENVIRONMENT VARIABLES
+# ---------------------
+#
+# GFTP_HOSTCERT
+#   - may contain location of host certificate file
+#   - default value is "/etc/grid-security/hostcert.pem"
+#
+# GFTP_HOSTKEY
+#   - may contain location of host key file
+#   - default value is "/etc/grid-security/hostkey.pem"
+#
+# GFTP_PROXYINITPASSWD
+#   - may contain user password used to generate proxy
+#   - default value is ""
+#
+# GFTP_TMPBASE
+#   - may contain a base filename for tmp files
+#   - default value is "/tmp/__gftp"
+#
+# GFTP_BIN_LOCATION
+#   - may contain the path to the required executables
+#   - default value is "${GLOBUS_LOCATION}/libexec"
+#
+# GFTP_HOSTNAME
+#   - may contain the hostname to test gridftp on
+#   - default value is "localhost"
+#
+# GFTP_PORT
+#   - may contain the port number of the gridftp server
+#   - default value is "2811"
+#
+
+
+# default libexecdir used to bootstrap scripts
+libexecdir=${GLOBUS_LOCATION}/libexec
+
+# load GRIS common code and initialization
+. ${libexecdir}/grid-info-common
+
+######################################################################
+
+emit_gridftp_info_summary ()
+{
+    # $1 is dn suffix
+    # $2 .. $N are additional object entries
+    ${GLOBUS_SH_CAT-cat} <<EOF
+${_line_class_dn}dn: $1
+${_line_class_oc}objectclass: MdsGridFTPExtension
+EOF
+    shift
+    while [ $# -gt 0 ]
+      do
+      ${GLOBUS_SH_CAT-cat} <<EOF
+$1
+EOF
+      shift
+    done
+}
+
+emit_gridftp_info_complete_attrs ()
+{
+    # run the external perl script to complete the
+    # gridftp tests and to emit the test result output
+
+    ${GLOBUS_SH_PERL-perl} ${GFTP_BIN_LOCATION}/grid-info-gridftp-posix.pl ${_hostname} ${_port} ${_tmp_base} ${_bin_location}
+
+}
+
+emit_gridftp_info_descriptions ()
+{
+    probe_mds_object_timestamps
+
+    if [ "X${_dump_host_object}" = "Xtrue" ]
+        then
+        emit_gridftp_info_summary "Mds-software-deployment=GridFTP, ${_suffix}"
+    fi
+
+    if [ "X${_dump_dev_objects}" = "Xtrue" ]
+        then
+        emit_gridftp_info_complete_attrs
+    fi
+
+    emit_mds_object_timestamps
+}
+
+init_gftp_state ()
+{
+    _hostname="localhost"
+    _port="2811"
+    _bin_location="${GLOBUS_LOCATION}/libexec"
+    _host_cert="/etc/grid-security/hostcert.pem"
+    _host_key="/etc/grid-security/hostkey.pem"
+    _tmp_base="/tmp/__gftp"
+    _root_mode=0
+
+    # check if any environment variables are specified to
+    # override any default settings
+    if [ ! "x${GFTP_HOSTNAME}" = "x" ]; then
+        _hostname=${GFTP_HOSTNAME}
+    fi
+    if [ ! "x${GFTP_PORT}" = "x" ]; then
+        _port=${GFTP_PORT}
+    fi
+    if [ ! "x${GFTP_BIN_LOCATION}" = "x" ]; then
+        _bin_location=${GFTP_BIN_LOCATION}
+    fi
+    if [ ! "x${GFTP_HOSTCERT}" = "x" ]; then
+        _host_cert=${GFTP_HOSTCERT}
+    fi
+    if [ ! "x${GFTP_HOSTKEY}" = "x" ]; then
+        _host_key=${GFTP_HOSTKEY}
+    fi
+    if [ ! "x${GFTP_TMPBASE}" = "x" ]; then
+        _tmp_base=${GFTP_TMPBASE}
+    fi
+
+    # make a note if we're running as root
+    if [ "`id | grep -c root`" = "1" ]; then
+        _root_mode=1
+    fi
+}
+
+generate_proxy ()
+{
+    if [ "${_root_mode}" = "1" ]; then
+        ${GLOBUS_LOCATION}/bin/grid-proxy-init -cert ${GFTP_HOSTCERT} -key ${GFTP_HOSTKEY} > /dev/null 2> /dev/null
+    else
+        if [ ! "x${GFTP_PROXYINITPASSWD}" = "x" ]; then
+            echo ${GFTP_PROXYINITPASSWD} | ${GLOBUS_LOCATION}/bin/grid-proxy-init -pwstdin > /dev/null 2> /dev/null
+        fi
+    fi
+}
+
+probe_gridftp_availability ()
+{
+    init_gftp_state
+
+    generate_proxy
+
+    # run this in initialized subshell environment
+    emit_gridftp_info_descriptions
+}
+
+#############
+# do the work
+probe_gridftp_availability

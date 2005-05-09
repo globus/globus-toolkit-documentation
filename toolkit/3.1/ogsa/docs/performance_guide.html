@@ -1,0 +1,136 @@
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en"><html><head>
+  
+  <title>Open Grid Services Development Framework User's Guide</title>
+  
+  <style type="text/css">
+
+
+
+<!--
+
+
+
+h2 { background-color: #DCE1FF; background-position: left}
+
+
+
+-->
+
+
+
+  </style></head><body>
+<img border="0" src="gt_logo.jpg">
+<h1>
+Performance Tuning Guide</h1>
+
+
+Globus Toolkit 3.0 - Last Updated <!--webbot bot="Timestamp"
+S-Type="EDITED" S-Format="%m/%d/%Y" startspan -->06/25/2003<!--webbot bot="Timestamp" i-CheckSum="12590" endspan -->
+<h2>Startup and Initialization</h2>
+
+
+<p>There are a number of initialization operations that can slow down the first
+invocation on a service. The container activates all its services on first use,
+unless they are explicitly configured to be activated on startup. The first
+activation of a service in a JVM is going to be slow since typically a whole set
+of jars need to be loaded into memory at that point. The same goes for the a
+client application and its first use of a client stub. When factories are
+activated, meta data configured for the services are dynamically loaded into
+memory.&nbsp;</p>
+<p>To decrease the startup time of a service container you can start it up using
+the -lazy argument. This will suppress the default behavior of querying the
+container for all its registered services.<br>
+</p>
+<h2>Memory Usage</h2>
+
+
+
+<p>A service takes up something in the order of 40kB in active state. In order
+to minimize the footprint of the server you can configure your services to be
+deactivated when not used. The service will be deactivated after a configurable
+TTL value (in seconds) specified in the deployment descriptor of the factory like below:</p>
+
+
+
+<p> &lt;parameter name="lifecycleMonitorClass" value="org.globus.ogsa.repository.DefaultServiceDeactivator"/><br>
+  &lt;parameter name="instanceDeactivation" value="10000"/>
+</p>
+
+
+
+<p>Note that even if you deactivate a service some meta data will be available
+in order to be able to quickly activate the service again. If you don't want the
+container to keep any meta data at all for deactivated services you need to use
+a ServiceLoader that minimally needs to recover the handle and the timeout of a
+service. Look at the samples/counter/deactivation/CounterFactoryService service
+for an example. Note that the ServiceLoader implementation is only used for demo
+purposes, so you would need to plug in your own ServiceLoader.<br>
+</p>
+
+
+
+<h2>Invocation Overhead</h2>
+
+
+
+<p>On an IBM ThinkPad T22, Pentium II, running Windows 2000 we have seen basic
+local machine roundtrip invocation overhead in the order of 5-10ms, and for
+basic service creation calls the overhead is around 25-30ms. Activation of a
+factory service takes about 130-140ms. Note these numbers should only be used as
+ballpark figures when profiling your services built on top of the framework.</p>
+
+
+
+<h2>Service Container Profiling</h2>
+
+
+
+<p>For programmatic ways to instrument your services look at the <a href="java_programmers_guide.html">Programmer's
+Guide</a>.&nbsp; To run an hprof instrumented service container with Suns JDK
+you can do as follows:</p>
+<p>From the root of the distribution run ant -f build-services.xml
+profileContainer. Now you can run clients against the container that exercise
+the service you want to profile.</p>
+<p>When you are done with profiling you can stop the container using ant
+stopContainer. On exit a profile log will be dumped into profile.txt. Note that
+the container will run much slower when instrumented.</p>
+<p>If you have a source distribution you can test the performance on your
+machine using the ant tasks: stressFactory, stressService, and stress&lt;|Coustom|Int|String|&gt;Serialization.
+Make sure to run ant buildTest and start up a service container before running
+the tests.</p>
+<p>The timestamps used in these tests are all based on java System millisecond
+probes, and thus different accuracy levels will be available on different
+platforms as described at: <a href="http://www.javaworld.com/javaworld/javaqa/2003-01/01-qa-0110-timing.html" EUDORA="AUTOURL">http://www.javaworld.com/javaworld/javaqa/2003-01/01-qa-0110-timing.html</a></p>
+<p>&nbsp;</p>
+
+
+
+<h2>Service Container Scalability</h2>
+
+
+
+<p>Under heavy load the thread pool in the standalone service container might
+need to be customized. </p>
+<p>If the server is overloaded you tend to get errors like:<br>
+java.net.SocketTimeoutException: Read timed out.<br>
+To change the timeout value see:<br>
+<a href="http://nagoya.apache.org/wiki/apachewiki.cgi?AxisProjectPages/JavaTimeout" EUDORA="AUTOURL">http://nagoya.apache.org/wiki/apachewiki.cgi?AxisProjectPages/JavaTimeout<br>
+<br>
+</a>However this does not solve the scalability problem, it just avoids timing
+out. You can increase the thread pool size in the container using the global <b>containerThreads</b>
+setting in server-config.wsdd. It defaults to 5. The max number of threads then
+defaults to 4 * that setting.<br>
+Other threading related configs:<br>
+<b>containerThreadsMax</b> - max number of threads<br>
+<b>containerThreadsHighWaterMark</b> - when the thread pool should start
+shrinking (if number of idle threads exceeds this number)<br>
+<b>containerThreadsReapInterval</b> - how often killed threads should be cleaned
+up</p>
+<p>Note these configurations only apply to our standalone container. If you use
+a Servlet engine like Tomcat the thread pool features depend on the web
+server/servlet implementation.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</body></html>

@@ -1,0 +1,396 @@
+
+<?php
+
+$title = "Globus Solutions: Creating a Grid User Registration Service with GT 3.2";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); ?>
+
+
+<h1>Globus Solutions: Creating a Grid User Registration Service with GT 3.2 </h1>
+<p>This article describes how to use components of the Globus Toolkit 3.2 with
+  existing tools to create a Grid User Registration Service.</p>
+<h2>Table of Contents </h2>
+<ul>
+  <li><a href="#intro">Introduction</a></li>
+  <li><a href="#what">Description</a></li>
+  <li><a href="#architecture">Architecture and Process </a></li>
+  <li><a href="#setupRS">How to Set Up a Registration Service</a></li>
+  <li><a href="#ESGexample">Real Life Example: ESG Registration Service</a></li>
+  <li><a href="#relatedDocuments">Related Documents</a> </li>
+</ul>
+<h2><a name="intro"></a>Introduction</h2>
+<p>This article describes a new suite of software  for registering
+  new Grid users. This system gives both users and administrators an easy interface
+  for issuing and handling of Grid credentials (certificates). The following
+  topics describe the basic components of the Registration Service, how it works
+  and how to set it up. We then provide a real world example of a Grid Registration
+  Service implemented by ESG.</p>
+<p>This article is for developers who already have a basic understanding of using
+  the Globus Toolkit. For more information, click <a href="http://www-unix.globus.org/toolkit/docs/3.2/index.html">here</a>.</p>
+<h2> <a name="what"></a>Description</h2>
+<p>The Registration Service is a simple system that allows  users to register
+  once on a Grid and obtain access to resources on the Grid. It was
+  originally developed for the Earth System Grid (ESG) project to simplify the
+  process of adding new users to their ESG Grid (see the section <a href="#ESGexample">Real
+  Life Example: ESG</a> for details about their implementation.) </p>
+<p>The basic requirements are security that gives users access to everything
+  they need with only one sign on and a system to stores the users' credentials.</p>
+<p>Security is provided by the Grid Security Infrastructure (GSI), the foundation
+  of the Globus Toolkit, which is used as a common underlying basis for secure
+  single sign on and mutual user-resource authentication. This tool can provide
+  secure access control to all resources using public key infrastructure (PKI)
+  with credentials from a Certificate Authority (CA). </p>
+<p> The Registration Service uses an online registration process to generate,
+  store, and access PKI credentials without the overhead normally associated
+  with certificate generation. </p>
+<p>The code base is modular and easy to drop
+  into a frontend (both in terms of&nbsp; configuration and API ) and addresses
+  core issues that a registration system might require. It provides the building
+  blocks and the portal front end that allows you to construct a registration
+  system to suit your needs.</p>
+<h2>  <a name="architecture"></a>Architecture and Process </h2>
+<p>The  Registration System integrates existing technologies such
+  as SimpleCA (part of Globus Toolkit used to generate the GSI certificates)
+  and MyProxy Server (to securely store the proxy certificates online.)</p>
+<p>The registration software has two components:</p>
+<ol>
+  <li> a front end user interface with backend software that uses SimpleCA and
+    MyProxy</li>
+  <li> a JDBC compliant database to generate and store credentials and user information. </li>
+</ol>
+<p>The basic
+      architecture is described in the following figure (in this case, the front
+  end module is represented as a Web Portal, although any graphical user interface
+  would suffice): </p>
+<p><em>Figure 1: Registration System Architecture</em></p>
+<p><img width="334" height="456" src="http://www-unix.globus.org/toolkit/articles/setupRS/clip_image002.jpg"></p>
+<p>The following table uses the ESG implementation as an example of the Registration
+  Service process (the numbers correspond to the numbers in the above figure): </p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top">1</td>
+    <td><p>The user enters the ESG portal web site (<a href="http://www.earthsystemgrid.org/">www.earthsystemgrid.org</a>)
+        and clicks on the registration link. He submits the required information
+        (name, contact information, statement of work, etc) and selects his preferred
+        username/password.</p>
+        <p>The user receives an email with a URL (with a unique token) to confirm
+          the contact information (email address). The user clicks on the provided
+          link to continue the registration process. </p></td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td><p>The user's information is persisted in a database and the submitted
+        request goes to the ESG Certificate Authority (CA).</p>
+        <p> The CA reviews the information provided by the user, checks the contact
+          information and decides whether to approve the request or reject it &ndash; based
+          on ESG policies.</p>
+        <p>If the request is rejected, an email is sent to the user notifying
+          him of the decision and explaining why it was rejected.</p></td>
+  </tr>
+  <tr>
+    <td valign="top">3</td>
+    <td><p>If the CA approves the request, then the following happens: </p>
+        <ul>
+          <li> Registration Service generates a GSI certificate for the user
+            and places the long term credential in the MyProxy server. </li>
+          <li> An email is sent to the user notifying him that his registration
+            process has been completed successfully. </li>
+      </ul></td>
+  </tr>
+  <tr>
+    <td valign="top">4</td>
+    <td>The user can now login to the ESG portal using the username/password
+      he selected when he created the account.</td>
+  </tr>
+  <tr>
+    <td valign="top">5</td>
+    <td> On behalf of the user, the web Portal retrieves a proxy certificate
+      from the MyProxy server.</td>
+  </tr>
+  <tr>
+    <td valign="top">6</td>
+    <td>The web Portal uses the proxy certificate to authenticate the user to
+      various Grid services. </td>
+  </tr>
+</table>
+<h2> <a name="setupRS"></a>How to Set Up a Registration Service</h2>
+<p>This section describes how to set up the registration services:</p>
+<ul>
+  <li> <a href="#requiredSoftware">Required software</a> </li>
+  <li><a href="#setupRSBackend">Setting up the RS Backend</a> (using
+    SimpleCA and MyProxy and a database to generate
+    and store credentials and user information ) </li>
+  <li><a href="#setupRSFrontend">Setting up the RS Frontend</a> (guidelines for configuring the interface) </li>
+  <li><a href="#backendModules">RS Backend Modules</a></li>
+</ul>
+<h3><a name="requiredSoftware" id="requiredSoftware">Required Software</a></h3>
+<p>To implement a Registration Service, you must first have or download the following
+  software: </p>
+<ul>
+  <li>Globus Toolkit (Versions 2.2 and higher):      <a href="http://www-unix.globus.org/toolkit/downloads/">http://www-unix.globus.org/toolkit/downloads/</a></li>
+  <li>Any JDBC compliant database </li>
+  <li> SimpleCA: <a href="http://www.globus.org/security/simple-ca.html"> http://www.globus.org/security/simple-ca.html</a> or
+    any other Certificate Authority </li>
+  <li>MyProxy Server: <a href="http://grid.ncsa.uiuc.edu/myproxy/">http://grid.ncsa.uiuc.edu/myproxy/</a></li>
+  <li>Gridmap patch (to allow wildcard mapping) &ndash; for GT version of 3.X
+    and lower. For versions 3.X and higher the patch will be included in a standard
+    GT distribution: <a href="http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=1205">http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=1205</a></li>
+  <li>RS Backend jars [link to download] </li>
+</ul>
+<p><strong>Note:</strong> You must also have  access
+    to a mail server to send and receive mails to the user and a configured
+CA.</p>
+<h3><a name="setupRSBackend"></a>Setting up the RS Backend</h3>
+<p>The following is a high-level overview of how to set up the backend of the
+  Registration Service:</p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top">1</td>
+    <td valign="top"><p>Set up a MyProxy server for online storage of  users'
+        Grid credentials. </p>
+      <p>You must install the MyProxy sever
+          on the <strong>same</strong> machine as the Registration Service since
+          some commands use direct file manipulation. Find installation
+          instructions here: <a href="http://grid.ncsa.uiuc.edu/myproxy/">http://grid.ncsa.uiuc.edu/myproxy/</a></p></td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td valign="top"><p>Set up a backend database (you can use any JDBC
+        complaint database) to store users' information.</p>
+      <p><strong>Note:</strong> The software has been tested to work with MySQL.</p></td>
+  </tr>
+  <tr>
+    <td valign="top">3</td>
+    <td valign="top"><p>Set up and configure the Certificate Authority. </p>
+      <p>You can use the SimpleCA package ( <a href="http://www.globus.org/security/simple-ca.html"> http://www.globus.org/security/simple-ca.html</a>),
+          but the registration system may be configured
+    to use any CA.</p></td>
+  </tr>
+  <tr>
+    <td valign="top">4</td>
+    <td valign="top"><p>Download the Registration Service code.[(description
+        of the RS code goes here ) Need to reference to some doc in the RS that
+        describes compiling it, testing it and a list of relevant jars that need
+    to be copied over for use with front end.]</p>
+      <p>For information on the high-level functionality and API provided by
+        the jars, see <a href="#backendModules">RS Backend modules</a>. </p></td>
+  </tr>
+</table>
+<h3><a name="setupRSFrontend"></a>Setting up the RS Frontend</h3>
+<p>The frontend module can  basically be any graphical user interface, such as
+  an existing Web portal. Use the following guidelines when setting up the frontend: </p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td valign="top">1</td>
+    <td>Set up common user accounts on the test bed. </td>
+  </tr>
+  <tr>
+    <td valign="top">2</td>
+    <td><p>Create wildcard entries in the gridmap files that would map all users
+        with the given CA to the same account. For example: </p>      <pre> &quot;^/C=US/O=Globus/O=ANL/OU=MCS.$&quot; VO_Account </pre>      <p>This gridmap entry would allow access to the &ldquo;VO_Account&rdquo; to
+    all the users whose certificates are issued by the same CA (/C=US/O=Globus/O=ANL/OU=MCS) </p></td>
+  </tr>
+</table>
+<h3><a name="backendModules"></a>RS Backend modules</h3>
+<p>The backend modules are available as jars and can be plugged into any front-end
+  interface, for example, an existing web portal. The jars provide the following
+  high-level functionality and relevant API:</p>
+<table width="650" border="1" cellpadding="5">
+  <tr>
+    <td colspan="2" class="box-header"><div align="center">New user registration</div></td>
+  </tr>
+  <tr>
+    <td width="146" valign="top">Register user</td>
+    <td width="472">This step initiates the user registration by storing relevant
+      user information, including requested <strong>username</strong> and user <strong>email
+      address </strong>in the backend database. Once the information is stored,
+      an email is sent to the user requesting confirmation of request.</td>
+  </tr>
+  <tr>
+    <td valign="top">Process user request</td>
+    <td>This step is triggered by the user&rsquo;s confirmation of the request
+      to the registration system and an email is sent to a configured CA email
+      address with instructions for the CA to access the user details.</td>
+  </tr>
+  <tr>
+    <td valign="top">Accept user</td>
+    <td><p>This module is invoked when a CA accepts a particular user&rsquo;s
+        request and the following is done: </p>
+        <ul>
+          <li>SimpleCA is used to generate a certificate for the user. </li>
+          <li>The configured CA certificate is used to sign the certificate. </li>
+          <li>The user&rsquo; long-term credentials are loaded onto a MyProxy
+            server. </li>
+          <li>The database is updated to set the user&rsquo;s request status
+            to &ldquo;accepted&rdquo;. </li>
+          <li>An email is sent to the user indicating that the registration has
+            been completed. </li>
+      </ul></td>
+  </tr>
+  <tr>
+    <td valign="top">Reject user</td>
+    <td>If the CA chooses to reject the user, this module is invoked. It sends
+      am email to the user and updates the user request status to &ldquo;rejected&rdquo;.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><div align="center">Managing registered user</div></td>
+  </tr>
+  <tr>
+    <td valign="top">Revoke user</td>
+    <td>This module deletes the user from registration system. It involves removing
+      the user&rsquo;s credentials from the MyProxy server and setting the user&rsquo;s
+      status in the database to &ldquo;revoked&rdquo;.</td>
+  </tr>
+  <tr>
+    <td valign="top">Renewal notice</td>
+    <td>This can be run as a periodic task and sends mail to all user&rsquo;s
+      whose credentials are due to expire in some configured timeframe. </td>
+  </tr>
+  <tr>
+    <td valign="top">Renew user</td>
+    <td>This is triggered by a user attempting to renew membership and sets the
+      user status in the database to &ldquo;renew&rdquo;. If the renewal request
+      is granted, an API to generate new long term credentials for the user and
+      store them in the MyProxy server is provided.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><div align="center">Tools for registered users </div></td>
+  </tr>
+  <tr>
+    <td valign="top">Change password</td>
+    <td>Allows for a registered user to change the password that is used to access
+      the MyProxy server</td>
+  </tr>
+</table>
+<h2><a name="ESGexample"></a>Real Life Example: ESG Registration Service</h2>
+<p>As we mentioned before, this Registration Service was originally developed
+  for ESG (<a href="http://www.earthsystemgrid.org" target="_blank">www.earthsystemgrid.org</a>)
+  to make it as easy as possible for new users to gain access to the ESG Grid.
+  This system provides for secure access control to all ESG resources using public
+  key infrastructure (PKI) with credentials from the ESG CA that was established
+  by the collaboration. And with the online registration process, the Registration
+  Service allows for a broad base of users to access &ldquo;public&rdquo; data
+  while auditing access by remote users with whom ESG has no
+  existing trust relationship, a requirement of research sponsors. </p>
+<h3>Simple system </h3>
+<p>The focus of this system is <em>ease of use</em>:</p>
+<ul>
+  <li>The portal extensions (CGI scripts) have been developed to automate user
+    registration requests. </li>
+  <li>The system solicits basic data from the user, generates a certificate request
+    for the ESG CA, and, if approved, generates a certificate and stores it in
+    the MyProxy server, and gives the user an ID/password for MyProxy access. </li>
+  <li>The approval/rejection of the request is based on ESG policy: in this case,
+    everybody with a valid e-mail address and relevant/verifiable project description
+    would be approved. </li>
+  <li>The Registration Service also has an Administrator&rsquo;s interface that
+    allows the CA administrator to accept/reject the user&rsquo;s request as
+    well as to revoke the already issued certificates. </li>
+</ul>
+<h3>Access</h3>
+<p>Another major focus of this new user registration process was to make sure
+  that users' credentials were known <strong>everywhere</strong> on the ESG Grid.
+  To do this, we established the ESG accounts everywhere on the ESG Grid and
+  mapped every user with ESG CA-issued certificates to these accounts. As a result,
+  when a new user is registered with ESG, he automatically has access to ESG's
+  resources. </p>
+<p>The most important benefits of this system are:</p>
+<ul>
+  <li> users <strong>never</strong> have to deal with certificates!</li>
+  <li> the portal can get a user certificate from the MyProxy server when needed
+    on behalf of the user. </li>
+</ul>
+<h3>ESG Implementation </h3>
+<p>The following details are specific to deploying the Registration Service for
+  ESG: </p>
+<ul>
+  <li>All components are installed on dataportal.ucar.edu at NCAR.</li>
+  <li>New users could register with the ESG portal by following the Registration
+        link from the main ESG link: <a href="https://www.earthsystemgrid.org/">https://www.earthsystemgrid.org</a></li>
+</ul>
+<p>As a result of this implementation, ESG now has the following: </p>
+<ul>
+  <li>An easy-to-use web user interface for new Grid users. </li>
+  <li>An easy-to-use web administrative interface for managing user credentials. </li>
+</ul>
+<p>Click <a href="#architecture">here</a> for details about the ESG RS architecture
+  and process. </p>
+<h3><a name="userExperience"></a>User Experience</h3>
+<p>The following topics describe what the user experiences when using the ESG
+  Registration Service:</p>
+<ul>
+  <li><a href="#stage1">Stage 1: ESG User Registration Interface</a></li>
+  <li> <a href="#stage2">Stage 2: E-Mail Confirmation Step</a></li>
+  <li><a href="#stage3">Stage 3: Registration Confirmation E-Mail</a></li>
+  <li><a href="#stage4">Stage 4: CA Uses Administrative Interface</a></li>
+  <li><a href="#futureImplementation">Intended Future Implementation</a> </li>
+</ul>
+<h4><a name="stage1" id="stage1"></a>Stage 1: ESG User Registration Interface</h4>
+<p>This is ESG's &lsquo;entry page&rsquo; for submitting the initial request.
+  The user (in our example, John Smaart) enters information to set up an account
+  with ESG's RS.</p>
+<p><em> Figure 2: Screenshot of the ESG User Registration Interface </em></p>
+<p><img width="517" height="672" src="http://www-unix.globus.org/toolkit/articles/setupRS/clip_image004.jpg"></p>
+<h4><a name="stage2" id="stage2"></a>Stage 2: E-Mail Confirmation Step</h4>
+<p>Before approving John's request, the system verifies the user&rsquo;s email
+  by sending the following mail to the provided email address. </p>
+<p><em> Figure 3: Screenshot of the E-mail Confirmation Step </em></p>
+<pre> Date: Thu, 1 Jul 2004 14:25:47 -0600 (MDT) 
+ From: esgport@ucar.edu 
+ To: john_smart@ucar.edu
+ Subject: ESG Registration 
+ 
+ The Earth System Grid (ESG) Portal received a request for a new user
+ account that uses your email address. Click on the link below to confirm
+ your request (NOTE: you will not be able to login until you receive an
+ email from the portal administrator indicating your request has been approved):
+ 
+ <a href="http://www.earthsystemgrid.org/security/confirmRequest.do?token=000000fd-7c62-605c-ffffdea0-766ad9819840">http://www.earthsystemgrid.org/security/confirmRequest.do?token=000000fd-7c62-605c-ffffdea0-766ad9819840</a>
+ 
+If you did not request this account, please inform us at esg-admin@earthsystemgrid.org. 
+
+Thank you,
+
+ESG System Administrator </pre>
+<h4><a name="stage3" id="stage3"></a>Stage 3: Registration Confirmation E-Mail</h4>
+<p>After John's credentials are generated and uploaded into MyProxy, he receives
+  the following notification by e-mail: </p>
+<p><em> Figure 4: Screenshot of the Registration Confirmation Step </em></p>
+<pre> Date: Thu, 1 Jul 2004 14:34:52 -0600 (MDT) 
+ From: esgport@ucar.edu 
+ To:john_smart@ucar.edu
+ Subject: ESG Registration 
+ 
+ 
+ Your request for an account with the ESG portal has been approved.
+ </pre>
+<h4><strong> &nbsp;</strong><a name="stage4" id="stage4"></a>Stage 4: CA Uses Administrative
+    Interface</h4>
+<p>The ESG Certificate Authority receives an email notification when the new
+  account is  requested: </p>
+<p><em> Figure 4: Screenshot of email sent to the CA for the approval </em></p>
+<pre> From: esgport@ucar.edu 
+ Date: July 1, 2004 12:17:07 AM MDT
+ To: esg-ca@ucar.edu 
+ Subject: ESG Registration 
+   
+   
+ A request has been made for user account on the ESG Portal. You may access
+ the details of the request by clicking on the following link. 
+   
+ <a href="http://www.earthsystemgrid.org/administration/accountRequestData.do?token=000000fd-2e0e-5d33-00006ac0-8387f64897be"> http://www.earthsystemgrid.org/administration/accountRequestData.do?token=000000fd-2e0e-5d33-00006ac0-8387f64897be</a></pre>
+<p>The CA clicks on the link, logs in via the secure website, views the request
+  and approves or rejects it, as appropriate.</p>
+<p><em> Figure 5: Screenshot of user request in Administrative Interface </em></p>
+<p><img width="576" height="434" src="http://www-unix.globus.org/toolkit/articles/setupRS/clip_image006.jpg"> </p>
+<h3><a name="futureImplementation" id="futureImplementation"></a>Intended Future Implementation</h3>
+<ul>
+  <li>Intercorporating the Community Authorization Service (CAS) with the Registration
+    Service.</li>
+  <li>Adding the option for users to use their own GSI credentials obtained from
+    a different CA (such as DOE SG CA) in ESG portal. </li>
+</ul>
+<h2><a name="relatedDocuments"></a>Related Documents</h2>
+<p>[coming soon] </p>
+<p></p>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

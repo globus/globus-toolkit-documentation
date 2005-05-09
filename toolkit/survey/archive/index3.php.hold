@@ -1,0 +1,166 @@
+<?php 
+
+    $title = "Globus Toolkit Survey";
+
+    $download = $HTTP_GET_VARS['download'];
+
+    include( "../../include/globus_header.inc" );
+
+    $dbh = pg_connect( "host=pgsql.mcs.anl.gov dbname=gtsurvey " .
+        "user=gtsurvey password=gtsurvey.db" )
+        or die ( "Postgres connection failed: " .
+        pg_last_error( $connection ) );
+
+?>
+
+<h1>Optional Globus Toolkit Survey</h1>
+
+<p>Before your download begins, please take a few quick seconds to fill
+out this <i>brief</i> survey. <i>Note that all fields in the survey
+are optional.</i>  By providing some or all of this information, you
+are helping us justify the continued funding of our open-source project.
+Your efforts that enable us to improve our software are much appreciated.
+Thank you.</p>
+
+<p>If you would like to discuss the Globus Toolkit with the community, please
+subscribe to one of our <a href="../support.html">mailing lists</a>.</p>
+
+<form method=post action=<?php 
+    if ( $download == "gt3.2-all-source-installer.tar.gz" )
+    {
+        print "../downloads/3.2/download3.html#all>";
+    }
+    elseif ( $download == "gt3.2-base-source-installer.tar.gz" )
+    {
+        print "../downloads/3.2/download3.html#base>";
+    }
+    elseif ( $download == "gt3.2-preogsi-source-installer.tar.gz" )
+    {
+        print "../downloads/3.2/download3.html#pre-ws>";
+    }
+?>
+
+<table>
+<tr>
+<td>
+    First Name:
+</td>
+<td>
+    <input name="first">
+</td>
+</tr>
+<tr>
+<td>
+    Last Name:
+</td>
+<td>
+    <input name="last">
+</td>
+</tr>
+<tr>
+<td>
+    Title:
+</td>
+<td>
+    <input name="title">
+</td>
+</tr>
+<tr>
+<td>
+    Organization:
+</td>
+<td>
+    <input name="org">
+</td>
+</tr>
+<tr>
+<td>
+    Country:
+</td>
+<td>
+    <select name="country">
+<?php
+    $query = "SELECT country_name FROM country";
+    $result = pg_exec( $dbh, $query );
+
+    while ( $row = pg_fetch_assoc( $result ) )
+    {
+        print "<option ";
+        if ( $row['country_name'] == "United States" )
+        {
+            print "selected=\"selected\" ";
+        }
+        print "value=\"" . $row['country_name'] . 
+            "\">" . $row['country_name'] . "</option>\n";
+    }
+?>
+    </select>
+</td>
+</tr>
+<tr>
+<td>
+    Software:
+</td>
+<td>
+<?php 
+    if ( $download == "" )
+    {
+        print "<select name=software>\n";
+
+        $query = "SELECT software_filename FROM software";
+        $result = pg_exec( $dbh, $query );
+        $row = pg_fetch_assoc( $result );
+
+        print "<option selected=selected value=" . $row['software_filename'] .
+            ">" . $row['software_filename'] . "</option>\n";
+
+        while ( $row = pg_fetch_assoc( $result ) )
+        {
+            print "<option value=\"" . $row['software_filename'] . 
+                "\">" . $row['software_filename'] . "</option>\n";
+        }
+        print "</select>\n";
+    }
+    else
+    {
+        print $download;
+        print "<input type=hidden value=$download name=software>";
+    }
+?>
+</td>
+</tr>
+<tr>
+<td valign=top>
+    Planned Use<br>and Comments:
+</td>
+<td>
+    <textarea name=comments rows=5 cols=50></textarea>
+</td>
+</tr>
+</table>
+
+<p>Please read our <a href=privacy.php>privacy</a> policy.</p>
+
+<?php
+
+    $query = "SELECT software_url_base from software where " .
+        "software_filename = '$software'";
+    $result = pg_exec( $dbh, $query );
+    $row = pg_fetch_assoc( $result );
+    $link = $row['software_url_base'] . $software;
+
+?>
+
+<input type="reset" value="&nbsp; Reset &nbsp;">
+<input type="submit" value="&nbsp; Download &nbsp;" 
+    onSelect="location.href = '<?php echo $link; ?>';">
+
+</form>
+
+<?php
+
+    pg_close( $dbh );
+       
+    include( "../../include/globus_footer.inc" );
+
+?>

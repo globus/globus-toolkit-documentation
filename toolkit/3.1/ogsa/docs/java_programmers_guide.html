@@ -1,0 +1,1059 @@
+<!DOCTYPE doctype PUBLIC "-//w3c//dtd html 4.0 transitional//en"><html><head>
+  
+  <title>Open Grid Services Development Framework User's Guide</title>
+  
+  <style type="text/css">
+
+
+
+<!--
+.code { background:#dcccff; font-family:&quot;Courier New&quot; }
+h2 { background-color: #DCE1FF; background-position: left}
+-->
+
+
+
+  </style></head><body>
+<img border="0" src="gt_logo.jpg" width="360" height="95">
+<h1> Java Programmer’s Guide Core Framework</h1>
+
+
+<p> Globus Toolkit 3.0 - Last Updated <!--webbot bot="Timestamp"
+S-Type="EDITED" S-Format="%m/%d/%Y" startspan -->10/24/2003<!--webbot bot="Timestamp" i-CheckSum="12510" endspan -->
+</p>
+<h2>
+<i>Contents</i></h2>
+<p>
+<a href="#Introduction">Introduction</a></p>
+<p><b>Getting Started</b></p>
+
+1.&nbsp; <a href="#WritingService">Writing a Service<br>
+</a>2.&nbsp; <a href="#WritingClient">Writing a Client<br>
+</a>
+3.&nbsp; <a href="#TestService">Testing the Service</a>
+<p><b>Additional APIs</b></p>
+<p>4.&nbsp;&nbsp; <a href="#ServiceData">Service Data<br>
+</a>5.&nbsp;&nbsp; <a href="#Notifications">Notifications<br>
+</a>6.&nbsp;&nbsp; <a href="#ServiceProperties">Service Properties and Configuration<br>
+</a>7.&nbsp;&nbsp; <a href="#ServiceActivation">Service Activation, Deactivation, and
+Recovery Framework</a><br>
+8.&nbsp;&nbsp; <a href="#CustomFactory">Writing a Custom Factory</a><br>
+9.&nbsp;&nbsp; <a href="#PerformanceProfiling">Performance Profiling</a><br>
+10. <a href="#ServiceContainer">Service Container<br>
+</a>11. <a href="#XPath">XPath Queries<br>
+</a>12. <a href="#WSIF"> WSIF Client<br>
+</a>&nbsp;</p>
+<h2><a name="Introduction"></a>Introduction</h2>
+<p class="MsoNormal">This document is a guide to Programming with Grid services
+in Java. It covers both client- and server-side programming, and it focuses on
+explaining example code and use cases. It does not provide a complete reference
+to all of the APIs. Please refer to the javadocs for this information. The guide
+only covers the core framework, for more
+information on EJB, security, and higher-level services (such as Managed Job
+Service,
+Reliable File Transfer Service, and Index Service) support see separate documentation.
+For installation, deployment, and development environment documentation see the <a href="users_guide.html">
+User’s Guide</a>.</p>
+<p class="MsoNormal">This guide is structured into two parts. The first part, <i>Getting
+Started</i>, describes how to write, deploy, and access a simple Grid service in
+the framework. The second part, <i>Additional APIs</i>, describes some
+additional APIs and features provided by our framework for more advanced
+service development.</p>
+<p class="MsoNormal">Basic knowledge of Java and Ant (<a href="http://jakarta.apache.org/ant">http://jakarta.apache.org/ant</a>)
+is assumed in this guide. We also assume that you are familiar with the basic
+OGSA environment described in the <a href="users_guide.html">User's Guide</a>.</p>
+<h1>Part I: Getting Started</h1>
+<h2><a name="WritingService"></a>1 Writing a Service</h2>
+<p class="MsoNormal">The following steps are involved in writing a Grid service:</p>
+<ul>
+  <li>
+    <p class="MsoNormal"><b>Step 1. Provide a Service Interface</b></li>
+  <li>
+    <p class="MsoNormal"><b>Step 2. Generate Grid Service Support Code</b></li>
+  <li>
+    <p class="MsoNormal"><b>Step 3. Implement the Service</b></li>
+  <li>
+    <p class="MsoNormal"><b>Step 4. Deploy the Service</b></li>
+</ul>
+<p class="MsoNormal">The complete source code for this example is available in
+the guide directory in your framework distribution.</p>
+<h3>Step 1. Provide a Service Interface</h3>
+<p>There are two approaches to providing an interface for your service that is
+to be exposed to remote clients. You can either write the interface in java, and
+generate the WSDL interface, or you can provide the interface using a WSDL port
+type definition. We will look closer at the two approaches next.</p>
+<p class="MsoNormal"><b>Java Interface</b></p>
+<p class="MsoNormal">We define the following Java interface:&nbsp;<o:p>
+</o:p>
+</p>
+
+
+<pre class="code">package org.globus.ogsa.guide.impl.guide;
+
+public interface Counter {
+<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp; </span>public int add(int value);
+<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp; </span>public int subtract(int value);
+<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp; </span>public int getValue();
+}<span style="font-family:&quot;Times New Roman&quot;"><o:p> </o:p></span></pre>
+<p class="MsoNormal">See guide/src/org/globus/ogsa/guide/impl/Counter.java for
+the full example.</p>
+<p class="MsoNormal">This approach should be used with care because some complex
+java types do not map very well into WSDL and could thus impair the
+interoperability of your service. It is however useful if you want to expose
+legacy code written in Java as Grid services, without requiring any programmatic
+effort.</p>
+<p class="MsoNormal"><b>WSDL PortType Interface</b></p>
+<p class="MsoNormal">When providing a WSDL interface you only need to provide
+the abstract definition of the service including the types, message, and
+portType parts of WSDL. The binding, and service part will be generated for you
+by our tools. This approach may at first glance look more complicated and
+verbose than the <i>Java Interface </i>approach. But the more complicated your
+service gets the likelier it is that you will come across types and constructs
+in Java that don't have a clear mapping to XML. Defining the interface in WSDL
+also makes it easier to reuse designs in a language neutral way. Someone might
+for instance write a Grid service in C, and define a set of types for that
+service in XML Schema. Using the <i>WSDL PortType Interface</i> approach will
+make it very easy to embed all these types and even extend the interfaces from
+this service in your new service to be developed in Java.&nbsp;</p>
+<p class="MsoNormal">Note in the example below that we define port types in the
+gwsdl namespace, this is done to circumvent the fact that WSDL 1.1 does not
+allow portType inheritance nor embedded extensions. WSDL 1.2, however, does
+allow these constructs, and when that specification is released and the OGSI
+specification is fully based on it, the gwsdl namespace will go away and be
+replaced by the wsdl 1.2 namespace.</p>
+<p class="MsoNormal">Here are some excerpts from the wsdl definition:</p>
+<pre class="code">&lt;types&gt;
+...
+&lt;xsd:element name=&quot;add&quot;&gt;
+&nbsp; &lt;xsd:complexType&gt;
+&nbsp;&nbsp;&nbsp; &lt;xsd:sequence&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;xsd:element name=&quot;value&quot; type=&quot;xsd:int&quot;/&gt;
+&nbsp;&nbsp;&nbsp; &lt;/xsd:sequence&gt;&nbsp;
+&nbsp; &lt;/xsd:complexType&gt;
+  &lt;/xsd:element&gt;
+...
+&lt;/types&gt;
+...
+&lt;message name=&quot;AddInputMessage&quot;&gt;
+&nbsp; &lt;part name=&quot;parameters&quot; element=&quot;tns:add&quot;/&gt;
+&lt;/message&gt;
+...
+&lt;gwsdl:portType name=&quot;CounterPortType&quot; extends=&quot;ogsi:GridService&quot;&gt;
+&nbsp; &lt;operation name=&quot;add&quot;&gt;
+&nbsp;&nbsp;&nbsp; &lt;input message=&quot;tns:AddInputMessage&quot;/&gt;
+&nbsp;&nbsp;&nbsp; &lt;output message=&quot;tns:AddOutputMessage&quot;/&gt;
+&nbsp;&nbsp;&nbsp; &lt;fault name=&quot;Fault&quot; message=&quot;ogsi:FaultMessage&quot;/&gt;
+&nbsp; &lt;/operation&gt;
+&lt;/gwsdl:portType&gt;</pre>
+<p class="MsoNormal">The types section defines the add operation to have one
+parameter called value of type int. The message section ties the input message
+to the concrete xml element to be used as payload of the operation. Finally the
+portType section defines that this portType should also expose all the
+operations defined in the ogsi:GridService portType. Also note that the
+standard ogsi fault can be thrown from this operation, which is good practice to
+declare even if you don't have any application specific faults.</p>
+<p class="MsoNormal">See guide/schema/counter_port_type.gwsdl for the full
+example</p>
+<p class="MsoNormal">To produce a complete wsdl 1.1 definition&nbsp; from this
+gwsdl port type definition you would need to run it through the GWSDL2WSDL, and
+generateBinding&nbsp; tools as follows:</p>
+<pre class="code">&lt;ant antfile=&quot;${build.services}&quot; target=&quot;GWSDL2WSDL&quot;&gt;
+&nbsp; &lt;property name=&quot;build.schema.dir&quot; value=&quot;guide/Counter&quot;/&gt;
+&nbsp; &lt;property name=&quot;wsdl.root&quot; value=&quot;counter_port_type&quot;/&gt;&nbsp;
+ &lt;/ant&gt;
+ &lt;ant antfile=&quot;${build.services}&quot; target=&quot;generateBinding&quot;&gt;
+&nbsp; &lt;property name=&quot;binding.root&quot; value=&quot;counter&quot;/&gt;
+&nbsp; &lt;property name=&quot;build.schema.dir&quot; value=&quot;guide/Counter&quot;/&gt;
+&nbsp; &lt;property name=&quot;porttype.wsdl&quot; value=&quot;counter_port_type.wsdl&quot;/&gt;
+ &lt;/ant&gt;&nbsp;</pre>
+<p class="MsoNormal">GWSDL2WSDL creates a WSDL 1.1 portType containing all the
+operations inherited from the gwsdl definition. The generateBinding tool
+generates the wsdl:binding and wsdl:service parts for the portType definition.
+Currently we only support doc/literal SOAP 1.1 bindings.</p>
+<h3>Step 2. Generate Grid Service Support Code</h3>
+<p>We provide high level ant task and xml batch file based tools to simplify the
+generation of the required stub and support code for hosting your service as an
+OGSI compliant Grid service. Although you may not use these tools directly, all
+the tools are centered around two tools primitives generateWSDL and
+generateStubs, which are used to generate WSDL from a Java interface and Java
+stubs for a WSDL interface respectively. However in order to understand better
+how the higher level tools work we first briefly explain these two basic tools.
+For the best tools support we recommend that you use the GWSDL2WSDL,
+generateBinding, and generateStubs primitives when generating a service from a
+WSDL file. However, if you start from a java interface we recommend that you use
+the higher level bottomUp tool described below. The generateWSDL tool is
+described below for completeness.</p>
+<p class="MsoNormal"><b>Generate WSDL from Java</b></p>
+<p class="MsoNormal">An existing Java interface can be run through a Java to
+WSDL tool using
+the following ant command:</p>
+<pre class="code">&lt;ant antfile=&quot;${build.services}&quot; target=&quot;generateWSDL&quot;&gt;
+  &lt;property name=&quot;interface.package&quot; value=&quot;org.globus.ogsa.guide.impl&quot;/&gt;
+  &lt;property name=&quot;interface.name&quot; value=&quot;Counter&quot;/&gt;
+  &lt;property name=”generated.dir” value=”guide”/&gt;
+&lt;/ant&gt;</pre>
+<p class="MsoNormal">See guide/build.xml for the full example.</p>
+<p class="MsoNormal">Note that the ${build.services} property has to point to
+the location of build-services.xml shipped with the framework. This command will
+generate a WSDL file and populate it with a binding supporting the required
+GridService PortType.</p>
+<p><b>Generate Stubs form WSDL<br>
+</b>After you have obtained a WSDL interface either by generating it from a java
+interface or from a wsdl portType definition (Step 2 above), the next step is to
+generate Java stubs to handle all the serialization/deserialization of your data
+to/from XML.</p>
+<pre class="code">&lt;ant antfile=&quot;${build.services}&quot; target=&quot;generateStubs&quot;&gt;
+  &lt;property name=&quot;schema.file.dir&quot; value=&quot;guide/Counter&quot;/&gt;
+<span style="mso-spacerun: yes"> </span><span style="mso-spacerun: yes"> </span>&lt;property name=&quot;schema.file&quot; value=&quot;counter_service.wsdl&quot;/&gt;
+&lt;/ant&gt;&nbsp;<o:p></pre>
+<p class="MsoNormal">See guide/build.xml for the full example.</p>
+<p class="MsoNormal">This command will generate the JAX-RPC compliant interfaces
+to be used both on the client and on the server side. Client side stub
+implementations of these interfaces will also be generated.</p>
+<p class="MsoNormal"><b>Bottom Up vs Top Down</b></p>
+<p class="MsoNormal"><img border="0" src="bottomup_topdown.jpg" width="547" height="429"></p>
+<p class="MsoNormal">We provide two higher level tools based on these primitives
+called <i>Bottom Up</i> and <i>Top Down</i>. Bottom Up refers to an approach
+when you start out from a legacy java application and want to generate a Grid
+service layer on top of it. Top Down refers to an approach when you either get
+the WSDL from an implementation in another environment or standards community,
+or you write the WSDL yourself, and want to generate the java mapping for this
+interface. For a detailed tutorial with examples of how to use these tools
+please see the <a href="tools_guide.html">Tools Guide</a>. Note that if you use
+these high level tools you can skip step 3 and 4 below. It is all generated for
+you.</p>
+<h3>Step 3. Implement the Service</h3>
+
+<p><b>Inheritance Approach</b></p>
+
+<pre class="code">public class CounterImpl extends GridServiceImpl implements CounterPortType {
+    private int val = 0;
+
+    public CounterImpl() {
+        super(&quot;Guide Counter&quot;);
+    }
+    public int add(int val) throws RemoteException {
+        this.val = this.val + val;
+        return this.val;
+    }
+    public int subtract(int val) throws RemoteException {
+        this.val = this.val - val;
+        return this.val;
+    }
+    public int getValue() throws RemoteException {
+        return this.val;
+    }
+}</pre>
+<p class="MsoNormal">See guide/src/org/globus/ogsa/guide/impl/CounterImpl.java
+and guide/src/org/globus/ogsa/guide/impl/WSDLCounterImpl.java for the full
+examples of implementations of the <i>Java Interface </i>approach and the <i>WSDL
+PortType Interface</i> approach respectively. Note the only thing that differs
+between the two implementations is the namespace from where you pick up the
+generated counter interface to implement.</p>
+<p class="MsoNormal">Note that the CounterPortType is the endpoint interface
+generated in the previous step. All remotely available operations must be public
+and throw java.rmi.RemoteException as defined in the PortType interface. The
+GridServiceImpl class may be inherited from. It is provided by our framework and implements the OGSI defined GridService interface, along with other core Grid service behavior. 
+<br>
+<b>
+If your service inherits from GridServiceImpl and overrides any of the standard GridServiceCallback methods such as <i>preCreate()</i>, <i>postCreate(), activate(), deactivate(),</i> and <i>preDestroy()</i> always make sure to invoke the super method of the overridden method, e.g. in your <i>postCreate()</i> implementation make sure to call <i>super.postCreate()</i>.
+</b>
+</p>
+<p class="MsoNormal"><b>Operation Providers<br>
+</b>If you do not want any code to depend on implementation classes in our
+container you can also implement the service using the operation
+provider (aka delegation) approach. This design makes it easy to plug in various implementations
+of wsdl operations at deployment time. As reference points, the OGSI defined
+NotificationSource and Factory interfaces have been implemented as operation
+providers in our framework. So to add in factory, or notification behavior to
+your service you only need to change the deployment descriptor of your service
+(described in more detail in the next section).<br>
+<br>
+Below is the counter example above implemented as an operation provider:<pre class="code">public class CounterProvider implements OperationProvider, GridServiceCallback {
+    // Use the double wild card with care - all operations not in the OGSI 
+    // namespace will be delegated to this class by default
+    private static final QName[] operations = new QName[]{new QName(&quot;&quot;, &quot;*&quot;)};
+    private GridServiceBase base;
+    private int val = 0;
+
+    // Operation Provider methods
+    public void initialize(GridServiceBase base) throws GridServiceException {
+        this.base = base;
+    }
+    public QName[] getOperations() {
+        return operations;
+    }
+    // Counter PortType methods
+    public int add(int val) throws RemoteException {
+        this.val = this.val + val;
+        return this.val;
+    }
+    public int subtract(int val) throws RemoteException {
+        this.val = this.val - val;
+        return this.val;
+    }
+    public int getValue() throws RemoteException {
+        return this.val;
+    }
+    // GridServiceCallback methods (optional)
+    public void preCreate(GridServiceBase base) throws GridServiceException {
+    }
+    public void postCreate(GridContext context) throws GridServiceException {
+    }
+    public void activate(GridContext context) throws GridServiceException {
+    }
+    public void deactivate(GridContext context) throws GridServiceException {
+    }
+    public void preDestroy(GridContext context) throws GridServiceException {
+    }
+}</pre>
+<p class="MsoNormal">A provider needs to specify all the operation QNames
+(namespace and local name as defined in wsdl) to implement. Note that we allow
+the wildcard '*' to be used to specify that all operations from a certain
+namespace are implemented. An empty string namespace means that operations in
+all namaspaces apart from the built-in OGSI namespace are implemented. These
+operations need to be returned in a getOperations() callback. The Provider also
+needs to provide an implementation of the initialize method which is used to
+bootstrap the provider and to associate it with a GridServiceBase. The
+GridServiceBase object is an implementation of the core Grid service behaviors.
+GridServiceImpl in the previous example is an example of a GridServiceBase
+implementation.&nbsp;</p>
+<p class="MsoNormal">See guide/src/org/globus/ogsa/guide/impl/CounterProvider.java
+for the complete example.</p>
+<h3>Step 4. Deploy the Service</h3>
+<p class="MsoNormal">This step consists of three sub tasks 1) write a deployment
+descriptor configuring your service, and 2) create a gar package of the
+configuration along with your implementation, 3) deploy the gar package into a
+Grid service hosting environment</p>
+<p class="MsoNormal" style="margin-left:36.0pt;text-indent:-18.0pt;mso-list:l0 level1 lfo2;
+tab-stops:list 36.0pt">1)<span style="font:7.0pt &quot;Times New Roman&quot;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>Write a deployment descriptor</p>
+<pre class="code">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;deployment name=&quot;defaultServerConfig&quot; xmlns=&quot;<a href="http://xml.apache.org/axis/wsdd/">http://xml.apache.org/axis/wsdd/</a>&quot; xmlns:java=&quot;http://xml.apache.org/axis/wsdd/providers/java&quot;&gt;&nbsp;<o:p>
+</o:p> &lt;service name=&quot;guide/counter/CounterProviderFactoryService&quot; provider=&quot;Handler&quot; style=&quot;wrapped&quot;&gt;
+  &lt;parameter name=&quot;name&quot; value=&quot;Guide Counter Provider Factory&quot;/&gt;
+  &lt;parameter name=&quot;instance-name&quot; value=&quot;Guide Counter Proivider Counter&quot;/&gt;
+  &lt;parameter name=&quot;instance-schemaPath&quot; value=&quot;schema/guide/Counter/counter_service.wsdl&quot;/&gt;
+  &lt;parameter name=&quot;instance-className&quot; value=&quot;org.globus.ogsa.guide.Counter.wsdl.CounterPortType&quot;/&gt;
+  &lt;parameter name=&quot;instance-baseClassName&quot; value=&quot;org.globus.ogsa.impl.ogsi.GridServiceImpl&quot;/&gt;
+  &lt;parameter name=&quot;instance-operationProviders&quot; value=&quot;org.globus.ogsa.guide.impl.CounterProvider&quot;/&gt;
+  &lt;parameter name=&quot;persistent&quot; value=&quot;true&quot;/&gt;
+  &lt;parameter name=&quot;schemaPath&quot; value=&quot;schema/ogsi/ogsi_notification_factory_service.wsdl&quot;/&gt;
+  &lt;parameter name=&quot;baseClassName&quot; value=&quot;org.globus.ogsa.impl.ogsi.GridServiceImpl&quot;/&gt;
+  &lt;parameter name=&quot;handlerClass&quot; value=&quot;org.globus.ogsa.handlers.RPCURIProvider&quot;/&gt;
+  &lt;parameter name=&quot;className&quot; value=&quot;org.gridforum.ogsi.NotificationFactory&quot;/&gt;
+  &lt;parameter name=&quot;allowedMethods&quot; value=&quot;*&quot;/&gt;
+  &lt;parameter name=&quot;factoryCallback&quot; value=&quot;org.globus.ogsa.impl.ogsi.DynamicFactoryCallbackImpl&quot;/&gt;
+  &lt;parameter name=&quot;operationProviders&quot; value=&quot;org.globus.ogsa.impl.ogsi.FactoryProvider org.globus.ogsa.impl.ogsi.NotificationSourceProvider&quot;/&gt;
+ &lt;/service
+&lt;/deployment&gt;</pre>
+<p class="MsoNormal">See guide/guide-config.wsdd for the complete example.</p>
+<a name="Descriptor">
+<p class="MsoNormal">Here is a more detailed description of the various parts of
+the deployment descriptor:</p>
+
+Services are defined in a &lt;service&gt; tag. The <i>name</i> attribute of the &lt;service&gt; tag defines the remotely accessible name of the service. The service handle will have the form of &lt;hosting environment URL&gt;/foo, where hosting environment URL typically is <a href="http://%3chost%3e:%3cport%3e/ogsa/services">http://&lt;host&gt;:&lt;port&gt;/ogsa/services</a> and <i>foo</i> is the name of the service (&lt;service name="foo" ...&gt;)
+<br>
+The configuration information for a service is defined by various <i>parameter</i> sub-elements within a &lt;service&gt; tag. The parameter names prefixed with &quot;<i>instance-</i>&quot; contain configuration formation for the instances created by the service (if the service is a factory service).
+
+<p class="MsoNormal">Note that for factories almost all the non-instance
+scoped parameters are boiler-plate configuration and will be the same for most
+of your factories.</p>
+
+<table border="0" cellpadding="2" width="100%" >
+  <tr>
+     <td width="15%"><i>Name</i></td>
+     <td width="20%"><i>Value</i></td>
+     <td><i>Description</i></td>
+  </tr>
+  <tr>
+    <td valign="top"><b>name</xb></td>
+    <td valign="top">&lt;string&gt;</td>
+    <td valign="top">
+      <p class="MsoNormal">The human readable description of this service to be
+      exposed to e.g. admin clients (optional)</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td valign="top"><b>className</b></td>
+    <td valign="top">&lt;class&gt;</td>
+    <td valign="top">
+      The className parameter specifies a class or an
+      interface that has public methods corresponding to all wsdl
+      operations. <b>Note that all the operations available in operation providers and base implementations must be exposed in this class or interface.</b>
+    </td>
+  </tr>
+
+  <tr>
+    <td valign="top"><b>baseClassName</b></td>
+    <td valign="top">&lt;class&gt;</td>
+    <td valign="top">
+      The baseClassName parameter specifies what class
+      implements this service. If it is the same as className it can be left
+      out.(optional)
+    </td>
+  </tr>
+
+  <tr>
+    <td valign="top"><b>operationProviders</b></td>
+    <td valign="top">&lt;space separated list of classes&gt;</td>
+    <td valign="top">
+      <p class="MsoNormal">The list of classes that are to be loaded into this
+      service as operation providers. The list items are separated by spaces.
+      The order of the providers is the order in which they will be initialized.
+      (optional)</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td valign="top"><b>persistent</b></td>
+    <td valign="top">&lt;true/false&gt;</td>
+    <td valign="top">
+      <p class="MsoNormal">This sets the Grid service apart from other web
+      services you may have configured in your hosting environment. If this flag
+      is not present your service will be treated as a regular Web service.<br>
+      If <i>true</i>, it indicates a persistent service that will be instantiated 
+      at container start-up. A service of persistent type cannot be destroyed either
+      via soft-state or explicitly. If <i>false</i>, it indicates a transient service 
+      created through a factory.</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td  valign="top"><b>schemaPath</b></td>
+    <td  valign="top">&lt;path to wsdl file&gt;</td>
+    <td  valign="top">
+      <p class="MsoNormal">This variable points the framework to a place where a
+      template WSDL description of the service exists (in this examples, the standard
+      factory description provided by the framework)</p>
+      <p class="MsoNormal">In case you are deploying a factory like in this
+      example you need to set the <i>instance-schemaPath</i> to a location describing
+      the interface of the service that the factory can create. In our case this
+      wsdl description was generated in step 1 above</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td valign="top"><b>handlerClass</b></td>
+    <td valign="top">&lt;class&gt;</td>
+    <td valign="top">
+      <p class="MsoNormal">This configuration specifies what dispatcher to use
+      on the server side. The default one we provide in our framework dispatches
+      into the local hosting environment based on the URI of the incoming
+      request and is called <i>org.globus.ogsa.handlers.RPCURIProvider</i></p>
+    </td>
+  </tr>
+
+  <tr>
+    <td valign="top"><b>factoryCallback</b></td>
+    <td valign="top">&lt;class&gt;</td>
+    <td valign="top">
+      <p class="MsoNormal">This parameter points to a class that implements the
+      FactoryCallback interface used to create service instances. Only used with
+      <i>org.globus.ogsa.impl.ogsi.FactoryProvider</i> operation provider.</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td valign="top"><b>lifecycle</b></td>
+    <td valign="top">&lt;true/false&gt;</td>
+    <td valign="top">
+      <p class="MsoNormal">Flag indicating whether instances are to be checkpointed into the deployment descriptor to maintain state between server lifecycles. Discussed below (optional)</p>
+    </td>
+  </tr>
+
+</table>
+<br>
+<p class="MsoNormal" style="margin-left:36.0pt;text-indent:-18.0pt;mso-list:l0 level1 lfo2;
+tab-stops:list 36.0pt">2)<span style="font:7.0pt &quot;Times New Roman&quot;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>Package your configuration, schemas and code into a gar package</p>
+<pre class="code">&lt;ant antfile=&quot;${build.packages}&quot; target=&quot;makeGar&quot;&gt;
+&nbsp; &lt;property name=&quot;gar.name&quot; value=&quot;${build.lib}/guide.gar&quot;/&gt;
+&nbsp; &lt;property name=&quot;garlib.dir&quot; value=&quot;${build.lib}&quot;/&gt;
+&nbsp; &lt;property name=&quot;garserverdeployment.file&quot; value=&quot;guide-config.wsdd&quot;/&gt;
+&nbsp; &lt;property name=&quot;garschema.origin&quot; value=&quot;${build.schema}/guide&quot;/&gt;
+&nbsp; &lt;property name=&quot;garschema.path&quot; value=&quot;guide&quot;/&gt;
+&lt;/ant&gt;</pre>
+<p class="MsoNormal">See guide/build.xml for the full example.</p>
+<p class="MsoNormal">This sample ant task packages the code (which we assumed
+you have compiled, e.g with the ant javac target or manually, see full example
+in the distribution for details). The garserverdeployment.file property points
+to the deployment descriptor file provided in the previous step.</p>
+<p class="MsoNormal" style="margin-left:36.0pt;text-indent:-18.0pt;mso-list:l0 level1 lfo2;
+tab-stops:list 36.0pt">3)<span style="font:7.0pt &quot;Times New Roman&quot;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span>Deploy the gar package into a Grid service Hosting Environment</p>
+<p class="MsoNormal">In the distribution directory of your ogsa installation
+make the following command line call:<span style="mso-spacerun: yes">&nbsp; </span>ant
+deploy –Dgar.name=&lt;path to gar created in previous step&gt;<br>
+To deploy the samples in this guide type <i><b>ant deployGuide</b></i>.</p>
+<h2><a name="WritingClient"></a>2 Writing a Client</h2>
+<p class="MsoNormal">The standard JAX-RPC interfaces can be used to access a
+Grid service. However, for convenience, since JAX-RPC currently has no knowledge
+of GSRs or GSHs we provide some extensions to simplify access to a Grid service.</p>
+<h3>2.1 JAX-RPC Example</h3>
+<pre class="code">OGSIServiceLocator factoryLocator = new OGSIServiceLocator();
+Factory factory = factoryLocator.getFactoryPort(new URL(url));
+GridServiceFactory gridFactory = new GridServiceFactory(factory);
+LocatorType locator = gridFactory.createService();
+...&nbsp;<o:p> </o:p>
+CounterServiceLocator counterLocator = new CounterServiceLocator();
+CounterPortType counter = counterLocator.getCounterPort(new URL(instanceUrl));
+int val = counter.add(2);&nbsp;<o:p> </o:p></pre>
+<p class="MsoNormal">The problem with this approach is that there is no easy way
+of feeding the GSR that the factory returns into the instance proxy generation,
+to make sure you are accessing the service you just created. Note the
+GridServiceFactory is a wrapper utility we provide to simplify invocations on
+OGSI factories.</p>
+<h3>2.2 Extended JAX-RPC Example<o:p></o:p>
+</h3>
+<pre class="code">OGSIServiceGridLocator gridLocator = new OGSIServiceGridLocator();
+Factory factory = gridLocator.getFactoryPort(handle);
+GridServiceFactory gridFactory = new GridServiceFactory(factory);
+LocatorType locator = gridFactory.createService();
+CounterServiceGridLocator counterLocator =<span style="mso-spacerun: yes">&nbsp;&nbsp; </span>new CounterServiceGridLocator();
+CounterPortType counter = counterLocator.getCounterPort(locator);
+int val = counter.add(2);&nbsp;<o:p> </o:p></pre>
+<p class="MsoNormal">See guide/src/org/globus/ogsa/guide/impl/CounterClient.java
+for the full example.</p>
+<p class="MsoNormal">Note that the &lt;service&gt;GridLocator is also generated
+from the WSDL definition of the service together with the standard JAX-RPC
+ServiceLocator, so it does not involve any extra effort for a programmer to use
+this approach. The GridLocator is able to do OGSI based handle to reference
+resolution, and accepts both an OGSI Handle and an OGSI Locator (returned from a
+factory creation)&nbsp; as input to the proxy creation.</p>
+<h2><a name="TestService"></a>3 Testing the Service</h2>
+
+<h3><b>3.1 Command Line Client</b>
+</h3>
+
+<ol>
+
+<li>Make sure you have started a grid service container e.g. using <i><b>globus-start-container</b></i></li>
+
+<li>Create service instance using <i><b>ogsi-create-service &lt;server url&gt;/&lt;sample factory service name&gt;</b></i>. The &lt;server url&gt; is typically http://&lt;host&gt;:&lt;port&gt;/ogsa/services. The &lt;sample factory service name&gt; must be the same name as defined in server-config.wsdd.<br>Example: <i><b>ogsi-create-service <a href="http://127.0.0.1:8080/ogsa/services/guide/counter/CounterFactoryService?WSDL"> http://localhost:8080/ogsa/services/guide/counter/CounterFactoryService</a></b></i></li>
+
+<li>
+Run your command line client created as described in section 2, giving it the handle of the service created by the <i><b>ogsi-create-service</b></i> call (make sure your environment is set properly using the <a href="users_guide.html#Setenv">setenv scripts</a>.<br>
+Example:<i><b> java org.globus.ogsa.guide.impl.CounterClient &lt;the handle returned by CreateService&gt; add 10</b></i></li>
+</ol>
+
+
+<h3><b>3.2 GUI client</b>
+</h3>
+
+<p>If you want to test your service in the ServiceBrowser GUI framework
+you would have to provide a GUI panel implementation for your service port
+type(s). See org/globus/ogsa/gui/CounterPortTypePanel in the ogsa distribution
+samples for an example. You would also need to add a mapping to your panel in the
+&lt;ogsa root&gt;/client-gui-config.xml file.&nbsp;
+</p>
+
+To test your GUI client:
+<ol>
+
+
+<li>
+Start the gui client by typing <i><b>globus-service-browser</b></i></li>
+
+<li>
+Locate your factory in the Service Group Entry Inspection panel, and double click
+on its entry</li>
+
+<li>
+Create an instance in the Factory panel and now your custom Panel should
+be displayed if all goes well</li>
+</ol>
+
+
+
+<h1>PART II: Additional APIs</h1>
+<p class="MsoNormal">This section describes some features and APIs available to
+Grid service developers.</p>
+<p class="MsoNormal">Some APIs are divided into client and server side APIs.
+Note that client or server is a role played by a runtime component, and does not
+necessarily translate into a client process or server process, i.e. the
+communication is peer-to-peer, and anyone can act as either a client or a
+server.</p>
+<h2><a name="ServiceData"></a>4 Service Data</h2>
+<p class="MsoNormal">The core framework populates all Grid services with service
+data mandated by the Grid service specification. What service data you get in
+your service, hence depends on what Grid service PortTypes you implement. As an
+extension to the specification, we also allow you to expose the ServiceGroup, and
+NotificationSource service data in your factories (using the respective
+operation providers in your deployment descriptor) to make it easy
+to introspect and monitor the instances created by a factory. If you would like
+to add your own service data, in addition to the standard service data set, we
+provide an API to do so. We allow you to write an XML Schema type
+definition for your service data. You could then optionally generate a Java bean
+from the definition, or treat it as an XML Infoset (like DOM). Both the Bean and
+DOM can be used to populate your service data set at runtime. We also allow you
+to specify the service data in Java through
+annotations, without having to
+write an XML Schema definition, which will be discussed in section 4.2.1.</p>
+<h3>4.1 Sample XML Schema Definition</h3>
+<pre class="code">&lt;complexType name=&quot;CounterStateType&quot;&gt;
+    &lt;sequence&gt;
+      &lt;element name=&quot;value&quot; type=&quot;int&quot;/&gt;
+      &lt;element name=&quot;status&quot; type=&quot;string&quot;/&gt;
+    &lt;/sequence&gt; 
+    &lt;attribute name=&quot;timestamp&quot; type=&quot;dateTime&quot;/&gt;
+  &lt;/complexType&gt;</pre>
+<p class="MsoNormal">See guide/schema/counter_state.xsd for the full example.</o:p>
+</p>
+<p class="MsoNormal">This XML Schema fragment provides a definition of a Service
+Data Element. Note that the complex type must have one single root element. This
+element may however have many child elements.</p>
+<h3>4.2 Server APIs</h3>
+<pre class="code">public class ServiceDataCounterImpl extends GridServiceImpl
+<span style="mso-spacerun:
+yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>implements CounterPortType {
+<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp; private int val = 0;
+    private ServiceData stateData;
+    private CounterStateType state = new CounterStateType();
+
+    public ServiceDataCounterImpl() {
+        super(&quot;Guide Service Data Counter&quot;);
+    }
+
+    public void postCreate(GridContext context) throws GridServiceException {
+</span>        super.postCreate(context);<span style="mso-spacerun: yes">
+        stateData = serviceData.create(&quot;CounterState&quot;);
+        updateState();
+        stateData.setValue(this.state);
+        serviceData.add(stateData);
+    }
+
+    private void updateState() {
+        state.setStatus(....);
+        state.setTimestamp(Calendar.getInstance());
+        state.setValue(this.val);
+    }
+
+    public int add(int val) throws RemoteException {
+        this.val = this.val + val;
+        updateState();
+        return this.val;
+    }</span>
+}</pre>
+<p class="MsoNormal">See guide/src/org/globus/ogsa/guide/impl/ServiceDataCounterImpl.java
+for the full example.</o:p>
+</p>
+<p class="MsoNormal">The service data element defined in the previous step is
+run through the stub generator as described in section 1, step 2. This results
+in a Bean (CounterStateType) that can be used when adding custom service
+data to your service.<span style="mso-spacerun: yes">&nbsp; </span>The
+ServiceDataSet interface (serviceData instance)&nbsp; is used to create, and add service data to the
+service data collection of a service. The ServiceData API provides a wrapper API
+for all service data. You can either set an arbitrary value using the setValue()/addValue()
+API or provide a value callback (not shown). The ServiceData object should be
+seen as a logical collection of service data values conforming to a serviceData
+declaration in WSDL. ServiceData added in this manner
+will automatically be made available to findServiceData queries on the service
+after the call serviceData.add() has been made. Note that the above example uses
+the inheritance approach fro implementing a service in which case the service
+data set will be available in the instance variable called serviceData. If you
+implement your service using the operation provider approach, the service data
+will be available by calling getServiceDataSet() on the GridServiceBase object
+passed in to to initialize callback.</p>
+<p class="MsoNormal">The service data set&nbsp; population is performed in a
+postCreate callback (see section 7 for details) to ensure that the framework has
+initialized the service data before any operation is called.</p>
+<p class="MsoNormal">To test this example do the following:</p>
+<ol>
+<li><b><i>java org.globus.ogsa.client.CreateService <a href="http://127.0.0.1:8080/ogsa/services/guide/counter/ServiceDataCounterFactoryService?WSDL"> http://localhost:8080/ogsa/services/guide/counter/ServiceDataCounterFactoryService</a><br></i></b>
+<li><i><b>java org.globus.ogsa.guide.impl.CounterClient &lt;the handle returned by CreateService&gt; state</b></i>
+</ol>
+<p class="MsoNormal"><b>4.2.1 Service Data Annotations<br>
+</b>You can expose service data automatically by adding an @ogsa:service-data
+tag to the javadoc comment of a method that returns the service data.&nbsp; The
+method must be accessible through the public service, it must be part of the
+port type interface.&nbsp;&nbsp;</p>
+<p class="MsoNormal">For example:
+<pre class="code">/**
+* The current value of the counter.
+* @ogsa:service-data
+*/
+public int getValue() throws RemoteException {
+&nbsp;&nbsp;&nbsp; return val;
+}</pre>
+<p>@ogsa:service-data can be followed by optional parameters that will go in the
+generated wsd<br>
+<br>
+The parameters with their default values are:</p>
+<table border="1" width="100%" height="96">
+  <tr>
+    <td width="10%" height="19">name&nbsp;&nbsp;&nbsp;&nbsp;</td>
+    <td width="90%" height="19">name of the method (without &quot;get&quot; if those are the
+      first 3 letters, and without the last s if the method returns an array)</td>
+  </tr>
+  <tr>
+    <td width="10%" height="19">minOccurs<X-TAB>
+      &nbsp;&nbsp;</td>
+    <td width="90%" height="19">1 (0 if the method returns an array)</td>
+  </tr>
+  <tr>
+    <td width="10%" height="19">maxOccurs<X-TAB>
+      </X-TAB>
+      &nbsp;</td>
+    <td width="90%" height="19">1 (&quot;unbounded&quot; if the method returns an array)</td>
+  </tr>
+  <tr>
+    <td width="10%" height="15">mutability<X-TAB>
+      &nbsp;&nbsp;&nbsp;&nbsp;</td>
+    <td width="90%" height="15">&quot;mutable&quot;</td>
+  </tr>
+</table>
+<pre class="code">/**
+* The current value of the counter.
+* @ogsa:service-data
+*&nbsp;&nbsp;&nbsp;&nbsp; name = &quot;currentValue&quot;
+*&nbsp;&nbsp;&nbsp;&nbsp; minOccurs = &quot;1&quot;
+*&nbsp;&nbsp;&nbsp;&nbsp; maxOccurs = &quot;1&quot;
+*&nbsp;&nbsp;&nbsp;&nbsp; mutability = &quot;mutable&quot;
+*/
+public int getValue() throws RemoteException {
+&nbsp;&nbsp;&nbsp; return val;
+}</pre>
+<p>Then you generate the wsdl by calling two ant targets in build-services.xml
+<pre class="code">&lt;ant antfile=&quot;${build.services}&quot; target=&quot;serviceDataDoclet&quot;&gt;
+&nbsp; &lt;property name=&quot;service.source&quot; value=&quot;${src.dir}/org/globus/ogsa/guide/impl/ServiceDataAnnotationCounterImpl.java&quot;/&gt;
+&nbsp; &lt;property name=&quot;dest.dir&quot; value=&quot;${build.dest}&quot;/&gt;
+&lt;/ant&gt;</pre>
+<pre class="code">&lt;ant antfile=&quot;${build.services}&quot; target=&quot;generateSDD&quot;&gt;
+&nbsp;&nbsp; &lt;property name=&quot;service.name&quot; value=&quot;org.globus.ogsa.guide.impl.ServiceDataAnnotationCounterImpl&quot;/&gt;
+&nbsp;&nbsp;&nbsp;&nbsp; &lt;property name=&quot;wsdl.dir&quot; value=&quot;guide/TimedCounter&quot;/&gt;
+ &nbsp;&nbsp;&nbsp; &lt;property name=&quot;wsdl.file&quot; value=&quot;TimedCounterService.wsdl&quot;/&gt;
+ &nbsp;&nbsp;&nbsp; &lt;property name=&quot;wsdl.file&quot; value=&quot;TimedCounterService.wsdl&quot;/&gt;
+&lt;/ant&gt;</pre>
+<p>The method that exposes the service data will automatically be called
+whenever someone queries for the service data.<br>
+See guide/src/org/globus/ogsa/guide/impl/ServiceDataAnnotationCounterImpl.java
+for the full example.<br>
+To test the example do the following:<br>
+<ol>
+<li><i><b>java org.globus.ogsa.client.CreateService <a href="http://127.0.0.1:8080/ogsa/services/guide/counter/ServiceDataAnnotationCounterFactoryService?WSDL">http://localhost:8080/ogsa/services/guide/counter/ServiceDataAnnotationCounterFactoryService</a></b></i><br>
+<li><i><b>java org.globus.ogsa.guide.impl.CounterClient &lt;the handle returned by CreateService&gt; add 5</b></i><br>
+<li><i><b>java org.globus.ogsa.client.FindServiceDataByName currentValue &lt;the handle returned by CreateService&gt;</b></i><br>
+<li><i><b>java org.globus.ogsa.client.FindServiceDataByName timestamp &lt;the handle returned by CreateService&gt;</b></i><br>
+</ol>
+
+</p>
+<h3>4.3 Client APIs</h3>
+<pre class="code">OGSIServiceGridLocator locator = new OGSIServiceGridLocator();
+GridService gridService =<span style="mso-spacerun:
+yes">&nbsp;
+</span><span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>locator.getGridServicePort(handle);
+
+ExtensibilityType extensibility = gridService.findServiceData(QueryHelper.getNamesQuery(&quot;CounterState&quot;));
+ServiceDataValuesType serviceData = AnyHelper.getAsServiceDataValues(extensibility);
+CounterStateType counterState = (CounterStateType) AnyHelper.getAsSingleObject(serviceData, CounterStateType.class);
+System.out.println(&quot;Counter state:&quot;);
+System.out.println(&quot;    status:&quot; + counterState.getStatus());
+System.out.println(&quot;    val:&quot; + counterState.getValue());
+System.out.println(&quot;    timestamp:&quot; + counterState.getTimestamp().getTime());</pre>
+<p class="MsoNormal">See guide/src/org/globus/ogsa/guide/impl/CounterClient.java
+for the full example.</o:p>
+</p>
+<p class="MsoNormal">The GridService interface can be used to query
+service data for a service. The QueryHelper is used to construct a valid
+findServiceData query (in this case a OGSI compliant byServiceDataNames query).
+The query result can contain any arbitrary element, but in this case (as defined
+by OGSI) we know
+that it will return a ServiceDataValuesType containing our CounterState of type
+CounterStateType. Note, that because we know what kind of value is contained in
+the ServiceDataValuesType we can tell the AnyHelper API how to deserialize the
+object by passing the class of the object we are expecting. If no class is
+specified the typemapping registry (see next section) is used to determine how
+to deserialize the object.</p>
+<h3>4.4 TypeMappings for Custom Types</h3>
+<p>If you put custom types in your service data, as opposed to basic types like
+xsd:string, you will need to make the AnyHelper aware of what types you
+expect.&nbsp; The easiest way of doing this is to pass in the type of the class
+you want to convert the any object to in the getAsObject() calls. If you do not know
+the type of the any object at compile time, you will need to add a
+typemapping declaration to the deployment descriptor.&nbsp;Below follows an example of a type mapping that you can add to
+your service. For full details please see the <a href="http://cvs.apache.org/viewcvs.cgi/~checkout~/xml-axis/java/docs/reference.html#Deployment">Axis
+deployment descriptor documentation</a>.</p>
+<pre class="code">&lt;typeMapping xmlns:ns=&quot;http://www.example.org&quot;
+             qname=&quot;ns:MyType&quot;
+             type=&quot;java:org.example.MyType&quot;
+             serializer=&quot;org.apache.axis.encoding.ser.BeanSerializerFactory&quot;
+             deserializer=&quot;org.apache.axis.encoding.ser.BeanDeserializerFactory&quot;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+             encodingStyle=&quot;&quot;/&gt;</pre>
+<h2><a name="Notifications"></a>5 Notifications</h2>
+<h3>5.1 Server APIs</h3>
+<p class="MsoNormal">To enable notifications of service data in your server you
+have to specify NotificationSourceProvider as an operationsProvider in your
+deployment descriptor. Further,&nbsp; the className, and the schemaPath
+interfaces will have to expose the Notification Source operations. The easiest
+way of achieving this is to extend from the NotificationSource portType in your
+gwsdl definition. See guide/schema/notification_counter_port_type.gwsdl. Now a notification is sent out to all
+subscribers of your service data whenever you call notifyChange() on your
+ServiceData wrapper.<span style="mso-spacerun: yes">&nbsp;
+</span>(Complete source can be found in guide/src/org/globus/ogsa/guide/impl/NotificationCounterImpl.java)</p>
+<h3>5.2 Client APIs</h3>
+<p class="MsoNormal">In order to receive notifications from services a client
+will have to act as a service itself. To make it easy to expose notification
+sinks in lightweight clients we provide a NotificationSinkManager API. It is in
+essence a wrapper around a ServiceContainer (see section 10).</p>
+<p class="MsoNormal">Here is an example of how to subscribe to a source:</p>
+<pre class="code">NotificationSinkManager manager = NotificationSinkManager.getManager();
+
+manager.startListening(NotificationSinkManager.MAIN_THREAD);
+
+String sink  =<span style="mso-spacerun: yes">&nbsp; </span>manager.addListener(&quot;CounterStatus&quot;, timeout, source, callback);&nbsp;<o:p> </o:p></pre>
+<p class="MsoNormal">When adding a listener you specify the service data name
+you want to subscribe to, the timeout of the subscription (if null infinite
+timeout is set), the handle of the
+service containing the service data, and a callback where notifications will be
+sent. The callback must implement the NotificationSinkCallback interface.</p>
+<p class="MsoNormal">Here is an example of a NotificationSink callback
+implementation:</p>
+<pre class="code">public void deliverNotification(ExtensibilityType any)
+<span style="mso-spacerun: yes">&nbsp; </span>throws RemoteException {
+<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp; </span>try {
+<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp;&nbsp;    </span>ServiceDataValuesType serviceData = AnyHelper.getAsServiceDataValues(any);
+        String counterStatus = (String) AnyHelper.getAsSingleObject(serviceData);
+        System.out.println(&quot;Counter status:&quot; + counterStatus)
+<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp; </span>} catch (Exception e) {
+<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>e.printStackTrace();
+<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp; </span>}
+}</pre>
+<p class="MsoNormal">See guide/src/org/globus/ogsa/guide/impl/StatusListener.java
+for the full example.<span style="mso-spacerun: yes"><br>
+To test this example do the following:</span>
+</p>
+<p class="MsoNormal">
+
+<ol>
+<li><b><i>java org.globus.ogsa.client.CreateService <a href="http://127.0.0.1:8080/ogsa/services/guide/counter/NotificationCounterFactoryService?WSDL">http://localhost:8080/ogsa/services/guide/counter/NotificationCounterFactoryService</a></i></b><br>
+<li>In a new window start: <b><i>java org.globus.ogsa.guide.impl.StatusListener &lt;the handle returned by CreateService&gt; </i></b><br>
+<li><b><i>java org.globus.ogsa.guide.impl.CounterClient &lt;the handle returned by CreateService&gt; add 1</i></b><br>
+</b></i>
+</ol>
+
+<h2><a name="ServiceProperties"></a>6 Service Properties and Configuration</h2>
+<p class="MsoNormal">ServiceProperties are used in a similar way to ServiceData
+by a service to hold Grid service instance specific state. The main difference
+is that ServiceProperties are internal to the service, i.e. they are not
+automatically exposed to clients, and they do not have to be specified in an XML
+Schema.&nbsp; The ServiceProperties interface, allows you to set and get arbitrary
+(potentially persistent) properties, keyed on strings. The interface is defined
+as follows:</p>
+<pre class="code">package org.globus.ogsa;
+
+public interface ServiceProperties {
+&nbsp; public Object getProperty(String name);&nbsp;
+&nbsp; public void setProperty(String name, Object obj);&nbsp;
+&nbsp; public Object getPersistentProperty(String name);&nbsp;
+&nbsp; public void setPersistentProperty(String name, Object obj);&nbsp;
+&nbsp; public void flush() throws ServicePropertiesException;&nbsp;
+};</pre>
+<p class="MsoNormal">The GridServiceImpl base class implements the
+ServiceProperties interfaces, and they can hence be used by all Grid services.
+Persistent property support must however be turned on in the configuration to
+enable checkpointing, see next section. The framework also uses the service
+properties API to set service specific context information and configuration.
+For instance, all the configuration parameters defined in your deployment
+descriptor will be made available through this API. Note that in the case of
+factories you configure your instance properties with the &quot;instance-&quot;
+prefix. These properties will then be automatically be made available to the
+instances through thair ServiceProperties interface.&nbsp;&nbsp;</p>
+<p class="MsoNormal">To access configuration global to a container, you can use
+the ContainerConfig API, like this:</p>
+<pre class="code">import org.globus.ogsa.config.ContainerConfig;
+...
+String globalOption = ContainerConfig.getConfig().getOption(&quot;myGlobalOption&quot;);</pre>
+<p class="MsoNormal">All configuration put inside of&nbsp; the
+globalConfiguration section in the deployment descriptor is made available
+through this API.</p>
+<h2><a name="ServiceActivation"></a>7 Service Activation, Deactivation, and Recovery Framework</h2>
+<p class="MsoNormal">Our container supports activation, deactivation, and
+recovery from restarts of service instances. The framework makes sure that these
+server side transitions are completely transparent to a client of the service in
+terms of all state required to support the Grid service behavior (i.e. Grid
+service specification required SDEs are always logically available to clients).
+If you maintain your own state outside of the framework that you would like to
+maintain in a similar way you can implement this behavior in framework provided
+callbacks. The interface below can optionally be implemented by operation
+providers, and factory callbacks. If you use the inheritance approach and extend
+the GridServiceImpl class you will automatically get these callbacks, but you
+would need to make sure that you don't disable the default implementation, which
+is why we recommend implementing these callbacks in operation providers where
+you don't have that problem.
+</p>
+<pre class="code">package org.globus.ogsa;
+
+public interface GridServiceCallback  {
+&nbsp; public void preCreate(GridContext context) throws GridServiceException;&nbsp;
+&nbsp; public void postCreate(GridContext context) throws GridServiceException;&nbsp;
+&nbsp; public void activate(GridContext context) throws GridServiceException;&nbsp;
+  public void deactivate(GridContext context) throws GridServiceException;&nbsp;
+&nbsp; public void preDestroy(GridContext context) throws GridServiceException;
+}</pre>
+<p class="MsoNormal">The <i>postCreate()</i> callback is guaranteed to be called when the
+framework has finished populating the service instance with all environment and
+configuration properties, and optionally recovered persistent state for
+recoverable services. <i>Activate()</i> and <i>deactivate()</i> can be used to checkpoint or
+squirrel away state that is not needed when the service is idle. The framework
+provides default activators and deactivators that can be configured or even
+replaced&nbsp; by your own policy implementation. All services deployed into a
+container are in a deactivated state by default, and then get activated on first
+use. By default the services will never be deactivated, but a TTL policy can be
+configured to let idle services time out into deactivated state. A lifecycle
+monitor interceptor interface can be used to monitor state transitions, it is
+for instance used by the default deactivator:
+</p>
+<pre class="code">package org.globus.ogsa;
+
+public interface ServiceLifecycleMonitor {
+&nbsp; public void create(GridContext context) throws GridServiceException;&nbsp;
+&nbsp; public void preCall(GridContext context) throws GridServiceException;&nbsp;
+&nbsp; public void postCall(GridContext context) throws GridServiceException;&nbsp;
+&nbsp; public void destroy(GridContext context) throws GridServiceException;&nbsp;
+}</pre>
+<p class="MsoNormal">A life cycle monitor can be configured for all services
+listed in a deployment descriptor. It is however typically configured for
+factories to monitor its instances. Here is an example of such a configuration:
+</p>
+<pre class="code">&lt;service name=&quot;samples/counter/deactivation/CounterFactoryService&quot; provider=&quot;Handler&quot; style=&quot;wrapped&quot;&gt;
+&nbsp; &lt;parameter name=&quot;allowedMethods&quot; value=&quot;*&quot;/&gt;
+&nbsp; &lt;parameter name=&quot;className&quot; value=&quot;org.globus.ogsa.impl.samples.counter.basic.CounterFactoryImpl&quot;/&gt;
+&nbsp; &lt;parameter name=&quot;persistent&quot; value=&quot;true&quot;/&gt;
+&nbsp; &lt;parameter name=&quot;schemaPath&quot; value=&quot;schema/core/factory/factory_service.wsdl&quot;/&gt;
+&nbsp; &lt;parameter name=&quot;instance-schemaPath&quot; value=&quot;schema/samples/counter/counter_service.wsdl&quot;/&gt;
+&nbsp; &lt;parameter name=&quot;handlerClass&quot; value=&quot;org.globus.ogsa.handlers.RPCURIProvider&quot;/&gt;
+&nbsp; &lt;parameter name=&quot;lifecycleMonitorClass&quot; value=&quot;org.globus.ogsa.repository.DefaultServiceDeactivator&quot;/&gt;
+&nbsp; &lt;parameter name=&quot;instance-deactivation&quot; value=&quot;10000&quot;/&gt; &lt;!-- idle
+TTL before deactivation in milliseconds--&gt;
+ &lt;/service&gt;</pre>
+<p class="MsoNormal">Apart from the DefaultServiceDeactivator we also provide a
+Performance Logger implementation (see section 9) of the ServiceLifecycleMonitor
+interface used to instrument services.
+</p>
+<p class="MsoNormal">Finally, to tell the framework that you want to allow the
+service instances to be recoverable, and in order to use the persistent property
+APIs described above you need to add the following parameter to your deployment
+descriptor:
+</p>
+<pre class="code"> &lt;parameter name=&quot;instance-lifecycle&quot; value=&quot;persistent&quot;/&gt;</pre>
+<h2><a name="CustomFactory"></a>8 Writing a Custom Factory</h2>
+<p class="MsoNormal">If the default dynamic factory implementation is not
+flexible enough, you can write your own factory implementation. The
+custom factory can be used to virtualize a service in another hosting
+environment, or it can be implemented to create many different implementations
+depending on creation input and/or configuration and run time settings. You
+could also provide a factory callback to provide implementations for the
+GridServiceCallback methods descried above. Implementing the GridServiceCallback
+is however optional in a factory. The only required interface that you
+have to implement is the FactoryCallback interface.</p>
+<p class="MsoNormal">Here is an example of how one would implement a factory for
+the counter example demonstrated in section 1:</p>
+<pre class="code">package org.globus.ogsa.guide.impl;
+
+import org.globus.ogsa.FactoryCallback;
+import org.globus.ogsa.GridServiceBase;
+import org.globus.ogsa.GridServiceException;
+import org.gridforum.ogsi.ExtensibilityType;
+
+public class CounterFactoryCallback implements FactoryCallback {
+    public void initialize(GridServiceBase base) throws GridServiceException {
+    }
+    public GridServiceBase createServiceObject(ExtensibilityType extension) 
+            throws GridServiceException {
+        return new CounterImpl();
+    }
+}</pre>
+<p class="MsoNormal">Then you would need to change your deployment descriptor to
+make the factoryCallback parameter point to this class.</p>
+<h2><a name="PerformanceProfiling"></a>9 Performance Profiling</h2>
+<p class="MsoNormal">There is a pluggable performance
+logger that you can use to instrument your code. the only thing required to use
+the logger is to set the following parameter in your factory deployment
+descriptor:
+<pre class="code">&lt;parameter name=&quot;lifecycleMonitorClass&quot; value=&quot;org.globus.ogsa.handlers.PerformanceLifecycleHandler&quot;/&gt;</pre>
+<p class="MsoNormal">In order to turn on and off various levels of
+instrumentation (everything is turned off by default) you need to modify your
+log4j.properties files. Here is an example:</p>
+<pre class="code">log4j.category.org.globus.ogsa.performance.samples.any.AnyFactoryService=DEBUG</pre>
+<p class="MsoNormal">This entry enables the debug filter for the factory
+configured with service name &quot;samples/any/AnyFactoryService&quot;.</p>
+<p class="MsoNormal">To do application specific instrumentation you can use the
+PerformanceLog API like this:</p>
+<pre class="code">import org.globus.ogsa.utils.PerformanceLog;
+...
+PerformanceLog performanceLogger = new PerformanceLog(MyClass.class.getName() + &quot;.performance&quot;);
+...
+performanceLogger.start();
+callMyOp();
+performanceLogger.stop(&quot;callMyOp&quot;);</pre>
+<p class="MsoNormal">The performance logger is thread safe in that the start() and
+stop() only concerns the local thread.<br>
+<br>
+The logs are now enabled using the following configuration:</p>
+<pre class="code">log4j.category.MyClass.performance=DEBUG</pre>
+<h2><a name="ServiceContainer"></a>10 Service Container</h2>
+<p class="MsoNormal">A service container API is provided to start embedded local
+hosting environments listening on particular ports. The current embedded hosting
+environment support the httpg and the http protocols. All services that can run
+inside of a standalone service container or a servlet engine, can also be run in
+a embedded mode. The NotificationSinkManager API described in section 5 makes
+use of this API to multiplex all sink URLs exposed over a single port (per
+transport). Our test framework also makes use of this API to transparently run
+all unit tests against both a standalone/tomcat server and an embedded server.</p>
+<p class="MsoNormal">Here is an example:</p>
+<pre class="code">import org.globus.ogsa.server.ServiceContainer;
+...
+boolean isMainThread = false;
+int port = 8080; // if 0 or omitted get available port from TCP stack
+ServiceContainer container = ServiceContainer.createContainer(isMainThread, port);
+container.waitForInit();
+// now we have entered event loop
+container.waitForStop();
+// now server has shutdown<o:p></pre>
+
+<h2><a name="XPath"></a>11 XPath Queries</h2>
+<p>We now have experimental support for XPath queries on service data. See <a href="xpath_query.html">full
+documentation</a>.</p>
+
+<h2><a name="WSIF"></a>12 WSIF Clients</h2>
+<p>The <a href="http://ws.apache.org/wsif/">Web Service Invocation Framework
+(WSIF)&nbsp;</a> is a client side run rime environment and API for invoking Web
+services when not all parts of the WSDL definition is known at compile time.
+This allows for two things 1) the WSDL binding section and thus the transport
+mechanism of the request can change at run time 2) the provider used to
+implement the transport can change at run time. From an OGSI point of view we
+are most interested in 1), because it is a scenario anticipated by the GSH to
+GSR refresh model. We provide a simple WSIF client example that demonstrate the
+client API you need to use to get this dynamic behavior. Note that we still only
+support the SOAP/HTTP transport although a JMS version has been worked on. We
+also provide an extension to WSIF that takes advantage of the dynamic type
+mapping of comples types in Axis. So if you use Axis for the transport
+implementation, you don't need to set up any type mappings for complex types
+manually. Here is the simple example:</p>
+<pre class="code">WSIFServiceFactory factory = WSIFServiceFactory.newInstance();
+WSIFService service =  factory.getService(args[1], null, null, GUIDE_NS, &quot;ComplexCounterPortType&quot;);
+WSIFUtils.registerMappings(service, ComplexCounterPortType.class);
+
+ComplexCounterPortType counter =  (ComplexCounterPortType) service.getStub(ComplexCounterPortType.class);
+TimestampedValue timestampedValue = new TimestampedValue();
+timestampedValue.setTime(Calendar.getInstance());
+timestampedValue.setValue(Integer.parseInt(args[0]));
+
+int val = counter.submitAction(ActionType.add, timestampedValue);</pre>
+<p>See guide/src/org/globus/ogsa/guide/impl/WSIFCounterClient.java
+for the full example.<span style="mso-spacerun: yes"></span>
+</p>
+<p class="MsoNormal"><span style="mso-spacerun: yes">
+To test this example do the following:</span>
+</p>
+<p class="MsoNormal"><span style="mso-spacerun: yes">
+<ol>
+<li><i><b>java org.globus.ogsa.client.CreateService <a href="http://127.0.0.1:8080/ogsa/services/guide/counter/ComplexCounterFactoryService?WSDL">http://localhost:8080/ogsa/services/guide/counter/ComplexCounterFactoryService</a><br></b></i>
+<li><i><b>java org.globus.ogsa.guide.impl.WSIFCounterClient 10 &lt;the handle returned by CreateService&gt;?WSDL<br></b></i>
+</ol>
+
+</body>
+
+</html>

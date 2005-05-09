@@ -1,0 +1,213 @@
+#!/usr/bin/perl
+#
+# Copyright (c) 2002-2003 Northwestern University
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+# NOTE: when called from the MDS, the /usr/bin/perl path is not used
+# since this script is invoked explictly with a valid perl
+# installation from the wrapping shell script
+#
+
+# extract the data from jim basney's scripts
+# and format it for the proposed MDS schema
+#
+sub parse_script_output
+{
+    my ($giis,$host,$header_complete,$test_result);
+    my ($expecting_condor_continuation, $timestamp, $count);
+    $header_complete = 0;
+    $count = 0;
+
+    if (length($input_file))
+    {
+        @input_data = `cat $input_file`;
+
+        foreach $line (@input_data)
+        {
+            if (!$header_complete)
+            {
+                if ($line =~ /Looking(.*)in GIIS (.*)\.\.\./)
+                {
+                    $giis = $2;
+                    print "dn: Mds-GIIS-Status-info=host status information,$dn_suffix\n";
+                    print "objectclass: MdsGIISHostStatusInfo\n";
+                    print "Mds-GIIS-Host-hn: $giis\n";
+                }
+                elsif ($line =~ /(.*) not found/)
+                {
+                    $host = $1;
+                    print "Mds-Host-Status-Not-found: $host\n";
+                }
+                elsif ($line =~ /(.*) found/)
+                {
+                    $host = $1;
+                    print "Mds-Host-Status-found: $host\n";
+                }
+            }
+
+            if ($expecting_condor_continuation)
+            {
+                print "$line";
+                if ($expecting_condor_continuation++ == 2)
+                {
+                    $expecting_condor_continuation = 0;
+                }
+            }
+
+            if ($line =~ /Testing (.*):/)
+            {
+                $host = $1;
+                print "dn: Mds-Test-Host-hn=$host,Mds-GIIS-Status-info=";
+                print "host status information,$dn_suffix\n";
+                print "objectclass: MdsTeragridTestInfo\n";
+                print "Mds-Test-Host-hn: $host\n";
+            }
+            elsif ($line =~ /Authenticating to gatekeeper at $host\.\.\.(.*)/)
+            {
+                $test_result = $1;
+                print "Mds-Gatekeeper-test: $test_result\n";
+            }
+            elsif ($line =~ /Querying GRIS at $host\.\.\.(.*)/)
+            {
+                $test_result = $1;
+                print "Mds-GRIS-test: $test_result\n";
+            }
+            elsif ($line =~ /Testing GridFTP at $host\.\.\.(.*)/)
+            {
+                $test_result = $1;
+                print "Mds-GridFTP-test: $test_result\n";
+            }
+            elsif ($line =~ /Testing GSISSH at $host\.\.\.(.*)/)
+            {
+                $test_result = $1;
+                print "Mds-GSISSH-test: $test_result\n";
+            }
+            elsif ($line =~ /Testing mpicc on $host\.\.\.(.*)/)
+            {
+                $test_result = $1;
+                print "Mds-Mpicc-test: $test_result\n";
+            }
+            elsif ($line =~ /Running simple test job (.*)jobmanager\.\.\.(.*)/)
+            {
+                $test_result = $2;
+                print "Mds-Simple-Job-Fork-Jobmanager-test: $test_result\n";
+            }
+            elsif ($line =~ /Running mpi test job (.*)jobmanager (.*)\.\.\.(.*)/)
+            {
+                $test_result = $3;
+                print "Mds-MPI-Job-Fork-Jobmanager-test: $test_result\n";
+            }
+            elsif ($line =~ /Testing Condor-G at $host...(.*)/)
+            {
+                $test_result = $1;
+                print "Mds-CondorG-test: $test_result\n";
+                $expecting_condor_continuation = 1;
+            }
+            elsif ($line =~ /Checking for Grid programs in PATH at $host\.\.\.(.*)/)
+            {
+                $test_result = $1;
+                print "Mds-Grid-Path-test: $test_result\n";
+            }
+            elsif ($line =~ /Running simple test job (.*)jobmanager-pbs\.\.\.(.*)/)
+            {
+                $test_result = $2;
+                print "Mds-Simple-Job-PBS-Jobmanager-test: $test_result\n";
+            }
+            elsif ($line =~ /Running mpi test job (.*)jobmanager-pbs(.*)\.\.\.(.*)/)
+            {
+                $test_result = $3;
+                print "Mds-MPI-Job-PBS-Jobmanager-test: $test_result\n";
+            }
+            elsif ($line =~ /Testing GridFTP from $host\/jobmanager to (.*)\.\.\.(.*)/)
+            {
+                $test_result = $2;
+                print "Mds-GridFTP-From-Fork-Job-test: $test_result ($host to $1)\n";
+            }
+            elsif ($line =~ /Testing GridFTP from $host\/jobmanager-pbs to (.*)\.\.\.(.*)/)
+            {
+                $test_result = $2;
+                print "Mds-GridFTP-From-PBS-Job-test: $test_result ($host to $1)\n";
+            }
+            elsif (length($line) < 3)
+            {
+                if (($count++ < length(@input_data)) && length($timestamps))
+                {
+                    print "$timestamps\n";
+                }
+
+                if ($summary_only == 1)
+                {
+                    exit(0);
+                }
+
+                $header_complete = 1;
+                $giis = "";
+                $host = "";
+                $test_result = "";
+                $expecting_condor_continuation = 0;
+                print "\n";
+            }
+        }
+    }
+}
+
+sub print_usage_and_exit
+{
+    print "Usage: grid-info-teragridsetup-posix.pl [-s] ";
+    print "dn_suffix timestamp input_html_file\n";
+    print "\tThe -s option generates only summary information\n";
+    exit(1);
+}
+
+# entry point of script
+$input_file = "";
+$dn_suffix = "";
+$summary_only = 0;
+$timestamps = "";
+
+# retrieve command line arguments
+$argc = @ARGV;
+$start = 0;
+
+if (($argc == 4) && ($ARGV[0] eq "-s"))
+{
+    $summary_only = 1;
+    $dn_suffix = $ARGV[1];
+    $timestamps=`cat $ARGV[2] 2>/dev/null`;
+    $input_file = $ARGV[3];
+}
+elsif (($argc == 3) && !($ARGV[0] eq "-s"))
+{
+    $dn_suffix = $ARGV[0];
+    $timestamps=`cat $ARGV[1] 2>/dev/null`;
+    $input_file = $ARGV[2];
+}
+else
+{
+    print_usage_and_exit();
+}
+
+if (length($input_file) == 0)
+{
+    print_usage_and_exit();
+}
+
+parse_script_output($input_file);

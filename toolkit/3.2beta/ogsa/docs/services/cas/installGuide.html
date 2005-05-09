@@ -1,0 +1,543 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>CAS: Installation Guide</title>
+</head>
+ <body>
+     
+<center> <h1> CAS: Installation Guide </h1> </center>
+
+<h3> Prerequisites </h3> 
+
+<ul>
+  <li> GT3 Core distribution </li>
+  <li> A JDBC compliant database Install </li>
+  <li> CAS distribution </li>
+</ul>
+
+<p> The CAS service needs to be deployed in some hosting
+ environment. The GT3 Core has a stand alone hosting environment that
+ may be used. As an alternative, Jakarta Tomcat server maybe used to
+ host the service in which case the GT3 Core and the CAS service
+ needs to be deployed. Once the CAS service has been deployed and the
+ hosting environment has been started up, the service is available for
+ use.
+   
+<p> Typically, a privilege user, say <i>casadmin</i>, owns the
+ database, installs GT3 core, deploys the CAS service, bootstraps it
+ with data and starts up the service. The URL of the CAS service
+ instance is published for the users to contact the service. This
+ document describes the instructions to do the same. </p>
+   
+<p> GT3 install location is referred to as GLOBUS_LOCATION in this
+document.
+
+<p> There are two ways the CAS distribution can be obtained and
+installed. 
+<ul>
+<li> As a part of the toolkit release installer. In this case the
+Sections <a href="#gt3Core">One</a> and <a href="#casInstall">Two</a>
+that describe install of GT3 core and CAS from source can be skipped.
+<li> Source distribution of GT3 and CAS installed separately. Section
+<a href="#gt3Core">One</a> and <a href="#casInstall">Two</a> describes
+the steps for installing this. The CAS install location is referred to
+as CAS_HOME in this document. 
+</ul>
+
+The instructions from Section Three and later are common to both
+types of install.
+
+<h4> Contents: </h4>
+<ol>
+    <li><a href="#gt3Core">GT3 core install </a>   </li>
+    <li><a href="#casInstall">CAS install from source</a>   </li>
+    <li><a href="#dbInstall">Database install and configuration</a>   </li>
+    <li><a href="#casConfig">CAS Configuration</a>   </li>
+    <li><a href="#startHostEnv">Starting Hosting Environment</a>   </li>
+    <li><a href="#testing">Testing CAS install</a> </li>
+    <li><a href="#casBootstrap">CAS database bootstrap</a>   </li>
+</ol>
+      
+<h3> <a name="gt3Core"> 1. GT3 Core Install </a> </h3>
+
+Instructions for downloading, installing and configuring GT3 core can
+be found <a
+href="http://www-unix.globus.org/toolkit/download.html">here</a>. More
+detailed instructions including required tools and their installation
+instructions maybe found <a
+href="http://www-unix.globus.org/toolkit/3.0/ogsa/docs/admin/installation.html">here</a>.
+
+
+<p>Listed below are commands to build and run container from GT3 core
+source distribution. <b>But these may have changed and the documentation
+in GT3 core would be the best reference for the same.</b>
+ 
+<p> To build GT3 core,
+   
+<pre>  casadmin$ cd ogsa/impl/java<br>  casadmin$ ant<br>  casadmin$ ant setup</pre>
+   
+<h3> <a name="casInstall">2. CAS Install (from source) </a> </h3>
+
+ To check out the source code for CAS from CVS:
+
+<ol>
+ <li> To login, 
+<pre>cvs -d :pserver:anonymous@cvs.globus.org:/home/globdev/CVS/gridservices login</pre> </li>
+
+ <li> At password prompt, hit enter.
+ 
+ <li> To check out trunk code:
+<pre> cvs -d :pserver:anonymous@cvs.globus.org:/home/globdev/CVS/gridservices co cas</pre>
+</ol>
+
+The top level directory in this check out is referred to as CAS_HOME
+in this document.
+
+ The CAS distribution has code for the service, command line clients
+ to access the service, tests for backend database access code and
+ frontend service, and sample properties files. This section has
+ instructions to build and deploy the CAS server into a GT3 container.
+
+<h4> 2.1 Deploying CAS into GT3 container. </h4>
+
+<p> The CAS_HOME/build.properties file needs to be modified or the
+ properties need to be overridden with each ant command. The properties
+ relevant to deployment are,
+   
+<ul>
+    <li><i>ogsa.root</i>: GT3 core install path.(GLOBUS_LOCATION)  </li>
+</ul>
+      
+<p> The following command in CAS_HOME will build the service and
+deploy server side of CAS into the GT3 core. Note, if the container is
+already running, it needs to be restarted after the deploy, for the
+service to be visible.
+
+<p> For tests also to be deployed, <a
+href="http://www.junit.org/index.htm">Junit</a> needs to be
+installed. The build script requires that &quot;junit.jar&quot; be on
+the classpath for the tests to be compiled and deployed. Typically
+this is placed in the &quot;lib&quot directory of the Ant install
+   
+<pre>  casadmin$ ant deployAll <br></pre>
+
+<p> The above target deploys server, client and tests. It also
+generates all client scripts and places them in
+$GLOBUS_LOCATION/bin. This directory needs to be added to the PATH to
+be able to execute these scripts from other locations.
+
+<p> To deploy only the client side of CAS, from CAS_HOME 
+
+<pre>  casadmin$ ant deployClient<br></pre>
+
+<p> To deploy only the server, from CAS_HOME 
+
+<pre>  casadmin$ ant deployGar<br></pre>
+
+<h4> <a name="casCreds"> 2.2 Obtaining credentials for CAS server </a> </h4>
+
+<p> The CAS service could run with its own set of credentials. Instructions
+ to obtain service credentials may be found <a
+ href="http://www.globus.org/gt2.2/admin/guide-verify.html#ldapcert">here</a>.
+
+ <p> The standard administrator clients that come with the
+ distribution can be used to perform host authorization and expect
+ that the CAS service have credentials that have service name
+ "cas". The command in the above mentioned webpage maybe altered as
+ follows,
+   
+<pre>  casadmin$ grid-cert-request -service <i>cas</i> -host FQDN<br></pre>
+      
+<p> In this document, the location of certificate and key files is
+referred to as CAS_CERT_FILE and CAS_KEY_FILE respectively.
+
+<h3> <a name="dbInstall">3. Database Install and Configuration </a> </h3>
+  
+CAS uses a backend database to store all user data. Any JDBC compliant
+database may be used. This section describes briefly the installation
+of such a database and the creation of database using schema required
+for CAS backend.
+
+<h4> 3.1 Installing Database </h4>
+
+Any JDBC compliant database may be used. PostgreSQL has been used for
+development and testing. The drivers for the same are included in the
+distribution. If a different database is used, the corresponding
+driver should be added to GLOBUS_LOCATION/lib
+
+<p> Brief instructions to install a JDBC compliant database and
+specifically PostGres can be found <a
+href="http://www-unix.globus.org/toolkit/3.0/ogsa/docs/admin/installation.html">here</a>. For more detailed instructions, please refer to specific database
+documentation.
+
+<h4> 3.2 Creating CAS database </h4>
+
+<p> The schema of the database that needs to be created for CAS can be
+ found at:
+   
+<p> GLOBUS_LOCATION/etc/databaseSchema/cas_database_schema.sql 
+   
+<p> To create a database, for example <i>casDatabase</i>, on a PostgreSQL
+install on local machine,
+    
+<pre>  casadmin$ createdb casDatabase <br>  casadmin$ psql -U casadmin -d casDatabase -f GLOBUS_LOCATION/etc/databaseSchema/cas_database_schema.sql</pre>
+
+<p> On running the above command, a list of notices will be seen on
+the screen. Unless any of them say "ERROR", these are just output for
+information.
+
+<h4><a name="dbConfig"> 3.3 Database configuration file </a></h4> 
+
+ CAS server requires to be configured with a properties file with
+ database configuration information. A sample file has been provided
+ in the distribution, GLOBUS_LOCATION/etc/casDBProperties. The values
+ need to be modified to suit the particular database install.
+
+ <ul>
+     <li><i>dbDriver</i>: Name of the JDBC driver that will be used by
+      the CAS install. The default value,
+      <i>org.postgresql.Driver</i>, has been set to work with
+      PostgreSQL and the driver is shipped with the distribution.
+      </li>
+     <li><i>dbConnectionURL</i>:   The  URL   to  make   the  database
+       connection. For the example,
+        <i>jdbc:postgresql://127.0.0.1/casDatabase</i></li>
+     <li><i>dbUsername</i>: User name for database access. In this
+     example, <i>casadmin</i></li>
+     <li><i>dbPassword</i>: Password for the above user</li>
+ </ul>
+      
+<b>Note: Since this file contains the database access username and
+password, set appropriate permissions to protect the file. </b>
+
+<h3> <a name="casConfig">4. CAS Configuration </a> </h3>
+
+The CAS service deployed has default values set. Prior to using the
+service these values need to be altered to suit the specific install. The
+properties described below need to be altered in
+GLOBUS_LOCATION/server-config.wsdd
+
+<p> <b>CAS configuration properties:</b>  
+   
+<ul>
+    <li><i>dbPropertiesFilename</i>: Path to file with database
+    properties configuration. Details about the file can be found <a
+    href="#dbConfig">here</a>.
+    <li><i>voDescription</i>: String describing the VO this CAS server is a 
+    part of. This is exposed as service data </li>
+    <li><i>maximumAssertionLifetime</i>: This value determines the
+    maximum lifetime that of the CAS Assertions generated by this
+    server can have. It is in seconds. If this property is not set,
+    then default value of 24hours is used.  
+</ul>
+
+<p> <b>GT3 Core configuration properties:</b> There are quite a few
+features supported by GT3 core for service configuration. Two that are
+relevant to this service are listed below and are used to configure
+the service with credentials of its own as described in <a
+href="#casCreds">Section 2.2</a> If these two properties are removed
+from the configuration, default credentials are used.
+
+<ul>
+    <li><i>serviceCert</i>: Certificate file (CAS_CERT_FILE) </li>
+    <li><i>serviceKey</i>: Key file (CAS_KEY_FILE) </li>
+</ul>
+
+Refer to <a
+href="http://www-unix.globus.org/toolkit/3.0/ogsa/docs/security.html">GT3
+Security documentation</a> for more details.
+
+<h3><a name="startHostEnv">5. Starting hosting environment</a></h3>
+    
+<p> Now the CAS service has been deployed and configured. The hosting
+environment needs to be started up. If GT3 standalone container is
+used, instructions to start it up are given below. <b>But these may
+have changed and the documentation in GT3 core would be the best
+reference for the same.</b> If Tomcat or any other hosting environment
+is used, refer to specific documentation to start it up.
+
+<p>Prior to running these commands, an environment variable
+<i>GLOBUS_LOCATION</i> needs to be set to point to GT3 install
+location. (GLOBUS_LOCATION in this document)
+
+<p> To <b>start a container</b> on local machine on port number 8888 say, in
+ GLOBUS_LOCATION, the following command maybe used.
+   
+<pre>  casadmin$ bin/globus-start-container -p 8888<br></pre>
+
+If <i>-port</i> is not used, then a container is started up port 8080.
+
+<p> When the <b>container needs to be stopped</b>, the following maybe
+ used. If the container is running on local machine on port number
+ 8888 say, in GLOBUS_LOCATION, the following command maybe used. The
+ "hard" option forcefully will shut down the container even if there
+ are errors. For more options, use "-help".
+   
+<pre> casadmin$ bin/globus-stop-container -secure hard http://localhost:8888<br> </pre>
+
+Now, on starting up the container into which the deployment was done,
+the CAS service becomes available. If GT3 standalone container was
+used, it displays a list of services that have been deployed at
+startup. If the CAS service was deployed fine, the CAS URL will be
+displayed as described below.
+
+<p>If <i>GT3Host</i> and <i>GT3Port</i> stand for the host and port on
+which the container is running, then the URL looks like
+
+<pre>
+  http://<i>GT3Host</i>:<i>GT3Port</i>/ogsa/services/base/cas/CASService
+</pre>
+
+<p> As an example, if the container is running on localhost and port
+8888, then the instance URL will look like
+<pre>
+  http://localhost:8888/ogsa/services/base/cas/CASService
+</pre>
+
+<p> This instance URL needs to be published for the users to be able to
+contact the CAS service. 
+
+
+<h3> <a name="testing">6. Testing CAS install </a> </h3> 
+
+This is an optional step and if skipped, proceed to section 7, <a
+href="#casBootstrap">Bootstrap</a>.
+
+<p>The CAS distribution has two sets of tests built using Junit. For
+these test to have been compiled and deployed, Junit needs to be
+installed. If you installed usin source distribution, refer to <a
+href="#casInstall">section 2</a> of the install. If you used an
+installer, ensure that &quot;junit.jar&quot; is on your classpath at
+install time.
+
+<ul> 
+ <li>Tests for the backend database access functionality.  </li> 
+ <li>Tests for the CAS service frontend </li>
+</ul>
+
+<h4>6.1 Tests for the backend database access functionality. </h4>
+
+This test does not need any service set up and only requires that a <a
+href="#dbInstall">database set up</a> and a file with <a
+href="#dbConfig">database configuration</a>. The target used to run
+the tests picks up the path to the database configuration file from
+the property <i>cas.db.properites</i>. If not overridden with
+<i>-Dcas.db.properties</i> option while running the test, the value
+defaults to GLOBUS_LOCATION/etc/casDBProperties.
+
+<p>The database needs to be empty for this test. To delete any
+existing entries in the database, a script has been provided in the
+distribution. For a PostGres install, the command would be
+
+<pre> casadmin$ psql -U casadmin -d casDatabase -f GLOBUS_LOCATION/share/cas-share/database_delete.sql<br></pre>
+
+The following command runs the test,
+
+<pre>  casadmin$ ant -f GLOBUS_LOCATION/etc/cas-build.xml runDatabaseTests<br></pre>
+
+There might some lines output on the screen which start with "ERROR",
+but they are not any indication of failure of the test. At the end of
+the run, a summary message will be printed indicating number of tests
+run and number that failed. Test report will be generated in
+GLOBUS_LOCATION/cas-test-reports.
+
+<h4> 6.2 Tests for the CAS service frontend </h4>
+    
+These tests are targeted at testing the frontend CAS server capability
+and also can be used to simulate multi user scenario. 
+
+It is required that the CAS service be <a
+href="#casInstall">deployed</a> and a GT3 container <a
+href="#startHostEnv">started</a> up. The tests pick up the host and
+port of the GT3 container from following properties:
+
+<ul>
+ <li>GT3Host : Host name of the machine on which GT3 container will be
+               run for tests. Default, 127.0.0.1
+ <li>GT3Port : Port number on which the GT3 container will be run for
+              tests. Default, 8080.
+</ul>
+
+<p>There are two test targets that have been set up which can be run
+with different user proxies.  The first test target tests all self
+operations and sets up the database for the second user. The second
+test target, run with another user's proxy then ensures that the set up
+was done correctly. While the first test only requires that the cas
+database is bootup with implicit objects only, the second test
+requires that the first test to have successfully run.
+
+<p> The steps outlined below also describe how two sets of proxies
+(one being an independent proxy) can be generated from one set of
+credentials.
+
+<p>Other than the <a href="#dbConfig"/>database configuration file</a>
+described for the previous test, this test also uses a test properties
+file that is picked up by the target using the property
+<i>cas.test.properties</i>. If not overridden with
+<i>-Dcas.test.properties</i> it defaults to
+GLOBUS_LOCATION/etc/casTestProperties. The following properties need
+to be set in that file,
+
+<ul>
+ <li><i>user1SubjectDN: </i> The subject in the proxy that will be used to
+ run the first set of tests.</li>
+ <li><i>user2SubjectDN: </i> The subject in the proxy that will be used to
+ run the second set of tests.</li>
+ <li><i>serverDN: </i> The subject DN of the credential used by CAS server</li>
+ <li><i>maxAssertionLifetime:</i> The value set as the maximum
+ assertion lifetime in server-config.wsdd as shown <a
+ href="#casConfig">here</a> 
+</ul>
+   
+<p> <b>Steps to test the CAS install</b><br>
+
+<p>Ensure cog-jglobus.jar is on the classpath. This jar can be found in
+GLOBUS_LOCATION/lib. This can be placed in the classpath by using the
+GLOBUS_LOCATION/setenv.csh script (or bat script in the case of
+windows)
+
+    <pre>  casadmin$ source setenv.csh </pre>
+<ol>
+    <li> In the test properties file, set <i>user2SubjectDN</i> to be
+    the subject in your regular proxy. The following returns the
+    appropriate string
+    <pre>  casadmin$ java org.globus.tools.CertInfo -subject -globus</pre>
+    </li>
+
+    <li> Generated an independent proxy using the following
+     command. 
+    
+    <pre>  casadmin$ java org.globus.tools.ProxyInit -independent<br></pre>
+     </li>
+
+    <li> Set the identity in the proxy generated from the above step
+    as <i>user1SubjectDN</i> in the test properties file. The
+    following command will return the relevant string.
+
+    <pre>  casadmin$ java org.globus.tools.ProxyInfo -subject -globus</pre>
+    </li> 
+
+    <li> Delete all data from database. The following command would do
+    it for a PostGres install with database name <i>casDatabase</i>
+    and database username <i>casadmin</i>
+    
+    <pre> casadmin$ psql -U casadmin -d casDatabase -f GLOBUS_LOCATION/share/cas-share/database_delete.sql<br></pre></li>
+
+    <li> Now the database needs to be populated with CAS server
+    implicit data for these tests to run. This maybe done using the
+    following command. The dbPropFile, is the database configuration
+    file and needs to be set as described <a href="#dbConfig">here</a>
+
+    <pre>  casadmin$ cas-server-bootstrap -d dbPropFile -implicit </pre>
+    </li>
+
+    <li> Start a GT3 container as described <a
+    href="#startHostEnv">here</a>. The container must be started up on
+    the same host and port that the property <i>GT3Host</i> and
+    <i>GT3Port</i> is set as in the test properties file.<pre></pre></li>
+
+    <li> The following command, runs tests for self permissions and
+     sets up the database for user with subjectDN that is
+     user2SubjectDN
+            
+    <pre>  casadmin$ ant -f GLOBUS_LOCATION/etc/cas-build.xml serverTestsUser1 <br></pre>
+    </li>
+
+    <li> Once the above tests complete, the container needs to be
+    stopped. Instructions to do the same maybe found <a
+    href="#startHostEnv">here</a>.<pre></pre></li>
+
+    <li> To test as the second user, generate proxy for the subject DN
+    specified for the second user.
+    <pre>  casadmin$ java org.globus.tools.ProxyInit <br></pre></li>
+
+    <li> Restart GT3 container. (<a href="startHostEnv">
+    instructions</a>)<pre></pre></li>
+
+    <li> To test as second user, run            
+
+    <pre>  casadmin$ ant -f GLOBUS_LOCATION/etc/cas-build.xml serverTestsUser2<br></pre></li>
+   
+</ol>
+
+After these tests, the CAS database needs to be reset. The following
+command will delete all entries from the database.
+
+<pre> casadmin$ psql -U casadmin -d casDatabase -f GLOBUS_LOCATION/share/cas-share/database_delete.sql<br></pre>
+
+<h3> <a name="casBootstrap">7. CAS Server Bootstrap </a> </h3> 
+
+A client to bootstrap the CAS backend database is in
+GLOBUS_LOCATION/bin.
+
+<pre> casadmin$  cas-server-bootstrap [options] -d dbPropFile [ <i>-implicit</i> | -b bootstrapFile]</pre>
+
+where
+ 
+<ul>
+<li> options : <ul> <li> -help Prints usage message
+                    <li> -debug Runs client with debug trace
+	       </ul>
+<li> -d dbPropFile : This option specifies a properties file that has
+                     database configuration information. The format
+                     and properties in the file are described <a
+                     href="#dbConfig">here.</a>
+
+<li> -implicit : This option inserts data inherent to the CAS
+                 server. It also adds service/action and namespace
+                 that can be used with FTP.
+
+<li> -b bootstrapFile : This option adds user specified data to the
+                        database. "bootstrapFile" is the path to the
+                        file with user data. The user data should have
+                        the format specified in
+                        GLOBUS_LOCATION/share/cas-share/bootstrapTemplate. A
+                        sample bootstrap file is in
+                        GLOBUS_LOCATION/share/cas-share/bootstrapSample
+
+</ul>
+
+<p><b>Steps to bootstrap the database</b>
+
+<ol>
+<li> Copy GLOBUS_LOCATION/share/cas-share/bootstrapSample to <i>bootstrap</i>
+<li> Edit the file <i>bootstrap</i>. This file is used to grant super
+user permissions to a CAS user and provide details about the user.
+
+<p>For example say a user with nickname "superUser" using a subject DN
+"/O=Grid/O=Globus/OU=something/CN=someone" and in a user group called
+"suGroup" needs to be added. Moreover say, the user's trust anchor is
+"someTrustAnchor" with "X509" as authentication method and a DN
+"/C=US/O=something/CN=Some CA". The bootstrap file should look like,
+
+<pre>
+ta-name=someTrustAnchor
+ta-authMethod=X509
+ta-authData=/C=US/O=something/CN=Some CA
+user-name=superUser
+user-subject=/O=Grid/O=Globus/OU=something/CN=someone
+userGroupname=suGroup
+</pre>
+
+<li>The following command from GLOBUS_LOCATION/bin should populate the
+database with data in bootstrap file and implicit data, provided
+<i>casDbProperties</i> is configured as described <a
+href="#dbConfig">here</a>.
+
+<pre>  casadmin$ cas-server-bootstrap -d GLOBUS_LOCATION/etc/casDbProperites -implicit -b bootstrap </pre>
+
+</ol>
+
+<b> Now the CAS service has been successfully installed and can be
+used.</b> For the users to be able to contact the CAS service, the
+instance URL needs to be made available. If the hosting environment in
+which the installation was done is up and running on <i>localhost</i>
+port <i>8888</i>, then the instance URL will be <pre>
+http://localhost:8888/ogsa/services/base/cas/CASService </pre>
+
+<a href="adminGuide.html">CAS Administrator's guide</a><br>
+<a href="userGuide.html">CAS User's guide</a>
+<hr>
+Updated: 02 - 02 - 2004
+</body>
+</html>

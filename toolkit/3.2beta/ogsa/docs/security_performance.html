@@ -1,0 +1,294 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>GT3 security performance evaluation</title>
+  </head>
+
+  <body>
+    <h1>GT3 security performance evaluation</h1>
+
+Olle Mulmo, PDC
+<br>&nbsp;<h3>I have a created a small test service with GT3, and then turn on security. What do I see?</h3>
+
+You see exactly what the people in the<a
+href="http://lcg.web.cern.ch/LCG/PEB/GTA/LCG_GTA_OGSA.htm">LCG Grid
+Technology Area</a> at CERN showcased in their tests with their <a
+href="http://lcg.web.cern.ch/LCG/PEB/GTA/GTA_OGSA/DummyService/">DummyService</a>
+tests: response times will increase by a factor 10. In addtion, it
+takes 5 seconds or more to interact with the service factory and
+create a new service.
+
+<br>&nbsp;<h3>5 seconds? Surely, this can't be?</h3>
+
+<p>
+The short answer is unfortunately yes. There are many factors that
+contribute though: I have found several of them and will try to
+explain what I have found as thoroughly as possible.
+<p>
+<b>NOTE:</b> Actual timings don't mean a thing as they only apply to
+the computer you run on. Below, you will find the timings I measured
+on my instrumented GT3 installation running on my particular hardware
+with my particular version of the JVM.
+The important thing to remember from the figures are their <i>RELATIVE</i> sizes.
+<p>
+Timings are denoted in milliseconds throughout this document. Prefixes <code>K</code>
+and <code>M</code> denote <i>kibi</i> and <i>mibi</i>, not <i>kilo</i> and <i>mega</i>.
+
+<br>&nbsp;<h3>So the service creation takes several seconds? It must be an overly complex operation?</h3>
+
+  Actually, the service creation process itself takes about 50 msec. It's neglible.
+<p>
+  What hits you and accounts for the many seconds is the
+  initialization of the underlying tooling in your client:
+  initializing the Axis handlers and the XML security libraries
+  account for the major part of this time.
+<p>
+  In addition, there are many other one-time operations happening,
+  such as initializing the secure random number generator, loading the
+  proxy certificate and your trusted CA certificates from disk,
+  loading the WSDL defining the factory service porttype, and finally
+  establish a security context with the server when using
+  GSI-SecureConversation (which you tend to do). None of this is
+  performed if you were to create a second service instance in the
+  same security context.
+
+<br>&nbsp;<h3>OK, but there's still a factor 10 penalty on my method
+invocations regardless of this. Is it the complicated and expensive
+crypto operations, perhaps?</h3>
+
+  What I tried to showcase (but failed miserably) in an earlier email
+  was that the XML security implementation is broken in that it is
+  generating a huge overhead: parsing the surrounding XML is 2-3 times
+  more expensive than the crypto operation itself.
+<p>
+  The DummyService tests make use of HMAC, a lightweight form of
+  creating a digital signature to ensure message integrity. Another
+  alternative is full-blown encryption. The table below displays
+  characteristics for both. The case of no encryption (plain) is shown
+  as well.
+<center>
+    <table border=1>
+      <tr><td><code>Security</code></td><td><code>Payload (b)</code></td><td><code>SOAPsize (b)</code></td><td><code>T(engine)</code></td><td><code>T(roundtrip)<code></td></tr>
+</td><td> 
+<tr><td>plain		</td><td>16</td><td>		481</td><td>		0</td><td>		15</td></tr>
+<tr><td>plain</td><td>		16000</td><td>		16465</td><td>		<10</td><td>		23</td></tr>
+<tr><td>plain</td><td>		160000</td><td>	160465</td><td>	20</td><td>		106</td></tr>
+<tr><td colspan=5>&nbsp;</td></tr>
+<tr><td>HMAC</td><td>		16</td><td>		1390</td><td>		40</td><td>		120</td></tr>
+<tr><td>HMAC</td><td>		16000</td><td>		17490</td><td>		70</td><td>		250</td></tr>
+<tr><td>HMAC</td><td>		160000</td><td>	161400</td><td>	360</td><td>		1100</td></tr>
+<tr><td colspan=5>&nbsp;</td></tr>
+<tr><td>Encr</td><td>		16</td><td>		1570</td><td>		30</td><td>		75</td></tr>
+<tr><td>Encr</td><td>		16000</td><td>		23200</td><td>		80</td><td>		220</td></tr>
+<tr><td>Encr</td><td>		160000</td><td>	218050</td><td>	500</td><td>		1380</td></tr>
+</table>
+</center>
+<ul>
+<li><code>SOAPsize</code> is the average size of request/response
+messages for an <code>Service.echo(Payload)</code> operation: the
+incoming and outgoing messages differ by only 50-60 bytes. Encrypted
+data gets Base64-encoded which increases the the wire message sizes by
+33%.<br>&nbsp;
+
+<li><code>T(engine)</code> is the time spent in the Axis engine itself
+on the <i>server</i>. Time spent (de-)serializing the SOAP messages
+and doing the HTTP transfer is <i>NOT</i> included, but can be derived
+from the roundtrip time.<br>&nbsp;
+
+<li><code>T(roundtrip)</code> is the total roundtrip time, measured on the client side.<br>&nbsp;
+
+<li>The <code>Encr</code> and <code>HMAC</code> timings do NOT include the time for establishing
+  a shared security context between client and server (GSI-SecureConversation).
+</ul>
+  To summarize, we do see a performance hit when using the XML security library, but it's
+  far from a factor 10.
+
+
+<br>&nbsp;<h3>How can you say that? Clearly, I see figures differing by more than a factor 10 in that table!</h3>
+
+ Yes, but remember that the load on the client is the same as the load on
+  the server! If you look at the size-16 case for, you get a penalty of 40
+  msec on both ends in the HMAC case. The enveloping of the encrypted or
+  signed data enlarges the message size, but I wouldn't attribute too much
+  of the overhead to slower network transfer and XML (de-)serializing.
+<p>
+  I think this is where the DummyService tests made were <b>WRONG</b>: they put
+  many clients on the same machine, expecting to create a huge load on
+  the server. In fact, the load on the client machine was just as high,
+  and this may attribute to the fact that the CPU utilization on the
+  server was not 100% when it reached "max".
+<p>
+  Notice also that the poor implementation of XML security hits you
+  4-fold on the roundtrip time, as you need to encrypt and decrypt on
+  both client and server side, in sequence. Thus, for every msec of
+  overhead that we can save by improving the implementation of this
+  library, we will gain 4.
+
+<br>&nbsp;<h3>But these figures are still in the millisecond range: how do you attribute my
+factor of 10 slowdown?</h3>
+
+ The table does not include the overhead for establishing a shared secret
+  used to encrypt the data, and this is what hits you.
+<p>
+  The handshake between the client and the server is an exchange of 3
+  roundtrip messages in total. In my case, the size of the SOAP messages
+  sent were {request,response}:<br>&nbsp;
+ <center>
+    <code>{787,3275} {2606,787} {670,686}</code>
+ </center><br>
+  This sequence of messages takes roughly 150 msec to complete.  
+<p>
+  <b>BUT</b>, this is for establishing a context only. In the
+  DummyService case, the client performs a <b>credential delegation</b> to the
+  service instance as well; This costs an additional roundtrip. The exchange
+  pattern and corresponding messages sizes in my case were:<br>&nbsp;
+   <center>
+     <code>{787,3275} {2606,787} {670,1131} {1322,686}</code>
+   </center>
+<p>
+  A handshake with delegation implies much more work for the involved
+  parties as it involves the creation and validation of a RSA key
+  pair: the four roundtrips takes roughly 400 msec to complete.
+
+<br>&nbsp;<h3>But I already had my secure context established -- I did
+that when talking to the factory!</h3>
+
+ No: you establish a new context for each new port type reference that you make use of.
+<p>
+ In the case of the secure DummyService client <a href="http://lcg.web.cern.ch/LCG/PEB/GTA/GTA_OGSA/DummyService/summary3/DummyClientThread.java">(source code)</a>, this means the following message pattern:
+<ul>
+<li><b>Factory:</b>
+<ul><li>Establish context with DummyServiceFactory port type
+    <li>invoke <code>create()</code>
+</ul>
+<li><b>Service:</b>
+<ul><li>Establish context with Dummy port type, perform delegation
+    <li>invoke <code>echo()</code>
+    <li>invoke <code>getTime()</code><br>&nbsp;
+    <li>invoke <code>destroy()</code> on GridService port type
+</ul>
+</ul>
+
+  In total, this results in 4 roundtrips in the non-secure case (the
+  lines that start with 'invoke'), and an additional 7 to in the
+  secure case, totalling 11 roundtrips.
+<p>
+  Notice the <b>BUG</b> in the client program: the service instance is
+  destroyed without any security! Furthermore, since the DummyService
+  does not extend the GridService port type, the client needs to grabs
+  a new reference to a GridService port type from the same service
+  locator. The new reference would need 3 additional roundtrips in
+  order to establish a new security context with this new port type,
+  before invoking <code>destroy()</code>.  (One can argue heavily that
+  all this is nothing but a good example of stupid shortcomings in the
+  tooling.)
+
+<br>&nbsp;<h3>Huh? I thought I would understand more by reading all this?</h3>
+
+  The following is a bit misleading and wrong, but makes for a good
+  conceptual summary of what happens: When using security, you get a
+  factor-3 performance penalty when you invoke a single message.
+  Furthermore, you invoke 3 times as many messages: multiply them
+  together, and you have your slowdown of a factor-10.
+
+<br>&nbsp;<h3>Anything else?</h3>
+
+  Clearly, the tooling does not handle the simple use case very
+  well. The initialization overheads are way off the chart, and
+  invoking a single method securely increases the overhead by a factor
+  10.
+<p>
+  The tooling works much better in scenarios where initialization cost
+  is neglible, for instance when you perform hundreds of invocations
+  using the same security context: The overhead can then be measured
+  in additional 10ths of milliseconds for small payloads.
+<p>
+  On a related note, Java Hotspot works quite well on GT3: while performing
+  hundreds of invocations on the same service instance, you will gradually
+  see improvements on both client and server side that eventually cut as
+  much as 40% of the roundtrip time.
+
+<br>&nbsp;<h3>Conclusions?</h3>
+ 
+  Not really. Clearly, we need a solution for the invoke-once-then-die
+  usage scenario which the current tooling is simply not built for. It
+  will need some serious thinking on how you can go about to fix this.
+<p>
+  In the meanwhile, I suggest we concentrate us on the XML security
+  library and its duplicate parsing and internal use of XPath queries:
+  any millisecond saved there will cut the roundtrip time by 4.
+
+    <hr>
+    <center><small>
+    <address><a href="mailto:mulmo@pdc.kth.se">mulmo@pdc.kth.se</a></address>
+    </small></center>
+    <hr>
+
+<h3> Notes: </h3>
+<ul>
+<li><h3>Security costs:</h3>
+
+Using of SSL imposes a performance penality. To place the above
+security ananylsis in context, the following numbers, taken from this
+<a
+href="http://h18000.www1.hp.com/products/servers/security/axl600l/questionsanswers.html#bn1">webpage</a>,
+give an indication of how a server performs when insecure and secure
+connections are made to it. No SSL accelarators were used for these
+numbers.
+
+<pre><i>A study by Networkshop showed a Pentium server with Linux and Apache
+supporting 322 unsecured sessions, when SSL was turned on; the
+connects per second decreased to 2.4. </i></pre>
+
+<li><h3>GT3 Security Code:</h3>
+
+One of the issues that was apparent in profiling GT3 security code,
+ the conversion from Axis representation to DOM flagged as expensive
+ operation. In the Axis 1.2 release, the SOAP API will implement the
+ DOM API and hence the conversion will not be required.
+
+<li><h3>Apache XML Security Libary: </h3>
+<ul>
+<li> The library has initialization code which reads the configuration
+file and parses it. This is quite expensive, but is invoked once per
+JVM. This affects the client side the most, since it is a good
+percentage of the round trip time.
+
+<li> XPath queries on the configuration files (appear to) have been reworked.
+
+<li>In case of GSI Secure conversation with encryption, an XPath query
+has been eliminated, so should improve performance.
+
+<li>In case of GSI Secure conversation, the optimizations have been
+added to reduce size of the context.
+
+</ul>
+
+<li><h3>Security Mechanisms:</h3> 
+
+<p>GSI Secure Conversation, especially when used with delegation, is
+an expensive operation. It is recommended that this mechanism not be
+used unless delegation is required. 
+
+<p> For all operations not requiring delegation, GSI Secure Message
+would be an option which has lesser performance penalities. This
+currently has only integity (signature) option.
+
+<li><h3>Round trip numbers:(server and client run on separate machines)</h3>
+
+<center>
+    <table border=1>
+      <tr><td><code>Security</code></td><td><code>Payload (b)</code></td><td><code>T(roundtrip)<code></td></tr>
+</td><td> <tr><td>plain		</td><td>16</td><td>		13.56</td></tr>
+<tr><td>plain</td><td>		16000</td><td>		53.53</td></tr>
+<tr><td colspan=5>&nbsp;</td></tr>
+<tr><td>HMAC</td><td>		16</td><td>		275.51</td></tr>
+<tr><td>HMAC</td><td>		16000</td><td>		626.09</td></tr>
+<tr><td colspan=5>&nbsp;</td></tr>
+<tr><td>Encr</td><td>		16</td><td>		163.58</td></tr>
+<tr><td>Encr</td><td>		16000</td><td>		603.72</td></tr>
+</table>
+</center>
+</ul>
+  </body>
+</html>
