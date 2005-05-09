@@ -1,0 +1,64 @@
+<?php
+
+if ( isset( $_GET['search'] ) )
+{
+    $title = "Freenode #globus IRC Search Results";
+    $search = $_GET['search'];
+}
+else
+{
+    $title = "Freenode #globus IRC Search Results";
+}
+
+if ( $directory_handle = opendir( '/home/gose/public_html/bot/irc-logs' ) )
+{
+    /* look in every log file */
+    while ( false != ( $file = readdir( $directory_handle ) ) )
+    {
+        /* look for pattern in file */
+        $file_handle = fopen( $file, "r" );
+        while ( ! feof ( $file_handle ) )
+        {
+            $line = fgets( $file_handle, 4096 );
+
+            /* look for pattern in line */
+            if ( preg_match( "/$search/i", $line ) )
+            {
+                /* we have a match */
+                $match = array( $file, $line );
+                
+                /* store file and line in search results array */
+                array_push( $search_results, $match );
+            }
+        }
+        fclose( $file_handle );
+    }
+    closedir( $directory_handle );
+}
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+
+<h1><?php echo $title; ?></h1>
+
+<div style="position: absolute; top: 104px; left: 570px; width: 200px;">
+<form action="irc-search.html" method="get">
+    <input type="text" name="search" size="17" 
+        maxlength="2048" value="<?php echo $search; ?>">
+    <input type="submit" value="Search" onclick="">
+</form>
+</div>
+
+<?php
+    /* print each search result */
+    $total = count( $search_results );
+    print "<p>$total results found:</p>\n";
+
+    while( list( $file, $line ) = each( $search_results ) )
+    {
+        /* extract time /*
+        $time = substr( $line, 1, 5 );
+    }
+?>
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>

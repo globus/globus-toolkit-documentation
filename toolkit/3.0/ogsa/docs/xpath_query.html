@@ -1,0 +1,250 @@
+<html>
+	<head>
+		<title>XPath Query Support for OGSA Service Data </title>
+	</head>
+	<body>
+<img border="0" src="gt_logo.jpg">
+		<font size="4" face="Arial">
+        <h1>
+XPath Query support for Service Data Elements  (Experimental)</h1>
+
+
+        <p>Globus Toolkit 3.0 - Last Updated <!--webbot bot="Timestamp"
+S-Type="EDITED" S-Format="%m/%d/%Y" startspan -->06/20/2003<!--webbot bot="Timestamp" i-CheckSum="12510" endspan -->
+        </p>
+        </font>
+		<font size="5" face="Times New Roman">
+        <p><u>Audience:</u></p>
+        </font>
+		<font face="Times New Roman">
+        <p>This document is targeted towards OGSA developers interested in 
+        evaluating XPath query expressions against OGSA Service Data Elements.</p>
+        </font>
+        <p><font face="Times New Roman"><u><font size="5">Summary</font></u><font size="5">:
+        </font> </font></p>
+        <p><font face="Times New Roman">This version of XPath query support for 
+        Service Data consists of a basic implementation that uses Xalan-J XPathAPI to 
+        evaluate XPath expressions on XML-serialized ServiceData elements and 
+        return the results as singleton XML elements or arrays of XML elements.</font></p>
+        <p><font face="Times New Roman" size="5"><u>Usage</u>: </font></p>
+        <p><font face="Times New Roman">An XPath query can be performed by issuing a 
+        findServiceData() method call and passing a 
+        ServiceDataXPathQueryExpressionType object as the parameter instead of 
+        ServiceDataNameQueryExpressionType. </font></p>
+        <p><font face="Times New Roman">ServiceDataXPathQueryExpressionType has the 
+        following WSDL structure:</font></p>
+        <font SIZE="2">
+        <p>&nbsp;</p>
+        <blockquote>
+          <blockquote>
+            <blockquote>
+              <p><font face="Courier New">&lt;complexType 
+              name=&quot;ServiceDataXPathQueryExpressionType&quot;&gt;</font></p>
+              <p><font face="Courier New">&nbsp;&nbsp;&nbsp; &lt;sequence&gt;</font></p>
+              <p><font face="Courier New">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+              &lt;element name=&quot;name&quot; type=&quot;QName&quot;/&gt;</font></p>
+              <p><font face="Courier New">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+              &lt;element name=&quot;XPath&quot; type=&quot;string&quot;/&gt;</font></p>
+              <p><font face="Courier New">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+              &lt;element name=&quot;namespaces&quot; type=&quot;string&quot; minOccurs=&quot;0&quot; 
+              maxOccurs=&quot;unbounded&quot;/&gt;</font></p>
+              <p><font face="Courier New">&nbsp;&nbsp;&nbsp; &lt;/sequence&gt;</font></p>
+              <p><font face="Courier New">&lt;/complexType&gt;</font></p>
+            </blockquote>
+          </blockquote>
+        </blockquote>
+        <p>&nbsp;</p>
+        </font>
+        <p><font face="Times New Roman" size="5"><u>Parameter Explanation</u>:</font></p>
+        <p><font face="Times New Roman" size="4">1. QName: &quot;name&quot;: </font></p>
+        <blockquote>
+        <p><font face="Times New Roman">This is the QName of the SDE to select as the 
+        basis of the search. Similar to the current ServiceDataNameEvaluator, 
+        wildcards are supported in either part of the QName. If a wildcard is 
+        specified, the XPath will be applied in turn to each matching element 
+        returned by the wildcard selection, and the entire results set will be 
+        returned as an array of Elements, with each element containing 1 or more 
+        result elements from the XPath query.</font></p>
+        </blockquote>
+        <p><font face="Times New Roman" size="4">2. String: &quot;XPath&quot;: </font></p>
+        <blockquote>
+        <p><font face="Times New Roman">This is the XPath expression to apply to the SDE 
+        specified by the &quot;name&quot; parameter. The XPath language is sophisticated 
+        and the syntax is strict. Improper syntax in query expressions will 
+        generate Invalid Expression exceptions.&nbsp; Improper 
+        semantic usage may yield an undesirable or unexpected result set, or no 
+        results at all.&nbsp;
+        </font></p>
+        </blockquote>
+        <p><font face="Times New Roman"><font size="4">3. String[]: &quot;namespaces&quot;</font>: </font></p>
+        <blockquote>
+        <p><font face="Times New Roman">XPath requires that the client provide a namespace 
+        mapping for every node in the query scope that has a corresponding 
+        namespace attribute. In the current implementation, this is provided via 
+        an array of Strings of the form &quot;xmlns:&lt;prefix&gt;=&lt;namespaceURI&gt;&quot;. For 
+        example:</font></p>
+        <p><font face="Times New Roman">
+        xmlns:gsdl=http://www.gridforum.org/namespaces/2002/10/gridServices</font></p>
+        <p><font face="Times New Roman">
+        xmlns:wsil=http://schemas.xmlsoap.org/ws/2001/10/inspection/</font></p>
+        <p><font face="Times New Roman">If namespace mappings are not provided, the 
+        default behavior is to use the current context node (in our case the SDE 
+        root element) to resolve the namespaces. However, this may not be 
+        sufficient when searching for child nodes which contain namespace 
+        attributes that are not present in the root node, so one must be 
+        careful to provide all possible namespaces of interest that are likely 
+        to be encountered when traversing the SDE. </font></p>
+        <p><font face="Times New Roman">Note that while with XPath it *is* possible to do 
+        a wildcard selection on a QName localPart within the XPath string 
+        expression, it is *not* possible to wildcard the namespaceURI or prefix.
+        </font></p>
+        <p><font face="Times New Roman">For example: //*:* is an invalid query, but 
+        //gsdl:* is valid -- as long as the &quot;gsdl&quot; prefix can be resolved to a 
+        URI.</font></p>
+        <p><font face="Times New Roman">Author's Note: It turns out you can get some queries to 
+        work without using namespaces by using XPath in-line functions like 
+        local-name() to accomplish namespace wildcarding, and namespace-uri() to 
+        facilitate specifying the namespace in the expression. However this 
+        seems like a cumbersome method that is not very robust, since it only 
+        works when selecting Element node types. So this is BAD for something 
+        like 'give me the goodUntil time value of ServiceData &lt;x&gt;', but it is a 
+        very quick-and-dirty way to get a whole bunch of arbitrary, like-named 
+        elements out of a document without knowing anything about the 
+        namespaces. Ultimately, in the OGSA namespace-intensive environment, this might 
+        prove to be a 
+        Bad Habit. </font></p>
+        <p>&nbsp;</p>
+        </blockquote>
+        <p><u><font face="Times New Roman" size="5">Current Client Implementations:</font></u></p>
+        <p><font face="Times New Roman" size="4"><u>Test-Case</u> </font></p>
+        <p><font face="Times New Roman">There is a basic test case that is run to issue an 
+        XPath query that checks if the QueryExpressionTypes SDE contains the 
+        queryByServiceDataXPath expression type. Its basically just a simple 
+        self-test. It can be found in the TestServiceData.java module.</font></p>
+        <p><font face="Times New Roman"><u><font size="4">Querying</font></u> </font></p>
+        <p><font face="Times New Roman">The GridServicePortTypePanel.java of the OGSA 
+        Service Browser GUI has been modified to take the extra parameters of 
+        the String XPath expression and the Namespace mapping string. Specify 
+        the literal XPath expression string in the XPath text box and use a 
+        whitespace, semi-colon, or comma delimited set of namespace strings in 
+        the Namespace text box. The Service Browser was used to test XPath query 
+        evaluation on a variety of services, and was successful in getting the 
+        expected results when using properly formed queries. At this point it’s the 
+        best place to start if you want to try out a bunch of queries with out 
+        doing any programming.</font></p>
+        <font SIZE="2">
+        <p>&nbsp;</p>
+        </font>
+        <p><u><font face="Times New Roman" size="5">Sample Queries:</font></u></p>
+        <p><font face="Times New Roman">Here are some sample queries that produced 
+        acceptable 
+        results. Please note that these are just scratching the surface of what 
+        is possible with XPath.&nbsp; Please do *not* consider this a definitive 
+        resource on XPath usage in general, or with OGSA specifically. </font>
+        </p>
+        <p>&nbsp;</p>
+        <p><font face="Times New Roman" size="4">1. Find if a specific service name exists 
+        in a registry using namespaces:</font></p>
+        <p><font face="Times New Roman">Using a fully qualified XPath<font SIZE="2">:
+        </font></font></p>
+        <font SIZE="2">
+        <blockquote>
+          <p><font face="Courier New">
+          xmlns:gsdl=http://www.gridforum.org/namespaces/2002/10/gridServices</font></p>
+          <p><font face="Courier New">
+          xmlns:wsil=http://schemas.xmlsoap.org/ws/2001/10/inspection/</font></p>
+          <p><font face="Courier New">
+          //gsdl:serviceData/wsil:inspection/wsil:service/wsil:name[.='Handle 
+          Resolver']</font></p>
+          <p>&nbsp;</p>
+        </blockquote>
+        </font>
+        <p><font face="Times New Roman">Below is a shorter form -- Any element that 
+        matches the wsil:service/wsil:name hierarchy and has a value equal to 
+        'Handle Resolver' will be selected (though this may not be what is 
+        strictly desired):</font></p>
+        <font SIZE="2">
+        <blockquote>
+          <p><font face="Courier New">//*/wsil:service/wsil:name[.='Handle 
+          Resolver']</font></p>
+        </blockquote>
+        </font>
+        <p>&nbsp;</p>
+        <p><font face="Times New Roman">It is also possible to do the same as above but 
+        without namespaces (Note that this approach is not very robust since 
+        local-name() doesn't work on attributes):</font></p>
+        <p><font face="Times New Roman">Fully Qualified: </font></p>
+        <font SIZE="2">
+        <blockquote>
+        <p><font face="Times New Roman">&nbsp;&nbsp; </font><font face="Courier New">&nbsp;//*[local-name()='serviceData']/*[local-name()='inspection']/*[local-name()='service']/*[local-name()='name'][.='&lt;service 
+        name&gt;']</font></p>
+        </blockquote>
+        <p>&nbsp;</p>
+        </font>
+        <p><font face="Times New Roman">Any element that matches any 
+        service/name hierarchy and has a value equal to &lt;service name&gt;:</font></p>
+        <font SIZE="2">
+        <blockquote>
+        <p><font face="Courier New">&nbsp;//*[local-name()='service']/*[local-name()='name'][.='&lt;service name&gt;']</font></p>
+        </blockquote>
+        <p>&nbsp;</p>
+        </font>
+        <p><font face="Times New Roman" size="4">3. Self-Test to find if XPath Expressions 
+        are supported:</font></p>
+        <blockquote>
+          <p><font face="Courier New" size="2">
+          xmlns:gsdl=http://www.gridforum.org/namespaces/2002/10/gridServices</font></p>
+          <p><font face="Courier New" size="2">
+          //gsdl:queryExpressionType[.='gsdl:queryByServiceDataXPath']</font></p>
+          <p>&nbsp;</p>
+        </blockquote>
+        <p><font size="4" face="Times New Roman">4. SubscribeByXPath supported? Not yet - 
+        and so this query will return no elements:</font></p>
+        <font SIZE="2">
+        <blockquote>
+          <p><font face="Courier New">
+          xmlns:gsdl=http://www.gridforum.org/namespaces/2002/10/gridServices</font></p>
+          <p><font face="Courier New">
+          //gsdl:subscriptionExpressionType[.='gsdl:subscribeByServiceDataXPath']</font></p>
+        </blockquote>
+        <p>&nbsp;</p>
+        </font>
+        <p><font face="Times New Roman" size="4">5. Basic MDS-style Query - Find if a 
+        filesystem named &quot;C:\&quot; exists:</font></p>
+        <font SIZE="2">
+        <blockquote>
+          <p><font face="Courier New">
+          xmlns:mds=http://glue.base.ogsa.globus.org/ce/v_1_0_20020824</font></p>
+          <p><font face="Courier New">//mds:Host/mds:FileSystem[@mds:Name='C:\']</font></p>
+          <p>&nbsp;</p>
+        </blockquote>
+        </font>
+        <p><font face="Times New Roman" size="4">6. Basic MDS-style Query - Select all 
+        Host/MainMemory attributes named &quot;RAMAvailable&quot; that have a value &gt;= 
+        200000</font></p>
+        <font SIZE="2">
+        <blockquote>
+          <p><font face="Courier New">
+          xmlns:mds=http://glue.base.ogsa.globus.org/ce/v_1_0_20020824</font></p>
+          <p><font face="Courier New">
+          //mds:Host/mds:MainMemory[@mds:RAMAvailable &gt;= 200000]</font></p>
+        </blockquote>
+        <p>&nbsp;</p>
+        </font>
+        <p><font face="Times New Roman" size="5">Useful Links: </font></p>
+        <p><font face="Times New Roman">Here are some links to XPath docs that you may 
+        find useful:</font></p>
+        <p><font face="Times New Roman">XPath Spec:
+        <a HREF="http://www.w3.org/TR/xpath"><font COLOR="#0000ff"><u>
+        http://www.w3.org/TR/XPath</u></font></a></font></p>
+        <p><font face="Times New Roman">XPath tutorial:
+        <a HREF="http://www.zvon.org/xxl/XPathTutorial/General/examples.html">
+        <font COLOR="#0000ff"><u>
+        http://www.zvon.org/xxl/XPathTutorial/General/examples.html</u></font></a></font></p>
+        <p><font face="Times New Roman">Query Expression samples:
+        <a HREF="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/xmlsdk/htm/xpath_syntax2_3prn.asp?frame=true">
+        <font COLOR="#0000ff"><u>
+        http://msdn.microsoft.com/library/default.asp?url=/library/en-us/xmlsdk/htm/XPath_syntax2_3prn.asp?frame=true</u></font></a></font></p>
+        <p>&nbsp;</p>
+	</body>
+</html>

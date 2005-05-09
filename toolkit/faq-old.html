@@ -1,0 +1,149 @@
+<?php
+
+$title = "Globus Toolkit 3.0 FAQ";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+
+<h1><?php echo $title; ?></h1>
+
+<ul>
+<h2>GT3 Core</h2>
+<li><a href="#100">Can I deploy my services into a container at run time?</a>
+<li><a href="#101">What do I have to do to make sure that my service is
+activated when the container starts up?</a>
+<li><a href="#102">Why can I only access my service running on Linux from
+the local host?</a>
+<li><a href="#103">How do I make my service publish itself with a hostname
+instead of an IP address?</a>
+<li><a href="#104">How do I change the OGSI logging settings in Tomcat?</a>
+<li><a href="#105">I get a socket read timeout error during heavy load,
+how can I change that behavior?</a>
+<h2>GT3 GRAM (MMJFS)</h2>
+<li><a href="#200">org.globus.gsi.proxy.ProxyPathValidatorException: Desired service
+path not found in policy</a>
+</ul>
+
+<hr width=400>
+
+<h2>GT3 Core</h2>
+
+<p><a name="100">Can I deploy my services into a container at run time?</a></p>
+
+<p>We currently don't support this for persistent services. All
+persistent services have to be deployed into the container when its
+hosting environment is not running. Transient services (created by
+factories) are however designed to be deployed at run time into a
+container. Future versions may allow run time deployment of persistent
+services as well.</p>
+
+<p><a name="101">What do I have to do to make sure that my service is
+activated when the container starts up?</a>
+
+<p>When a container starts up, all its services are deactivated by
+default. In order to change that behavior you need to set the property
+"activateOnStartup" to "true" in the service section of your service in
+the deployment descriptor. Note that activation will then take place the
+first time the container is loaded. In the case of our standalone
+container this happens at server startup, but in the case of a Servlet
+Engine, like Tomcat, it does not happen until the servlet is loaded as
+result of an invocation.</p>
+
+<p><a name="102">Why can I only access my service running on Linux from
+the local host?</a>
+
+<p>If you do not have an entry in etc/hosts for your current IP address,
+the loopback address 127.0.0.1 will be used to publish the service
+handle, and thus limiting access to it to the local host. Updating the
+etc/hosts file is hence recommended. You can however also specify what
+DNS name should be exposed in the handle of a service by setting the
+global parameter "logicalHostName" in you server-config.wsdd file in the
+globalConfiguration section. See User's Guide for details.</p>
+
+<p><a name="103">How do I make my service publish itself with a hostname
+instead of an IP address?</a>
+
+<p>In the server-config.wsdd file in the globalConfiguration section set
+the parameter "publishHostName" to "true". See User's Guide for details.</p>
+
+<p><a name="104">How do I change the ogsi logging settings in Tomcat?</a>
+
+<p>The ogsilogging.properties file contains the log filter settings you
+would need to change. This file must be in your current directory or in
+the classpath in order to be correctly read by our container. When
+deploying your services into Tomcat this file ends up in &lt;tomcat
+dir&gt;/webapps/ogsa/WEB-INF. In order to read the settings in this file
+after your modifications you need to add that directory to your
+CLASSPATH variable before you start tomcat.</p>
+
+<p><a name="105">I get a socket read timeout error during heavy load,
+how can I change that behavior?</a>
+
+<p>By default the timeout of a Grid service invocation is 60 seconds. In
+order to change this behavior you have two options:
+
+<ol>
+<li>Change a property on the stub that you use to invoke the service. How
+to do that is described in the following FAQ:
+
+<ul>
+<p><a href="http://nagoya.apache.org/wiki/apachewiki.cgi?AxisProjectPages/JavaTimeout">
+http://nagoya.apache.org/wiki/apachewiki.cgi?AxisProjectPages/JavaTimeout</a>
+</ul>
+
+<p>See our Performance Guide for more details.
+
+<li>In you client JVM set the system property:
+
+<pre class=command>
+ -Dorg.globus.ogsa.client.timeout=(milliseconds)
+</pre>
+
+<p>To set system properties for the globus provided command line clients in
+the bin directory set the OPTIONS environment variable to the full
+string -Dorg....
+
+<p>If you use version 3.0 or earlier you need to do two additional things
+to enable this feature:
+
+<ul>
+<p>2.1 Download timeout handler gar from:
+
+<ul>
+<a href="ftp://ftp.globus.org/pub/gt3/3.0/3.0.0/ogsa-timeout.gar">
+ftp://ftp.globus.org/pub/gt3/3.0/3.0.0/ogsa-timeout.gar</a>
+</ul>
+
+<p>and deploy it using:
+
+<pre class=command>
+ ant deploy -Dgar.name=ogsa-timeout.gar
+</pre>
+
+<p>2.2 Change the client-config.wsdd file in your distribution to contain
+this handle in the requestFlow Ex:
+
+<pre class=command>
+ &lt;requestFlow&gt;
+   &lt;handler type="java:org.globus.ogsa.handlers.TimeOutHandler"/&gt;
+   &lt;handler type="java:org.globus.ogsa.handlers.RoutingRequestHandler"/&gt;
+...
+</pre>
+
+<p>Make sure that your modified client-config.wsdd is either in the same
+directory from where you run the client or in the classpath of the
+client JVM.</p>
+</ul>
+</ol>
+
+<h2>GT3 GRAM (MMJFS)</h2>
+<p><a name="200">org.globus.gsi.proxy.ProxyPathValidatorException: Desired service
+ path not found in policy</a>
+<p>All of the "policy" based errors come from globus-grim.  This particular error
+means that the /etc/grid-security/grim-port-type.xml file has not been properly
+formatted.  If you copied it from step 3.2 in <a href=
+"http://www-unix.globus.org/toolkit/3.0/ogsa/docs/admin/configuration.html">
+the Admin Guide</a>, make sure you did not introduce any extra newlines or spaces.
+The &lt;port_type&gt; entry should all be on one line.</p>
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>

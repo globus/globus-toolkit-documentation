@@ -1,0 +1,690 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><html><head>
+  <title>Message Level Security</title>
+  
+  
+  <style type="text/css">
+
+
+  </style></head><body>
+<img border="0" src="gt_logo.jpg">
+
+<h2>Message Level Security</h2>
+
+Last Updated 09/03/2003
+
+<h2>
+<i>Contents</i></h2>
+
+<ol>
+
+<li><a href="#Introduction">Introduction</a></li>
+<li><a href="#Configuration">Configuration</a></li>
+<li><a href="#Client">Client</a></li>
+<li><a href="#Service">Service</a></li>
+<li><a href="#Notifications">Notifications</a></li>
+<li><a href="#Notes">Limitations</a></li>
+<li><a href="#Errors">Errors</a></li>
+<br>
+
+</ol>
+
+<h2><a name="Introduction">1 Introduction</a></h2>
+
+The message level security is based on <a href="http://www.oasis-open.org/committees/wss/">WS-Security</a>, <a href="http://www.w3.org/TR/xmlenc-core/">XML Encryption</a> and <a href="http://www.w3.org/TR/xmldsig-core/">XML Signature</a> standards. GT3 provides two different message level authentication mechanisms: <i>GSI Secure Conversation</i> and <i>GSI XML Signature.</i>
+With the GSI Secure Conversation method, a security context is first established
+between a client and the service which then is used to sign/verify/encrypt/decrypt
+messages. With the GSI XML Signature method a message is signed with the
+given credentials. 
+
+<h2><a name="Configuration">2 Configuration</a></h2>
+
+<h3>2.1 Handlers</h3>
+
+Message level security is handled by a few client- and server- side Axis/JAX-RPC handlers.
+These handlers must be properly installed in order for the message level security
+to work.
+
+The server-config.wsdd file must define the following request and response flows:
+
+<pre>&nbsp; &lt;requestFlow&gt;<br>&nbsp;&nbsp; &lt;handler type="URLMapper"/&gt;<br>&nbsp;&nbsp; &lt;handler type="HandleResolverHandler"/&gt;<br><b>   &lt;handler type="java:org.globus.ogsa.impl.security.authentication.AuthenticationServiceHandler</b><b>"/&gt;</b><br>   <b>&lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>     &lt;parameter name="className" <br>                value="org.globus.ogsa.impl.security.authentication.wssec.WSSecurityHandler"/&gt;<br>   &lt;/handler&gt;</b><b><br>   &lt;handler type="java:org.globus.ogsa.impl.security.authentication.SecurityPolicyHandler"/&gt;<br>   &lt;handler type="java:org.globus.ogsa.impl.security.authorization.AuthorizationHandler"/&gt;<br>   </b>&lt;!-- optional: only needed for credential refresh functionality --&gt;<br>   <b>&lt;handler type="java:org.globus.ogsa.impl.security.authentication.CredentialRefreshHandler"/&gt;</b><br>&nbsp;&nbsp; &lt;!-- additional handlers --&gt;<br>&nbsp; &lt;/requestFlow&gt;</pre>
+
+
+<pre>&nbsp; &lt;responseFlow&gt;<br>&nbsp;&nbsp;&nbsp; &lt;!-- additional handlers --&gt;<br>    <b>&lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>     &lt;parameter name="className" <br>                value="org.globus.ogsa.impl.security.authentication.X509SignHandler"/&gt;<br>    &lt;/handler&gt;<br>    &lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>     &lt;parameter name="className" <br>                value="org.globus.ogsa.impl.security.authentication.GSSHandler"/&gt;<br>    &lt;/handler&gt;</b><br>&nbsp; &lt;/responseFlow&gt;</pre>
+
+
+The <i>gsi/AuthenticationService</i> service must also be deployed. <br>
+
+The client-config.wsdd file must define the following request and response
+flows:
+<pre>&nbsp;&lt;requestFlow&gt;<br>&nbsp; &lt;!-- additional handlers --&gt;<br>&nbsp; &lt;handler type="java:org.globus.ogsa.handlers.OnceInvocationHandler"/&gt;<br><b>  &lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>    &lt;parameter name="className" <br>               value="org.globus.ogsa.impl.security.authentication.X509SignHandler"/&gt;<br>  &lt;/handler&gt;<br>  &lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>    &lt;parameter name="className" <br>               value="org.globus.ogsa.impl.security.authentication.SecContextHandler"/&gt;<br>    &lt;parameter name="authService" <br>               value="auto"/&gt;<br>  &lt;/handler&gt;<br>  &lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>    &lt;parameter name="className" <br>               value="org.globus.ogsa.impl.security.authentication.GSSHandler"/&gt;<br>  &lt;/handler&gt;</b><br> &lt;/requestFlow&gt;</pre>
+
+<pre>&nbsp;&lt;responseFlow&gt;<br>   <b>&lt;handler type="java:org.globus.ogsa.utils.JAXRPCHandler"&gt;<br>     &lt;parameter name="className" <br>                value="org.globus.ogsa.impl.security.authentication.wssec.WSSecurityClientHandler"/&gt;<br>   &lt;/handler&gt;</b><br>&nbsp;&nbsp; &lt;!-- additional handlers --&gt;<br>&nbsp;&lt;/responseFlow&gt;</pre>
+
+Note: All these client-side, server-side handlers and the <i>gsi/AuthenticationService</i> service are installed by default.
+
+<h3>
+<a name="14VM">
+2.2 Sun JVM 1.4.0/1.4.1 Issues</a>
+</h3>
+
+The message level security code is based on <a href="http://xml.apache.org/security/">Apache's XML Security library</a>.
+An older version of Xalan was shipped with Sun's JVM 1.4.0/1.4.1 then the
+version the XML Security library requires. Please see the <a href="http://xml.apache.org/security/Java/installation.html#Using+JDK+1.4.0">XML Security library installation instructions</a> for details and solutions. The xalan.jar file found in our distribution can be used.<br>
+
+Most of our command line clients will pick the right version of the xalan.jar file.<br>
+
+
+
+
+
+<h3>2.3 Tomcat Configuration</h3>
+
+
+Please follow the instructions in section 2.8 of the <a href="users_guide.html#Installation">User's Guide</a> to deploy the framework in Tomcat. Also, if you are using J2SE 1.3.1 <a href="security.html#JAASinstallation">download and install</a> the JAAS library. Copy the jaas.jar file into &lt;tomcat_root&gt;/commons/lib directory. If using J2SE 1.4.x with Tomcat 4.1.24 copy xalan.jar found in GT3 distribution to &lt;tomcat root&gt;/common/endorsed. 
+
+<h2><a name="Client">3 GSI Client</a></h2>
+
+Java CoG Kit must be properly configured to use GSI on the client. Make
+sure you have a valid proxy before running any GSI-enabled client.
+<p>
+To enable <i>GSI Secure Conversation</i> security set the <b>Constants.GSI_SEC_CONV</b>
+property to either <b>Constants.SIGNATURE</b> or <b>Constants.ENCRYPTION</b>
+to indicate the desired message level protection. <br>
+The GSI properties such as <b>GSIConstants.GSI_MODE</b>,&nbsp;
+<b>GSIConstants.GSI_CREDENTIALS</b>, and <b>Constants.AUTHORIZATION</b> can 
+be used to configure the GSI Secure Conversation message level security.
+The actor of the GSI signed/encrypted message can be set using the "<b>gssActor</b>"<b> </b>property.<br>
+<br>
+To enable <i>GSI XML Signature</i> security set the <b>Constants.GSI_XML_SIGNATURE</b> to <b>Boolean.TRUE</b>.<br>
+The GSI properties such as <b>GSIConstants.GSI_CREDENTIALS</b>, and <b>Constants.AUTHORIZATION</b>
+can also be used to configure the GSI XML Signature message level security.
+The actor of the signed message can be set using the "<b>x509Actor</b>" property.<br>
+</p>
+
+
+
+
+
+
+<p>The above properties are set in the exact same way as the other GSI
+properties. Please see section <a href="security.html#GSIProperties">5.1</a> for details.<br>
+
+</p>
+
+
+
+
+
+
+<h2><a name="Service">4 GSI Service</a></h2>
+
+
+
+
+No code modifications are necessary to access a
+service securely. Minor code modifications might be needed for specialized
+purposes such as setting the service owner with the caller's delegated
+credential (e.g. in cases where a service is supposed to be accessed only by a specific user - user that created it)
+<h3>4.1 Schema</h3>
+
+
+
+
+
+
+No schema changes are necessary.
+
+<h3>4.2 Programming model</h3>
+
+
+
+
+
+
+
+<h4>4.2.1 Setting service owner with caller's delegated credential</h4>
+
+
+
+
+
+
+To set the service owner with caller's credential, use:
+<pre> import org.globus.ogsa.impl.security.SecurityManager;<br> ...<br> public void serviceMethod() {<br>   SecurityManager.getManager().setServiceOwnerFromContext(this);<br> }<br> ...<br></pre>
+
+
+
+
+
+
+<h4>4.2.2 Getting caller's identity</h4>
+
+
+
+
+
+
+To get the current caller's identity, use:
+<pre> import org.globus.ogsa.impl.security.SecurityManager;<br> ...<br> public void serviceMethod() {<br>    String identity = SecurityManager.getManager().getCaller();<br> }<br> ...<br></pre>
+
+
+
+
+
+
+<h4><a name="Service">4.2.3 Getting the JAAS invocation Subject</a></h4>
+
+
+
+
+
+
+To get the JAAS invocation Subject, use:
+<pre> import javax.security.auth.Subject;<br> import org.globus.gsi.jaas.JaasSubject;<br> ...<br> public void serviceMethod() {<br>   Subject subject = JaasSubject.getCurrentSubject();<br> }<br> ...<br></pre>
+
+
+
+
+
+
+The invocation Subject depends on the run-as policy specified
+in the security descriptor. If no security descriptor is set for the service,
+the invocation Subject will be null. The Subject object contains authentication
+and authorization artifacts such as principals, public and private credentials.<br>
+
+
+
+
+
+
+In case of <i>GSI XML Signature</i>,
+a GlobusPrincipal (the identity of the signer) is added to the principal
+set of the Subject. Also, the signer's certificate chain is added to the
+public credentials set of the Subject object.<br>
+
+
+
+
+
+
+In case of <i>GSI Secure Conversation</i>,
+a GlobusPrincipal (the identity of the initiator) is added to the principal
+set of the Subject. Also, if delegation was performed, the delegated credential
+is added to the private credential set of the Subject object.<br>
+
+
+
+
+
+Also, if gridmap file authorization was performed, a UserNamePrincipal is added to the principal
+set of the Subject object.<br>
+
+
+
+
+
+  
+<h3><a name="Service">4.3 Deployment Descriptor</a></h3>
+
+
+
+
+
+
+
+<h4>4.3.1 Operation Providers</h4>
+
+
+
+
+
+
+
+If a service provides a NotificationSource port type it should specify the "<i>org.globus.ogsa.impl.security.authentication.SecureNotificationSourceProvider</i>" instead of the "<i>org.globus.ogsa.impl.ogsi.NotificationSourceProvider</i>". 
+Service credentials might not be propagated correctly if the regular NotificationSourceProvider
+is used. All other operation providers remain the same.  
+<h4>4.3.2 Service credentials</h4>
+
+
+
+
+
+
+<p>Each service can also be configured with a separate set of credentials. 
+This is done by adding either <b>&lt;parameter name="serviceProxy" value="<i>&lt;proxy
+ file&gt;</i>"/&gt;</b> element or <b>&lt;parameter name="serviceCert" value="<i>&lt;certificate
+ file&gt;</i>"/&gt;</b> and <b>&lt;parameter name="serviceKey" value="<i>&lt;unencrypted
+ key file&gt;</i>"/&gt; </b>elements to the &lt;service&gt; block of the
+service in the <i>server-config.wsdd</i> file. 
+Global credentials (<i>container credentials</i>) can also be specified in the &lt;globalConfiguration&gt;
+ block in similar way by adding <b>"containerProxy"</b> parameter or <b>"containerCert"</b> and <b>"containerKey"</b>
+parameters.  A service will first check for the credential parameters   in
+the &lt;service&gt; section. If no credential parameters are defined in the
+&lt;service&gt; section, the service will check the &lt;globalConfiguration&gt; 
+ block next. If no credentials are defined in either places, the service
+will rely on the underlying security library to acquire credentials (the
+security library will try to load a proxy certificate of the user that is
+running the container). If the credential files change during the runtime they will be automatically reloaded. 
+
+</p>
+
+
+<p>
+   
+A separate set of trusted CA certificates can also be configured for each
+ service. This is done by adding <b>&lt;parameter name="trustedCertificates"
+ value="<i>&lt;CA certificate locations&gt;</i>"/&gt;</b> element to the
+&lt;service&gt;  block of the service in the <i>server-config.wsdd</i> file.. Global CA certificates can also be
+specified in the  &lt;globalConfiguration&gt; block in the same way. &nbsp;The<i>
+&lt;CA certificate  locations&gt;</i> can be a comma separated list of individual
+certificate  files or directories contains certificates (files ending with
+.&lt;digit&gt;  extension) &nbsp;A service will first check for the <i>trustedCertificates
+ </i>parameter in the &lt;service&gt; section. If no such parameter is defined
+ in the &lt;service&gt; section, the service will check the &lt;globalConfiguration&gt;
+ block next. If no trusted certificates are defined in either places, the
+service will rely on the underlying security library to find the certificates. <br>
+<i>The "trustedCertificates" parameter is currently ignored.</i><br>
+</p>
+
+
+
+
+
+<h4>4.3.3 Service authorization settings</h4>
+
+
+
+
+
+<p>Each service can be configured with a separate authorization mechanism.
+Currently, there are three supported authorization mechanisms: <i>none</i>, <i>self</i>, and <i>gridmap. </i>The authorization mechanism of a service is configured by setting an <b>"authorization"</b> parameter in the service deployment descriptor, for example:&nbsp;<b>&lt;parameter name="authorization" value="self"/&gt;<br>
+</b></p>
+
+
+
+
+
+<p>Authorization checks are only performed for authenticated clients. All
+authorized clients have the same access to all methods of a service.</p>
+
+
+
+
+
+<p>If the <b>"authorization" </b>parameter is set to <i><b>"none" </b></i>no authorization is performed. If the <b>"authorization" </b>parameter is set to <i><b>"self" </b></i>only
+the clients with the same identity as the service are allowed to access the
+service (if the service does not have its own identity, the system identity
+is used instead for authorization). If the <b>"authorization" </b>parameter is set to <i><b>"gridmap"</b></i>,<i><b> </b></i>gridmap file authorization is performed. A <b>"gridmap" </b>property
+pointing to the girdmap file location must be either specified in the &lt;service&gt;
+section or in the &lt;globalConfiguration&gt; section of the deployment descriptor.
+If the <b>"authorization"</b> parameter is not defined in the service deployment descriptor, and the <b>"gridmap" </b>property
+is not defined in the &lt;service&gt; or &lt;globalConfiguration&gt; section
+of the deployment descriptor, self authorization is performed. If the <b>"authorization"</b> parameter is not defined in the service deployment descriptor, but the <b>"gridmap" </b>property
+is defined in the &lt;service&gt; or &lt;globalConfiguration&gt; section
+of the deployment descriptor, gridmap authorization is performed.
+<br></p>
+
+<p>For services configured to perform gridmap file authorization, the gridmap
+file can be updated dynamically using the SecurityManager API. Also, if the gridmap file changes during the runtime it will be automatically reloaded. 
+</p>
+
+<h3><a name="SecDescriptor"></a>4.4 Security Deployment Descriptor</h3>
+
+
+
+
+ A
+separate security deployment descriptor is used to provide more fine-grained
+control over security properties of a service such as authentication mechanisms
+required to access a service and/or run-as identities of the service. <br>
+
+
+
+
+
+<br>
+
+
+
+
+
+The security deployment descriptor file is specified by the "<b>securityConfig</b>" parameter in the regular service deployment descriptor. For example:<br>
+
+
+
+
+
+<pre><b>&lt;parameter name="securityConfig" value="org/globus/ogsa/impl/security/descriptor/gsi-security-config.xml</b><b>"/&gt;</b></pre>
+
+
+
+
+
+The security deployment descriptor is loaded in the same way as any other
+resource data (from the classpath). This allows the security descriptor to
+be included in the same .jar file as rest of the service code. <br>
+
+
+
+
+
+The "<b>gsi-security-config.xml</b>" file mentioned above is a generic security
+deployment descriptor that can be used to secure a service with GSI secure
+conversation authentication mechanism. <br>
+
+<br>
+
+The security deployment descriptor is contained within the "<b>&lt;securityConfig xmlns="http://www.globus.org"&gt;</b>" element. Method-based security properties (for some properties) can be contained within the "<b>&lt;method name="qname"&gt;</b>" elements. The security deployment descriptor will not be reloaded
+if it has changed during the runtime. 
+
+<h4>4.4.1 Authentication Methods</h4>
+
+The "<b>&lt;auth-method&gt;</b>" element is used to configure the authentication
+mechanisms required to access a service. The authentication methods can be
+configured on per method basis. Currently, the following authentication methods
+are supported:<br>
+
+
+
+
+
+<ul>
+
+
+
+
+
+  <li>"<b>&lt;none/&gt;</b>" - indicates none authentication method</li>
+  <li>"<b>&lt;pkey/&gt;</b>" - indicates public key authentication method</li>
+  <li>"<b>&lt;gsi/&gt;</b>" - indicates GSI secure conversation authentication method (with integrity or privacy protection) [default]</li>
+  <ul>
+    <li>The "<b>&lt;protection-level&gt;</b>" sub element can be used to specify a specific protection level that must be applied to the message:</li>
+    <ul>
+      <li>"<b>&lt;integrity/&gt;</b>" - indicates that the message must be integrity protected (signed)</li>
+      <li>"<b>&lt;privacy/&gt;</b>" - indicates that the message must be privacy protected (encrypted)<br>
+      </li>
+    </ul>
+  </ul>
+
+  <ul>
+    
+  </ul>
+</ul>
+
+
+
+
+
+Multiple authentication methods can be specified under the "<b>&lt;auth-method&gt;</b>"
+element (expect the "<b>&lt;none/&gt;</b>" method). As long as one of the authentication methods is performed, the access to the service is allowed. The "<b>&lt;none/&gt;</b>"
+method cannot be specified with any other authentication method. <br>
+
+
+
+
+
+<br>
+
+
+
+
+
+Note: 
+The "<i>org.globus.ogsa.impl.security.authentication.SecurityPolicyHandler</i>"
+handler must be installed properly in order for this to work. If security
+deployment descriptor is not specified, authentication method enforcement
+is not performed. <br>
+
+
+
+
+
+<br>
+
+
+
+
+
+Example:
+<pre>&lt;securityConfig xmlns="http://www.globus.org"&gt;<br><br> &lt;method name="ogsi:findServiceData" xmlns:ogsi="http://www.gridforum.org/namespaces/2003/03/OGSI"&gt;<br>   &lt;auth-method&gt;<br>     &lt;none/&gt;<br>   &lt;/auth-method&gt;<br> &lt;/method&gt;<br><br> &lt;method name="ogsi:destroy" xmlns:ogsi="http://www.gridforum.org/namespaces/2003/03/OGSI"&gt;<br>   &lt;auth-method&gt;<br>     &lt;pkey/&gt;<br>     &lt;gsi&gt;<br>       &lt;protection-level&gt;<br>          &lt;integrity/&gt;<br>       &lt;/protection-level&gt;<br>   &lt;/auth-method&gt;<br> &lt;/method&gt;<br><br> &lt;!-- default auth-method for any other method --&gt;<br>&nbsp;&lt;auth-method&gt;<br>&nbsp; &lt;gsi/&gt;<br>&nbsp;&lt;/auth-method&gt;<br><br>&lt;/securityConfig&gt;</pre>
+
+
+
+
+In the above example, the <i>findServiceData()</i> operation does not require any authentication while
+the <i>destroy()</i> 
+operation requires either public key or GSI secure conversation with integrity
+protection authentication. Any other operation must be authenticated with
+GSI secure conversation with either privacy or integrity protection. 
+<h4>4.4.2 RunAs Modes</h4>
+
+
+
+
+
+The "<b>&lt;run-as&gt;</b>"
+element is used to configure the run-as identity under which the service
+method will be executed. The run-as identity can be configured on per-method
+basis. Currently, the following run-as identities are supported:<br>
+
+
+
+
+
+<ul>
+
+
+
+
+
+  <li>"<b>&lt;caller-identity/&gt;</b>" - the service method will be run with the security identity of the client</li>
+  <li>"<b>&lt;system-identity/&gt;</b>" - the service method will be run with security identity of the container</li>
+  <li>"<b>&lt;service-identity/&gt;</b>"
+- the service method will be run with the security identity of the service
+itself (if the service has one, otherwise the container identity will be
+used [default]</li>
+</ul>
+
+
+
+
+
+Note: 
+The "<i>org.globus.ogsa.impl.security.authentication.SecurityPolicyHandler</i>"
+handler must be installed properly in order for this to work. The run-as
+identity is not set, if the security deployment descriptor is not specified.<br>
+
+
+
+
+<br>
+
+
+
+
+
+Example:
+<pre>&lt;securityConfig xmlns="http://www.globus.org"&gt;<br><br> &lt;method name="ogsi:findServiceData" xmlns:ogsi="http://www.gridforum.org/namespaces/2003/03/OGSI"&gt;<br>   &lt;run-as&gt;<br>     &lt;caller-identity/&gt;<br>   &lt;/run-as&gt;<br> &lt;/method&gt;<br><br> &lt;method name="ogsi:destroy" xmlns:ogsi="http://www.gridforum.org/namespaces/2003/03/OGSI"&gt;<br>   &lt;run-as&gt;<br>     &lt;system-identity/&gt;<br>   &lt;/run-as&gt;<br> &lt;/method&gt;<br><br> &lt;!-- default run-as for any other method --&gt;<br>&nbsp;&lt;run-as&gt;<br>&nbsp; &lt;service-identity/&gt;<br>&nbsp;&lt;/run-as&gt;<br><br>&lt;/securityConfig&gt;</pre>
+
+
+
+
+In the above example, the <i>findServiceData() </i>operation will be executed with caller's identity while
+the <i>destroy() </i>call will be run with system identity. Any other operation
+will be run with the service identity (if the service has one set).<br>
+
+
+
+
+
+<h3>4.5 Credential Refresh</h3>
+
+
+
+
+
+
+<p>A credential of the service can be refreshed if:<br>
+</p>
+
+
+
+
+
+<ul>
+
+
+
+
+
+  <li>The "<i>org.globus.ogsa.impl.security.authentication.CredentialRefreshHandler</i>" handler is installed.</li>
+  <li>The service is not using a default container credential. That is, the
+service credential was either explicitly set in the deployment descriptor
+or the credential was set programmatically (e.g. by SecurityManager.setOwnerFromContext())</li>
+  <li>The service implements the "<i>org.globus.ogsa.impl.security.authentication.CredentialRefreshListener</i>" interface.</li>
+  <li>The service credential is not yet expired</li>
+  <li>The identity of the new credential is the same as the identity of the
+service credential and the new credential has a longer lifetime then the
+service credential.</li>
+</ul>
+
+
+
+
+
+A client can cause credential refresh if it performs GSI authentication with delegation on any method of the service.
+<p>
+</p>
+
+
+
+
+
+
+<h2><a name="Notifications">5 GSI Notifications</a></h2>
+
+
+
+
+
+
+<h3>5.1 Sink</h3>
+
+
+
+
+
+
+<p>Use the "Secure" type of the notification sink manager to receive notifications:</p>
+
+
+
+
+
+
+<pre> NotificationSinkManager manager = NotificationSinkManager.getInstance("Secure");</pre>
+
+
+
+
+
+
+<p>The security properties can be set on the callback itself:</p>
+
+
+
+
+
+
+<pre> NotificationSinkCallback callback = ...;<br> callback.setProperty(GSIConstants.GSI_CREDENTIALS, cred);<br> ...</pre>
+
+
+
+
+A security deployment descriptor can also be configured by setting the "<b>securityConfig</b>" property, e.g.:<br>
+
+
+
+
+
+
+<pre> callback.setProperty("securityConfig", "myservice/my-security-config.xml");</pre>
+
+
+
+
+Please see section <a href="#SecDescriptor">4.4</a> for details. By default, the <i>gsi-security-config.xml</i> is used.<br>
+
+
+
+
+
+
+
+<h3><a name="NotificationSource"></a>5.2 Source</h3>
+
+
+
+
+
+
+<h4>5.2.1 Service Data</h4>
+
+
+
+
+
+
+The security properties can be set on the service data instance using the <i>setProperty()</i> function.
+
+<h4>5.2.2 Using NotificationProvider</h4>
+
+
+
+
+
+
+<p>The security properties must be passed in a separate <i>Map</i> object to the appropriate <i>notify()</i> function.</p>
+
+
+
+
+
+
+<h2><a name="Notes">6 Limitations</a></h2>
+
+<h3>6.1 ServiceLocator/GridLocator reuse</h3>
+
+<p>
+For GSI Secure Conversation, the same ServiceLocator instance cannot be called
+from multiple threads at the same time or shared between two different services. A security context is currently associated with a ServiceLocator instance. If the same ServiceLocator instance is used from multiple threads or shared between two different services a wrong security context might be used to sign/encrypt
+a request. A simple workaround for this problem is to use separate ServiceLocator instances.
+</p>
+
+<h3>6.2 Persistent Services Activation Run-As Identity</h3>
+
+<p>
+The activation of persistent services is not executed under any run-as identity. Wrong credentials might be used if the service is making an outbound connection during the activation. JAAS API might be used to set the right identity for the outbound connection.
+</p>
+
+<h3>6.3 GSI Secure Conversation Context Reuse and Service Deactivation</h3>
+
+<p>
+Since the security context for GSI Secure Conversation is associated with a ServiceLocator instance and reused between calls on the same service it is possible that the service itself might get deactivated in-between the calls. In that case a <i>Invalid GSI Secure Conversation context</i> error might be raised. A simple workaround for this problem is to use separate ServiceLocator instances.
+</p>
+
+<h2><a name="Errors">7 Errors</a></h2>
+
+<h3>7.1 '[SEC05] Invocation subject not set'</h3>
+
+<p>
+The service' method is calling <i>SecurityManager.setOwnerFromContext()</i> but the run-as identity of the method is not set. The service is probably missing a security deployment descriptor.
+</p>
+
+<h3>7.2 '[SEC06] Invocation subject does not contain private credentials'</h3>
+
+<p>
+The service' method is calling <i>SecurityManager.setOwnerFromContext()</i> but the run-as identity of the method does not contain private credentials. If the method is run under the "callers-identity" make sure the client calling the service uses GSI Secure Conversation and enables delegation for the call.
+</p>
+
+</body></html>

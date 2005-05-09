@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><html><head>
+  <title>Transport Level Security</title>
+
+  <style type="text/css">
+  </style></head><body>
+<img border="0" src="gt_logo.jpg">
+
+
+<h2>Transport Security</h2>
+
+
+Last Updated 06/28/2003
+<br>
+<br>
+
+<i>
+Note: Although we provide GSI transport layer security we strongly recommend using the message level security. The GSI transport
+layer security might be phased out at some point in the future.
+</i>
+
+<h2>
+<i>Contents</i></h2>
+
+<ol>
+
+<li><a href="#Introduction">Introduction</a></li>
+<li><a href="#Configuration">Configuration</a></li>
+<li><a href="#Client">Client</a></li>
+<li><a href="#Service">Service</a></li>
+<li><a href="#Notifications">Notifications</a></li>
+</ol>
+
+<h2><a name="Introduction">1 Introduction</a></h2>
+
+The transport layer security is based around a new protocol called 'httpg' to indicate GSI-enabled HTTP-based protocol.
+
+
+<h2><a name="Configuration">2 Configuration</a></h2>
+
+
+<h3>2.1 Standalone Configuration</h3>
+
+
+There are two ways to enable transport security in standalone container.
+
+<h4>2.1.1 Command-line</h4>
+
+
+To enable transport security from command line, start the container with <i>-secure</i> option. The transport security port can also be set by passing <i>-sp port</i> argument. For example:
+
+ 
+<pre>   globus-start-container -p 8080 -secure -sp 9000<br> </pre>
+
+
+This will start a http server on port 8080 and httpg server on port 9000.
+
+<h4>2.1.2 server-config.wsdd</h4>
+
+
+The transport security can also be enabled by modifying the container's <i>server-config.wsdd</i> file by adding 'httpgPort' parameter in the &lt;globalConfiguration&gt; section of the configuration file. For example:
+
+ 
+<pre> ... <br> &lt;globalConfiguration&gt;<br>   ...<br>   &lt;parameter name="httpgPort" value="9000"/&gt;<br>   ...<br> &lt;/globalConfiguration&gt;<br> ...<br></pre>
+
+
+ 
+
+This will start a httpg server on port 9000 <br>
+
+<br>
+
+<i>Note: A client might fail to receive secure notifications if it is using the same <b>server-config.wsdd</b>
+as the container. A workaround for this problem is to ensure that the client
+and the server are using separate configuration files (the client one should
+not have the 'httpgPort' property set)</i><br>
+
+<h3>2.2 Tomcat GSI Configuration</h3>
+
+
+
+Please follow the instructions in section 2.8 of the <a href="users_guide.html#Installation">User's Guide</a> to deploy the framework in
+Tomcat. Once, the deployment is successful, follow these steps to configure
+GSI support:
+<ol>
+
+
+<li>If you are using J2SE 1.3.1 <a href="security.html#JAASinstallation">download and install</a> the JAAS library. Copy the jaas.jar file into &lt;tomcat_root&gt;/commons/lib directory.<br>
+</li><li>
+Edit &lt;tomcat_root&gt;/conf/server.xml file:</li>
+
+
+<ol>
+<li>
+Add GSI Connector in <i>&lt;Service name="Tomcat-Standalone"&gt;</i> section
+and update the parameters appropriately with your local configuration:</li>
+
+<pre style="margin-left: 1.5in;">&nbsp;&nbsp; &lt;!-- Define a GSI HTTP/1.1 Connector on port 8443<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Supported parameters include:</pre>
+
+<pre style="margin-left: 1.5in;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; proxy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // proxy file for server to use<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; or<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cert&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // server certificate file in PEM format<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // unencrypted server key file in PEM format</pre>
+
+<pre style="margin-left: 1.5in;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cacertdir&nbsp;&nbsp;&nbsp;&nbsp; // directory location containing trusted CA certs<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; gridMap&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // grid map file used for authorization of users<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; debug&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // "0" is off and "1" and greater for more info<br>&nbsp;&nbsp;&nbsp; --&gt;</pre>
+
+<pre style="margin-left: 1.5in;">&nbsp;&nbsp; &lt;Connector className="org.apache.catalina.connector.http.HttpConnector"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; port="8443" minProcessors="5" maxProcessors="75"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; enableLookups="true" authenticate="true"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; acceptCount="10" debug="1" scheme="httpg" secure="true"&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;Factory className="org.globus.tomcat.catalina.net.GSIServerSocketFactory"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; proxy="d:\certs\x509up_u945"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cert="d:\certs\hostcert.pem"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key="d:\certs\hostkey.pem"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cacertdir="d:\certs\certs"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; gridMap="d:\certs\gridmap"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; debug="1"/&gt;<br>&nbsp;&nbsp;&nbsp; &lt;/Connector&gt;</pre>
+
+<li>
+Add GSI Valve in <i>&lt;Engine name="Standalone" ... &gt; </i>section:</li>
+
+<pre style="margin-left: 1.5in;">&nbsp; &lt;Valve className="org.globus.tomcat.catalina.valves.CertificatesValve" debug="1" /&gt;</pre>
+</ol>
+
+<li>
+Modify &lt;tomcat_root&gt;/bin/catalina.bat (on Windows) or &lt;tomcat_root&gt;/bin/catalina.sh
+(on Unix/Linux)</li>
+
+  <br>
+For <i>catalina.bat</i>, replace:
+<pre>set CLASSPATH=%CLASSPATH%;%CATALINA_HOME%\bin\bootstrap.jar</pre>
+with:
+<ul>
+<li>4.0.6
+<pre>set CLASSPATH=%CLASSPATH%;%CATALINA_HOME%\bin\bootstrap.jar;%CATALINA_HOME%\common\lib\cog-jglobus.jar;%CATALINA_HOME%\common\lib\log4j-core.jar;%CATALINA_HOME%\common\lib\xerces.jar;%CATALINA_HOME%\common\lib\puretls.jar;%CATALINA_HOME%\common\lib\jce-jdk13-117.jar;%CATALINA_HOME%\common\lib\cryptix32.jar;%CATALINA_HOME%\common\lib\cryptix-asn1.jar;%CATALINA_HOME%\common\lib\jgss.jar;%CATALINA_HOME%\common\lib\jaas.jar</pre>
+</li>
+<li>4.1.24
+<pre>set CLASSPATH=%CLASSPATH%;%CATALINA_HOME%\bin\bootstrap.jar;%CATALINA_HOME%\common\lib\cog-jglobus.jar;%CATALINA_HOME%\common\lib\log4j-core.jar;%CATALINA_HOME%\common\endorsed\xercesImpl.jar;%CATALINA_HOME%\common\endorsed\xmlParserAPIs.jar;%CATALINA_HOME%\common\lib\puretls.jar;%CATALINA_HOME%\common\lib\jce-jdk13-117.jar;%CATALINA_HOME%\common\lib\cryptix32.jar;%CATALINA_HOME%\common\lib\cryptix-asn1.jar;%CATALINA_HOME%\common\lib\jgss.jar;%CATALINA_HOME%\common\lib\jaas.jar</pre>
+</li>
+</ul>
+
+For <i>catalina.sh</i>, replace:
+<pre>CLASSPATH="$CLASSPATH":"$CATALINA_HOME"/bin/bootstrap.jar</pre>
+with:
+<ul>
+<li>4.0.6
+<pre>CLASSPATH="$CLASSPATH":"$CATALINA_HOME"/bin/bootstrap.jar:"$CATALINA_HOME/common/lib/cog-jglobus.jar":"$CATALINA_HOME/common/lib/log4j-core.jar":"$CATALINA_HOME/common/lib/xerces.jar":"$CATALINA_HOME/common/lib/puretls.jar":"$CATALINA_HOME/common/lib/jce-jdk13-117.jar":"$CATALINA_HOME/common/lib/cryptix32.jar":"$CATALINA_HOME/common/lib/cryptix-asn1.jar":"$CATALINA_HOME/common/lib/cryptix.jar":"$CATALINA_HOME/common/lib/jgss.jar":"$CATALINA_HOME/common/lib/jaas.jar"</pre>
+</li>
+<li>4.1.24
+</li>
+<pre>CLASSPATH="$CLASSPATH":"$CATALINA_HOME"/bin/bootstrap.jar:"$CATALINA_HOME/common/lib/cog-jglobus.jar":"$CATALINA_HOME/common/lib/log4j-core.jar":"$CATALINA_HOME/common/endorsed/xercesImpl.jar":"$CATALINA_HOME/common/endorsed/xmlParserAPIs.jar":"$CATALINA_HOME/common/lib/puretls.jar":"$CATALINA_HOME/common/lib/jce-jdk13-117.jar":"$CATALINA_HOME/common/lib/cryptix32.jar":"$CATALINA_HOME/common/lib/cryptix-asn1.jar":"$CATALINA_HOME/common/lib/cryptix.jar":"$CATALINA_HOME/common/lib/jgss.jar":"$CATALINA_HOME/common/lib/jaas.jar"</pre>
+</ul>
+
+  <b>Note</b>: <i>jgss.jar</i> and <i>jaas.jar</i> are not needed with 1.4.x JVMs.<br>
+  <br>
+
+
+  <li>
+Modify &lt;tomcat_build&gt;/webapps/ogsa/WEB-INF/server-config.wsdd</li>
+
+
+<ol start="1" type="1">
+<li>
+Define 'schemaRoot' property as defined in User's Guide <a href="users_guide.html#Configuration">configuration</a> section</li>
+
+<li>
+Define 'httpPort' property in &lt;globalConfiguration&gt; with an appropriate port
+number (the same port as Tomcat is listening to)</li>
+
+<li>
+Define 'httpgPort' property in &lt;globalConfiguration&gt; with an appropriate port
+number (the same port as Tomcat is listening to)</li>
+
+<li>
+Add or uncomment the CredentialHandler handler in &lt;requestFlow&gt; section of &lt;globalConfiguration&gt; block:
+<pre>&lt;requestFlow&gt;<br>...<br>&lt;handler type="PersistentServiceHandler"/&gt;<br><b>&lt;handler type="java:org.globus.axis.handler.CredentialHandler"/&gt;</b><br>...<br>&lt;requestFlow/&gt;<br></pre>
+</li>
+
+</ol>
+</ol>
+
+
+
+<h2><a name="Client">3 GSI Client</a></h2>
+
+
+Java CoG Kit must be properly configured to use GSI on the client. Make
+sure you have a valid proxy before running any GSI-enabled client.
+<p>A client will automatically perform GSI authentication with a service
+as long as the endpoint of the service specifies 'httpg' as the access protocol.
+The GSI authentication parameters (such as delegation type, etc.) can be
+controlled by setting various GSI properties. Please see section <a href="security.html#GSIProperties">5.1</a>
+for details.
+</p>
+
+
+<p>
+Also ensure the generated ServiceLocator class for your service extends <i>org.globus.ogsa.impl.core.service.ServiceLocator</i> class. It will initialize the httpg transport automatically, otherwise, the transport will need to be initialized manually.
+</p>
+
+
+
+<h2><a name="Service">4 GSI Service</a></h2>
+
+
+In the simplest case no modifications are required to GSI enable a service.
+Any service accessed over the httpg protocol can be thought of as a GSI-enabled
+service. However, if a service needs to get hold of the delegated credentials,
+the service must add the following code to the method that was invoked:
+<pre>public void submitJob(String rsl) throw RemoteException {<br>    MessageContext ctx = MessageContext.getCurrentContext();<br>    GSSCredential cred = <br>	(GSSCredential)ctx.getProperty(GSIConstants.GSI_CREDENTIALS);<br>&nbsp;&nbsp;&nbsp; ....<br>}</pre>
+
+
+Please note that the <i>'cred' </i>object can be null if delegation was not performed. Also, in the same way the <i>GSIConstants.GSI_USER_DN</i> and the <i>GSIConstants.GSI_AUTH_USERNAME</i>
+
+&nbsp;property can be retrieved from the MessageContext object. The caller's Globus ID can be retrieved from the <i>GSIConstants.GSI_USER_DN</i> property and the local account that the caller was authorized to can be retrieved from the <i>GSIConstants.GSI_AUTH_USERNAME</i> property.
+<p>To make sure a service can be accessed via the 'httpg' protocol modify the
+address location urls in the &lt;service&gt; section of the &lt;service&gt;_service.wsdl
+file with url with httpg as the protocol type and appropriate port number
+(see ogsa/impl/java/schema/samples/counter/gsi_counter_service.wsdl)
+
+</p>
+
+
+<p>For a sample of a GSI-enabled service
+take a look at Counter example in ogsa/impl/java/src/org/globus/ogsa/impl/samples/counter/secure/SecureCounterImpl.java
+file.</p>
+
+
+
+<h2><a name="Notifications">5 GSI Notifications</a></h2>
+
+
+<h3>5.1 Sink</h3>
+
+
+<p>Use the "GSI" type of the notification sink manager to receive notifications:</p>
+
+
+<pre> NotificationSinkManager manager = NotificationSinkManager.getInstance("GSI");</pre>
+
+
+<p>The security properties can be set on the sink manager using the <i>manager.init()</i> function:&nbsp;</p>
+
+
+<pre> Map props = new HashMap();<br> props.put(GSIConstants.GSI_CREDENTIALS, cred);<br> ...<br> manager.init(props);<br> ...</pre>
+
+
+<h3>5.2 Source</h3>
+
+
+<p>The security properties are set in exactly the same way as in the message level security. Please see <a href="message_security.html#NotificationSource">5.2</a> section for details.<br>
+</p>
+
+</body></html>

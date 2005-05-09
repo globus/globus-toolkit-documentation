@@ -1,0 +1,202 @@
+<html>
+<head>
+  <title> EJB Services </title>
+</head>
+
+<body>
+
+<img border="0" src="gt_logo.jpg">
+<h1> EJB Grid Services </h1>
+
+<p> 
+
+
+Globus Toolkit 3.0 - Last Updated <!--webbot bot="Timestamp" startspan
+S-Type="EDITED" S-Format="%m/%d/%Y" -->09/03/2003<!--webbot bot="Timestamp"
+i-CheckSum="12510" endspan -->
+ <h2>Installation and Versioning Notes</h2> 
+
+<p>Note this code is still of experimental nature and therefore the required
+build files and samples are only available in the source distribution of GT3
+Core. We have tested all the samples with JBOSS 3.2.1 default server and
+WebSphere Adanced Single Server Edition v4.0. WebSphere requires an additional
+step to set up a database manually for the entity bean sample, and those scripts
+have only been tested on Windows. Both in JBOSS as well as in Websphere you can
+however customize the database to use as source for the sample yourself, please
+consult the respective product documentation for more information. We generate a
+gateway that is hosted by a Grid service container which then delegates to your
+EJB container of choice. The EJB gateway can run under Tomcat or our standalone
+container. We have tested the gateway with Tomcat 4.0.6. </p>
+
+<h2>Overall Design</h2> 
+
+The general design rational behind this functionality is to assume that you have
+an existing EJB application that you want to expose as a set of Grid services
+without having to change your application. Both
+
+Session and Entity EJBs can be exposed as grid services, we only require you to
+feed the tools with the EJB Home and Remote interfaces, in order to generate the
+required gateway. The Grid service is in itself stateless but will retrive all
+its application sate from the Bean. This means that you can recreate the Grid
+service instance after for example a server crash, and it will be mapped to the
+existing Bean state if you use the same primary key (which is mapped off to the
+GSH).&nbsp;
+<p>For the tool to work you need to point it to a directory where you have
+extracted the contents of your EJB, and then point the tool to the Remote and
+Home interfaces through configuration before running the code generator. Below
+we show how this is done for JBOSS and WebShpere respectively for the provided
+samples.&nbsp;</p>
+
+<h2>Configuration to Run EJBs in JBOSS</h2>
+
+<p>
+
+Open the ejb.properties file in your ogsa java build root directoy (ogsa/impl/java)
+and uncomment and/or change the following entries to match your environment:<p>ejb.dir
+- the absolute directory of where the contents of your&nbsp; EJB has been
+extracted<br>
+ejb.home - the class that contains the home interface<br>
+ejb.remote - the class that contains the remote interface<br>
+ejb.exposeHomeService - allows you to use the EJB Home interface to create
+services if true. If false you will need to use the standard OGSI interfaces
+(factory) to create your service.<br>
+jboss.deployedJar - the jar that is to be deployed in jboss<br>
+tomcat.dir - the root of your tomcat installation<br>
+containerType - should be &quot;jboss&quot;<br>
+jboss.dir - should point to the root of your jboss installation
+<h2>Configuration to Run EJBs in WebSphere</h2>
+
+<p>
+
+Open the ejb.properties file in your ogsa java build root directoy (ogsa/impl/java)
+and uncomment and/or change the following entries to match your environment:<p>ejb.dir
+- the absolute directory of where the contents of your&nbsp; EJB has been
+extracted<br>
+ejb.home - the class that contains the home interface<br>
+ejb.remote - the class that contains the remote interface<br>
+ejb.exposeHomeService - allows you to use the EJB Home interface to create
+services if true. If false you will need to use the standard OGSI interfaces
+(factory) to create your service.<br>
+websphere.deployedJar - a jar that was constructed by the WebSphere assembly
+tool to deploy the beans. Note this jar is only used to get client side stubs,
+it is not deployed in Websphere by our tools, they assume that this jar is
+already deployed as an application in the WebSphere server<br>
+tomcat.dir - the root of your tomcat installation<br>
+containerType - should be &quot;websphere&quot;<br>
+websphere.dir - should point to the root of your websphere app server&nbsp;
+installation - typically /Websphere/AppServer<br>
+webspere.ejb.db - as noted above for websphere you need to set up the database
+as a separate step, on windows we automate this process for you if you point
+this property to an Enhydra instantDB script (the database comes with the
+WebSphere installation)<br>
+websphere.create.db.command - we have customized the samples create db script in
+Websphere for windows. To pick up our customization point this property to
+createDB.bat<br>
+<h2>Generating the Gateway</h2><p>After configuring your environment of choice
+and setting up the mapping to the bean you want to expose as described above you
+only have to run:<br>
+ant ejbService<br>
+If that succeeds you are ready to start up your appserver and tomcat/or the
+standalone container. To start up the standalone container to host the EJB
+gateways run:<br>
+ant startEJBContainer -Dservice.port=&lt;port&gt;<p>The port defaults to 8080,
+which will clash with the default JBOSS port, so please pick another port if you
+are running JBOSS.<br>
+<h2>Running the Samples</h2>
+
+<b>Lower Case Conversion Session Bean</b><br>
+After having deployed this service following the steps described above you can
+test it as follows:
+<ol>
+<li>
+Make sure your EJB container is running as well as the standalone container
+or Tomcat
+</li>
+<li>
+Make sure your environment is set properly using <a href="users_guide.html#Setenv">setenv scripts</a>
+</li>
+<li>
+Run java.org.globus.ogsa.client.CreateService http://&lt;gateway host&gt;:&lt;gateway port&gt;/ogsa/services/org/somone/LowerCaseFactoryService myService
+</li>
+<li>
+Run java org.someone.LowClient http://&lt;gateway host&gt;:&lt;gateway port&gt;/ogsa/services/org/somone/LowerCaseFactoryService/myService myTestString
+</li>
+</ol>
+<b>Person CMP Entity Bean</b><br>
+Make sure you have enabled the ejb.exposeHomeService property, then:<br>
+<ol>
+<li>
+Make sure your EJB container is running as well as the standalone container
+or Tomcat
+</li>
+<li>
+Make sure your environment is set properly using <a href="users_guide.html#Setenv">setenv scripts</a>
+</li>
+<li>
+Run java org.good.PersonHomeClient http://&lt;gateway host&gt;:&lt;gateway port&gt;/ogsa/services/org/good/PersonHomeFactoryService myService
+</li>
+<li>
+Run java java org.good.PersonClient http://&lt;gateway host&gt;:&lt;gateway
+port&gt;/ogsa/services/org/good/PersonHomeFactoryService/myService set myName
+</li>
+<li>
+Run java java org.good.PersonClient http://&lt;gateway host&gt;:&lt;gateway
+port&gt;/ogsa/services/org/good/PersonHomeFactoryService/myService&nbsp;
+</li>
+</ol>
+<h2> Notes on Exposing the Home Interface </h2>
+
+You can expose the home interface as a factory service or you can rely on
+default create and find methods and only expose the remote interface.
+<p>
+If you don't expose the home interface then:
+<ul>
+    <li>A Session bean must have a no-argument create method.</li>
+    
+    <li>An Entity bean must have a findByPrimaryKey method that takes one
+    parameter which must be a String, an Integer or a Long.
+    <p>
+    The path part of the url that names the service is the primary key of 
+    the entity bean. So if you had a "Person" entity bean you would find
+    and instance with a primary key "123" like this:
+<pre>
+java org.globus.ogsa.impl.core.factory.client.CreateService http://127.0.0.1:8080/ogsa/services/org/yourpackage/PersonFactoryService 123
+If it can't find an entity bean with that key it will try to call
+home.create(123);
+
+and then you use it like this:
+
+java org.yourpackage.YourClient http://127.0.0.1:8080/ogsa/services/org/yourpackage/PersonFactoryService/123
+</pre>
+</ul>
+
+If you choose to expose a home service then all of the methods on
+your home interface that return a single instance of the remote interface
+will become a factory service.  Generally this means all of the create() and
+find() methods that don't return an enumeration of remotes.
+<p>
+    You can use it like an ordinary ejb:
+<pre>
+    String serviceUrl = &quot;http://127.0.0.1:8080/ogsa/services/org/yourpackage/PersonHomeFactoryService/myHome&quot;;
+    PersonHome home = (PersonHome) EJBServiceClient.createHomeService(&quot;org.yourpackage.PersonHome&quot;, &quot;org.yourpackage.Person&quot;, serviceUrl);
+    Person remote = home.create(new Integer(123));
+    
+    or Person someOtherRemote = home.findBySomeMethod(blah, blah); or whatever you want
+</pre>    
+    see <a href="../impl/java/build/javadocs/org/globus/ogsa/client/EJBServiceClient.html">org.globus.ogsa.client.EJBServiceClient
+</a> for more information
+<br>
+<h2> Troubleshooting</h2>
+<p>
+If you have JNDI problems, or if tomcat can't find the home interface then 
+look at the parameters in server-config.wsdd.
+<p>
+If you need to change the wsdl it generated you can run
+"ant -buildfile build-ejb.xml ejbToTomcat&quot;
+to redeploy the ejb after changing the wsdl
+<p>
+If you have other problems try
+"ant ejbClean&quot; and then "ant ejbService" again.
+
+</body>
+</html>
