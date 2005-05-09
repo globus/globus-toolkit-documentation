@@ -47,6 +47,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>IBM's <cite>developerWorks</cite> prints an 
+   <a class="newsmedia" href="http://www-128.ibm.com/developerworks/grid/library/gr-gt4/">interview with Ian Foster</a>
+   on the significance of the Globus Toolkit 4.0. (5/2005)</p>
+
 <p>In a collaboration between the London e-Science Centre (as a member of the 
 UK Grid Engineering Taskforce), Gridwise and MCNC, 
 <a class="newspartners" href="http://www.lesc.ic.ac.uk/projects/SGE-GT4.html">Sun 
