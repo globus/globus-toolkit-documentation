@@ -73,7 +73,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <p><b>Downloads:</b><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."advisories.html"; ?>">Advisories</a><br>
-<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."dev_tools.html"; ?>">Developer tools</a><br>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/development/dev_tools.html"; ?>">CVS & Developer tools</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."downloads/development/"; ?>">Development Releases</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."downloads/4.0.0/"; ?>">Latest Stable Release: 4.0</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."quality_assurance.html"; ?>">Quality Assurance</a><br>
