@@ -1,7 +1,4 @@
 <?php
-
-// 2004-10-18, robinett: created, copied information from www.globus.org/gridware/security/voms.html
-
 $title = "Grid Ecosystem - Simple CA";
 $section = "section-4";
 include_once( "../../include/local.inc" );
@@ -35,9 +32,9 @@ Registration Service) solution.  See the
 </p>
 
 <?
-$software = "<a href='http://www.globus.org/security/simple-ca.html'>Simple CA</a>";
+$software = "<a href='http://www.globus.org/toolkit/docs/4.0/security/simpleca/'>Simple CA</a>";
 $developer = "<a href='http://www.globus.org/'>The Globus Alliance</a>";
-$distros = "<a href='http://www-unix.globus.org/toolkit/'>Globus Toolkit 3.2</a><br />
+$distros = "<a href='http://www-unix.globus.org/toolkit/'>Globus Toolkit 4.0</a><br />
             <a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a>";
 $contact = "<a href='mailto:info@globus.org'>info@globus.org</a>";
 
