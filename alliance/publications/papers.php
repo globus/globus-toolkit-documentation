@@ -70,7 +70,8 @@ submitting bibliographic citations</a>.</b></p>
 
 	<p><font size="2"><b><a name="science05">Service-Oriented Science</a></b>.  
         I. Foster. <em>Science</em>, vol. 308, May 6, 2005.<br>
-	[<a href="#science05">Citation</a>]</font></p>
+	[<a href="#science05">Citation</a>, 
+         <a href="http://www-fp.mcs.anl.gov/~foster/science-2005.htm">HTML</a>]</font></p>
 
 	<p><font size="2"><b><a name="grid_definition">What is the Grid? A Three
     Point Checklist</a></b>.  I. Foster, GRIDToday, July 20, 2002.&nbsp;<br>
