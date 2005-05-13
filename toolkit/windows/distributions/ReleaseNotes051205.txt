@@ -1,0 +1,292 @@
+*******************************************************************************
+
+Preliminary Release Notes for WinGlobus
+
+Version 1.5
+
+Thursday, May 12, 2005
+
+Bob Gaffaney
+
+gaffaney@mcs.anl.gov
+
+*******************************************************************************
+
+----------
+What's New
+
+A new version of WinGlobus has been created specifically for those who need
+a Windows version of GSI (Grid Security Infrastructure).
+
+This version should be considered prelminary! There are a number of unit tests
+in the distribution. These do not all run yet due to various problems with 
+the Perl scripts that are used to invoke the C executables. We will keep working
+on this and will post new information here as the testing progresses.
+
+A zip file has not been created. This version may be checked out from CVS using
+the instructions below.
+
+There have been significant changes to the Toolkit since the last version was
+posted. Most important are that changes were made to Common to support IPV6 and
+the i18n library was added for Unicode support that is coming soon. The i18n 
+library depends on the icu4c distribution which is also now included in the
+Toolkit.
+
+It must be emphasized that this release supports GSI specifically and libraries
+not needed for GSI are not included! The WinModules file that drives the build
+system has likewise been pared down to support only GSI, although the other 
+libraries merely been commented (by indenting them) so feel free to build the
+other libraries if you wish, they mostly build as of the last time they were 
+tried.
+
+The instructions below walk through the steps of building the May '05 GSI
+Distribution.
+
+
+-------------
+Prerequisites
+
+You must have Visual Studio, ActiveState Perl and the latest Microsoft Platform
+SDK Installed.
+
+
+----------------------------------
+Checkout the Distribution from CVS
+
+There are instuctions on the Globus site for setting up CVS using the pserver
+method. This distribution is in a CVS branch that was cut immediately after
+GT4.0 was released: win32_globus_4_0_0_branch.
+
+Note that you only need a small number of libraries, so rather than doing "cvs
+all" it is recommended that you create the directory that will become your 
+GlobusLocation, cd into that directory and then do the following (cut and 
+paste this into a batch file if you wish).
+
+    cvs co -r win32_globus_4_0_0_branch core
+    cvs co -r win32_globus_4_0_0_branch callout
+    cvs co -r win32_globus_4_0_0_branch common
+    cvs co -r win32_globus_4_0_0_branch gass
+    cvs co -r win32_globus_4_0_0_branch gram
+    cvs co -r win32_globus_4_0_0_branch gridftp
+    cvs co -r win32_globus_4_0_0_branch gsi
+    cvs co -r win32_globus_4_0_0_branch icu4c
+    cvs co -r win32_globus_4_0_0_branch i18n
+
+----------------
+Go to Build Home
+
+The various build scripts and batch files are designed to run from:
+
+    GlobusLocation\core\source\win32
+
+In this directory you will need a SetEnv.bat file to set paths and environment
+variables needed by the build scripts. An example batch file is shown below:
+
+    @echo off
+    @ echo .
+    @ echo . Set WinCVSBuildEnvironment
+    @ echo .
+
+    set GlobusLocation=W:\Globus_4_0_0_0
+    set SSLLocation=S:\
+    set ICULocation=W:\Globus_4_0_0_0\icu4c
+    set WinGlobusVersion=14.1
+
+    @ echo . Globus Location:    %GlobusLocation%
+    @ echo . SSL Location:       %SSLLocation%
+    @ echo . WinGlobus Version:  %WinGlobusVersion%
+    @ echo .
+
+    set GLOBUS_LOCATION=%GlobusLocation%
+    set PATH=%PATH%;%GlobusLocation%\bin;%ICULocation%\bin;
+    set LIB=%LIB%;%ICULocation%\lib;
+    set INCLUDE=%INCLUDE%;%ICULocation%\include;
+
+The following requirements apply:
+
+    %GlobusLocation% must be set to the location where the CVS checkout 
+    was done. 
+    
+    %SSLLocation% must be set to a built SSL 9.7c Distribution. The Build
+    batch files need this to copy the include files, libraries and dll's from
+    the SSL distribution to the appropriate Windows directories.
+
+    %ICULocation% must point to a build ICU4C Distribution, so just set this to
+    the icu Distribution you checked out from tCVS.
+
+    %WinGlobusVersion% Isn't used presently, but may be soon.
+
+-----------------------
+Build OpenSSL and icu4c
+
+    icu4c must be built according to the directions in that Distribution. 
+    Hint: go to the .\icu4c\source\allinone directory and run:
+
+        msdev allinone.dsw
+        
+    from the command line (presuming you have VS6). Make sure the active 
+    configuration is win32 debug.
+
+    If it isn't already built, build OpenSSL according to the instructions for
+    that distribution.
+
+-------------
+Run the Build
+
+    At this point the build should run. From the .\core\source\win32 run:
+
+        Build_win32dbgmtdthr.bat
+
+    This will create makefiles for all libraries and executables and a batch
+    file to run nmake for all of the makefiles.
+
+--------------
+Partial Builds
+
+    To Build a single module go to the subdirectory for that module and run
+    the make by hand. Here is an example:
+
+        From ./common/source/library run:
+
+            nmake /F winmake_win32dbgmtdthr ALL
+
+---------------------------------------------------------------
+The notes, from previous release notes, contain more specifics.
+
+-------------
+Build Process
+
+The new build process included in this Distribution has the following features:
+
+  * Command Line: It is based on Perl Scripts and Batch Files and is run from 
+    the Command Line.
+    
+  * Automated: It builds all Libraries and Executables without user
+    intervention.
+         
+  * Makefile Based: The build process creates nmake compatible makefiles that
+    can be invoked singly to build any particular Library or Executable.
+
+ *  'Flavor' Based: Taking a cue from the Linux builds, 'Flavors' define 
+    various combinations of the following build options:
+    
+        Globus Threaded or Nonthreaded
+        Static or Dynamic Libraries
+        Debug or Release Builds
+        Any of Six C Runtime Libraries
+        
+    While libraries and executables based on any combination of the above 
+    may be built, four specific combinations are included in the full
+    distribution:
+    
+        FlavorName          win32dbgmtdthr
+        GlobusThreading     threaded
+        BuildConfig         debug
+        LibraryType         static
+        CRuntimeLib         MTd
+
+        FlavorName          win32relmtthr
+        GlobusThreading     threaded
+        BuildConfig         release
+        LibraryType         static
+        CRuntimeLib         MT
+
+        FlavorName          win32dbgmddthr
+        GlobusThreading     threaded
+        BuildConfig         debug
+        LibraryType         dynamic
+        CRuntimeLib         MDd
+
+        FlavorName          win32relmdthr
+        GlobusThreading     threaded
+        BuildConfig         debug
+        LibraryType         dynamic
+        CRuntimeLib         MDd
+
+    More detailed information on the Build Process and on the WinGlobus Port
+    in general is available in the porting document to which there is a
+    link on this page (http://www-unix.mcs.anl.gov/~gaffaney/).
+    
+
+Build Tree
+----------
+
+The distribution may be copied anywhere, but to build set the $GlobusLocation
+environment variable to the root of the Build Tree.
+
+   $GlobusLocation\
+      BIN                DLLs
+      BIN\FlavorName     Executibles for that Flavor
+      LIB                Static Libraries and Link Libraries   
+      INCLUDE            Include directory tree
+      CORE               Core Module tree
+      COMMON             Common Module tree
+      GSI                GSI Module tree
+      CALLOUT            Callout Module tree
+      ICU4C              IBM Unicode For C Libraries
+      I18N               Globus Wrapper for ICU4C
+
+
+Included Libraries
+------------------
+
+   CORE      Include files only, no libraries
+    
+   COMMON    Single-threaded and multi-threaded versions of the Common 
+             library. Also contains fifteen test applications. There is
+             
+   CALLOUT   Single-threaded version of the Callout library. Also includes
+             a project to build the DLL version of the Callout library 
+             which is not presently used. There is a test application and
+             a project for a DLL that is loaded dynamically by the test.
+             
+   GSI       Multi-threaded versions of the following GSI Libraries:
+
+                  openssl_module
+                  gss_assist
+                  gssapi
+                  cert_utils
+                  gridmap_callout
+                  gridmap_callout_error
+                  gssapi_error
+                  callback
+                  old_gaa
+                  credential
+                  sys-config
+                  openssl_error
+                  proxy_core
+                  proxy_ssl
+                    
+
+--------------------
+OpenSSL Distribution
+
+Applications must use the SSL link libraries and binaries provided in the 
+release (ssleay32.lib, ssleay32.dll, libeay32.lib, libeay32.dll). The reason
+for this is that GSI makes use of some SSL functions that are not exported in 
+the distribution release of SSL.
+
+This Windows Globus release uses version 9.7c of OpenSSL. The global include
+files and the binaries are included with the Distribution. If you wish to
+build these yourself please contact me for details on how to expose the 
+additional exports needed by GSI.
+
+          
+Issues
+------
+
+Globus threaded and Globus non-threaded versions of the library should not 
+be mixed.
+
+C Runtime Libraries should not be mixed. Use the Library Flavor that uses the
+same Runtime Libraries as your application
+
+This is a huge body of code and has not been run extensively on Windows 
+Platforms. Please let us know how well it runs (or not). Our goal is to make 
+Globus as stable and functional on Windows as it is on the Unix platforms.
+
+Feel free to contact me at gaffaney@mcs.anl.gov with questions, 
+comments or requests.
+
+Bob Gaffaney
+
