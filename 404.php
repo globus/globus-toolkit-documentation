@@ -23,11 +23,13 @@ you are looking for:
   <li>If you got the error by navigating the Globus website and think
       that the link is broken, please report it to
       <a href="mailto:webmaster@globus.org">webmaster@globus.org</a>.
-  <li>If you are looking for <b>GT4 documentation</b> (3.9.x or 4.0-drafts),
-      please go to 
-      <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/"; ?>">http://www.globus.org/toolkit/docs/4.0/</a>.</li>
-  <li>If you are looking for our <b>research papers</b>, please go to
-      <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers.php"; ?>">http://www.globus.org/alliance/publications/papers.php</a>.</li>
+</ul>
+
+<p>For <b>GT4 documentation</b>, go to 
+      <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/"; ?>">http://www.globus.org/toolkit/docs/4.0/</a>.</p>
+
+<p>For <b>research papers</b>, go to
+      <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers.php"; ?>">http://www.globus.org/alliance/publications/papers.php</a>.</p>
 </ul>
 
 </div>
