@@ -9,9 +9,17 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h1>Globus Toolkit Version 4: Status and Experiences</h1>
 
-Title: Globus Toolkit Version 4: Status and Experiences -- A Workshop at GGF14
-Time: Tuesday Afternoon (preliminary)
-Organizer: Ian Foster, Argonne National Laboratory &amp; University of Chicago
+<table>
+<tr>
+<th>Title:</th> <td>Globus Toolkit Version 4: Status and Experiences -- A Workshop at GGF14</td>
+</tr>
+<tr>
+<th>Time:</th> <td>Tuesday Afternoon (preliminary)</td>
+</tr>
+<tr>
+<th>Organizer:</th> <td>Ian Foster, Argonne National Laboratory &amp; University of Chicago</td>
+</tr>
+</table>
 
 <h2>Scope and Content</h2>
 
