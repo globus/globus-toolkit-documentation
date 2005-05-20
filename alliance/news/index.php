@@ -47,6 +47,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>A <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/ggf14/"; ?>">workshop at GGF-14</a> 
+will highlight the capabilities and early user experiences with the Globus 
+Toolkit 4.0. (6/2005)</p>
+
 <p>The Enterprise Grid Alliance (EGA) recently released their first technical 
 deliverable, a proposed 
 <a class="newspartners" href="http://www.gridalliance.org/en/news/press_05102005.asp">reference model</a>
