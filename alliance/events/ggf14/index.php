@@ -14,7 +14,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <th>Title:</th> <td>Globus Toolkit Version 4: Status and Experiences -- A Workshop at GGF14</td>
 </tr>
 <tr>
-<th>Time:</th> <td>Tuesday, June 28 (Afternoon)</td>
+<th>Time:</th> <td>Monday, June 27 (1:00-5:00pm)</td>
+</tr>
+<tr>
+<th>Venue:</th> <td><a href="http://www.gridforum.org/ggf_events_next.htm">GGF-14</a>, Chicago, IL</td>
 </tr>
 <tr>
 <th>Organizer:</th> <td>Ian Foster, Argonne National Laboratory &amp; University of Chicago</td>
