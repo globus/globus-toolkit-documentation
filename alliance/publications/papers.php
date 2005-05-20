@@ -688,6 +688,19 @@ submitting bibliographic citations</a>.</b></p>
 	<em>Twelfth International Symposium on High Performance Distributed Computing (HPDC-12)</em>, IEEE Press, to appear June 2003.
 	<br>[<a href="#GT3-WSFBCGKMPT03">Citation</a>, <a href="../Security/GSI3/GT3-Security-HPDC.pdf">PDF</a>]</font></p>
 
+      <p><b><a name="chep03-a">Using CAS to manage role-based VO sub-groups</a></b>. Shane Canon, 
+         Steve Chan, Doug Olson, Craig Tull, and Von Welch. <em>In Proceedings of 
+         Computing in High Energy Physics 03 (CHEP '03)</em>, 2003.
+         [<a href="#chep03-a">Citation</a>, 
+          <a href="papers/CAS-group-CHEP03.pdf">PDF</a>]</p>
+
+      <p><b><a name="chep03-b">The Community Authorization Service: Status and Future</a></b>. 
+         Ian Foster, Carl Kesselman, Laura Pearlman, Steven Tuecke, and Von
+         Welch.  <em>In Proceedings of Computing in High Energy Physics 03 
+         (CHEP '03)</em>, 2003.
+         [<a href="#chep03-b">Citation</a>, 
+          <a href="papers/CAS_update_CHEP_03-final.pdf">PDF</a>]</p>
+
       <p><font size="2"><strong><a name="gauth02">Fine-Grain Authorization for
       Resource Management in the Grid Environment</a></strong>. K. Keahey, V. Welch.
       <i>Proceedings of Grid2002 Workshop</i>,&nbsp; 2002.<br>
