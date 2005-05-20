@@ -20,6 +20,15 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 events.  The <a href="archive.php">Meetings and Events Archive</a> contains 
 information and notes from previous events.</p>
     
+<p><b><a href="ggf14/">Globus Toolkit Version 4: Status and Experiences - A Workshop at GGF-14</a></b><br>
+June 28, 2005 (tentative)<br>
+<u>Chicago, IL</u><br>
+This workshop at GGF-14 will include an introduction to the Globus Toolkit, version
+4.0, by members of the Globus Toolkit development community. It will also include
+descriptions of early experiences with GT4 in Grid application deployment projects,
+presented by members of the Globus Toolkit user community.
+</p>
+
 <p><b>2 Day Programming Tutorial with WSRF and the Globus Toolkit Version 4</b><br>
 May 3-4, 2005<br>
 <u>San Diego, CA</u><br>
