@@ -29,6 +29,16 @@ descriptions of early experiences with GT4 in Grid application deployment projec
 presented by members of the Globus Toolkit user community.
 </p>
 
+<p><b><a href="http://www.midnetinc.org/conferences.html">2005 Great Plains 
+Network-MIDnet Annual Conference</a></b><br>
+June 8-10, 2005<br>
+<u>Kansas City, MO</u><br>
+This conference brings together the region's leaders in network technology, research 
+and education to explore middleware, grid computing, research and advanced network 
+technology. Ian Foster will deliver one of three keynote lectures, and June 10
+will be a full-day <a href="http://www.midnetinc.org/conferences/globus.html">Globus 
+Toolkit and Grid workshop</a>.</p>
+
 <p><b>2 Day Programming Tutorial with WSRF and the Globus Toolkit Version 4</b><br>
 May 3-4, 2005<br>
 <u>San Diego, CA</u><br>
