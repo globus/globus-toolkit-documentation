@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">05.20.2005</span></td>
+              <td><b>GGF-14 workshop will discuss GT4 user experiences.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/ggf14/"; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">04.29.2005</span></td>
               <td><b>The Handle System<sup>&reg;</sup> applies to Grids.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."projects/handle_system.html"; ?>">Learn more...</a></td>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">04.20.2005</span></td>
               <td><b>PURSE makes user registration easy.</b> 
                 <a class="learnmore" href="http://www.grids-center.org/solutions/purse/">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">04.09.2005</span></td>
-              <td><b>UK Globus Week was a big success.</b> 
-                <a class="learnmore" href="http://www.nesc.ac.uk/esi/events/519/">Learn more...</a></td>
             </tr>
 
           </table>
