@@ -51,6 +51,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 will highlight the capabilities and early user experiences with the Globus 
 Toolkit 4.0. (6/2005)</p>
 
+<p>IBM's <cite>developerWorks</cite> prints an 
+   <a class="newsmedia" href="http://www-128.ibm.com/developerworks/grid/library/gr-tuecke/">interview with Steve Tuecke</a> 
+   about open source Grid directions in the enterprise. (5/2005)</p>
+
 <p>The Enterprise Grid Alliance (EGA) recently released their first technical 
 deliverable, a proposed 
 <a class="newspartners" href="http://www.gridalliance.org/en/news/press_05102005.asp">reference model</a>
