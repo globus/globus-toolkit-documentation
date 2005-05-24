@@ -43,7 +43,7 @@ variable to the directory into which you've installed Tomcat.
 that tells Tomcat where to find the WebMDS servlet and related files, and
 restarting Tomcat so that it will read this new configuration file.  These
 steps require write permission on files and directories in
-<computeroutput>$CATALINA_HOME</computeroutput>; they do not require write permission
+<filename>$CATALINA_HOME</filename>; they do not require write permission
 on anything in <computeroutput>$GLOBUS_LOCATION</computeroutput>.</para>
 
 <para>To create the configuration file, run this command:</para>
@@ -53,7 +53,7 @@ on anything in <computeroutput>$GLOBUS_LOCATION</computeroutput>.</para>
 </screen>
 <para>
 This will create
-<computeroutput>$CATALINA_HOME/conf/Catalina/localhost/webmds.xml</computeroutput>.
+<filename>$CATALINA_HOME/conf/Catalina/localhost/webmds.xml</filename>.
 Note:  if this file already exists (e.g., if you've previously installed another
 varsion of WebMDS), you'll need to use the <computeroutput>-f</computeroutput> option to
 <computeroutput>webmds-create-context-file</computeroutput>.
@@ -78,7 +78,7 @@ root for WebMDS is <computeroutput>$GLOBUS_LOCATION/lib/webmds</computeroutput>.
 For the rest of these instructions, the term <emphasis>Globus user</emphasis> will be
 used to refer to the owner of the <computeroutput>$GLOBUS_LOCATION</computeroutput> directory,
 and <emphasis>Tomcat user</emphasis> will be used to refer to the owner of the
-<computeroutput>$CATALINA_HOME</computeroutput> directory.  If the Globus and Tomcat installations
+<filename>$CATALINA_HOME</filename> directory.  If the Globus and Tomcat installations
 were performed from the same user account, the Globus user and Tomcat user
 will be the same.
 </para>
@@ -86,7 +86,7 @@ will be the same.
 Any time you change the servlet configuration (or any jar files used by the
 servlet), you'll need to let tomcat know there was a change.  If you have
 a preferred way of configuring tomcat, feel free to use it, with
-<computeroutput>$GLOBUS_LOCATION/lib/webmds</computeroutput> as the servlet directory.
+<filename>$GLOBUS_LOCATION/lib/webmds</filename> as the servlet directory.
 These steps need to be performed by the Tomcat user.
 </para>
 <para>
@@ -96,7 +96,7 @@ you can configure tomcat by doing the following:
 </para>
 <orderedlist>
 
-<listitem><para>Create a context descriptor file called <computeroutput>webmds.xml</computeroutput>
+<listitem><para>Create a context descriptor file called <filename>webmds.xml</filename>
 in the location where tomcat will look for it:
 
 <screen>
@@ -107,7 +107,7 @@ in the location where tomcat will look for it:
 </screen>
 
 Note:  if the file
-<computeroutput>$CATALINA_HOME/conf/Catalina/localhost/webmds.xml</computeroutput>
+<filename>$CATALINA_HOME/conf/Catalina/localhost/webmds.xml</filename>
 already exists, you can use the <computeroutput>-f</computeroutput> flag to
 <computeroutput>create-context-file</computeroutput> to overwrite it.
 to the tomcat configuration directory.
@@ -140,14 +140,51 @@ the local default index service".</para>
 </section>
 
 <section id="s-webmds-admin-troubleshooting"><title>Troubleshooting</title>
+<orderedlist>
 <para>Error handling in WebMDS is currently done by throwing exceptions, which
-are displayed by Tomcat as stack traces.  If you attempt to use WebMDS
+are displayed by Tomcat as stack traces.</para>
+<listitem>
+<para>If you attempt to use WebMDS
 to collect information from a service that is not running, you will see a 
-stack trace that begins with:</para>
+stack trace that begins with:
 <screen>
 org.globus.mds.webmds.xmlSources.resourceProperties.ResourcePropertySourceException: ; nested exception is: 
 	java.net.ConnectException: Connection refused
 </screen>
+</para>
+</listitem>
+<listitem>
+<para>
+When WebMDS sends resource property queries to a secure WSRF service instance
+(such
+as an MDS4 Index Server), the WebMDS server must trust the certificate authority
+that issued the certificate used by the WSRF service instance.  If the WebMDS
+server does not trust the CA used by the remote service, then WebMDS queries
+will produce a stack trace that includes the following:
+<screen>
+faultString: org.globus.common.ChainedIOException: Authentication failed 
+[Caused by: Failure unspecified at GSS-API level [Caused by: Unknown CA]]
+</screen>
+This can be solved by configuring the Tomcat server that hosts WebMDS to
+trust the appropriate CA, by either
+<itemizedlist>
+<listitem><para>placing the CA certificate in
+<filename>/etc/grid-security/certificates</filename>, or</para></listitem>
+<listitem>placing the CA certificate somewhere else, and setting the
+Tomcat process's <parameter>X509_CERT_DIR</parameter> system parameter to
+the directory in which the CA certificate was installed.  One way to
+do this is to set the <parameter>CATALINA_OPTS</parameter> environment variable
+and then restart Tomcat:
+<screen>
+export CATALINA_OPTS=-DX509_CERT_DIR=<replaceable>/path/to/cert/dir</replaceable>
+$CATALINA_HOME/bin/shutdown.sh
+$CATALINA_HOME/bin/startup.sh
+</screen>
+</listitem>
+</itemizedlist>
+</para>
+</listitem>
+</orderedlist>
 </section>
 
 
