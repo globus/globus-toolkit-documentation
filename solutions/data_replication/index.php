@@ -41,7 +41,7 @@ During the commissioning phase of the LIGO interferometers, these runs typically
 for 2-8 weeks. LIGO expects to begin a one-year detection run late in 2005.  Because 
 the LIGO detector sites are remote, the data was originally stored on tapes and shipped 
 to CalTech where it was made available online to scientists.  More recently, upgraded
-network connection s have allowed replication to other data centers directly from the 
+network connections have allowed replication to other data centers directly from the 
 detector sites.
 </p>
 
@@ -122,6 +122,8 @@ a metadata catalog service, and
 to provide a solution that meets the requirements above.
 </p>
 
+<h2>Results</h2>
+
 <p>
 The LIGO detectors went online and began producing data in 2002.  By April 
 2005, the LIGO team had used LDR to replicate well over 50 terabytes of 
@@ -131,13 +133,27 @@ Institute in Golm, Germany, Cardiff University, and the University of
 Birmingham.
 </p>
 
-<h2>Detailed Information</h2>
-
 <p>LDR was developed by Scott Koranda, Brian Moe, and Kevin Flasch at the 
 University of Wisconsin-Milwaukee in cooperation with the NSF-funded 
 GriPhyN and iVDGL projects and the DOE-funded SciDAC Data Grid Middleware 
 project. Many members of the LIGO Scientific Collaboration have contributed 
-to deploying and testing LDR. The following links provide more detail about the Lightweight 
+to deploying and testing LDR.</p>
+
+<p>Subsequent to the successes with LDR in the LIGO project, members of the
+Globus Alliance have designed and implemented a 
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/techpreview/datarep/"; ?>">Data Replication Service (DRS)</a>
+that provides a pull-based replication capability similar to that provided in 
+the LIGO LDR system. The function of the DRS is to ensure that a specified set 
+of files exists on a storage site by comparing the contents of an RLS local 
+file catalog with a list of desired files, transferring copies of the missing 
+files from other locations and registering them in the local file catalog. The 
+DRS is implemented as a Web service that complies with the Web Services 
+Resource Framework (WS-RF) specifications. The DRS is available as a technology
+preview in the Globus Toolkit 4.0.</p>
+
+<h2>Detailed Information</h2>
+
+<p>The following links provide more detail about the Lightweight 
 Data Replicator (LDR).</p>
 
 <ul>
