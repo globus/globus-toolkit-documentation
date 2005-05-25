@@ -33,12 +33,12 @@
     }
     else if ( preg_match( "/3.2.1/", $link ) )
     {
-        print "<p>[ <a href=../releasenotes/3.2.1/>Release Notes</a> ]<br>\n";
+        print "<p>[ <a href=../releasenotes/3.2.1/>3.2.1 Release Notes</a> ]<br>\n";
         print "<p>[ <a href=../docs/3.2/>Globus Toolkit 3.2.1 Documents</a> ]<br>\n";
     }
     else
     {
-        print "<p>[ <a href=../releasenotes/4.0.0/>Release Notes</a> ]<br>\n";
+        print "<p>[ <a href=../releasenotes/4.0.0/>4.0.0 Release Notes</a> ]<br>\n";
         print "[ <a href=../docs/4.0/>Full Documentation</a> ]<br>\n";
         print "[ <a href=../docs/4.0/admin/docbook/>Installation Guide</a> ]<br>\n";
         print "[ <a href=../downloads/4.0.0/>Download Page</a> ]</p>\n";
