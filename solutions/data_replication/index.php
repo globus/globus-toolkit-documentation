@@ -126,7 +126,7 @@ to provide a solution that meets the requirements above.
 The LIGO detectors went online and began producing data in 2002.  By April 
 2005, the LIGO team had used LDR to replicate well over 50 terabytes of 
 data to sites including CalTech, MIT, Penn State University, and the University 
-of Wisconsin Milwaukee, along with sites in Europe including the Albert Eistein 
+of Wisconsin Milwaukee, along with sites in Europe including the Albert Einstein 
 Institute in Golm, Germany, and Cardiff University, and the University of 
 Birmingham.
 </p>
