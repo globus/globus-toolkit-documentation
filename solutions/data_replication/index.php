@@ -161,6 +161,7 @@ Data Replicator (LDR).</p>
 <li><a href="architecture.php">Architecture of the data replication system</a></li>
 <li><a href="resources.php">Software availability</a></li>
 <li><a href="http://www.lsc-group.phys.uwm.edu/LDR/">Lightweight Data Replicator website</a></li>
+<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/techpreview/datarep/"; ?>">Data Replication Service (DRS) documentation</a></li>
 <li><a href="http://www.ligo.caltech.edu/LIGO_web/about/">Overview of the LIGO facility</a></li>
 </ul>
 
