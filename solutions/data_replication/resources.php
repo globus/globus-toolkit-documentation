@@ -29,26 +29,31 @@ If you intend to install and use LDR, we recommend that you use the
 3.2 versions of these components.
 </p>
 
+<p>
+The Data Replication Service (DRS) is not currently used by LIGO, but is
+included because it provides comparable functionality.
+</p>
+
 <table class="boxed">
 <tr>
 <td class="tablekey">GSI</td>
 <td>The Grid Security Infrastructure (GSI) tools and libraries are available in the Globus Toolkit 4.0:<br>
-<a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/security/">http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/security/</a></td>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/security/"; ?>">http://www.globus.org/toolkit/docs/4.0/security/</a></td>
 </tr>
 <tr>
 <td class="tablekey">GridFTP</td>
 <td>A GridFTP service and its related tools are available in the Globus Toolkit 4.0:<br>
-<a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/gridftp/">http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/gridftp/</a></td>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/data/gridftp/"; ?>">http://www.globus.org/toolkit/docs/4.0/data/gridftp/</a></td>
 </tr>
 <tr>
 <td class="tablekey">RLS</td>
 <td>The Replica Location Service (RLS) and related tools are available in the Globus Toolkit 4.0:
-<a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/rls/">http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/rls/</a></td>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/data/rls/"; ?>">http://www.globus.org/toolkit/docs/4.0/data/rls/</a></td>
 </tr>
 <tr>
 <td class="tablekey">PyGlobus</td>    
 <td>PyGlobus is available in the Globus Toolkit 4.0:
-<a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/contributions/pyglobus/">http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/contributions/pyglobus/</a></td>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/contributions/pyglobus/"; ?>">http://www.globus.org/toolkit/docs/4.0/contributions/pyglobus/</a></td>
 </tr>
 <tr>
 <td class="tablekey">LDR</td>    
@@ -57,6 +62,12 @@ at <a href="http://www.lsc-group.phys.uwm.edu/LDR/">http://www.lsc-group.phys.uw
 Note that <em>all</em> of the LDR components (including those listed separately above) can
 be installed together as an "integrated installation" using PACMAN caches maintained by 
 the LDR development team.</td>
+</tr>
+<tr>
+<td class="tablekey">DRS</td>
+<td>The Data Replication Service (DRS) is available in the Globus Toolkit 4.0 as a 
+technology preview:
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/techpreview/datarep/"; ?>">http://www.globus.org/toolkit/docs/4.0/techpreview/datarep/</a></td>
 </tr>
 </table>
 
