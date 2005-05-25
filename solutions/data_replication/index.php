@@ -64,6 +64,7 @@ make those sites accessible to the participating scientists.
 <li><a href="architecture.php">System Architecture</a></li>
 <li><a href="resources.php">Software Availability</a></li>
 <li><a href="http://www.lsc-group.phys.uwm.edu/LDR/">Lightweight Data Replicator</a></li>
+<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/techpreview/datarep/"; ?>">Data Replication Service</a></li>
 </ul>
 </div>
 
@@ -166,7 +167,5 @@ Data Replicator (LDR).</p>
 </div>
 
 <?
-
 include($SITE_PATHS["SERV_INC"].'footer.inc');
-
 ?>
