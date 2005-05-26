@@ -140,7 +140,7 @@ GriPhyN and iVDGL projects and the DOE-funded SciDAC Data Grid Middleware
 project. Many members of the LIGO Scientific Collaboration have contributed 
 to deploying and testing LDR.</p>
 
-<p>Having learned from the LIGO project's successes with LDR, members of the
+<p>Having learned from the LIGO project's success with LDR, members of the
 Globus Alliance have designed and implemented a 
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/techpreview/datarep/"; ?>">Data Replication Service (DRS)</a>
 that provides a pull-based replication capability similar to that provided in 
