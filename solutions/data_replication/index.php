@@ -140,17 +140,16 @@ GriPhyN and iVDGL projects and the DOE-funded SciDAC Data Grid Middleware
 project. Many members of the LIGO Scientific Collaboration have contributed 
 to deploying and testing LDR.</p>
 
-<p>Subsequent to the successes with LDR in the LIGO project, members of the
+<p>Having learned from the LIGO project's successes with LDR, members of the
 Globus Alliance have designed and implemented a 
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.0/techpreview/datarep/"; ?>">Data Replication Service (DRS)</a>
 that provides a pull-based replication capability similar to that provided in 
-the LIGO LDR system. The function of the DRS is to ensure that a specified set 
-of files exists on a storage site by comparing the contents of an RLS local 
-file catalog with a list of desired files, transferring copies of the missing 
-files from other locations and registering them in the local file catalog. The 
-DRS is implemented as a Web service that complies with the Web Services 
+the LIGO LDR system.  DRS is implemented as a Web service that complies with the Web Services 
 Resource Framework (WS-RF) specifications. The DRS is available as a technology
-preview in the Globus Toolkit 4.0.</p>
+preview in the Globus Toolkit 4.0, and the LDR team plans to test DRS as a potential 
+replacement for LDR's data publishing component. The long-term goal is for the
+Globus Toolkit to provide reusable services in this area (like DRS) so that 
+applications like LDR can be created with little or no new code.</p>
 
 <h2>Detailed Information</h2>
 
