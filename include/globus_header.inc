@@ -53,6 +53,7 @@ globus_current_location(); ?>
       </th>
 
       <td>
+	  
          <form method="GET" name="GlobusSearchForm"  
 onSubmit="GlobusSubmit()">
          <input type="radio" name="domain" value="nomail"  
