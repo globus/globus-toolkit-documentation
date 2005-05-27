@@ -7,5 +7,5 @@
         ESG and shows sea ice extent (white/gray), sea ice motion, sea surface 
         temperatures (colors), and atmospheric sea level pressure (contours). 
         ESG uses Globus software for security, data movement, and system 
-        monitoring. Image provided by UCAR.</p>
+        monitoring. Image provided by <a href="http://www.ucar.edu/">UCAR</a>.</p>
         
