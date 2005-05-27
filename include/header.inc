@@ -8,6 +8,15 @@
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
 <link href="<?=$SITE_PATHS["WEB_CSS"]."default.css"; ?>" rel="stylesheet" type="text/css" />
 <link href="<?=$SITE_PATHS["WEB_CSS"]."print.css"; ?>" rel="stylesheet" type="text/css" media="print" />
+
+<script>
+function GlobusSubmit()
+{
+        document.GlobusSearchForm.action="http://www.google.com/custom";
+        document.GlobusSearchForm.q.value = document.GlobusSearchForm.q.value + " -inurl:mail_archive " ;
+}
+</script>
+
 </head>
 
 <body class="<?=$section; ?>">
@@ -47,7 +56,7 @@
         <input type="hidden" name="exclude" value="mail_archive" />
         </form>
         -->
-        <form method="GET" action="http://www.google.com/custom">
+        <form method="GET" name="GlobusSearchForm" onSubmit="GlobusSubmit()">
         Site Search:&nbsp;<input type="text" name="q" size="20" maxlength="200" value="" />
         <input type="hidden" name="cof" VALUE="S:http://www-unix.globus.org/;VLC:#cccccc;AH:center;BGC:#ffffff;LH:76;LC:#003390;L:http://www-unix.globus.org/img/globusalliance-nourl.gif;ALC:#003390;LW:170;T:#000000;AWFID:fb67b77f3237ebb9;">
         <input type="hidden" name="domains" value="www-unix.globus.org">
