@@ -7,6 +7,19 @@
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
 <link href="http://www-unix.globus.org/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
 <link rel="stylesheet" type="text/css" href="http://www-unix.globus.org/toolkit/css/print.css" media="print" />
+<script>
+function GlobusSubmit()
+{
+         var f=document.GlobusSearchForm;
+
+         f.action="http://www.google.com/custom";
+         if (f.elements[0].checked) {
+              f.q.value = f.qinit.value + " -inurl:mail_archive " ;
+         } else {
+              f.q.value = f.qinit.value + " inurl:mail_archive " ;
+         }
+}
+</script>
 </head>
 <body>
 
@@ -40,14 +53,22 @@ globus_current_location(); ?>
       </th>
 
       <td>
-        <form method="GET" action="http://www.google.com/custom">
-        <font color="#003390">Site Search:</font>
-            <input type="text" name="q" size="20" maxlength="200" value="">
-            <input type="hidden" name="cof" VALUE="S:http://www.globus.org/toolkit/;VLC:#cccccc;AH:center;BGC:#ffffff;LH:76;LC:#003390;L:http://www.globus.org/toolkit/images/globustoolkit.jpg;ALC:#003390;LW:225;T:#000000;AWFID:fb67b77f3237ebb9;">
-            <input type="hidden" name="domains" value="www-unix.globus.org">
-            <br />
-            <input type="hidden" name="sitesearch" value="www-unix.globus.org">
-      </form> 
+         <form method="GET" name="GlobusSearchForm"  
+onSubmit="GlobusSubmit()">
+         <input type="radio" name="domain" value="nomail"  
+checked>&nbsp;Website&nbsp;
+         <input type="radio" name="domain" value="mail">&nbsp;Email Lists&nbsp;
+         Search:&nbsp;<input type="text" name="qinit" size="20"  
+maxlength="200" value="" />
+         <input type="hidden" name="cof" VALUE="S:http://www- unix.globus.org/;VLC:#cccccc;AH:center
+;BGC:#ffffff;LH:76;LC:#003390;L:http://www-unix.globus.org/img/
+globusalliance-nourl.gif;ALC:#00339
+0;LW:170;T:#000000;AWFID:fb67b77f3237ebb9;">
+         <input type="hidden" name="domains" value="www- unix.globus.org">
+             <br />
+         <input type="hidden" name="sitesearch" value="www- unix.globus.org">
+         <input type="hidden" name="q" value="">
+         </form>
       </td>
     </tr>
 
