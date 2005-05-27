@@ -40,9 +40,6 @@ access to those systems, so long as each system is covered in some way. Local
 GridFTP services providing remote access to them; in these cases, a local GridFTP
 client must be used to move data to or from the filesystems.</p>
 
-<p>Different TeraGrid sites have chosen different ways to provide GridFTP access to 
-their shared filesystems. At the Argonne National Laboratory site, for example,
-<span class="comment">[...]</span></p>
 
 <h3>RFT Service</h3>
 
@@ -78,7 +75,18 @@ would provide an additional layer of availablity and robustness.</p>
 
 <h3>Client Tools</h3>
 
-<p><span class="comment">[add a bit about where client tools are installed]</span></p>
+<p>The tgcp command and the GridFTP client software on which it depends are
+deployed on all TeraGrid systems, meaning that users who log into TeraGrid
+systems can count on the tgcp command being available.</p>
+
+<p>At the time of this writing, the RFT client tool  was not yet installed on some
+TeraGrid systems, meaning that users could use the tgcp command but not necessarily
+count on the availability of the reliable file transfer capability. (Unlike tgcp
+and the GridFTP client software, the RFT client command is written in the Java
+programming language, and thus requires a Java virtual machine to run. Not all TeraGrid
+systems support Java or Java applications.)</p>
+
+
 
 <h2>Configuration Issues</h2>
 
@@ -91,12 +99,33 @@ use). For example, one node with a 1 Gb/s network interface card may not be able
 to use a full Gb/s of network bandwidth because of limitations in its disk I/O 
 performance.</p>
 
-<p><span class="comment">[argonne's configuration]</span></p>
+<p>Different TeraGrid sites have chosen different ways to provide GridFTP access to 
+their shared filesystems. At the Argonne National Laboratory site, for example,
+the striped GridFTP server includes eight server nodes, each of which has a 1 Gb/s
+network interface. This allows a maximum bandwidth of 8 Gb/s for the
+parallel filesystems used by many applications and 1 Gb/s for "normal" filesystems, 
+such as the one that houses user home directories. Though not yet at the 30 Gb/s 
+level, this data movement capability is still signficantly better than that offered
+by other TeraGrid tools without considerable system-level knowledge or application
+tuning.</p>
 
 <h3>TGCP Client Configuration Issues</h3>
 
-<p><span class="comment">[add info on how we fill out the tgcp translation & 
-bandwidth product files]</span></p>
+<p>The tcgp command uses two configuration files at each site. One file contains a
+table of bandwidth product figures for the network links between every pair of sites
+on TeraGrid. This configuration file was filled once for use on all TeraGrid sites,
+because the information covers all of the possible network paths and thus does not 
+need to change from site to site.</p>
+
+<p>The second configuration file is a set of translation rules that are used to
+translate the source and destination paths provided by tgcp users into optimal
+server references, taking local configuration issues into account. This configuration
+file must be filled uniquely by the system administrators at each TeraGrid resource 
+site, using their knowledge of the local system configuration. A shared section 
+provides translation rules to be applied when using remote TeraGrid sites. The
+TeraGrid software administrators use the project's CVS repository to maintain the
+"remote" rules, and individual administrators use examples provided in a template
+file to complete the local configuration section of the file.</p>
 
 </div>
 
