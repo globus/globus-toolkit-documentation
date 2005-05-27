@@ -51,10 +51,7 @@ function GlobusSubmit()
 	<?php 
 include_once( "/nfs/www-unix.globus.org/toolkit/breadcrumb.php" ); 
 globus_current_location(); ?>
-      </th>
-
-      <td>
-         <form method="GET" name="GlobusSearchForm"  
+      </th>         <form method="GET" name="GlobusSearchForm"  
 onSubmit="GlobusSubmit()">
          <input type="radio" name="domain" value="nomail"  
 checked>&nbsp;Website&nbsp;
@@ -70,6 +67,9 @@ globusalliance-nourl.gif;ALC:#00339
          <input type="hidden" name="sitesearch" value="www- unix.globus.org">
          <input type="hidden" name="q" value="">
          </form>
+
+      <td>
+
       </td>
     </tr>
 
