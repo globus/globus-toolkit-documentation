@@ -60,9 +60,9 @@ checked>&nbsp;Website&nbsp;
          Search:&nbsp;<input type="text" name="qinit" size="20"  
 maxlength="200" value="" />
          <input type="hidden" name="cof" VALUE="S:http://www-unix.globus.org/;VLC:#cccccc;AH:center;BGC:#ffffff;LH:76;LC:#003390;L:http://www-unix.globus.org/img/globusalliance-nourl.gif;ALC:#003390;LW:170;T:#000000;AWFID:fb67b77f3237ebb9;">
-         <input type="hidden" name="domains" value="www- unix.globus.org">
+         <input type="hidden" name="domains" value="www-unix.globus.org">
              <br />
-         <input type="hidden" name="sitesearch" value="www- unix.globus.org">
+         <input type="hidden" name="sitesearch" value="www-unix.globus.org">
          <input type="hidden" name="q" value="">
          </form>
 
