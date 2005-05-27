@@ -1,12 +1,8 @@
 <?
-
-// 2004-10-15, robinett: created, copied information from www.globus.org/gridware/collaboration-components.html
-
-$title = "Grid Ecosystem - Collaboration";
+$title = "Grid Software - Collaboration";
 $section = "section-4";
 include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
-
 ?>
 
 <!--<div id="left">
