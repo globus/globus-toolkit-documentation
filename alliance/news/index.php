@@ -47,6 +47,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>The <a class="newspartners" href="http://www.grids-center.org/train/June2005.asp">2005 
+GRIDS Center Community Workshop</a> brings together leaders and technical staff 
+from leading Cyberinfrastructure development and construction projects. (6/2005)</p>
+
 <p>A <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/ggf14/"; ?>">workshop at GGF-14</a> 
 will highlight the capabilities and early user experiences with the Globus 
 Toolkit 4.0. (6/2005)</p>

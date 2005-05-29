@@ -21,13 +21,24 @@ events.  The <a href="archive.php">Meetings and Events Archive</a> contains
 information and notes from previous events.</p>
     
 <p><b><a href="ggf14/">Globus Toolkit Version 4: Status and Experiences - A Workshop at GGF-14</a></b><br>
-June 28, 2005 (tentative)<br>
+June 27, 2005<br>
 <u>Chicago, IL</u><br>
 This workshop at GGF-14 will include an introduction to the Globus Toolkit, version
 4.0, by members of the Globus Toolkit development community. It will also include
 descriptions of early experiences with GT4 in Grid application deployment projects,
-presented by members of the Globus Toolkit user community.
-</p>
+presented by members of the Globus Toolkit user community.</p>
+
+<p><b><a href="http://www.grids-center.org/train/June2005.asp">2005 GRIDS 
+Center Community Workshop</a></b><br>
+June 23-24, 2005<br>
+<u>Chicago, IL</u><br>
+This workshop brings together leaders and technical staff from leading 
+Cyberinfrastructure development and deployment projects to encourage
+cross-discipline interactions involving Grid middleware.  
+Many groups have overlapping or very similar middleware needs, and the GRIDS 
+leadership wants to help identify these targets of opportunity that will 
+maximize benefits to the greater scientific community through coordinated 
+effort and reduced duplication.</p>
 
 <p><b><a href="http://www.midnetinc.org/conferences.html">2005 Great Plains 
 Network-MIDnet Annual Conference</a></b><br>
