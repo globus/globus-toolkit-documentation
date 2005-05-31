@@ -39,3 +39,8 @@ debian-sarge:
            /usr/share/xml/docbook/stylesheet/nwalsh/html/chunk.xsl \
            $(FILENAME)
 
+mac:
+	xsltproc --stringparam chunk.section.depth 0 \
+           --stringparam chapter.autolabel 0 \
+           /sw/share/xml/xsl/docbook-xsl/html/chunk.xsl \
+           $(FILENAME)
