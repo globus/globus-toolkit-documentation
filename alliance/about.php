@@ -38,11 +38,11 @@ organizations as contributors or as users.</p>
     includes software services and libraries for distributed security, resource management,
     monitoring and discovery, and data management. Its latest version, GT4, includes
     components for building systems that follow the 
-    <a href="<?=$SITE_PATHS["WEB_HOME"]."ogsa/"; ?>">Open Grid Services Architecture (OGSA)</a> 
+    <a href="<?=$SITE_PATHS["WEB_ROOT"]."ogsa/"; ?>">Open Grid Services Architecture (OGSA)</a> 
     framework defined by the <a href="http://www.gridforum.org/">Global Grid Forum (GGF)</a>, 
     of which the Globus Alliance is a leading member. GT4's components and software 
     development tools also comply with the 
-    <a href="<?=$SITE_PATHS["WEB_HOME"]."wsrf/"; ?>">Web Services Resource Framework 
+    <a href="<?=$SITE_PATHS["WEB_ROOT"]."wsrf/"; ?>">Web Services Resource Framework 
     (WSRF)</a>, a set of standards in development in 
     <a href="http://www.oasis-open.org/">OASIS</a>.</p>
 
