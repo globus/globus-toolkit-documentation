@@ -63,7 +63,9 @@ presentation-oriented. It provides a comprehensive introduction to GT4, covering
 execution management services, data movement and management services, and security services, and also 
 reviewing some of the higher-level tools that build on Globus mechanisms. A brief 
 introduction to administering a GT4-based Grid is also provided. To register,
-send email to <a href="mailto:gt4tutorial@novgp.com">gt4tutorial@novgp.com</a></p>
+send email to <a href="mailto:gt4tutorial@novgp.com">gt4tutorial@novgp.com</a>.
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/SDSC/"; ?>">Prep materials</a> for 
+the developer tutorial are available.</p>
 
 <p><b><a href="http://www.nesc.ac.uk/esi/events/519/">UK Globus Week, 2005</a></b><br>
 April 4-8, 2005<br>
