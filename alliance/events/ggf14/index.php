@@ -54,10 +54,10 @@ security available anywhere; a full-featured GridFTP implementation; and
 support for the WS Resource Framework and WS-Notification specifications in 
 C, Java, and Python containers.</p>
 
-<h2>Potential Speakers (invited, not confirmed)</h2>
+<h2>Speakers</h2>
 
 <ul>
-<li>GT4 Introduction (90 mins) -- largely Globus Alliance members
+<li>GT4 Introduction (90 mins) -- Globus Alliance members
         <ul>
         <li>Overview (30 mins)</li>
         <li>Implementation of Web Services Standards (15)</li>
@@ -67,10 +67,10 @@ C, Java, and Python containers.</p>
         </ul></li>
 <li>Early Experiences with GT4 (90 mins) -- members of the Globus user community
         <ul>
-        <li>China Grid (15)</li>
-        <li>GridCast, Belfast (15)</li>
-        <li>Intel (15)</li>
-        <li>Condor-G and GriPhyN (15)</li>
+        <li>China National Grid: Hai Jin, Wuhan (15)</li>
+        <li>GridCast, Terry Harmer, Queens University Belfast (15)</li>
+        <li>Ravi Subramanian, Intel (15)</li>
+        <li>Condor-G and GriPhyN, Jaime Frey, Wisconsin (15)</li>
         <li>Discussion (30)</li>
         </ul></li>
 </ul>
