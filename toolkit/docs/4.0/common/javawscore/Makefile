@@ -36,4 +36,8 @@ withphp:
 debian-pdf:
 	docbook2pdf \
 	-l /usr/share/sgml/declaration/xml.dcl \
-	${FILENAME}
+	${FILENAME}mac:
+	xsltproc --stringparam chunk.section.depth 0 \
+	--stringparam chapter.autolabel 0 \
+	/usr/share/xml/xsl/docbook-xsl/html/chunk.xsl \
+	$(FILENAME)

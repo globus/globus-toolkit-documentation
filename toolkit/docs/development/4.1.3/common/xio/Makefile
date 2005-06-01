@@ -31,3 +31,8 @@ withphp:
 	--stringparam chapter.autolabel 0 \
 	  /mcs/www-unix.globus.org/toolkit/documentation/web/docs/development/4.0-drafts/admin/docbook/chunk.xsl \
 	$(FILENAME)
+mac:
+	xsltproc --stringparam chunk.section.depth 0 \
+	--stringparam chapter.autolabel 0 \
+	/usr/share/xml/xsl/docbook-xsl/html/chunk.xsl \
+	$(FILENAME)
