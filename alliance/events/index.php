@@ -40,6 +40,21 @@ leadership wants to help identify these targets of opportunity that will
 maximize benefits to the greater scientific community through coordinated 
 effort and reduced duplication.</p>
 
+<p><b><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/NCSA/"; ?>">Globus 
+Toolkit 4 Tutorial</a></b><br>
+June 16-17<br>
+<u>Champaign-Urbana, IL</u><br>
+A two-day tutorial on Globus Toolkit v. 4 will be held June 16-17 at
+the Beckman Institute on the University of Illinois campus. The
+tutorial is co-sponsored by NCSA, Argonne National Laboratory, and the
+GRIDS Center.  The tutorial will include an overview of GT4, GT4 security, 
+and how to build a Java service using GT4. A
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/NCSA/"; ?>">full agenda 
+and other details</a> are available online.  
+The tutorial is free; to register, email Mike Freemon at
+<a href="mailto:mfreemon@ncsa.uiuc.edu">mfreemon@ncsa.uiuc.edu</a>.  
+[<a href="http://www.beckman.uiuc.edu/inside/directions.html">Directions to Beckman Institute and hotel information</a>]</p>
+
 <p><b><a href="http://www.midnetinc.org/conferences.html">2005 Great Plains 
 Network-MIDnet Annual Conference</a></b><br>
 June 8-10, 2005<br>
