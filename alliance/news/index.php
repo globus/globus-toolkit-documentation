@@ -55,6 +55,13 @@ from leading Cyberinfrastructure development and construction projects. (6/2005)
 will highlight the capabilities and early user experiences with the Globus 
 Toolkit 4.0. (6/2005)</p>
 
+<p>Two days of <a class="newsalliance" href="../events/">Globus Toolkit 4 
+tutorials</a> are offered at NCSA in Champaign-Urbana, IL. (6/2005).</p>
+
+<p>Globus Tutorials will be included at the 
+<a class="newspartners" href="http://www.midnetinc.org/conferences.html">2005 Great 
+Plains Network-MIDnet Annual Conference</a> in Kansas City, MO. (6/2005)</p>
+
 <p>IBM's <cite>developerWorks</cite> prints an 
    <a class="newsmedia" href="http://www-128.ibm.com/developerworks/grid/library/gr-tuecke/">interview with Steve Tuecke</a> 
    about open source Grid directions in the enterprise. (5/2005)</p>
