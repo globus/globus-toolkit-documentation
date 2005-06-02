@@ -47,6 +47,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>Ian Foster will present 
+<a class="newsalliance" href="http://www.caip.rutgers.edu/hpdc2005/tutorial.html">a 
+half-day GT4 tutorial</a> at HPDC, Sunday July 24th, in Research Triangle Park, 
+North Carolina. (7/2005)</p>
+
 <p>The <a class="newspartners" href="http://www.grids-center.org/train/June2005.asp">2005 
 GRIDS Center Community Workshop</a> brings together leaders and technical staff 
 from leading Cyberinfrastructure development and construction projects. (6/2005)</p>

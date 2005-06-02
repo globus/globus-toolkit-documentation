@@ -20,6 +20,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <table class="news">
             <tr>
               <td><span class="newsdate">06.02.2005</span></td>
+              <td><b>GT4 Tutorial at HPDC on July 24th.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
+              <td><span class="newsdate">06.02.2005</span></td>
               <td><b>Globus tutorials in Kansas City and Champaign-Urbana this month.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">05.20.2005</span></td>
               <td><b>GGF-14 workshop will discuss GT4 user experiences.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/ggf14/"; ?>">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">04.29.2005</span></td>
-              <td><b>GT4.0 is available for download.</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Learn more...</a></td>
             </tr>
 
           </table>

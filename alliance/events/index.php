@@ -20,6 +20,15 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 events.  The <a href="archive.php">Meetings and Events Archive</a> contains 
 information and notes from previous events.</p>
     
+<h2>July 2005</h2>
+
+<p><b><a href="http://www.caip.rutgers.edu/hpdc2005/tutorial.html">Half-day GT4 Tutorial at HPDC</a></b><br>
+July 24, 2005<br>
+<u>Research Triangle Park, NC</u><br>
+Ian Foster will present a half-day GT4 tutorial at HPDC, Sunday July 24th, in Research Triangle Park, North Carolina.
+
+<h2>June 2005</h2>
+
 <p><b><a href="ggf14/">Globus Toolkit Version 4: Status and Experiences - A Workshop at GGF-14</a></b><br>
 June 27, 2005<br>
 <u>Chicago, IL</u><br>
@@ -65,6 +74,8 @@ technology. Ian Foster will deliver one of three keynote lectures, and June 10
 will be a full-day <a href="http://www.midnetinc.org/conferences/globus.html">Globus 
 Toolkit and Grid workshop</a>.</p>
 
+<h2>May 2005</h2>
+
 <p><b>2 Day Programming Tutorial with WSRF and the Globus Toolkit Version 4</b><br>
 May 3-4, 2005<br>
 <u>San Diego, CA</u><br>
@@ -82,6 +93,8 @@ send email to <a href="mailto:gt4tutorial@novgp.com">gt4tutorial@novgp.com</a>.
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/SDSC/"; ?>">Prep materials</a> for 
 the developer tutorial are available.</p>
 
+<h2>April 2005</h2>
+
 <p><b><a href="http://www.nesc.ac.uk/esi/events/519/">UK Globus Week, 2005</a></b><br>
 April 4-8, 2005<br>
 <u>Edinburgh, UK</u><br>
@@ -93,6 +106,8 @@ significant contributions from UK and European experiences and expertise; to doc
 the event's proceedings as a UK eScience Technical Report.
 <a class="learnmore" href="http://www.nesc.ac.uk/esi/events/519/">Learn more...</a>
 </p>
+
+<h2>February 2005</h2>
 
 <p><b><a href="http://www.globusworld.org/">GlobusWORLD 2005</a></b>
 <br>February 7-11, 2005
