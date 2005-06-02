@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">06.02.2005</span></td>
+              <td><b>Globus tutorials in Kansas City and Champaign-Urbana this month.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">05.29.2005</span></td>
               <td><b>Leading Grid projects gather for 2005 GRIDS Community Workshop.</b> 
                 <a class="learnmore" href="http://www.grids-center.org/train/June2005.asp">Learn more...</a></td>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">04.29.2005</span></td>
               <td><b>GT4.0 is available for download.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">04.20.2005</span></td>
-              <td><b>PURSE makes user registration easy.</b> 
-                <a class="learnmore" href="http://www.grids-center.org/solutions/purse/">Learn more...</a></td>
             </tr>
 
           </table>
