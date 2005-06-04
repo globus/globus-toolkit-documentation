@@ -31,9 +31,9 @@ delegation done.  The second set are for simple jobs that share a delegated
 credential.  The third set are for jobs which stage in the echo tool to a new
 job directory, run the echo command with boring output, and then stage out their
 stdout and stderr files (all using a shared credential to contact RFT).
-The cells labled "<b>Serv. OOM</b>" and "<b>Cli. OOM</b>" are tests which failed
+The cells labeled "<b>Serv. OOM</b>" and "<b>Cli. OOM</b>" are tests which failed
 to complete because of a java.lang.OutOfMemoryError on the service and client
-repectively with the default heap size.  The cells labled "<b>N/A</b>" are tests
+respectively with the default heap size.  The cells labeled "<b>N/A</b>" are tests
 which were not attempted because of assumed failure.
 </p>
 
