@@ -49,7 +49,7 @@ function GlobusSubmit()
     <tr>
       <th>
 	<?php 
-include_once( "/nfs/www-unix.globus.org/toolkit/breadcrumb.php" ); 
+include_once( "/mcs/www-unix.globus.org/toolkit/breadcrumb.php" ); 
 globus_current_location(); ?>
       </th>        
 	  <td> <form method="GET" name="GlobusSearchForm"  
