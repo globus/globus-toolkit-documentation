@@ -681,12 +681,12 @@ submitting bibliographic citations</a>.</b></p>
 	V. Welch, I. Foster, C. Kesselman, O. Mulmo, L. Pearlman, S. Tuecke, J.
     Gawor, S. Meder, F. Siebenlist. <em>3rd Annual PKI R&amp;D Workshop</em>,
     2004.
-	<br>[<a href="http://www.globus.org/Security/papers/pki04-welch-proxy-cert-final.pdf">PDF</a>]</font></p>
+	<br>[<a href="papers/pki04-welch-proxy-cert-final.pdf">PDF</a>]</font></p>
 
 	<p><font size="2"><strong><a name="GT3-WSFBCGKMPT03">Security for Grid Services</a></strong>. 
 	V. Welch, F. Siebenlist, I. Foster, J. Bresnahan, K. Czajkowski, J. Gawor, C. Kesselman, S. Meder, L. Pearlman, S. Tuecke.
 	<em>Twelfth International Symposium on High Performance Distributed Computing (HPDC-12)</em>, IEEE Press, to appear June 2003.
-	<br>[<a href="#GT3-WSFBCGKMPT03">Citation</a>, <a href="../Security/GSI3/GT3-Security-HPDC.pdf">PDF</a>]</font></p>
+	<br>[<a href="#GT3-WSFBCGKMPT03">Citation</a>, <a href="papers/GT3-Security-HPDC.pdf">PDF</a>]</font></p>
 
       <p><b><a name="chep03-a">Using CAS to manage role-based VO sub-groups</a></b>. Shane Canon, 
          Steve Chan, Doug Olson, Craig Tull, and Von Welch. <em>In Proceedings of 
