@@ -20,7 +20,9 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 <h1 class="first">CAS - Community Authorization Service</h1>
 
 <p>
-Building on GSI, the CAS component of the Globus Toolkit allows resource providers to specify course-grained access control policies in terms of communities as a whole, delegating fine-grained access control policy management to the community itself.
+Building on GSI, the CAS component of the Globus Toolkit allows resource providers to specify 
+coarse-grained access control policies in terms of communities as a whole, delegating 
+fine-grained access control policy management to the community itself.
 </p>
 
 <p>
