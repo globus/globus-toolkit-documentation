@@ -6,6 +6,9 @@
         informs research on global climate change. This image displays data from
         ESG and shows sea ice extent (white/gray), sea ice motion, sea surface 
         temperatures (colors), and atmospheric sea level pressure (contours). 
-        ESG uses Globus software for security, data movement, and system 
-        monitoring. Image provided by <a href="http://www.ucar.edu/">UCAR</a>.</p>
+        ESG uses Globus software for 
+        <a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."purse/"; ?>">security</a>, 
+        data movement, and 
+        <a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]."system_monitoring/"; ?>">system monitoring</a>. 
+        Image provided by <a href="http://www.ucar.edu/">UCAR</a>.</p>
         
