@@ -47,6 +47,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+
 <p>Ian Foster will present 
 <a class="newsalliance" href="http://www.caip.rutgers.edu/hpdc2005/tutorial.html">a 
 half-day GT4 tutorial</a> at HPDC, Sunday July 24th, in Research Triangle Park, 
@@ -62,6 +63,10 @@ Toolkit 4.0. (6/2005)</p>
 
 <p>Two days of <a class="newsalliance" href="../events/">Globus Toolkit 4 
 tutorials</a> are offered at NCSA in Champaign-Urbana, IL. (6/2005).</p>
+
+<p>Ian Foster spoke with the Next Generation Data Center Forum about 
+<a class="newsmedia" href="http://www.next-gendatacenterforum.com/document.asp?doc_id=75171&site=ndcf">Grid 
+standards and commercial adoption of Grid technologies</a>. (6/2005)</p>
 
 <p>Globus Tutorials will be included at the 
 <a class="newspartners" href="http://www.midnetinc.org/conferences.html">2005 Great 
