@@ -14,7 +14,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
          
           <p></p>
 
-          <hr>
+         <!-- <hr> -->
 
           <!--<h2>Recent News</h2> -->
           <table class="news">
@@ -42,7 +42,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
 
-          <hr>
+          <!-- <hr> -->
 
           <h1>Welcome to Globus<sup><small>&reg;</small></sup></h1>
 
