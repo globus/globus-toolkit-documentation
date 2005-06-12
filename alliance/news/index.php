@@ -28,10 +28,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <p>Our <a href="kit.php">on-line press kit</a> also has useful background on the Globus Alliance.  If you're a reporter seeking more information, send mail to <a href="mailto:info@globus.org">info@globus.org</a>.</p>
 	
-	
-<p>Participants in the Globus Alliance are also contributing a 
-   <a class="newsalliance" href="http://www-fp.grids-center.org/news/clusterworld/default.asp">monthly 
-   column in <i>ClusterWorld</i> magazine</a>. PDFs are available three months after publication.</p>
+<p><b>NOTE:</b> <a href="../events/">Meetings and events</a> are summarized on a separate page.</p>
 
 <h2>Sections by Date</h2>
 <p>
