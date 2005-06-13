@@ -46,6 +46,13 @@ function globus_print_alliance_news_headlines($limit)
 }
 
 
+function globus_print_alliance_news($limit)
+{
+    globus_print_news("alliance_news",
+                      "alliance_news='Y'",
+                      $limit);
+}
+
 function globus_print_toolkit_news($limit)
 {
     globus_print_news("toolkit_news",
