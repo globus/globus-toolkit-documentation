@@ -25,6 +25,7 @@ topics.</p>
 <!-- <li>Articles</li> -->
 <li><a href="books/">Books</a></li>
 <!-- <li>Presentations</li> -->
+<li><a href="clusterworld/">"On the Grid" Columns in ClusterWorld</li>
 <li><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/"; ?>">Globus Toolkit Documentation</a></li>
 </ul>
 
