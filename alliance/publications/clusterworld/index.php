@@ -18,10 +18,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <p>From December 2003 through the end of the magazine's life in May 2005, members
    of the Globus Alliance submitted articles for 
-   <a href="http://www.clusterworld.com/">ClusterWorld</a> magazine's column,
-   <cite>On the Grid</cite>. These articles, sponsored by the NSF Middleware
-   Initiative (NMI), covered Grid issues of interest to owners and users of
-   cluster computing systems.</p>
+   <a href="http://www.clusterworld.com/">ClusterWorld</a>'s
+   <cite>On the Grid</cite> column. These articles, sponsored by the 
+   <a href="http://www.nsf-middleware.org/">NSF Middleware Initiative (NMI)</a>, 
+   covered Grid issues of interest to owners and users of cluster computing systems.</p>
 
 <table>
       <tr>
