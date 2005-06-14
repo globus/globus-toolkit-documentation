@@ -1,10 +1,140 @@
+Index: src/org/apache/axis/MessageContext.java
+===================================================================
+RCS file: /home/cvs/ws-axis/java/src/org/apache/axis/MessageContext.java,v
+retrieving revision 1.144
+diff -u -w -r1.144 MessageContext.java
+--- src/org/apache/axis/MessageContext.java	11 Jun 2004 19:09:07 -0000	1.144
++++ src/org/apache/axis/MessageContext.java	9 Jun 2005 01:02:53 -0000
+@@ -379,9 +379,11 @@
+      * during finalization, the dispose() method is called.
+      * @see #dispose()
+      */
++    /*
+     protected void finalize() {
+         dispose();
+     }
++    */
+ 
+     /**
+      * Mappings of QNames to serializers/deserializers (and therfore
+Index: src/org/apache/axis/client/Call.java
+===================================================================
+RCS file: /home/cvs/ws-axis/java/src/org/apache/axis/client/Call.java,v
+retrieving revision 1.235
+diff -u -w -r1.235 Call.java
+--- src/org/apache/axis/client/Call.java	30 Nov 2004 21:54:32 -0000	1.235
++++ src/org/apache/axis/client/Call.java	9 Jun 2005 01:03:02 -0000
+@@ -91,6 +91,7 @@
+ import java.util.Map;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
++import java.util.LinkedList;
+ import java.rmi.RemoteException;
+ 
+ /**
+@@ -2779,10 +2780,95 @@
+                 msgContext.removeProperty(Call.ONE_WAY);
+             }
+         };
++        /*
+         //create a thread to run it
+         Thread thread = new Thread(runnable);
+         //run it
+         thread.start();
++        */
++
++        NotificationManager.getNotificationManager().enqueue(runnable);
++    }
++
++    private static class NotificationManager {
++
++        private static final int DEFAULT_NUM_THREADS = 3;
++        private static NotificationManager notificationManager;
++
++        private Queue queue;
++        private NotificationThread[] threads;
++
++        private NotificationManager(int num) {
++            this.queue = new Queue();
++            this.threads = new NotificationThread[num];
++            for (int i=0;i<num;i++) {
++                this.threads[i] = new NotificationThread(this.queue);
++                this.threads[i].setDaemon(true);
++                this.threads[i].start();
++            }
++        }
++        
++        public void enqueue(Runnable r) {
++            this.queue.enqueue(r);
++        }
++
++        public synchronized static NotificationManager 
++            getNotificationManager() {
++            if (notificationManager == null) {
++                String prop = System.getProperty("axis.notificationThreads");
++                int threads = (prop == null) ? 
++                    DEFAULT_NUM_THREADS : Integer.parseInt(prop);
++                notificationManager = new NotificationManager(threads);
++            }
++            return notificationManager;
++        }
++        
++    }
++    
++    private static class Queue {
++
++        private LinkedList queue = new LinkedList();
++        
++        public synchronized void enqueue(Runnable r) {
++            queue.add(r);
++            notify();
++        }
++        
++        public synchronized Object dequeue() throws InterruptedException {
++            while (queue.isEmpty()) {
++                wait();
++            }
++            return queue.removeFirst();
++        }
++        
++    }
++
++    private static class NotificationThread extends Thread {
++
++        private Queue queue;
++            
++        public NotificationThread(Queue queue) {
++            this.queue = queue;
++        }
++
++        public void run() {
++            Runnable r = null;
++            while(true) {
++                try {
++                    r = (Runnable)this.queue.dequeue();
++                } catch (InterruptedException e) {
++                    break;
++                }
++                if (r == null) {
++                    break;
++                }
++                try {
++                    r.run();
++                } catch (Throwable e) {
++                    log.debug(Messages.getMessage("exceptionPrinting"), e);
++                }
++            }
++        }
+     }
+ 
+     /**
 Index: src/org/apache/axis/encoding/ser/BeanSerializer.java
 ===================================================================
 RCS file: /home/cvs/ws-axis/java/src/org/apache/axis/encoding/ser/BeanSerializer.java,v
 retrieving revision 1.80
-diff -w -u -r1.80 BeanSerializer.java
+diff -u -w -r1.80 BeanSerializer.java
 --- src/org/apache/axis/encoding/ser/BeanSerializer.java	11 Jan 2005 23:35:48 -0000	1.80
-+++ src/org/apache/axis/encoding/ser/BeanSerializer.java	21 Mar 2005 18:45:58 -0000
++++ src/org/apache/axis/encoding/ser/BeanSerializer.java	9 Jun 2005 01:03:28 -0000
 @@ -175,9 +175,11 @@
                          if (propValue == null) {
                              // an element cannot be null if nillable property is set to 
