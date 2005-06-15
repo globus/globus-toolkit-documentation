@@ -77,7 +77,7 @@ maxlength="200" value="" />
   <div id="wrapper">
     <div id="container">
 		<div id="content">
-
+<!--
 			$uri = $_SERVER{'REQUEST_URI'};
 
 # check the docs for outdated and development parts if ( preg_match("/^\/docs\//", $uri) ) {
@@ -90,4 +90,5 @@ maxlength="200" value="" />
         print "<div id="obsolete"  align="center"><p>This information is for a release that is no longer supported by the Globus Project. The currently supported versions of the Globus Toolkit are <a href="http://www.globus.org/toolkit/docs/4.0/">4.0</a> (recommended) and <a href="http://www.globus.org/toolkit/docs/3.2/">3.2</a>.</p></div>";
     }
 }
+-->
 			<!-- content STARTS here -->
