@@ -10,7 +10,7 @@ $uri = $_SERVER{'REQUEST_URI'};
 
 # check the docs for outdated and development parts 
 
-if ( preg_match("/^\/toolkit\/docs\//", $uri) ) {
+if ( preg_match("/^\/toolkit\/docs\/.+\/.+/", $uri) ) {
 
     if ( preg_match("/^\/toolkit\/docs\/development\//", $uri) ) {
         print "<div id='obsolete'  align='center'><p>This document is a work-in-progress and applies to this development release.</p></div>";
