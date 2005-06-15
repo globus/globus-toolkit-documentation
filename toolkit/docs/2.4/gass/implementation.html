@@ -1,0 +1,201 @@
+<?php
+
+$title = "GASS: Implementation Notes";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+    <ul>
+		<li>		  <a href="#intro">Introduction</a></li>
+	    <li> <a href="#Stages">Stages</a></li>
+	    <li><a href="#Related Systems">Related Systems</a></li>
+        <li><a href="#Outstanding Issues">Outstanding Issues</a></li>
+</ul>
+    <h2 align="left"><a name="intro"></a>Introduction</h2>
+    <ul>
+      <li>The cache should be implemented entirely on disk within a directory. This requires an
+        atomic file creation operation, so that we can implement a lock. There are a variety of
+        possible approaches to implement the lock, including using open(O_CREAT|O_EXCL) and using
+        link().<br>
+      </li>
+      <li>Two approaches were proposed to maintain the cache URL-&gt;filename mappings:<br>
+        <ul>
+          <li>Encode the URL into the filename. This is nice for its simplicity. However, we may run
+            into file name length limitations for long URLs. It also limits the amount of information
+            we can keep about each cache file, such as the tags, timestamps, etc.<br>
+          </li>
+          <li>Keep a table-of-contents file with URL-&gt;filename mappings, and any other relevant
+            information such as tags.<br>
+          </li>
+        </ul>
+      </li>
+      <li>The cache should be stateless. Ideally, any process that is mucking with the cache could
+        be killed at any time, and the cache would remain consistent. It is not clear how to
+        actually do this. We might need a 2-phase commit, but that may be overkill. In the mean
+        time, cache cleanup routines have been defined that allow some level of automatic cleanup
+        after errant user processes.<br>
+      </li>
+      <li>The 'gass_cache_t *gass_cache_handle' stuff allows code to set the cache directory,
+        manage multiple caches, and so on, <br>
+        all in a thread-safe manner.<br>
+      </li>
+      <li>We have talked some about persistent vs non-persistent files in the cache. This is a
+        policy decision that would layered on top of the gass_cache API.<br>
+      </li>
+      <li>gass_client_put_socket() could be implemented in two ways:<br>
+        <ul>
+          <li>We could open a socket directly to the gass server. We can use the nexus_fd_*() code to
+            make this easy. But after the initial setup, Nexus gets out of the way. It's just a
+            socket. This will work in single- or multi- threaded code.<br>
+          </li>
+          <li>We could intercept the data (using a pipe) and forward the data using
+            nexus_client_put_request_memory(). However, this approach will work only in a threaded
+            implementation, since the user's write to the pipe would block if the pipe buffer fills
+            up. </li>
+        </ul>
+      </li>
+    </ul>
+    <blockquote>
+      <p>We plan on implementing only #1 in the foreseeable future. However, #2 has the
+      advantage that Nexus features can be exploited, such as multiple protocols, security,
+      transforms. <br>
+      </p>
+    </blockquote>
+        <h2><a name="Stages"></a>Stages</h2>
+<ul>
+      <li>Implement the above APIs.</li>
+</ul>
+    <ul>
+      <li>Deploy them on GUSTO, and verify their correct operation.</li>
+    </ul>
+    <ul>
+      <li>Conduct performance
+        and reliability studies. Are there things we can do to enhance either performance or
+        reliability?</li>
+    </ul>
+    <ul>
+      <li>Figure out how to transparently remap open() and close() to gass_open() and
+        gass_close():<br>
+        <ul>
+          <li>The Condor approach may have difficulties. They grab an open call, and then remap it to
+            an rpc. But with gass, we would need to grab an open() call, copy the file in, and then
+            call the underlying open(). This means we may have namespace collision problems on some
+            machines. (We have a function called &quot;open&quot;, which needs to call the underlying
+            &quot;open&quot; function.)</li>
+          <li>The UFO approach (using the proc filesystem) may work on some machines. </li>
+        </ul>
+        <ul>
+          <li>Paradyn may work on some machines. </li>
+        </ul>
+        <ul>
+          <li>Maybe we should have a tool that rewrites application object files to change external
+            referenced open() to gass_open(), etc.</li>
+        </ul>
+      </li>
+      <li>Look at overriding read() and write() to allow incremental read/write.</li>
+    </ul>
+    <h2><a name="Related Systems"></a>Related Systems</h2>
+    <p>Condor:<ul>
+      <li>Condor grabs all systems calls and performs an RPC to a server running on the host
+        machine. So all I/O is done remotely, rather than staging in on open() and staging out on
+        close(). There is no local caching of files.</li>
+    </ul>
+    <p>UFO:<ul>
+      <li>The UFO system intercepts open, close, and fork system calls via the proc filesystem.
+        Currently, it runs only on Solaris, but Irix also has a proc filesystem, so it might work
+        there. <br>
+      </li>
+      <li>Like gass, it does a copy in on open, and copy out on close. It has no support for
+        append (other than copy out on close). It provides access to ftp (optionally with password
+        prompting) and http. It runs entirely in user space.<br>
+      </li>
+      <li>To implement open, they intercept the open syscall, download the file, munge the file
+        argument that is passed to the syscall, and then proceed with the syscall. During a close
+        syscall, they copy the file back out, and then pass through the syscall. They intercept
+        fork so that they can automatically attach to the proc file for the child process.<br>
+      </li>
+      <li>We should be able to use this approach with gass for read and write. It is unclear about
+        GASS's append mode. In this case, we need to intercept the open syscall, do a bunch of
+        stuff including creating another file descriptor, and then not actually do the syscall.
+        We're not sure if the proc filesystem allows this.</li>
+    </ul>
+    <p>WebFS:<ul>
+      <li>WebFS is a Solaris
+        kernel module that uses the vnode layer. Since it uses vnodes, it may be somewhat
+        portable. There is a &quot;webfs server&quot; that must be run at a site and that is given
+        access to a set of files that it will export. The client and server talk to each other via
+        http. <br>
+      </li>
+      <li>You mount the &quot;web filesystem&quot;. So if you have it mounted at /webfs, then
+        /webfs/www.mcs.anl.gov/foo will grab http://www.mcs.anl.gov/foo.<br>
+      </li>
+      <li>Apparently this needs to run alongside, or as an extension to a web server. It will do
+        some amount of coherency through invalidation, so that you can have multiple readers and
+        writers of single files with predictable results, but only in append mode. In read/write
+        mode, the last writer wins.</li>
+    </ul>
+    <h2><a name="Outstanding Issues"></a>Outstanding Issues</h2>
+<ul>
+      <li><em>ITF Q:</em> We need to define whatever MDS entries are used to determine what
+        machines share a cache, etc.<br>
+        <br>
+        <em>SJT A:</em> This seems unnecessary. If two machines each open the same file cache on a
+        distributed filesystem, they will implicitly share the cache. So, such sharing would
+        happen by convention (i.e., by default, name the cache ~/.gass_cache), rather than by some
+        explicit means in MDS. On the other hand, it might be useful to make more explicit the
+        binding of a gram manager to a shared filesystem with its managed resources.<br>
+        <br>
+        <em>ITF R:</em> The information that I talk about is not needed if a user just uses
+        gass_open, etc. But if we want to prestage, this information might be useful.<br>
+      </li>
+</ul>
+    <ul>
+      <li><em>SJT Q:</em> But how does a Web browser decide to use SSL or not on a given http
+        connection?<br>
+      </li>
+      <li><em>ITF Q:</em> We need to provide a standard gassd process as part of the GASS release,
+        configured for the user's home file system. We also should provide instructions on how to
+        configure and use this gassd.<br>
+      </li>
+      <li><em>ITF Q:</em> We should be able to use the above APIs and RSL extensions to define a
+        (Web) browser for user's caches. We should provide such a browser.<br>
+      </li>
+      <li><em>SJT Q:</em> We need to add gass_prefetch() and gass_prefetch_check(); also we need
+        to define how they interact with open, etc., and define how they operate on cache tags.
+        This will help overcome a disadvantage with the current approach that overlaped access is
+        prevented. This may be costly if only part of a file is required.<br>
+      </li>
+      <li><em>SJT Q:</em> RSL entensions should be defined as part of gram, not GASS. RSL
+        extensions need to be defined that allow a user to request a GRAM to:<br>
+        <ul>
+          <li>prestage a URL to a cache</li>
+          <li>return the contents of a cache</li>
+          <li>delete an entry from the cache</li>
+        </ul>
+        <p>Need to come up with preliminary definitions for those extensions. Rather than
+        providing an explicit call for listing the contents of the cache, we could publish this
+        information in MDS.<br>
+        </p>
+      </li>
+      <li><em>SJT Q:</em> Do we need to handle &gt;4GB files on 32-bit machines? If so, one
+        approach would be to to change the length arguments to length_high and length_low.<br>
+      </li>
+      <li><em>SJT Q:</em> We should create a simple program called &quot;gass_cache&quot;, which
+        can<br>
+        <ul>
+          <li>list the contents of a cache,</li>
+          <li>remove files from the cache, and </li>
+          <li>add files to the cache with a given tag.</li>
+        </ul>
+        <p>This would run local to a cache. All input would be through command line arguments, and
+        all output would be done either to stdout or using gass_open(O_APPEND) (depending upon
+        command line arguments). Once we have, this program, doing a remote interface to it should
+        be easy -- its a function that sets itself up as an x-gass server, does the appropriate
+        gram job request, and waits for the output from the append.</p>
+      </li>
+    </ul>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

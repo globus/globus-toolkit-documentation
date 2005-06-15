@@ -1,0 +1,626 @@
+<?php
+
+$title = "GASS: Cache Management Function Reference";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><a name="top"></a><?php echo $title; ?></h1>
+
+
+
+<ul>
+  <li><a href="#GASS%20Cache%20Management%20Overview">Overview</a></li>
+  <li>  <a
+    href="#GASS Cache Activation and Deactivation">GASS Cache Activation and
+    Deactivation</a></li>
+  <li>  <a href="#GASS Cache Management Functions">Functions</a></li>
+  <li><a href="#GASS Cache Management Functions">      </a><a href="#GASS Cache Management Errors Codes">Error Codes</a></li>
+</ul>
+<h2><a name="GASS Cache Management Overview">GASS Cache Management Overview</a></h2>
+<p align="left">The GASS cache management API defines calls for manipulating
+a local file cache.</p>
+
+<p>Each cache entry can be locked during addition and deletion, to allow for
+  atomic handling of the cache file contents.</p>
+<p>Each cache entry also has an associated timestamp. This timestamp is independent
+  of the local cache file's modification time. Rather, the cache entry timestamp
+  is maintained by the user. It can, for example, be used to keep track of the
+  timestamp of a remote file that is associate with a cache entry.</p>
+<p>Note: All timestamps are as seconds since the epoch. (01 Jan 1970, 00:00 GMT)
+<h2><a
+    name="GASS Cache Activation and Deactivation">GASS Cache Activation
+and Deactivation</a></h2>
+<p>&nbsp;GASS uses standard Globus module activation and deactivation. Before
+any GASS cache functions are called, the following function must be called:</p>
+<p>globus_module_activate(GLOBUS_GASS_CACHE_MODULE);</p>
+<p>This function returns GLOBUS_SUCCESS if GASS was successfully initialized,
+  and you are therefore allowed to subsequently call GASS cache functions. Otherwise,
+  and error code is returned, and GASS functions should not be subsequently called.
+  This function may be called multiple times.</p>
+<p>To deactivate GASS cache, the following function must be called:</p>
+<p>globus_module_deactivate(GLOBUS_GASS_CACHE_MODULE);</p>
+<p>This function should be called once for each time the GASS cache was activated.</p>
+<h2><a name="GASS Cache Management Functions">GASS Cache Management Functions</a></h2>
+<p>&nbsp;</p>
+
+<p><a name="globus_gass_cache_open">int <br>
+      <strong>globus_gass_cache_open</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; char *cache_directory_path, <br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_t *cache_handle)<br>
+  <br>
+  Open the cache specified by the cache_directory_path argument, and return a
+  cache handle that can be used in subsequent cache calls. <br>
+      <br>
+  If cache_directory_path is NULL, then use the value contained in the GLOBUS_GASS_CACHE_DEFAULT
+  environment variable if it is defined, otherwise use ~/.gass_cache.<br>
+      <br>
+  The cache_directory_path must be a directory. If it is a file, this call will
+  fail with a non-0 return value.<br>
+      <br>
+  If the specified directory does not exist, then this call will create the directory.<br>
+  <br>
+  In order to insure thread safety, this function must be called in each of the
+  thread which will use globus_gass_cache functions.<br>
+  For each call to globus_gass-cache_open(), the function globus_gass_cache_close()
+  should be called when the code does not need to use globus_gass_cache functions
+  anymore.<br>
+      <br>
+  Implementation note: In the initial implementation, the cache_directory_path
+  argument is ignored. Instead, the<br>
+  behavior is always that which results from cache_directory_path=NULL.<br>
+</p>
+<p><br>
+    <em>Parameters: </em><br>
+<ul>
+  <li>Input:
+      <ul>
+        <li>cache_directory_path: Path to the cache directory to open. Can be
+          NULL (see above) </li>
+      </ul>
+  </li>
+  <li>Output:
+      <ul>
+        <li>cache_handle: Structure containing all the necessary information
+          to access the cache (file names, descriptor,...) Some files are also
+          opened: globus_gass_cache_close() must be called subsequently to close
+          those files. </li>
+      </ul>
+  </li>
+  <li>Returns:
+      <ul>
+        <li>GLOBUS_SUCCESS or error code: </li>
+        <li>GLOBUS_GASS_CACHE_ERROR_CACHE_ALREADY_OPENED </li>
+        <li>GLOBUS_GASS_CACHE_ERROR_NAME_TOO_LONG if the cache directory path
+          is too long </li>
+        <li>GLOBUS_GASS_CACHE_ERROR_NO_HOME if cache_directory_path is NULL and
+          the env. variable</li>
+        <li>GLOBUS_GASS_CACHE_DEFAULT is empty and the env. variable $HOME is
+          not defined ! </li>
+        <li>GLOBUS_GASS_CACHE_ERROR_CAN_NOT_CREATE if the cache directory or
+          any necessary file can not be created. </li>
+      </ul>
+  </li>
+</ul>
+<hr align="center">
+<p><a name="globus_gass_cache_close">int <br>
+      <strong>globus_gass_cache_close</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_t *cache_handle)<br>
+  <br>
+  Close (NOT delete) a previously opened cache.<br>
+  <br>
+  <em>Parameters: </em>
+<ul>
+  <li>Input:
+      <ul>
+        <li>cache_handle: Handler to the opened cache directory to use. </li>
+      </ul>
+  </li>
+  <li>Output:
+      <ul>
+        <li>cache_handle: set to &quot;not initialized&quot;. </li>
+      </ul>
+  </li>
+  <li>Returns:
+      <ul>
+        <li>GLOBUS_SUCCESS or error code: </li>
+        <li>GLOBUS_GASS_CACHE_ERROR_CACHE_NOT_OPENED </li>
+      </ul>
+  </li>
+</ul>
+<hr align="center">
+<p><a name="globus_gass_cache_add">int <br>
+      <strong>globus_gass_cache_add</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_t *cache_handle,<br>
+&nbsp;&nbsp;&nbsp; char *url,<br>
+&nbsp;&nbsp;&nbsp; char *tag,<br>
+&nbsp;&nbsp;&nbsp; globus_bool_t create,<br>
+&nbsp;&nbsp;&nbsp; unsigned long *timestamp,<br>
+&nbsp;&nbsp;&nbsp; char **local_filename)<br>
+  <br>
+  If the URL is already in the cache but is locked, then then this call will
+  block until the cache entry is unlocked, then will proceed with the subsequent
+  operations.<br>
+      <br>
+  If the URL is already in the cache and unlocked, then add the tag to the cache
+  entry's tag list, return the local cache filename in *local_filename, return
+  the entry's current timestamp in *timestamp, lock the cache entry, and return
+  GLOBUS_GASS_CACHE_ADD_EXISTS.<br>
+      <br>
+  If the URL is not in the cache, and create==GLOBUS_TRUE, then create a new
+  unique empty local cache file, add it to the cache with the specified tag,
+  return the filename in *local_filename, return *timestamp set to GLOBUS_GASS_TIMESTAMP_UNKNOWN,
+  lock the cache entry, and return GLOBUS_GASS_CACHE_ADD_NEW.<br>
+      <br>
+  If the URL is not in the cache, and create==GLOBUS_FALSE, then do not add it
+  to the cache, and return GLOBUS_GASS_CACHE_URL_NOT_FOUND. <br>
+      <br>
+  If this function returns GLOBUS_GASS_CACHE_ADD_EXISTS or GLOBUS_GASS_CACHE_ADD_NEW,
+  then <a
+    href="#globus_gass_cache_add_done">globus_gass_cache_add_done()</a> or <a
+    href="#globus_gass_cache_delete">globus_gass_cache_delete()</a> must be subsequently
+  called to unlock the cache entry. </p>
+<p>Subsequent calls to <a href="#globus_gass_cache_add">globus_gass_cache_add()</a> and <a
+    href="#globus_gass_cache_delete_start">globus_gass_cache_delete_start()</a> on
+  the same cache and url, made either from this process or another, will block
+  until the cache entry is unlocked.<br>
+      <br>
+  If tag==NULL, then a tag with the value &quot;null&quot; will be added to the
+  cache entry's tag list.<br>
+      <br>
+  The same tag can be used multiple times, in which case this tag will be added
+  to the entry's tag list multiple times.</p>
+<p>The returned *local_filename should be subsequently freed by calling globus_free(*local_filename).<br>
+      <br>
+  Note: It is recommended that programs started via GRAM pass a tag value of
+  getenv(&quot;GRAM_JOB_CONTACT&quot;), since upon completion of a job GRAM will
+  automatically cleanup entries with this tag.<br>
+</p>
+<p><em>Parameters:</em>
+<ul>
+  <li>Input:
+      <ul>
+        <li>cache_handle: handler to the opened cache directory to use.</li>
+        <li>url: url of the file to be cached.&nbsp; It is used as the main key
+          to the cache entries.</li>
+        <li>tag: tag specifying which job is using the cache.&nbsp; This is usually
+          the GRAM_JOB_CONTACT. It can be NULL of empty; the tag &quot;null&quot; is
+          then used.</li>
+        <li>create: tells if the cache should be created, if it does not already
+          exist.</li>
+      </ul>
+  </li>
+  <li>Output:
+      <ul>
+        <li>timestamp: time stamp of the cached file, set by <a href="#globus_gass_cache_add_done">globus_gass_cache_add_done()</a>,
+          or <a href="#globus_gass_cache_delete">globus_gass_cache_delete()</a>.</li>
+        <li>local_filename: path in the local filesystem caching the file specified
+          by the &quot;url&quot;.&nbsp; NULL if the &quot;url&quot; is not yet
+          cached, and creation isn't requested. (create false)</li>
+      </ul>
+  </li>
+  <li>Return:
+      <ul>
+        <li>GLOBUS_GASS_CACHE_URL_NOT_FOUND</li>
+        <li>GLOBUS_GASS_CACHE_ADD_NEW</li>
+        <li>GLOBUS_GASS_CACHE_ADD_EXISTS</li>
+        <li>Any <a href="#GASS Cache Management Errors Codes">GASS Cache Error
+            Code</a></li>
+      </ul>
+  </li>
+</ul>
+<p>&nbsp;</p>
+<hr align="center">
+<p><a name="globus_gass_cache_add_done">int <br>
+      <strong>globus_gass_cache_add_done</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_t *cache_handle,<br>
+&nbsp;&nbsp;&nbsp; char *url,<br>
+&nbsp;&nbsp;&nbsp; char *tag,<br>
+&nbsp;&nbsp;&nbsp; unsigned long timestamp)<br>
+  <br>
+  Set the timestamp in the cache entry for the URL, and then unlock the cache
+  entry.<br>
+</p>
+<p><em>Parameters:</em>
+<ul>
+  <li>Input:
+      <ul>
+        <li>cache_handle: handler to the opened cache directory to use.</li>
+        <li>url: url of the cached file to set as &quot;done&quot; (unlock).</li>
+        <li>tag: tag specifying which job has locked the cache and must therefore
+          be unlocked. &nbsp; It is an error to call this function with a tag
+          which does not currently own the cache lock.</li>
+        <li>timestamp: time stamp of the cached file, set by <a href="#globus_gass_cache_add_done">globus_gass_cache_add_done()</a>,
+          or <a href="#globus_gass_cache_delete">globus_gass_cache_delete()</a></li>
+      </ul>
+  </li>
+  <li>Output:
+      <ul>
+        <li>none (the state file us updated, and the cache file lock is removed)</li>
+      </ul>
+  </li>
+  <li>Return:
+      <ul>
+        <li>GLOBUS_SUCCESS</li>
+        <li>Any <a href="#GASS Cache Management Errors Codes">GASS Cache Error
+            Code</a></li>
+      </ul>
+  </li>
+</ul>
+<hr align="center">
+<p><a name="globus_gass_cache_delete_start">int <br>
+      <strong>globus_gass_cache_delete_start</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_t *cache_handle,<br>
+&nbsp;&nbsp;&nbsp; char *url,<br>
+&nbsp;&nbsp;&nbsp; char *tag,<br>
+&nbsp;&nbsp;&nbsp; unsigned long *timestamp)<br>
+  <br>
+  Lock the cache entry for the URL, and return the cache entry's current timestamp
+  in *timestamp.<br>
+</p>
+<p><em>Parameters:</em>
+<ul>
+  <li>Input:
+      <ul>
+        <li>cache_handle: handler to the opened cache directory to use.</li>
+        <li>url: url of the cached file to set as &quot;done&quot; (unlock).</li>
+        <li>tag: tag specifying which job has locked the cache and must therefore
+          be unlocked. &nbsp; It is an error to call this function with a tag
+          which does not currently own the cache lock.</li>
+      </ul>
+  </li>
+  <li>Output:
+      <ul>
+        <li>timestamp: time stamp of the cached file, set by <a href="#globus_gass_cache_add_done">globus_gass_cache_add_done()</a>,
+          or <a href="#globus_gass_cache_delete">globus_gass_cache_delete()</a></li>
+      </ul>
+  </li>
+  <li>Return:
+      <ul>
+        <li>GLOBUS_SUCCESS</li>
+        <li>Any <a href="#GASS Cache Management Errors Codes">GASS Cache Error
+            Code</a></li>
+      </ul>
+  </li>
+</ul>
+<hr align="center">
+<p><a name="globus_gass_cache_delete">int <br>
+      <strong>globus_gass_cache_delete</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_t *cache_handle,<br>
+&nbsp;&nbsp;&nbsp; char *url,<br>
+&nbsp;&nbsp;&nbsp; char *tag,<br>
+&nbsp;&nbsp;&nbsp; unsigned long timestamp,<br>
+&nbsp;&nbsp;&nbsp; globus_bool_t is_locked)<br>
+  <br>
+  Remove one instance of the tag from the cache entry's tag list.&nbsp; If there
+  are no more tags in the tag list, then remove this cache entry and delete the
+  associated local cache file.&nbsp; Otherwise, update the timestamp to the passed
+  value.<br>
+      <br>
+  If is_locked==GLOBUS_TRUE, then this cache entry was locked during a previous
+  call to <a
+    href="#globus_gass_cache_add">globus_gass_cache_add()</a> or<br>
+  <a href="#globus_gass_cache_delete_start">globus_gass_cache_delete_start()</a>.
+  Otherwise, the entry will be locked at the start of this operation.<br>
+      <br>
+  This call will leave the cache entry unlocked.</p>
+<p>&nbsp;</p>
+<p><em>Parameters:</em>
+<ul>
+  <li>Input:
+      <ul>
+        <li>cache_handle: handler to the opened cache directory to use.</li>
+        <li>url: url of the cached file to set as &quot;done&quot; (unlock).</li>
+        <li>tag: tag specifying which job is using the cache.&nbsp; This is usually
+          the GRAM_JOB_CONTACT. It can be NULL of empty; the tag &quot;null&quot; is
+          then used.</li>
+        <li>timestamp: time stamp of the cached file</li>
+        <li>is_locked: indicates if this cached entry was locked during a previous
+          call to <a
+            href="#globus_gass_cache_add">globus_gass_cache_add()</a> or <a
+            href="#globus_gass_cache_delete_start">globus_gass_cache_delete_start()</a></li>
+      </ul>
+  </li>
+  <li>Output:
+      <ul>
+        <li>none</li>
+      </ul>
+  </li>
+  <li>Return:
+      <ul>
+        <li>GLOBUS_SUCCESS</li>
+        <li>Any <a href="#GASS Cache Management Errors Codes">GASS Cache Error
+            Code</a></li>
+      </ul>
+  </li>
+</ul>
+<hr align="center">
+<p><a name="globus_gass_cache_cleanup_tag">int <br>
+      <strong>globus_gass_cache_cleanup_tag</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_t *cache_handle,<br>
+&nbsp;&nbsp;&nbsp; char *url,<br>
+&nbsp;&nbsp;&nbsp; char *tag)<br>
+  <br>
+  Remove all instances of the tag from the cache entry's tag list. If there are
+  no more tags in the tag list, then<br>
+  remove this cache entry and delete the associated local cache file.<br>
+  <br>
+  If the cache entry is locked with the same tag as is passed to this function,
+  then the entry is unlocked after removing the tags. Otherwise, the cache entry's
+  lock is left untouched.<br>
+      <br>
+  Note: The GRAM job manager will automatically call this function with a tag
+  of getenv(&quot;GRAM_JOB_CONTACT&quot;) upon completion of a job.</p>
+<p>&nbsp;</p>
+<p><em>Parameters:</em>
+<ul>
+  <li>Input:
+      <ul>
+        <li>cache_handle: handler to the opened cache directory to use.</li>
+        <li>url: url of the cached file to set as &quot;done&quot; (unlock).</li>
+        <li>tag: tag specifying which job is using the cache.&nbsp; This is usually
+          the GRAM_JOB_CONTACT. It can be NULL of empty; the tag &quot;null&quot; is
+          then used.</li>
+      </ul>
+  </li>
+  <li>Output:
+      <ul>
+        <li>none</li>
+      </ul>
+  </li>
+  <li>Return:
+      <ul>
+        <li>GLOBUS_SUCCESS</li>
+        <li>Any <a href="#GASS Cache Management Errors Codes">GASS Cache Error
+            Code</a></li>
+      </ul>
+  </li>
+</ul>
+<hr align="center">
+<p><a name="globus_gass_cache_cleanup_file">int <br>
+      <strong>globus_gass_cache_cleanup_file</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_t *cache_handle, <br>
+&nbsp;&nbsp;&nbsp; char *url)<br>
+  <br>
+  Remove the cache entry and delete the associated local cache file, regardless
+  of the tags in tag list, and regardless<br>
+  of whether or not the cache entry is locked.<br>
+</p>
+<p><em>Parameters:</em>
+<ul>
+  <li>Input:
+      <ul>
+        <li>cache_handle: handler to the opened cache directory to use.</li>
+        <li>url: url of the cached file to set as &quot;done&quot; (unlock).</li>
+      </ul>
+  </li>
+</ul>
+<ul>
+  <li>Output:
+      <ul>
+        <li>none</li>
+      </ul>
+  </li>
+  <li>Return:
+      <ul>
+        <li>GLOBUS_SUCCESS</li>
+        <li>Any <a href="#GASS Cache Management Errors Codes">GASS Cache Error
+            Code</a></li>
+      </ul>
+  </li>
+</ul>
+<hr align="center">
+<p><a name="globus_gass_cache_tag_t">typedef struct</a><br>
+  {<br>
+  char * tag; /* tag name */<br>
+  int count; /* number of tags with this name */<br>
+  } <strong>globus_gass_cache_tag_t</strong>;<br>
+  <br>
+  <br>
+  <a name="globus_gass_cache_entry_t">typedef struct</a><br>
+  {<br>
+  char * url; /* url */<br>
+  char * filename; /* local filename */<br>
+  unsigned long timestamp; /* timestamp */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /*
+(seconds since the epoch) */<br>
+  char * lock_tag; /* the tag that has acquired this */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /*
+entry's lock, or GLOBUS_NULL if */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /*
+the entry is unlocked */<br>
+  unsigned long num_tags; /* number of tags in the tag array */<br>
+  globus_gass_cache_tag_t * tags; /* array of tags */<br>
+  } <strong>globus_gass_cache_entry_t</strong>;<br>
+  <br>
+  <br>
+  <a name="globus_gass_cache_list">int <br>
+  <strong>globus_gass_cache_list</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_t *cache_handle,<br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_entry_t **entries,<br>
+&nbsp;&nbsp;&nbsp; int *size)<br>
+  <br>
+  <br>
+  Return the entries of the cache in *entries as an array of globus_gass_cache_entry_t
+  structures, and return the number of elements in this array in *size.</p>
+<p>&nbsp;</p>
+<p><em>Parameters:</em>
+<ul>
+  <li>Input:
+      <ul>
+        <li>cache_handle: handler to the opened cache directory, to use.</li>
+      </ul>
+  </li>
+  <li>Output:
+      <ul>
+        <li>entries: array of globus_gass_cache_entry_t structure describing
+          each cache entry</li>
+        <li>size: size of the &quot;entries&quot; array (num of entries)</li>
+      </ul>
+  </li>
+  <li>Return:
+      <ul>
+        <li>GLOBUS_SUCCESS</li>
+        <li>Any <a href="#GASS Cache Management Errors Codes">GASS Cache Error
+            Code</a></li>
+      </ul>
+  </li>
+</ul>
+<hr align="center">
+<p><a name="globus_gass_cache_list_free">int <br>
+      <strong>globus_gass_cache_list_free</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_cache_entry_t *entries, <br>
+&nbsp;&nbsp;&nbsp; int size)<br>
+  <br>
+  Free the array of cache entries previously returned by <a href="#globus_gass_cache_list">globus_gass_cache_list()</a>.<br>
+</p>
+<p><em>Parameters:</em>
+<ul>
+  <li>Input:
+      <ul>
+        <li>entries: array of globus_gass_cache_entry_t structure describing
+          each cache entry</li>
+        <li>size: size of the &quot;entries&quot; array (num of entries)</li>
+      </ul>
+  </li>
+</ul>
+<ul>
+  <li>Return:
+      <ul>
+        <li>GLOBUS_SUCCESS</li>
+      </ul>
+  </li>
+</ul>
+<hr align="center">
+<p><a name="globus_gass_cache_error_string">int<strong><br>
+  globus_gass_cache_error_string</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; int errorcode)</p>
+<p>Returns a pointer to an error description string.</p>
+<p>Parameters:
+<ul>
+  <li>Input:
+      <ul>
+        <li>errorcode: error code returned by a previously-called globus_gass_cache
+          function</li>
+      </ul>
+  </li>
+  <li>Output:
+      <ul>
+        <li>none</li>
+      </ul>
+  </li>
+  <li>Returns:
+      <ul>
+        <li>Pointer to an error message, or NULL if invalid error code</li>
+      </ul>
+  </li>
+</ul>
+<h2><a
+    name="GASS Cache Management Errors Codes">GASS Cache Management Errors
+Codes</a></h2>
+<p>&nbsp;</p>
+<div align="center">
+  <center>
+    <table border="1"
+    width="500">
+      <tr>
+        <td width="409"><strong>Error Name</strong></td>
+        <td align="center" width="49"><strong>Value</strong></td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ADD_NEW</td>
+        <td align="center" width="49">1</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_URL_NOT_FOUND</td>
+        <td align="center" width="49">2</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ADD_EXISTS</td>
+        <td align="center" width="49">3</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_NO_HOME</td>
+        <td align="center" width="49">-1</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_CAN_NOT_CREATE</td>
+        <td align="center" width="49">-2</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_NAME_TOO_LONG</td>
+        <td align="center" width="49">-3</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_LOCK_ERROR</td>
+        <td align="center" width="49">-4</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_LOCK_TIME_OUT</td>
+        <td align="center" width="49">-5</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_OPEN_STATE</td>
+        <td align="center" width="49">-6</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_STATE_F_CORRUPT</td>
+        <td align="center" width="49">-7</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_NO_MEMORY</td>
+        <td align="center" width="49">-8</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_CAN_NOT_CREATE_DATA_F</td>
+        <td align="center" width="49">-9</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_URL_NOT_FOUND</td>
+        <td align="center" width="49">-10</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_CAN_NOT_DEL_LOCK</td>
+        <td align="center" width="49">-11</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_WRONG_TAG</td>
+        <td align="center" width="49">-12</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_ALREADY_DONE</td>
+        <td align="center" width="49">-13</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_CAN_NOT_WRITE</td>
+        <td align="center" width="49">-14</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_CAN_NOT_READ</td>
+        <td align="center" width="49">-15</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_CAN_NOT_DELETE_DATA_F</td>
+        <td align="center" width="49">-16</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_CACHE_NOT_OPENED</td>
+        <td align="center" width="49">-17</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_CACHE_ALREADY_OPENED</td>
+        <td align="center" width="49">-18</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_INVALID_PARAMETER</td>
+        <td align="center" width="49">-19</td>
+      </tr>
+      <tr>
+        <td width="409">GLOBUS_GASS_CACHE_ERROR_VERSION</td>
+        <td align="center" width="49">-20</td>
+      </tr>
+    </table>
+  </center>
+</div>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

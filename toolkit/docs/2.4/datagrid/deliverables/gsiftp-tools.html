@@ -1,0 +1,103 @@
+<?php
+
+$title = "GT 2.4: GSIFTP Tools for Getting Started With the Data Grid";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+    <p>This document provides a step-by-step guide to setting up GSIFTP clients
+      and servers.&nbsp; Answers to <a href="../faq.html">frequently-asked questions</a> about
+      these tools are also available.</p>
+    <p><small>GSIFTP is a subset of the <a href="../gridftp.html"> GridFTP</a> protocol.&nbsp; It is essentially
+    standard FTP enhanced to use GSI security.&nbsp; It does not includes many of the
+    high-performance GridFTP protocol features, such as parallel data transfer, automatic TCP
+    window/buffer sizing, enhanced reliability, etc.</small></p>
+<h2>Server Credentials</h2>
+<p>If your servers do not already have grid credentials, you will need to obtain these and
+install them correctly.    
+<ol>
+  <li>Obtain root privilages for the servers if you do not already have them. </li>
+  <li>Follow the instructions <a href="../../gsi/etc_grid_security_v11.html">here</a>
+    for each server. (Don't forget to follow the instructions <a href="../../gsi/host_cert_v11.html">here</a>
+    as well!) </li>
+</ol>
+<h2>GSIFTP Software</h2>
+<p>Next, you must obtain the GSIFTP software.    
+<ol>
+  <li>Download the gsiwuftp server from <a href="ftp://ftp.globus.org/pub/gsiftp/gsi-wuftpd-0.3b1.tar.gz">ftp://ftp.globus.org/pub/gsiftp/gsi-wuftpd-0.3b1.tar.gz</a>.
+  </li>
+  <li>Download the gsincftp client from <a href="ftp://ftp.globus.org/pub/gsiftp/gsincftp-0.3.tar.gz">ftp://ftp.globus.org/pub/gsiftp/gsincftp-0.3.tar.gz</a>.
+  </li>
+</ol>
+<p>Now that you have the software, you must build it from the source code. To do this,
+perform the following steps.    
+<ol>
+  <li>Gunzip and Untar each file that you downloaded. </li>
+  <li>Enter each directory created in Step 1 and configure, make, and make install the
+    contents. </li>
+  <li>For wuftp's configure step you will need to perform the following configure statement.<br>
+    ./configure --enable-gssapi=globus \<br>
+    --with-gssapi-dir=&lt;your globus install directory&gt; \<br>
+    --with-ssl-dir=&lt;your ssl install directory&gt; \<br>
+    --prefix=&lt;your install directory&gt; <br>
+  </li>
+  <li>For gsincftp's configure step you will need to perform the following configure
+        statement.<br>
+    ./configure --enable-gssapi \<br>
+    --disable-extra-dirs \<br>
+    --with-gssapi-dir=&lt;your globus install directory&gt; \<br>
+    --with-ssl-dir=&lt;your ssl install directory&gt; \<br>
+    --prefix=&lt;your install directory&gt; </li>
+</ol>
+<p>You must install gsiwuftp on your server machine(s) while logged in as root. (The
+gsincftp client may be installed on client machines without using root priviledges.)</p>
+<p>On each server:    
+<ol>
+  <li>Edit the /etc/ftpaccess file and make sure the following statements or their equivalent
+        exist in the file.<br>
+    <br>
+    class all real *<br>
+    pasv-allow all 0.0.0.0/0<br>
+    <br>
+    (The latter allows third-party transfers to work. To customize these settings, consult the
+    ftpaccess manpage that should have been installed with wuftp.)<br>
+    <br>
+  </li>
+  <li>Edit the /etc/services file and add the following line.<br>
+    <br>
+    gsiftp 2811/tcp<br>
+    <br>
+  </li>
+  <li>Edit the /etc/inetd.conf file and add the following line.<br>
+    <br>
+    gsiftp stream tcp nowait root &lt;your install directory&gt;/sbin/in.ftpd -l -a <br>
+    <br>
+  </li>
+  <li>Make sure that all valid user shells are listed in /etc/shells. </li>
+  <li>Restart inetd services. On Linux you can do this by executing
+    &quot;/etc/rc.d/inet.d/inet restart&quot;. On other machines you may need to execute
+    &quot;kill -HUP &lt;pid of inetd&gt;&quot;.</li>
+</ol>
+<h2>Configuring Buffer Sizes</h2>
+<p>To obtain optimal performance from these FTP tools, you will most likely need to
+configure the TCP buffer sizes for file transfers.</p>
+<p>The TCP buffer size used for a transfer is controlled by the FTP client. For the
+    gsincftpget program, use the -B argument to set the buffer size. For the gsincftp
+(interactive) client program, use the following interactive command.</p>
+<p>ncftp&gt; set so-bufsize &lt;number&gt;</p>
+<p>You may query the current buffer size using the following command.</p>
+<p>ncftp&gt; set so-bufsize    
+    <ul>
+      <li><small>Incorporated NCFTP 3.0beta21 -&gt; 3.0.0</small></li>
+      <li><small>Correctly handle connection failure, instead of reporting that setsockopt()
+        fails.</small></li>
+      <li><small>Added support for the &quot;gsiftp&quot; URL scheme.&nbsp; An ftp URL defaults to
+        port 21.&nbsp; A gsiftp URL defaults to port 2811.&nbsp; The default port when only the
+        host (i.e. no URL scheme) is specified is 2811.</small></font></li>
+    </ul>
+
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

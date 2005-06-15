@@ -1,0 +1,107 @@
+
+<?php
+
+$title = "Grid Security Infrastructure (GSI) v2: Adding a new trusted CA to a Globus Installation";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+    <ul>
+      <li><a href="#Introduction">Introduction</a></li>
+      <li><a href="#what systems">On what systems does a new trusted CA certificate need to
+        be installed</a></li>
+      <li><a href="#installing">Installing the new trusted CA certificate</a></li>
+    </ul>
+    <h2><a name="Introduction">Introduction</a></h2>
+    <p>Note: these instructions are valid for version 2.0 of the GSI software.</p>
+    <p>Installing a trusted CA (Certificate Authority) certificate on a system means that the
+    system now completely trusts that CA in terms of authentication. This is a major policy
+    decision and should not be taken lightly. You want to understand who is running the CA,
+    how it is being run, and to whom and how is it issuing certificates. Then you need to
+    decide that this CA is acceptable to trust for your resources.</p>
+    <p>This document assumes you are somewhat familar with security and PKI. It does not cover
+    all the policy issues surrounding trusting a new CA and uses some common security terms
+    freely. If you don't understand all the the policy issues or security terms in this
+    document you should talk with someone who does before proceeding.</p>
+    <h2><a name="what systems">On what systems does a new trusted CA
+    certificate need to be installed?</a></h2>
+    <p>You want to install a new trusted CA certificate on every system on your Grid (clients
+    and servers). Yes, this is a major undertaking.</p>
+    <p>Technically the only systems that need to have the new trusted CA certificate installed
+    are thoses that are wanting to securely communicate with an entity (user or resource) that
+    has a certificate signed by the new trusted CA. </p>
+    <p>For example, if a client has a certificate signed by the new trusted CA, any Grid
+    resources that client connects to will need to have the new trusted CA certificate
+    installed. Plus the client themselves will need to have the trusted CA certificate
+    installed.</p>
+    <p>If a resource has a certificate signed by a new trusted CA certificate any clients
+    connecting to this resource will need to have the new trusted CA certificate installed.</p>
+    <p>However Grid software is very complicated and interacts in ways that are not
+    immediately obvious, so trying to guess where a new CA files might be needed is not always
+    easy, hence it is often better to just bite the bullet and do it everywhere.</p>
+    <h2><a name="installing">Installing the new trusted CA certificate</a></h2>
+    <p>Note: these instructions are valid for version 2.0 of the GSI software.</p>
+    <p>Ideally with the new packaging software with the Globus 2.0 release, adding a new
+    trusted CA should be done by installing a new package containing the needed files for that
+    CA. The steps below describe the manual process for doing so.</p>
+    <p>The steps for installing a new trusted CA certificate are:<ol>
+      <li>Read the introduction to this webpage and make sure you understand the policy issues
+        behind what you are doing.<br>
+      </li>
+      <li>Get the new CA's certificate in PEM format. You need to get the certificate from a
+        trusted source and be certain that it is actually the certificate for the CA - i.e. make
+        sure no one has substituted a different certificate either accidentially or maliciously.<br>
+      </li>
+      <li>Install the CA certificate in your <em>/etc/grid-security/certificates</em> directory.
+        It must be in a file named after a hash of the CA's name. To generate this hash run the
+        following command (assuming <em>ca_cert.pem</em> contains the CA certificate, otherwise
+        replace that with the appropriate filename):<br>
+        <br>
+        openssl x509 -in <em>ca_cert.pem</em> -hash -noout<br>
+        <br>
+        Then append &quot;<em>.0</em>&quot; (a dot followed by a zero) to this hash. This is the
+        filename you should use. For example the Globus CA certificate is stored in a file with
+        the name <em>42864e48.0<br>
+        <br>
+        </em>This file should be world-readable, but not writable (e.g. unix file permissions of
+        0644 or 0444 are acceptable).<br>
+      </li>
+      <li>Get the signing policy of the new CA. This is a statement what names the CA will issue
+        certificates for. This will be three lines that look like the following:<br>
+        <br>
+        access_id_CA X509 '/C=US/O=Globus/CN=Globus Certification Authority'<br>
+        pos_rights globus CA:sign<br>
+        cond_subjects globus '&quot;/C=us/O=Globus/*&quot; &quot;/C=US/O=Globus/*&quot;
+        &quot;/O=Grid/O=Globus/*&quot;'<br>
+        <br>
+        Hopefully the CA will provide you with these lines (in which case you should still look
+        them over and make sure they are reasonable).<br>
+        <br>
+        The first line should be the text &quot;<em>access_id_CA X509</em>&quot; followed by the
+        subject name of the new CA in single quotes.<br>
+        <br>
+        The second line should be the text &quot;<em>pos_rights globus CA:sign</em>&quot;. This
+        text is constant, do not modify it.<br>
+        <br>
+        The third line contains the text &quot;<em>cond_subjects globus</em>&quot; followed by one
+        or more simple wildcard strings, in double quotes, describing DNs (names in certificates)
+        that the new CA is allowed to issue. If there is more than one of these strings, they must
+        then be enclosed in a set of single quotes.<br>
+        <br>
+        Word of warning: the code that parses the policy text is not very robust and does not
+        handle misfortmatted text gracefully. Double check this text for format, especially
+        missing quotes.<br>
+      </li>
+      <li>Place the policy in a file named after the same hash used in step 3 with the text &quot;<em>.signing_policy</em>&quot;
+        appended.<br>
+        <br>
+        For example the Globus CA's signing policy is stored in a file with the name <em>42864e48.signing_policy</em><br>
+      </li>
+      <li>That should do it.<br>
+      </li>
+    </ol>
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>

@@ -1,0 +1,535 @@
+<?php
+
+$title = "GASS: Server Function Reference";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+<ul>
+  <li><a href="#GASS%20Server%20Overview">Overview</a></li>
+  <li>      <a
+    href="#GASS Server Activation and Deactivation">GASS Server Activation and Deactivation</a></li>
+  <li>      <a href="#GASS Server Functions">Functions</a>
+  </li>
+</ul>
+<h2><a name="GASS Server Overview">GASS Server Overview</a></h2>
+<p align="left">&nbsp;The GASS server API is used to construct a server that
+  can service get and put requests made by the GASS client API using x-gass URLs.
+  Each of these operations can be performed to/from memory,&nbsp; to/from a file
+  descriptor, or a combination of both.<br>
+      <br>
+Note: All timestamps are as seconds since the epoch. (01 Jan 1970, 00:00 GMT)</p>
+<h2 align="left"><a
+    name="GASS Server Activation and Deactivation">GASS Server Activation
+and Deactivation</a></h2>
+<p>&nbsp;GASS uses standard Globus module activation and deactivation. Before
+any GASS server functions are called, the following function must be called: </p>
+
+<p>globus_module_activate(GLOBUS_GASS_SERVER_MODULE);</p>
+<p>This function returns GLOBUS_SUCCESS if GASS was successfully initialized,
+  and you are therefore allowed to subsequently call GASS server functions. Otherwise,
+  and error code is returned, and GASS server functions should not be subsequently
+  called. This function may be called multiple times.</p>
+<p>To deactivate GASS cache, the following function must be called:</p>
+<p>globus_module_deactivate(GLOBUS_GASS_SERVER_MODULE);</p>
+<p>This function should be called once for each time the GASS server was activated.</p>
+<h2><a name="GASS Server Functions">GASS Server Functions</a></h2>
+<p>&nbsp;<a
+    name="globus_gass_server_listen">int <br>
+    <strong>globus_gass_server_listen</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; unsigned short *port,<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_get_callback_t get_callback,<br>
+&nbsp;&nbsp;&nbsp; void *get_user_arg,<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_put_callback_t put_callback,<br>
+&nbsp;&nbsp;&nbsp; void *put_user_arg)<br>
+<br>
+Create a port and listen on it for get and put requests&nbsp; made by a globus_gass_client
+using an x-gass URL.<br>
+    <br>
+If *port is set to 0 when this function is called, then an anonymous port is
+used, and the port is returned in *port. Otherwise, the port specified by *port
+is used. 
+
+<p>The get_callback and put_callback arguments, if not GLOBUS_GLOBUS_GASS_NULL,
+  specify functions to call when a globus_gass_client_get or globus_gass_client_put
+  request is made to this server, respectively. The behavior of each of these
+  callbacks is described below.<br>
+      <br>
+  This function returns GLOBUS_GLOBUS_GASS_SUCCESS if it is successful, otherwise
+  a non-zero error code.<br>
+      <br>
+  In single threaded code, nexus_poll() or nexus_cond_wait() should be called
+  frequently to service requests.<br>
+      <br>
+      <a name="globus_gass_server_get_callback_t">typedef int</a> <br>
+  (*<strong>globus_gass_server_get_callback_t</strong>)(<br>
+  void *get_user_arg,<br>
+  char *url,<br>
+  globus_gass_server_get_request_t *request,<br>
+  unsigned long *timestamp,<br>
+  unsigned long *total_length)<br>
+  <br>
+  When a get request is first made, this callback will be called with a get request
+  structure for this request, which should&nbsp; be passed to one or more subsequent
+  globus_gass_server_get_request_*()&nbsp; calls to supply the data, and <a
+    href="#globus_gass_server_get_request_done">globus_gass_server_get_request_done()</a> to
+  cleanup and free the structure.</p>
+<p>If this callback returns a value other than GLOBUS_SUCCESS, the globus_gass_client
+  get request will fail with a GLOBUS_GLOBUS_GASS_REQUEST_SERVER_FAILURE and
+  its failure_code set to the value returned by this function. </p>
+<p>If this callback returns GLOBUS_SUCCESS, this request structure must be subsequently
+  freed by calling <a href="#globus_gass_server_get_request_done">globus_gass_server_get_request_done()</a>.
+  It should also set *timestamp to the file's timestamp or GLOBUS_GLOBUS_GASS_UNKNOWN_TIMESTAMP
+  if unknown; and set *total_length to the length of the data that will be supplied
+  for this request, or GLOBUS_GLOBUS_GASS_UNKNOWN_LENGTH if unknown.<br>
+      <br>
+  The following fields can be accessed directly from the request structure:</p>
+<p>request-&gt;status (int)</p>
+<blockquote>
+  <p>GLOBUS_GLOBUS_GASS_REQUEST_PENDING<br>
+    The request is still in progress.<br>
+  </p>
+  <p>GLOBUS_GLOBUS_GASS_REQUEST_SYSTEM_FAILURE<br>
+    The request failed due to a system failure (e.g. the server died).<br>
+    *The failure_code contains the reason for the failure.<br>
+  </p>
+  <p>GLOBUS_GLOBUS_GASS_REQUEST_SERVER_FAILURE<br>
+    The request failed due to an explicit failure call by the GASS server.<br>
+    *The failure_code contains the reason for the failure, as supplied by the
+    GASS server.<br>
+  </p>
+  <p>GLOBUS_GLOBUS_GASS_REQUEST_CLIENT_FAILURE<br>
+    The request failed due to an explicit failure call by the GASS client.<br>
+    *The failure_code contains the reason for the failure, as supplied by the
+    GASS client.<br>
+  </p>
+  <p>GLOBUS_GLOBUS_GASS_REQUEST_DONE<br>
+    The request has completed successfully.<br>
+  </p>
+</blockquote>
+<p>request-&gt;failure_code (int)<br>
+</p>
+<blockquote>
+  <p>Set to a failure code when request-&gt;status is GLOBUS_GLOBUS_GASS_REQUEST_*_FAILURE.<br>
+  </p>
+</blockquote>
+<p>request-&gt;total_length (unsigned long)<br>
+</p>
+<blockquote>
+  <p>Total length of the data sent.<br>
+  </p>
+</blockquote>
+<p>request-&gt;outstanding (int)<br>
+</p>
+<blockquote>
+  <p>The number of <a href="#globus_gass_server_get_request_fd">globus_gass_server_get_request_fd()</a> and <a href="#globus_gass_server_get_request_memory">globus_gass_server_get_request_memory()</a> calls
+    that are currently outstanding for this request.<br>
+  </p>
+</blockquote>
+<p>request-&gt;subject (char *)<br>
+</p>
+<blockquote>
+  <p>The subject (i.e. globus user name) of the client that made this request.&nbsp; It
+    is NULL if the subject is not known.<br>
+  </p>
+</blockquote>
+<p>request-&gt;user_pointer (void *)<br>
+</p>
+<blockquote>
+  <p>A pointer that can be used by the user for any purpose.<br>
+      <br>
+  </p>
+</blockquote>
+<hr align="center">
+<p><a name="globus_gass_server_get_request_fd">int <br>
+      <strong>globus_gass_server_get_request_fd</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_get_request_t *request,<br>
+&nbsp;&nbsp;&nbsp; int fd,<br>
+&nbsp;&nbsp;&nbsp; unsigned long block_size,<br>
+&nbsp;&nbsp;&nbsp; unsigned long max_length,<br>
+&nbsp;&nbsp;&nbsp; globus_bool_t last_data,<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_get_request_fd_done_t callback)<br>
+  <br>
+  Read data from the file descriptor fd and send it for the get request. If block_size!=0,
+  then this specifies a preferred block size that GASS should use when reading
+  from the file descriptor. If max_length==GLOBUS_GLOBUS_GASS_LENGTH_UNKNOWN,
+  then read and send until end-of-file is reached on the file descriptor. Otherwise,
+  read and send send max_length bytes or until end-of-file, whichever comes first.<br>
+      <br>
+  If last_data==GLOBUS_TRUE, then this is the last globus_gass_server_get_request_*()
+  function that will be called for this request.<br>
+      <br>
+  For a single request, calls to <a
+    href="#globus_gass_server_get_request_done">globus_gass_server_get_request_done()</a> and <a href="#globus_gass_server_get_request_memory">globus_gass_server_get_request_memory()</a> can
+  be intermixed. Further, multiple calls to these function can be outstanding,
+  and their order will be preserved.<br>
+      <br>
+  This function returns the current status of the request, as described in globus_gass_server_get_callback_t().
+  If the return value is GLOBUS_GLOBUS_GASS_REQUEST_PENDING, then once the requested
+  operation completes the callback function is called.</p>
+<p><a name="globus_gass_server_get_request_fd_done_t">typedef void</a> <br>
+  (*<strong>globus_gass_server_get_request_fd_done_t</strong>)(<br>
+  globus_gass_server_get_request_t *request,<br>
+  int fd,<br>
+  unsigned long send_length)<br>
+  <br>
+  This function is called as a result of completion of a <a
+    href="#globus_gass_server_get_request_fd">globus_gass_server_get_request_fd()</a> request.<br>
+  <br>
+  send_length is actual length of the portion of data sent for this <a
+    href="#globus_gass_server_get_request_fd">globus_gass_server_get_request_fd()</a> call.<br>
+  <br>
+  The request-&gt;status field is set to the current status of the request, as
+  described in globus_gass_server_get_callback_t(). A value of GLOBUS_GLOBUS_GASS_REQUEST_PENDING
+  implies that subsequent calls to&nbsp; <a href="#globus_gass_server_get_request_fd">globus_gass_server_get_request_fd()</a> and/or <a href="#globus_gass_server_get_request_memory">globus_gass_server_get_request_memory()</a>should
+  be made to receive the remainder of the request's data. </p>
+<p>Notes:</p>
+<blockquote>
+  <p>send_length may be greater than 0 even if request-&gt;status is GLOBUS_GLOBUS_GASS_REQUEST_*_FAILURE.</p>
+  <p>If a call to <a href="#globus_gass_server_get_request_fd">globus_gass_server_get_request_fd()</a> is
+    outstanding after the request fails, this callback will be called with receive_length
+    set to 0.</p>
+  <p>The request-&gt;outstanding field can be used to determine the number of
+    currently outstanding requests.</p>
+</blockquote>
+<hr align="center">
+<p><a name="globus_gass_server_get_request_memory">int <br>
+      <strong>globus_gass_server_get_request_memory</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_get_request_t *request,<br>
+&nbsp;&nbsp;&nbsp; globus_byte_t *buffer,<br>
+&nbsp;&nbsp;&nbsp; unsigned long buffer_length,<br>
+&nbsp;&nbsp;&nbsp; globus_bool_t last_data,<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_get_request_memory_done_t callback)<br>
+  <br>
+  <br>
+  Send buffer_length bytes of data from the memory buffer for the get request.<br>
+  <br>
+  If last_data==GLOBUS_TRUE, then this is the last globus_gass_server_get_request_*()
+  function that will be called for this request.<br>
+      <br>
+  For a single request, calls to <a href="#globus_gass_server_get_request_fd">globus_gass_server_get_request_fd()</a> and <a href="#globus_gass_server_get_request_memory">globus_gass_server_get_request_memory()</a> can
+  be intermixed. Further, multiple calls to these function can be outstanding,
+  and their order will be preserved.<br>
+      <br>
+  This function returns the current status of the request, as described in globus_gass_server_get_callback_t().
+  If the return value is GLOBUS_GLOBUS_GASS_REQUEST_PENDING, then once the requested
+  operation completes the callback function is called.<br>
+</p>
+<p><a name="globus_gass_server_get_request_memory_done_t">typedef void</a> <br>
+  (*<strong>globus_gass_server_get_request_memory_done_t</strong>)(<br>
+  globus_gass_server_get_request_t *request,<br>
+  globus_byte_t *buffer,<br>
+  unsigned long send_length)<br>
+  <br>
+  This function is called as a result of completion of a <a
+    href="#globus_gass_server_get_request_memory">globus_gass_server_get_request_memory()</a> request.<br>
+  <br>
+  send_length is actual length of the portion of data sent for this <a
+    href="#globus_gass_server_get_request_memory">globus_gass_server_get_request_memory()</a> call.<br>
+  <br>
+  The request-&gt;status field is set to the current status of the request, as
+  described in globus_gass_server_get_callback_t(). A value of GLOBUS_GLOBUS_GASS_REQUEST_PENDING
+  implies that subsequent calls to&nbsp; <a href="#globus_gass_server_get_request_fd">globus_gass_server_get_request_fd()</a> and/or <a href="#globus_gass_server_get_request_memory">globus_gass_server_get_request_memory()</a> should
+  be made to receive the remainder of the request's data. <br>
+</p>
+<p>Notes:</p>
+<blockquote>
+  <p>send_length may be greater than 0 even if request-&gt;status is GLOBUS_GLOBUS_GASS_REQUEST_*_FAILURE.</p>
+  <p>If a call to <a href="#globus_gass_server_get_request_fd">globus_gass_server_get_request_fd()</a> is
+    outstanding after the request fails, this callback will be called with receive_length
+    set to 0.</p>
+  <p>The request-&gt;outstanding field can be used to determine the<br>
+    number of currently outstanding requests.</p>
+</blockquote>
+<hr align="center">
+<p><a name="globus_gass_server_get_request_fail">int <br>
+      <strong>globus_gass_server_get_request_fail</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_get_request_t *request, <br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_get_request_fail_t fail_callback, <br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; int failure_code)<br>
+  <br>
+  Abort the get request. Both the GASS client and server will be notified of
+  the failure by setting their request-&gt;status to GLOBUS_GLOBUS_GASS_REQUEST_SERVER_FAILURE,
+  and the request-&gt;failure_code to the value passed in the failure_code argument. <br>
+</p>
+<p><a href="#globus_gass_server_get_request_done">globus_gass_server_get_request_done()</a> must
+  still be called after <a href="#globus_gass_server_get_request_fail">globus_gass_server_get_request_fail()</a> is
+  called. If there are any outstanding <a
+    href="#globus_gass_server_get_request_fd">globus_gass_server_get_request_fd()</a> or <a href="#globus_gass_server_get_request_memory">globus_gass_server_get_request_memory()</a> calls,
+  their callbacks will be performed immediately.</p>
+<p><br>
+  typedef void <br>
+  (*globus_gass_server_get_request_fail_t) (<br>
+  globus_gass_server_get_request_t *);<br>
+</p>
+<hr align="center">
+<p><a name="globus_gass_server_get_request_done">int <br>
+      <strong>globus_gass_server_get_request_done</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_get_request_t *request)<br>
+  <br>
+  Complete and cleanup the request that was started by a previous call to globus_gass_server_get_callback_t().<br>
+      <br>
+  If a previous <a href="#globus_gass_server_get_request_fd">globus_gass_server_get_request_fd()</a> or <a href="#globus_gass_server_get_request_memory">globus_gass_server_get_request_memory()</a> call
+  was not called with last_data==GLOBUS_TRUE, then this function implies that
+  there is no more data to get, and the request should complete normally.<br>
+      <br>
+      <a name="globus_gass_server_put_callback_t">typedef int</a> <br>
+  (*<strong>globus_gass_server_put_callback_t</strong>)(<br>
+  void *user_arg,<br>
+  char *url,<br>
+  globus_gass_server_put_request_t *request)<br>
+  <br>
+  When a put request is first made, this callback will be called with a put request
+  structure for this request, which should&nbsp; be passed to one or more subsequent
+  globus_gass_server_put_request_*()&nbsp; calls to retrieve the data, and <a
+    href="#globus_gass_server_put_request_done">globus_gass_server_put_request_done()</a> to
+  cleanup and free the structure.<br>
+      <br>
+  If this callback returns a value other than GLOBUS_SUCCESS, the globus_gass_client
+  put request will fail with a GLOBUS_GLOBUS_GASS_REQUEST_SERVER_FAILURE and
+  its failure_code set to the value returned by this function.&nbsp; </p>
+<p>If this callback returns GLOBUS_SUCCESS, this request structure must be subsequently
+  freed by calling <a href="#globus_gass_server_put_request_done">globus_gass_server_put_request_done()</a>.<br>
+      <br>
+  The following fields can be accessed directly from the request structure:</p>
+<p>request-&gt;status (int)<br>
+</p>
+<blockquote>
+  <p>GLOBUS_GLOBUS_GASS_REQUEST_PENDING<br>
+    The request is still in progress.<br>
+  </p>
+  <p>GLOBUS_GLOBUS_GASS_REQUEST_SYSTEM_FAILURE<br>
+    The request failed due to a system failure (e.g. the server died).<br>
+    *The failure_code contains the reason for the failure.<br>
+  </p>
+  <p>GLOBUS_GLOBUS_GASS_REQUEST_SERVER_FAILURE<br>
+    The request failed due to an explicit failure call by the GASS server.<br>
+    *The failure_code contains the reason for the failure, as supplied by the
+    GASS server.<br>
+  </p>
+  <p>GLOBUS_GLOBUS_GASS_REQUEST_CLIENT_FAILURE<br>
+    The request failed due to an explicit failure call by the GASS client. <br>
+    *The failure_code contains the reason for the failure, as supplied by the
+    GASS client.<br>
+  </p>
+  <p>GLOBUS_GLOBUS_GASS_REQUEST_DONE<br>
+    The request has completed successfully.<br>
+  </p>
+</blockquote>
+<p>request-&gt;failure_code (int)<br>
+</p>
+<blockquote>
+  <p>Set to a failure code when request-&gt;status is GLOBUS_GLOBUS_GASS_REQUEST_*_FAILURE.<br>
+  </p>
+</blockquote>
+<p>request-&gt;append (globus_bool_t)<br>
+</p>
+<blockquote>
+  <p>GLOBUS_TRUE if the data should be appended to the end of the specified url.
+    Otherwise, the contents pointed to by the url will be replaced.<br>
+  </p>
+</blockquote>
+<p>request-&gt;ack_type (int)</p>
+<blockquote>
+  <p>The ack_type, as passed to <a
+      href="../client/functions.html#globus_gass_client_put_request">globus_gass_client_put_request()</a>.
+    It should be used to determine what time argument to pass to <a
+      href="#globus_gass_server_put_request_done">globus_gass_server_put_request_done()</a>.
+    Options are:<br>
+  </p>
+</blockquote>
+<blockquote>
+  <p>GLOBUS_GLOBUS_GASS_ACK_NONE<br>
+    The client is not expecting an ack, so the timestamp argument can be ignored.<br>
+  </p>
+  <p>GLOBUS_GLOBUS_GASS_ACK_COMPLETE<br>
+    The client is expecting an ack when all data has been received and handled
+      by the server. The server should wait to call <a
+      href="#globus_gass_server_put_request_done">globus_gass_server_put_request_done()</a> until
+      it is ready to ack to the client that this condition has been met. However,
+      the timestamp argument can be ignored.<br>
+  </p>
+  <p>GLOBUS_GLOBUS_GASS_ACK_TIMESTAMP<br>
+    The client is expecting an ack when all data has been received and handled
+      by the server. The server should wait to call <a
+      href="#globus_gass_server_put_request_done">globus_gass_server_put_request_done()</a> until
+      it is ready to ack to the client that this condition has been met. In addition,
+      the client has requested a timestamp from the server after the data has
+      been received and handled. The server should supply a timestamp in its
+      call to <a
+      href="#globus_gass_server_put_request_done">globus_gass_server_put_request_done()</a>. <br>
+  </p>
+</blockquote>
+<p>request-&gt;outstanding (int)<br>
+</p>
+<blockquote>
+  <p>The number of <a href="#globus_gass_server_put_request_fd">globus_gass_server_put_request_fd()</a> and <a href="#globus_gass_server_put_request_memory">globus_gass_server_put_request_memory()</a> calls
+    that are currently outstanding for this request.<br>
+  </p>
+</blockquote>
+<p>request-&gt;subject (char *)<br>
+</p>
+<blockquote>
+  <p>The subject (i.e. globus user name) of the client that made this request.&nbsp; It
+    is NULL if the subject is not known.<br>
+  </p>
+</blockquote>
+<p>request-&gt;user_pointer (void *)<br>
+</p>
+<blockquote>
+  <p>A pointer that can be used by the user for any purpose.</p>
+</blockquote>
+<hr align="center">
+<p><a name="globus_gass_server_put_request_fd">int <br>
+      <strong>globus_gass_server_put_request_fd</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_put_request_t *request,<br>
+&nbsp;&nbsp;&nbsp; int fd,<br>
+&nbsp;&nbsp;&nbsp; unsigned long block_size,<br>
+&nbsp;&nbsp;&nbsp; unsigned long max_length,<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_put_request_fd_done_t callback)<br>
+  <br>
+  Receive data for the put request and write it to the file descriptor fd. If
+  block_size!=0, then this specifies a preferred block size that GASS should
+  use when writing to the file descriptor. If max_length==GLOBUS_GLOBUS_GASS_LENGTH_UNKNOWN,
+  then receive the remainder of the request's data. Otherwise, receive max_length
+  bytes, unless fewer bytes remain in the request.<br>
+      <br>
+  For a single request, calls to <a href="#globus_gass_server_put_request_fd">globus_gass_server_put_request_fd()</a> and <a href="#globus_gass_server_put_request_memory">globus_gass_server_put_request_memory()</a> can
+  be intermixed. Further, multiple calls to these function can be outstanding,
+  and their order will be preserved.<br>
+      <br>
+  This function returns the current status of the request, as described in globus_gass_server_put_callback_t().
+  If the return value is GLOBUS_GLOBUS_GLOBUS_GASS_REQUEST_PENDING, then once
+  the requested operation completes the callback function is called. <br>
+</p>
+<p><a name="globus_gass_server_put_request_fd_done_t">typedef void</a> <br>
+  (*<strong>globus_gass_server_put_request_fd_done_t</strong>)(<br>
+  globus_gass_server_put_request_t *request,<br>
+  int fd,<br>
+  unsigned long receive_length)<br>
+  <br>
+  This function is called as a result of completion of a <a
+    href="#globus_gass_server_put_request_fd">globus_gass_server_put_request_fd()</a> request.&nbsp; receive_length
+  is actual length of the portion of data received for this <a
+    href="#globus_gass_server_put_request_fd">globus_gass_server_put_request_fd()</a> call.<br>
+  <br>
+  The request-&gt;status field is set to the current status of the request, as
+  described in globus_gass_server_put_callback_t(). A value of GLOBUS_GASS_REQUEST_PENDING
+  implies that subsequent calls to&nbsp; <a href="#globus_gass_server_put_request_fd">globus_gass_server_put_request_fd()</a> and/or <a href="#globus_gass_server_put_request_memory">globus_gass_server_put_request_memory()</a> should
+  be made to receive the remainder of the request's data.</p>
+<p><br>
+  Notes:</p>
+<blockquote>
+  <p>receive_length may be greater than 0 even if request-&gt;status is GLOBUS_GASS_REQUEST_*_FAILURE.</p>
+  <p>If a call to <a href="#globus_gass_server_put_request_fd">globus_gass_server_put_request_fd()</a> is
+    outstanding after the request completes or fails, this callback will be called
+    with receive_length set to 0.</p>
+  <p>The request-&gt;outstanding field can be used to determine the number of
+    currently outstanding requests.</p>
+</blockquote>
+<hr align="center">
+<p><a name="globus_gass_server_put_request_memory">int <br>
+      <strong>globus_gass_server_put_request_memory</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_put_request_t *request,<br>
+&nbsp;&nbsp;&nbsp; globus_byte_t *buffer,<br>
+&nbsp;&nbsp;&nbsp; unsigned long buffer_length,<br>
+&nbsp;&nbsp;&nbsp; unsigned long wait_length,<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_put_request_memory_done_t callback)<br>
+  <br>
+  Receive data for the put request and save it into the memory&nbsp; buffer. <br>
+  <br>
+  If buffer==NULL, then gass will allocate a memory buffer with a maximum size
+  of buffer_length, and a minimum size of wait_length. If buffer_length==GLOBUS_GASS_LENGTH_UNKNOWN,
+  then gass will choose a buffer length of at least wait_length bytes. Buffers
+  that are allocated by gass must be explicitly freed by calling <a href="#globus_gass_server_put_request_memory_free">globus_gass_server_put_request_memory_free()</a>. </p>
+<p>If buffer!=NULL, then buffer_length is the maximum number of bytes that can
+  be read into the buffer.&nbsp; </p>
+<p>At least wait_length bytes will then be received into this buffer, unless
+  fewer bytes remain in the request. <br>
+</p>
+<p>For a single request, calls to <a
+    href="#globus_gass_server_put_request_fd">globus_gass_server_put_request_fd()</a> and <a href="#globus_gass_server_put_request_memory">globus_gass_server_put_request_memory()</a> can
+  be intermixed. Further, multiple calls to these function can be outstanding,
+  and their order will be preserved.</p>
+<p>This function returns the current status of the request, as described in globus_gass_server_put_callback_t().
+  If the return value is GLOBUS_GASS_REQUEST_PENDING, then once the requested
+  operation completes the callback function is called. </p>
+<p><br>
+    <a name="globus_gass_server_put_request_memory_done_t">typedef void</a> <br>
+  (*<strong>globus_gass_server_put_request_memory_done_t</strong>)(<br>
+  globus_gass_server_put_request_t *request,<br>
+  globus_byte_t *buffer,<br>
+  unsigned long buffer_length,<br>
+  unsigned long receive_length)<br>
+  <br>
+  This function is called as a result of completion of a <a
+    href="#globus_gass_server_put_request_memory">globus_gass_server_put_request_memory()</a> request.<br>
+  <br>
+  receive_length is actual length of the portion of data received for this <a
+    href="#globus_gass_server_put_request_memory">globus_gass_server_put_request_memory()</a> call.<br>
+  <br>
+  The request-&gt;status field is set to the current status of the request, as
+  described in globus_gass_server_put_callback_t(). A value of GLOBUS_GASS_REQUEST_PENDING,
+  implies that subsequent calls to <a href="#globus_gass_server_put_request_fd">globus_gass_server_put_request_fd()</a> and/or <a href="#globus_gass_server_put_request_memory">globus_gass_server_put_request_memory()</a> should
+  be made to receive the remainder of the request's data.<br>
+      <br>
+  Notes:</p>
+<blockquote>
+  <p>receive_length may be greater than 0 even if request-&gt;status is GLOBUS_GASS_REQUEST_*_FAILURE. </p>
+  <p>If a call to <a href="#globus_gass_server_put_request_memory">globus_gass_server_put_request_memory()</a> is
+    outstanding after the request completes or fails, this callback will be called
+    with receive_length set to 0. </p>
+  <p>The request-&gt;outstanding field can be used to determine the<br>
+    number of currently outstanding requests.<br>
+  </p>
+</blockquote>
+<hr align="center">
+<p><a name="globus_gass_server_put_request_memory_free">int <br>
+      <strong>globus_gass_server_put_request_memory_free</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_put_request_t *request,<br>
+&nbsp;&nbsp;&nbsp; globus_byte_t *buffer)<br>
+  <br>
+  Free a memory buffer that was allocated automatically by gass as a result of
+  a call to <a
+    href="#globus_gass_server_put_request_memory">globus_gass_server_put_request_memory()</a>,
+  and passed to a globus_gass_server_put_request_memory_done_t callback function.<br>
+</p>
+<hr align="center">
+<p><a name="globus_gass_server_put_request_fail">int <br>
+      <strong>globus_gass_server_put_request_fail</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_put_request_t *request, <br>
+&nbsp;&nbsp;&nbsp; int failure_code)<br>
+  <br>
+  Abort the put request. Both the GASS client and server will be notified of
+  the failure by setting their request-&gt;status to GLOBUS_GASS_REQUEST_SERVER_FAILURE,
+  and the request-&gt;failure_code to the value passed in the failure_code argument.<br>
+      <br>
+      <a href="#globus_gass_server_put_request_done">globus_gass_server_put_request_done()</a> must
+      still be called after <a href="#globus_gass_server_put_request_fail">globus_gass_server_put_request_fail()</a> is
+      called. If there are any outstanding <a
+    href="#globus_gass_server_put_request_fd">globus_gass_server_put_request_fd()</a> or <a href="#globus_gass_server_put_request_memory">globus_gass_server_put_request_memory()</a> calls,
+      their callbacks will be performed immediately.</p>
+<p>typedef void <br>
+  (*globus_gass_server_put_request_fail_t) (<br>
+  globus_gass_server_put_request_t *);<br>
+</p>
+<hr align="center">
+<p><a name="globus_gass_server_put_request_done">int <br>
+      <strong>globus_gass_server_put_request_done</strong></a>(<br>
+&nbsp;&nbsp;&nbsp; globus_gass_server_put_request_t *request, <br>
+&nbsp;&nbsp;&nbsp; unsigned long timestamp)<br>
+  <br>
+  Complete and cleanup the request that was started by a previous call to globus_gass_server_put_callback_t().<br>
+      <br>
+  The timestamp argument can be ignored unless request-&gt;status is GLOBUS_GASS_REQUEST_PENDING
+  and request-&gt;ack_type is GLOBUS_GASS_ACK_TIMESTAMP.<br>
+      <br>
+  If request-&gt;ack_type is GLOBUS_GASS_ACK_COMPLETE or GLOBUS_GASS_ACK_TIMESTAMP,
+  the server code should wait to call this function until all of the put request
+  data has been handled.
+<p>&nbsp;</p>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

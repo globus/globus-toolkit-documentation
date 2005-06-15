@@ -1,0 +1,125 @@
+<?php
+
+$title = "GASS: Requirements";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+    <ul>
+      <li>Make the design as
+        simple as possible. We do not want to write another distributed filesystem.<br>
+      </li>
+      <li>Support global name spaces for files, via URL syntax, and allowing access to files via
+        HTTP, FTP, and GASS servers:<br>
+        <br>
+        &nbsp;&nbsp;&nbsp; http://SERVER-NAME/REMOTE-PATHNAME<br>
+        <br>
+        Read/write file on public HTTP server. This will work either without authentication, or
+        with SSL authentication, depending upon the web server. (SSL is of limited utility, as
+        HTTP server must be using Globus CA, or similar, but we get this more or less for free.)<br>
+        <br>
+        &nbsp;&nbsp;&nbsp; ftp://SERVER-NAME/REMOTE-PATHNAME<br>
+        <br>
+        Read/write file on anonymous FTP server, without authentication (i.e., anonymous ftp).
+        This will likely also work with SSL enhanced ftp (see <a href="http://www.gbnet.com/public/security/Crypto/SSLapps/">http://www.gbnet.com/public/security/Crypto/SSLapps/</a>).
+        <br>
+        <br>
+        &nbsp;&nbsp;&nbsp; x-gass://SERVER-NAME:SERVER-PORT/REMOTE-PATHNAME<br>
+        <br>
+        Access file on GASS server, with authentication.<br>
+        <br>
+      </li>
+      <li>Support the following security model:<br>
+        <br>
+        <ul>
+          <li>Access to anonymous ftp or http servers is provided in the usual way, with no
+            authentication.</li>
+          <li>A GASS server can be accessed only by a computation operating on behalf of the user that
+            started it, with process-to-process authentication performed by the Globus Security
+            Infrastructure (GSI).</li>
+          <li>Access to SSL-authenticated ftp or http servers may be supported in the future through
+            the use of the GSI.</li>
+        </ul>
+      </li>
+    </ul>
+    <blockquote>
+      <p>In the future, we may decide to support GASS servers that can run as root, so as to
+      provide access to multiple Globus users. In this case, authentication and global-to-local
+      credential mapping would be done in the same way as in the GRAM gatekeeper to control
+      access. However, we don't intend to support this type of access initially.<br>
+      </p>
+    </blockquote>
+    <ul>
+      <li>Support three access patterns within an application program: <br>
+        <ul>
+          <li>Read of a remote file using conventional Unix file input functions <p>Achieved by
+            copying the entire file from the remote to local system when opening the file.</p>
+          </li>
+          <li>Write a remote file using conventional Unix file output functions<ul>
+              <li>Make the simplifying assumption that we do NOT support coherency or locking between
+                multiple writers</li>
+              <li>Note that changes to
+                file need not be reflected remotely until file close: hence, one can write locally,
+                transfer file when file closed</li>
+            </ul>
+          </li>
+          <li>Append<ul>
+              <li>Support append operations to a remote file</li>
+              <li>To support logging, perform &quot;flush&quot; after each write so that the appending
+                happens incrementally as write occur</li>
+              <li>Enable multiple
+                writers to operate on the same file simultaneously but allow concurrent write to be
+                interleaved<br>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>Support the concept of a &quot;file cache&quot; at a site<br>
+        <ul>
+          <li>Caches are associated with users, hence allowing use of local resource management
+            facilities to control user consumption of disk.</li>
+          <li>&quot;File open&quot; operation places a remote file in local cache, hence avoiding
+            repeat fetches when multiple processes at a site access the same remote file.</li>
+          <li>Reference counting via tags on open and close is used to manage cache.</li>
+          <li>There is no persistent cache daemon. Any program with access to the file cache can use
+            it through a cache API.</li>
+          <li>Multiple caches can be defined for a user, hence allowing the advanced user to stage
+            data to different locations, e.g., /tmp or a parallel file system on a parallel computer.<br>
+            <br>
+          </li>
+        </ul>
+      </li>
+      <li>Allow users to manage the cache remotely, via GRAM requests. In particular allow them
+        to:<br>
+        <ul>
+          <li>Request information about contents</li>
+          <li>Put items into the cache (hence performing prestaging)</li>
+          <li>Delete items from the cache<br>
+          </li>
+        </ul>
+        <p>We may also want to allow remote &quot;get&quot; from a cache (??)<br>
+        Two APIs have been discussed for achieving this remote management: <ul>
+          <li>Simple &quot;listcontents&quot;, &quot;put&quot;, and &quot;delete&quot; programs that
+            can be called via GRAM </li>
+          <li>Extensions to the GRAM Resource Specification Language (RSL) </li>
+        </ul>
+        <p>Note:<ul>
+          <li>Prestaging can be either coupled with or decoupled from application submission </li>
+          <li>Prestage request increments reference count, cache delete decrements <br>
+            <br>
+          </li>
+        </ul>
+      </li>
+      <li>Make the libraries
+        stateless, so that things can be restarted, etc.<br>
+      </li>
+      <li>Support customized GASS servers. A simple gass-server will be provided to give access to
+        remote files. However, a user should be able to extend the GASS server capabilities to
+        return data from any data source.<br>
+      </li>
+      <li>The APIs should allow for very high performance implementations.</li>
+    </ul>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

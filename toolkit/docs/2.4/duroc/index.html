@@ -1,0 +1,1110 @@
+<?php
+
+$title = "The Dynamically-Updated Request Online Coallocator (DUROC) v0.8: Function Reference";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+
+	<ul>
+	  <li><a href="#requirements">Coallocator
+        Requirements and Motivations</a></li>
+	  <li>      <a href="#reflective">Reflective Management Architecture</a></li>
+	  <li>      <a href="#atomic">Atomic Requests</a></li>
+	  <li>      <a href="#RSL">Coallocated-resource Specification Language</a></li>
+	  <li>      <a href="#allocation">DUROC request processing (allocation)</a></li>
+	  <li>      <a href="#API">Generic Coallocation API</a></li>
+	  <li>    Installation Information
+	    <ul>
+	      <li><a href="#manifest">DUROC source manifest</a></li>
+	      <li><a href="#building">Building DUROC</a></li>
+	      <li><a href="#installing">Installing DUROC</a></li>
+        </ul>
+	  </li>
+	  <li>Library Usage Instructions
+	    <ul>
+	      <li><a href="#libuse">Using the DUROC libraries</a></li>
+	      <li><a href="#tooluse">Using the DUROC Tools</a></li>
+          <li><a href="#bugs">Known bugs and limitations</a></li>
+	    </ul>
+	  </li>
+	  </ul>
+	<p>This is a document to specify the existing DUROC&nbsp;v0.8 implementation and
+    interfaces, as they are provided in the Globus&nbsp;v1.0 release. This document
+    serves as a reference, and more introductory text and examples can be found
+    in the companion DUROC tutorial. </p>
+<p>This document is maintained and best-viewed in HTML. The ASCII version suppresses
+    typefaces and the hyperlinks which ease navigation. </font></td>
+  </tr>
+</table>
+
+<h2 align="left"><a name="requirements">Coallocator
+requirements and motivation</a> &nbsp;</h2>
+<p align="left">&nbsp;The
+    Globus environment includes <i>resource managers</i> to provide access to
+    a range of system-dependent schedulers. Each resource manager (RM) provides
+an interface to submit jobs on a particular set of physical resources. </p>
+<p>In order to
+    execute jobs which need to be distributed over resources accessed through
+    independent RMs, a <i>coallocator</i> is used to coordinate transactions
+    with each of the RMs and bring up the distributed pieces of the job. The
+    coallocator must provide a convenient interface to obtain resources and execute
+    jobs across multiple management pools. 
+<h2><a name="reflective">Reflective management
+architecture</a></h2>
+<p>&nbsp;The
+    task an intelligent coallocation agent performs has two abstractly distinct
+    parts. First, the agent must process <i>resource specifications</i> to determine
+    how a job might be distributed across the resources of which it is aware--the
+    agent <i>lowers</i> an abstract specification such that portions of the specification
+    are allocated to the individual RMs that control access to those required
+    resources. Second, the agent must process the lowered resource specification
+    as part of a job request to actually attempt resource allocation--the agent
+    issues job requests to each of the pertinent RMs to schedule the job. The
+    process of lowering a resource specification in a job request in essence
+    refines the request based on information available to the lowering agent.
+    By separating the tasks of refinement and allocation in the architecture,
+    we can allow user intervention to adjust the refinement based on information
+    or constraints beyond the heuristics used internally by a particular automated
+    agent. A GUI specification-editor has been suggested as a meaningful mode
+of user (job requester) intervention. </p>
+<blockquote>
+  <p><i>spec</i><sub>1</sub> :
+      resource specification <br>
+        <i>spec</i><sub>2</sub> : resource specification <br>
+    lower (<i>spec</i><sub>1</sub>) &nbsp;&nbsp;--&gt;&nbsp;&nbsp; <i>spec</i><sub>2</sub> <i>spec</i> :
+    resource specification <br>
+    <i>job</i> : job contact information (or error status) <br>
+    request (<i>spec</i>) &nbsp;&nbsp;--&gt;&nbsp;&nbsp; <i>job</i> </p>
+  <p><b>lowering
+        example</b>: <br>
+    lower ( (count=5) ) &nbsp;&nbsp;--&gt;&nbsp;&nbsp; <br>
+&nbsp;(+ (&amp; (count=3) (resourceManagerContact=<i>RM</i><sub>1</sub> )) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;(&amp; (count=2) (resourceManagerContact=<i>RM</i><sub>2</sub> ))) </p>
+</blockquote>
+<p>DUROC implements
+    the allocation operation across multiple RMs in the Globus test-bed and leaves
+    lowering decisions to higher-level tools. 
+<h2><a name="atomic">Atomic requests</a></h2>
+<p>&nbsp;Once
+    a resource specification has been refined the agent must attempt to allocate
+    resources. In general the resources might managed by different RMs, and the
+    coallocator must atomically schedule the user's single abstract job or fail
+    to schedule the job. Because the GRAM interface does not provide support
+    for inter-manager atomicity, the user code must be augmented to implement
+    a <i>job-start barrier</i>;
+    as distributed components of the job become active, they must rendezvous
+    with the allocating agent to be sure all components were successfully started
+prior to performing any non-restartable user operations. </p>
+<blockquote>
+  <p>main : <br>
+        <i>&nbsp;&nbsp;&nbsp;job_start_barrier</i> ( ) <br>
+        <i>&nbsp;&nbsp;&nbsp;</i>. . . <br>
+        <i>&nbsp;&nbsp;&nbsp;user_operations</i> ( ) </p>
+</blockquote>
+<p>there are
+    three important points regarding the job-start barrier in the user's code.
+    First, atomicity of job creation can only guaranteed after the barrier, so
+    the user should not perform operations which cannot be reversed, e.g. certain
+    persistent effects or input/output operations, until after the barrier. Second,
+    the barrier call is used to implement guaranteed job cancelation within each
+    RM; if the agent's job scheduling fails but some of the components have been
+    scheduled through a manager that cannot cancel jobs it schedules, the agent
+    will have to rendezvous with those components when they become active and
+    signal them to abort. Third, the barrier call initializes the job-aggregation
+    communication functions needed to make use of the coallocated resources. 
+<h2><a name="RSL">Coallocated resource
+specification language</a></h2>
+<p>&nbsp;DUROC
+    shares its Resource Specification Language (RSL) with GRAM. DUROC can perform
+    allocations described by a 'lowered' resource specification. The task of
+    the lowering agent is to take a resource request of some form, be it a generalized
+    GRAM request or user inputs to a GUI interface, and produce a lowered request
+    so that DUROC can directly acquire the resources for the user. The allocation
+    semantics for DUROC requests are that each component of the top-level multi-request
+    represents one GRAM request that DUROC should make as part of the distributed
+    job DUROC is allocating. In order to make the request, DUROC must be able
+    to determine what RM to contact. Typically there will be additional terms
+    in the conjunctions of the lowered request, and those terms will be passed
+    on verbatim in each GRAM request. DUROC will extract each component of the
+    lowered multi-request, remove the DUROC-specific components of the subrequest,
+    and then forward that subrequest to the specified GRAM. Therefore any other
+attributes supported by GRAM are implicitly supported by DUROC. For example: </p>
+<p>+(&amp;(resourceManagerContact=RM1)(count=3)(executable=myprog.sparc))<br>
+  (&amp;(resourceManagerContact=RM2)(count=2)(executable=myprog.rs6000))</p>
+<p>in this request
+    the executables and node counts are specified for each resource pool. While
+    GRAM may in fact require fields such as these, DUROC treats them as it would
+    any other fields not needed to do its job--it forwards them in the subrequests
+    and it is up the the RMs to either successfully handle the request or return
+    a failure-code back to DUROC (which will then return an appropriate code
+    to the user). 
+<h2><a name="allocation">DUROC request processing
+(coallocation)</a></h2>
+<p>&nbsp;Requests
+    submitted to the DUROC API are decomposed into the individual GRAM requests
+    and each request is submitted through the GRAM API. A DUROC request proceeds
+    with each GRAM request in the job that succeeds. Runtime features available
+    to the job processes include a <i>start barrier</i> and <i>inter-process
+    communications</i> to
+    help coordinate the job processes. The start barrier allows the processes
+    to synchronize before performing any non-restartable operations. In the absence
+    of a start barrier, there is no way to guarantee that all job components
+    are successfully created prior to executing user code. The communications
+    library provides two simple mechanisms to send start-up and bootstrapping
+    information between processes: an inter-subjob mechanism to communicate between
+    ``node 0'' of each subjob, and an intra-subjob mechanism to communicate between
+    all the nodes of a single subjob. A library of common bootstrapping operations
+    is provided, using the public inter-subjob and intra-subjob communication
+    interfaces. For each GRAM subjob in the DUROC job, there are two optional
+    RSL fields which affect the subjob behavior. The `subjobStartType' field
+    allows the user to configure each subjob to either participate in the start
+    barrier with strict subjob-state monitoring (value `strict-barrier'), participate
+    in the start barrier without strict subjob-state monitoring (value `loose-barrier),
+    or not participate in the barrier at all (value `no-barrier'). Subjobs that
+    don't perform the barrier run forward independently of the other subjobs.
+    Strict state monitoring means that the job will be automatically killed if
+the subjob terminates prior to completing the barrier. </p>
+<p>The `subjobCommsType'
+    field allows the user to configure each subjob to either join the inter-subjob
+    communications group as a blocking operation (value `blocking-join') or not
+    join the inter-subjob communications group at all (value `independent').
+    When joining the group as a blocking operation, all participating subjobs
+    will join together, i.e. the communications startup function will function
+    as a group barrier. 
+<h2><a name="API">Generic resource
+coallocation API</a></h2>
+<p>&nbsp;The
+    resource coallocation API provides functions for submitting a job request
+    to a broker, for editing a submitted request, for cancelling a request, and
+    for requesting job state information. The Dynamically-Updated Request Online
+    Coallocator API (DUROC) is similar to that of the Resource Management API
+    (GRAM), with the addition of the <i>subjob-add</i>, <i>subjob-delete</i>,
+    and <i>barrier-release</i> operations
+    for managing resources, the <i>runtime-barrier</i> operation which must be
+    performed during the startup of each node, and the <i>job-structure</i> and <i>inter-subjob</i> communication
+interface operations which at runtime provide a mechanism for job self-organization. </p>
+<p>The following
+    API documents the DUROC&nbsp;v0.8 API, including runtime operations necessary
+    to use DUROC&nbsp;v0.8. 
+<h2><a name="API_control">Duroc
+control-library API</a></h2>
+<p><a name="globus_module_activate">int <br>
+        <strong>globus_module_activate</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GLOBUS_DUROC_CONTROL_MODULE)Activate
+the DUROC control-library API implementation prior to using any of the API functions.</p>
+<blockquote>
+  <ul>
+    <li>Returns
+        GLOBUS_SUCCESS if successful, otherwise one of: [no errors currently
+        defined] </li>
+  </ul>
+</blockquote>
+<hr>
+<p><a name="globus_module_deactivate">int <br>
+        <strong>globus_module_deactivate</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GLOBUS_DUROC_CONTROL_MODULE)Deactivate
+the DUROC control-library API implementation when finished using any of the API
+functions. </p>
+<blockquote>
+  <ul>
+    <li>Returns
+        GLOBUS_SUCCESS if successful, otherwise one of: [no errors currently
+        defined] </li>
+  </ul>
+</blockquote>
+<hr>
+<p><a name="globus_duroc_control_init">int <br>
+        <strong>globus_duroc_control_init</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; globus_duroc_control_t &nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; controlp)Initialize
+a globus_duroc_control_t object for subsequent coallocated-job submission and
+control. </p>
+<blockquote>
+  <ul>
+    <li>controlp
+        is the globus_duroc_control_t object to initialize. </li>
+    <li>Returns
+        GLOBUS_DUROC_SUCCESS if successful, otherwise one of: [no errors currently
+        defined] </li>
+  </ul>
+</blockquote>
+<p>A single globus_duroc_control_t
+    object can be used to concurrently submit and control multiple DUROC&nbsp;jobs. </p>
+<hr>
+<p><a name="globus_duroc_control_job_request">int <br>
+        <strong>globus_duroc_control_job_request</strong></a> ( <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; globus_duroc_control_t &nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; controlp,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp; description,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; job_state_mask,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp; callback_contact,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; char &nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ** &nbsp;&nbsp;&nbsp;&nbsp; job_contactp,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp; &nbsp;&nbsp;&nbsp; subreq_countp,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&nbsp; &nbsp;&nbsp;&nbsp; subreq_resultsp)Request
+coallocation of interactive resources at the current time. </p>
+<blockquote>
+  <ul>
+    <li>controlp
+        points to a globus_duroc_control_t object previously initialized with
+        globus_duroc_control_init(). description is a description of the requested
+        job. job_state_mask is 0 or a bitwise OR of the GLOBUS_DUROC_JOB_STATE_*
+        states listed above or GLOBUS_DUROC_JOB_STATE_ALL [currently ignored].
+        callback_contact is the URL to which events about the job should be reported
+        [currently ignored]. job_contactp is a pointer to a character string
+        storage pointer. subreq_countp is a pointer to integer storage. subreq_resultsp
+        is a pointer to an integer storage array pointer. If successful, *job_contactp
+        is set to a unique identifier for the job and can be used as a handle
+        in other DUROC API functions on this globus_duroc_control_t object, *subreq_count
+        is set to the number of subrequests found in description, and *subreq_resultsp
+        is set to point at a freshly-allocated array of integers holding the
+        gram_job_request() result codes for each subrequest. Return GLOBUS_DUROC_SUCCESS
+        on success, or one of the following error codes: [no errors currently
+        defined] The array returned in *subreq_resultsp and the string returned
+        in *job_contactp should be freed with globus_free() when the values are
+        no longer needed. </li>
+    <li>A job
+        submitted through this interface can subsequently be controlled with
+        the other DUROC API functions by providing the submitted job's contact
+        string to those calls. </li>
+  </ul>
+</blockquote>
+<hr>
+<p><a name="globus_duroc_control_subjob_add">int <br>
+        <strong>globus_duroc_control_subjob_add</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; globus_duroc_control_t &nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; controlp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; *&nbsp;&nbsp; &nbsp; job_contact, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; *&nbsp;&nbsp; &nbsp; subjob_description)Augment
+a coallocation with an additional interactive resource at the current time.</p>
+<blockquote>
+  <ul>
+    <li>controlp
+        points to a globus_duroc_control_t object previously initialized with
+        globus_duroc_control_init(). job_contact is as returned by globus_duroc_job_request.
+        subjob_description is a description of the subjob to be added. </li>
+    <li>Return
+        GLOBUS_DUROC_SUCCESS on success, or one of the following error codes:
+        [no errors currently defined] </li>
+  </ul>
+</blockquote>
+<p>A job modified
+    through this interface can subsequently be controlled with the other DUROC
+    API functions by providing the job's contact string to those calls. </p>
+<hr>
+<p><a name="globus_duroc_control_subjob_delete">int <br>
+        <strong>globus_duroc_control_subjob_delete</strong> </a>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; globus_duroc_control_t &nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; controlp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; *&nbsp;&nbsp; &nbsp; job_contact, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; * &nbsp;&nbsp;&nbsp; subjob_label)Modify
+a coallocation by removing an interactive resource at the current time. </p>
+<blockquote>
+  <blockquote>
+    <ul>
+      <li>controlp
+          points to a globus_duroc_control_t object previously initialized with
+          globus_duroc_control_init(). job_contact is as returned by globus_duroc_job_request.
+          subjob_label is the label of a subjob previously created via globus_duroc_control_job_submit
+          or globus_duroc_control_subjob_add. </li>
+      <li>Return
+          GLOBUS_DUROC_SUCCESS on success, or one of the following error codes:
+          [no errors currently defined] </li>
+    </ul>
+  </blockquote>
+</blockquote>
+<p>A job modified
+    through this interface can subsequently be controlled with the other DUROC
+    API functions by providing the job's contact string to those calls. </p>
+<hr>
+<p><a name="globus_duroc_control_barrier_release">int <br>
+        <strong>globus_duroc_control_barrier_release</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; globus_duroc_control_t &nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; controlp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; job_contact, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; globus_bool_t &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; wait_for_subjobs)Remove
+a Pending job request or kill processes associated with an Active request, releasing
+any associated resources, if such action is supported by the associated resource
+managers. </p>
+<blockquote>
+  <ul>
+    <li>controlp
+        is the same globus_duroc_control_t object to which the job was submitted.
+        job_contact is as returned by globus_duroc_job_request wait_for_subjobs
+        is one of the values: 
+        <ul>
+          <li>GLOBUS_TRUE:
+              release subjobs once they all enter barrier</li>
+          <li>GLOBUS_FALSE:
+              release subjobs if they have already entered the barrier, cancel
+              the job if any subjob has not yet entered the barrier</li>
+        </ul>
+    </li>
+    <li>Returns
+        GLOBUS_DUROC_SUCCESS if successful, otherwise one of: [no errors currently
+        defined] </li>
+  </ul>
+</blockquote>
+<p>This routine
+    allows subjobs to run forward past the runtime barrier, and currently delimits
+    a point after which subjobs cannot be added or deleted. </p>
+<hr>
+<p><a name="globus_duroc_control_job_cancel">int <br>
+        <strong>globus_duroc_control_job_cancel</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; globus_duroc_control_t &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; controlp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; job_contact)Remove
+a Pending job request or kill processes associated with an Active request, releasing
+any associated resources, if such action is supported by the associated resource
+managers. </p>
+<blockquote>
+  <ul>
+    <li>controlp
+        is the same globus_duroc_control_t object to which the job was submitted.
+        job_contact is as returned by grub_job_request </li>
+    <li>Returns
+        GLOBUS_DUROC_SUCCESS if successful, otherwise one of: [no errors currently
+        defined] </li>
+  </ul>
+</blockquote>
+<p>This routine
+    ``succeeds'' if the job is known. A successful return code does not guarantee
+    that all job resources were successfully released. </p>
+<hr>
+<p><a name="globus_duroc_control_subjob_states">int <br>
+        <strong>globus_duroc_control_subjob_states</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; globus_duroc_control_t &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; controlp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; job_contact, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp; subjob_countp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&nbsp;&nbsp;&nbsp; subjob_statesp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ***&nbsp;&nbsp;&nbsp; subjob_labelsp)Obtain
+a snapshot of the status of each subjob in a submitted DUROC job. </p>
+<blockquote>
+  <ul>
+    <li>controlp
+        is the same globus_duroc_control_t object to which the job was submitted.
+        job_contact is as returned by globus_duroc_job_request subjob_countp
+        is a pointer to integer storage. subjob_statesp is a pointer to an integer
+        storage array pointer. subjob_labelsp is a pointer to a string storage
+        pointer. If successful, *subjob_count is set to the number of subjobs
+        for which state information is known, *subjob_statesp is set to point
+        to a freshly-allocated array of integer subjob states, and *subjob_labelsp
+        is set to point to a freshly-allocated array of freshly-allocated string
+        labels (or NULL values for subjobs which weren't given labels by the
+        user). The individual subjob states are defined as: 
+        <ul>
+          <li>GLOBUS_DUROC_SUBJOB_STATE_PENDING:
+              the subjob's GRAM request succeededGLOBUS_DUROC_SUBJOB_STATE_ACTIVE:
+              the subjob's GRAM job is active (but not checked in)GLOBUS_DUROC_SUBJOB_STATE_CHECKED_IN:
+              the subjob runtime system has checked inGLOBUS_DUROC_SUBJOB_STATE_RELEASED:
+              the subjob runtime system has checked in and been releasedGLOBUS_DUROC_SUBJOB_STATE_DONE:
+              the subjob's GRAM job is done and the subjob runtime system has
+              been released</li>
+          <li>GLOBUS_DUROC_SUBJOB_STATE_FAILED:
+              the subjob's GRAM job has terminated and the subjob runtime system
+              was not released</li>
+        </ul>
+        Returns
+        GLOBUS_DUROC_SUCCESS if successful, otherwise one of: [no errors currently
+        defined] </li>
+    <li>The arrays
+        and strings returned in *subjob_statesp and subjob_labelsp should be
+        freed with globus_free() when the values are no longer needed. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    can effectively be used in a polling loop to monitor the status of a job,
+    for example in the display loop of a GUI agent.
+<h2><a name="API_runtime">DUROC
+runtime-library API</a></h2>
+<p><a name="globus_module_activate">int <br>
+        <strong>globus_module_activate</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GLOBUS_DUROC_RUNTIME_MODULE)Activate
+the DUROC runtime-library API implementation prior to using any of the API functions. </p>
+<blockquote>
+  <ul>
+    <li>Returns
+        GLOBUS_SUCCESS if successful, otherwise one of: [no errors currently
+        defined] </li>
+  </ul>
+</blockquote>
+<hr>
+<p><a name="globus_module_deactivate">int <br>
+        <strong>globus_module_deactivate</strong> </a>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GLOBUS_DUROC_RUNTIME_MODULE)Deactivate
+the DUROC runtime-library API implementation when finished using any of the API
+functions. </p>
+<blockquote>
+  <ul>
+    <li>Returns
+        GLOBUS_SUCCESS if successful, otherwise one of: [no errors currently
+        defined] </li>
+  </ul>
+</blockquote>
+<hr>
+<p><a name="globus_duroc_runtime_barrier">void <br>
+        <strong>globus_duroc_runtime_barrier</strong></a> ()Rendezvous with the
+        coallocator to implement job-start atomicity and coordinate the distributed
+        processes. </p>
+<blockquote>
+  <ul>
+    <li>Returns
+        only when all job processes have successfully started. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> at startup to implement job-start atomicity.
+    It is not really part of the coallocation API in that it is called by the
+    job, rather than by the process requesting a job. </p>
+<hr>
+<p><a name="globus_duroc_runtime_inter_subjob_structure">int <br>
+        <strong>globus_duroc_runtime_inter_subjob_structure</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; local_addressp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; remote_countp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; **&nbsp;&nbsp;&nbsp; remote_addressesp)Get
+the layout of the DUROC job. The DUROC inter-subjob communication routines can
+only be called on the subjob node where globus_duroc_runtime_intra_subjob_rank()
+reports the rank as zero (0)! </p>
+<blockquote>
+  <ul>
+    <li>local_addressp
+        is a pointer to integer storage. remote_countp is a pointer to integer
+        storage. remote_addressesp is a pointer to an integer storage array pointer.
+        Return GLOBUS_DUROC_SUCCESS and initialize *local_addressp with the local
+        subjob's communication address, *remote_countp with the number of remote
+        subjobs, and *remote_addressesp with a freshly-allocated array containing
+        the remote subjobs' communication addresses, or return one of the following
+        error codes: [no errors currently defined] </li>
+    <li>The array
+        returned in *remote_addressesp should be freed with globus_free() when
+        the values are no longer needed. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> after the <i>inter-subjob initialization</i> operation
+    to find the layout of the job. It is not really part of the coallocation
+    API in that it is called by the job, rather than by the process requesting
+    a job. </p>
+<hr>
+<p><a name="globus_duroc_runtime_inter_subjob_send">int <br>
+        <strong>globus_duroc_runtime_inter_subjob_send</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; dst_addr, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;*&nbsp;&nbsp;&nbsp; tag, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; msg_size, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; globus_byte_t &nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; msg)Send
+a byte-vector to another subjob in the DUROC job. The DUROC inter-subjob communication
+routines can only be called on the subjob node where globus_duroc_runtime_intra_subjob_rank()
+reports the rank as zero (0)! </p>
+<blockquote>
+  <ul>
+    <li>dst_rank
+        is the address of the destination subjob. tag is a nul-terminated string
+        which must match that provided to the receive call on the destination
+        subjob. msg_len is the number of bytes of payload to send. msg is a pointer
+        to the payload of msg_len values of type globus_byte_t. </li>
+    <li>Return
+        GLOBUS_DUROC_SUCCESS or one of the following error codes: [no errors
+        currently defined] </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> after the <i>inter-subjob initialization</i> operation
+    to transmit messages between subjobs. The data is received by a corresponding
+    call to globus_duroc_runtime_inter_subjob_receive at the destination subjob.
+    It is not really part of the coallocation API in that it is called by the
+    job, rather than by the process requesting a job. </p>
+<hr>
+<p><a name="globus_duroc_runtime_inter_subjob_receive">int <br>
+        <strong>globus_duroc_runtime_inter_subjob_receive</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;* &nbsp;&nbsp;&nbsp;&nbsp; tag, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp; msg_sizep, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; globus_byte_t &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&nbsp;&nbsp;&nbsp;&nbsp; msgp)Receive
+a byte-vector sent by another subjob in the DUROC job. The DUROC inter-subjob
+communication routines can only be called on the subjob node where globus_duroc_runtime_intra_subjob_rank()
+reports the rank as zero (0)! </p>
+<blockquote>
+  <ul>
+    <li>tag is
+        a nul-terminated string which must match that provided to the send call
+        on the originating subjob. msg_sizep is a pointer to integer storage.
+        msgp is a pointer to a globus_byte_t storage array pointer. Return GLOBUS_DUROC_SUCCESS
+        and initialize *mesg_sizep with the length of the incoming message payload
+        and *msgp with a freshly allocated array of globus_byte_t values containing
+        the message payload, or return one of the following error codes: [no
+        errors currently defined] </li>
+    <li>The array
+        returned in *msgp should be freed with globus_free() when the values
+        are no longer needed. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> after the <i>inter-subjob initialization</i> operation
+    to receive messages from other subjobs. The data is transmitted by a corresponding
+    call to globus_duroc_runtime_inter_subjob_send at the originating subjob
+    with a matching message <i>tag</i>, and messages are queued and reordered
+    if the subjob receives messages with a different tag than the one requested
+    by the receiving subjob process. It is not really part of the coallocation
+    API in that it is called by the job, rather than by the process requesting
+    a job. </p>
+<hr>
+<p><a name="globus_duroc_runtime_intra_subjob_rank">int <br>
+        <strong>globus_duroc_runtime_intra_subjob_rank</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; rankp)Obtain
+the rank of the local subjob process. </p>
+<blockquote>
+  <ul>
+    <li>rankp
+        is a pointer to integer storage. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> after the <i>intra-subjob initialization</i> operation
+    to obtain the rank of the local subjob process. It is not really part of
+    the coallocation API in that it is called by the job, rather than by the
+    process requesting a job. </p>
+<hr>
+<p><a name="globus_duroc_runtime_intra_subjob_size">int <br>
+        <strong>globus_duroc_runtime_intra_subjob_size</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int&nbsp;&nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp; sizep)Obtain
+the size of the local subjob process. </p>
+<blockquote>
+  <ul>
+    <li>sizep
+        is a pointer to integer storage. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> after the <i>intra-subjob initialization</i> operation
+    to obtain the number of local subjob processes. It is not really part of
+    the coallocation API in that it is called by the job, rather than by the
+    process requesting a job. </p>
+<hr>
+<p><a name="globus_duroc_runtime_intra_subjob_send">void <br>
+        <strong>globus_duroc_runtime_intra_subjob_send</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dst_rank, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; tag, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; msg_size, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; globus_byte_t &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; msg)Send
+a byte-vector to another process in the DUROC subjob. </p>
+<blockquote>
+  <ul>
+    <li>dst_rank
+        is the rank of the destination process. tag is a nul-terminated string
+        which must match that provided to the receive call on the destination
+        process. msg_len is the number of bytes of payload to send. </li>
+    <li>msg is
+        a pointer to the payload of msg_len values of type gram_byte_t. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> after the <i>intra-subjob initialization</i> operation
+    to transmit messages between subjob processes. The data is received by a
+    corresponding call to globus_duroc_runtime_intra_subjob_receive at the destination
+    subjob. It is not really part of the coallocation API in that it is called
+    by the job, rather than by the process requesting a job. </p>
+<hr>
+<p><a name="globus_duroc_runtime_intra_subjob_receive">void <br>
+        <strong>globus_duroc_runtime_intra_subjob_receive</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; tag, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; msg_sizep, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; globus_byte_t &nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; msg)Receive
+a byte-vector sent by another process in the DUROC subjob. </p>
+<blockquote>
+  <ul>
+    <li>tag is
+        a nul-terminated string which must match that provided to the send call
+        on the originating process. msg_sizep is a pointer to integer storage.
+        msgp is a pointer to a gram_byte_t storage array of at least GRAM_MYJOB_MAX_BUFFER_LENGTH
+        bytes. </li>
+    <li>Return
+        GLOBUS_DUROC_SUCCESS and initialize *mesg_sizep with the length of the
+        incoming message payload and msg[0] to msg[(*msg_sizep)-1] with the message
+        payload. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> after the <i>intra-subjob initialization</i> operation
+    to receive messages from other subjob processes. The data is transmitted
+    by a corresponding call to globus_duroc_runtime_intra_subjob_send at the
+    originating process with a matching message <i>tag</i>, and messages are
+    queued and reordered if the process receives messages with a different tag
+    than the one requested by the receiving call. It is not really part of the
+    coallocation API in that it is called by the job, rather than by the process
+    requesting a job. 
+<h2><a name="API_bootstrap">DUROC
+bootstrap-library</a></h2>
+<p><a name="globus_module_activate2">int <br>
+        <strong>globus_module_activate</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GLOBUS_DUROC_BOOTSTRAP_MODULE)Activate
+the DUROC bootstrap-library implementation prior to using any of the API functions. </p>
+<blockquote>
+  <ul>
+    <li>Returns
+        GLOBUS_SUCCESS if successful, otherwise one of: [no errors currently
+        defined] </li>
+  </ul>
+</blockquote>
+<hr>
+<p><a name="globus_module_deactivate2">int <br>
+        <strong>globus_module_deactivate</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; GLOBUS_DUROC_BOOTSTRAP_MODULE)Deactivate
+the DUROC bootstrap-library implementation when finished using any of the API
+functions. </p>
+<blockquote>
+  <ul>
+    <li>Returns
+        GLOBUS_SUCCESS if successful, otherwise one of: [no errors currently
+        defined] </li>
+  </ul>
+</blockquote>
+<hr>
+<p><a name="globus_duroc_bootstrap_subjob_exchange">void <br>
+        <strong>globus_duroc_bootstrap_subjob_exchange</strong> </a>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; const char&nbsp;&nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp; local_info, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* &nbsp;&nbsp;&nbsp;&nbsp; subjob_countp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* &nbsp;&nbsp;&nbsp;&nbsp; local_indexp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; char &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *** &nbsp;&nbsp;&nbsp;&nbsp; subjob_info_arrayp)Perform
+an exchange of information between subjobs. </p>
+<blockquote>
+  <ul>
+    <li> local_info is a
+        nul-terminated string of information to be broadcast to other subjobs.
+        subjob_countp and local_indexp are pointers to integer storage. *subjob_info_arrayp
+        is a pointer to string pointers. Returns after the exchange is complete,
+        initializing *subjob_countp with the total number of subjobs, *local_indexp
+        with the local subjob's index (0 &lt;= *local_indexp &lt; *subjob_countp),
+        and *subjob_info_arrayp with an array of subjob information strings.
+        The string in (*subjob_info_arrayp)[i] is the local information string
+        broadcast by the ith subjob. </li>
+    <li>The array
+        and strings returned in *subjob_info_arrayp should be freed with globus_free()
+        when the values are no longer needed by the caller. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> after the <i>bootstrap activation</i> operation
+    to exchange string information between subjobs. It is not really part of
+    the coallocation API in that it is called by the job, rather than by the
+    process requesting a job. </p>
+<hr>
+<p><a name="globus_duroc_bootstrap_master_sp_vector">void <br>
+        <strong>globus_duroc_bootstrap_master_sp_vector</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; nexus_startpoint_t &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp; local_sp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; * &nbsp;&nbsp;&nbsp; job_sizep, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nexus_startpoint_t &nbsp;&nbsp;&nbsp;&nbsp; **&nbsp;&nbsp;&nbsp;&nbsp; sp_vectorp)Construct
+a vector of Nexus startpoints on the master node. </p>
+<blockquote>
+  <ul>
+    <li> *local_sp is the
+        startpoint to send to the master. job_sizep is a pointer to integer storage.
+        *sp_vectorp is a pointer to Nexus startpoints. Returns after the construction
+        is complete, initializing *sp_vectorp on one <i>master</i> node with
+        an array of Nexus startpoints, and *job_sizep with the total number of
+        processes; on all other nodes *sp_vectorp is set to NULL and *job_sizep
+        is undefined. The startpoint (*sp_vectorp)[i] is the local startpoint
+        provided by the ith node. The master is always node 0 (zero). </li>
+    <li>The array
+        returned in *sp_vectorp should be freed with globus_free() after the
+        values are no longer needed by the caller and after nexus_startpoint_destroy()
+        has been called on each startpoint. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> after the <i>bootstrap activation</i> operation
+    to construct a startpoint vector on the master node. It is not really part
+    of the coallocation API in that it is called by the job, rather than by the
+    process requesting a job. </p>
+<hr>
+<p><a name="globus_duroc_bootstrap_ordered_master_sp_vector">void <br>
+        <strong>globus_duroc_bootstrap_ordered_master_sp_vector</strong></a> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; nexus_startpoint_t &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; local_sp, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; subjob_index, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *&nbsp;&nbsp;&nbsp;&nbsp; job_sizep, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; nexus_startpoint_t &nbsp;&nbsp;&nbsp;&nbsp; **&nbsp;&nbsp;&nbsp; sp_vectorp)</p>
+<p>Construct
+    a vector of Nexus startpoints on the master node. </p>
+<blockquote>
+  <ul>
+    <li>*local_sp
+        is the startpoint to send to the master. subjob_index is the user-assigned
+        index to position this subjob with respect to other subjobs (indices
+        must be unique and in the range [0,N-1] for N subjobs). job_sizep is
+        a pointer to integer storage. *sp_vectorp is a pointer to Nexus startpoints.
+        Returns after the construction is complete, initializing *sp_vectorp
+        on one <i>master</i> node with an array of Nexus startpoints, and *job_sizep
+        with the total number of processes; on all other nodes *sp_vectorp is
+        set to NULL and *job_sizep is undefined. The startpoint (*sp_vectorp)[i]
+        is the local startpoint provided by the ith node. The master is always
+        node 0 (zero) and belongs to the subjob with subjob_index of 0 (zero). </li>
+    <li>The array
+        returned in *sp_vectorp should be freed with globus_free() after the
+        values are no longer needed by the caller and after nexus_startpoint_destroy()
+        has been called on each startpoint. </li>
+  </ul>
+</blockquote>
+<p>This routine
+    is called by the <b>job processes</b> after the <i>bootstrap activation</i> operation
+    to construct a startpoint vector on the master node. It differs from the
+    simpler globus_duroc_bootstrap_master_sp_vector() routine in that it allows
+    some extra control over the selection of a master node for expert users with
+    special considerations. It is not really part of the coallocation API in
+    that it is called by the job, rather than by the process requesting a job. 
+<h2><a name="manifest">DUROC source manifest</a></h2>
+
+<p>&nbsp;</p>
+
+<p>The ResourceManagement/duroc directory in your Globus source tree
+    should contain the following directories&nbsp;and&nbsp;files: </p>
+<div align="center">
+  <center>
+    <table border="1" width="486">
+      <tr>
+        <td WIDTH="190">README&nbsp;</td>
+        <td WIDTH="284">this
+            document in plain ASCII format</td>
+      </tr>
+      <tr>
+        <td width="190">doc/&nbsp;</td>
+        <td width="284">all
+            DUROC documentation</td>
+      </tr>
+      <tr>
+        <td width="190">doc/duroc.html&nbsp;</td>
+        <td width="284">this
+            document in HTML format</td>
+      </tr>
+      <tr>
+        <td width="190">src/bootstrap/&nbsp;</td>
+        <td width="284">bootstrapping
+            (communication utility) library sources</td>
+      </tr>
+      <tr>
+        <td width="190">src/control/&nbsp;</td>
+        <td width="284">control
+            (coallocation API) library sources</td>
+      </tr>
+      <tr>
+        <td width="190">src/misc/&nbsp;</td>
+        <td width="284">miscellaneous
+            shared sources</td>
+      </tr>
+      <tr>
+        <td width="190">src/runtime/&nbsp;</td>
+        <td width="284">runtime
+            (barrier) library sources</td>
+      </tr>
+      <tr>
+        <td width="190">src/test/*&nbsp;</td>
+        <td width="284">test-app
+            sources</td>
+      </tr>
+      <tr>
+        <td width="190">src/tools/*&nbsp;</td>
+        <td width="284">command-line
+            tool sources</td>
+      </tr>
+      <tr>
+        <td width="190">Makefile.in&nbsp;</td>
+        <td width="284">build
+            script</td>
+      </tr>
+      <tr>
+        <td width="190">configure.in&nbsp;</td>
+        <td width="284">build
+            script</td>
+      </tr>
+      <tr>
+        <td width="190">config.status-r.in&nbsp;</td>
+        <td width="284">build
+            script</td>
+      </tr>
+      <tr>
+        <td width="190">configure&nbsp;</td>
+        <td width="284">build
+            script</td>
+      </tr>
+      <tr>
+        <td width="190">aclocal.m4&nbsp;</td>
+        <td width="284">build
+            script</td>
+      </tr>
+      <tr>
+        <td width="190">makefile.vars.in&nbsp;</td>
+        <td width="284">build
+            script</td>
+      </tr>
+      <tr>
+        <td width="190">bootstrap/&nbsp;</td>
+        <td width="284">build
+            directory for bootstrap library </td>
+      </tr>
+      <tr>
+        <td width="190">control/&nbsp;</td>
+        <td width="284">build
+            directory for control library </td>
+      </tr>
+      <tr>
+        <td width="190">misc/&nbsp;</td>
+        <td width="284">build
+            directory for miscellaneous shared code</td>
+      </tr>
+      <tr>
+        <td width="190">runtime/&nbsp;</td>
+        <td width="284">build
+            directory for runtime library</td>
+      </tr>
+      <tr>
+        <td width="190">test-app/&nbsp;</td>
+        <td width="284">build
+            directory for test application code</td>
+      </tr>
+      <tr>
+        <td width="190">tools/&nbsp;</td>
+        <td width="284">build
+            directory for command-line tools</td>
+      </tr>
+    </table>
+  </center>
+</div>
+<p>&nbsp;</p>
+<p>For each build-directory
+    listed above, the following files exist: </p>
+<p>&nbsp;</p>
+<div align="center">
+  <center>
+    <table border="1" width="282">
+      <tr>
+        <td WIDTH="171">./Makefile.in&nbsp;</td>
+        <td WIDTH="99">build
+            script</td>
+      </tr>
+      <tr>
+        <td width="171">./configure.in&nbsp;</td>
+        <td width="99">build
+            script</td>
+      </tr>
+      <tr>
+        <td width="171">./configure&nbsp;</td>
+        <td width="99">build
+            script</td>
+      </tr>
+      <tr>
+        <td width="171">./aclocal.m4&nbsp;</td>
+        <td width="99">build
+            script</td>
+      </tr>
+    </table>
+  </center>
+</div>
+<p>&nbsp;</p>
+<h2><a name="building">Building DUROC</a></h2>
+<p>&nbsp;Globus
+    uses the GNU autoconf system to configure and build on any supported platform.
+    To build DUROC you can run the following commands in your Globus build directory
+(see the Globus docs for more general information): </p>
+<blockquote>
+  <p>% ./configure
+      --enable-duroc &nbsp;&nbsp;(plus any other desired options) <br>
+    % make </p>
+</blockquote>
+<p>The optional
+    DUROC configuration flags are: </p>
+<blockquote>
+  <p>--enable-duroc-debug
+      This build option enables copious debugging messages from DUROC, and is
+      primarily of interest when debugging the DUROC implementation. Once enabled,
+      these messages can be conditionally suppressed at runtime. --disable-duroc-warnings </p>
+  <p>This build
+      option disables messages that report when various fault-handling mechanisms
+      are triggered in DUROC. These messages can be left enabled in the build
+      and conditionally suppresses at runtime. </p>
+</blockquote>
+<h2><a name="installing">Installing DUROC</a></h2>
+<p>&nbsp;After
+    building DUROC as described above, you can install it on your system by running
+    the following command in the directory where Globus was built (see the Globus
+docs for more general information): </p>
+<blockquote>
+  <p>% make install </p>
+</blockquote>
+<p>The following
+    libraries and header files are installed (globus_duroc_common.h is referenced
+    from the other header files): </p>
+<blockquote>
+  <table CELLSPACING="0" BORDER="0" CELLPADDING="0" WIDTH="80%">
+    <tr WIDTH="100%">
+      <td WIDTH="67%">globus_duroc_common.h</td>
+    </tr>
+    <tr>
+      <td>libglobus_duroc_bootstrap&nbsp;</td>
+      <td>globus_duroc_bootstrap.h</td>
+    </tr>
+    <tr WIDTH="100%">
+      <td WIDTH="33%">libglobus_duroc_control&nbsp;</td>
+      <td WIDTH="67%">globus_duroc_control.h</td>
+    </tr>
+    <tr>
+      <td>libglobus_duroc_runtime&nbsp;</td>
+      <td>globus_duroc_runtime.h</td>
+    </tr>
+  </table>
+</blockquote>
+<p>The following
+    executables are installed: </p>
+<blockquote>
+  <p>globus-duroc-request <br>
+    globus-duroc-test-app <br>
+  </p>
+</blockquote>
+<p>The test application
+    is used for regression tests. It is <b>not</b> a minimal demo nor does it
+restrict itself to using only public library interfaces. 
+<h2><a name="libuse">Using the DUROC
+        libraries</a></h2>
+<p>The DUROC
+    control and runtime libraries can be linked and used individually or in any
+    combination within the same program. The control library provides the DUROC
+    request API and the runtime library is used by every process initiated via
+    DUROC. The programs duroc/src/tools/duroc-request.c and duroc/src/tools/duroc-stub-app.c
+serve as examples of how to use the DUROC libraries. </p>
+<ul>
+  <li>duroc-request.c
+      uses the control DUROC library to initiate distributed jobs. duroc-stub-app.c
+      uses the runtime DUROC library and performs a DUROC check-in and some other
+      simple runtime operations before exiting. </li>
+  <li>duroc-test-app.c
+      uses the bootstrap and runtime DUROC libraries and performs several diagnostic
+      bootstrapping operations to test the system before exiting. </li>
+</ul>
+<p>The suggested
+    method of compiling DUROC-aware applications is to use a Makefile and insert
+    the file &quot;makefile_header&quot; (by hand or via autoconf if you want
+    to avoid non-portable makefile features) which is installed as part of Globus.
+    This file can be found in the ${sysconfdir} of your installation (which defaults
+    to ${prefix}/etc). This file contains environment variable definitions with
+    values discovered during the Globus configuration process. Assuming you have
+    done that, and your application includes &quot;globus_duroc_runtime.h&quot;,
+    your makfile will have the following two flavors of rules (one for compiling
+    and one for linking): </p>
+<blockquote>
+  <p>myapp.$(OFILE):
+      myapp.c $(CC) $(CFLAGS) $(GLOBUS_DUROC_RUNTIME_CFLAGS) \ -I$(includedir)
+      -c myapp.c myapp: myapp.$(OFILE) $(CC) $(CFLAGS) myapp.$(OFILE) -o myapp
+      \ -L$(libdir) $(LDFLAGS) $(GLOBUS_DUROC_RUNTIME_LDFLAGS) \ $(GLOBUS_DUROC_RUNTIME_LIBS)
+      $(LIBS)</p>
+</blockquote>
+<p>If you are
+    constructing a makefile to build your app as a globus component, simply replace &quot;$(libdir)&quot; and &quot;$(includedir)&quot; with &quot;$(BUILD_DIR_LIB)&quot; and &quot;$(BUILD_DIR_INC)&quot;,
+    respectively. In this case you should also use the standard Globus method
+    of inserting makefile_header into your Makefile during the configuration
+    process. The complete set of DUROC-related variables defined in the &quot;makefile_header&quot; are
+    as follows: </p>
+<ul>
+  <li>For applications
+      using the DUROC bootstrap library:<br>
+    GLOBUS_DUROC_BOOTSTRAP_CFLAGS, GLOBUS_DUROC_BOOTSTRAP_LDFLAGS, GLOBUS_DUROC_BOOTSTRAP_LIBS<br>
+    Applications using the bootstrap library must also link with the runtime
+    library.For applications using the DUROC control library:<br>
+    GLOBUS_DUROC_CONTROL_CFLAGS, GLOBUS_DUROC_CONTROL_LDFLAGS, GLOBUS_DUROC_CONTROL_LIBS</li>
+  <li>For applications
+      using the DUROC runtime library:<br>
+    GLOBUS_DUROC_RUNTIME_CFLAGS, GLOBUS_DUROC_RUNTIME_LDFLAGS, GLOBUS_DUROC_RUNTIME_LIBS</li>
+</ul>
+<h2><a name="tooluse">Using the DUROC
+tools</a></h2>
+<p>Below is a summary of the tools provided with DUROC. Each tool is
+a minimalist wrapper around DUROC library functions. </p>
+<blockquote>
+  <table cellspacing="0" border="0" cellpadding="0" width="80%">
+    <tr width="100%">
+      <td width="33%" valign="top">globus-duroc-request</td>
+      <td width="67%" valign="top">a command-line utility to initiate jobs.</td>
+    </tr>
+    <tr>
+      <td colspan="2" valign="top"><blockquote>
+          <table cellspacing="0" border="0" cellpadding="0">
+            <tr>
+              <td valign="top">synopsis:&nbsp;</td>
+              <td>globus-duroc-request&nbsp; [
+                  -i ] [ -q ] [ -s ] &nbsp;<i>spec</i><br>
+                globus-duroc-request&nbsp; [ -i ] [ -q ] [ -s ] &nbsp;-f <i>spec-file</i><br>
+              </td>
+            </tr>
+          </table>
+          <p>&nbsp;<br>
+                <i>spec</i> is a DUROC resource specification string to be passed
+                to the DUROC client API, or <i>spec-file</i> is the name of a
+                file containing the specification string. The -i option enables <i>interactive</i> mode,
+                otherwise <i>automatic</i> mode is used. The -q mode enables <i>quiet</i> mode
+                to suppress advisory messages generated by the tool. The -s option
+                enables <i>synchronous</i> mode (as for other schedulers) which
+                means that stdout/stderr of the application will be directed
+                to stdout/stderr of the request tool unless they were explicitly
+                sent to file, and this mode implies quiet mode. Without -s the
+                outputs of the application default in GRAM to the destination
+                /dev/null. </p>
+          <p>In
+              all modes, globus-duroc-request runs an instance of the control
+              lib and makes the DUROC request. Unless the tool is in quiet mode,
+              it then prints the result of the request operation, including the
+              result codes for each subjob if the overall request is successful.
+              In automatic mode, the tool continues after submission by releasing
+              the barrier. The tool waits for job termination while the control
+              library performs its processing and then exits. In interactive
+              mode, the tool continues after submission by issuing a subjob-state
+              summary and a prompt for user commands. The command language is
+              very simple, consisting of the following operations: </p>
+          <blockquote>
+            <table cellspacing="0" border="0" cellpadding="0">
+              <tr>
+                <td valign="top">Dlabel&nbsp;&nbsp;</td>
+                <td valign="top"><i>Delete</i> the
+                    subjob with the given label.</td>
+              </tr>
+              <tr>
+                <td valign="top">K&nbsp;&nbsp;</td>
+                <td valign="top"><i>Kill</i> the
+                    entire job.</td>
+              </tr>
+              <tr>
+                <td valign="top">C&nbsp;&nbsp;</td>
+                <td valign="top"><i>Commit</i> the
+                    job, releasing runtime barriers.</td>
+              </tr>
+              <tr>
+                <td valign="top">Q&nbsp;&nbsp;</td>
+                <td valign="top"><i>Quit</i> the
+                    tool immediately.</td>
+              </tr>
+            </table>
+          </blockquote>
+          <p>All
+              commands begin with a single command character and the label parameter
+              begins with the next character after this command character and
+              continues to the first new-line. All unrecognized command characters
+              or other extraneous characters are discarded but cause the prompt
+              to be reissued. While waiting for user input, the tool continues
+              job processing in the background. The user must explicitly terminate
+              the tool. In interactive mode this can be accomplished via a signal
+              or the `Q' quit command. </p>
+          <p>You
+              must have the appropriate ~/.globus* GSSAPI configuration files
+              installed in your home directory, and depending on the GSSAPI library
+              used with the GRAM client, the tool may prompt for passwords. See
+              the GSSAPI documentation for more information. </p>
+      </blockquote></td>
+    </tr>
+  </table>
+  </blockquote>
+<h2><a name="bugs">Known bugs and
+limitations</a></h2>
+<p>&nbsp;The
+    error codes documented in the API section of this file are a subset of the
+    actual codes returned. The globus_duroc_runtime_inter_subjob_* and globus_duroc_runtime_intra_subjob_*
+    interfaces are not yet reentrant. The user must refrain from calling any
+of the routines concurrently. </p>
+<p>The globus_duroc_control_destroy
+    operation does not properly flush all pending communication, so it is possible
+    for a control agent to destroy the control object and exit such that critical
+    messages are lost; in such cases the coallocated job may hang indefinitely.
+    In practice, this does not occur with existing agent codes that wait for
+    job termination before exiting. 
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

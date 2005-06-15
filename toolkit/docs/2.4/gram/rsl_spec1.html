@@ -1,0 +1,485 @@
+<?php
+
+$title = "The Globus Resource Specification Language RSL&nbsp;v1.0";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+    <p>This is a document to
+    specify the existing RSL&nbsp;v1.0 implementation and interfaces, as they are provided in
+    the Globus&nbsp;v1.0 release. This document serves as a reference, and more introductory
+    text.</p>
+    <p>The Globus Resource
+    Specification Language (RSL) provides a common interchange language to describe resources.
+    The various components of the Globus Resource Management architecture manipulate RSL
+    strings to perform their management functions in cooperation with the other components in
+    the system. The RSL provides the skeletal syntax used to compose complicated resource
+    descriptions, and the various resource management components introduce specific &lt;<i>attribute</i>,&nbsp;<i>value</i>&gt;
+    pairings into this common structure. Each attribute in a resource description serves as a
+    parameter to control the behavior of one or more components in the resource management
+    system. </p>
+    <p>This document is
+    divided into the following sections:</p>
+    <blockquote>
+      <ul>
+        <li><a href="#RSL Syntax Overview">RSL syntax overview</a><br>
+          What are the basic components of an RSL string? </li>
+        <li><a href="#RSL Tokenization Overview">RSL tokenization overview</a><br>
+          How are RSL syntactic elements distinguished in an RSL string? </li>
+        <li><a href="#RSL Substitution Semantics">RSL substitution semantics</a><br>
+          How are RSL substitutions processed? </li>
+        <li><a href="#RSL Attribute Summary">RSL attribute summary</a><br>
+          What attributes are currently defined? </li>
+        <li><a href="#Simple RSL Examples">Simple RSL examples</a><br>
+          What are some simple examples of RSL strings? </li>
+        <li><a href="#RSL grammar and tokenization rules">RSL grammar and tokenization rules</a><br>
+          What are all the possible RSL constructions? </li>
+      </ul>
+      
+</blockquote>
+      <p><a name="RSL Syntax Overview"><strong>RSL Syntax Overview</strong></a></p>
+    <p>The core syntax of the RSL syntax is the <i>relation</i>. Relations associate an
+    attribute name with a value, eg the relation ``<tt>executable=a.out</tt>'' provides the
+    name of an executable in a resource request. There are two generative syntactic structures
+    in the RSL that are used to build more complicated resource descriptions out of the basic
+    relations: <i>compound requests</i> and <i>value sequences</i>. In addition, the RSL
+    syntax includes a facility to both introduce and dereference string <i>variables</i>. </p>
+    <p>The simplest form of compound request, utilized by all resource management components,
+    is the conjunct-request. The conjuct-request expresses a conjunction of simple relations
+    or compound requests (like a boolean AND). The most common conjunct-request in Globus RSL
+    strings is the combination of multiple relations such as executable name, node count,
+    executable arguments, and output files for a basic GRAM job request. Similarly, the core
+    RSL syntax includes a disjunct-request form to represent disjunctive relations (like a
+    boolean OR). Currently, however, no resource management component utilizes the
+    disjunct-request form. </p>
+    <p>The last form of compound request is the multi-request. Multi-requests are used by
+    DUROC, the coallocation component of the resource management system, to specify multiple
+    parallel resources that make up a resource description. The multi-request form differs
+    from the conjunction and disjunction in two ways: multi-requests introduce new variable
+    scope, meaning variables defined in one clause of a multi-request are not visible to the
+    other clauses, and multi-requests introduce a non-reducible hierarchy to the resource
+    description. Whereas relations within a conjunct-request can be thought of as
+    ``constraints'' on the resource being described, the subclauses of a multi-request are
+    best thought of as individual resource descriptions that together constitute an abstract
+    resource collection; the same attributes may be ``constrained'' in different ways in each
+    subclause without causing a logical contradiction. An example of a contradiction would be
+    to constrain the ``<tt>executable</tt>'' attribute to be two conflicting values within a
+    conjunction. </p>
+    <p>The simplest form of value in the RSL syntax is the string literal. When explicitly
+    quoted, literals can contain any character, and many common literals that don't contain
+    special characters can appear without quotes. Values can also be variable references, in
+    which case the variable reference is in essence <strong>replaced</strong> with the string
+    value defined for that variable. RSL descriptions can also express string-concatenation of
+    values, especially useful to construct long strings out of several variable references.
+    String concatenation is supported with both an explicit concatenation operator and
+    implicit concatenation for many idiomatic constructions involving variable references and
+    literals. </p>
+    <p>In addition to the simple value forms given above, the RSL syntax includes the value
+    sequence to express ordered sets of values. The value sequence syntax is used primarily
+    for defining variables and for providing the argument list for a program. </p>
+    <p><a name="RSL Tokenization Overview"><strong>RSL Tokenization Overview</strong></a></p>
+    <p>Each RSL string consists of a sequence of RSL tokens, whitespace, and comments. The RSL
+    tokens are either special syntax or regular unquoted literals, where special syntax
+    contains one or more of the following listed special characters and unquoted literals are
+    made of sequences of characters excluding the special characters. </p>
+    <p>The complete set of special characters that cannot appear as part of an unquoted
+    literal is: `<tt>+</tt>'&nbsp;(plus), `<tt>&amp;</tt>'&nbsp;(ampersand), `<tt>|</tt>'&nbsp;(pipe),
+    `<tt>(</tt>'&nbsp;(left&nbsp;paren), `<tt>)</tt>'&nbsp;(right&nbsp;paren), `<tt>=</tt>'&nbsp;(equal),
+    `<tt>&lt;</tt>'&nbsp;(left&nbsp;angle), `<tt>&gt;</tt>'&nbsp;(right&nbsp;angle), `<tt>!</tt>'&nbsp;(exclamation),
+    `<tt>&quot;</tt>'&nbsp;(double&nbsp;quote), `<tt>'</tt>'&nbsp;(apostrophe), `<tt>^</tt>'&nbsp;(carat),
+    `<tt>#</tt>'&nbsp;(pound), and `<tt>$</tt>'&nbsp;(dollar). These characters can only be
+    used for the special syntactic forms described in the above <a href="#RSL Syntax Overview">RSL&nbsp;syntax&nbsp;overview</a>
+    and in the <a href="#RSL grammar and tokenization rules">RSL&nbsp;grammar</a> provided
+    below, or as within quoted literals. </p>
+    <p>Quoted literals are introduced with the `<tt>&quot;</tt>'&nbsp;(double&nbsp;quote) or `<tt>'</tt>'&nbsp;(single&nbsp;quote/apostrophe)
+    and consist of all the characters up to (but not including) the next solo double or single
+    quote, respectively. To escape a quote character within a quoted literal, the appearance
+    of the quote character twice in a row is converted to a single instance of the character
+    and the literal continues until the next solo quote character. For any quoted literal,
+    there is only one possible escape sequence, eg within a literal delimited by the single
+    quote character only the single quote character uses the escape notation and the double
+    quote character can appear without escape. </p>
+    <p>Quoted literals can also be introduced with an alternate <i>user&nbsp;delimiter</i>
+    notation. User delimited literals are introduced with the `<tt>^</tt>'&nbsp;(carat)
+    character followed immediately by a user-provided delimiter; the literal consists of all
+    the characters after the user's delimiter up to (but not including) the next solo instance
+    of the delimiter. The delimiter itself may be escaped within the literal by providing two
+    instances in a row, just as the regular quote delimiters are escaped in regular quoted
+    literals. </p>
+    <p>RSL string comments use a notation similar to comments in the C programming language.
+    Comments are introduced by the prefix `<tt>(*</tt>'. Comments continue to the first
+    terminating suffix `<tt>*)</tt>' and cannot be nested. Comments are stripped from the RSL
+    string during processing and are syntactically equivalent to whitespace. </p>
+    <hr>
+    <p><a name="RSL Substitution Semantics"><strong>RSL Substitution Semantics</strong></a></p>
+    <p>RSL strings can introduce and reference string variables. String substitution variables
+    are defined in a special relation using the &quot;rsl_substitution'' attribute, and the
+    definitions affect variable references made in the same conjunct-request (or
+    disjunct-request), as well as references made within any multi-request nested inside one
+    of the clauses of the conjunction (or disjunction). Each multi-request introduces a new
+    variable scope for each subrequest, and variable definitions do not escape the closest
+    enclosing scope. </p>
+    <p>Within any given scope, variable definitions are processed left-to-right in the
+    resource description. Outermost scopes are processed before inner scopes, and the
+    definitions in inner scopes augment the inherited definitions with new and/or updated
+    variable definitions. </p>
+    <p>Variable definitions and variable references are processed in a single pass, with each
+    definition updating the <i>environment</i> prior to processing the next definition. The
+    value provided in a variable definition may include a reference to a previously-defined
+    variable. References to variables that are not yet provided with definitions in the
+    standard RSL variable processing order are replaced with an empty literal string. </p>
+    <hr>
+    <p><a name="RSL Attribute Summary"><strong>RSL Attribute Summary</strong></a></p>
+    <p>The RSL syntax is extensible because it defines structure without too many keywords.
+    Each Globus resource management component introduces additional attributes to the set
+    recognized by RSL-aware components, so it is difficult to provide a complete listing of
+    attributes which might appear in a resource description. Resource management components
+    are designed to utilize attributes they recognize and pass unrecongnized relations through
+    unchanged. This allows powerful compositions of different resource management functions. </p>
+    <p>The following listing summarizes the attribute names utilized by existing resource
+    management components in the standard Globus release. Please see the individual component
+    documentation for discussion of the attribute semantics. </p>
+    <blockquote>
+      <p><strong>Common RSL attributes </strong></p>
+      <table border="0" width="400">
+        <tr>
+          <td width="100%">rsl_substitution</td>
+        </tr>
+      </table>
+      <p><strong><a href="gram_rsl_parameters.html">GRAM attributes</a> </strong></p>
+    </blockquote>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="50%">arguments<br>
+          count<br>
+          directory<br>
+          executable<br>
+          environment<br>
+          jobType<br>
+          maxTime<br>
+          maxWallTime<br>
+          maxCpuTime<br>
+          gramMyjob</td>
+          <td width="50%"><br>
+          stdin<br>
+          stdout<br>
+          stderr<br>
+          queue<br>
+          project<br>
+          dryRun<br>
+          maxMemory<br>
+          minMemory<br>
+          hostCount<p></td>
+        </tr>
+      </table>
+    </blockquote>
+    <blockquote>
+      <p><strong>DUROC Attributes</strong></p>
+      <table border="0" width="400">
+        <tr>
+          <td width="50%">label<br>
+          resourceManagerContact</td>
+          <td width="50%">subjobCommsType<br>
+          subjobStartType</td>
+        </tr>
+      </table>
+    </blockquote>
+    <hr>
+    <p><a name="Simple RSL Examples"><strong>Simple RSL Examples</strong></a></p>
+    <p>The following are some simple example RSL strings to illustrate idiomatic usage with
+    existing tools and to make concrete some of the more interesting cases of tokenization,
+    concatenation, and variable semantics. These are meant to illustrate the use of the RSL
+    notation without much regard for the specific details of a particular resource management
+    component. </p>
+    <p>Typical GRAM resource descriptions contain at least a few relations in a conjunction: </p>
+    <blockquote>
+      <pre>(* this is a comment *)
+&amp; (executable = a.out (* &lt;-- that is an unquoted literal *))
+  (directory  = /home/nobody )
+  (arguments  = arg1 &quot;arg 2&quot;)
+  (count = 1)</pre>
+    </blockquote>
+    <p>Substitutions can be used to make sure the same substring is used multiple times in a
+    resource description: </p>
+    <blockquote>
+      <pre>&amp; (rsl_substitution  = (TOPDIR  &quot;/home/nobody&quot;)
+                (DATADIR $(TOPDIR)&quot;/data&quot;) 
+                (EXECDIR $(TOPDIR)/bin) )
+  (executable = $(EXECDIR)/a.out
+        (* ^-- implicit concatenation *))
+  (directory  = $(TOPDIR) )
+  (arguments  = $(DATADIR)/file1 
+        (* ^-- implicit concatenation *)
+                $(DATADIR) # /file2
+        (* ^-- explicit concatenation *)
+                '$(FOO)'            (* &lt;-- a quoted literal *))
+  (environment = (DATADIR $(DATADIR)))
+  (count = 1)</pre>
+    </blockquote>
+    <p>Performing all variable substitution and removing comments yields an equivalent RSL
+    string: </p>
+    <blockquote>
+      <pre>&amp; (rsl_substitution  = (TOPDIR  &quot;/home/nobody&quot;)
+                (DATADIR &quot;/home/nobody/data&quot;) 
+                (EXECDIR &quot;/home/nobody/bin&quot;) )
+  (executable = &quot;/home/nobody/bin/a.out&quot; )
+  (directory  = &quot;/home/nobody&quot; )
+  (arguments  = &quot;/home/nobody/data/file1&quot;
+                &quot;/home/nobody/data/file2&quot;
+                &quot;$(FOO)&quot; )
+  (environment = (DATADIR &quot;/home/nobody/data&quot;))
+  (count = 1)</pre>
+    </blockquote>
+    <p>Note in the above variable-substitution example, the variable substitution definitions
+    are not automatically made a part of the job's environment.&nbsp; And explicit
+    &quot;environment&quot; attribute must be used to add environment variables for the job.
+    Also note that the third value in the arguments clause is not a variable reference but
+    only quoted literal that happens to contain one of the special characters. </p>
+    <p><a name="RSL grammar and tokenization rules"><strong>RSL grammar and tokenization rules</strong></a></p>
+    <p>The following is a modified BNF grammar for the Resource Specification Language.
+    Terminals appear in single quotes, eg `<tt>terminal</tt>'. Lexical rules are provided for
+    the implicit concatenation sequences in the form of conventional regular expressions; for
+    the ``implicit-concat'' non-terminal rules, whitespace is not allowed between juxtaposed
+    non-terminals. Grammar comments are provided in square brackets in a column to the right
+    of the productions, eg [comment] to help relate productions in the grammar to the
+    terminology used in the above discussion. </p>
+    <p>Regular expressions are provided for the terminal class ``string-literal'' and for RSL
+    comments. These regular expression make use of a common inverted character-class notation,
+    as popularized by the various <tt>lex</tt> tools. Comments are syntactically equivalent to
+    whitespace and can only appear where the comment prefix cannot be mistaken for the
+    trailing part of a multi-character unquoted literal.</p>
+    <table border="0" width="424">
+      <tr>
+        <td width="227">specification</td>
+        <td width="185">[RSL String]</td>
+      </tr>
+    </table>
+    <blockquote>
+      <table border="0" width="386">
+        <tr>
+          <td width="187">=&gt; relation</td>
+          <td width="187"></td>
+        </tr>
+        <tr>
+          <td width="187">=&gt; '+' spec-list</td>
+          <td width="187">[multi-request]</td>
+        </tr>
+        <tr>
+          <td width="187">=&gt; '&amp;' spec-list</td>
+          <td width="187">[conjunct-request]</td>
+        </tr>
+        <tr>
+          <td width="187">=&gt; '|' spec-list </td>
+          <td width="187">[disjunct-request]</td>
+        </tr>
+      </table>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p>spec-list</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="100%">=&gt; '(' specification ')' spec-list</td>
+        </tr>
+        <tr>
+          <td width="100%">=&gt; '(' specification ')'</td>
+        </tr>
+      </table>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p>relation</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="68%">=&gt; 'variables' = binding sequence</td>
+          <td width="32%">[variable def'ns]</td>
+        </tr>
+        <tr>
+          <td width="68%">=&gt; attribute op value-sequence</td>
+          <td width="32%">[relation]</td>
+        </tr>
+      </table>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p>binding-sequence</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="100%">=&gt; binding binding-sequence</td>
+        </tr>
+        <tr>
+          <td width="100%">=&gt; binding</td>
+        </tr>
+      </table>
+      <p>&nbsp;</p>
+    </blockquote>
+    <p>binding</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="65%">=&gt; '(' string-literal simple-value ')'</td>
+          <td width="35%">[variable def'n]</td>
+        </tr>
+      </table>
+      <p>&nbsp;</p>
+    </blockquote>
+    <p>attribute</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="50%">=&gt; string-literal </td>
+          <td width="50%">[attribute]</td>
+        </tr>
+      </table>
+      <p>&nbsp;</p>
+    </blockquote>
+    <p>op</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="100%">=&gt; '=' |&nbsp; '!=' | '&gt;' | '&gt;=' | '&lt;' | '&lt;=' </td>
+        </tr>
+      </table>
+      <p>&nbsp;</p>
+    </blockquote>
+    <p>value-sequence</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="100%">=&gt; value value-sequence</td>
+        </tr>
+        <tr>
+          <td width="100%">=&gt; value</td>
+        </tr>
+      </table>
+      <p>&nbsp;</p>
+    </blockquote>
+    <p>value</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="100%">=&gt; '(' value-sequence ')'</td>
+        </tr>
+        <tr>
+          <td width="100%">=&gt; simple-value</td>
+        </tr>
+      </table>
+      <p>&nbsp;</p>
+    </blockquote>
+    <p>simple-value </p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="68%">=&gt; string-literal</td>
+          <td width="32%"></td>
+        </tr>
+        <tr>
+          <td width="68%">=&gt; simple-value '#' simple-value</td>
+          <td width="32%">[concatenation]</td>
+        </tr>
+        <tr>
+          <td width="68%">=&gt; implicit-concat</td>
+          <td width="32%"></td>
+        </tr>
+        <tr>
+          <td width="68%">=&gt; variable-reference</td>
+          <td width="32%"></td>
+        </tr>
+      </table>
+      <p>&nbsp;</p>
+    </blockquote>
+    <p>variable reference</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="65%">=&gt; '$(' string-literal ')'</td>
+          <td width="35%">[variable ref.]</td>
+        </tr>
+        <tr>
+          <td width="65%">=&gt; '$(' string-literal simple-value ')'</td>
+          <td width="35%">[ref. w/ default]</td>
+        </tr>
+      </table>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p>implicit-concat</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="81%">=&gt; (unquoted-literal)? (implicit-concat-core)+ </td>
+          <td width="19%">[implicit concat.]</td>
+        </tr>
+      </table>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p>implicit-concat-core</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="100%">=&gt; variable-reference</td>
+        </tr>
+        <tr>
+          <td width="100%">=&gt; (variable-reference)(unquoted-literal)</td>
+        </tr>
+      </table>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p>string-literal</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="100%">=&gt; quoted-literal</td>
+        </tr>
+        <tr>
+          <td width="100%">=&gt; unquoted-literal</td>
+        </tr>
+      </table>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p>quoted-literal</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="50%">=&gt; ' <strong>'</strong> ' <strong>((</strong>[^']<strong>)|(</strong>' <strong>''</strong>
+          '<strong>))</strong>* '<strong> '</strong> '</td>
+          <td width="50%"></td>
+        </tr>
+        <tr>
+          <td width="50%">=&gt; ' <strong>&quot;</strong> ' <strong>((</strong>[^&quot;]<strong>)|(</strong>'<strong>
+          &quot;&quot;</strong> '<strong>))</strong>* ' <strong>&quot;</strong> '</td>
+          <td width="50%"></td>
+        </tr>
+        <tr>
+          <td width="50%">=&gt; '^' <strong>c((</strong>[^<strong>c</strong>]<strong>)|(cc))</strong>*
+          <strong>c</strong></td>
+          <td width="50%">[user delimiter]</td>
+        </tr>
+      </table>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p>unquoted-literal</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="58%">=&gt;<strong> (</strong>[^ \t\v\n+&amp;|()=&lt;&gt;!&quot;'^#$]<strong>)+</strong></td>
+          <td width="42%">[nonspecial chars]</td>
+        </tr>
+      </table>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p>comment</p>
+    <blockquote>
+      <table border="0" width="400">
+        <tr>
+          <td width="50%">==&gt; '(*' <strong>((</strong>[^*]<strong>)|(</strong>'*'[^)]<strong>))</strong>*
+          '*)'</td>
+          <td width="50%">[comment]</td>
+        </tr>
+      </table>
+    </blockquote>
+  <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

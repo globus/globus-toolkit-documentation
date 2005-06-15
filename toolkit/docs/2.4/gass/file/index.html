@@ -1,0 +1,217 @@
+<?php
+
+$title = "GASS: File Access Function Reference";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><a name="top"></a><?php echo $title; ?></h1>
+
+
+<ul>
+  <li><a href="#GASS%20File%20Access%20Overview">Overview</a></li>
+  <li>      <a href="#GASS%20File%20Activation%20and%20Deactivation">Activation and Deactivation</a></li>
+  <li>      <a href="#GASS File Access Functions">Functions</a>
+  </li>
+</ul>
+<h2><a
+    name="GASS File Access Overview">GASS File Access Overview</a></h2>
+<p>&nbsp;The file access API defines <a href="#globus_gass_open">globus_gass_open()</a>, <a href="#globus_gass_close">globus_gass_close()</a>, <a
+    href="#globus_gass_fopen">globus_gass_fopen()</a>, and <a
+    href="#globus_gass_fclose">globus_gass_fclose()</a> calls.&nbsp; These are
+  replacements for the Unix open(), and close() calls, and the C fopen(), and
+  fclose() calls. They handle the three file access patterns listed earlier.&nbsp; A
+  file opened and closed with these calls can be read and written with ordinary
+  Unix I/O calls.&nbsp; Hence, a program can be modified to operate in a wide-area
+  environment simply by modifying their program to use these calls in place of
+open(), close(), fopen(), and fclose().</p>
+<p>Note that in the future we may use techniques such as those used in Condor
+  of UFO to replace calls to open/close etc. with the corresponding CASS calls,
+  thereby avoiding the need for source code modifications altogether.&nbsp; However,
+  such modifications are not planned for the short term.</p>
+<p>A data structure called a &quot;tag list&quot; is associated with each cache
+  entry, which provides a soft of reference counting on the cache entry.&nbsp; When
+  a computation opens a file, a tag containing the job's name is added to the
+  tag list of the cache entry; when the computation closes the file, the tag
+  is deleted, and if there are no more tags for this cache entry then the cache
+  file is also deleted.&nbsp; This approach allows a Globus Resource Allocation
+  Manager (GRAM) to clean up after computations that terminate abnormally, by
+  removing any extraneous files from the cache.
+<h2 align="left"><a
+    name="GASS File Access Overview">GASS File Access API Limitations</a></h2>
+
+<p>&nbsp;The operations which can be done to GASS-opened file descriptors are
+a subset of those available with general file descriptors.</p>
+<h2><a
+    name="GASS File Activation and Deactivation">GASS File Activation
+and Deactivation</a></h2>
+<p>&nbsp;GASS uses standard Globus module activation and deactivation. Before
+any GASS functions are called, the following function must be called: </p>
+<p>globus_module_activate(GLOBUS_GASS_FILE_MODULE);</p>
+<p>This function returns GLOBUS_SUCCESS if GASS was successfully initialized,
+  and you are therefore allowed to subsequently call GASS functions. Otherwise,
+  and error code is returned, and GASS functions should not be subsequently called.
+  This function may be called multiple times.</p>
+<p>To deactivate GASS, the following function must be called:</p>
+<p>globus_module_deactivate(GLOBUS_GASS_FILE_MODULE);</p>
+<p>This function should be called once for each time GASS was activated.</p>
+<h2><a
+    name="GASS File Access Functions">GASS File Access Functions</a></h2>
+<p>&nbsp;<a name="globus_gass_open">int <br>
+    <strong>globus_gass_open</strong></a>(const char *file, <br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int
+oflag,<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /*
+int mode */ ...) </p>
+<p>Same arguments, return value, and semantics as open(),except that the file
+  name argument may be a URL, in which case the following additional operations
+  are performed depending on the oflag: </p>
+<blockquote>
+  <p>O_RDONLY<br>
+      <br>
+    Lookup the file in the local cache. If it does not exist, then copy the file
+    from the remote server into local cache. Add a tag to the cache entry's tag
+    list. Open the local file for read-only access. When the file is closed,
+    remove the tag from cache entry's tag list, and delete the cache entry if
+    the tag list is empty.<br>
+  </p>
+</blockquote>
+<blockquote>
+  <p>O_WRONLY | O_TRUNC<br>
+      <br>
+    Lookup the file in the local cache. If it exists, then truncate it. Otherwise,
+    create an empty file in the local cache. Add a tag to the cache entry's tag
+    list. Open the local file for write-only access. When the file is closed,
+    copy it from the local cache to the remote server, remove the tag from cache
+    entry's tag list, and delete the cache entry if the tag list is empty.<br>
+  </p>
+</blockquote>
+<blockquote>
+  <p>O_WRONLY<br>
+      <br>
+    Lookup the file in the local cache. If it does not exist, then copy the file
+    from the remote server into local cache. Add a tag to the cache entry's tag
+    list. Open the local file for write-only access. When the file is closed,
+    copy it from the local cache to the remote server, remove the tag from cache
+    entry's tag list, and delete the cache entry if the tag list is empty.<br>
+  </p>
+</blockquote>
+<blockquote>
+  <p>O_RDWR<br>
+      <br>
+    Lookup the file in the local cache. If it does not exist, then copy the file
+    from the remote server into local cache. Add a tag to the cache entry's tag
+    list. Open the local file for read-write access. When the file is closed,
+    copy it from the local cache to the remote server, remove the tag from cache
+    entry's tag list, and delete the cache entry if the tag list is empty.<br>
+  </p>
+</blockquote>
+<blockquote>
+  <p>O_RDWR | O_TRUNC<br>
+      <br>
+    Lookup the file in the local cache. If it exists, then truncate it. Otherwise,
+    create an empty file in the local cache. Add a tag to the cache entry's tag
+    list. Open the local file for read-write access. When the file is closed,
+    copy it from the local cache to the remote server, remove the tag from cache
+    entry's tag list, and delete the cache entry if the tag list is empty. <br>
+  </p>
+</blockquote>
+<blockquote>
+  <p>O_APPEND</p>
+  <p>O_WRONLY | O_APPEND</p>
+  <p>Create a socket connection to the server, so that data written to the file
+    descriptor will immediately be sent to the server and written to the file.
+    When the file is closed, the socket is closed. If O_TRUNC is also used, the
+    remote file to which the data is appended will be truncated prior to writing.
+    Else, data is appended to the end of the file. Only x-gass URLs are allowed
+    for these oflag values. lseek() will not work on files opened in this mode. <br>
+  </p>
+</blockquote>
+<blockquote>
+  <p>O_APPEND | O_TRUNC</p>
+  <p>O_WRONLY | O_TRUNC | O_APPEND</p>
+  <p>O_RDWR | O_APPEND</p>
+  <p>O_RDWR | O_APPEND | O_TRUNC</p>
+  <p>This is not allowed on URLs.</p>
+  <p>&nbsp;</p>
+  <p>The following oflag options are ignored for URLs:<br>
+      <br>
+    O_CREAT, O_NDELAY, O_NONBLOCK, O_DSYNC, O_RSYNC, O_SYNC, O_NOCTTY, O_EXCL <br>
+  </p>
+  <p>All other oflag options and combinations will fail with a return value of &lt;0.<br>
+  </p>
+  <p>If the file is an URL, the mode argument is ignored. The permissions of
+    the remote file are dependent upon the server.<br>
+  </p>
+  <p>If the file is an URL and the O_WRONLY or O_RDWR oflag is used, then the
+    remote file pointed to by the URL is created if it does not already exist,
+    regardless of whether or not the O_CREAT oflag is used.<br>
+  </p>
+  <p>The call returns only after remote data has been copied into the local cache,
+    or an empty local file has been created, depending on the oflag value. <br>
+  </p>
+  <p>This call adds the value contained in the GRAM_JOB_CONTACT environment variable
+    to the cache entry's tag list. <br>
+  </p>
+  <p>Only x-gass URLs (not ftp) can be used with an O_APPEND oflag. <br>
+  </p>
+  <p>If the file is an URL, changes to the file are only flushed to the remote
+    server when <a
+      href="#globus_gass_open">globus_gass_open()</a> is called. If the process
+    terminates before calling <a href="#globus_gass_open">globus_gass_open()</a>,
+    the modified local cache file will remain in the cache until globus_gass_cache_cleanup_tag()
+    is called with the same tag as was used by the <a
+      href="#globus_gass_open">globus_gass_open()</a> (e.g. by the GRAM job manager).</p>
+  <p><em>Note: Currently only x-gass and ftp URLs are supported.</em></p>
+</blockquote>
+<hr align="center">
+<p><a name="globus_gass_close">int <br>
+      <strong>globus_gass_close</strong></a>(int fd)</p>
+<blockquote>
+  <p>Same arguments, return value, and semantics as close(), except that for
+    files opened using an URL, the actions described above in <a href="#globus_gass_open">globus_gass_open()</a> are
+    performed.<br>
+  </p>
+  <p>The call returns only when any remote copy has completed.<br>
+  </p>
+  <p>This call deletes the value contained in the GRAM_JOB_CONTACT environment
+    variable from the cache entry's tag list with, and deletes the file if this
+    cache entry's tag list is empty.</p>
+</blockquote>
+<p>&nbsp;</p>
+<hr align="center">
+<p><a name="globus_gass_fopen">FILE *<br>
+      <strong>globus_gass_fopen</strong></a>(const char *file, <br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const
+char *type)</p>
+<p>Same arguments, return value, and semantics as fopen(), but extends fopen()
+  as <a
+    href="#globus_gass_open">globus_gass_open()</a> extends open(). The type
+  argument maps to <a href="#globus_gass_open">globus_gass_open()</a> oflag values
+  as follows: </p>
+<blockquote>
+  <p>&quot;r&quot;, &quot;rb&quot; -&gt; O_RDONLY<br>
+  </p>
+  <p>&quot;w&quot;, &quot;wb&quot; -&gt; O_WRONLY | O_CREAT | O_TRUNC<br>
+  </p>
+  <p>&quot;a&quot;, &quot;ab&quot; -&gt; O_WRONLY | O_APPEND | O_CREAT<br>
+  </p>
+  <p>&quot;r+&quot;, &quot;r+b&quot;, &quot;rb+&quot; -&gt; O_RDWR<br>
+  </p>
+  <p>&quot;w+&quot;, &quot;w+b&quot;, &quot;wb+&quot; -&gt; O_RDWR | O_TRUNC
+    | O_CREAT<br>
+  </p>
+  <p>&quot;a+&quot;, &quot;a+b&quot;, &quot;ab+&quot; -&gt; Not allowed on URLs.</p>
+</blockquote>
+<p>All other type values cause this function to fail when file is an URL.</p>
+<p>&nbsp;</p>
+<hr align="center">
+<p><a name="globus_gass_fclose">int <br>
+      <strong>globus_gass_fclose</strong></a>(FILE *fp)</p>
+<p>Same arguments, return value, and semantics as fclose(), but extends fclose()
+  as <a
+    href="#globus_gass_open">globus_gass_open()</a> extends close().
+</p>
+
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

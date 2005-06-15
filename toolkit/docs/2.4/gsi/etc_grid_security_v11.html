@@ -1,0 +1,113 @@
+<?php
+
+$title = "GT 2.4 GSI: The /etc/grid-security directory";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+
+<h1 class="first"><a name="Creating"></a><?php echo $title; ?></h1>
+
+
+<p align="left">The directory /etc/grid-security is a directory used to hold configuration
+    information and private information used by the GSI libraries. It should be on local disk
+    e.g. not NFS-mounted. It and it's contents should not be writable by any untrusted users
+    (generally this means only by root). Except for the private key of the host (hostkey.pem),
+    all the contents may be world-readable.</p>
+    <p align="left">Contents of this web page:</p>
+    <ul>
+      <li><p align="left"><a href="#Creating">Creating /etc/grid-security</a></p>
+      </li>
+      <li><p align="left"><a href="#Contents">Normal contents of /etc/grid-security</a></p>
+      </li>
+    </ul>
+    <h2 align="left"><a name="Creating"><strong>Creating /etc/grid-security</strong></a></h2>
+    <p>1) Create the directory /etc/grid-security and make it world-readable</p>
+    <blockquote>
+      <pre># mkdir /etc/grid-security</pre>
+      <pre># chmod 0755 /etc/grid-security</pre>
+    </blockquote>
+    <p>2) In /etc/grid-security make the certificates directory. This can either be a copy of
+    or a symlink to $GSI_INSTALL_PATH/share/certificates (for a GSI installation) or
+    $GLOBUS_INSTALL_PATH/share/certifcates (for a Globus installation). In any case this
+    directory should be non-writable by anyone except trusted users and should be world
+    readable.</p>
+    <blockquote>
+      <pre># ln -s ${GSI_INSTALL_PATH}/share/certificates /etc/grid-security/certificates</pre>
+    </blockquote>
+    <p><strong>The following steps are only needed if you plan on running GSI-bases services
+    (e.g. gsiftpd, sshd, Globus gatekeeper)</strong></p>
+    <p>3) Create /etc/grid-security/grid-mapfile if needed</p>
+    <p>This is a file used to hold authorization information and mappings from grid identities
+    to local userids for users.&nbsp; Please see the <a href="grid-mapfile.html">grid-mapfile
+    web page</a> for details on creating this file.</p>
+    <p>4) Create hostkey.pem and hostcert.pem if needed</p>
+    <p>These files contain the host's private key and X509 certificate. Please see the <a href="host_cert.html">web page on acquiring a host certificate</a> for details on creating
+    these files.</p>
+    <p>Note that as stated on the page referred to by the URL above, grid-cert-request
+    currently creates the file userkey.pem and usercert.pem which you will need to symlink to
+    hostkey.pem and hostcert.pem. This is due to the GSI transition as something that is
+    always part of Globus to a package that can be stand-alone and will go away in future
+    versions. Sorry for the inconvience.</p>
+    <h2><a name="Contents">Contents of /etc/grid-security</a>
+    </h2>
+    <p>The following files or directories are normally found in /etc/grid-security:</p>
+    <blockquote>
+      <p><strong>certificates/</strong></p>
+      <p>This directory contains the X509 certificates of all CAs trusted by this system. For a
+      user to authenticate with GSI to any GSI-based service on this system, the certificate of
+      the CA that signed the user's certificate must be in this directory. All the contents of
+      this directory are used by both GSI-based clients and GSI-based services and should be
+      world-readable.</p>
+      <p>CA's certificates are stored in files whose names are based on a hash of the CA
+      identity for quick location. These filenames typically look like 42864e48.0</p>
+      <p>Certificate Revolacation Lists CRLs may also be stored in this directory. The CRLs
+      follow the CA certificate hash naming convention, with an extra &quot;r&quot;, for
+      example: 42864e48.r0. </p>
+      <p>Current this is often a symlink to:</p>
+      <p>$GLOBUS_INSTALL_PATH/share/certificates</p>
+      <p>or</p>
+      <p>$GSI_INSTALL_PATH/share/certificates</p>
+      <p><strong>certificates/ca-signing-policy.conf</strong></p>
+      <p>This file contains a list of trusted CAs and the certificates names they are allowed to
+      sign. A CA must be listed in this file in order for it to be trusted. Please see the <a href="ca-sign.txt">ca-signing-policy.conf documentation</a> for more details on this file.
+      This file should be world-readable.</p>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p>The following files
+    or directories are normally only found in /etc/grid-security if GSI-based services are
+    present on the system:</p>
+    <blockquote>
+      <p><strong>grid-mapfile</strong></p>
+      <p>This file contains
+      authorization information and information to map grid identiies (e.g. X509 subject names)
+      to local system identities (e.g. Unix user IDs). For more information on this file please
+      see the <a href="grid-mapfile.html">grid-mapfile web page</a>. This file need only be
+      readable by processes that do GSI-based services, but there is no know vulnerability
+      caused by it being world-readable.</p>
+      <p><strong>hostkey.pem</strong></p>
+      <p>This file contains
+      the RSA private key for the host used for doing mutual authentication with connecting
+      clients. This file should be readable only by trusted GSI-based services, typically this
+      means unix permissions of 0400. Currently this file a symlink to globus-host.key</p>
+      <p><strong>userkey.pem</strong></p>
+      <p>The host key as
+      created by grid-cert-request. This file will go away in a future revision. hostkey.pem
+      should be a symlink to this file.</p>
+      <p><strong>hostcert.pem</strong></p>
+      <p>This file contains
+      the X509 certificate for the host used for doing mutual authentication with connecting
+      clients. This file is a matched pair with the host key in hostkey.pem. hostcert.pem
+      however is public information (it is passed to every connecting client) so is typically
+      world-readable, however nothing besides GSI-based daemons is known to read this file.</p>
+      <p>Currently this file
+      a symlink to globus-host.cert.</p>
+      <p><strong>usercert.pem</strong></p>
+      <p>The host certificate as returned by the CA as a result of running grid-cert-request.
+      This file will go away in a future revision. hostcert.pem should be a symlink to this
+      file.</p>
+    </blockquote>
+	<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
+
