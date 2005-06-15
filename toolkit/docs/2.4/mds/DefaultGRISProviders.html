@@ -1,0 +1,246 @@
+<?php
+
+$title = "MDS 2.4 Core GRIS Providers";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+      <p>The MDS 2.4 release 
+      includes core MDS GRIS providers for the AIX and Tru64 operating 
+      systems. The grid-info-mds-core provider has also been enhanced to provide 
+    system configuration administration. </p>
+      <h2>        Background and Model</h2>
+      <p>When the GRIS handling 
+    a resource status query suffers a cache miss, it dispatches an information 
+    provider to probe the necessary information. This means that the information 
+    providers may be on the critical path defining the query latency a client 
+    observes. To optimize this path, providers are specialized at install time 
+    for the specific platform to which MDS is being installed.</p>
+    <p>Each external provider 
+    tool generates LDIF output representing MDS data objects. For proper GRIS 
+    operation, these objects should match the schema loaded in the GRIS slapd 
+    service (non-matching data will be suppressed by slapd).</p>
+    <p>Each provider 
+    generates a small bit of information about a specific aspect of the 
+    resource. Therefore, it is likely that a fairly complete set of provider 
+    tools will be implemented for all supported OSs using only a few variants of 
+    each provider category. Most Unix-flavored OSs will share some of these 
+    tools, differing only in the permutation of variants defined.</p>
+    <p>Another optimization 
+    is to avoid probing any values at runtime that are supposed to be static for 
+    a host installation: resource hostname FQDN and MDS DIT names are set 
+    statically as part of the service installation. More importantly, shell 
+    built-in functions are preferred to external commands since this reduces the 
+    fork() load on the host.</p>
+    <h2>Tool Output Format</h2>
+    <p>Output data is in LDIF 
+    format and must match the schema distributed with the providers. Core MDS
+       GRIS provider schema are documented separately in the MDS 2.4 release
+      set.&nbsp;See
+    <a href="Schema.html">MDS 2.4 Schemas</a>.</p>
+    <h2>Tool 
+    Parameterization</h2>
+    <p>The provider tools 
+    accept several parameters to complete the static data configuration 
+    (hostname, DN suffix), as well as potential options to select subsets of 
+    data.</p>
+    <p>These parameters are 
+    normally configured in the GRIS back end provider configuration file, and 
+    GRIS invokes the tools with these host or use-specific options.</p>
+    <p>-dn suffix, or root of 
+    all objects<br>
+    -log log file (grid-info-system.log).&nbsp;<br>
+    -probe-cache file used to exchange data between companion scripts.<br>
+    -probe-full command string to generate full data without cache.</p>
+    <p>In MDS 2.4, all 
+    providers support options to restrict the output objects and a special 
+    output format that is used to merge the base platform description object as 
+    a special case.</p>
+    <p>-dn distinguished name 
+    of object.<br>
+    -hostobj report only top-level platform object.<br>
+    -devclassobj report intermediate devclass objects.<br>
+    -devobjs report leaf objects.<br>
+    -noobjs report no objects (silent probe only).<br>
+    -classify prefix output lines to support &quot;sort | uniq&quot; merge of single 
+    object.<br>
+    -validto-secs control timeout - for how long data is valid.<br>
+    -keepto-secs control timeout – for how long data should be kept.</p>
+    <h2>Tool Categories and 
+    Variants</h2>
+    <p>grid-info-mds-core</p>
+    <p>Generates 
+    MdsSoftwareDeployment object containing information about automatically 
+    detected data such as $GLOBUS_LOCATION, base DNs of servers, and slapd 
+    process ids; and user-configured data such as administrator’s e-mail address 
+    and comments on the deployment.</p>
+    <p>grid-info-platform-*</p>
+    <p>Generates base 
+    MdsComputePlatform type object, reporting the compute platform type and instruction-set architecture.</p>
+    <p>grid-info-platform-uname 
+    works generically on most unix variants.</p>
+    <p>grid-info-os-*</p>
+    <p>Generates 
+    MdsSoftwareDeployment object containing information about the host operating 
+    system, as well as extension MdsOperatingSystemSummaryInfo data for the base 
+    platform object.</p>
+    <p>grid-info-os-uname 
+    works generically on most unix variants.</p>
+    <p>grid-info-cpu-*</p>
+    <p>Generates 
+    MdsCpuSummaryInfo, MdsDeviceClassCpu, MdsDeviceCpu objects describing the 
+    CPUs available on the system.</p>
+    <p>grid-info-cpu-linux 
+    interprets Linux 2.2/2.4 &quot;/proc/cpuinfo&quot;.</p>
+    <p>grid-info-cpu-irix 
+    interprets Irix 6.4/6.5 &quot;hinv&quot; program output.</p>
+    <p>grid-info-cpu-solaris 
+    interprets Solaris &quot;sysinfo&quot; program output.</p>
+    <p>grid-info-cpu-aix 
+    interprets AIX &quot;lsattr&quot; and &quot;lsconfig&quot; program output.</p>
+    <p>grid-info-cpu-tru64 
+    interprets Tru64 &quot;helper executable&quot; program output.</p>
+    <p>grid-info-cpufast-*</p>
+    <p>Rapidly generates same 
+    output of grid-info-cpu-* by reading an inventory output from a cache file 
+    and updating only the &quot;CPU free&quot; attributes using system load-average 
+    information. This provides high-frequency load information at reduced cost.</p>
+    <p>grid-info-cpufast-uptime 
+    interprets &quot;uptime&quot; program output.</p>
+    <p>grid-info-mem-*</p>
+    <p>Generates 
+    MdsPhysicalMemorySummaryInfo, MdsVirtualMemorySummaryInfo, MdsPhysicalMemory, 
+    and MdsVirtualMemory objects describing host RAM and VM status.</p>
+    <p>grid-info-mem-linux 
+    interprets Linux 2.2/2.4 &quot;/proc/meminfo&quot;.</p>
+    <p>grid-info-mem-irix 
+    interprets Irix &quot;top&quot; program output.</p>
+    <p>grid-info-mem-solaris 
+    interprets Solaris &quot;top&quot; program output.</p>
+    <p>grid-info-mem-aix 
+    interprets AIX &quot;lsps&quot;, &quot;lscfg&quot;, and &quot;lsattr&quot; program output.</p>
+    <p>grid-info-mem-tru64 
+    interprets Tru64 &quot;vmstat&quot; program output.</p>
+    <p>grid-info-net-*</p>
+    <p>Generates 
+    MdsNetworkInterfaceSummaryInfo, MdsDeviceClassNetworkInterface, and MdsDeviceNetworkInterface objects.</p>
+    <p>grid-info-net-linux 
+    interprets Linux &quot;ifconfig&quot; output for active interfaces.</p>
+    <p>grid-info-net-tru64 
+    interprets Tru64 &quot;netstat -in&quot; numeric interface info, but does not provide 
+    netmask info.</p>
+    <p>grid-info-net-netstat 
+    interprets Irix/Solaris/AIX &quot;netstat -in&quot; numeric interface info, but does 
+    not provide netmask info.</p>
+    <p>grid-info-fs-* 
+    [-scratch &lt;mount point&gt;]...</p>
+    <p>Generates 
+    MdsFilesystemSummaryInfo, MdsDeviceClassFilesystem, and MdsFilesystemInfo 
+    objects. By default reports all local filesystems, while -scratch &lt;mount&gt; 
+    options select reporting only of local filesystem(s) at specified mount 
+    points.</p>
+    <p>grid-info-fs-posix 
+    interprets Posix &quot;df -l -k [&lt;mount&gt;]...&quot; output.</p>
+    <p>grid-info-fs-irix 
+    interprets Irix &quot;df -l -k [&lt;mount&gt;]...&quot; output.</p>
+    <p>grid-info-fs-aix 
+    interprets AIX &quot;df -P -k [&lt;mount&gt;]...&quot; output.</p>
+    <p>grid-info-fs-tru64 
+    interprets Tru64 &quot;df -l -k [&lt;mount&gt;]...&quot; output.</p>
+    <h2>Software 
+    Composition</h2>
+    <p>The integrated core 
+    GRIS providers are composed hierarchically to share common shell script 
+    functionality.</p>
+    <p>grid-info-common</p>
+    <p>grid-info-cpu-aix<br>
+    grid-info-cpu-common<br>
+    grid-info-cpu-irix<br>
+    grid-info-cpu-linux<br>
+    grid-info-cpu-solaris<br>
+    grid-info-cpu-tru64<br>
+    grid-info-cpufast-uptime</p>
+    <p>grid-info-fs-aix<br>
+    grid-info-fs-common<br>
+    grid-info-fs-irix<br>
+    grid-info-fs-posix<br>
+    grid-info-fs-tru64</p>
+    <p>grid-info-mem-aix<br>
+    grid-info-mem-common<br>
+    grid-info-mem-irix<br>
+    grid-info-mem-linux<br>
+    grid-info-mem-solaris<br>
+    grid-info-mem-tru64</p>
+    <p>grid-info-net-common<br>
+    grid-info-net-linux<br>
+    grid-info-net-tru64<br>
+    grid-info-net-netstat</p>
+    <p>grid-info-os-uname</p>
+    <p>grid-info-platform-uname</p>
+    <p>grid-info-platform-merged</p>
+    <p>grid-info-mds-core</p>
+    <h2>Supported Platforms 
+    and Tool Variants</h2>
+    <p>Support status is 
+    unknown (but probably requires porting effort) for all unlisted platforms. 
+    Support for listed platforms is as described below.</p>
+    <p>AIX</p>
+    <p>5L</p>
+    <p>grid-info-platform-uname 
+    uses 'uname -m/-p'<br>
+    grid-info-os-uname uses 'uname -s/-r/-v'<br>
+    grid-info-cpu-aix uses 'lsattr' and 'lsconfig'<br>
+    grid-info-mem-aix uses 'lsps', 'lscfg', and 'lsattr'<br>
+    grid-info-fs-aix uses 'df -P -k'<br>
+    grid-info-net-netstat uses 'netstat -in'</p>
+    <p>Linux</p>
+    <p>Red Hat 7.1 to 7.3<br>
+    2.2 and 2.4 kernels</p>
+    <p>grid-info-platform-uname 
+    uses 'uname -m/-p'<br>
+    grid-info-os-uname uses 'uname -s/-r/-v'<br>
+    grid-info-cpu-linux uses /proc/cpuinfo<br>
+    grid-info-mem-linux uses /proc/meminfo<br>
+    grid-info-fs-posix uses 'df -l -k'<br>
+    grid-info-net-linux uses 'ifconfig'</p>
+    <p>Irix</p>
+    <p>6.5/6.4</p>
+    <p>grid-info-platform-uname 
+    uses 'uname -m/-p'<br>
+    grid-info-os-uname uses 'uname -s/-r/-v'<br>
+    grid-info-cpu-irix uses 'hinv -v -c processor'<br>
+    grid-info-mem-irix uses 'top -d1 -b'<br>
+    grid-info-fs-posix uses 'df -l -k'<br>
+    grid-info-net-netstat uses 'netstat -in'</p>
+    <p>Solaris</p>
+    <p>2.5.1<br>
+    2.7&nbsp;</p>
+    <p>grid-info-platform-uname 
+    uses 'uname -m/-p'<br>
+    grid-info-os-uname uses 'uname -s/-r/-v'<br>
+    grid-info-cpu-solaris uses 'sysinfo -class device -format report -type cpu'<br>
+    grid-info-mem-solaris uses 'top -d1 -b'<br>
+    grid-info-fs-posix uses 'df -l -k'<br>
+    grid-info-net-netstat uses 'netstat -in'</p>
+    <p>Tru64</p>
+    <p>5.0A/5.1/5.1A/5.1B </p>
+    <p>grid-info-platform-uname 
+    uses 'uname -m/-p'<br>
+    grid-info-os-uname uses 'uname -s/-r/-v'<br>
+    grid-info-cpu-tru64 uses 'helper executable'<br>
+    grid-info-mem-tru64 uses 'vmstat'<br>
+    grid-info-fs-tru64 uses 'df -l -k'<br>
+    grid-info-net-tru64 uses 'netstat -in'</p>
+    <h2>Custom Information 
+    Providers</h2>
+    <p>You can create your 
+    own information providers by following the procedures described in
+    <a href="creating_new_providers.pdf">
+    MDS 2.4 GRIS Specification Document: Creating New Information Providers</a> 
+    (PDF). </p>
+
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

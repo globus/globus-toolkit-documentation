@@ -1,0 +1,1033 @@
+<?php
+
+$title = "MDS 2.4 Test Suite";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+        <p style="background-color: #FFFFFF">        This document presents the following:</p>
+        <ul>
+          <li>A
+              summary of test procedure steps that can be used to verify
+          proper MDS 2.4 operation.</li>
+          <li>A step-by-step description
+              of the test procedures, including script and command use and resulting
+              output.</li>
+          <li>Additional 
+                information on test functionality and on installation and 
+            configuration of MDS 2.4.</li>
+        </ul>
+        <p style="background-color: #FFFFFF"><b>Test Procedure Summary</b></p>
+        <p>The test procedure describes the
+          following types of testing for MDS 2.4:</p>
+          <ul>
+            <li><b>Server
+              operation:&nbsp;</b>
+              <ul>
+                <li>Is the server up and running
+                  and responding to queries?</li>
+              </ul>
+            </li>
+            <li><b>Accuracy of
+              Data:</b>
+              <ul>
+                <li>Is MDS returning accurate
+                  data?</li>
+                <li>For static data (e.g., number
+                  of processors), the accuracy of the data returned will be
+                  obvious.</li>
+                <li>For dynamic data (e.g., amount
+                  of available memory), there may not be an exact correct
+                  answer, but the data should be reasonable, and within an
+                  obvious range.</li>
+              </ul>
+            </li>
+            <li><b>Load testing:</b>
+              <ul>
+                <li>How does the server react to
+                  many queries over an extended period of time?</li>
+              </ul>
+            </li>
+            <li><b>Concurrency
+              testing:</b>
+              <ul>
+                <li>How does the server react to
+                  many simultaneous queries over an extended period of time?</li>
+              </ul>
+            </li>
+          </ul>
+          <p>A basic test and a recurring query
+          test are available to verify the operation of MDS 2.4.&nbsp;
+          The test procedure uses the following eight steps:</p>
+          <table border="1" width="100%" bgcolor="#DBDBDB" cellspacing="0" cellpadding="10" bordercolorlight="#FFFFFF" bordercolordark="#FFFFFF">
+            <tr>
+              <td width="100%">
+                <ol style="font-family: Verdana; font-size: 10pt">
+                  <li>
+                    <p>Install MDS.<br>
+                  </li>
+                  <li>
+                    <p>Set
+                    up GRIS providers for the test environment.</li>
+                  <li>
+                    <p>Set 
+                    up MDS for authenticated access.</li>
+                  <li>
+                    <p>Start
+                    MDS.<br>
+                  </li>
+                  <li>
+                    <p>Run
+                    the basic test script.<br>
+                  </li>
+                  <li>
+                    <p>View
+                    and evaluate the basic test script output.<br>
+                  </li>
+                  <li>
+                    <p>Run
+                    the recurring query script.<br>
+                  </li>
+                  <li>
+                    <p>Evaluate
+                    the results of executing the recurring query script.</li>
+                </ol>
+              </td>
+            </tr>
+          </table>
+          <p>These steps are described in detail
+          in the following sections.</p>
+          <p><b>1.&nbsp;
+          Install MDS.<o:p>
+          </o:p>
+          </b></p>
+          <p>MDS 2.4 should be 
+          downloaded and installed as described in <i>
+          <a href="Install.html">MDS 2.4 Installation 
+          and Configuration</a></i>.</p>
+          <p>Pointers to additional documentation
+          on the installation, configuration, and administration of MDS 2.4 can
+          be found in the <i><a href="#Additional Information">Additional
+          Information</a></i> section later in this document.</p>
+          <p>&nbsp;</p>
+          <p><b>2.&nbsp;
+          Set up GRIS providers for the test environment.</b></p>
+          <p>For this test suite, it is
+          recommended that you use the default MDS configuration described
+          below.&nbsp; Testing done in this configuration is only to verify the
+          basic operation of MDS.&nbsp; If you want to design and test more
+          complex directory architecture, you need a hierarchical GIIS, as
+          described in the <i> <a href="hierarchical_GIIS.pdf">Creating a
+          Hierarchical GIIS</a></i> page.</p>
+          <p><i>Default Configuration</i><br>
+          <br>
+          The installation and setup of MDS by default registers one GRIS to one
+          GIIS in one slapd server on port 2135.&nbsp; The default MDS
+          installation creates the following two configuration files:</p>
+          <p>${GLOBUS_LOCATION}/etc/grid-info-slapd.conf<br>
+          ${GLOBUS_LOCATION}/etc/grid-info-resource-register.conf</p>
+          <p>The contents of these files are as
+          follows:<br>
+          <br>
+          ${GLOBUS_LOCATION}/etc/grid-info-slapd.conf<br>
+          <br style="mso-special-character:line-break">
+          database:&nbsp;&nbsp;&nbsp; gris<br>
+          suffix:&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;mds-vo-name=local,
+          o=grid<br style="mso-special-character:line-break">
+          <br style="mso-special-character:line-break">
+          database:&nbsp;&nbsp;&nbsp; giis<br>
+          suffix:&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;mds-vo-name=site,
+          o=grid<br>
+          <br>
+          ${GLOBUS_LOCATION}/etc/grid-info-resource-register.conf</p>
+          <p>dn:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          mds-vo-op-name=register,mds-vo-name=site, o=grid<br>
+          reghn:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>hostname</i><br>
+          regport:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2135<br>
+          hn:&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>hostname</i><br>
+          port:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2135<br>
+          rootdn:&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;mds-vo-name=local,
+          o=grid<br>
+          <br>
+          In the grid-info-resource-register.conf
+          file above, note that the value of <i>hostname</i>
+          must be the same for both the reghn:
+          and hn:
+          parameters.</p>
+          <p><i>Testing on Existing Core Platforms</i></p>
+          <p>MDS 2.4
+          includes core GRIS
+          provider probes for Linux, Solaris, Irix, AIX, and 
+          TRu64.&nbsp; For these
+          platforms, testing should be done using the core providers to check
+          for accuracy of data.&nbsp; Use the default configuration described
+          above.</p>
+          <p><i>Testing on Other Platforms</i></p>
+<p>For platforms other than Linux,
+          Solaris,  Irix, AIX, and Tru64, there are four GRIS provider probes designed
+          specifically for testing MDS on platforms for which platform-specific
+          core GRIS providers do not yet exist.&nbsp; This allows for basic
+          functionality testing of MDS on any Unix-based platform. These
+          non-platform-specific provider probes are: grid-info-cpu-none,
+          grid-info-mem-none, grid-info-net-none,
+          and grid-info-fs-none.<br>
+          <br>
+  To set up MDS for testing on a platform without platform-specific core
+  providers, edit the grid-info-resource-ldif.conf
+  file located in the GLOBUS_LOCATION/etc
+  directory.&nbsp; Using the example in <i><a href="#Appendix%20A.%20%20MDS%20Testing%20Without%20Platform-Specific%20Core%20GRIS%20Providers">Appendix A, MDS Testing
+          Without Platform-Specific Core GRIS Providers</a></i>, change the &nbsp;dn:,
+          path:,
+          and args:
+          parameters for your particular installation.</p>
+<p><b>3</b><b>.&nbsp; Set up MDS for authenticated access.</b></p>
+<p>To be able to perform authenticated 
+          (security-enabled) queries, you need to set up MDS as follows:</p>
+        <ul>
+          <li>
+          <p>Set the environment.<br>
+          <br>
+          Set GLOBUS_LOCATION to the location of your 
+          Toolkit installation.&nbsp; Then source your environment corresponding to 
+          the type of shell you are using.<br>
+&nbsp;</li>
+          <li>
+          <p>Obtain necessary certificates.<br>
+          <br>
+          You need a user certificate and the server requires an LDAP server 
+          certificate.&nbsp; You obtain these certificates with the 
+          grid-cert-request command.<br>
+          <br>
+          To obtain a user certificate, enter:<br>
+          <br>
+          grid-cert-request<br>
+          <br>
+          The user certificate will reside in $HOME/.globus/usercert.pem.<br>
+          <br>
+          To obtain an LDAP server certificate, enter grid-cert-request 
+          in the following form:<br>
+          <br>
+          grid-cert-request -service ldap -host 
+          my.host.fqdn<br>
+          <br>
+          where -service ldap 
+          specifies that certificate be created for the LDAP server, and -host my.host.fqdn 
+          specifies the fully qualified domain name of the host that will run 
+          the LDAP server.&nbsp; The server certificate will reside in /etc/grid-security/ldap/ldapcert.pem.<br>
+&nbsp;</li>
+          <li>
+          <p>Obtain a proxy for 
+          authenticated access.<br>
+          <br>
+          You obtain a proxy with the 
+          grid-proxy-init command.<br>
+&nbsp;</li>
+          <li>
+          <p>Start MDS and verify authenticated access.<br>
+          <br>
+          Start MDS as described in Step
+          4 below, then enter the following 
+          security-enabled query to output the details of all objects on the 
+          GRIS:<br>
+          <br>
+          grid-info-search -b &quot;mds-vo-name=local, 
+          o=grid&quot;</li>
+        </ul>
+          <p>Refer to the <i>
+          <a href="mdsusersguide.pdf">MDS
+          2.4 User’s Guide</a></i> (the <i>MDS 
+          Security Setup Procedures</i> section of Chapter 5, <i>MDS Security 
+          Configuration</i>) for more details on the above procedures.&nbsp; 
+          Refer to the <i><a href="../install.html">Globus Toolkit 2.4 Installation Instructions</a></i> for more details 
+          on obtaining a user certificate.</p>
+          <p><b>4</b><b>.&nbsp; Start MDS.</b></p>
+          <p>Start MDS via the following command:</p>
+          <p>
+          <span lang="en-us">$</span>{GLOBUS_LOCATION}/sbin/globus-mds
+          start<o:p> </p>
+          <p>Note that for backward compatibility with 
+          MDS 2.1, the SXXgris start command continues to work in MDS 2.4.</p>
+          <p><b>5</b><b>.&nbsp; Run the basic test script.<o:p>
+          </o:p>
+          </b></p>
+          <p>The basic test script is used to
+          verify that MDS is running correctly and that both the local GRIS and
+          GIIS respond properly to queries.&nbsp; The script is called &quot;mds-self-test&quot;.&nbsp;
+          It performs four queries using the grid-info-search
+          command.</p>
+          <p>The queries are as described below.<o:p>
+          </o:p>
+          </p>
+          <ul>
+            <li>
+              <p style="margin-left:.25in;text-indent:-.25in;mso-list:l3 level1 lfo4;
+tab-stops:list .25in">Two anonymous (anonymous
+              flag set; without SASL) queries, as follows:</li>
+          </ul>
+          <p style="margin-left:.25in;text-indent:-.25in;mso-list:l3 level1 lfo4;
+tab-stops:list .25in">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          &nbsp;grid-info-search -x -b &quot;mds-vo-name=local, o=grid&quot;<o:p>
+          </o:p>
+          <br>
+          <span style="mso-bidi-font-family: Courier New">&nbsp;</span>&nbsp;&nbsp;&nbsp;
+          grid-info-search -x -b &quot;mds-vo-name=site, o=grid&quot;<o:p>
+          </o:p>
+          </p>
+          <blockquote>
+            <p>The first command above tests the
+            GRIS; the second command tests the GIIS.&nbsp;
+            (The -x argument in the above commands
+            turns on anonymous binding.)</p>
+          </blockquote>
+          <ul>
+            <li>Two security-enabled (with SASL)
+              queries, as follows:</li>
+          </ul>
+          <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          grid-info-search -b &quot;mds-vo-name=local, o=grid&quot;<o:p>
+          <o:p>
+          <br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; grid-info-search
+          -b &quot;mds-vo-name=site, o=grid&quot;<o:p>
+          </o:p>
+          </p>
+<blockquote>
+  <p>The first command above tests the
+  GRIS; the second command tests the GIIS.</p>
+</blockquote>
+          <p><b>6</b><b>.&nbsp;
+          View and evaluate the basic test script output.<o:p>
+          </o:p>
+          </b></p>
+          <p>In this example, we are testing the
+          local GRIS and then the local GIIS for accuracy of data.</p>
+          <p><i>Testing the Local GRIS</i></p>
+          <p>Enter the grid-info-search
+          command as follows to generate a
+          local GRIS query of all objects:<o:p>
+          </o:p>
+          </p>
+          <p>grid-info-search
+          -x -b &quot;mds-vo-name=local, o=grid&quot;</p>
+          <p>The
+          output from this command appears in <i><a href="#Appendix B.  Basic Test Script Output">Appendix
+          B, Basic Test Script Output</a></i>.</p>
+          <p>The output in Appendix B shows values
+          returned from all valid GRIS objects based on the current schema.&nbsp;
+          For static data such as CPU and processor types, the accuracy of the
+          data returned will be obvious.&nbsp; For dynamic data such as virtual
+          memory and file system space, the accuracy of the data returned should
+          be within what appears to be a reasonable order of magnitude.</p>
+          <p><i>
+          Testing the Local GIIS<o:p>
+          </o:p>
+          <o:p>
+          &nbsp;</i></p>
+<p>Enter the grid-info-search
+command as follows to generate a local GIIS query of all GRIS's registered to
+the local GIIS:<br>
+<br>
+grid-info-search -x -b &quot;mds-vo-name=site,
+o=grid&quot;<br>
+<br>
+By default, the local GRIS instance is registered to the local GIIS instance.&nbsp;
+However, if you specify additional registration targets for the local GRIS
+and/or GIIS in the grid-info-resource-register.conf
+file and want to test that registration is functioning correctly at the target
+site, issue the following grid-info-search
+command:<br>
+<br>
+grid-info-search -x -b -h [hostname] -p
+[port] &quot;mds-vo-name=site, o=grid&quot;<br>
+<br>
+In this case, set the hostname
+and port
+arguments to the match the registration target's hostname
+and port
+specified in the grid-info-resource-register.conf
+file.<br>
+<br>
+The output from the above command shows values returned from all valid GIIS
+objects based on the current schema.&nbsp; For the default local setup, the
+contents of the local GRIS data cache is returned.&nbsp; In that case, the
+output is essentially the same as that shown in Appendix B, with the differences
+shown below.</p>
+<p>The beginning of the output shows:</p>
+<p>GIIS Data<br>
+<br>
+grid-info-search -x -b &quot;mds-vo-name=site,o=grid&quot;&nbsp;<br>
+version: 2<br>
+<br>
+# dc-user.isi.edu, site, Grid<br>
+<br>
+The end of the output shows:</p>
+<p># site, Grid<br>
+dn: Mds-Vo-name=site, o=Grid<br>
+objectClass: GlobusStub</p>
+          <p><b>7</b><b>.&nbsp; Run the recurring query script.<o:p>
+          </o:p>
+          </b></p>
+          <p>The recurring query script can be
+          used to verify MDS operation with multiple queries, for both load
+          testing and concurrency testing.</p>
+          <p><i>Load Testing</i></p>
+          <p>An additional test script called
+          &quot;mds-load-test&quot; is available.&nbsp;
+          This script can be used to execute an LDAP query multiple
+          times.&nbsp;</p>
+          <p>Run the mds-load-test script with the
+          following command:</p>
+          <p>mds-load-test
+          [-batches N] [-queries M] [-- search options...]<o:p>
+          </o:p>
+          </p>
+          <p>where:</p>
+          <p>-batches N -queries M<br>
+          <br>
+          Means that the client binds N times to the server and issues M queries during that bound session.<br>
+          <br>
+          This script is sequential, and you are expected to run multiple
+          instances of it if you want concurrent query load.&nbsp; See <i><a href="#Concurrency Testing">Concurrency
+          Testing</a></i> below.</p>
+          <p>For example:</p>
+          <p>mds-load-test -batches 2 -queries 3
+          -- -x -h `hostname` -p 2155 -b
+          &quot;mds-vo-name=local, o=grid&quot;</p>
+          <p>The above command executes an ldapsearch
+          against the local GRIS.&nbsp; It binds to the server twice and issues
+          three queries per bind, for a total of six instances:&nbsp;two times
+          for a total of three iterations,&nbsp;resulting in a total of six
+          queries being executed.</p>
+          <p><i><a name="Concurrency Testing">Concurrency
+          Testing</a></i></p>
+          <p>The following is a script to launch
+          mds-load-test in separate shells simultaneously.&nbsp; This
+          script causes mds-load-test to issue the same all-objects (*) query
+          1000 times in one LDAP bind, then repeat this 5000 times, doing so in
+          three concurrently executing subshells.<br>
+          <br>
+          # /bin/sh<br>
+          <br>
+          sh ./mds-load-test -batches 5000 -queries 1000 -- -x -p 2135 -b &quot;mds-vo-name=site,o=grid&quot;<br>
+          sh ./mds-load-test
+          -batches 5000 -queries 1000 -- -x -p 2135 -b </p>
+          <p>&nbsp;</p>
+          <p><b>8</b><b>.&nbsp; 
+          Evaluate the results of executing the recurring query script.</b></p>
+          <p>The recurring query script is
+          provided as a convenience to enable load and concurrency testing of
+          MDS with a large number of queries.&nbsp; The output generated by the
+          mds-load-test script is similar to that produced by the basic test
+          script described above, though the output may be quite large if
+          thousands of queries are being run.&nbsp; It is not necessary to log
+          and review or spot check this output for data accuracy.&nbsp; The
+          recommended way to determine data accuracy is to separately run the
+          basic test script while load and concurrency testing is going on, and
+          then review the results.&nbsp;</p>
+          <p><b><a name="Additional Information">Additional
+          Information</a></b></p>
+          <p>This section describes the syntax for
+          the grid-info-search command
+          and additional documentation for MDS 2.4.</p>
+          <p><i>Syntax for grid-info-search</i></p>
+          <p>grid-info-search [options]<o:p>
+          </o:p>
+          </p>
+          <p>where options
+          are as follows:<o:p>
+          </o:p>
+          </p>
+          <p>-config
+          file<o:p>
+          <br>
+          Specifies a different configuration file
+          to obtain MDS defaults.<br>
+          Note that this option overrides the variables set in the user’s
+          environment and previously listed command line options.</p>
+          <p>-mdshost
+          host (-h)<o:p>
+          <br>
+          Is the host name on which the MDS server
+          is running.&nbsp; The default
+          is $GRID_INFO_HOST.</p>
+          <p>-mdsport
+          port (-p)<br>
+          Is the port number on which the
+          MDS server is running.&nbsp; The default is port $GRID_INFO_PORT.<o:p>
+          </o:p>
+          </p>
+          <p>-anonymous
+          (-x)<o:p>
+          <br>
+          Uses anonymous binding instead of GSSAPI.<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>-mdsbasedn
+          branch-point (-b)<o:p>
+          <br>
+          Is the base location in
+          DIT from which to start the search.&nbsp;
+          The default is &quot;${GRID_INFO_BASEDN}&quot;.<o:p>
+          </o:p>
+          </p>
+          <p>-s <i>scope<br>
+          </i>Specifies the scope of the search.&nbsp;
+          <i>scope</i> can be base
+          (base dn level), one
+          (base dn level plus&nbsp;one level down) or sub (all from base dn level and down).</p>
+          <p style="margin-left:0in">
+          giisregistrationstatus<br>
+          Specifies that the status of machines registered 
+          to a GIIS or from which a GIIS is getting data be returned from the 
+          search.&nbsp; This option requires the 
+          –b 
+          and 
+          –s base 
+          options on the command for querying from the default server (as 
+          defined in the grid-info.conf file).&nbsp; The 
+          –h 
+          and 
+          –p 
+          options are required for querying from other servers.</p>
+          <p>&quot;attribute&quot;<o:p>
+          <br>
+          Specifies a single
+          attribute to be returned from the search, such as MdsCpu.<o:p>
+          </o:p>
+          </p>
+          <p>&quot;filter&quot;<o:p>
+          <br>
+          Sets an attribute relationship to
+          a value for the search:<br>
+          &quot;(attribute=value)&quot;<o:p>
+          </o:p>
+          <br>
+          &quot;(attribute&gt;=value)&quot;<o:p>
+          </o:p>
+          <br>
+          &quot;(attribute&lt;=value)&quot;<o:p>
+          </o:p>
+          <br>
+          &quot;(attribute~=value)&quot;</p>
+          <p>&quot;(attribute=*)&quot;&nbsp;&nbsp;&nbsp;
+          Searches for the presence
+          of an item.<br>
+          &quot;(attribute=*a)&quot;&nbsp;&nbsp;
+          Searches for a substring
+          item.</p>
+          <p>-mdstimeout
+          seconds (-T)<br>
+          Is the amount of time (in
+          seconds) one should allow to wait on an MDS request.&nbsp;
+          The default&nbsp;is $GRID_INFO_TIMEOUT.</p>
+          <p><i>Additional MDS 2.4 Documentation</i></p>
+          <p>See the following documents for
+          specific information on the installation and configuration of MDS 2.4:</p>
+          <ul>
+            <li><i><a href="Install.html">MDS 
+            2.4 Installation and
+              Configuration</a></i></li>
+            <li><i><a href="Config.html">MDS 
+            2.4 Configuration Files</a></i></li>
+            <li><i>
+            <a href="SystemRequirements.html">MDS 2.4 
+            System Requirements</a></i></li>
+</ul>
+          <p>Note that <i><a href="Install.html">MDS
+          2.4 Installation and Configuration</a></i> includes a description of a
+          basic test query to a GRIS and GIIS.</p>
+          <p>See the <i>
+          <a href="mdsusersguide.pdf">MDS 2.4 User's 
+          Guide</a></i> for details on querying MDS with the grid-info-search 
+          command.</p>
+          <table border="0" width="100%">
+            <tr>
+              <td bgcolor="#DBDBDB">The appendixes
+                below are provided to show the following example material to
+                further illustrate the test procedures:
+                <ul>
+                  <li>Configuration file content
+                    for testing with non-platform-specific core GRIS providers.<br>
+                  </li>
+                  <li>Sample basic test script
+                    output.</li>
+                </ul>
+              </td>
+            </tr>
+          </table>
+          <p>&nbsp;</p>
+          <p><b><a name="Appendix A.  MDS Testing Without Platform-Specific Core GRIS Providers">Appendix
+          A.&nbsp; MDS Testing Without Platform-Specific Core GRIS Providers</a></b></p>
+          There
+          are four GRIS provider probes designed specifically for testing MDS on
+          platforms for which platform-specific core GRIS providers do not yet
+          exist.&nbsp; This allows for basic functionality testing of MDS on any
+          Unix-based platform.&nbsp; These non-platform-specific provider probes
+          are: grid-info-cpu-none,&nbsp;grid-info-mem-none,&nbsp;grid-info-net-none,&nbsp;and
+          grid-info-fs-none.
+          <p>To
+          set up MDS for testing on a platform without platform-specific core
+          providers, edit the grid-info-resource-ldif.conf
+          file located in the GLOBUS_LOCATION/etc
+          directory.&nbsp; Using the example below, change the &nbsp;dn:,
+          path:<em>, </em>and args:
+          parameters for your particular installation.</p>
+          <div>
+            #
+            generate CPU inventory (hidden cache) every 12 hours<br>
+            dn: Mds-Device-Group-name=processors, Mds-Host-hn=hostname.isi.edu,
+            Mds-Vo-name=local, o=grid<br>
+            objectclass: GlobusTop<br>
+            objectclass: GlobusActiveObject<br>
+            objectclass: GlobusActiveSearch<br>
+            type: exec<br>
+            path: /scratch/globus/globus-install/libexec<br>
+            base: grid-info-cpu-none<br>
+            args: -noobjs<br>
+            cachetime: 43200<br>
+            timelimit: 20<br>
+            sizelimit: 1<br>
+</div>
+          <div>
+            #
+            generate memory info every minute<br>
+            dn: Mds-Device-Group-name=memory, Mds-Host-hn=hostname.isi.edu, Mds-Vo-name=local,
+            o=grid<br>
+            objectclass: GlobusTop<br>
+            objectclass: GlobusActiveObject<br>
+            objectclass: GlobusActiveSearch<br>
+            type: exec<br>
+            path: /scratch/globus/globus-install/libexec<br>
+            base: grid-info-mem-none<br>
+            args: -devclassobj -devobjs -dn Mds-Host-hn=hostname.isi.edu,Mds-Vo-name=local,o=grid
+            -validto-secs 60 -k\<br>
+            eepto-secs 60<br>
+            cachetime: 60<br>
+            timelimit: 10<br>
+            sizelimit: 3&nbsp;
+          </div>
+          <div>
+            &nbsp;
+          </div>
+          <div>
+            #
+            generate network info every 15 minutes<br>
+            dn: Mds-Device-Group-name=networks, Mds-Host-hn=hostname.isi.edu,
+            Mds-Vo-name=local, o=grid<br>
+            objectclass: GlobusTop<br>
+            objectclass: GlobusActiveObject<br>
+            objectclass: GlobusActiveSearch<br>
+            type: exec<br>
+            path: /scratch/globus/globus-install/libexec<br>
+            base: grid-info-net-none<br>
+            args: -devclassobj -devobjs -dn Mds-Host-hn=hostname.isi.edu,Mds-Vo-name=local,o=grid
+            -validto-secs 900 -\<br>
+            keepto-secs 900<br>
+            cachetime: 900<br>
+            timelimit: 20<br>
+            sizelimit: 20<br>
+</div>
+            <div>
+              # generate GRIS info every 12 hours<br>
+              dn: Mds-Software-deployment=MDS GRIS, Mds-Host-hn=hostname.isi.edu,
+              Mds-Vo-name=local, o=grid<br>
+              objectclass: GlobusTop<br>
+              objectclass: GlobusActiveObject<br>
+              objectclass: GlobusActiveSearch<br>
+              type: exec<br>
+              path: /scratch/globus/globus-install/libexec<br>
+              base: grid-info-net-none<br>
+              args:<br>
+              cachetime: 43200<br>
+              timelimit: 20<br>
+              sizelimit: 1
+            </div>
+          <p><b><a name="Appendix B.  Basic Test Script Output">Appendix
+          B.&nbsp; Basic Test Script Output</a></b></p>
+          <p>Here is example output from a local
+          GRIS query of all objects:</p>
+          <p>GRIS data<br>
+<br>
+grid-info-search -x -b &quot;mds-vo-name=local,o=grid&quot;<br>
+<br>
+			version:
+2<o:p>
+<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#<br>
+          # filter: (objectclass=*)<br>
+          # requesting: ALL<br>
+          #<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          dc-user.isi.edu, local, grid<br>
+          dn: Mds-Host-hn=dc-user.isi.edu,Mds-Vo-name=local,o=grid<br>
+          objectClass: MdsComputer<br>
+          objectClass: MdsComputerTotal<br>
+          objectClass: MdsCpu<br>
+          objectClass: MdsCpuCache<br>
+          objectClass: MdsCpuFree<br>
+          objectClass: MdsCpuSmp<br>
+          objectClass: MdsCpuTotal<br>
+          objectClass: MdsCpuTotalFree<br>
+          objectClass: MdsFsTotal<br>
+          objectClass: MdsHost<br>
+          objectClass: MdsMemoryRamTotal<br>
+          objectClass: MdsMemoryVmTotal<br>
+          objectClass: MdsNet<br>
+          objectClass: MdsNetTotal<br>
+          objectClass: MdsOs<br>
+          Mds-Computer-isa: IA32<br>
+          Mds-Computer-platform: i686<br>
+          Mds-Computer-Total-nodeCount: 1<br>
+          Mds-Cpu-Cache-l2kB: 256<br>
+          Mds-Cpu-features: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+          mca cmo<br>
+          &nbsp;v pat pse36 mmx fxsr sse<br>
+          Mds-Cpu-Free-15minX100: 200<br>
+          Mds-Cpu-Free-1minX100: 200<br>
+          Mds-Cpu-Free-5minX100: 200<br>
+          Mds-Cpu-model: Pentium III (Coppermine)<br>
+          Mds-Cpu-Smp-size: 2<br>
+          Mds-Cpu-speedMHz: 997<br>
+          Mds-Cpu-Total-count: 2<br>
+          Mds-Cpu-Total-Free-15minX100: 200<br>
+          Mds-Cpu-Total-Free-1minX100: 200<br>
+          Mds-Cpu-Total-Free-5minX100: 200<br>
+          Mds-Cpu-vendor: GenuineIntel<br>
+          Mds-Cpu-version: 6.8.6<br>
+          Mds-Fs-freeMB: 13602<br>
+          Mds-Fs-freeMB: 16<br>
+          Mds-Fs-freeMB: 22293<br>
+          Mds-Fs-sizeMB: 15785<br>
+          Mds-Fs-sizeMB: 26<br>
+          Mds-Fs-sizeMB: 52071<br>
+          Mds-Fs-Total-count: 3<br>
+          Mds-Fs-Total-freeMB: 35911<br>
+          Mds-Fs-Total-sizeMB: 67882<br>
+          Mds-Host-hn: dc-user.isi.edu<br>
+          Mds-keepto: 200110122238.40Z<br>
+          Mds-Memory-Ram-freeMB: 399<br>
+          Mds-Memory-Ram-sizeMB: 499<br>
+          Mds-Memory-Ram-Total-freeMB: 399<br>
+          Mds-Memory-Ram-Total-sizeMB: 499<br>
+          Mds-Memory-Vm-freeMB: 1533<br>
+          Mds-Memory-Vm-sizeMB: 1537<br>
+          Mds-Memory-Vm-Total-freeMB: 1533<br>
+          Mds-Memory-Vm-Total-sizeMB: 1537<br>
+          Mds-Net-addr: 127.0.0.1<br>
+          Mds-Net-addr: 128.9.64.178<br>
+          Mds-Net-name: eth0<br>
+          Mds-Net-name: lo<br>
+          Mds-Net-netaddr: 127.0.0.0/8<br>
+          Mds-Net-netaddr: 128.9.64.0/20<br>
+          Mds-Net-Total-count: 2<br>
+          Mds-Os-name: Linux<br>
+          Mds-Os-release: 2.4.2-SGI_XFS_1.0smp<br>
+          Mds-validfrom: 200110122238.40Z<br>
+          Mds-validto: 200110122238.40Z<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          processors, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-Group-name=processors, Mds-Host-hn=dc-user.isi.edu,Mds-Vo-name=<br>
+          &nbsp;local,o=grid<br>
+          objectClass: MdsCpu<br>
+          objectClass: MdsCpuSmp<br>
+          objectClass: MdsCpuTotal<br>
+          objectClass: MdsCpuCache<br>
+          objectClass: MdsCpuFree<br>
+          objectClass: MdsCpuTotalFree<br>
+          objectClass: MdsDeviceGroup<br>
+          Mds-Device-Group-name: processors<br>
+          Mds-validfrom: 200110122238.41Z<br>
+          Mds-validto: 200110122239.41Z<br>
+          Mds-keepto: 200110122239.41Z<br>
+          Mds-Cpu-Cache-l2kB: 256<br>
+          Mds-Cpu-features: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+          mca cmo<br>
+          &nbsp;v pat pse36 mmx fxsr sse<br>
+          Mds-Cpu-Free-15minX100: 199<br>
+          Mds-Cpu-Free-1minX100: 198<br>
+          Mds-Cpu-Free-5minX100: 198<br>
+          Mds-Cpu-model: Pentium III (Coppermine)<br>
+          Mds-Cpu-Smp-size: 2<br>
+          Mds-Cpu-speedMHz: 997<br>
+          Mds-Cpu-Total-count: 2<br>
+          Mds-Cpu-Total-Free-15minX100: 199<br>
+          Mds-Cpu-Total-Free-1minX100: 198<br>
+          Mds-Cpu-Total-Free-5minX100: 198<br>
+          Mds-Cpu-vendor: GenuineIntel<br>
+          Mds-Cpu-version: 6.8.6<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          cpu 0, processors, dc-user.isi.edu, local, grid<br>
+          dn: Mds-device-name=cpu 0, Mds-Device-Group-name=processors,
+          Mds-Host-hn=dc-us<br>
+          &nbsp;er.isi.edu,Mds-Vo-name=local,o=grid<br>
+          objectClass: MdsDevice<br>
+          objectClass: MdsCpu<br>
+          objectClass: MdsCpuCache<br>
+          Mds-Device-name: cpu 0<br>
+          Mds-Cpu-vendor: GenuineIntel<br>
+          Mds-Cpu-model: Pentium III (Coppermine)<br>
+          Mds-Cpu-version: 6.8.6<br>
+          Mds-Cpu-features: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+          mca cmo<br>
+          &nbsp;v pat pse36 mmx fxsr sse<br>
+          Mds-Cpu-speedMHz: 997<br>
+          Mds-Cpu-Cache-l2kB: 256<br>
+          Mds-validfrom: 200110122238.41Z<br>
+          Mds-validto: 200110122239.41Z<br>
+          Mds-keepto: 200110122239.41Z<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          cpu 1, processors, dc-user.isi.edu, local, grid<br>
+          dn: Mds-device-name=cpu 1, Mds-Device-Group-name=processors,
+          Mds-Host-hn=dc-us<br>
+          &nbsp;er.isi.edu,Mds-Vo-name=local,o=grid<br>
+          objectClass: MdsDevice<br>
+          objectClass: MdsCpu<br>
+          objectClass: MdsCpuCache<br>
+          Mds-Device-name: cpu 1<br>
+          Mds-Cpu-vendor: GenuineIntel<br>
+          Mds-Cpu-model: Pentium III (Coppermine)<br>
+          Mds-Cpu-version: 6.8.6<br>
+          Mds-Cpu-features: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+          mca cmo<br>
+          &nbsp;v pat pse36 mmx fxsr sse<br>
+          Mds-Cpu-speedMHz: 997<br>
+          Mds-Cpu-Cache-l2kB: 256<br>
+          Mds-validfrom: 200110122238.41Z<br>
+          Mds-validto: 200110122239.41Z<br>
+          Mds-keepto: 200110122239.41Z<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          memory, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-Group-name=memory, Mds-Host-hn=dc-user.isi.edu,Mds-Vo-name=loca<br>
+          &nbsp;l,o=grid<br>
+          objectClass: MdsMemoryRamTotal<br>
+          objectClass: MdsMemoryVmTotal<br>
+          objectClass: MdsDeviceGroup<br>
+          Mds-Device-Group-name: memory<br>
+          Mds-validfrom: 200110122238.41Z<br>
+          Mds-validto: 200110122239.41Z<br>
+          Mds-keepto: 200110122239.41Z<br>
+          Mds-Memory-Ram-Total-sizeMB: 499<br>
+          Mds-Memory-Ram-Total-freeMB: 399<br>
+          Mds-Memory-Vm-Total-sizeMB: 1537<br>
+          Mds-Memory-Vm-Total-freeMB: 1533<br>
+          Mds-Memory-Ram-sizeMB: 499<br>
+          Mds-Memory-Ram-freeMB: 399<br>
+          Mds-Memory-Vm-sizeMB: 1537<br>
+          Mds-Memory-Vm-freeMB: 1533<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          physical memory, memory, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-name=physical memory, Mds-Device-Group-name=memory,
+          Mds-Host-hn<br>
+          &nbsp;=dc-user.isi.edu,Mds-Vo-name=local,o=grid<br>
+          objectClass: Mds<br>
+          objectClass: MdsDevice<br>
+          objectClass: MdsMemoryRam<br>
+          Mds-Device-name: physical memory<br>
+          Mds-Memory-Ram-sizeMB: 499<br>
+          Mds-Memory-Ram-freeMB: 399<br>
+          Mds-validfrom: 200110122238.41Z<br>
+          Mds-validto: 200110122239.41Z<br>
+          Mds-keepto: 200110122239.41Z<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          virtual memory, memory, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-name=virtual memory, Mds-Device-Group-name=memory,
+          Mds-Host-hn=<br>
+          &nbsp;dc-user.isi.edu,Mds-Vo-name=local,o=grid<br>
+          objectClass: Mds<br>
+          objectClass: MdsDevice<br>
+          objectClass: MdsMemoryVm<br>
+          Mds-Device-name: virtual memory<br>
+          Mds-Memory-Vm-sizeMB: 1537<br>
+          Mds-Memory-Vm-freeMB: 1533<br>
+          Mds-validfrom: 200110122238.41Z<br>
+          Mds-validto: 200110122239.41Z<br>
+          Mds-keepto: 200110122239.41Z<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          filesystems, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-Group-name=filesystems, Mds-Host-hn=dc-user.isi.edu,Mds-Vo-name<br>
+          &nbsp;=local,o=grid<br>
+          objectClass: MdsFsTotal<br>
+          objectClass: MdsDeviceGroup<br>
+          Mds-Device-Group-name: filesystems<br>
+          Mds-validfrom: 200110122234.25Z<br>
+          Mds-validto: 200110122249.25Z<br>
+          Mds-keepto: 200110122249.25Z<br>
+          Mds-Fs-freeMB: 13602<br>
+          Mds-Fs-freeMB: 16<br>
+          Mds-Fs-freeMB: 22293<br>
+          Mds-Fs-sizeMB: 15785<br>
+          Mds-Fs-sizeMB: 26<br>
+          Mds-Fs-sizeMB: 52071<br>
+          Mds-Fs-Total-count: 3<br>
+          Mds-Fs-Total-freeMB: 35911<br>
+          Mds-Fs-Total-sizeMB: 67882<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          /, filesystems, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-name=/, Mds-Device-Group-name=filesystems, Mds-Host-hn=dc-user.<br>
+          &nbsp;isi.edu,Mds-Vo-name=local,o=grid<br>
+          objectClass: MdsDevice<br>
+          objectClass: MdsFs<br>
+          Mds-Device-name: /<br>
+          Mds-Fs-sizeMB: 15785<br>
+          Mds-Fs-freeMB: 13602<br>
+          Mds-Fs-mount: /<br>
+          Mds-validfrom: 200110122234.25Z<br>
+          Mds-validto: 200110122249.25Z<br>
+          Mds-keepto: 200110122249.25Z<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          /boot, filesystems, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-name=/boot, Mds-Device-Group-name=filesystems,
+          Mds-Host-hn=dc-u<br>
+          &nbsp;ser.isi.edu,Mds-Vo-name=local,o=grid<br>
+          objectClass: MdsDevice<br>
+          objectClass: MdsFs<br>
+          Mds-Device-name: /boot<br>
+          Mds-Fs-sizeMB: 26<br>
+          Mds-Fs-freeMB: 16<br>
+          Mds-Fs-mount: /boot<br>
+          Mds-validfrom: 200110122234.25Z<br>
+          Mds-validto: 200110122249.25Z<br>
+          Mds-keepto: 200110122249.25Z<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          /scratch, filesystems, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-name=/scratch, Mds-Device-Group-name=filesystems,
+          Mds-Host-hn=d<br>
+          &nbsp;c-user.isi.edu,Mds-Vo-name=local,o=grid<br>
+          objectClass: MdsDevice<br>
+          objectClass: MdsFs<br>
+          Mds-Device-name: /scratch<br>
+          Mds-Fs-sizeMB: 52071<br>
+          Mds-Fs-freeMB: 22293<br>
+          Mds-Fs-mount: /scratch<br>
+          Mds-validfrom: 200110122234.25Z<br>
+          Mds-validto: 200110122249.25Z<br>
+          Mds-keepto: 200110122249.25Z<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          networks, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-Group-name=networks, Mds-Host-hn=dc-user.isi.edu,Mds-Vo-name=lo<br>
+          &nbsp;cal,o=grid<br>
+          objectClass: MdsNetTotal<br>
+          objectClass: MdsNet<br>
+          objectClass: MdsDeviceGroup<br>
+          Mds-Device-Group-name: networks<br>
+          Mds-validfrom: 200110122234.25Z<br>
+          Mds-validto: 200110122249.25Z<br>
+          Mds-keepto: 200110122249.25Z<br>
+          Mds-Net-addr: 127.0.0.1<br>
+          Mds-Net-addr: 128.9.64.178<br>
+          Mds-Net-name: eth0<br>
+          Mds-Net-name: lo<br>
+          Mds-Net-netaddr: 127.0.0.0/8<br>
+          Mds-Net-netaddr: 128.9.64.0/20<br>
+          Mds-Net-Total-count: 2<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          eth0, networks, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-name=eth0, Mds-Device-Group-name=networks, Mds-Host-hn=dc-user.<br>
+          &nbsp;isi.edu,Mds-Vo-name=local,o=grid<br>
+          objectClass: MdsDevice<br>
+          objectClass: MdsNet<br>
+          Mds-Device-name: eth0<br>
+          Mds-Net-name: eth0<br>
+          Mds-Net-netaddr: 128.9.64.0/20<br>
+          Mds-Net-addr: 128.9.64.178<br>
+          Mds-validfrom: 200110122234.25Z<br>
+          Mds-validto: 200110122249.25Z<br>
+          Mds-keepto: 200110122249.25Z<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          lo, networks, dc-user.isi.edu, local, grid<br>
+          dn: Mds-Device-name=lo, Mds-Device-Group-name=networks, Mds-Host-hn=dc-user.is<br>
+          &nbsp;i.edu,Mds-Vo-name=local,o=grid<br>
+          objectClass: MdsDevice<br>
+          objectClass: MdsNet<br>
+          Mds-Device-name: lo<br>
+          Mds-Net-name: lo<br>
+          Mds-Net-netaddr: 127.0.0.0/8<br>
+          Mds-Net-addr: 127.0.0.1<br>
+          Mds-validfrom: 200110122234.25Z<br>
+          Mds-validto: 200110122249.25Z<br>
+          Mds-keepto: 200110122249.25Z<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p># local, Grid<br>
+dn: Mds-Vo-name=local,o=Grid<br>
+objectClass: GlobusStub</p>
+          <p>#
+          search result<br>
+          search: 2<br>
+          result: 0 Success<o:p>
+          </o:p>
+          <o:p>
+          </o:p>
+          </p>
+          <p>#
+          numResponses: 15<br>
+          # numEntries: 14</p>
+        <p>&nbsp;</p>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
