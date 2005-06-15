@@ -1,0 +1,224 @@
+<?php
+
+$title = "Globus Toolkit 2.2/2.4 Replica Installation";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+<h1><?php echo $title; ?></h1>
+
+<p>This guide will talk about how to install, configure, and
+    initialize the Globus Replica Catalog and Globus Replica Management software
+    which make up Globus Replica Services.</p>
+    
+    <h2>Installation</h2>
+    
+    <p>To install Globus Replica Services, follow the steps below.&nbsp;
+    You will need <a href="install.html#gpt">GPT installed</a> in order to proceed.</p>
+    
+    <p>First get the following bundle from the
+    <a href="../../downloads/2.4.3/">download</a>
+    page:</p>
+    
+    <ul>
+      <li>globus-replica-2.4.3-src_bundle.tar.gz</li>
+    </ul>
+    
+    <p>Install the bundle as follows:</p>
+    
+    <p><b>IMPORTANT:</b>&nbsp; If you previously installed the Globus 
+    Toolkit you need to make sure that $GLOBUS_LOCATION is
+    set to a <i>different</i> location than the one used for the 
+    previous installation. The Replica software requires this since its OpenLDAP 
+    dependency conflicts with the OpenLDAP software built for MDS.</p>
+    
+    <ul>
+    <p>% gpt-build globus-replica-2.4.3-src_bundle.tar.gz
+    \<br>
+    gcc32pthr</p>
+    </ul>
+    <p><b>Note:</b> Do not use the <i>-static=1 </i>option. Using this 
+    option will cause a build failure.</p>
+      <h2>Configuration</h2>
+      <p>Download
+      the Globus Replica schema file from <a href="replica.schema">here</a>.</p>
+      <p>Copy it
+      to the following directory and file name:
+      <ul>
+      $GLOBUS_LOCATION/etc/openldap/schema/replica.schema</p>
+      </ul>
+      <p><b>Note:</b>
+      $GLOBUS_LOCATION here points to the directory where you
+      installed the Replica software above.&nbsp; See the
+      &quot;IMPORTANT&quot; section above for more information.</p>
+      <p>Edit $GLOBUS_LOCATION/etc/openldap/slapd.conf
+      to reflect your site's requirements.&nbsp; For this example, we will use
+      the following file.&nbsp; Portions in orange
+      are site dependent and <i>should
+      be changed</i>. </p>
+      <ul>
+      <p># See slapd.conf(5) for details on configuration options.<br>
+      # This file should NOT be world readable.<br>
+      #<br>
+      <br>
+      schemacheck off<br>
+      <br>
+      include GLOBUS_LOCATION/etc/openldap/schema/core.schema<br>
+      include GLOBUS_LOCATION/etc/openldap/schema/replica.schema</p>
+      <p>pidfile GLOBUS_LOCATION/var/slapd.pid<br>
+      argsfile GLOBUS_LOCATION/var/slapd.args</p>
+      <p>#######################################################<br>
+      # ldbm database definitions<br>
+      #######################################################</p>
+      <p>database ldbm<br>
+      suffix &quot;dc=my-domain,dc=com&quot;<br>
+      rootdn &quot;cn=Manager,dc=my-domain,dc=com&quot;<br>
+      rootpw secret<br>
+      directory GLOBUS_LOCATION/var/openldap-ldbm<br>
+      index objectClass eq</p>
+      </ul>
+      <p>Be sure
+      to include the following line in the
+      file near the top, being sure to replace GLOBUS_LOCATION with an actual
+      path: </p>
+      <ul>
+      <p>include
+      GLOBUS_LOCATION/etc/openldap/schemas/replica.schema</p>
+      </ul>
+      <p>If you
+      are going to be running slapd on the standard LDAP port of 389, you will
+      need to be root to continue on.&nbsp; Otherwise, specify another port when
+      you start slapd below.&nbsp; For more information on doing this, please
+      see the slapd man page ('man slapd').&nbsp;&nbsp;&nbsp;</p>
+      <p>Set the
+      LD_LIBRARY_PATH environment variable to:</p>
+      <ul>
+      <p>$GLOBUS_LOCATION/lib</p>
+      </ul>
+      <p>Start the slapd server:</p>
+      <ul>
+      <p>% $GLOBUS_LOCATION/libexec/slapd -f \<br>
+      $GLOBUS_LOCATION/etc/openldap/slapd.conf</p>
+      </ul>
+      <p>Check
+      to see if the server started:</p>
+      <ul>
+      <p>% ps -ef | grep slapd</p>
+      </ul>
+      <p>This 
+      command should show at least one instance of slapd running.&nbsp;&nbsp;</p>
+      <h2>Initialization</h2>
+      <p>Once
+      the slapd server is running, we need to initialize it.&nbsp; Start out by 
+      sourcing $GLOBUS_LOCATION/etc/globus-user-env.csh
+      (or sh) if you have not done so already.</p>
+      <p><b>Note:</b>
+      $GLOBUS_LOCATION here points to the directory where you installed the
+      Replica software above.&nbsp; See the &quot;IMPORTANT&quot;
+      section above for more information.</p>
+      <p>In the
+      following commands, things in orange are site
+      specific and need to be replaced where necessary.</p>
+      <p>Create
+      a file called root.ldif with the following contents:</p>
+      <ul>
+      <p>dn: dc=my-domain, dc=com<br>
+      objectclass: top<br>
+      objectclass: GlobusTop</p>
+      </ul>
+      <p>First,
+      check to see if the following directory exists; if it doesn't, create it:
+      <ul>
+      $GLOBUS_LOCATION/var/openldap-ldbm/</p>
+      </ul>
+      <p>Now run
+      the following command:</p>
+      <ul>
+      <p>%
+      ldapadd -x -h ldap.server.com -D
+      \<br>
+      &quot;cn=Manager,dc=my-domain,dc=com&quot;
+      \<br>
+      -w secret -f
+      root.ldif</p>
+      </ul>
+      <p><b>Note:</b>
+      If the above command fails, verify that the following
+      directory exists:
+      <ul>
+      $GLOBUS_LOCATION/var/openldap-ldbm/</p>
+      </ul>
+      <p><b>Note:</b>
+      Depending on which version of the ldap tools you're using are, you may
+      need to remove the '-x' flag from the command above.&nbsp; If you are
+      using the ldap tools that come with the Globus Toolkit, then you may leave
+      the '-x' flag in place.</p>
+      <p>You
+      should see the following output:</p>
+      <ul>
+      <p>adding new entry &quot;dc=my-domain,
+      dc=com&quot;</p>
+      </ul>
+      <p>Run a
+      sample query:</p>
+      <ul>
+      <p>%
+      ldapsearch -h ldap.server.com -b &quot;dc=my-domain,dc=com&quot;
+      \ &quot;objectclass=*&quot;
+      </ul>
+      <p>
+      You should see the following in the output:</p>
+      <ul>
+      <p>dc=my-domain, dc=com<br>
+      objectClass=top<br>
+      objectClass=GlobusTop</p>
+      </ul>
+      <p>Now initialize
+      a Replica Catalog.</p>
+      <p>Create
+      a file called rc.ldif with the following contents:</p>
+      <ul>
+      <p>dn: rc=test, dc=my-domain, dc=com<br>
+      objectclass: top<br>
+      objectclass: GlobusReplicaCatalog<br>
+      objectclass: GlobusTop<br>
+      rc: test</p>
+      </ul>
+      <p>Now run
+      the following command:</p>
+      <ul>
+      <p>%
+      ldapadd -x -h ldap.server.com -D \<br>
+      &quot;cn=Manager,dc=my-domain,dc=com&quot;
+      \<br>
+      -w secret -f rc.ldif
+      </ul>
+      <p>
+      You should see the following in the output:</p>
+      <ul>
+      <p>adding new entry &quot;rc=test, dc=my-domain,
+      dc=com&quot;</p>
+      </ul>
+      <p>Run a
+      sample query:</p>
+      <ul>
+      <p>%
+      ldapsearch -h ldap.server.com -b &quot;dc=my-domain,dc=com&quot;
+      \ &quot;objectclass=*&quot;
+      </ul>
+      <p>
+      You should see the following in the output:</p>
+      <ul>
+      <p>dn: dc=my-domain, dc=com<br>
+      objectclass: top<br>
+      objectclass: GlobusTop</p>
+      <p>dn: rc=test, dc=my-domain, dc=com<br>
+      objectclass: top<br>
+      objectclass: GlobusReplicaCatalog<br>
+      objectclass: GlobusTop<br>
+      rc: test</p>
+      </ul>
+      <p>Now you are ready to use Replica Services.&nbsp; For information on how
+      to use Replica Services, please see <a href="datagrid/deliverables/replicaGettingStarted.pdf">Getting
+      Started with the Globus Replica Catalog</a>.</p>
+      
+	  <?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
