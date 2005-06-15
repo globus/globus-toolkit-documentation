@@ -77,5 +77,8 @@ maxlength="200" value="" />
   <div id="wrapper">
     <div id="container">
 		<div id="content">
+	<?php 
+include_once( "/mcs/www-unix.globus.org/include/outofdate.php" ); 
+globus_out_of_date(); ?>
 
 			<!-- content STARTS here -->
