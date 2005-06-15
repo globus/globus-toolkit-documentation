@@ -1,0 +1,168 @@
+<?php
+
+$title = "Globus 2.2 User's Guide";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+<p>These instructions will show you the client interfaces to the various services of the
+Globus Toolkit. 
+
+<ol>
+  <li><a href="#proxy">Initializing environment and creating a proxy</a>.</li>
+  <li><a href="#gram">GRAM clients</a>: used for launching jobs on remote resources.</li>
+  <li><a href="#mds">MDS clients</a>: used for querying for details about resources.</li>
+  <li><a href="#gridftp">GridFTP clients</a>: used for moving data from one place to another.</li>
+</ol>
+
+<h2><a name="proxy"></a>Initializing environment and creating a proxy</h2>
+
+<p>Before using any of the client tools, you need to initialize your environment, and
+create a proxy. First, follow the instructions on how to <a href="../user/guide-verify.html#env">set
+your environment</a> from the verification section of this guide.</p>
+
+<p>Then, if you haven't already, follow the instructions on how to <a
+href="../user/guide-verify.html#cert">acquire a certificate</a>.</p>
+
+<p>Once you have your certificate, you can run <code>grid-proxy-init</code> to create your
+proxy. Now you're ready to use the client tools.</p>
+
+
+<h2><a name="gram"></a>GRAM clients</h2>
+
+
+<p>GRAM has the following clients: 
+
+<ol>
+  <li><a href="#jobrun">globus-job-run</a></li>
+  <li><a href="#jobsubmit">globus-job-submit</a></li>
+  <li><a href="#run">globusrun</a></li>
+</ol>
+
+<ol>
+  <li><a name="jobrun"><b>globus-job-run</b></a><br>
+    <p><code>$GLOBUS_LOCATION/bin/globus-job-run</code> is an online interface to job
+    submission, featuring staging of data and executables using a Global Access to Secondary
+    Storage (GASS) server.</p>
+    <p>The basic syntax is: </p>
+    <pre>     % globus-job-run 'contact string' command</pre>
+    <p>The contact string specifies a machine, port, and service to send the request to. The
+    syntax of a contact string is <code>machine:port/jobmanager-name</code>. The default port
+    is 2119, and the default name is &quot;jobmanager&quot;. If you have not customized the
+    gatekeeper, you probably only need to specify the machine name. An example would be </p>
+    <pre>     % globus-job-run localhost /bin/date</pre>
+    <p>If you wanted to conact a jobmanager named &quot;jobmanager-pbs&quot; on port 2345, you
+    would run </p>
+    <pre>     % globus-job-run localhost:2345/jobmanager-pbs /bin/date</pre>
+    <p>To access the staging functionality, you use the <code>-s</code> flag. For example, if
+    you have a script called &quot;myprog&quot; which is the following: </p>
+    <pre>     #!/bin/sh
+     /bin/date</pre>
+    <p>You could stage it in using the following command: </p>
+    <pre>     % globus-job-run localhost -s myprog</pre>
+    <p>That will cause a GASS server to be started on your local machine. When your job
+    reaches the jobmanager, the jobmanager will contact your GASS server and read in the
+    staged file, then submit the job to the local scheduler.</p>
+    <p>You also have the ability to stage in stdin, and stage out stdout using the same
+    mechanism: </p>
+    <pre>     % globus-job-run localhost -stdin myin.txt \
+           -stdout myout.txt -s myprog</pre>
+  </li>
+  <li><a name="jobsubmit"><b>globus-job-submit</b></a> <p><code>$GLOBUS_LOCATION/bin/globus-job-submit</code>
+    is a batch interface to the GRAM server. It will return immediately, leaving you with a
+    contact string that you can use to query the status of your job. The basic syntax is: </p>
+    <pre>     % globus-job-submit 'contact string' command</pre>
+    <p>Although very similar to <a href="#jobrun">globus-job-run</a>, globus-job-submit does
+    not currently support staging of files automatically.</p>
+    <p>The contact strings are functionally opaque, but look like the following: </p>
+    <pre>     https://pitcairn.mcs.anl.gov:4567/12345/7654321</pre>
+    <p>Using that contact string, you have access to the following commands: <ol>
+      <li><b>globus-job-status</b> - get a status of &quot;PENDING, ACTIVE, DONE, FAILED, or
+        ...&quot;</li>
+      <li><b>globus-job-get-output</b> - once the job is done, collect the output with this
+        command.</li>
+      <li><b>globus-job-clean</b> - stops the job if it is running, andcleans up the cached copy
+        of the output.</li>
+    </ol>
+  </li>
+  <li><a name="run"><b>globusrun</b></a> <p><code>$GLOBUS_LOCATION/bin/globusrun</code> is the
+    executable which gives you access to the full power of RSL. globus-job-run and
+    globus-job-submit are both shell script wrappers around globusrun.</p>
+    <p>See the <a href="../gram/rsl_spec1.html">RSL spec</a> for a complete
+    description of RSL, and some simple examples.</p>
+  </li>
+</ol>
+
+
+<h2><a name="mds"></a>MDS clients</h2>
+
+
+<p>MDS has the following clients: 
+
+<ol>
+  <li><a href="#host">grid-info-host-search</a></li>
+  <li><a href="#info">grid-info-search</a></li>
+</ol>
+
+<ol>
+  <li><a name="host"><b>grid-info-host-search</b></a><br>
+    <p><code>$GLOBUS_LOCATION/bin/grid-info-host-search</code> is the client to a GRIS server.
+    The basic syntax is: </p>
+    <pre>     $ grid-info-host-search -p port hostname &quot;LDAP filter&quot;</pre>
+  </li>
+  <li><a name="info"><b>grid-info-search</b></a><br>
+    <p><code>$GLOBUS_LOCATION/bin/grid-info-search</code> is the client to a GIIS server. The
+    basic syntax is: </p>
+    <pre>     $ grid-info-search [-x]</pre>
+    <p>The <code>-x</code> is for anonymous queries. The host and port are determined by
+    information in the <code>$GLOBUS_LOCATION/etc/grid-info.conf</code> file.</p>
+  </li>
+</ol>
+
+
+<h2><a name="gridftp"></a>GridFTP clients</h2>
+
+
+<p>GridFTP has the following clients: 
+
+<ol>
+  <li><a href="#url">globus-url-copy</a></li>
+</ol>
+
+<ol>
+  <li><a name="url"><b>globus-url-copy</b></a> <p>The basic syntax for globus-url-copy is: </p>
+    <pre>     $ globus-url-copy sourceURL destURL</pre>
+    <p>The URL prefix for GridFTP is gsiftp://. It can also handle file://, http://, and
+    https://.</p>
+    <p>By default, globus-url-copy is expecting the same kind of host certificates that
+    globusrun expects from gatekeepers.&nbsp;</p>
+    <p>If you run a GridFTP server by hand, you
+    will need to explicitly specify the subject name to expect.&nbsp; You can use the
+    &quot;-ss&quot; flag to set the sourceURL subject, and &quot;-ds&quot; to set the destURL
+    subject.&nbsp; If you use &quot;-s&quot; alone, it will set both to be the same.&nbsp; You
+    can see an example of this usage under the Verification section of this guide.&nbsp;
+    <b>Please note:</b> This is the <b>unusual</b> case of using this
+    client.&nbsp; Most times you only need to specify both URLs.</p>
+  </li>
+</ol>
+
+
+<p><a href="index.html">Back to Index</a> </p>
+
+<hr>
+
+<address>
+  <a href="mailto:bacon@mcs.anl.gov">Charles Bacon</a> 
+</address>
+<!-- Created: Fri Feb 22 11:31:30 CST 2002 -->
+<!-- hhmts start -->
+
+<p>Last modified: Thu Apr 24 10:25:03 CDT 2003<!-- hhmts end --> 
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
+

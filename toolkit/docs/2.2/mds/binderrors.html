@@ -1,0 +1,254 @@
+<?php
+
+$title = "MDS 2.2 Bind Error Troubleshooting";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+    <p>This page 
+    describes what to check and what actions to take to resolve problems in your 
+    MDS environment that can generate the following error messages:</p>
+    <ul>
+      <li><a href="#ldap_bind_cantcontactserver">ldap_bind: Can’t contact LDAP server</a></li>
+      <li><a href="#nosuchobject">No such object</a></li>
+      <li>
+      <a href="#ldapsasl_bind_cantcontactserver">ldap_sasl_interactive_bind_s: 
+      Can’t contact LDAP server</a></li>
+      <li><a href="#ldapsasl_bind_localerror">ldap_sasl_interactive_bind_s: local error</a></li>
+      <li>
+      <a href="#ldapsasl_bind_unknownerror_certaccess">ldap_sasl_interactive_bind_s: Unknown error – unable to access certificates</a></li>
+      <li>
+      <a href="#ldapsasl_bind_unknownerror_nocert">ldap_sasl_interactive_bind_s: 
+      Unknown error – user certificate not found</a></li>
+    </ul>
+    <p>Before starting to troubleshoot, make sure 
+    of the following in your MDS environment:</p>
+    <ol>
+      <li>Set GLOBUS_LOCATION on both client and 
+      server machines.</li>
+      <li>Source your environment for the type of 
+      shell you are using, on both client and server.</li>
+      <li>For authenticated access to MDS:<br>
+      - Obtain a user certificate for yourself.<br>
+      - Obtain an LDAP certificate for your server.<br>
+      - Create a proxy on the client.</li>
+      <li>Start MDS on the server, with the 
+
+      </code>
+
+      <code>
+      globus-mds start</code><code> 
+      (formerly 
+
+      </code>
+
+      <code>
+      SXXgris start</code>) command.</li>
+    </ol>
+    <p>These configuration procedures are 
+    described in detail in the <i>
+    <a href="mdsusersguide.pdf">MDS 2.2 User’s Guide</a></i>.</p>
+    <b>
+    <p><a name="ldap_bind_cantcontactserver">
+    ldap_bind: Can’t contact LDAP server</a></p>
+    </b>
+    <p>This message means that the client can’t 
+    contact the server.</p>
+    <p>The first thing to check is that the slapd 
+    process is running on the designated server and is listening on the 
+    designated port. You can use the 
+
+    <code>
+    ps</code> command to do this.</p>
+    <p>The server’s port number is specified in 
+    the grid-info.conf file on the server. Either the port number (<code>-p</code><code> 
+    option) specified on the 
+
+      </code>
+
+    <code>
+    grid-info-search</code> command 
+    issued from the client does not match the server’s port number, or the port 
+    number specified in the grid-info.conf file on the client does not match the 
+    server’s port number.</p>
+    <p>Changing the port number from the client to 
+    match that set for the server should solve the problem.</p>
+    <p>This message is produced as the result of 
+    an anonymous query; certificates don’t matter in this case.</p>
+    <p>Also check that the host name is correctly 
+    specified with the 
+
+    <code>
+    FQHN</code><code> on the 
+
+      </code>
+
+    <code>
+    grid-info-search</code> command 
+    issued from the client.</p>
+    <p>If you are using a firewall, make sure that 
+    your server will accept inbound connections on port 2135. For more 
+    information on using the Globus Toolkit with firewalls, refer to
+    <a href="../../../security/firewalls/">
+    <i>Globus Toolkit Firewall Requirements</i></a>.</p>
+    <b>
+    <p><a name="nosuchobject">No such object</a></p>
+    </b>
+    <p>This message appears as in the following 
+    example, as a result of a 
+
+    <code>
+    grid-info-search</code> query:</p>
+    <p># search result</p>
+    <p>search: 2</p>
+    <p>result: 32 No such object</p>
+    <p>This means the client is not connecting to 
+    the GIIS inside the slapd server; the 
+
+    <code>
+    grid-info-search</code> command 
+    is insufficiently specified to know where to start the search.</p>
+    <p>If the 
+
+    <code>
+    -b basedn</code><code> option is not 
+    specified on the on the 
+
+      </code>
+
+    <code>
+    grid-info-search</code><code> command 
+    from the client, the command supplies a default like 
+
+      </code>
+
+    <code>
+    mds-vo-name=local,o=grid</code><code>, 
+    but that may be incorrect if there is no corresponding 
+
+      </code>
+
+    <code>
+    vo</code><code> on the server (if, for 
+    example, it has been removed from the server's grid-info.conf file).&nbsp; 
+    The query may need a more specific 
+
+      </code>
+
+    <code>
+    -b</code><code>
+
+      </code>
+
+    
+    parameter that the server can identify.</p>
+    <p>Also, make sure that the value of 
+
+    <code>
+    mds-vo-name</code> is specified 
+    correctly on the command line.</p>
+    <b>
+    <p><a name="ldapsasl_bind_cantcontactserver">ldap_sasl_interactive_bind_s: 
+    Can’t contact LDAP server</a></p>
+    </b>
+    <p>This message may mean that there is some 
+    problem in your certification/security configuration that is preventing your 
+    query from accessing the LDAP server. </p>
+    <p>If you get this message as a result of an 
+    authenticated query, the first thing to try is an anonymous query (<code>-x</code><code> 
+    option on 
+
+      </code>
+
+    <code>
+    grid-info-search</code>). If the 
+    anonymous query produces the &quot;ldap_bind: Can’t contact LDAP server&quot; message 
+    described above, this indicates a server connection problem. Follow the 
+    suggestions described under that message to resolve the problem.</p>
+    <p>If the anonymous query works, then you need 
+    to check the following in your certification/security configuration:</p>
+    <ul>
+      <li>That you have a user certificate for 
+      yourself, as described in the <i>
+      <a href="../install.html">Globus Toolkit 2.2 
+      Installation Instructions</a></i>, and that it is installed correctly in 
+      ~/.globus.<br>
+&nbsp;</li>
+      <li>That you have an LDAP certificate for 
+      the server, as described in the <i>
+      <a href="mdsusersguide.pdf">MDS 2.2 User’s Guide</a></i>, 
+      and that it is installed correctly in /etc/grid-security/ldap.<br>
+      <br>
+      </li>
+      <li>That you have a valid proxy, created on 
+      the client as described in the <i>
+      <a href="mdsusersguide.pdf">MDS 2.2 User’s Guide</a></i>.</li>
+    </ul>
+    <b>
+    <p><a name="ldapsasl_bind_localerror">
+    ldap_sasl_interactive_bind_s: local error</a></p>
+    </b>
+    <p>This message is typically produced as the 
+    result of an authenticated query, the typical scenario being that anonymous 
+    queries work, while authenticated queries do not.</p>
+    <p>This message means that you either do not 
+    have a valid proxy, or that your proxy is not set up correctly. (For 
+    example, your proxy may have expired.)</p>
+    <p>You obtain a proxy as described in the <i>
+    <a href="../install.html">Globus Toolkit 2.2 
+    Installation Instructions</a> </i>and in the <i>
+    <a href="mdsusersguide.pdf">MDS 2.2 User’s Guide</a></i>. 
+    You can check the status of existing proxies with the 
+
+    <code>
+    grid-proxy-info</code> command. A 
+    file name like X509up_u&lt;uid&gt; (in the /tmp directory) shows you that a proxy 
+    is valid. The X509_USER_PROXY environment variable (in the 
+    /etc/grid-info-server-env.conf file) should point to a valid proxy, by 
+    default the file in /tmp.</p>
+    <p>If your proxy appears to be current and 
+    correct, then make sure that the /etc/hosts file is set up correctly, with a 
+    fully qualified host name and that name entered before the shortened host 
+    name on each line. Refer to the <i>
+    <a href="FAQ.html#hostnameresolution">MDS FAQ</a></i> 
+    on this topic for more details.</p>
+    <b>
+    <p>
+    <a name="ldapsasl_bind_unknownerror_certaccess">
+    ldap_sasl_interactive_bind_s: Unknown error<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; additional info: GSSAPI: 
+    gss_acquire_cred: Problem with local <br>
+    credentials; unable to access trusted certificates in: <br>
+    x509_cert_dir=/host01/users/globususer/build/mds22-every-mdsprov-0205221123/share/certificates<br>
+&nbsp; Function:proxy_init_cred;</a></p>
+    </b>
+    <p>A message like this means that your Grid 
+    Security Infrastructure (GSI) environment has not been properly set up on 
+    the server. The setup-gsi script has either not been run or not run 
+    properly. Refer to the <i>
+    <a href="../../../downloads/2.2/">Globus Toolkit 2.2 
+    Download Page</a></i> and the <i>
+    <a href="../install.html">Globus Toolkit 2.2 
+    Installation Instructions</a></i> for more information.</p>
+    <b>
+    <p>
+    <a name="ldapsasl_bind_unknownerror_nocert">ldap_sasl_interactive_bind_s: 
+    Unknown error<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; additional info: GSSAPI: 
+    gss_acquire_cred: Problem with local <br>
+    credentials; user certificate not found <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Cert 
+    File=/scratch/demo-giis/.globus/usercred.p12<br>
+&nbsp; Function:proxy_init_cred;</a></p>
+    </b>
+    <p>A message like this means that there is an 
+    error on the server. The LDAP server certificate was not found. Refer to the
+    <i><a href="mdsusersguide.pdf">MDS 2.2 User’s 
+    Guide</a></i> for information on requesting and verifying a server 
+    certificate.</p>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

@@ -1,0 +1,246 @@
+<?php
+
+$title = "Starting Globus 2.2 Services";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+
+<p>These instructions will show you how to start up the various server daemons that you
+now have on your system. The next section will show you how to verify that they are
+operating correctly.&nbsp; In cases where we refer to LD_LIBRARY_PATH, please
+use your system-equivalent if you have one.&nbsp; E.g., LIBPATH or
+LD_LIBRARYN32_PATH.&nbsp; See your administrator if you do not know which
+variable to use. 
+
+<ol>
+  <li><a href="#gram">Starting GRAM</a></li>
+  <li><a href="#mds">Starting MDS</a></li>
+  <li><a href="#gridftp">Starting GridFTP</a></li>
+</ol>
+
+
+<h2><a name="gram"></a>Starting GRAM</h2>
+
+
+<p>While running globus-personal-gatekeeper as a user is a good test, you will want to
+configure your machine to run globus-gatekeeper as root, so that other people will be able
+to use your gatekeeper. If you just run the personal gatekeeper, you won't have authority
+to su to other user accounts. To setup a full gatekeeper, you will need to make the
+following modifications as root: </p>
+
+<p>In /etc/services, add the service name &quot;gsigatekeeper&quot; to port 2119. </p>
+
+<pre>gsigatekeeper      2119/tcp                   # Globus Gatekeeper</pre>
+
+<p>Depending on whether your host is running inetd or xinetd, you will need to modify its
+configuration. If the directory /etc/xinetd.d/ exists, then your host is likely running
+xinetd. If the directory doesn't exist, your host is likely running inetd. Follow the
+appropriate instructions below according to what your host is running. 
+
+<ul>
+  <p><b>Inetd</b><br>
+  For inetd, add the following entry, all on one line, to /etc/inetd.conf. Be sure to
+  replace GLOBUS_LOCATION below with the actual value of $GLOBUS_LOCATION in your
+  environment. </p>
+  <p>&nbsp;&nbsp; gsigatekeeper stream tcp nowait root<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /usr/bin/env env
+  LD_LIBRARY_PATH=GLOBUS_LOCATION/lib&nbsp;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GLOBUS_LOCATION/sbin/globus-gatekeeper<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -conf GLOBUS_LOCATION/etc/globus-gatekeeper.conf<br>
+  </p>
+  <p>As noted earlier in this guide, this entry has changed from the
+  entry provided for the gatekeeper in the Globus Toolkit 2.0 Administrator's Guide.&nbsp;
+  The reason is that if you followed the instructions from the install section, you do not
+  have a static gatekeeper.&nbsp; This requires you to set the LD_LIBRARY_PATH so that the
+  gatekeeper can dynamically link against the libraries in $GLOBUS_LOCATION/lib.&nbsp; To
+  accomplish the setting of the environment variable in inetd, we use /usr/bin/env (the
+  location may vary on your system) to first set LD_LIBRARY_PATH, and then to call the
+  gatekeeper itself. </p>
+  <p>The advantage of this setup is that when you apply a security update to your
+  installation, the gatekeeper will pick it up dynamically without your having to rebuild
+  it. </p>
+  <p><b>Xinetd</b><br>
+  For xinetd, add a file called &quot;globus-gatekeeper&quot; to the /etc/xinetd.d/
+  directory that has the following contents. Be sure to replace GLOBUS_LOCATION below with
+  the actual value of $GLOBUS_LOCATION in your environment. </p>
+  <pre>   service gsigatekeeper
+   {
+      socket_type  = stream
+      protocol     = tcp
+      wait         = no
+      user         = root
+      env          = LD_LIBRARY_PATH=GLOBUS_LOCATION/lib
+      server       = GLOBUS_LOCATION/sbin/globus-gatekeeper
+      server_args  = -conf GLOBUS_LOCATION/etc/globus-gatekeeper.conf
+      disable      = no
+   }</pre>
+  <p>As noted earlier in this guide, this entry has changed from the
+  entry provided for the gatekeeper in the Globus Toolkit 2.0 Administrator's Guide.&nbsp;
+  The reason is that if you followed the instructions from the install section, you do not
+  have a static gatekeeper.&nbsp; This requires you to set the LD_LIBRARY_PATH so that the
+  gatekeeper can dynamically link against the libraries in $GLOBUS_LOCATION/lib.&nbsp; To
+  accomplish the setting of the environment variable in xinetd, we use the &quot;env =&quot;
+  option to set LD_LIBRARY_PATH in the gatekeeper's environment. </p>
+  <p>The advantage of this setup is that when you apply a security update to your
+  installation, the gatekeeper will pick it up dynamically without your having to rebuild
+  it. </p>
+</ul>
+
+<p>After you have added the globus-gatekeeper service to either inetd or xinetd, you will
+need to notify inetd (or xinetd) that its configuration file has changed. To do this,
+follow the instructions for the server you are running below. 
+
+<ul>
+  <p><b>Inetd</b><br>
+  On most Linux systems, you can simply run `killall -HUP inetd` </p>
+  <p>On other systems, the following has the same effect: ps aux | grep inetd | awk '{print
+  $2;}' | xargs kill -HUP </p>
+  <p><b>Xinetd</b><br>
+  On most linux systems, you can simply run `/etc/rc.d/init.d/xinetd restart`.&nbsp; Your
+  system may also support the &quot;reload&quot; option. </p>
+  <p>On other systems (or if that doesn't work), see man xinetd. </p>
+</ul>
+
+<p>At this point, your gatekeeper will start up when a connection comes in to port 2119,
+and will keep a log of its activity in <code>$GLOBUS_LOCATION/var/globus-gatekeeper.log</code>.
+However, it does not yet have any authorization mapping between certificate subjects and
+usernames. You will need to create a file named /etc/grid-security/grid-mapfile which
+consists of single line entries listing a certificate subject and a username, like this: </p>
+
+<pre>&quot;/O=Grid/O=Globus/OU=your.domain/CN=Your Name&quot;    youruserid
+    </pre>
+
+<p>You can check your subject name using <code>grid-cert-info -subject</code>.&nbsp;
+There are utility commands in $GLOBUS_LOCATION/sbin/grid-mapfile* for adding
+entries, removing entries, and checking consistency. </p>
+
+<h2><a
+name="mds"></a>Starting MDS</h2>
+
+
+<p>Start MDS 2.2 with the following command: </p>
+
+<pre>   % GLOBUS_LOCATION/sbin/globus-mds start
+</pre>
+
+<p>This command starts the OpenLDAP 2.0 slapd server for the GRIS. It does not require
+the environment variable $GLOBUS_LOCATION to be set. To make this startup automatic, place it
+in the startup scripts of your machine. Contact your system administrator to determine
+where the call to this script needs to be placed. On a RedHat Linux system, the answer is
+/etc/rc.d/init.d, with a call to that script made in the appropriate /etc/rc.d/rc?.d
+(where ? is the default runlevel of your system, as specified in /etc/inittab). </p>
+
+<p>There is a single slapd instance for both GRIS and GIIS. </p>
+
+<p>You are now set for anonymous queries. For non-anonymous queries, you will need a
+server certificate, and a grid-mapfile for MDS.&nbsp; MDS defaults to
+using the same grid-mapfile as GRAM, namely /<code>etc/grid-security/grid-mapfile</code>.&nbsp;
+To change that location, modify $GLOBUS_LOCATION/etc/grid-info-server-env.conf. </p>
+
+
+<h2><a name="gridftp"></a>Setting up a GridFTP server</h2>
+
+
+<p>Setting up GridFTP is similar to setting up a gatekeeper. Make the following changes to
+your system as root: </p>
+
+<p>Add an entry to /etc/services reading: </p>
+
+<pre>   gsiftp  2811/tcp
+</pre>
+
+<p>Depending on whether your host is running inetd or xinetd, you will need to modify
+its
+configuration file. 
+
+<ul>
+  <p><b>Inetd</b><br>
+  For inetd, add the following entry, all on one line, to /etc/inetd.conf. Be sure to
+  replace GLOBUS_LOCATION below with the actual value of $GLOBUS_LOCATION in your
+  environment. </p>
+  <pre>    gsiftp  stream  tcp     nowait  root
+      /usr/bin/env env LD_LIBRARY_PATH=GLOBUS_LOCATION/lib
+      GLOBUS_LOCATION/sbin/in.ftpd -l -a -G GLOBUS_LOCATION
+</pre>
+  <p>As noted earlier in this guide, this entry has changed from the
+  entry provided for the GridFTP server in the Globus Toolkit 2.0 Administrator's
+  Guide.&nbsp; The reason is that if you followed the instructions from the install section,
+  you do not have a static in.ftpd.&nbsp; This requires you to set the LD_LIBRARY_PATH so
+  that the server can dynamically link against the libraries in $GLOBUS_LOCATION/lib.&nbsp;
+  To accomplish the setting of the environment variable in inetd, we use /usr/bin/env (the
+  location may vary on your system) to first set LD_LIBRARY_PATH, and then to call in.ftpd
+  itself. </p>
+  <p>The advantage of this setup is that when you apply a security update to your
+  installation, the GridFTP server will pick it up dynamically without your having to
+  rebuild it. </p>
+  <p><b>Xinetd</b><br>
+  For xinetd, add a file called &quot;grid-ftp&quot; to the /etc/xinetd.d/ directory that
+  has the following contents. Be sure to replace GLOBUS_LOCATION below with the actual value
+  of $GLOBUS_LOCATION in your environment. </p>
+  <pre>    service gsiftp
+    {
+	    instances               = 1000
+	    socket_type             = stream
+	    wait                    = no
+	    user                    = root
+	    env			    = LD_LIBRARY_PATH=GLOBUS_LOCATION/lib
+	    server                  = GLOBUS_LOCATION/sbin/in.ftpd
+	    server_args             = -l -a -G GLOBUS_LOCATION
+	    log_on_success         += DURATION USERID
+	    log_on_failure         += USERID
+	    nice                    = 10
+            disable                 = no
+    }
+</pre>
+  <p>As noted earlier in this guide, this entry has changed from the
+  entry provided for the GridFTP server in the Globus Toolkit 2.0 Administrator's
+  Guide.&nbsp; The reason is that if you followed the instructions from the install section,
+  you do not have a static in.ftpd.&nbsp; This requires you to set the LD_LIBRARY_PATH so
+  that the server can dynamically link against the libraries in $GLOBUS_LOCATION/lib.&nbsp;
+  To accomplish the setting of the environment variable in xinetd, we use the &quot;env
+  =&quot; option to set LD_LIBRARY_PATH in the gatekeeper's environment. </p>
+  <p>The advantage of this setup is that when you apply a security update to your
+  installation, the GridFTP server will pick it up dynamically without your having to
+  rebuild it. </p>
+</ul>
+
+<p>The -G GLOBUS_LOCATION (remember to substitute your real GLOBUS_LOCATION) tells the
+in.ftpd to look for ftpaccess in $GLOBUS_LOCATION.&nbsp; If you do not specify this flag,
+the server will use /etc/ftpaccess. </p>
+
+<p>After you have added the gridftp service to either inetd or xinetd, you will need to
+notify inetd (or xinetd) that its configuration file has changed. To do this, follow the
+instructions for the server you are running below. 
+
+<ul>
+  <p><b>Inetd</b><br>
+  On most linux systems, you can simply run `killall -HUP inetd` </p>
+  <p>On other systems, the following has the same effect: ps aux | grep inetd | awk '{print
+  $2;}' | xargs kill -HUP </p>
+  <p><b>Xinetd</b><br>
+  On most linux systems, you can simply run `/etc/rc.d/init.d/xinetd restart` </p>
+  <p>On other systems (or if that doesn't work), see man xinetd. </p>
+  <p>GridFTP uses /etc/grid-security/grid-mapfile for authorization, just like GRAM.</p>
+</ul>
+
+
+<p><a href="index.html">Back to Index</a> </p>
+
+<hr>
+
+<address>
+  <a href="mailto:bacon@mcs.anl.gov">Charles Bacon</a> 
+</address>
+<!-- Created: Fri Feb 22 11:31:30 CST 2002 -->
+<!-- hhmts start -->
+
+<p>Last modified: Wed Sep 27 11:01:50 CDT 2002 <!-- hhmts end --> 
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>

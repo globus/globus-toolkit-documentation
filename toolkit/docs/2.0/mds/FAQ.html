@@ -1,0 +1,568 @@
+<?php
+
+$title = "Frequently Asked Questions about MDS 2.1";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+      <ul>
+        <li><a href="#multiplecerts">Generating multiple
+        certificate types</a>        </li>
+        <li><a href="#ldapcert">Generating and installing LDAP
+        server certificate</a>        </li>
+        <li><a href="#mdssecuritymodel">Security
+        model for MDS 2.1</a>        </li>
+        <li><a href="#rootaccess">Root access to install and run
+        MDS 2.1</a>        </li>
+        <li><a href="#bindlocalerror">Bind error on
+        grid-info-search command</a>        </li>
+        <li><a href="#gridcertrequestsamemachine">grid-cert-request
+        command and MDS 2.1 on same machine</a>        </li>
+        <li><a href="#anonymousqueriesonly">Can do anonymous
+        but not security-enabled queries</a>        </li>
+        <li><a href="#noavailableresourcesreturned">grid-info-search
+        command not returning available resource details</a>        </li>
+        <li><a href="#oidnamesandschemas">OID namespaces and
+        schemas for MDS 2.1</a>        </li>
+        <li><a href="#nocpuinfofromsolaris">No CPU
+        information appears in GRIS running on Solaris</a>        </li>
+        <li><a href="#alldataobjectsnotreturned">grid-info-search
+                command not returning all expected data objects</a></li>
+        <li><a href="#configchangesdonottakeeffect">MDS
+                configuration changes do not take effect when MDS is started</a></li>
+        <li><a href="#viewmdsdataaswebpage">Viewing MDS data
+                in a web page</a></li>
+        <li><a href="#underscoreinmdsvoname">Underscore
+                character in mds-vo-name in a hierarchical GIIS</a></li>
+        <li><a href="#increasedebugoutput">Increasing
+                debugging information in grid-info-system.log</a></li>
+        <li><a href="#hostnameresolution">Host 
+              name resolution not allowing authenticated queries</a></li>
+      </ul>
+      
+
+<p><b><a name="multiplecerts">Q: How does one generate multiple gatekeeper and user
+certificates as well as a few&nbsp;LDAP server certificates?</a></b></p>
+
+<p>Write a wrapper script around <code>grid-cert-request</code>, 
+to generate a key and a certificate request  (each pair per machine/user can be specified in
+a separate file). Then  mail each request separately to the
+<code>ca@globus.org</code>. This makes it easy for the
+Globus Certificate Authority (CA) to issue certificates and do bookkeeping without too much additional effort.
+
+<p>
+ Look at the command line options in grid-cert-request given below:
+</p>
+ 
+      <code><pre> %grid-cert-request [-help] [ options ...]
+
+  Options:
+    -cn &lt;name&gt;         : Common name of the user
+    -gatekeeper &lt;name&gt; : Create certificate for a gatekeeper named &lt;name&gt;
+    -host &lt;name&gt;       : Create certificate for a host named &lt;name&gt;
+    -dir &lt;dir_name&gt;    : User certificate directory ['/nfs/v5/sridhar/.globus' ]
+    -cert &lt;file&gt;       : File name of the certificate
+    -key &lt;file&gt;        : File name of the user key
+    -req &lt;file&gt;        : File name of the certificate request
+    -nopw              : Create certificate without a passwd
+    -int[eractive]     : Prompt user for each component of the DN
+    -force             : Overwrites prexisting certificates
+</pre></code>
+
+<hr>
+
+<p><a name="ldapcert"><b>Q: How do I generate and where do I install the LDAP  server
+certificate.&nbsp;
+ Also how do I distinguish between the gatekeeper certificate and LDAP
+certificate?</b></a></p>
+ 
+<p>
+A server certificate is needed by the LDAP service in order to run.
+</p>
+
+<p>
+To request a server certificate, use the <code>grid-cert-request</code> command:
+</p>
+
+      <code><pre>  grid-cert-request -cn ldap/&lt;FQDN&gt; 
+                    -cert server.cert -key server.key
+                    -req server.request
+                    -nopw -dir certdir                    </pre></code>
+
+<p>
+  where &lt;<code>FQDN&gt;</code> is the fully qualified domain name of the host
+  that will run the LDAP server, <code>server.cert</code> is the required name of
+  the server certificate file, <code>server.key</code> is the required name of
+  the server key file, <code>server.request</code> is the required name of 
+  the server request file,  and <code>certdir</code> is the name of a
+  directory in which to store the certificate.
+</p>
+  The key will be generated immediately and placed in 
+  <code>certdir/server.key</code>.
+  The key file should be readable only by its owner.&nbsp;
+<p>
+As seen in the request above, the LDAP server certificate will have &quot;ldap&quot; in the message.</p>
+
+<hr>
+
+<p><a name="mdssecuritymodel"><b>Q: What is the security model
+for MDS 2.1?</b></a></p>
+
+<p>MDS 2.1 uses OpenLDAP, which is based on LDAPv3. The security in
+OpenLDAP (as
+of version 2.0) is
+provided by SASL, which uses GSSAPI.</p>
+<p>      GSSAPI is a convenient generic interface for secure application development.
+By itself, GSSAPI does not provide any security. It relies on underlying technologies to provide the actual identity authentication and message
+protection services desired by applications communicating over a network. Such a security technology is called a GSSAPI security mechanism.
+Applications may install and request the use of particular mechanisms or use a default mechanism provided by the GSSAPI implementation.</p>
+
+<p>      The GSSAPI security mechanism developed for MDS 2.1 is GSI, which
+enables the use of Globus certificates and grid-map files to provide
+authorization services to information objects. At the present time, we have
+all-or-nothing authorization, depending on whether an entry exists in a grid-mapfile.
+However, with the incorporation of CAS (Community Authorization Service), we
+will soon be able to provide a fine-grained access control to objects.</p>
+
+<p>      A security mechanism is identified by a globally unique Object Identifier
+(OID). For example, the OID for GSI is 1.3.6.1.4.1.3536.1.1.</p>
+
+<p>      The main security enhancement to LDAPv3 (in comparison to LDAPv2) is that new authentication mechanisms have been added to the bind
+operation: password protection using a hash function, and certificate-based digitally
+signed token. These are fully compatible with the definitions found in X.509, so that an LDAP to X.500 gateway can pass them directly to the      X.500 server. The protocol is extensible to allow for
+privately defined or future additional authentication      mechanisms, including challenge-response and multi-stage binds, and the server can return credentials to the      client.<br>
+<br>
+      A problem with LDAPv2 deployment was that the string syntaxes for certificates and certificate revocation lists
+(CRLs) were not reversible, and that it was not always possible to obtain the DER binary encoding of values
+with      these syntaxes in order to be able verify signatures. In contrast, LDAPv3
+clients can request to receive CRLs,      certificates and distinguished names in binary (DER encoded ASN.1) form, which eliminates the ambiguity.&nbsp;</p>
+
+
+<hr>
+
+<p><a name="rootaccess"><b>Q: Do I need root access to install and run MDS
+2.1?</b></a></p>
+
+<p>Root access is needed if you want to set up MDS 2.1 to automatically start
+up at system boot time. This can also be requested of system staff.</p>
+
+
+<hr>
+
+<p><b><a name="bindlocalerror">Q: I have everything up and running, but when I try to do a 
+grid-info-search I get an error message:</a>
+
+<blockquote>ldap_sasl_interactive_bind_s: local error</blockquote>
+
+What's wrong?</b>
+</p>
+
+ 
+<p>In MDS 2.1, clients perform a GSI-GSSAPI bind to the MDS server. 
+The error message seen above occurs if the client does not have a valid proxy, or: <code><pre>$ ./install/openldap/bin/ldapsearch -h 1linux -p 2167 -s sub -b
+&quot;o=Grid&quot; &quot;objectclass=*&quot;
+
+SASL/GSSAPI authentication started
+
+ldap_sasl_interactive_bind_s: Local error
+</pre></code>
+
+<p>If the &quot;-x&quot; option is used, we get the following:</p>
+
+	<code><pre>$ ./install/openldap/bin/ldapsearch -h 1linux -p 2167 -s sub -b &quot;o-Grid&quot;
+&quot;objectclass=*&quot; -x
+
+version:2
+
+#
+# Filter: objectclass=*
+# requesting: ALL
+#
+
+# search result
+search: 2
+result: 53 DSA is unwilling to perform
+text: access denied: gridmap lookup failed
+
+# numResponses: 1
+</pre></code>
+
+<p>This occurs whether we turn anonymous bind on or off, and whether we have run
+grid-proxy-init or not. Also, the grid-mapfile, owned by root, contains:</p>
+
+	<code><pre>&quot;/C=US/O=UNIV/L=COMP/CN=John Doe/Email=john.doe@comp.univ.edu&quot;
+globus</pre></code>
+
+<p>In the file 
+/opt/globus-mds/share/certificates/ca-signing-policy.conf, 
+both Globus and the UNIV CA appear.</p>
+
+<p><b>What could the problem be?</b></p>
+
+
+
+<p>The failure is happening at 'bind' time; the check on gridmap occurs at the
+backend, after the bind goes through.</p>
+
+<p>Usually GIIS servers are started as user globus
+and clients are users. The
+gridmap file should include the user's DN and their 
+local account name. The gridmap should contain entries for users only. No entry for user
+globus is needed. 
+
+<p>The globus account does
+not need to do a grid-proxy-init. 
+In fact, make sure that there isn't an old
+proxy in /tmp that belongs to 
+globus. 
+
+<p>
+Regular user accounts need to have a valid proxy, 
+which can be obtained using grid-proxy-init. 
+
+<p>
+To check if a proxy is still valid, use
+grid-proxy-info. 
+Make sure that the user's X509_USER_PROXY
+ is pointing to a valid proxy.</p>
+ 
+<p>If you are testing with ldapsearch, you need to supply the 
+"-Y GSSAPI"
+parameter to force it to use 
+GSI-GSSAPI.
+<p>
+    If the server certificates are owned by root, then the 
+    server must be started as root. If the server will be started as globus, 
+    then the server certificates must be owned by globus.</p>
+<hr size="2" width="100%" align="center">
+<p><b>
+    <a name="gridcertrequestsamemachine">Q: Do I need to run 
+    grid-cert-request on the same machine as MDS 2.1?</a></b></p>
+<p>
+  No. The syntax for grid-cert-request is:</p>
+<pre>grid-cert-request -cn ldap/&lt;FQDN&gt; 
+                  -cert servercert.pem -key serverkey.pem
+                  -req serverkey.pem
+                  -nopw -dir certdir
+</pre>
+
+<p>
+This can be executed anywhere, on any machine. The <code>-dir</code> 
+can be local to that
+machine, or on an accessible remote machine. Once received, the certificate can
+be moved to a new location. The <code>FQDN</code> must be the
+fully qualified domain
+name of the machine that MDS 2.1 server will be running on. The certificate
+authority does not require that the certificate request for machine A must come from machine A.</p>
+
+<hr>
+<p><b><br>
+  <a name="anonymousqueriesonly">
+  Q: I downloaded the Globus Toolkit 2.0 release and installed MDS.&nbsp;
+  All of the installation was successful.<br>
+  <br>
+  I applied the ldap server certification, and I put servercert.pem and
+  serverkey.pem in GLOBUS_LOCATION/etc.<br>
+  <br>
+  Then I started MDS with the SXXgris start
+  command.<br>
+  <br>
+  I could do anonymous (anonymous flag set; without SASL) queries, as
+  follows:<br>
+  <br>
+  grid-info-search -x -b &quot;mds-vo-name=local, o=grid&quot;<br>
+  grid-info-search -x -b &quot;mds-vo-name=site, o=grid&quot;<br>
+  <br>
+  But I could not do security-enabled (with SASL) queries, as follows:<br>
+  <br>
+  % grid-info-search -b &quot;mds-vo-name=local, o=grid&quot;
+  ldap_sasl_interactive_bind_s: No such attribute</a> </b><br>
+  <br>
+  Usually if anonymous queries work but authenticated queries do not, it means the server
+  is
+  up and running.<br>
+  <br>
+  The problem could be that the wrong server port is being used, i.e., the
+  port is not set up for authentication, or that there are no certificates
+  in the certificate directory.<br>
+  <br>
+  First, make sure the client has a valid proxy to start with, and second,
+  that the server certificate permission is correct.&nbsp;
+  The key is probably not world-readable or writable.&nbsp; You can look into ~globus/.globus.&nbsp; There are several sets of server certificates that have the
+        right permission to run the server as 'globus'.<br>
+  <br>
+  If all seems to be correct, find 
+
+  ldapsearch
+  and make calls like:<br>
+  <br>
+
+  ldapsearch -x&nbsp; -s base -h
+        their-host -p their-port -b &quot;&quot;<br>
+  supportedsaslmechanisms<br>
+  <br>
+  on the server to see if the mechanism is correct.<br>
+  <br>
+  Sometimes, it might be because 
+
+  SASL_PATH
+  is not set properly, so client and server cannot find the SASL plug-ins.&nbsp;
+  If 
+
+  -d 255
+  is put on the ldapsearch
+  call, it will give a lot more debugging information and can eliminate some other
+  missteps.<br>
+  <br>
+  Also there is an FAQ page on Globus security you might want to check <a href="../../2.4/gsi/faq.html">here</a>.
+
+</p>
+<hr>
+
+<p><b><a name="noavailableresourcesreturned">Q:
+      I installed the Globus Toolkit, and globus-setup-test works.&nbsp;
+  I am able to submit jobs both to the local machine and our other
+  test grid machine.&nbsp; But I can't seem to gather any information about
+      available resources.&nbsp; Nothing in the Installation Instructions says I have to do
+      anything to set up MDS or slapd, but when I run grid-info-search, I get
+      the following (on both machines):</a><br>
+  <br>
+  $ grid-info-search '(objectclass=3DGlobusComputeResource)'<br>
+  ldap_bind: Can't contact LDAP server<br>
+  <br>
+  If I get more explicit:<br>
+  <br>
+  $ ldapsearch -p 2135 '(objectclass=3D*)'<br>
+ldap_search: No such object</b></p>
+<p><b>$ ldapsearch -p 2135 -v '(objectclass=3D*)'<br>
+  ldap_init( &lt;default&gt;, 2135 )<br>
+  filter pattern: (objectclass=3D*)<br>
+  returning: ALL<br>
+  filter is: ((objectclass=3D*))<br>
+  ldap_search: No such object<br>
+0 matches</b></p>
+<p><b>$ ldapsearch -p 2135 -v -h host<br>
+  '(objectclass=3DGlobusComputeResource)'<br>
+  ldap_init( host, 2135 )<br>
+  filter pattern: (objectclass=3DGlobusComputeResource)<br>
+  returning: ALL<br>
+  filter is: ((objectclass=3DGlobusComputeResource))<br>
+  ldap_search: No such object<br>
+  0 matches<br>
+  </b>
+
+  <br>
+  With ldapsearch
+  you will have to specify a &quot;-b
+      basedn&quot;
+  option, for which grid-info-search
+  supplies a reasonable default.
+
+</p>
+<b>
+
+<hr>
+
+<p><a name="oidnamesandschemas">Q: What are the OID namespaces and schemas for MDS
+      2.1?<o:p>
+  </a>
+</p>
+</b>
+<p>Refer to the<a href="Schema.html"> MDS Schemas page</a> for an index of schema
+definitions and descriptions of the schema object classes and attribute types<b>.</b></p>
+<b>
+
+
+
+<hr>
+
+
+  </b>
+
+<p><b><a name="nocpuinfofromsolaris">Q: Why does no CPU information appear
+      in my GRIS running on Solaris?</a></b><br>
+  <br>
+  The Solaris CPU information provider
+      uses SysInfo, a 3rd party product. For further details of SysInfo, please see <a href="http://www.MagniComp.com/sysinfo">http://www.MagniComp.com/sysinfo</a><br>
+  <br>
+The sysinfo executable should be in the path when MDS is installed.</p>
+
+<b>
+
+
+
+<hr>
+
+
+  </b>
+<p><b><a name="alldataobjectsnotreturned">Q:  The grid-info-search (or
+ldapsearch) command is not returning all of the data objects I am expecting.  I get the message:</a></b></p>
+<p><b>Size limit exceeded (4)</b></p>
+<p><b>How can I get all the results I expect from the command line query?</b></p>
+<p>There are three different sizelimit parameters involved here.  All three of them have defaults, and all three of them affect the number of LDIF data objects returned from a query.  These are:</p>
+<ul>
+  <li>
+    <p>The sizelimit option on the ldapsearch command (to which grid-info-search is a wrapper).</p>
+  </li>
+  <li>
+    <p>The sizelimit option in the grid-info-slapd.conf configuration file, which controls the number of objects returned by the slapd server to the client.</p>
+  </li>
+  <li>
+    <p>The sizelimit option for each of the information provider programs in the grid-info-resource-ldif.conf configuration file, which controls the number of objects returned by each provider to the slapd server.</p>
+  </li>
+  </ul>
+<p>Depending on your environment, you or your system administrator will need to increase one or more of these sizelimit values above their defaults in order to get the number of data objects you are expecting.</p>
+<b>
+
+
+
+<hr>
+
+
+  </b>
+
+
+<p><b><a name="configchangesdonottakeeffect">Q:
+      I’ve made configuration changes to my MDS setup, but they do not take effect when I start MDS.</a> </b><br>
+  <br>
+ 
+  You or someone else may have a slapd server from a previous startup of MDS already running on the system, preventing a new slapd from starting.  For example, you and another user may both be trying to run slapd servers on the same port.  Or there may be a slapd running from a previous version or installation of MDS.<br>
+  <br>
+  This situation may also cause the slapd server to not start at all when you enter the
+
+  SXXgris
+start
+
+  command to invoke MDS.  However, there may be other reasons for the slapd server not starting, such as not setting or sourcing your environment, not having the right certificates, and so forth.  Refer to the
+  <a href="mdsusersguide.pdf">MDS 2.1 User’s Guide</a> for more information on those topics.<br>
+  <br>
+Check your environment for the slapd servers that are currently running.  To see which slapd servers are currently running on Linux, enter the following command:</p>
+<pre>  % ps uawx | grep slapd</pre>
+<p>  From the output of this command, you can see if any old or conflicting slapd
+  servers are running, and you can remove them as appropriate with the kill
+  command.<br>
+  <br>
+  Note that the SXXgris stop command may not kill the slapd instance you had
+  intended. Use the kill command instead.
+  SXXgris stop is appropriate for when you want to stop MDS, make a configuration
+  change, and restart MDS via SXXgris start, assuming there are no conflicting
+  slapd servers running at that point in time. </p>
+<b>
+
+
+
+<hr>
+
+
+  </b>
+
+<p><b><a name="viewmdsdataaswebpage">Q:  How do I view MDS data via a web page?</a></b><br>
+  <br>
+  There are a number of initiatives to expose LDAP data via html/http.  Here are two examples:<br>
+  <br>
+  <a href="http://ldapweb.sourceforge.net/">http://ldapweb.sourceforge.net/</a><br>
+  <br>
+  This is an LDAP web interface developed using Apache, PHP, and SSL tools.  It can be used to manipulate Microsoft's Active Directory.  It provides search, add, delete, and modify capabilities, as well as schema recognition.<br>
+  <br>
+  <a href="http://freshmeat.net/projects/ldapwebxplorer/?topic_id=90">http://freshmeat.net/projects/ldapwebxplorer/?topic_id=90</a><br>
+  <br>
+  This is a PHP-based LDAP web interface.  It provides browse, edit, delete, search, and authentication capabilities.  It has some multilingual capabilities, a friendly interface, and an extendable configuration.
+</p>
+<b>
+
+
+
+<hr>
+
+
+  </b>
+
+<p><b><a name="underscoreinmdsvoname">Q:  I am currently setting up a hierarchical
+      GIIS. Everything works fine except registration from one GIIS to another
+      GIIS.  Could some character in the mds-vo-name be the cause of the problem (seems like the syntax required by the schema should not accept '_' - underscores)?</a></b><a name="underscoreinmdsvoname"><br>
+      </a>
+  <br>
+  The attribute type of "mds-vo-name" is "printable string," which doesn't allow '_' (underscore).
+</p>
+
+<b>
+
+
+
+<hr>
+
+
+  </b>
+
+
+
+<p><a name="increasedebugoutput"><b>Q:  I’m trying to solve a problem by looking at the logfile
+      grid-info-system.log, but it barely says anything.  How can I raise the log level to see what is happening there?</b></a><br>
+  <br>
+  In the SXXgris file in $GLOBUS_LOCATION/sbin, there is a call to grid-info-soft-register, with a parameter "-d 0".  You can change this to, for example, “-d 255” to get lots of debugging information.<br>
+  <br>
+Edit the grid-info-soft-register file (also in $GLOBUS_LOCATION/sbin) to remove all of the > /dev/null redirections.  In this file, change:</p>
+<pre>  ${MASTER_DAEMON_PATH} "$@" > /dev/null 2> /dev/null &amp;</pre>
+<p>  to:</p>
+<pre>  ${MASTER_DAEMON_PATH} "$@" &amp;</pre>
+<p>  This should give you a lot of output to both stdout and stderr. </p>
+<b>
+
+
+
+<hr>
+
+
+  </b>
+
+<p><b>
+  <a name="hostnameresolution">Q: I’m trying to set up Globus Toolkit 2.0. 
+      Everything seems to be working, except I can only do anonymous MDS 
+      searches. If I enter grid-info-search without the “-x” option, I get this 
+      output:<br>
+  <br>
+  SASL/GSI-GSSAPI authentication started<br>
+  ldap_sasl_interactive_bind_s: Local error<br>
+  <br>
+  I think I have everything set up correctly: the server.cert and server.key 
+  files are in $GLOBUS_LOCATION/etc, the grid-mapfile is in 
+  /etc/grid-security, the usercert.pem and userkey.pem are in $HOME/.globus, 
+  and all the environment variables that I can see are pointing to the right 
+  locations (including SASL_PATH). Remote jobs run fine, as do anonymous MDS 
+  queries.</a></b><br>
+  <br>
+  Assuming everything else is in fact set up properly, the problem may have 
+  to do with how the host names of the machines are being reported. When a 
+  host name is looked up on a machine without that host name in its 
+  /etc/hosts file, it is looked up through DNS and returns the correct 
+  result. If the machine does have a host name in its /etc/hosts file but 
+  the host name is not in fully qualified format, or is in that format but 
+  does not appear first on the line referencing it, it fails to resolve 
+  correctly and the Globus Toolkit is not able to authenticate its 
+  certificate.<br>
+  <br>
+  For example, a hosts file appearing like this will not allow authenticated 
+  access because the fully qualified name appears second on each line:<br>
+  <br>
+  122.0.0.1 host01 host01.univ.edu localhost<br>
+  125.213.49.87 host01 host01.univ.edu<br>
+  <br>
+  A hosts file appearing like this will allow authenticated access because 
+  the fully qualified name appears first on each line:<br>
+  <br>
+  122.0.0.1 host01.univ.edu host01 localhost<br>
+  125.213.49.87 host01.univ.edu host01<br>
+  <br>
+  If correcting the hostnames in /etc/hosts does not solve your 
+  authentication problem, refer to the other FAQs on this issue: <br>
+  <br>
+  <a href="#bindlocalerror">Bind error on 
+  grid-info-search command</a><br>
+  <a href="#anonymousqueriesonly">Can do 
+anonymous but not security-enabled queries</a></p>
+<p>&nbsp;</p>
+        <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

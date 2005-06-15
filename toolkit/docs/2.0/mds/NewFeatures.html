@@ -1,0 +1,159 @@
+<?php
+
+$title = "MDS 2.1 New Features";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+      <p>The MDS 2.1 release contains the
+      following new and enhanced features:</p>
+
+      <ul>
+        <li>High performance GIIS and GRIS<br>
+          -&nbsp; Memory-based caching backends for GRIS and GIIS<br>
+          -&nbsp; Efficient GRIS resource information providers
+        <li>Revised resource representation model<br>
+          -&nbsp; New MDS schema files<br>
+          -&nbsp; New GRIS information providers
+        <li>Support for GSI authentication and
+          access control
+        <li>Integrated GRIS/GIIS server
+        <li>Newer versions of OpenLDAP and OpenSSL
+        <li>Support for the new Globus Toolkit 2.0
+          packaging model
+      </ul>
+      <h2>High-performance GRIS And GIIS</h2>
+      <p>The GIIS and GRIS services are
+      implemented natively in the slapd server using plug-in modules. This
+      allows in-RAM caching of data and low overhead processing of queries. This
+      shortens GRIS query latency and reduces query overhead for cache hits.
+      More significantly, it eliminates the need to fork additional processes to
+      handle GIIS queries, resulting in a dramatic reduction in server resource
+      consumption.</p>
+
+      <h3><em>Memory-based Caching Backends for GRIS
+      and GIIS</em></h3>
+      <p>Performance concerns make caching data
+      within the GIIS desirable, and this capability is provided as part of the
+      basic GIIS framework. However, access control issues complicate caching.
+      The GIIS can fetch and cache any data available to anonymous clients.
+      Because the GIIS can also bind using a trusted server credential, each
+      GRIS may export some data that it trusts the GIIS to handle properly. In
+      the absence of delegation, GIIS is unable to transfer data from GRIS to
+      client if the data is restricted by the GRIS to only be visible to that
+      client. In future releases, we
+
+      will be able to return the name of the information
+      provider directly to the client in the form of a LDAP URL using the
+      referral mechanisms defined as part of the standard LDAP protocol.</p>
+      <p>Due to the nature of LDAP, a GIIS encourages
+      the user to perform multiple queries. In essence, a GIIS takes a
+      &quot;drill-down&quot; approach by implementing a number of queries
+      that return small amounts of data with an increasingly focused scope.</p>
+      <p>To support faster GIIS caching, MDS 2.1 now uses memory-based caching via a C program. Earlier functional prototype used
+      file-based caching via a shell script, which was significantly slower.</p>
+      <h3><i>Efficient GRIS Resource Information
+      Providers</i></h3>
+      <p>MDS 2.1 includes rewritten GRIS
+      system probe utilities to further improve performance. The probes have been decomposed to separate low and high
+      frequency data probes and eliminate many unnecessary probes. Additionally,
+      the probes have been tuned in platform-specific ways to reduce overhead
+      and latency. Core probes currently exist for Linux, Solaris, and Irix.</p>
+      <h2><b>Revised Resource Representation
+      Model</b></h2>
+      <p>This includes new MDS schema files and
+      new GRIS information providers.</p>
+      <h3><i>New
+      </i><i>MDS Schema Files</i></h3>
+      <p>There are significant changes to the LDAP
+      schemas provided by MDS 2.1. A mixed schema environment is not
+      supported. That is, you cannot use schemas from previous releases with
+      schemas from this release. Schema structure names are now different to
+      prevent conflicts. Their names are derived from their object class. While
+      the names are different, many of the attributes have similar meaning to
+      prior versions. However, the new structured model provides a better
+      representation for composite/hierarchical resources.</p>
+      <p>Refer to
+      <a href="Schema.html">MDS Schemas</a> for a complete listing of current MDS schema object
+      classes, attribute types, and their definitions.</p>
+      <p>The document RFC 2252 (<a href="ftp://ftp.isi.edu/in-notes/rfc2252.txt">ftp://ftp.isi.edu/in-notes/rfc2252.txt</a>)
+      discusses LDAP attribute syntax in detail, and describes how users can
+      create their own schemas.</p>
+      <h3><i>New GRIS Information Providers</i></h3>
+      <p>When the GRIS handling a resource status
+      query suffers a cache miss, it dispatches an information provider to probe
+      the necessary information. This means that the information providers may
+      be on the critical path defining the query latency a client observes. To
+      optimize this path, providers are specialized at install time for the
+      specific platform on which MDS is being installed.</p>
+      <p>Each external provider tool generates output representing MDS data objects.
+      Output data is in LDIF format and must
+      match the schema distributed with the providers. Details of the default
+      MDS GRIS provider schema are documented separately in
+      <a href="Schema.html">MDS Schemas</a>.</p>
+      <p>The MDS release supports the
+      information providers described in 
+      <a href="DefaultGRISProviders.html">MDS Core 
+      GRIS Providers</a>.</p>
+      <p>You can also create your own information
+      providers, as described in
+      <a href="../../2.2/mds/creating_new_providers.pdf">MDS GRIS 
+      Specification Document: Creating New Information Providers</a> (PDF).</p>
+      <h2>Support For GSI Authentication
+      And Access Control</h2>
+      <p>In MDS 2.1, client and server can
+      mutually authenticate using public key technology. Access can be
+      restricted to trees of data or categories of information such as object
+      classes and attribute types. A particular name or everything below it can
+      be accessed to return information on a set of results such as CPU load.</p>
+      <p>Authorization can be static,
+      &quot;self,&quot; or dynamic.</p>
+      <p>Static authorization is based on class,
+      attribute, or object name rules.</p>
+      <p>&quot;Self&quot; authorization is based
+      on a semi-dynamic rule, and requires an &quot;owner&quot; attribute on
+      objects. Authorization is also possible for a group, based on LDAP
+      distinguished names.</p>
+      <p>Dynamic authorization is based on
+      per-object access rule attributes.&nbsp; That is, the object contains the
+      access rule within itself. Dynamic authorization uses directory-based
+      group lists. LDAP dynamic authorization is being worked on in the LDAP
+      community. Refer to the <a href="http://www.LDAPzone.com">LDAPzone</a> for
+      more information.</p>
+
+      <h2>Integrated GRIS/GIIS Server</h2>
+      <p>The GRIS and GIIS backends now share a
+      common slapd server instance. Benefits include simplified install/admin,
+      simplified configuration files, and a lighter load imposed by MDS. Note that both the GRIS and all GIIS(s)
+      on a server will use the <a href="http://www.iana.org" target="other">IANA</a>-assigned
+      GRIS port 2135 by default.</p>
+      <h2>Change In OpenLDAP Version</h2>
+      <p>MDS uses OpenLDAP as a standard transport
+      protocol, which implements
+      LDAP Version 3.&nbsp;The LDAP Version 3 protocol is more robust, higher
+      performance, and provides more stable performance with threads.</p>
+      <p>The OpenLDAP server defines an extensible server framework in
+      which specialized backends can be plugged into a standard protocol
+      interpreter. The interpreter handles all authentication, data formatting,
+      query interpretation, results filtering, network connection management,
+      and dispatch to the appropriate backend. This flexible design allows MDS
+      to use the OpenLDAP server without modification.</p>
+      <p>MDS 2.1 ships with OpenLDAP
+      Version 2.0.14. See <a href="http://www.openldap.org">www.openldap.org</a>
+      for the contents of this and prior OpenLDAP releases.</p>
+      <h2>Support For The New Globus Toolkit 2.0
+      Packaging Model</h2>
+      <p>MDS 2.1 is installed as part of
+      the Globus Toolkit 2.0. This
+      permits incremental installation and deployment, so that MDS can be
+      released at different frequencies than the other Globus components.&nbsp; Refer to the Toolkit
+      <a href="../install.html">Installation
+      Instructions</a> and <a href="../../../releasenotes/2.0/">Release Notes</a> for
+      details.</p>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
