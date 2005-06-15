@@ -1,0 +1,298 @@
+<?php
+
+$title = "Verify installation of Globus Toolkit 2.4";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+<p>At this point, you can check to see that all the components that you have installed are
+working. Here is the overview:
+
+<ol>
+  <li><a href="#env">Set your environment</a></li>
+  <li><a href="#cert">Acquire a certificate</a></li>
+  <li><a href="#gram">Testing GRAM</a></li>
+  <li><a href="#mds">Testing MDS</a></li>
+  <li><a href="#gridftp">Testing GridFTP</a></li>
+</ol>
+
+
+<h2><a name="env"></a>Setting your environment</h2>
+
+
+<p>This step applies anytime you want to use commands from the Toolkit. First, make sure
+you have set <code>GLOBUS_LOCATION</code> to the location of your Toolkit installation.
+There are two environment scripts called <code>$GLOBUS_LOCATION/etc/globus-user-env.sh</code>
+and <code>$GLOBUS_LOCATION/etc/globus-user-env.csh</code>. You should read in whichever
+one corresponds to the type of shell you are using.</p>
+
+<p>For example, in csh or tcsh, you would run </p>
+
+<pre>     source $GLOBUS_LOCATION/etc/globus-user-env.csh</pre>
+
+<p>In sh, bash, ksh, or zsh, you would type </p>
+
+<pre>     . $GLOBUS_LOCATION/etc/globus-user-env.sh</pre>
+
+
+<h2><a name="cert"></a>Obtaining certificates</h2>
+
+
+<p>Security is at the heart of Globus, and as such, you will not be able to test your
+Globus configuration until you have obtained a certificate for yourself.&nbsp; You may use
+the Globus CA as described in the following instructions to obtain these
+certificates.&nbsp; Alternately, your site may already have a Certificate Authority which
+you can use.&nbsp; Check with your local system administrators.</p>
+
+<p>If you plan on installing Globus on multiple hosts or want to have control over your
+own certificate-signing process, you can use the SimpleCA package to run your own
+CA.&nbsp; It provides a wrapper around the openssl ca commands, and is available from <a
+href="../gsi/simple-ca.html">the Simple CA homepage</a>.</p>
+
+<p>Additionally, you will need certificates for the different services you plan to run.
+Currently, both GRAM and GridFTP use a host certificate, while MDS uses an ldap
+certificate. These certificates are persistent. Even if you need to reinstall Globus at a
+later date, you can keep and re-use your certificates until they expire.
+
+<p><b>NOTE:</b> The Globus CA certificate has expired in January 2003 and will not be renewed, as
+announced in <a href="http://www-unix.globus.org/mail_archive/announce/2003/12/msg00000.html">
+this message</a>.  These instructions have been changed to reflect that fact.
+
+<ol>
+  <li><a href="#usercert">User certificate</a></li>
+  <li><a href="#hostcert">Host certificate</a></li>
+  <li><a href="#ldapcert">LDAP certificate</a></li>
+</ol>
+
+
+<h3><a name="usercert"></a>User certificate </h3>
+
+<p>To request a user certificate, simply run &quot;grid-cert-request&quot;.</p>
+
+<p>grid-cert-request will ask for a password to protect your key, and give you a set of
+instructions for how to mail your request to the CA.  <b>Note:</b> Do not email the
+request to &quot;ca@globus.org&quot;.  See <a href="http://www-unix.globus.org/mail_archive/announce/2003/12/msg00000.html">
+this message</a> for details.  When you run the
+grid-cert-request command, it will generate three files. One is the request that you need
+to send to the CA, named usercert_request.pem. Another is the key that corresponds to that
+request, named userkey.pem. The last is usercert.pem, which will be a 0 byte file. <em>This
+is not your certificate!</em> It is merely a placeholder that helps to remind you where to
+put your certificate when the CA responds to your request. </p>
+
+<p>If the OU= has localhost or localdomain in it, or does not match your DNS domain name,
+you will need to correct this, either in DNS, /etc/hosts, or with setup-gsi.  If the CN=
+&quot;(null)&quot;, grid-cert-request was not able to determine your name from
+finger.&nbsp; Get your name entered so that finger will print it, or use the -cn option. </p>
+
+<p>Now that you have double-checked your subject, you need to send the request to your
+Certificate Authority.  This could be a <a href="../gsi/simple-ca.html">
+SimpleCA</a> you created, an existing CA, or the <a href="http://gcs.globus.org:8080/gcs/index.html">
+online certificate service</a>.</p>
+
+<p>When you retrieve your certificate, save it to ~/.globus/usercert.pem. In the end, you
+will have a userkey.pem and usercert.pem in your $HOME/.globus directory.  Only you have a copy
+of your key file.&nbsp; Do not lose this file, and do not forget your password. </p>
+
+
+
+<h3><a name="hostcert">Host Certificate</a></h3>
+
+<p>If you would like to run a gatekeeper or GridFTP server on your machine, you will also
+need a host certificate for your host. The certificate must be for a machine which has a
+consistent name in DNS; you should not run it on a computer using DHCP where a different
+name could be assigned to your computer. </p>
+
+<p>If you ran setup-gsi as root, run the following command as <b>root</b> to get a
+gatekeeper certificate, replacing user.test.edu with the fully qualified hostname of your
+machine. Replace the text <code>&quot;your-hostname-here&quot;</code> with your <b>fully-qualified</b>
+hostname. </p>
+
+<pre>   % grid-cert-request -service host -host &lt;your-hostname-here&gt;</pre>
+
+<p>Now that you have double-checked your subject, you need to send the request to your
+Certificate Authority.  This could be a <a href="../gsi/simple-ca.html">
+SimpleCA</a> you created, an existing CA, or the <a href="http://gcs.globus.org:8080/gcs/index.html">
+online certificate service</a>.</p>
+
+<p>When you retrieve your certificate, save it to /etc/grid-security/hostcert.pem.
+You will need to be root as this file should be owned by
+root with permissions 444. Again, don't worry about the 0 byte file named hostcert.pem
+that will be generated by the grid-cert-request-command. It is just a placeholder. </p>
+
+<h3><a name="ldapcert">LDAP certificate</a> </h3>
+
+<p>A server certificate is needed by the LDAP service in order to run. To request a server
+certificate, use the grid-cert-request command below.</p>
+
+<pre>   % grid-cert-request -service ldap -host FQDN</pre>
+
+<p>Replace FQDN with the fully qualified domain name of the host that will run the ldap
+server. </p>
+
+
+<p>Now that you have double-checked your subject, you need to send the request to your
+Certificate Authority.  This could be a <a href="../gsi/simple-ca.html">
+SimpleCA</a> you created, an existing CA, or the <a href="http://gcs.globus.org:8080/gcs/index.html">
+online certificate service</a>.</p>
+
+<p>When you retrieve your certificate, save it to /etc/grid-security/ldap/ldapcert.pem.&nbsp;
+This file must be owned by the user
+account that will run MDS.&nbsp; The file should have permissions 444.&nbsp;
+Also change the ownership of /etc/grid-security/ldap/ldapkey.pem to the user
+account that will run MDS.&nbsp; Make sure ldapkey.pem has the permissions 400. </p>
+
+
+<h2>Very Important Notice</h2>
+<p>Please, if you are going to install the services as root, just skip the next three sections.
+
+<p>The next three sections are designed to show you how a user can stand up a service
+using a user certificate, just to check that all the pieces are installed.  This is <strong>
+not</strong> the way you will be using the toolkit in the future.
+
+<p>The mailing lists have shown that these tests can confuse people about how the services are
+supposed to work.  Where possible, I have tried to note the differences.
+
+
+<h2><a name="gram"></a>Testing GRAM</h2>
+
+
+<p><b>Note:</b> To run these tests on a single host, you will need both the Client and
+Server Resource Management bundles installed.&nbsp; If you want to test a client-only
+install, you will need to have a server available to test against, and if you want to test
+server-only, you will need a client available somewhere. </p>
+
+<p>When you have a user certificate, you can use the following tests to verify a working
+installation. Don't forget to <a href="#env">set your environment</a>. </p>
+
+<p>First launch a gatekeeper by running the following (as yourself, <b>not</b> root): </p>
+
+<pre>   % grid-proxy-init -debug -verify
+   % globus-personal-gatekeeper -start</pre>
+
+<p>This command will output a contact string like
+&quot;hostname:4589:/O=Grid/O=Globus/CN=Your Name&quot;. Substitute that contact string
+for &lt;contact&gt; in the following command: </p>
+
+<pre>    % globus-job-run &lt;contact&gt; /bin/date</pre>
+
+<p>You should see the current date and time. At this point you can stop the personal
+gatekeeper and destroy your proxy with: </p>
+
+<pre>   % globus-personal-gatekeeper -killall
+   % grid-proxy-destroy    </pre>
+
+<p>Please note that the above instructions are just for testing, and <b>do not</b> install
+a fully functioning gatekeeper on your machine for everyone to use.&nbsp; Installing a
+system-level gatekeeper for everyone to use will be covered in the <a
+href="guide-configure.html">configuration section</a> of this guide.  In the future, you
+will <strong>not</strong> have to specify a full contact string for the gatekeeper.  Just
+the hostname is sufficient, if it is being started through inetd/xinetd.</p>
+
+
+<h2><a name="mds"></a>Testing MDS</h2>
+
+
+<p>Don't forget to <a href="#env">set your environment</a>.</p>
+
+<p>Configuration of the MDS 2.4 release requires the following basic steps: 
+
+<ol>
+  <li><a href="#ldapcert">Acquire LDAP certificate</a></li>
+  <li><a href="#startmds">Start MDS</a></li>
+  <li><a href="#testmds">Send a test query to GRIS and GIIS</a></li>
+</ol>
+
+
+<h3>Acquire LDAP certs </h3>
+
+<p>See the <a href="#ldapcert">Acquire LDAP certificate</a> section from above. The
+certificate is required for non-anonymous access. Configuring non-anonymous access is
+described in the <a href="guide-configure.html">configuration guide</a>.</p>
+
+
+<h3><a name="startmds"></a>Start MDS </h3>
+
+<p>Start MDS 2.4 with the following command:</p>
+
+<pre>   % GLOBUS_LOCATION/sbin/globus-mds start</pre>
+
+<p>This command starts the OpenLDAP 2.0 slapd server for the GRIS. It does not require
+environment variables $GLOBUS_LOCATION to be set. </p>
+
+
+<h3><a name="testmds"></a>Send a test query to GRIS and GIIS </h3>
+
+<p>Send a test query to GRIS on a local host, with the following command: </p>
+
+<pre>   % GLOBUS_LOCATION/bin/grid-info-search -anonymous -L
+    </pre>
+
+<p>Note that this test does not require you to wait for the LDAP certificate before
+performing the test, because it uses the '-anonymous' flag. If you want to disable
+anonymous access to MDS, see the <a href="guide-configure.html#mds">configuration section</a>
+of this guide.</p>
+
+<p>If you have any questions, try the <a href="../mds/FAQ.html">MDS FAQ</a>.
+</p>
+
+
+<h2><a name="gridftp"></a>Testing GridFTP</h2>
+
+
+<p>Testing GridFTP consists of the following steps:<br>
+
+<ol>
+  <li><a href="#startftp">Start a GridFTP server</a></li>
+  <li><a href="#ftptest">Move a test file</a></li>
+</ol>
+
+<ol>
+  <li><a name="startftp"></a><b>Starting a GridFTP server</b> <p>In this section, you'll start
+    a GridFTP server running under the permissions of your user certificate.</p>
+    <p>First, create a proxy: </p>
+    <pre>     % grid-proxy-init -verify -debug</pre>
+    <p>Then start the GridFTP server as yourself: </p>
+    <pre>     % $GLOBUS_LOCATION/sbin/in.ftpd -S -p 5678</pre>
+    <p>The <code>-S</code>  flag leaves the daemon in the background and the <code>-p</code> 
+    flag specifies
+    port. If that port is already in use, you can try another.&nbsp; You also
+    need to create ~/.gridmap, and add an entry with your subject (which was
+    output by the grid-proxy-init step) and username, as follows: </p>
+    <p>&nbsp;&nbsp;&nbsp; &quot;/O=Grid/O=Globus/OU=your.domain/CN=Your
+    Name&quot;&nbsp;&nbsp;&nbsp; your-account </p>
+    <p>In the future, you will <strong>not</strong> be starting the in.ftpd daemon by hand.
+    Follow the instructions in the next section to add it to inetd/xinetd.</p>
+  </li>
+  <li><a name="ftptest"></a><b>Moving a test file</b> <p>Now, create a file named <code>/tmp/file1</code>,
+    and run the following command: </p>
+    <pre>% globus-url-copy -s &quot;`grid-cert-info -subject`&quot; \
+    gsiftp://localhost:5678/tmp/file1 \
+    file:///tmp/file2</pre>
+    <p>Check to make sure that /tmp/file2 now exists.&nbsp; Note that the -s flag is being
+    used because the GridFTP server is running under your user proxy.&nbsp; In general, this
+    is not required when transferring to/from a host-based GridFTP server.  To repeat more
+    strongly: if you are using a real gridftp server, started by inetd/xinetd, do <strong>not</strong>
+    use the -s flag.  You <strong>only</strong> need that to work with a server started as a
+    user, which is <strong>not</strong> the normal case.</p>
+  </li>
+</ol>
+
+
+<p><a href="index.html">Back to Index</a> </p>
+
+<hr>
+
+<address>
+  <a href="mailto:bacon@mcs.anl.gov">Charles Bacon</a>
+</address>
+<!-- Created: Fri Feb 22 14:31:12 CST 2002 -->
+<!-- hhmts start -->
+
+<p>Last modified: Mon Feb 24 11:15:36 CDT 2003 <!-- hhmts end --> 
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
+

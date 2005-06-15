@@ -1,0 +1,196 @@
+<?php
+
+$title = "Globus 2.4 Admin Error FAQ";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+
+<h1 class="first"><a name="errors"></a> <?php echo $title; ?></h1>
+
+<p>The purpose of this document is to outline common errors encountered after the
+installation and setup of the Globus Toolkit(tm) 2.4.</p>
+
+
+<ol>
+  <li><a href="#twelve"><code>GRAM Job Submission failed because the connection to the server
+    failed (check host and port) (error code 12)</code></a></li>
+  <li><a href="#library"><code>error in loading shared libraries</code></a></li>
+  <li><a href="#authentication"><code>GRAM Job submission failed because authentication with
+    the remote server failed (error code 7)</code></a></li>
+  <li><a href="#expected"><code>GRAM Job submission failed because authentication failed:
+    Expected target subject name=&quot;/CN=host/hostname&quot;</code><br>
+    <code>Target returned subject name=&quot;/O=Grid/O=Globus/CN=hostname.domain.edu&quot;
+    (error code 7)</code></a></li>
+  <li><a href="#proxy"><code>Problem with local credentials no proxy credentials: run
+    grid-proxy-init or wgpi first</code></a></li>
+  <li><a href="#time"><code>GRAM Job submission failed because authentication failed: remote
+    side did not like my creds for unknown reason</code></a></li>
+  <li><a href="#stdout"><code>GRAM Job submission failed because the job manager failed to
+    open stdout (error code 73)</code></a></li>
+  <li><a href="#rsl"><code>GRAM Job submission failed because the provided RSL string includes
+    variables that could not be identified (error code 39)</code></a></li>
+</ol>
+
+<ol>
+  <li><a name="twelve"><code>GRAM Job Submission failed because the connection to the server
+    failed (check host and port) (error code 12)</code></a><h2>Diagnosis</h2>
+    <p>Your client is unable to contact the gatekeeper specified. Possible causes include: <ul>
+      <li>The gatekeeper is not running<br>
+      </li>
+      <li>The host is not reachable.<br>
+      </li>
+      <li>The gatekeeper is on a non-standard port<br>
+      </li>
+    </ul>
+    <h2>Solution</h2>
+    <p>Make sure the gatekeeper is being launched by inetd or xinetd. Review <a href="admin/guide-startup.html#gram">the
+        Admin Guide</a> if you do not
+    know how to do this. Check to make sure that ordinary TCP/IP connections are possible; can
+    you ssh to the host, or ping it? If you cannot, then you probably can't submit jobs
+    either. Check for typos in the hostname.</p>
+    <p>Try telnetting to port 2119. If you see a &quot;Unable to load shared library&quot;,
+    the gatekeeper was not built statically, and does not have an appropriate LD_LIBRARY_PATH
+    set. If that is the case, either rebuild it statically, or set the environment variable
+    for the gatekeeper. In inetd, use /usr/bin/env to wrap the launch of the gatekeeper, or in
+    xinetd, use the &quot;env=&quot; option.</p>
+    <p>Check the $GLOBUS_LOCATION/var/globus-gatekeeper.log if it exists. It may tell you that
+    the private key is insecure, so it refuses to start. In that case, fix the permissions of
+    the key to be read only by the owner.</p>
+    <p>If the gatekeeper is on a non-standard port, be sure to use a contact string of
+    host:port.</p>
+    <p><a href="#errors">Back to top</a></p>
+    <hr>
+  </li>
+  <li><a name="library"><code>error in loading shared libraries</code></a><h2>Diagnosis</h2>
+    <p><code>LD_LIBRARY_PATH</code> is not set. </p>
+    <h2>Solution</h2>
+    <p>If you receive this as a client, make sure to read in either
+    $GLOBUS_LOCATION/etc/globus-user-env.sh (if you are using a Bourne-like shell) or
+    $GLOBUS_LOCATION/etc/globus-user-env.csh (if you are using a C-like shell)</p>
+    <p><a href="#errors">Back to top</a></p>
+    <hr>
+  </li>
+  <li><a name="authentication"><code>GRAM Job submission failed because authentication with
+    the remote server failed (error code 7)</code></a><h2>Diagnosis</h2>
+    <p>Check the $GLOBUS_LOCATION/var/globus-gatekeeper.log on the remote server. You will
+    probably see something like:</p>
+    <p><code>Authenticated globus user: /O=Grid/O=Globus/OU=your.domain/OU=Your Name<br>
+    Failure: globus_gss_assist_gridmap() failed authorization. rc =1</code> </p>
+    <h2>Solution</h2>
+    <p>This indicates that your account is not in the grid-mapfile. Create the grid-mapfile in
+    /etc/grid-security (or wherever the -gridmap flag in
+    $GLOBUS_LOCATION/etc/globus-gatekeeper.conf points to) with an entry pairing your subject
+    name to your user name. Review <a href="admin/guide-startup.html#gram">the
+    Admin Guide</a> if you do not know how to do this.</p>
+    <p><a href="#errors">Back to top</a></p>
+    <hr>
+  </li>
+  <li><a name="expected"><code>GRAM Job submission failed because authentication failed:
+    Expected target subject name=&quot;/CN=host/hostname&quot;</code><br>
+    <code>Target returned subject name=&quot;/O=Grid/O=Globus/CN=hostname.domain.edu&quot;
+    (error code 7)</code></a><h2>Diagnosis</h2>
+    <p>New installations will often see errors like the above where the expected target
+    subject name has just the unqualified hostname but the target returned subject name has
+    the fully qualified domain name (e.g. expected is &quot;hostname&quot; but returned is
+    &quot;hostname.domain.edu&quot;).</p>
+    <p>This is usually becuase the client looks up the target host's IP address in /etc/hosts
+    and only gets the simple hostname back. </p>
+    <h2>Solution</h2>
+    <p>The solution is to edit the /etc/hosts file so that it returns the fully qualified
+    domain name. To do this find the line in /etc/hosts that has the target host listed and
+    make sure it looks like:</p>
+    <p><code>xx.xx.xx.xx hostname.domain.edu hostname</code></p>
+    <p>Where &quot;xx.xx.xx.xx&quot; should be the numeric IP address of the host and
+    hostname.domain.edu should be replaced with the actual hostname in question. The trick is
+    to make sure the full name (hostname.domain.edu) is listed before the nickname (hostname).</p>
+    <p>If this only happens with your own host, see the explanation of the <a href="#stdout">failed
+    to open stdout</a> error, specifically about how to set the <code>GLOBUS_HOSTNAME</code>
+    for your host.</p>
+    <p><a href="#errors">Back to top</a></p>
+    <hr>
+  </li>
+  <li><a name="proxy"><code>Problem with local credentials no proxy credentials: run
+    grid-proxy-init or wgpi first</code></a><h2>Diagnosis</h2>
+    <p>You do not have a valid proxy.</p>
+    <h2>Solution</h2>
+    <p>Run grid-proxy-init</p>
+    <p><a href="#errors">Back to top</a></p>
+    <hr>
+  </li>
+  <li><a name="time"><code>GRAM Job submission failed because authentication failed: remote
+    side did not like my creds for unknown reason</code></a><h2>Diagnosis</h2>
+    <p>Check the $GLOBUS_LOCATION/var/globus-gatekeeper.log on the remote host. It probably
+    says &quot;remote certificate not yet valid&quot;. This indicates that the client host has
+    a date set greater than five minutes in the future relative to the remote host.</p>
+    <p>Try typing &quot;date -u&quot; on both systems at the same time to verify this. (The
+    &quot;-u&quot; specifies that the time should be displayed in universal time, also known
+    as UTC or GMT.) </p>
+    <h2>Solution</h2>
+    <p>Ultimately, synchronize the hosts using NTP. Otherwise, unless you are willing to set
+    the client host date back, you will have to wait until the remote server believes that
+    your proxy is valid. Also, be sure to check your shell environment to see if you have any
+    time zone variables set.</p>
+    <p><a href="#errors">Back to top</a></p>
+    <hr>
+  </li>
+  <li><a name="stdout"><code>GRAM Job submission failed because the job manager failed to open
+    stdout (error code 73)</code></a><h2>Diagnosis</h2>
+    <p>The remote job manager is unable to open a connection back to your client host.
+    Possible causes include: <ul>
+      <li>Bad results from globus-hostname. Try running globus-hostname on your client. It should
+        output the fully qualified domain name of your host. This is the information which the
+        GRAM client tools use to let the jobmanager on the remote server know who to open a
+        connection to. If it does not give a fully qualified domain name, the remote host may be
+        unable to open a connection back to your host.</li>
+      <li>A firewall. If a firewall blocks the jobmanager's attempted connection back to your
+        host, this error will result.</li>
+      <li>Troubles in the ~/.globus/.gass_cache on the remote host. This is the least frequent
+        cause of this error. It could relate to NFS or AFS issues on the remote host.</li>
+    </ul>
+    <h2>Solution</h2>
+    <p>Depending on the cause from above, try the following solutions: <ul>
+      <li>Fix the result of 'hostname' itself. You can accomplish this by editing /etc/hosts and
+        adding the fully qualified domain name of your host to this file. See how to do this in
+        the explanation of the <a href="#expected">expected target subject</a> error. If you
+        cannot do this, or do not want to do this, you can set the <code>GLOBUS_HOSTNAME</code>
+        environment variable to override the result of globus-hostname. Set <code>GLOBUS_HOSTNAME</code>
+        to the fully qualified domain name of your host.</li>
+      <li>To cope with a firewall, use the <code>GLOBUS_TCP_PORT_RANGE</code> environment
+        variable. If your host is behind a firewall, set <code>GLOBUS_TCP_PORT_RANGE</code> to the
+        allowable incoming connections on your firewall. If the firewall is in front of the remote
+        server, you will need the remote site to set <code>GLOBUS_TCP_PORT_RANGE</code> in the
+        gatekeeper's environment to the allowable incoming range of the firewall in front of the
+        remote server. If there are firewalls on both sides, perform both of the above steps. Note
+        that the allowable ranges do not need to coincide on the two firewalls; it is, however,
+        necessary that the <code>GLOBUS_TCP_PORT_RANGE</code> be valid for both incoming and
+        outgoing connections of the firewall it is set for.</li>
+      <li>If you are working with AFS, you will want the .gass_cache directory to be a link to a
+        local filesystem. If you are having NFS trouble, you will need to fix it, which is beyond
+        the scope of this document.</li>
+    </ul>
+    <p><a href="#errors">Back to top</a></p>
+    <hr>
+  </li>
+  <li><a name="rsl"><code>GRAM Job submission failed because the provided RSL string includes
+    variables that could not be identified (error code 39)</code></a><h2>Diagnosis</h2>
+    <p>You submitted a job which specifies an RSL substitution which the remote jobmanager
+    does not recognize. The most common case is using a 2.x version of
+    globus-job-get-output with a 1.1.x gatekeeper/jobmanager.</p>
+    <h2>Solution</h2>
+    <p>Currently, globus-job-get-output will not work between a 2.x client and a 1.1.x
+    gatekeeper. Work is in progress to ensure interoperability by the final release. In the
+    meantime, you should be able to modify the globus-job-get-output script to use
+    $(GLOBUS_INSTALL_PATH) instead of $(GLOBUS_LOCATION).</p>
+    <p><a href="#errors">Back to top</a></p>
+    <hr>
+    <address>
+      <a href="mailto:bacon@mcs.anl.gov">Charles Bacon</a> 
+    </address>
+    <p><!-- Created: Fri Feb  8 11:28:44 CST 2002 --> <!-- hhmts start --> Last modified: Fri Feb 8 17:23:50 CST 2002 <!-- hhmts end --> </p>
+  </li>
+</ol>
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
+

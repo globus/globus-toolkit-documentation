@@ -1,0 +1,195 @@
+<?php
+
+$title = "Advanced Globus 2.4 Configuration";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+<p>These instructions will show you how to configure the various server daemons beyond the
+default configuration. </p>
+
+<ul>
+  <li><a href="#gram">Configuring GRAM</a></li>
+  <li><a href="#mds">Configuring MDS</a></li>
+  <li><a href="#gridftp">Configuring GridFTP</a></li>
+</ul>
+<h2><a name="gram"></a>Configuring GRAM</h2>
+
+
+<p>Advanced configuration of GRAM consists of the following tasks: 
+
+<ol>
+  <li><a href="#jobmanager">Adding jobmanagers</a></li>
+  <li><a href="#addca">Adding trust to a new CA/removing trust from an old CA</a></li>
+  <li><a href="#ca">Starting your own CA</a></li>
+  <li><a href="#gram-reporter">Adding gram-reporter</a></li>
+</ol>
+
+<ol>
+  <li><a name="jobmanager"><b>Adding jobmanagers</b></a><br>
+    <p>The fork job manager scheduler package is the only one included in the Resource
+    Management service bundle.&nbsp; It will be installed when running gpt-postinstall.&nbsp;
+    Additional schedulers can be added by installing the job manager setup package for your
+    scheduler.&nbsp; Look for the one appropriate to your scheduler on the <a
+    href="../download.html">download</a> page.&nbsp; To install it, run &quot;gpt-install
+    &lt;scheduler-setup-packages&gt;&quot;, then &quot;gpt-postinstall&quot;.</p>
+    <p>The first job manager scheduler package installed will be installed as the default job
+    manager service (e.g. $GLOBUS_LOCATION/grid-services/jobmanager).&nbsp; Additional job
+    manager scheduler packages installed will be installed using the convention
+    &quot;jobmanager-&lt;scheduler-name&gt;&quot; (e.g.
+    $GLOBUS_LOCATION/grid-services/jobmanager-pbs).</p>
+    <p>All job manager scheduler setup packages have the argument &quot;-service-name
+    &lt;name&gt;&quot; in order to install a non-fork scheduler as the default job manager
+    service.&nbsp; For example, this command will set the pbs scheduler as the default job
+    manager service:</p>
+    <p>&nbsp; % setup-globus-job-manager-pbs -service-name jobmanager</p>
+    <p>If you need to alter the behavior of the job manager scheduler interface, or you want
+    to create a new job manager scheduler interface for a scheduler that is not available, see
+    this <a
+    href="http://www-unix.globus.org/api/c-globus-2.2/globus_gram_job_manager/html/index.html">tutorial
+    </a>web page.</p>
+    <p>The details of how to make a client submit to a non-default gatekeeper is covered in
+    the <a href="guide-user.html">user's guide section</a>.</p>
+    <p><b>Note:</b> If you wish to have your job manager report into your MDS, you need to
+    install the appropriate GRAM Reporter setup package for your scheduler.&nbsp; The GRAM
+    Reporter setup packages for each scheduler can be found on the <a href="../../../downloads/2.4.3/">download</a>
+    page.</p>
+  </li>
+  <li><a name="ca"><b>Adding trust to a new CA/removing trust from an old CA</b></a><br>
+    <p>The set of trusted Certificate Authorities is contained in the <code>/etc/grid-security/certificates</code>
+    directory. By default, that directory contains two entries. One, called <code>42864e48.0</code>
+    is the public certificate of the Globus CA. The other, called <code>42864e48.signing_policy</code>
+    is the signing policy for the Globus CA certificate.</p>
+    <p>The name &quot;42864e8&quot; comes from the openssl <code>-hash</code> option. If you
+    create your own Certificate Authority, you can use the command <code>openssl x509 -in
+    yourcert.pem -noout -hash</code> to determine its hash value. You will need to place a
+    copy of that public certificate, under the name <code>hash.0</code> (where
+    &quot;hash&quot; corresponds to the output of the openssl command) in the <code>/etc/grid-security/certificates</code>
+    of every Toolkit installation which you want to trust certificates which your CA has
+    signed. Additionally, you will have to create a <code>hash.signing_policy</code> file
+    which contains the DN of your CA, as well as the namespace for which your CA signs.</p>
+    <p>Namespaces for CAs are designed to be unique. If you do establish your own CA, do not
+    use the &quot;/O=Grid/O=Globus&quot; namespace. That is reserved for the Globus CA.</p>
+    <p>Removing trust for a particular CA is as easy as deleting the two files which
+    correspond to the CA. First, look for the <code>.signing_policy</code> which corresponds
+    to the CA you want to remove. Then remove both the <code>.signing_policy</code> and <code>.0</code>
+    file that correspond to that hash.</p>
+  </li>
+  <li><a name="ca"></a><b>Starting your own CA
+    </b>
+    <p>There is now a Globus package named <a
+    href="../gsi/simple-ca.html">Simple CA</a> which is designed to
+    help you establish a CA for your test Grid.
+    <p></li>
+  <li><a name="gram-reporter"></a><b>Adding gram-reporter
+    </b>
+    <p>If you installed the "All" or "All Server" binary bundles, the gram-reporter package was installed for 
+    you, since it was known at install time that you had both GRAM and MDS.  gram-reporter publishes jobmanager
+    information into MDS.&nbsp;</p>
+    <p>To enable gram-reporter, you need to install the globus-gram-reporter
+    package plus one jobmanager-specific setup package.&nbsp; You also need to
+    edit the globus-job-manager.conf file to add the &quot;-publish-jobs&quot;
+    and &quot;-job-reporting-dir&quot; options, as described in <a href="http://www-unix.globus.org/api/c-globus-2.2/globus_gram_job_manager/html/index.html">
+    the GRAM jobmanager documentation</a>.&nbsp; The jobmanager will output
+    status files to the -job-reporting-dir, which gram-reporter will read and
+    publish into MDS.  </p>
+  </li>
+
+</ol>
+
+
+<h2><a name="mds"></a>Configuring MDS</h2>
+
+
+<p>Advanced configuration of MDS consists of the following tasks: </p>
+
+<ol>
+  <li><a href="#anon">Deciding whether or not to allow anonymous access</a></li>
+  <li><a href="#register">Configuring which GIISes a particular GRIS will report to</a></li>
+  <li><a href="#policy">Configuring which GRISes a particular GIIS allows to report to it</a></li>
+  <li><a href="#hierarchy">Configuring a hierarchical GIIS</a></li>
+  <li><a href="#provider">Adding new information providers</a></li>
+</ol>
+
+<ol>
+  <li><a name="anon"></a><b>Deciding whether or not to allow anonymous access</b> <p>The file <code>$GLOBUS_LOCATION/etc/grid-info-slapd.conf</code>
+    contains the lines which allow or disallow anonymous binding to the GRIS and GIIS. By
+    default, it is configured to allow anonymous access to both. If you want non-anonymous
+    access, you will need to acquire an LDAP certificate.</p>
+    <p>The lines you need to change are the <code>anonymousbind</code> options. By default,
+    they say <code>yes</code>. Change this to <code>no</code> to disable anonymous access. You
+    will now need a separate authorization file called <code>$GLOBUS_LOCATION/etc/grid-mapfile</code>.
+    It has the same syntax as the GRAM grid-mapfile, mapping from certificate subjects to
+    usernames.</p>
+  </li>
+  <li><a name="register"></a><b>Configuring which GIISes a particular GRIS will report to</b> <p>The
+    file <code>$GLOBUS_LOCATION/etc/grid-info-resource-register.conf</code> contains a list of
+    registrations. Each entry specifies a GRIS with the &quot;reghn, regport&quot;
+    information, and a GIIS for that GRIS to report into with the &quot;hn, port&quot;
+    entries. The full syntax is listed in the <a href="guide-files.html">guide to
+    configuration files</a>.</p>
+    <p>By default, this file is configured to have the local GRIS report into the local GIIS.
+    Be aware that a GIIS has a configuration file which tells it which registrations to
+    accept. If you add reporting from a GRIS to a GIIS, you must also configure the GIIS to
+    accept the registration from the GRIS.</p>
+  </li>
+  <li><a name="policy"><b>Configuring which GRISes a particular GIIS allows to report to it</b></a>
+    <p>The file <code>$GLOBUS_LOCATION/etc/grid-info-site-policy.conf</code> controls the
+    acceptance of registration messages by a GIIS. The default is for the GIIS to accept
+    registrations only from itself, and from port 2135. This file must be modified from the
+    default to accept outside GRISes, as well as in a hierarchical GIIS environment. </p>
+  </li>
+  <li><a name="hierarchy"><b>Configuring a hierarchical GIIS</b></a> <p>See the <a
+    href="../mds/hierarchical_GIIS.pdf">Hierarchical GIIS</a> PDF for details. You will need to
+    add a registration from your local GIIS to a remote GIIS, as well as configuring the
+    remote GIIS to accept your registration.</p>
+  </li>
+  <li><a name="provider"><b>Adding an information provider</b></a> <p>The GRIS comes
+    configured to provide information about basic machine resources, like memory, disk space,
+    and networking. You may wish to have the GRIS provide some more application-specific
+    information, or other information which your virtual organization decides to publish about
+    its machines.</p>
+    <p>See the MDS web pages for a discussion of how to <a
+    href="../mds/GRISDiscussion.html">add a provider</a>.</p>
+  </li>
+</ol>
+
+
+<h2><a name="gridftp"></a>Configuring Grid-FTP</h2>
+
+
+<p>Advanced configuration of GridFTP consists of the following tasks: 
+
+<ol>
+  <li><a href="#tpt">Enabling third-party transfer</a></li>
+</ol>
+
+<ol>
+  <li><a name="tpt"></a><strong>Enabling third-party transfer</strong>    
+    <p>Enabling third party transfers
+    involved editing $GLOBUS_LOCATION/etc/ftpaccess file to add the lines</p>
+    <pre>
+     	port-allow all 0.0.0.0/0
+     	pasv-allow all 0.0.0.0/0
+     </pre>
+    <p>on both sides of the third-party connection.</p>
+  </li>
+</ol>
+
+
+<address>
+  <a href="mailto:bacon@mcs.anl.gov">Charles Bacon</a> 
+</address>
+<!-- Created: Fri Feb 22 11:31:30 CST 2002 -->
+<!-- hhmts start -->
+
+<p>Last modified: Thu Apr 24 10:15:09 CDT 2002 <!-- hhmts end --> 
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
