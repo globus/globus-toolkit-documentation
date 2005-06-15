@@ -1,0 +1,495 @@
+#! /bin/sh
+
+#
+# This shell script installs the Tru64 core info providers for MDS
+# over an existing GTK 2.0 installation.
+#
+
+ProgName=`basename $0`
+
+echo "[${ProgName} rev 1.1]"
+echo ""
+
+if [ -z "$1" -a -z "${GLOBUS_LOCATION}" ]; then
+	echo "Usage: ${ProgName} [ <GLOBUS_LOCATION> ]"			>&2
+	exit 1
+fi
+
+if [ -z "${GLOBUS_LOCATION}" ]; then
+	GLOBUS_LOCATION="$1"
+fi
+export GLOBUS_LOCATION
+
+GLIBEXEC="${GLOBUS_LOCATION}/libexec"
+GETC="${GLOBUS_LOCATION}/etc"
+
+if [ ! -d "${GLIBEXEC}" ]; then
+	echo "Error: ${GLIBEXEC}: no such directory"			>&2
+	exit 1
+fi
+
+cd "$GLIBEXEC"
+
+#
+# Are you sure...
+YesNo=
+while [ -z "$YesNo" ]; do
+	echo "Install Tru64 MDS info providers at $GLOBUS_LOCATION? [Yes] \c"
+	read YesNo
+	case "$YesNo" in
+	    ""|[YTyt]*)
+		YesNo=Yes
+		;;
+	    [NFnf]*)
+		echo "${ProgName}: no actions performed, exiting..."	>&2
+		exit 0
+		;;
+	    *)
+		echo "  Please answer \"(Y)es\" or \"(N)o\"..."
+		echo ""
+		YesNo=
+		;;
+	esac
+done
+
+TARGET=grid-info-cpu-tru64
+echo "Installing \"$TARGET\"... \c"
+rm -f $TARGET
+cat << 'GridInfoCPU' >$TARGET
+#! /bin/ksh
+
+#
+# default libexecdir used to bootstrap scripts
+libexecdir=${GLOBUS_LOCATION}/libexec
+
+#
+# load GRIS CPU common code and initialization
+. ${libexecdir}/grid-info-cpu-common
+
+#########################################################################
+
+#
+# cpuinfo command and its location.
+cpuinfocmd=grid-info-cpu-tru64.exe
+cpuinfodir=${localstatedir}
+cpuinfosrc=${cpuinfodir}/cpuinfo-tru64-$$.c
+cpuinfo=${cpuinfodir}/${cpuinfocmd}
+
+_probe_cache_tmp=${localstatedir}/cpu-cache-$$.tmp
+
+# set mode for cache file
+umask 077
+
+cleanup ()
+{
+	rm -f "$_probe_cache_tmp" "${cpuinfosrc}"
+}
+
+trap cleanup 0
+
+cleanup
+
+buildcpuinfo ()
+{
+	oumask=`umask`
+	umask 077
+	cat > "${cpuinfosrc}" <<'EOF'
+#include <stdio.h>
+
+#include <sys/sysinfo.h>
+#include <sys/table.h>
+
+#include <machine/hal_sysinfo.h>
+
+const char *vendor = "Compaq Computer Corporation";
+
+const char *getcpuname(unsigned long, const char **minor);
+int dotable(int, unsigned long *, int *, unsigned long *);
+
+/*
+ * Usage: cpuinfo-tru64
+ *
+ * Do some table(2) and getsysinfo(2) in order to acquire information
+ * about the CPUs installed on this machine.  Return results as shell
+ * variable assignments suitable for "eval".  Variables assigned are:
+ *
+ *	_cpu_<N>_vendor		CPU vendor ('vendor' string)
+ *	_cpu_<N>_model		CPU model (EV6, EV7, etc.)
+ *	_cpu_<N>_version	CPU version (chip "pass" number)
+ *	_cpu_<N>_speed		CPU speed in MHz
+ *	_cpu_<N>_l2cache_size	Size of L2 cache in MBs (if available)
+ *	_cpu_count		Number of CPUs
+ *	_cpu_free1		1 minute load average
+ *	_cpu_free5		5 minute load average
+ *	_cpu_free15		15 minute load average
+ *
+ * Where <N> starts at "0" and is incremented for each additional CPU.
+ *
+ * Always exits with 0 (success).
+ */
+int
+main(int argc, char *argv[])
+{
+	struct cpu_info c;
+	struct tbl_loadavg loadtab;
+	unsigned long runmask;
+	const char *cname, *mname;
+	int ci, slot, actmhz;
+	unsigned long cpu, actcpu, actcsz;
+
+	/* Get "default" cpu type */
+	cpu = 0;
+	ci = 0;
+	(void)getsysinfo(GSI_PROC_TYPE, (caddr_t)&cpu, sizeof(cpu), NULL, NULL);
+
+	/* Read in the 'cpu_info' structure */
+	if (getsysinfo(GSI_CPU_INFO, (caddr_t)&c, sizeof(c), NULL, NULL) > 0) {
+		slot = 0;
+
+		/* only report on running CPUs */
+		for (runmask = c.cpus_running; runmask; runmask >>= 1, slot++)
+			if (runmask & 0x1) {
+				if (!dotable(slot, &actcpu, &actmhz, &actcsz)) {
+					actmhz = c.mhz;
+					actcpu = cpu;
+					actcsz = 0;
+				}
+				cname = getcpuname(actcpu, &mname);
+				printf("_cpu_%d_vendor=\"%s\"\n", ci, vendor);
+				printf("_cpu_%d_model=\"%s\"\n", ci, cname);
+				printf("_cpu_%d_version=\"%s\"\n", ci, mname);
+				printf("_cpu_%d_speed=\"%d\"\n", ci, actmhz);
+				if (actcsz != 0)
+					printf("_cpu_%d_l2cache_size=\"%ld\"\n",
+						ci, actcsz / 1024);
+				ci++;
+			}
+		printf("_cpu_count=\"%d\"\n", ci);
+	}
+
+	/* Read load average, result is integer normalized across CPUs. */
+	if (table(TBL_LOADAVG, 0, &loadtab, 1, sizeof loadtab) >= 0) {
+		slot = 100 * ci -
+			100 * loadtab.tl_avenrun.l[0] / loadtab.tl_lscale;
+		printf("_cpu_free1=\"%d\"\n", slot > 0? slot: 0);
+		slot = 100 * ci -
+			100 * loadtab.tl_avenrun.l[1] / loadtab.tl_lscale;
+		printf("_cpu_free5=\"%d\"\n", slot > 0? slot: 0);
+		slot = 100 * ci -
+			100 * loadtab.tl_avenrun.l[2] / loadtab.tl_lscale;
+		printf("_cpu_free15=\"%d\"\n", slot > 0? slot: 0);
+	}
+
+	return 0;
+}
+
+/*
+ * getcpuname(cpu) - return CPU name that corresponds to 'cpu'.
+ */
+const char *
+getcpuname(unsigned long cpu, const char **minor)
+{
+	static char cpubuf[64];
+	static char minorbuf[64];
+	static char *cpus[] = {
+		NULL, "EV3", "EV4 (21064)",
+		NULL, "LCA", "EV5 (21164)",
+		"EV4/5 (21064A)", "EV5/6 (21164A)", "EV6 (21264)",
+		"PCA56 (21164PC)", "PCA57 (21164PC)", "EV6/7 (21264A)",
+		"EV6/8-CB (21264C)", "EV6/8-AF (21264B)", "EV6/8-CX (21264D)",
+		"EV7 (21364)", "EV79 (21364A)", "EV69 (21264/EV69A)"
+	};
+
+	sprintf(minorbuf, "%lu", cpu >> 32);
+	*minor = minorbuf;
+
+	cpu &= 0xffffffffL;
+	if (cpu < 0 || cpu >= sizeof(cpus) || cpus[cpu] == NULL) {
+		sprintf(cpubuf, "unknown (type %lu)", cpu);
+		return cpubuf;
+	}
+
+	return cpus[cpu];
+}
+
+/*
+ * dotable() - return cpu type, speed and cache size using table(2).
+ *
+ * Use table(TBL_PROCESSOR_INFO) to gather information about a specific
+ * processor.  Older systems do not provide the data we are interested
+ * in so use a heuristic to determine whether the result is useful.
+ *
+ * Return 1 on success, 0 on failure.
+ */
+int
+dotable(int slot, unsigned long *cpup, int *mhzp, unsigned long *cszp)
+{
+#ifdef	TBL_PROCESSOR_INFO
+	struct my_tbl_processor {
+		long _junk1[4];
+		struct timeval junk2[2];
+		int mhz;
+		int _junk3;
+		unsigned long num_cache_bytes;
+		unsigned long type;
+		long _junk5[47];
+	} proctab;
+
+	/*
+	 * Initialize 'proctab.type' to zero.  If it changes, then the
+	 * the fields we are interested in are valid.  Otherwise, go
+	 * with the defaults.
+	 */
+	proctab.type = 0;
+	if (table(TBL_PROCESSOR_INFO, slot, &proctab, 1, sizeof proctab) < 0)
+		return 0;
+	if (proctab.type == 0)
+		return 0;
+
+	*cpup = proctab.type;
+	*mhzp = proctab.mhz;
+	*cszp = proctab.num_cache_bytes;
+	return 1;
+#else
+	return 0;
+#endif
+}
+EOF
+	cc -O "${cpuinfosrc}" -o "${cpuinfo}_$$" >/dev/null 2>&1
+	rm -f "${cpuinfosrc}"
+
+	#
+	# If compilation unsuccessful, touch target so we dont try again.
+	if [ ! -x "${cpuinfo}_$$" ]; then
+		rm -f "${cpuinfo}_$$"
+		touch "${cpuinfo}_$$"
+	fi
+
+	#
+	# Set executable to mode 755 and atomically drop it in place.
+	# The forced move is in case an old executable is running; it
+	# can still fail on a race, but that's okay as a new version
+	# just got installed ahead of us.
+	chmod 755 "${cpuinfo}_$$"
+	mv -f "${cpuinfo}_$$" "${cpuinfo}" 2>/dev/null
+}
+
+report_resource_cpu ()
+{
+	#
+	# First time through, we need to build ${cpuinfo}.
+	if [ ! -e "${cpuinfo}" ]; then
+		buildcpuinfo
+	fi
+
+	#
+	# If build was successful, run executable and set up shell vars.
+	if [ -x "${cpuinfo}" ]; then
+		if [ ! "X${_probe_cache}" = "X" ]; then
+			"${cpuinfo}" > "${_probe_cache_tmp}" 2>/dev/null
+			mv "${_probe_cache_tmp}" "${_probe_cache}" 2>/dev/null
+			eval `cat ${_probe_cache}`
+		else
+			eval `"${cpuinfo}"`
+		fi
+	else
+		ldap_shell_log_error "$0: ${cpuinfocmd} compilation failed."
+		return 1
+	fi
+
+	emit_resource_cpu_descriptions
+	return 0
+}
+
+#############
+# do the work
+report_resource_cpu
+GridInfoCPU
+
+chmod 755 $TARGET
+TARGET=grid-info-mem-tru64
+echo "done.\nInstalling \"$TARGET\"... \c"
+rm -f $TARGET
+cat << 'GridInfoMEM' >$TARGET
+#! /bin/ksh
+
+# default libexecdir used to bootstrap scripts
+libexecdir=${GLOBUS_LOCATION}/libexec
+
+# load GRIS CPU common code and initialization
+. ${libexecdir}/grid-info-mem-common
+
+#########################################################################
+
+probe_resource_mem ()
+{
+	( /usr/bin/vmstat -s ; /usr/sbin/swapon -s ) 2>/dev/null |	\
+	{
+		eval `awk '						\
+		   BEGIN { pgsz=8192; totswap=0 }			\
+		      $1 == "Virtual" { pgsz=$6 }			\
+		      $2 == "active" && $3 == "pages" { active=$1 }	\
+		      $2 == "inactive" && $3 == "pages" { inactive=$1 }	\
+		      $2 == "free" && $3 == "pages" { free=$1 }		\
+		      $2 == "wired" && $3 == "pages" { wired=$1 }	\
+		      $1 == "Total" && $2 == "swap" { totswap=1 }	\
+		      totswap == 1 && $1 == "Allocated" { swalloc=$3 }	\
+		      totswap == 1 && $1 == "Available" { swavail=$3 }	\
+		   END { pgsz=pgsz/1024;				\
+		      printf "_mem_size_mbytes=%u ",			\
+		         (active+inactive+free+wired) * pgsz / 1024;	\
+		      printf "_mem_free_mbytes=%u ",			\
+		         (inactive+free) * pgsz / 1024;			\
+		      printf "_vm_size_mbytes=%u ", swalloc * pgsz / 1024; \
+		      printf "_vm_free_mbytes=%u", swavail * pgsz / 1024; \
+		}'`
+
+		# run this in initialized subshell environment
+		emit_resource_mem_descriptions
+	}
+}
+
+#############
+# do the work
+probe_resource_mem
+GridInfoMEM
+
+chmod 755 $TARGET
+TARGET=grid-info-net-tru64
+echo "done.\nInstalling \"$TARGET\"... \c"
+rm -f $TARGET
+cat << 'GridInfoNET' >$TARGET
+#! /bin/ksh
+
+# default libexecdir used to bootstrap scripts
+libexecdir=${GLOBUS_LOCATION}/libexec
+
+# load GRIS common code and initialization
+. ${libexecdir}/grid-info-net-common
+
+#########################################################################
+
+probe_resource_net ()
+{
+    ${GLOBUS_SH_NETSTAT-netstat} -in | \
+    {
+	i=0
+	read header
+	while read iface mtu netaddr ipaddr rest
+	do
+	    #
+	    # If CIDR format, set $netbits to network part, else set 0.
+	    netbits=0
+	    eval `echo "$netaddr" | \
+		sed -e 's,^,addr=",' -e 's,/," netbits=",' -e 's,$,",'`
+
+	    #
+	    # If $addr valid, append zeroed quads for IPv4 and
+	    # ensure that $netbits is set to something reasonable.
+	    # Else if not valid, just ignore it.
+	    case "$addr" in
+		*.*.*.*)
+		    :
+		    ;;
+		*.*.*)
+		    addr="${addr}.0"
+		    ;;
+		*.*)
+		    addr="${addr}.0.0"
+		    ;;
+		[12][0-9][0-9]|[0-9][0-9]|[0-9])
+		    addr="${addr}.0.0.0"
+		    ;;
+		*)
+		    # IPv6, link identifiers, etc... just ignore.
+		    continue
+		    ;;
+	    esac
+
+	    #
+	    # IPv4: if network part unknown, just cobble up something.
+	    if [ "$netbits" -eq 0 ]; then
+		case "$addr" in
+		    *.0.0.0)
+			netbits=8
+			;;
+		    *.0.0)
+			netbits=16
+			;;
+		    *.0)
+			netbits=24
+			;;
+		    *)
+			netbits=32
+			;;
+		esac
+	    fi
+
+	    #
+	    # Generate IPv4 hex netmask with $netbits leading 1s.
+	    # (commented out, since no one asks for this).
+#	    netmask=`dc <<EOF_dc
+#16o 4294967295 2 32 ${netbits} - ^ 1 - - p s.
+#EOF_dc
+#`
+	    eval "_net_${i}_name=${iface}"
+	    eval "_net_${i}_mtu=${mtu}"
+	    eval "_net_${i}_netaddr=\"${addr}\""
+	    eval "_net_${i}_netbits=\"${netbits}\""
+	    eval "_net_${i}_ipaddr=\"${ipaddr}\""
+	    case "$ipaddr" in
+		none) : ;;
+		*) i=`$EXPR $i + 1` ; ;;
+	    esac
+	done
+	_net_count=$i
+
+	# run this in initialized subshell environment
+	emit_resource_net_descriptions
+    }
+}
+
+#############
+# do the work
+probe_resource_net
+GridInfoNET
+
+chmod 755 $TARGET
+TARGET=grid-info-script-initializer
+echo "done.\nEditing \"$TARGET\"... \c"
+chmod u+rw $TARGET
+ed - $TARGET <<'GridInfoINIT'
+/^grid_info_cpu=/s/=.*/=grid-info-cpu-tru64/
+/^grid_info_mem=/s/=.*/=grid-info-mem-tru64/
+/^grid_info_fs=/s/=.*/=grid-info-fs-posix/
+/^grid_info_net=/s/=.*/=grid-info-net-tru64/
+/^GRID_INFO_SH_DF_POSIX_KB=/s,=.*,="/bin/df -k -t nonfs",
+w
+q
+GridInfoINIT
+
+TARGET=grid-info-resource-ldif.conf
+echo "done.\nEditing \"$TARGET\"... \c"
+cd "$GETC"
+chmod u+rw $TARGET
+ed - $TARGET <<'GridInfoLDIF'
+/^base: grid-info-cpu-/s/:.*/: grid-info-cpu-tru64/
+/^base: grid-info-mem-/s/:.*/: grid-info-mem-tru64/
+/^base: grid-info-fs-/s/:.*/: grid-info-fs-posix/
+/^base: grid-info-net-/s/:.*/: grid-info-net-tru64/
+w
+q
+GridInfoLDIF
+echo "done.\n"
+
+cat <<'EndOfMsg'
+Please (re)start your Openldap SLAPD server for these changes to
+take effect:
+
+   % $GLOBUS_LOCATION/sbin/SXXgris stop
+   % $GLOBUS_LOCATION/sbin/SXXgris start
+
+The Tru64 MDS information providers were successfully installed.
+EndOfMsg
+
+exit 0
