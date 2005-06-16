@@ -1,0 +1,149 @@
+<?php
+
+$title = "Globus Toolkit 1.1.3 Release Notes";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+<p>These notes provide information about the platforms on which release 1.1.3
+  has been tested, changes to the Globus Toolkit build and installation process,
+  known deficiencies, and common problems. </p>
+<p><i>Note: Release 1.1.3 requires a newer version of <a href="ftp://ftp.globus.org/pub/globus/OpenLDAP-1.2.7-globus-latest.tar.gz">OpenLDAP</a> than
+    was required by previous releases.</i> </p>
+<p>If you believe that this page is out of date or in need of an update, please <a href="../../support.html">contact
+    us</a>. </p>
+<h2>Tested Platforms</h2>
+<p>Release 1.1.3 of the Globus Toolkit has been tested on the following platforms
+  prior to release.</p>
+<table cellpspacing="0" border="0" cellpadding="4" width="100%">
+  <tbody>
+    <tr valign="top">
+      <td><ul>
+          <li>AIX 4.2.1 </li>
+          <li>Red Hat Linux 6.1 </li>
+          <li>IRIX 6.5</li>
+      </ul></td>
+      <td><ul>
+          <li>Solaris 7 </li>
+          <li>UNICOS/mk 2.0.4 (Cray T3E) </li>
+          <li>AIX 4.3.3 (IBM SP)</li>
+      </ul></td>
+    </tr>
+  </tbody>
+</table>
+<h2>Changes in the 1.1.3 Release</h2>
+<p>Release 1.1.3 introduces a number of important changes to the Globus Toolkit.
+  Changes to the build and installation procedures are described in detail in
+  the <a href="../../docs/1.1.3/globus_sag1.1.3.pdf">Globus Toolkit
+  1.1.3 System Administration Guide</a>.</p>
+<ol>
+  <li>The 1.1.3 release introduces a new model for deploying the MDS, in which
+    each resource runs a local GRIS (Grid Resource Information Service).&nbsp; The
+    GRIS is a specialized LDAP server. </li>
+  <li>When running globus-setup, you may elect to deploy your own MDS GIIS (Grid
+    Index Information Service).&nbsp; This service collects information from
+    multiple GRIS services (see above) and allows it to be searched. We believe
+    that most sites will want to setup a GIIS to serve as an organization-wide
+    information service. </li>
+  <li>The globus-setup procedure is now optional. The globus-setup procedure
+    is only necessary in the following situations.
+      <ul>
+        <li>You wish to use the old MDS deployment model</li>
+        <li>You wish to override the predefined defaults associated with the
+          GRIS (e.g. port number used, etc.).</li>
+        <li>You wish to specify a different CA for generating new certificates.</li>
+        <li>You wish to deploy an organization-wide GIIS server.</li>
+      </ul>
+  </li>
+  <li>The enrollment step in the install/deploy process has been eliminated.
+    There is no longer a need to enroll your site with the GUSTO testbed. </li>
+  <li>The number of deployed daemons has been reduced for most sites. </li>
+  <li>OpenLDAP should be configured with the options:<br>
+    --enable-slapd --enable-shell --disable-ldbm </li>
+  <li>When running the globus-local-deploy command, you will be asked if you
+    wish to register your site with the Globus Project. This registration is
+    for informational purposes only. If you answer "yes" to this question, your
+    site will be included in the Globus Project's list of installed sites. We
+    ask sites to register with us so that we may better understand the size and
+    composition of our user community and provide better service to you in the
+    future. Your answer to this question does not affect the way your system
+    operates in any way. <br>
+  </li>
+</ol>
+<h2><strong>Known Deficiencies</strong></h2>
+<blockquote>
+  <p><strong>IRIX</strong></p>
+  <p>When using the Globus Toolkit on IRIX systems, the sproc_mpi and pthreads_mpi
+    libraries are not built properly. We do not recommend using these libraries
+    on IRIX at this time. </p>
+</blockquote>
+<h2><strong>Common Problems</strong></h2>
+<blockquote>
+  <h3>Interoperability with 1.1.2 and Earlier Releases</h3>
+  <p>Systems on which Globus 1.1.2 or earlier are installed may not accept job
+    submission requests from 1.1.3 software. The reason for this is that the
+    Globus Certificate Authority now generates certificates of the form "/O=Grid/O=Globus",
+    which is different from the earlier CA which used "/C=US/O=Globus". The old
+    form of certificate is still accepted on 1.1.3 systems, but the new form
+    is not recognized by 1.1.2 and earlier systems.</p>
+  <p>To fix the problem, you must make sure that your 1.1.2 and earlier systems
+    are configured to accept the new certificates. This is accomplished by editing
+    your ca-signing-policy.conf file, and adding the new certificate form to
+    the list of acceptable formats.<br>
+    This file is located in the directory </p>
+  <blockquote>
+    <p>$GLOBUS_INSTALL_PATH/share/certificates/</p>
+  </blockquote>
+  <h3>HBM related log entries in globus-system.log</h3>
+  <p>The default 1.1.3 installation does not include the HBM components, but
+    does include "hooks" to use the components if they exist. So there will be
+    benign log messages such as:</p>
+  <blockquote>
+    <p>"HBM local monitor or HBM configuration file not found."</p>
+    <p>"Registration Skipped: globus-hbm-client-register not found."</p>
+  </blockquote>
+  <p>which can be safely ignored. If you install globus with the optional globus-install
+    options "-- --enable-beta --enable-hbm" you will get HBM components in addition
+    to the default component set, and these messages will no longer be logged.</p>
+  <h3>"slapd died" log entries in globus-system.log</h3>
+  <p>If you have setup a GIIS host and port in globus-setup, it is possible that
+    the service will fail to start. In this case a "slapd died" log message will
+    follow the attempted starts.</p>
+  <p>The most common cause of this problem is users setting the GIIS port to
+    one already in use by another system service or application. Either identify
+    and disable the conflicting service, or setup a different port for GIIS.</p>
+  <p>If the problem persists, try running the logged slapd command manually as
+    the deployed 'globus' user to see what (if any) error messages are generated
+    at startup.</p>
+  <blockquote>
+    <p>"started /opt/globus/libexec/slapd -p PORT -d 1 \<br>
+      -f /opt/globus/etc/grid-info-site-slapd.conf (pid PID)"</p>
+    <p>"slapd (pid PID) died"</p>
+  </blockquote>
+  <p>try running the exact command found in the log file.</p>
+  <h3>Multiple DNS domains in organization</h3>
+  <p>The GIIS has a very flexible configuration model. If you are trying to setup
+    GIIS services for large organizations with multiple DNS domains, please contact
+    the discuss@globus.org list for assistance.</p>
+  <p>The default configuration will not be sufficient for such purposes.</p>
+  <h3>Registrations rejected by GIIS service</h3>
+  <p>If your GIIS service is logging "registration rejected" messages in grid-info-system.log,
+    you may either need to adjust your GRIS/GIIS configuration files for your
+    unusual deployment scenario (see item 3 above), or you may have encountered
+    a shell script incompatibility.</p>
+  <p>The Bourne Shell script implementing part of the GIIS service relies on
+    a shell programming feature that appears to function incompatibly on at least
+    the BASH2 shell. This only affects unusual sites that do not have normal
+    shells installed in /bin/sh.</p>
+  <p>If you have unexplainable problems with registrations being rejected despite
+    apparently coordinated GRIS grid-info-resource-register.conf and GIIS grid-info-site.conf
+    settings, contact discuss@globus.org for information about a possible shell
+    script patch against Globus version 1.1.3.</p>
+</blockquote>
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
