@@ -17,7 +17,7 @@ if ( preg_match("/^\/toolkit\/docs\/.+\//", $uri) ) {
     }
     else if ( ! (preg_match("/^\/toolkit\/docs\/4.0\//", $uri) or
                  preg_match("/^\/toolkit\/docs\/3.2\//", $uri) ) ) {
-        print "<div id='obsolete'  align='center'><p>This information is for a release that is no longer supported by the Globus Toolkit. The currently supported versions of the Globus Toolkit are 4.0 (recommended) and 3.2.</p></div>";
+        print "<div id='obsolete'  align='center'><p>This information is for a release that is no longer supported by the Globus Toolkit. The currently supported versions of the Globus Toolkit are <a href='http://www.globus.org/toolkit/docs/4.0/'>4.0</a> (recommended) and <a href='http://www.globus.org/toolkit/docs/3.2/'>3.2</a>.</p></div>";
     }
 }
 }
