@@ -1,0 +1,856 @@
+<?php
+
+$title = "GT 3.0: Globus Replica Location Service Installation and Setup";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+    
+    <p>
+    This guide will talk about how to install, configure, and initialize
+    the Globus Replica Location Service (RLS) software.  It includes
+    instructions for the RLS client API and server bundles, both source
+    and binary.  The server bundles include the client bundles,
+    you do not need to install a client bundle separately if installing
+    a server bundle.  The following sections exist in this guide.
+    </p>
+    
+    <ul>
+      <li><a href="#gpt">Globus Packaging Toolkit</a></li>
+      <li><a href="#serverinstall">RLS Server Installation</a></li>
+      <ul>
+	<li><a href="#dbsoftware">RLS Server Database Software</a></li>
+	<ul>
+	  <li><a href="#iodbcinstall">IODBC Installation</a></li>
+	  <li><a href="#postgresinstall">PostgreSQL Installation</a></li>
+	  <li><a href="#psqlodbcinstall">PostgreSQL ODBC Driver (psqlODBC) Installation</a></li>
+	  <li><a href="#mysqlinstall">MySQL Installation</a></li>
+	  <li><a href="#myodbcinstall">MySQL ODBC Driver (MyODBC) Installation</a></li>
+	</ul>
+	<li><a href="#serverinstall1">RLS Server Installation</a></li>
+	<li><a href="#dbconfig">RLS Server Database Configuration</a></li>
+	<li><a href="#serverconfig">RLS Server Configuration</a></li>
+	<li><a href="#mdsconfig">RLS Server MDS Configuration</a></li>
+	<li><a href="#serverstartup">RLS Server Startup</a></li>
+      </ul>
+      <li><a href="#servertest">RLS Server Testing</a></li>
+      <li><a href="#clientinstall">RLS Client Installation</a></li>
+    </ul>
+
+    <h2><a name="gpt">Globus Packaging Toolkit</a></h2>
+
+    <p>
+    You will need
+    <a href="http://www.globus.org/gt2.2/install.html#gpt">GPT installed</a>
+    in order to proceed.  GPT is available
+    <a href="http://www.globus.org/gt2.2/download.html">here.</a>
+    </p>
+    
+    <h2><a name="serverinstall">RLS Server Installation</a></h2>
+
+    <p>
+    The RLS server depends on an ODBC interface to a Relation Database
+    Server (RDBMS).   RLS was originally developed using MySQL and MyODBC (now
+    called Connector/ODBC), however due to licensing restrictions with
+    MyODBC RLS now uses PostgreSQL.  Either RDBMS may be used (or any
+    RDBMS that supports ODBC).  The iODBC package is used to interface
+    to the ODBC layer of whatever RDBMS you choose.  The ODBC driver
+    for PostgreSQL is a separate package called psqlODBC.  If you use
+    PostgreSQL you'll need both PostgreSQL and psqlODBC, if you use
+    MySQL you'll need both MySQL and MyODBC (Connector/ODBC).
+
+    packages:
+    </p>
+
+    
+    <ul>
+      <li><a href="http://www.iodbc.org">iODBC</a></li>
+      <br><br>
+      <li><a href="http://www.postgresql.org">PostgreSQL</a></li>
+      <li><a href="http://gborg.postgresql.org">PostgreSQL ODBC Driver</a></li>
+      <br><br>
+      <li><a href="http://www.mysql.com">MySQL</a></li>
+      <li><a href="http://www.mysql.com">MyODBC</a></li>
+    </ul>
+    
+
+    <p>
+    Any RDBMS that supports an ODBC interface should work, instructions
+    for both PostgreSQL and MySQL are provided.
+    </p>
+
+    <p>
+    The location of iODBC and the odbc.ini file must be specified
+    before installing the RLS server.  Also if you're using MySQL its
+    top level installation directory must be specified.
+    By default these are assumed to be in $GLOBUS_LOCATION.  The following
+    environment variables can be used to override the default locations.
+    These should be set prior to installing the RLS server.  In addition if
+    you're building from source and wish to build the client Java API
+    (included in the server bundles) you need to set the path to the Java
+    Development Toolkit (JDK) version 1.4 or later.
+    </p>
+
+    <table>
+    <tr align=left>
+      <th>Variable</th>
+      <th>Default</th>
+    </tr>
+    <tr>
+      <td>GLOBUS_IODBC_PATH</td>
+      <td>$GLOBUS_LOCATION</td>
+    </tr>
+    <tr>
+      <td>ODBCINI</td>
+      <td>$GLOBUS_LOCATION/var/odbc.ini</td>
+    </tr>
+    <tr>
+      <td>JAVA_HOME</td>
+      <td>none</td>
+    </tr>
+    <tr>
+      <td>GLOBUS_MYSQL_PATH</td>
+      <td>$GLOBUS_LOCATION (if using MySQL)</td>
+    </tr>
+    </table>
+
+    <p>
+    You can use the following commands to set these variables.  You only need
+    to set these variables for RLS installation, they are not used when
+    running RLS.  This document assumes you are using the <i>csh</i> shell or
+    one of its variants, if you're using <i>sh</i> or something similar
+    (eg <i>bash</i>) you should change the <b>setenv</b> commands to
+    <b>export variable=value</b>.
+    </p>
+
+    <ul>
+      <li>
+      setenv GLOBUS_IODBC_PATH $GLOBUS_LOCATION
+      </li>
+
+      <li>
+      setenv ODBCINI $GLOBUS_LOCATION/var/odbc.ini
+      </li>
+
+      <li>
+      setenv JAVA_HOME /usr/jdk/1.4
+      </li>
+
+      <li>
+      setenv GLOBUS_MYSQL_PATH $GLOBUS_LOCATION   # if using MySQL
+      </li>
+    </ul>
+
+    <h2><a name="dbsoftware">RLS Server Database Software</a></h2>
+    
+    <p>
+    The RLS server was originally developed using MySQL and MyODBC.  However
+    due to licensing restrictions with MyODBC it is now developed using
+    PostgreSQL and psqlODBC.  You may use either set of packages.  In either
+    case you need iODBC, which provides a generalized ODBC interface to the
+    ODBC drivers provided with Postgres or MySQL.
+    </p>
+
+    <p>
+    This document does not purport to be an installation guide for iODBC,
+    PostgreSQL, psqlODBC,  MySQL or MyODBC.  Please check the relevant web
+    sites for complete documentation.  The procedures followed by the RLS
+    developers is briefly covered here.
+    </p>
+
+    <h3><a name="iodbcinstall">iODBC Installation</a></h3>
+
+    <p>
+    The following commands were used during RLS development to install iODBC
+    version 3.0.5.  $IODBCSRC is the directory where you untarred the
+    iODBC sources, and $ODBCINIDIR is the directory where you plan to install
+    the <b>odbc.ini</b> file.
+    </p>
+
+    <ul>
+      <li>
+      cd $IODBCSRC
+      </li>
+
+      <li>
+      ./configure --prefix=$GLOBUS_IODBC_PATH --disable-gtktest --with-pthreads --disable-gui --with-iodbc-inidir=$ODBCINIDIR
+      </li>
+
+      <li>
+      gmake
+      </li>
+
+      <li>
+      gmake install
+      </li>
+    </ul>
+
+    <p>
+    You must now create the <i>odbc.ini</i> file, in $ODBCINIDIR.  The contents
+    should include the path to where you intend to install the ODBC driver
+    for your RDBMS (eg psqlodbc.so or libmyodbc3.so).  The following is
+    an example that should work with psqlODBC, it assumes
+    you will name your LRC and RLI databases "lrc1000"and "rli1000".
+    Note you do not need an RLI database if you plan to use Bloom
+    filters for LRC to RLI updates (Bloom filters are kept in memory),
+    in this case you can omit the RLI entries below.
+    </p>
+
+    <p>
+    There is apparently a bug in psqlODBC, it will not find a Data Source
+    Name (DSN) in the system <i>odbc.ini</i> file <i>$ODBCINIDIR/odbc.ini</i>.
+    It will find DSNs in the user's <i>odbc.ini</i> file if it exists
+    <$HOME/.odbc.ini).   One work around is to copy or symlink the system
+    <i>odbc.ini</i> file to each user's home directory.  psqlODBC does find
+    system DSNs in a file called <i>odbcinst.ini</i>, which is looked for in
+    the etc subdirectory where iODBC was installed
+    <i>$GLOBUS_IODBC_PATH/etc/odbcinst.ini</i>.  So another
+    option besides creating user <i>.odbc.ini</i> files is to copy or symlink
+    the system odbc.ini file to <i>$GLOBUS_IODBC_PATH/etc/odbcinst.ini</i>.
+    Someone who understands this better may have a better answer.
+    </p>
+
+    <ul>
+      [ODBC Data Sources]
+      <br>
+      lrc1000=lrc database
+      <br>
+      rli1000=rli database
+      <br>
+
+      <br>
+      [lrc1000]
+      <br>
+      Description=LRC database
+      <br>
+      DSN=lrc1000
+      <br>
+      Servertype=postgres
+      <br>
+      Servername=localhost
+      <br>
+      Database=lrc1000
+      <br>
+      ReadOnly=no
+      <br>
+
+      <br>
+      [rli1000]
+      <br>
+      Description=RLI database
+      <br>
+      DSN=rli1000
+      <br>
+      Servertype=postgres
+      <br>
+      Servername=localhost
+      <br>
+      Database=rli1000
+      <br>
+      ReadOnly=no
+      <br>
+
+      <br>
+      [Default]
+      <br>
+      Driver=/path/to/psqlodbc.so
+      <br>
+      Port=5432
+    </ul>
+
+    <p>
+    If you're using MySQL and changed how how MySQL clients connect to the
+    MySQL server in <i>my.cnf</i> (eg the port number or socket name) then you
+    should set option 65536 in <i>odbc.ini</i> for each database, this tells
+    MyODBC to read the client section of <i>my.cnf</i> to find the changed
+    connection parameters.
+    </p>
+
+    <ul>
+      [lrc1000]
+      <br>
+      option = 65536
+      <br>
+      <br>
+      [rli1000]
+      <br>
+      option = 65536
+      <br>
+    </ul>
+
+    <h3><a name="postgresinstall">PostgreSQL Installation</a></h3>
+    <p>
+    The commands used to install Postgres 7.2.3 on the RLS development system
+    were as follows.  $POSTGRESSRC is the directory where the PostgreSQL
+    source was untarred.
+    </p>
+
+    <ul>
+      <li>
+      cd $POSTGRESSRC
+      </li>
+
+      <li>
+      ./configure --prefix=$GLOBUS_LOCATION
+      </li>
+
+      <li>
+      gmake
+      </li>
+
+      <li>
+      gmake install
+      </li>
+    </ul>
+
+    <p>
+    The following commands can be used to initialize PostgreSQL and start
+    the server (the "-o -F" flags to postmaster disable fsync() calls after
+    transactions which improves performance but risks DB corruption):
+    </p>
+
+    <ul>
+      <li>
+      initdb -D /path/to/postgres-datadir
+      </li>
+
+      <li>
+      postmaster -D /path/to/postgres-datadir -i -o -F
+      </li>
+    </ul>
+
+    <p>
+    The following command will create the database user (called "dbuser") and
+    password that RLS will use:
+    </p>
+
+    <ul>
+      <li>
+      createuser -P dbuser
+      </li>
+    </ul>
+
+    <p>
+    Please be sure to do periodic <b>vacuum</b> and <b>analyze</b> commands
+    on all your Postgres databases.  The Postgres documentation recommends
+    doing this daily from cron.  Failure to do this can seriously degrade
+    performance, to the point where routine RLS operations (eg LRC to RLI
+    softstate updates) timeout and fail.  Please see the Postgres documentation
+    for further details.
+    </p>
+
+    <h3><a name="psqlodbcinstall">psqlODBC  Installation</a></h3>
+
+    <p>
+    The following commands were used to install psqlODBC 7.2.5.  Note
+    the configure script that comes with psqlODBC supports a
+    <i>--with-iodbc</i> option, however when the RLS developers used
+    this it resulted in RLS servers with corrupt memory that would
+    dump core while opening the database connection.  It seems to work
+    fine (with iODBC) without this option.  $PSQLODBCSRC
+    is the directory where you untarred the psqlODBC source:
+    </p>
+
+    <ul>
+      <li>
+      cd $PSQLODBCSRC
+      </li>
+
+      <li>
+      setenv CPPFLAGS -I$(IODBC_INSTALLDIR)/include
+      </li>
+
+      <li>
+      ./configure --prefix=$GLOBUS_LOCATION --enable-pthreads
+      </li>
+
+      <li>
+      gmake
+      </li>
+
+      <li>
+      gmake install
+      </li>
+    </ul>
+
+    <h3><a name="mysqlinstall">MySQL Installation</a></h3>
+
+    <p>
+    The RLS server depends on transaction support in the RDBMS.  If you're
+    using MySQL it supports transactions beginning in version 4.0.1 or later.
+    The commands used to install MySQL 4.0.2-alpha on the RLS development
+    system were as follows.  $MYSQLSRC is the directory where you untarred
+    the MySQL source.  Note there may be a bug in the debugging code of
+    MySQL, it should be configured with <b>--without-debug</b>.  There
+    is definitely a bug in the MyODBC debugging code (see below).
+    </p>
+
+    <ul>
+      <li>
+      setenv CFLAGS -g
+      </li>
+
+      <li>
+      setenv CXX gcc
+      </li>
+
+      <li>
+      setenv CXXFLAGS "-g -felide-constructors -fno-exceptions -fno-rtti"
+      </li>
+
+      <li>
+      cd $MYSQLSRC
+      </li>
+
+      <li>
+      ./configure --prefix=$GLOBUS_LOCATION --localstatedir=$GLOBUS_MYSQL_PATH/var/db --without-berkeley-db --with-pthread --enable-assembler --enable-thread-safe-client --without-debug
+      </li>
+
+      <li>
+      gmake
+      </li>
+
+      <li>
+      gmake install
+      </li>
+
+      <li>
+      scripts/mysql_install_db
+      </li>
+    </ul>
+
+    <p>
+    MySQL is configured via a file called <i>my.cnf</i>.  There are sample
+    configuration files for configuring small, medium, large and huge
+    databases provided with the MySQL distribution in the <i>support-files</i>
+    directory.  Your <i>my.cnf</i> file should be installed in the directory
+    specified by <b>localstatedir</b> when you configured MySQL.
+    Some Linux systems come with MySQL already installed.  These typically
+    have a global <i>my.cnf</i> file installed in <i>/etc/my.cnf</i>.  If you
+    choose to install MySQL yourself you should remove or rename that file
+    so that it doesn't conflict with your new <i>my.cnf</i> file, or you
+    can start the MySQL server with the <b>--default-file</b> option
+    set to the path to your <i>my.cnf</i>file.
+    You should make the following changes for RLS:
+    </p>
+
+    <ul>
+      <li>
+      Uncomment all the innodb options.  RLS depends on the innodb
+      table type since it's the only one that supports
+      transactions.
+      </li>
+
+      <li>
+      Set the <b>innodb_data_home_dir</b>, <b>innodb_log_group_home_dir</b>
+      and <b>innodb_log_arch_dir</b> options to the directory(s) where you
+      want the innodb data files to reside.  On the development systems
+      these were set to the same value as <b>localstatedir</b> specified
+      to <i>configure</i>.
+      </li>
+
+      <li>
+      You may want to change the size of your database, by changing
+      the sizes on the data files in the <b>innodb_data_file_path</b> option.
+      A very rough rule of thumb for RLS is to set this to at least 1000
+      times the maximum number of Logical File Names you expect to have in
+      your database.  There may be more than one data file, the total
+      size of all the files should be at least 1000 times the maximum number
+      of LFNs.
+      </li>
+
+      <li>
+      You may want to set the <b>innodb_flush_log_at_trx_commit</b>
+      option to 0, this can improve update performance dramatically, at the
+      cost of small extra risk of a corrupt database should your host crash
+      during an update.  For example on a Linux host the time to
+      create 1,000,000 entries in an RLS database decreased from over 10 hours
+      to 20 minutes by turning this option off.
+      </li>
+    </ul>
+
+    <p>
+    Once you've installed and configured MySQL you must start the database
+    server and create the database user/password that RLS will use to
+    connect to the database.  To start the database server:
+    </p>
+
+    <ul>
+      <li>
+      mysqld_safe [--defaults-file <i>path to your my.cnf file</i>]
+      </li>
+    </ul>
+
+    <p>
+    To create the database user and password that RLS will use you must
+    run the MySQL command line tool <b>mysql</b>, and specify the following
+    commands.  These commands assume the username you will create for RLS is
+    <b>dbuser</b> with password <b>dbpassword</b>, and the database(s) you
+    will create for your LRC and/or RLI server are <b>lrc1000</b> and
+    <b>rli1000</b>.  Creation of the LRC and/or RLI databases is covered
+    below in the section <a href="#dbconfig">RLS Server Database Configuration</a>
+    </p>
+
+    <ul>
+      <b>mysql></b> use mysql;
+      <br>
+      <b>mysql></b> grant all on lrc1000.* to dbuser@localhost identified by 'dbpassword';
+      <br>
+      <b>mysql></b> grant all on rli1000.* to dbuser@localhost identified by 'dbpassword';
+      <br>
+    </ul>
+
+    <h3><a name="myodbcinstall">MyODBC Installation</a></h3>
+    <p>
+    There is a bug in MyODBC version 3.51.05 and earlier.  The debug
+    code is not thread safe, and the RLS server will get a segmentation
+    violation and die if this code is enabled.  In versions 3.51.05 and
+    later the debug code can be disabled with the configure option
+    <b>--without-debug</b>, in earlier versions it is disabled by defining
+    DBUG_OFF, eg:
+    </p>
+
+    <ul>
+      <li>
+      setenv CFLAGS -DDBUG_OFF
+      </li>
+    </ul>
+
+    <p>
+    The following commands are what the RLS developers used to install MyODBC
+    version 3.51.03.  $MYODBCSRC is the directory where you untarred the
+    MyODBC sources.  The following commands install MyODBC in
+    $GLOBUS_LOCATION, you may choose a different directory if you wish, by
+    changing the <i>--prefix</i> option to <i>configure</i> below.  It also
+    assumes that iODBC was installed in $GLOBUS_LOCATION, this may be changed
+    by changing the <i>--with-iodbc-includes</i> and <i>--with-iodbc-libs</i>
+    options.  $ODBCINIDIR is the directory where you created the
+    <b>odbc.ini</b> file.
+    </p>
+
+    <ul>
+      <li>
+      cd $MYODBCSRC
+      </li>
+
+      <li>
+      ./configure --prefix=$GLOBUS_LOCATION --with-mysql-libs=$GLOBUS_MYSQL_PATH/lib/mysql --with-mysql-includes=$GLOBUS_MYSQL_PATH/include/mysql --with-iodbc-includes=$GLOBUS_LOCATION/include --with-iodbc-libs=$GLOBUS_LOCATION/lib --with-odbc-ini=$ODBCINIDIR
+      </li>
+
+      <li>
+      gmake
+      </li>
+
+      <li>
+      gmake install
+      </li>
+    </ul>
+
+    <h2><a name="serverinstall1">RLS Server Installation</a></h2>
+
+    <p>
+    To install the RLS server source bundle use the following commands:
+    </p>
+
+    <ul>
+    <li>
+      gpt-build globus-rls-server-1.1-src_bundle.tar.gz gcc32dbgpthr
+    </li>
+    <li>
+      gpt-postinstall
+    </li>
+    </ul>
+
+    <p>
+    To install the binary bundle do the following:
+    </p>
+
+    <ul>
+    <li>
+      gpt-install globus-rls-server-1.1-i686-pc-linux-gnu-bin.tar.gz
+    </li>
+    <li>
+      gpt-postinstall
+    </li>
+    </ul>
+
+    <h2><a name="dbconfig">RLS Server Database Configuration</a></h2>
+
+    <p>
+    RLS server configuration is specified in
+    <b>$GLOBUS_LOCATION/etc/globus-rls-server.conf</b>, please see the man
+    page <i>globus-rls-server(8)</i> for complete details.  Some of the
+    configuration options (eg database user/password) are mentioned below.
+    </p>
+
+    <p>
+    Once the DBMS is installed and running, you should create a database user
+    that the RLS server will use to connect to the DBMS.  The database user
+    and password you pick must be specified in the RLS server configuration
+    file, as well as the name of the database(s) you will create (see below).
+    </p>
+
+    <ul>
+      db_user <i>dbuser</i>
+      <br>
+      db_pwd <i>dbpassword</i>
+      <br>
+      lrc_dbname <i>lrc1000</i> # optional (if LRC server)
+      <br>
+      rli_dbname <i>rli1000</i> # optional (if RLI server)
+    </ul>
+
+    <p>
+    You will also need to create the database(s) that the RLS server will use.
+    If the RLS server is a Local Replica Catalog (LRC) server you will need to
+    create the LRC database.  If the server is a Replica Location Index (RLI)
+    server, you may need to create a RLI database.  An RLI server can receive
+    updates from LRC servers in one of two forms, as LFN lists (in which case
+    the RLI database must be created), or highly compressed Bloom filters.
+    Since Bloom filters are so small they are kept in memory and no database is
+    required.  An RLS server can be configured as both an LRC and RLI
+    server.
+    </p>
+
+    <p>
+    The installation process installs the schema files for the LRC and RLI
+    databases in <b>$GLOBUS_LOCATION/setup/globus</b>.  There are separate
+    files for PostgreSQL and MySQL:
+    </p>
+
+    <ul>
+      globus-rls-lrc-postgres.sql
+      <br>
+      globus-rls-rli-postgres.sql
+      <br>
+      globus-rls-lrc-mysql.sql
+      <br>
+      globus-rls-rli-mysql.sql
+    </ul>
+
+    <p>
+    You may need to edit these files to set the name of the database user
+    you created for RLS, and the names of the databases configured in
+    <b>$GLOBUS_LOCATION/etc/globus-rls-server.conf</b>.  By default the
+    database user is <i>dbuser</i>, the LRC database name is <i>lrc1000</i>
+    and the RLI database name is <i>rli1000</i>.
+    </p>
+
+    <p>
+    Once the schema files are as you want them, you can create the databases
+    with the following commands (note once again that you do not need to
+    create an RLI database if you are configuring an RLI server updated by
+    Bloom filters):
+    </p>
+
+    <p>
+    Use these commands for PostgreSQL:
+    </p>
+
+    <ul>
+      <li>createdb -O <i>dbuser</i> -U <i>dbuser</i> -W <i>lrc1000</i></li>
+      <li>createdb -O <i>dbuser</i> -U <i>dbuser</i> -W <i>rli1000</i></li>
+      <li>psql -W -U <i>dbuser</i> -d <i>lrc1000</i> -f $GLOBUS_LOCATION/setup/globus/globus-rls-lrc-postgres.sql</li>
+      <li>psql -W -U <i>dbuser</i> -d <i>rli1000</i> -f $GLOBUS_LOCATION/setup/globus/globus-rls-rli-postgres.sql</li>
+    </ul>
+
+    <p>
+    Use these commands for MySQL:
+    </p>
+
+    <ul>
+      <li>mysql -p -u <i>dbuser</i> < $GLOBUS_LOCATION/setup/globus/globus-rls-lrc-mysql.sql</li>
+      <li>mysql -p -u <i>dbuser</i> < $GLOBUS_LOCATION/setup/globus/globus-rls-rli-mysql.sql</li>
+    </ul>
+
+    <h2><a name="serverconfig">RLS Server Configuration</a></h2>
+
+    <p>
+    You should review the server configuration file
+    <b>$GLOBUS_LOCATION/etc/globus-rls-server.conf</b> and change any options
+    you want.  The server man page <i>globus-rls-server(8)</i> has complete
+    details on all the options, a minimal configuration file for both
+    an LRC and RLI server would be:
+    </p>
+    
+    <ul>
+    # Configure the database connection info
+    <br>
+    db_user dbuser
+    <br>
+    db_pwd dbpassword
+    <br>
+    <br>
+    # If the server is an LRC server 
+    <br>
+    lrc_server true
+    <br>
+    lrc_dbname lrc1000
+    <br>
+    <br>
+    # If the server is an RLI server
+    <br>
+    rli_server true
+    <br>
+    rli_dbname rli1000	# Not needed if updated by Bloom filters
+    <br>
+    <br>
+    # Configure who can make requests of the server
+    <br>
+    acl .*: all # RE matching grid-mapfile users or DNs from x509 certs
+    </ul>
+
+    <p>
+    The server uses a host certificate to identify itself to clients.
+    By default this certificate is located in the files
+    <i>/etc/grid-security/hostcert.pem</i> and
+    <i>/etc/grid-security/hostkey.pem</i>.  Host certificates have a
+    distinguished name of the form <b>/CN=host/<i>FQDN</i></b>.  If the host
+    you plan to run the RLS server is on does not have a host certificate you
+    must obtain one from your Certificate Authority.  The RLS server must be
+    run as the same user who owns the host certificate files (typically root).
+    The location of the host certificate files may be specified in
+    <i>$GLOBUS_LOCATION/etc/globus-rls-server.conf</i>:
+    </p>
+
+    <ul>
+      rlscertfile path-to-cert-file # default /etc/grid-security/hostcert.pem
+    <br>
+      rlskeyfile path-to-key-file # default /etc/grid-security/hostkey.pem
+    </ul>
+
+    <p>
+    It is possible to run the RLS server without authentication, by starting
+    it with the <i>-N</i> option, and using URL's of the form
+    <i>rlsn://server</i> to connect to it.  If authentication is enabled
+    RLI servers must include <b>acl</b> configuration options that match
+    the identities of LRC servers that update it, that grant the
+    <b>rli_update</b> permission to the LRCs.
+    </p>
+
+    <h2><a name="serverstartup">RLS Server Startup</a></h2>
+
+    <p>
+    The script <b>$GLOBUS_LOCATION/sbin/SXXrls</b> may be used to start or
+    stop the server, eg
+    </p>
+
+    <ul>
+      $GLOBUS_LOCATION/sbin/SXXrls start
+      <br>
+      $GLOBUS_LOCATION/sbin/SXXrls stop
+    </ul>
+
+    <h2><a name="mdsconfig">RLS Server MDS Configuration</a></h2>
+
+    <p>
+    The server package includes a program called <b>globus-rls-reporter</b>
+    that will report information about an RLS server to MDS.  To enable MDS
+    reporting please add the contents of the file
+    <i>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf</i> to the MDS configuration
+    file <i>$GLOBUS_LOCATION/etc/grid-info-resource-ldif.conf</i>.  You will
+    probably need to set your VO name in rls-ldif.conf, the default is
+    <b>local</b>.  The VO name is referenced twice, on the lines beginning
+    <b>dn:</b> and <b>args:</b>.  You must restart your MDS (GRIS) server
+    after modifying <i>$GLOBUS_LOCATION/etc/grid-info-resoruce-ldif.conf</i>,
+    you can use the following commands to do so:
+    </p>
+
+    <ul>
+      $GLOBUS_LOCATION/sbin/SXXgris stop
+      <br>
+      $GLOBUS_LOCATION/sbin/SXXgris start
+    </ul>
+
+    <h2><a name="servertest">RLS Server Testing</a></h2>
+
+    <p>
+    To test that your RLS server installation is correct you may start
+    the server in debug mode with the command:
+    </p>
+
+    <ul>
+      $GLOBUS_LOCATION/bin/globus-rls-server -d [-N]
+    </ul>
+
+    <p>
+    The <i>-N</i> option is helpful if you do not have a host certificate
+    for the server host, or a user certificate for yourself, it disables
+    authentication.  The programs <b>globus-rls-admin</b> and
+    <b>globus-rls-cli</b> can be used to test functionality, please see their
+    respective man pages for details on their use.  The simplest
+    test is to ping the server:
+    </p>
+
+    <ul>
+      $GLOBUS_LOCATION/bin/globus-rls-admin -p rls://serverhost
+    </ul>
+
+    <p>
+    If you disabled authentication (by starting the server with the
+    <i>-N</i> option), then use this command:
+    </p>
+
+    <ul>
+      $GLOBUS_LOCATION/bin/globus-rls-admin -p rlsn://serverhost
+    </ul>
+
+    <p>
+      The RLS source bundle includes a test subdirectory (see the
+      BUILD/globus_rls_server-<b>version</b>/test directory).  This includes
+      a script called <b>runtests</b> that invokes a program called
+      <b>globus-rls-test</b> to thoroughly test an RLS server.  You will
+      need to edit the config file <i>test.conf</i> to set the name
+      of the database user and password (and possibly the path to your
+      odbc.ini file if you have a non-standard odbc.ini).  <b>runtests</b>
+      will create databases called lrctest and rlitest, start up
+      an RLS server, and run <b>globus-rls-test</b>.
+      You may need to grant access to the test databases
+      to the database user using <b>grant</b> commands similar to what
+      you used to create your production database(s).  See
+      <a href="#mysqlinstall">MySQL Installation</a>.
+    </p>
+
+    <h2><a name="clientinstall">RLS Client Installation</a></h2>
+
+    <p>
+    The server bundles (source and binary) include the RLS client bundles,
+    you do not need to install the RLS client bundle separately if you've
+    installed an RLS server bundle.
+    </p>
+
+    <p>
+    The RLS client bundles include a Java version of the RLS API (implemented
+    as JNI wrappers to the C API).  If you're building from source and wish
+    to build the Java API you will need to set the environment variable
+    <b>JAVA_HOME</b> to the directory where the Java Development Toolkit
+    (JDK) version 1.4 or later is installed on your system before building
+    the RLS client.  The command to build the RLS client source bundle is:
+    </p>
+
+    <ul>
+    <li>
+      gpt-build globus-rls-client-1.1-src_bundle.tar.gz gcc32dbgpthr
+    </li>
+    <li>
+      gpt-postinstall
+    </li>
+    </ul>
+
+    <p>
+    To install the binary bundle do the following:
+    </p>
+
+    <ul>
+    <li>
+      gpt-install globus-rls-client-1.1-i686-pc-linux-gnu-bin.tar.gz
+    </li>
+    <li>
+      gpt-postinstall
+    </li>
+    </ul>
+
+ <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

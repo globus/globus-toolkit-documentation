@@ -1,0 +1,101 @@
+<?php
+
+$title = "GT3 Admin Guide - Configuration";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+<h2>Security Configuration</h2>
+
+<p>If you already have GT2 certificates and have /etc/grid-security
+configured, you may skip this step.
+<p><b>Update:</b> Please follow the instructions at <a
+href="http://gcs.globus.org:8080/gcs/index.html">the GCS homepage</a>
+to acquire certificates.</p>
+</ol>
+
+<h2>MMJFS Configuration</h2>
+
+<ol>
+
+  <li>After you have hostcerts, run <code>install-gt3-mmjfs</code> in the installer directory
+      
+  <li>After installing MMJFS, go to /path/to/install and run setperms.sh
+    as root. This sets up
+    the two setuid binaries (launch_uhe_setuid and globus-grim)
+    required by the GT3 GRAM service. <b>It is important that the
+    account under which you plan to run the GRAM master managed job
+    factory is a member of the group that owns the launch_uhe_setuid
+    program</b>. This group defaults to the default group of the
+    installing user and should only contain privileged members.
+
+<li>With the server configuration and setuid in place, we need to add
+authorizations for who will be allowed to submit jobs.
+
+<ol>
+<li>First, create a /etc/grid-security/grid-mapfile.  The syntax is to
+have one line per user, with the certificate subject followed by the
+user account name, like the following:<br>
+<pre>"/O=Grid/O=Globus/OU=mcs.anl.gov/CN=Charles Bacon" bacon</pre>
+<li>Then, create /etc/grid-security/grim-port-type.xml<br>
+<code>
+&lt;authorized_port_types&gt;<br>
+    &lt;port_type username="bacon"&gt;http://www.globus.org/namespaces/managed_job/managed_job/ManagedJobPortType&lt;/port_type&gt;<br>
+&lt;/authorized_port_types&gt;<br>
+</code>
+</ol>
+
+<li>Now that users can authorize to your server, it's time to start it
+up.  You don't have to specify -p if you want 8080, but
+    you can specify an alternate port if you need to.
+    <ul><li><code>globus$ export GLOBUS_LOCATION=`pwd`</code>
+	<li><code>globus$ bin/globus-start-container -p 8080</code></ul>
+
+
+<li>With the container running, a client can submit a job.
+    <ul>
+      <li><code>bacon$ grid-proxy-init</code>
+      <li><code>bacon$ bin/managed-job-globusrun -factory http://140.221.57.75:8080/ogsa/services/base/gram/MasterForkManagedJobFactoryService
+	  -file etc/test.xml</code>
+      <li>Note: your -factory URI will be different, including your
+	  own IP address and port.  You can see the list of services
+	  in the output of globus-start-container.  If you do not see
+	  MasterForkManagedJobFactoryService, you might have skipped
+	  install-gt3-mmjfs.
+    </ul>
+
+<li>Note that etc/test.xml may output to both ~/stdout and
+    ~/stderr.  A successful run will append a line to the stdout file.
+
+<li>In order to stop the container, issue the
+following 2 commands in another terminal window, as the user who started the
+container.  These will have the effect of issuing a controlled
+stop command.
+<ul>
+    <li> <code>export X509_USER_PROXY=/tmp/x509cp_`whoami`_grim</code>
+    <li> <code>globus-stop-container -secure soft</code>
+</ul>
+    
+</ol>
+</ol>
+
+<hr>
+
+<p>For support, please see the <a
+href="http://www-unix.globus.org/toolkit/support.html">Support
+Page</a> [<strong>UPDATE:</strong> Version 3.0 is no longer supported. Please
+upgrade to <a href="../../../downloads/3.2.1/">3.2</a> or <a href="../../../downloads/4.0.0/">4.0</a>.]</p>
+
+
+<address><a href="mailto:bacon@mcs.anl.gov">Charles Bacon</a></address>
+<!-- Created: Tue Jan 21 11:36:26 CST 2003 -->
+<!-- hhmts start -->
+Last modified: Mon Dec 22 17:37:35 CDT 2003
+<!-- hhmts end -->
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
+

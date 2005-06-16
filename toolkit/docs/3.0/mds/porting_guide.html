@@ -1,0 +1,425 @@
+<?php
+
+$title = "GT3.0 Service Data Provider Porting Guide";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+<h2>Introduction </h2>
+          <p>The 
+      Globus Toolkit<sup>®</sup> Version 3.0 (GT3) includes a set of core 
+      Service Data Providers as well as the capability for you to create your 
+      own Service Data Providers.</p>
+      <p>GT3 
+      additionally gives you the capability to port existing user-created 
+      GT2.x/MDS2.x information provider programs into GT3/MDS3 Service Data 
+      Providers, as described in this document.</p>
+      <p>Note 
+      that for an MDS provider to make use of the Java APIs in GT3, 
+      substantially rewriting the provider or writing a new provider is 
+      required, which is beyond the scope of this document.&nbsp; Refer to 
+      <a href="newsdp.html">
+      Creating New GT3 Service Data Providers</a> instead.</p>
+      <h2>GT3 Prerequisite 
+      Documents</h2>
+      <p>The 
+      following GT3 documents should be read as prerequisites to porting 
+      information providers:</p>
+      <ul>
+        <li> 
+          
+        <a href="newsdp.html">
+        Creating New GT3 Service Data Providers</a></li>
+        <li> 
+          
+        
+        <a href="../users_guide.html">User’s Guide Core Framework</a></li>
+        <li> 
+          
+        
+        <a href="../admin/">GT3 Admin Guide</a></li>
+      </ul>
+      <h2>      Audience</h2>
+      <p>This 
+      document is intended primarily for developers who want to extend the 
+      Information Services in their GT3 configuration by porting existing MDS2 
+      information providers.&nbsp; A knowledge of OGSA and Grid concepts, 
+      particularly as described in 
+      <a href="http://www.globus.org/alliance/publications/papers/ogsa.pdf">The Physiology of the Grid</a>, is presumed.</p>
+      <h2>      Assumptions</h2>
+      <p>This 
+      document assumes that the Globus Toolkit 3.0 has been installed and 
+      configured for your particular computing environment, and that you have 
+      functioning MDS2.x information provider executables available to you for 
+      porting into GT3.</p>
+      <h2>      Organization</h2>
+      <p>This 
+      document contains the following sections:</p>
+      <ul>
+        <li> 
+          
+        <a href="#provideroverview">
+        Provider Overview</a></li>
+        <li> 
+          
+        <a href="#providercomparison">
+        Comparison of Provider Creation/Operation in GT2 and GT3</a></li>
+        <li> 
+          
+        <a href="#porting">
+        Porting a GT2 User-Created Provider Into GT3</a></li>
+      </ul>
+      <h2>      Related Documents</h2>
+      <ul>
+        <li> 
+          
+        <a href="../../2.4/mds/creating_new_providers.pdf">
+        MDS 2.2/2.4 GRIS Specification Document: Creating New 
+        Information Providers</a></li>
+        <li> 
+          
+        <a href="http://www.gridforum.org/ogsi-wg/drafts/draft-ggf-ogsi-gridservice-29_2003-04-05.pdf">
+        Open Grid Services 
+        Infrastructure (OGSI) Specification</a></li>
+        <li> 
+          
+        <a href="indexsvc_ug.html">
+        GT3 Index Service 
+        User’s Guide</a></li>
+      </ul>
+      <h2><a name="provideroverview">
+      Provider Overview</a></h2>
+      <p>The 
+      Information Services component of the Globus Toolkit includes a set of 
+      core Service Data Providers used to generate details about such things as 
+      platform type, host OS, system load, memory, file systems, CPU count, and 
+      other host resource information.</p>
+      <p>The 
+      Toolkit also provides the ability for a user to create their own Service
+         Data Providers to generate any required data.</p>
+      <h2>GT2 Information 
+      Providers</h2>
+      <p>A 
+      set of core providers is included with MDS 2.2/2.4 and is described in
+        detail in 
+      <a href="../../2.4/mds/DefaultGRISProviders.html">
+      MDS 2.2/2.4 Core GRIS Providers</a>.&nbsp; While these providers can
+      output  host information and are available for several platforms, note
+      that the  purpose of this document is not to describe the porting of core
+      host  providers to new platforms.&nbsp; In fact, this type of porting in
+      GT3 is  essentially the same as in GT2, and the existing documentation
+      (the above  document and 
+      <a href="../../2.4/mds/GRIS_createnewcore.html">
+      MDS 2.2/2.4 GRIS: Adding New Information Providers</a>) should
+      be  sufficient for that task.</p>
+      <p>The 
+      purpose of this document is to describe the porting of custom providers
+         that output application-specific data.</p>
+      <h2>GT3 Service Data 
+      Providers</h2>
+      <p>A 
+      set of core providers is also included as part of the GT3 Information 
+      Services component and is described in detail in 
+      <a href="newsdp.html">
+      Creating New GT3 
+      Service Data Providers</a>.&nbsp; These providers produce host information as 
+      well as having script and interface utility functions.</p>
+      <p>
+      Custom Service Data Providers in GT3 can be as simple or as complicated as 
+      needed.&nbsp; The baseline case requires only that the provider developer 
+      create a Java class implementing the functions of one interface – 
+      SimpleDataProvider – whose purpose is to produce XML output as a result of 
+      its execution.&nbsp; Refer to the above-referenced document for more details.</p>
+      <p>The 
+      following diagram presents an overview of Service Data Provider operation 
+      in GT3:</p>
+      <p>&nbsp;</p>
+      <p><!--[if gte vml 1]><v:shapetype id="_x0000_t75"
+ coordsize="21600,21600" o:spt="75" o:preferrelative="t" path="m@4@5l@4@11@9@11@9@5xe"
+ filled="f" stroked="f">
+ <v:stroke joinstyle="miter"/>
+ <v:formulas>
+  <v:f eqn="if lineDrawn pixelLineWidth 0"/>
+  <v:f eqn="sum @0 1 0"/>
+  <v:f eqn="sum 0 0 @1"/>
+  <v:f eqn="prod @2 1 2"/>
+  <v:f eqn="prod @3 21600 pixelWidth"/>
+  <v:f eqn="prod @3 21600 pixelHeight"/>
+  <v:f eqn="sum @0 0 1"/>
+  <v:f eqn="prod @6 1 2"/>
+  <v:f eqn="prod @7 21600 pixelWidth"/>
+  <v:f eqn="sum @8 21600 0"/>
+  <v:f eqn="prod @7 21600 pixelHeight"/>
+  <v:f eqn="sum @10 21600 0"/>
+ </v:formulas>
+ <v:path o:extrusionok="f" gradientshapeok="t" o:connecttype="rect"/>
+ <o:lock v:ext="edit" aspectratio="t"/>
+</v:shapetype><v:shape id="_x0000_s1026" type="#_x0000_t75" style='width:6in;
+ height:282.6pt'>
+ <v:imagedata src="porting_guide_files/image001.emz" o:title=""/>
+</v:shape><![endif]--><![if !vml]><img border=0 width=641 height=420
+src="servicedataprov.gif" v:shapes="_x0000_s1026"><![endif]><!--[if gte mso 9]><xml>
+      <o:OLEObject Type="Embed" ProgID="Visio.Drawing.6" ShapeID="_x0000_i1025" DrawAspect="Content" ObjectID="_1118157853">
+      </o:OLEObject>
+      </xml><![endif]--></p>
+      <h2><br>
+      
+      <a name="providercomparison">Comparison of Provider Creation/Operation in 
+      GT2 and GT3</a></h2>
+      <p>
+      Before moving into the specifics of provider porting, let’s review the 
+      basics of creating a custom provider and compare the differences and 
+      similarities between GT2 and GT3 in doing so.</p>
+      <p>The 
+      basic steps for creating a provider are as follows:</p>
+      <ol>
+        <li>
+        <p>
+        Decide on the kind of data you will need from the provider program, 
+        based on the needs or constraints of your application.</li>
+        <li>
+        <p>
+        Decide on how you want 
+        the data to be represented and identified.</li>
+        <li>
+        <p>
+        Create a program that adheres to the input and output requirements of 
+        the interface you are using.</li>
+        <li>
+        <p>
+        Enable the provider program through the appropriate configuration 
+        mechanism, so it is properly defined and identified for execution.</li>
+      </ol>
+      <p>
+      These steps are described in more detail in the following sections, with
+         GT2/GT3 differences and similarities indicated.</p>
+      <h3>Determine Data to be 
+      Generated</h3>
+      <p>As 
+      indicated above, almost any kind of data can be generated from your 
+      provider program, limited only by your intended application and the 
+      particular input, output, and configuration requirements of the 
+      environment (GT2 or GT3) in which the provider will run.</p>
+      <h3>Define 
+      Format/Representation of Data</h3>
+      <p>The 
+      next step is to decide how you want the data represented and identified.</p>
+      <p>In 
+      GT2, you need to decide how the data should be represented in the 
+      Directory Information Tree (DIT).&nbsp; This requires the definition of an LDAP 
+      schema for the GRIS to accept your data, an OID assignment, and naming 
+      conventions for the data.</p>
+      <p>In 
+      GT3, you can define an XSD schema and a namespace to represent your 
+      provider data.&nbsp; Definition of an XSD schema is optional, but recommended.&nbsp; 
+      Definition of a namespace is required.&nbsp; Refer to the <a href="#porting">
+      Porting a GT2 User-Created Provider Into GT3
+       </a>section later in 
+      this document for more information on defining a schema and a namespace.</p>
+      <h3><a name="inputoutput">
+      Create a Program That Adheres to Input/Output Requirements</a></h3>
+      <p>Now, 
+      you need to create a program that adheres to the input and output 
+      requirements of the interface you are using.</p>
+      <p>In 
+      GT2, your program must be callable by the fork() and exec() facilities of 
+      the GRIS back end, and must return LDIF objects conforming to the defined 
+      schema on stdout.</p>
+      <p>In 
+      GT3, you can first create a GT2/MDS-style executable and then use the 
+      fork() and exec() facilities of the ScriptExecutionProvider (a core GT3
+         provider) to invoke the program.&nbsp; The ScriptExecutionProvider provides
+         a  wrapper for your program to generate XML on stdout, conforming to
+         the XSD  schema if one exists.</p>
+      <h3>Enable the Provider 
+      Program</h3>
+      <p>
+      Finally, you need to enable the provider program through an appropriate 
+      configuration mechanism, so it is properly defined and identified for 
+      execution.</p>
+      <p>In 
+      GT2, you need to add an entry for your program to the grid-info-resource-ldif.conf 
+      file, which defines all active GRIS providers.</p>
+      <p>In 
+      GT3, you will be using the ScriptExecutionProvider to invoke your program, 
+      as described above.&nbsp; This means that there will need to be an entry in the 
+      Index Service configuration file, index-service-config.xml, file that 
+      references the ScriptExecutionProvider.&nbsp; &nbsp;</p>
+      <p>You 
+      will need to perform some additional configuration steps to make the 
+      provider known to GT3 Information Services so it can be run for you.&nbsp; 
+      These steps are described in detail in 
+      <a href="newsdp.html">
+      Creating New GT3 Service Data 
+      Providers</a>.</p>
+      <h3>Example</h3>
+      <p>To 
+      further illustrate information provider creation and operation in GT2 and 
+      GT3, let’s use an example that we’ll call “Machine Room Temperature 
+      Information Provider.”&nbsp; The purpose of this provider is to communicate 
+      with a digital thermometer and return a numerical value in degrees 
+      centigrade.</p>
+      <p>The 
+      essence of this or any provider, then, is that it receives data from some 
+      external source and then publishes the data in the desired format.&nbsp; This 
+      means that the main portion of the provider code (no matter what 
+      programming tools are used to create it) stays the same regardless of 
+      whether it is used in GT2 or GT3.</p>
+      <p>For 
+      use in GT2/MDS, we want the provider to output LDIF, so some code like the 
+      following could be added, where the current temperature would be 
+      substituted for 
+      $TEMPERATURE:</p>
+      <p>
+      dn: mds-temperature-name=machineroom, ....<br>
+      mds-temperature-name: machine-room<br>
+      mds-temperature-value: $TEMPERATURE<br>
+      mds-temperature-units: centigrade<br>
+      <br>
+      For use in GT3, we want the provider to instead output XML, so some code 
+      like the following could be added:</p>
+      <p>
+      &lt;sensorns:temperature<br>
+      &nbsp;&nbsp;&nbsp; sensorns:name=&quot;machine-room&quot;<br>
+      &nbsp;&nbsp;&nbsp; sensorns:value=&quot;$TEMPERATURE&quot;<br>
+      &nbsp;&nbsp;&nbsp; sensorns:units=&quot;centigrade&quot;<br>
+      &nbsp;&nbsp;&nbsp; xmlns:sensorns=&quot;http://www.example.com/sensors&quot;<br>
+      /&gt;</p>
+      <h2><a name="porting">
+      Porting a GT2 User-Created Provider Into GT3</a></h2>
+      <p>Now 
+      that we’ve reviewed the similarities and differences in creating providers 
+      for use in GT2 and GT3, we’re ready to focus in on the steps for porting a 
+      GT2 user-created provider into GT3, which are as follows:</p>
+      <ol>
+        <li>
+        <p>
+        Redefine the format and 
+        representation of the data.</li>
+        <li>
+        <p>
+        Rewrite the existing 
+        code to output XML instead of LDIF.</li>
+        <li>
+        <p>
+        Enable the revised 
+        provider via the appropriate configuration mechanism.</li>
+      </ol>
+      <p>
+      These steps are described in detail in the following sections.</p>
+      <h3>Redefine the Format 
+      and Representation of the Data</h3>
+      <p>
+      Redefining the format and representation of your data involves three 
+      steps, as follows:</p>
+      <ol>
+        <li>
+        <p>
+        Choose an XML namespace 
+        for the data.</li>
+        <li>
+        <p>
+        Optionally, write an 
+        XSD schema for the data.</li>
+        <li>
+        <p>
+        Register the provider, 
+        namespace, and schema if you have one.</li>
+      </ol>
+      <p>
+      These steps are described in detail below.</p>
+      <h4>Choose an XML 
+      Namespace for the Data</h4>
+      <p>As 
+      the development of user-created Service Data Providers expands, it becomes 
+      increasingly important that the providers have unique, nonconflicting XML 
+      namespaces.&nbsp; Without this, the providers may collide with each other.&nbsp; 
+      Namespace assignments are a requirement of the 
+      <a href="http://www.gridforum.org/ogsi-wg/drafts/draft-ggf-ogsi-gridservice-29_2003-04-05.pdf">
+      Open Grid Services 
+      Infrastructure (OGSI) Specification</a>.&nbsp; </p>
+      <p>The 
+      declaration of namespaces is described in detail in the World Wide Web 
+      Consortium document 
+      <a href="http://www.w3.org/TR/REC-xml-names/">
+      Namespaces in XML</a>.</p>
+      <p>XML namespaces are 
+      essentially URIs (they don’t have to point to a web page) designed to 
+      provide universally unique names for elements and attributes. This allows 
+      you to define elements and attributes that can be reused in other schemas 
+      or instance documents without fear of name collisions. </p>
+      <p>For 
+      example, consider a namespace defined for the GLUE schema as:&nbsp;
+      http://glue.base.ogsa.globus.org/ce/1.1.&nbsp; The Host element can be 
+      referenced in this namespace, with the knowledge that it is different from 
+      the Host element in a different namespace that may have been defined 
+      elsewhere and may not otherwise be known.</p>
+      <h4>Write an XSD Schema 
+      for the Data</h4>
+      <p>It 
+      is not required that you define a schema for the data output by your 
+      ported provider.&nbsp; However, we do recommend having a schema for the 
+      following reasons:</p>
+      <ul>
+        <li>
+        <p>
+        You can use third-party 
+        schema validation tools to check provider output.</li>
+        <li>
+        <p>
+        You can use automated language stub generators (like the one that is 
+        part of Axis in the GT3 distribution) to generate code that converts 
+        between XML and Java classes automatically.</li>
+      </ul>
+      <p>The 
+      schema you write for your ported provider will replace your existing 
+      MDS2.x schema.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </p>
+      <h4>Register the 
+      Provider, Namespace, and Schema</h4>
+      <p>As a 
+      service to Globus Toolkit users, ISI/CGT will keep track of user-created
+         Service Data Providers and their namespaces and schemas.&nbsp; This
+         will assist  the user community in finding existing providers that have
+         functionality  in which they are interested. </p>
+      <h3>Rewrite the Existing 
+      Code</h3>
+      <p>The 
+      next step in the porting process is to replace the existing MDS2.x code 
+      with new code that outputs XML elements.&nbsp; There are no particular 
+      constraints on the programming tools you can use to do this.</p>
+      <p>If 
+      backwards compatibility with MDS2 is desired, you can optionally create
+         a single command that will invoke the provider, with separate command-line
+         options for XML and LDIF.&nbsp; That way the provider will continue
+         to work in  GT2 and will then work in GT3 as well.&nbsp; The LDIF option
+         can be removed if  or when you fully transition to GT3.</p>
+      <h3>Enable the Revised 
+      Provider</h3>
+      <p>The 
+      final step in the porting process is to enable your revised provider 
+      program so that it is properly defined and identified for execution.</p>
+      <p>As 
+      described in 
+      <a href="#inputoutput">
+      Create a Program That Adheres to Input/Output Requirements</a> earlier 
+      in this document, you can use the fork() and exec() facilities of the 
+      ScriptExecutionProvider (a core GT3 provider) to invoke the program.&nbsp; The 
+      ScriptExecutionProvider provides a wrapper for your program to generate 
+      XML on stdout.</p>
+      <p>
+      Since you are using the ScriptExecutionProvider to invoke your program, 
+      there needs to be an entry in the index-service-config.xml providers file 
+      that references the ScriptExecutionProvider.</p>
+      <p>You 
+      will need to perform some additional configuration steps to make the 
+      provider known to GT3 Information Services so it can be run for you.&nbsp; 
+      These steps are described in detail in 
+      <a href="newsdp.html">
+      Creating New GT3 Service Data 
+      Providers</a>.
+     
+</p>
+       <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

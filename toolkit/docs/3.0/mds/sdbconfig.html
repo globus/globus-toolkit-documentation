@@ -1,0 +1,226 @@
+<?php
+
+$title = "GT3.0 Service Data Browser Configuration";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+      This document describes the use of the Service Data Browser
+      configuration file and describes how to add a Visualizer to the 
+      Browser.<br>
+      <h2>
+      Service Data Browser Configuration File</h2>
+      <p>The Service Data 
+      Browser configuration file, globus-sdb.conf, resides in the /etc directory 
+      of your GT3 installation (GLOBUS_LOCATION/etc).&nbsp; The following is an 
+      example of the configuration file:</p>
+      <p>
+      
+      filterSubscriptions=false<br>
+      registry=http://127.0.0.1:8080/ogsa/services/base/registry/Container<br>
+      RegistryService<br>
+      wrapTextInRawVisualizers=true</p>
+      <p>The 
+      
+      filterSubscriptions<code> 
+      option controls the display of Notification Subscription instances in the 
+      Browser’s “Select a service…” pull-down menu.&nbsp; Each time a Grid 
+      service to which you are subscribed changes, it generates a Notification 
+      Subscription instance.&nbsp; Setting this option to 
+
+      </code>
+
+      true<code> 
+      turns on the display of Notification Subscription instances; setting it to
+      
+
+      </code>
+
+      false 
+      turns it off.</p>
+      <p>The 
+      registry 
+      option specifies the URL of the Registry to which the Service Data Browser 
+      is connected at start up.&nbsp; To specify a different registry, you can 
+      either change the value in the configuration file, or specify the registry 
+      (in the same format as in the configuration file) on the globus-sdb 
+      command line.&nbsp; Specifying the registry on the command line overrides 
+      the value set in the configuration file.</p>
+      <p>
+      The 
+      
+      wrapTextInRawVisualizers<code> 
+      option controls text wrapping for the data displayed by the Raw Service
+       Data and Raw WSDL Visualizers.&nbsp; Setting this option to 
+
+      </code>
+
+      true<code> 
+      turns on text wrapping; setting it to 
+
+      </code>
+
+      false 
+      turns it off.</p>
+      <h2>
+      
+      Visualizers</h2>
+      <p>As described in 
+      <a href="sdbquickstart.html">GT3 
+      Service Data Browser Quick Start</a>, the Service Data Browser allows you 
+      to choose from a set of defined (default or custom) Visualizers to view 
+      service data.&nbsp; A Visualizer uses an open API that allows you to 
+      display service data in any desired way, such as graphically as the data 
+      changes.&nbsp; The Visualizer determines the type, amount, and format of 
+      the data displayed.&nbsp; The Known Visualizers menu allows you to choose 
+      a defined Visualizer to view the service. </p>
+      <p>You can add a 
+      Visualizer to the Service Data Browser as follows:</p>
+      <ul>
+        <li>
+        <p>
+        Either obtain an existing Visualizer and 
+        add it to the Browser, or</li>
+        <li>
+        <p>Create a new 
+        Visualizer for your specific service data and the way in which you want
+           it displayed, and then add it to the Browser.
+        </li>
+      </ul>
+      <h3>Adding a Visualizer</h3>
+      <p>To add an existing 
+      Visualizer to the Browser, add a line in the globus-sdb.visualizers file 
+      in GLOBUS_LOCATION/etc to indicate the path and name of your Visualizer.&nbsp; 
+      For example:</p>
+      <p>
+      org.globus.ogsa.gui.servicedatabrowser.visualizers.ShakeTableVisualizer, 
+      Shake Table Visualizer</p>
+      <p>This line will cause 
+      “Shake Table Visualizer” to be added to the Known Visualizers pull-down
+       menu of the Service Data Browser.</p>
+      <h3>Creating a 
+      Visualizer</h3>
+      <p>To create a new Visualizer for 
+      your service data, do the following:</p>
+      <ol>
+        <li>
+        <p>Decide what service data you 
+        want the Visualizer to display and how you want it displayed.&nbsp;
+        </li>
+        <li>
+        <p>Create a class that extends 
+        the Visualizer class.&nbsp; The Visualizer class is defined in the 
+        Visualizer.java file in /ogsa/gui/servicedatabrowser/visualizers. </li>
+        <li>
+        <p>After you create your new 
+        Visualizer, include it in the Service Data Browser by adding a line to 
+        the globus-sdb.visualizers file as described above in Adding a 
+        Visualizer. </li>
+      </ol>
+      <p>As an example, the following is 
+      the code for the Tree Service Data Visualizer that is one of the default 
+      Visualizers supplied with the Service Data Browser:</p>
+      <p>package 
+      org.globus.ogsa.gui.servicedatabrowser.visualizers;</p>
+      <p>import java.awt.Component;</p>
+      <p>import java.net.URL;</p>
+      <p>import javax.swing.JTextArea;<br>
+      import javax.swing.JScrollPane;<br>
+      import javax.swing.JOptionPane;&nbsp;</p>
+      <p>import javax.xml.namespace.QName;</p>
+      <p>import 
+      org.apache.axis.utils.XMLUtils;<br>
+      import org.w3c.dom.Element;<br>
+      import org.w3c.dom.Document;</p>
+      <p>import 
+      com.ibm.wsdl.util.xml.DOM2Writer;</p>
+      <p>import org.globus.ogsa.gui.XMLTree;<br>
+      import org.globus.ogsa.gui.XMLTreeModel;<br>
+      import org.globus.ogsa.ExtensibilityMapping;<br>
+      //import org.globus.ogsa.impl.core.service.GridServiceLocator;<br>
+      import org.gridforum.ogsa.GridServiceGridLocator;<br>
+      import org.globus.ogsa.impl.core.service.QueryHelper;<br>
+      import org.gridforum.ogsa.GridServicePortType;<br>
+      //import org.gridforum.ogsa.ServiceDataNameSetType;<br>
+      import org.gridforum.ogsa.ServiceDataType;<br>
+      import 
+      org.gridforum.ogsa.ExtensibilityType;</p>
+      <p>public class 
+      TreeServiceDataVisualizer extends Visualizer {</p>
+      <p>&nbsp;&nbsp;&nbsp; public Component 
+      display (URL url) {<br>
+&nbsp;&nbsp; String xmlDoc = &quot;&quot;;<br>
+&nbsp;&nbsp; XMLTree serviceDataTree = new XMLTree(XMLUtils.newDocument());</p>
+      <p>&nbsp;&nbsp; try {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GridServiceGridLocator gsl = new 
+      GridServiceGridLocator();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GridServicePortType gspt = 
+      gsl.getGridServicePort(url);<br>
+&nbsp;</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      QName qname = new QName(&quot;ServiceDataNames&quot;);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ExtensibilityType queryResult =<br>
+      gspt.findServiceData(QueryHelper.getNameQuery(qname));<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ServiceDataType sdres = <br>
+      (ServiceDataType)queryResult.getAny();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //ServiceDataNameSetType sdset&nbsp; =<br>
+      (ServiceDataNameSetType)sdres.getAny();<br>
+&nbsp;</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      //QName[] names = sdset.getServiceDataName();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // names[i].getLocalPart() gets name of 
+      service data</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      Object[] objArrayOfNames = sdres.getAny();<br>
+      <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //QName[] 
+      names = sdset.getServiceDataName();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; QName[] names 
+      = new QName[objArrayOfNames.length];<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for (int i=0; 
+      i &lt; objArrayOfNames.length; i++) {<br>
+&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;names[i] = (QName)objArrayOfNames[i];<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      Document doc = XMLUtils.newDocument();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Element elResult = doc.createElementNS(&quot;ns2&quot;, 
+      &quot;serviceData&quot;);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for(int i=0; i&lt;names.length;i++) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GridServiceGridLocator gsl2 = new 
+      GridServiceGridLocator();</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      gsl2.registerExtensibilityMapping(ExtensibilityMapping.ELEMENT_RE<br>
+      SPONSE);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //gsl2.registerAnyElementReturnMapping();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GridServicePortType gsp2 = 
+      gsl2.getGridServicePort(url);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ExtensibilityType queryResult2 =<br>
+      gsp2.findServiceData(QueryHelper.getNameQuery(names[i]));<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; org.w3c.dom.Node n = <br>
+      doc.importNode((Element)queryResult2.getAny(), true);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; elResult.appendChild(n);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      serviceDataTree.setModel(new XMLTreeModel(elResult));<br>
+&nbsp;&nbsp; }<br>
+&nbsp;&nbsp; catch (Exception e) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; System.out.println (&quot;Exception: &quot; + 
+      e.getMessage());<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; e.printStackTrace();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return null;<br>
+&nbsp;&nbsp; }<br>
+      <br>
+&nbsp;&nbsp; return (new JScrollPane(serviceDataTree));<br>
+&nbsp;&nbsp;&nbsp; }<br>
+      <br>
+&nbsp;&nbsp;&nbsp; public String getTitle() {<br>
+&nbsp;&nbsp; return &quot;Tree Service Data&quot;;<br>
+&nbsp;&nbsp;&nbsp; }</p>
+      <p>}</div>
+      <pre></pre>
+
+
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>

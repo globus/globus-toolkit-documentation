@@ -1,0 +1,177 @@
+<?php
+
+$title = "GT 3.0: Security Support";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+<h1><?php echo $title; ?></h1>
+
+<p>
+Last Updated 06/24/2003</p>
+
+<h2>
+Contents</h2>
+<ol>
+<li><a href="#Introduction">Introduction</a></li>
+<li><a href="#Features">Features</a></li>
+<li><a href="#MessageSecurity">Message Level Security</a></li>
+<li><a href="#TransportSecurity">Transport Level Security</a></li>
+<li><a href="#GeneralClientInfo">General Client Information</a></li>
+</ol>
+
+<h2><a name="Introduction"></a>1 Introduction</h2>
+
+
+<p>GT3 Java GSI is based on the implementation of GSI in the <a href="http://www.globus.org/cog/java/1.1a">Java
+  CoG Kit</a>. GT3 provides <b>transport layer security</b> and <b>message level security</b>.
+  The transport layer security is based around a new protocol called 'httpg'
+  to indicate GSI-enabled HTTP-based protocol. The message level security is
+based on <a href="http://www.oasis-open.org/committees/wss/">WS-Security</a>, <a href="http://www.w3.org/TR/xmlenc-core/">XML Encryption</a> and <a href="http://www.w3.org/TR/xmldsig-core/">XML Signature</a> standards.</p>
+<p>  The Java GSI implementation is an implementation of the Java GSS-API. It
+  supports the <a href="http://www.ggf.org/security/gsi/draft-ggf-gss-extensions-07.pdf">GSS-API extensions</a> and
+    the <a href="http://www.ggf.org/security/gsi/draft-ggf-gsi-proxy-04.pdf">new proxy certificate format</a> specifications
+    as defined by the <a href="http://www.ggf.org/">Global Grid Forum</a>. </p>
+<p><i>
+Note: Although we provide GSI transport layer security we strongly recommend using the message level security. The GSI transport
+layer security might be phased out at some point in the future.
+</i></p>
+<h2><a name="Features"></a>2 Features</h2>
+
+<p>GT3 security library features:
+</p>
+<ul>
+<li>Transport and message level security.
+</li>
+<li>Instance-based security.
+<ul>
+ <li> 
+   Each service instance can have its own credentials, gridmap file, etc.
+ </li>
+</ul>
+</li>
+<li>Declarative security
+ <ul>
+    <li>       The security behavior
+of a service can be specified        in a security deployment descriptor.</li>
+ </ul>
+</li><li>Programmatic security</li>
+  <ul>
+    <li>Security API are provided
+      to service developers for fine grained security control.<br>
+    </li>
+  </ul>
+  <li><a href="http://java.sun.com/products/jaas/">JAAS</a> integration.
+ <ul>
+    <li>
+      Permits services to be independent from underlying 
+      authentication technologies.
+    </li>
+ </ul>
+  </li>
+</ul>
+
+
+<h2><a name="MessageSecurity"></a>3 Message Level Security</h2>
+
+<p>Please see <a href="message_security.html">Message Level Security</a> document for details.
+  
+
+</p>
+<h2><a name="TransportSecurity"></a>4 Transport Level Security</h2>
+
+<p>Please see <a href="transport_security.html">Transport Level Security</a> document for details.
+  
+
+</p>
+<h2><a name="GeneralClientInfo"></a>5 General Information</h2>
+
+<h3><a name="GSIProperties"></a>
+5.1 GSI Client Properties</h3>
+
+<p>The following GSI properties can be set on the client to control the authentication/authorization process:
+</p>
+<ul>
+
+<li>
+<b>org.globus.axis.gsi.GSIConstants.GSI_CREDENTIALS</b></li>
+
+<ul>
+<li>
+<b>Value:</b> <i>org.ietf.jgss.GSSCredential</i> instance
+</li>
+<li>
+It is used to pass a specific set of credentials for authentication.
+By default, if not specified, the default user proxy credential is used.</li>
+</ul>
+
+<li>
+<b>org.globus.ogsa.impl.security.Constants.AUTHORIZATION</b></li>
+
+<ul>
+<li>
+<b>Value:</b> <i>org.globus.ogsa.impl.security.authorization.Authorization</i> instance
+</li>
+<li>It is used to set authorization type to perform. By default, if not specified, host authorization is performed.</li>
+</ul>
+
+<li>
+<b>org.globus.axis.gsi.GSIConstants.GSI_MODE</b></li>
+
+<ul>
+<li>
+<b>Value:</b> One of:
+<ul>
+<li>GSIConstants.GSI_MODE_NO_DELEG - performs no delegation (default)</li>
+<li>GSIConstants.GSI_MODE_LIMITED_DELEG - performs limited delegation</li>
+<li>GSIConstants.GSI_MODE_FULL_DELEG - performs full delegation</li>
+</ul>
+</li>
+
+<li><i>Used for GSI Secure Conversation or transport security only</i>. It is used to set GSI delegation mode.
+</li>
+
+</ul>
+</ul>
+
+<p>You can set these GSI properties on any service port instance by
+  casting the instance to javax.xml.rpc.Stub class and calling ._setProperty()
+  method. If you are dealing directly with JAX-RPC Call object use .setProperty()
+  instead. For example:
+  
+</p>
+<pre>  OGSIServiceGridLocator factoryService =<br>            new OGSIServiceGridLocator();<br>  Factory factory =<br>            factoryService.getFactoryPort(new HandleType(handle));<br><br>  // enable GSI Secure Conversation message level security<br>  ((Stub)factory)._setProperty(Constants.GSI_SEC_CONV,<br>                               Constants.SIGNATURE);<br>  // enable limited delegation<br>  ((Stub)factory)._setProperty(GSIConstants.GSI_MODE,<br>                               GSIConstants.GSI_MODE_LIMITED_DELEG);<br>  // set client authorization to none<br>  ((Stub)factory)._setProperty(Constants.AUTHORIZATION,<br>                               NoAuthorization.getInstance());<br></pre>
+
+    <p>Note that the properties set on the factory stub are not inherited
+    by any service port instance representing a service created using
+    the factory. You will have to set seperate properties on every
+    instance.
+
+    </p>
+    <h3>
+5.2 GSI initialization tips</h3>
+<p>Initialization of GSI on both the client and the server might be a very
+  time consuming process on some platforms. It depends on the initialization
+  of a secure seed needed by the random number generator for security purposes.
+  The default seeding algorithm of Sun's VM is somewhat slow but it can be
+  easily replaced by a better one by installing a new SecureRandom
+  provider.
+</p>
+<p>  For example, for Windows users we recommend installing the <a href="http://www.isnetworks.com/infinitemonkey/">InfiniteMonkey</a> provider
+    from <a href="http://www.isnetworks.com/">ISNetworks.com</a> (Just
+    follow the installation instructions in their included README.TXT file
+  and put the intifitemonkey.dll in the c:\WINNT\system32 directory) </p>
+<p>  Once the provider is properly installed the GSI initialization time
+  will be much faster. </p>
+<p>  Also, on Unix/Linux machines, GSI will take advantage of the /dev/urandom
+  device if installed to speed up the start up time. In the future, we will
+  provide a SecureRandom implementation for machines without this device. </p>
+<h3><a name="JAASinstallation"></a>5.3 JAAS installation</h3>
+
+<p><i>This step is only necessary for J2SE 1.3.1. </i>To install JAAS library
+  please download "JAAS 1.0_01 Class Libraries" from <a href="http://java.sun.com/products/jaas/index-10.html">http://java.sun.com/products/jaas/index-10.html.</a> Extract the <i>jaas-1_0_01.zip</i> file
+  into a temporary directory and copy the "<i>jaas1_0_01/lib/jaas.jar</i>" file
+  to the <i>lib</i> directory of the GT3 installation.
+</p>
+  <?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
+
+

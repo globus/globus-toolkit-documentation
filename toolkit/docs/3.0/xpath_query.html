@@ -1,0 +1,193 @@
+<?php
+
+$title = "GT 3.0: XPath Query support for Service Data Elements  (Experimental)";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+
+
+<h1><?php echo $title; ?></h1>
+
+
+
+<h2>Introduction</h2>
+<p>  The current implementation
+    of XPath query support for Service Data uses Xalan-J XPathAPI to evaluate
+    XPath expressions on serialized DOM representations of Service Data Elements
+and return the results as an array of XML elements. </p>
+<h2>Audience</h2>
+<p>This document is targeted towards OGSA developers interested in 
+
+        evaluating XPath query expressions against OGSA Service Data Elements.</p>
+
+
+
+        <h2>Assumptions</h2>
+
+        <p> This document
+            assumes that the Globus Toolkit<sup>&reg;</sup> 3.0 has been installed
+        and configured for your particular computing environment. .</p>
+
+        <h2>Organization</h2>
+        <p> This
+            document contains the following sections:</p>
+        <ul>
+          <li>            <a href="http://www-fp.globus.org/ogsa/releases/final/docs/infosvcs/xpath_query.html#Usage"> Usage</a></li>
+          <li> <a href="http://www-fp.globus.org/ogsa/releases/final/docs/infosvcs/xpath_query.html#ParamExplan">Parameter
+                Explanation</a> </li>
+          <li>            <a href="http://www-fp.globus.org/ogsa/releases/final/docs/infosvcs/xpath_query.html#CurrentClient"> Current
+          Client Implementations</a> </li>
+          <li>                   <a href="http://www-fp.globus.org/ogsa/releases/final/docs/infosvcs/xpath_query.html#SampleQueries"> Sample
+                    Queries</a></li>
+        </ul>
+        <h2><a name="RelatedDocs"> Related
+              Documents</a></h2>
+        <p> Here
+            are some links to XPath documents that you may find useful:</p>
+        <ul>
+          <li>  XPath
+                Specification: <a href="http://www.w3.org/TR/xpath""> http://www.w3.org/TR/XPath</a> </li>
+          <li>  XPath
+                Tutorial: <a href="http://www.zvon.org/xxl/XPathTutorial/General/examples.html"">  http://www.zvon.org/xxl/XPathTutorial/General/examples.html</a> </li>
+          <li>  Query
+                Expression samples: <a href="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/xmlsdk/htm/xpath_syntax2_3prn.asp?frame=true">  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/xmlsdk/htm/XPath_syntax2_3prn.asp?frame=true</a></li>
+        </ul>
+        <h2>Usage</h2>
+
+        <p>An XPath query can be performed by issuing a 
+
+        findServiceData() method call and passing a 
+
+        ServiceDataXPathQueryExpressionType object as the parameter instead of 
+
+        ServiceDataNameQueryExpressionType. </p>
+
+        <p>ServiceDataXPathQueryExpressionType has the 
+
+        following WSDL structure:</p>
+
+        <blockquote>
+  
+          <pre>&lt;complexType name="ServiceDataXPathQueryExpressionType"&gt;<br>&nbsp;&nbsp;&nbsp; &lt;sequence&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;element name="name" type="QName"/&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;element name="XPath" type="string"/&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;element name="namespaces" type="string" minOccurs="0"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; maxOccurs="unbounded"/&gt;<br>&nbsp;&nbsp;&nbsp; &lt;/sequence&gt;<br>&lt;/complexType&gt;</pre>
+        </blockquote>
+        <h2>Parameter Explanation</h2>
+
+        <dl>
+          <dt><strong>QName</strong>: &quot;name&quot;</dt>
+          <dd> This is
+              the QName of the SDE to select as the basis of the search.&nbsp; Wildcarding
+              is supported in either part of the QName.&nbsp; If the asterisk
+              (*) wildcard is specified, the XPath expression will be applied
+              in turn to each matching Service Data Element returned by the wildcard
+              selection, and the entire results set will be returned as an array
+              of XML elements, with each element containing one or more child
+          result elements from the XPath query. </dd>
+          <dt> <strong>String</strong>: &quot;XPath&quot;</dt>
+          <dd> This is
+              the XPath expression to apply to the SDE specified by the "name" parameter.&nbsp; The
+              XPath language is sophisticated and the syntax is strict.&nbsp; Improper
+              syntax in query expressions will generate Invalid Expression exceptions.&nbsp; Improper
+              semantic usage may yield an undesirable or unexpected result set,
+              or no results at all.&nbsp; At this time, DOM Element types are
+              the only return type supported by the XPath query evaluator. 
+          </dd>
+          <dt> <strong>String[]</strong>: &quot;namespaces&quot;</dt>
+          <dd> XPath
+                requires that the client provide a namespace mapping for every
+                node in the query scope that has a corresponding namespace attribute.&nbsp; In
+                the current implementation, this is provided via an array of
+                strings of the form <code>xmlns:&lt;prefix&gt;=&lt;namespaceURI&gt;</code>.&nbsp; For
+          example:
+        
+         
+<pre>xmlns:gsdl=http://www.gridforum.org/namespaces/2002/10/gridServices
+xmlns:wsil=http://schemas.xmlsoap.org/ws/2001/10/inspection/</pre>
+
+ If
+    namespace mappings are not provided, the default behavior is to use the current
+    context node (in our case the SDE root element) to resolve the namespaces.&nbsp; However,
+    this may not be sufficient when searching for child nodes that contain namespace
+    attributes not present in the root node, so one must be careful to provide
+    all possible namespaces of interest that are likely to be encountered when
+    traversing the SDE. <br>
+    <br>
+    Note
+    that while with XPath it <i>is</i> possible to do a wildcard selection on
+    a QName localPart within the XPath string expression, it is <i>not</i> possible
+    to wildcard the namespace URI or prefix. For
+    example: //*:* is an invalid query, but //gsdl:* is valid -- as long as the "gsdl" prefix
+    can be resolved to a URI.</dd>
+        </dl>
+        <h2> <a name="CurrentClient"> Current
+              Client Implementations</a></h2>
+        <h3>  
+  Querying with the OGSA Service Browser GUI</h3>
+        <p> The
+            GridServicePortTypePanel.java of the OGSA Service Browser GUI can
+            take the extra parameters of the String XPath expression and the
+            Namespace mapping string.&nbsp; Specify the literal XPath expression
+            string in the XPath text box and use a whitespace, semicolon, or
+            comma delimited set of namespace strings in the Namespace text box.</p>
+        <h3>Querying with
+              the ogsi-find-service-data Command</h3>
+        <p> Another
+            way to query is with the  ogsi-find-service-data command.&nbsp; The
+            following example shows how to query the container registry for all
+            active services registered to it: </p>
+        <pre> ogsi-find-service-data -service 
+ http://128.9.72.46:9103/ogsa/services/core/registry/ContainerRegistryService -sde entry -querytype 
+ xpath -xpath 
+ '/gsdl:entry[gsdl:content/prop:propertiesDetail/prop:state="ACTIVE"]' -ns 
+ prop=http://ogsa.globus.org/types/properties -output pretty</pre>
+        <p> This
+            command uses an XPath expression to specify that the Container Registry
+            Service be queried for all services registered to it.&nbsp; The XPath
+            expression uses both the default namespace, gsdl,
+            as well as the &ndash;ns option
+            to define the  prop abbreviation
+            for the properties namespace.&nbsp; The XPath expression filters
+            the results so that only active services are returned.&nbsp; The   &ndash;output
+            pretty option
+            specifies that the service data be returned in an easy-to-read outline
+            form.</p>
+        <p> The  ogsi-find-service-data command
+            is described in detail in  <a href="http://www.globus.org/ogsa/releases/final/docs/infosvcs/querysvcdata.html">Querying
+            Service Data</a>.</p>
+<h2>Sample Queries</h2>
+
+        <p> To
+            get you started with creating XPath expressions here are some examples.&nbsp; These
+            expressions can be used with the OGSA Service Browser GUI, the <code>ogsi-find-service-data</code> client
+            mentioned above, or any client you might create for this purpose.&nbsp; Much
+            more information on XPath expressions and examples can be found in
+            the <a href="http://www-fp.globus.org/ogsa/releases/final/docs/infosvcs/xpath_query.html#RelatedDocs" style="color: rgb(0, 0, 255); text-decoration: underline;"> Related
+            Documents</a> section at the beginning of this document.</p>
+        <p> The
+            following namespace mappings are assumed for these sample queries:</p>
+        <pre>xmlns:gsdl=<span style="font-size: 10pt; font-family: &quot;Courier New&quot;;">http://www.gridforum.org/namespaces/2003/03/OGSI</span></pre>
+        <p class="MsoNormal"> <span style="font-size: 10pt; font-family: &quot;Courier New&quot;;"> xmlns:glue=http://glue.base.ogsa.globus.org/ce/1.1<br>
+  prop=http://ogsa.globus.org/types/properties</span></p>
+        <p>Note that these sample
+            queries are all single-line commands.</p>
+        <p> 1.&nbsp; Query
+            against the container registry to get a list of active services:</p>
+        <pre class="MsoNormal">/gsdl:entry[gsdl:content/prop:propertiesDetail/prop:state="ACTIVE"]</pre>
+        <p> 2.&nbsp; Look
+            in an Index Service for a file system called /scratch, residing on
+            the host host1.isi.edu:</p>
+        <pre>/glue:Cluster/glue:SubCluster/glue:Host[@glue:Name="host1.isi.edu"]
+/glue:FileSystem[@glue:Name="/scratch"]</pre>
+        <p> 3.&nbsp; Select
+            all clusters that have a host with more than 500 MB of memory available:</p>
+        <pre>/glue:Cluster[glue:SubCluster/glue:Host/glue:MainMemory/@glue:
+ RAMAvailable&gt;500]</pre>
+        <p> 4.&nbsp; Show
+            information (OS, available memory, CPU load, etc.) for a host called
+            host2.isi.edu that is being indexed by an Index Service:</p>
+        <pre> '/glue:Cluster/glue:SubCluster/glue:Host[@glue:Name="host2.isi.edu"]<span style="font-size: 10pt; font-family: &quot;Courier New&quot;;">'</span></pre>
+        <p> 5.&nbsp; Show
+            just the CPU load for host2.isi.edu in Example 4 above:</p>
+        <pre>/glue:Cluster/glue:SubCluster/glue:Host[@glue:Name="host2.isi.edu"]<br>/glue:ProcessorLoad</pre>
+   
+
+        <?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>

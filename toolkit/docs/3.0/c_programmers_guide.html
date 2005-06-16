@@ -1,0 +1,570 @@
+<?php
+
+$title = "GT 3.0 OGSA-C Programmer’s Guide";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+<p> Globus Toolkit 3.0 - Last Updated <!--webbot bot="Timestamp"
+S-Type="EDITED" S-Format="%m/%d/%Y" startspan -->06/27/2003<!--webbot bot="Timestamp" i-CheckSum="12516" endspan -->
+</p>
+<h2>
+Contents</h2>
+
+
+
+<ul>
+  <li><a href="#Introduction">Introduction</a></li>
+  <li>  <a href="#Download">Download</a></li>
+  <li>  <a href="#WritingClient">Implementing a Client</a></li>
+  <li>  <a href="#Gram">Gram Client Wrapper API</a><br>
+          
+</li>
+</ul>
+<h2><a name="Introduction"></a>Introduction</h2>
+<p class="MsoNormal">This document is a guide to writing C clients which interact with Grid Services. It covers the core framework, security, and the gram client wrapper API.  <p class="MsoNormal">Basic knowledge of C
+is assumed in this guide.  We also assume that you are familiar with the basic
+OGSA environment described in the <a href="users_guide.html">User's Guide</a>.  The <a href="http://www.cs.fsu.edu/~engelen/soapdoc2.html">gSOAP User's Guide</a> will also be a valuable reference.</p>
+
+<h2><a name="Download"></a>Download</h2>
+<h3>Bundles </h3>
+<p>Please refer to the <a href="../../downloads/3.0.1/">Globus Toolkit download page</a> for further information on downloading the latest release bundles.  In order to browse the source of the OGSA-C packages from the GT3 installer, go to the <i>gt3-installer/BUILD</i> directory.  The packages that make up the OGSA-C bundle are listed here:</p>
+<ul>
+<li>Packages used for parsing/handling XML:
+<ul>
+<li>globus_libxml2
+<li>globus_libxslt
+</ul>
+<br>
+<li>gSOAP packages:
+<ul>
+<li>globus_gsoap_soapcpp2
+<li>globus_gsoap_stdsoap2
+<li>globus_gsoap_io_plugin
+<li>globus_gsoap_error_plugin
+</ul>
+<br>
+<li>Utils packages:
+<ul>
+<li>globus_ogsa_utils
+<li>globus_ogsa_utils_error
+</ul>
+<br>
+<li>OGSI Core packages:
+<ul>
+<li>globus_ogsi_core
+<li>globus_ogsi_notification
+<li>globus_ogsi_service_plugin
+<li>globus_ogsi_types
+<li>globus_ogsi_types_bindings
+</ul>
+<br>
+<li>Security packages:
+<ul>
+<li>globus_grim_devel
+<li>globus_ogsa_security_authentication
+<li>globus_ogsa_security_authentication_bindings
+<li>globus_ogsa_security_grim
+<li>globus_ogsa_security_rsa_sha1
+<li>globus_ogsa_security_wsse_gssapi
+<li>globus_xmlsec
+</ul>
+<br>
+<li>Samples:
+<ul>
+<li>globus_ogsa_samples_counter_bindings
+<li>globus_ogsa_samples_counter_test
+</ul>
+<br>
+<li>GRAM Client Packages:
+<ul>
+<li>globus_gram_xml_rsl
+<li>globus_gram_xml_rsl_test
+<li>globus_gt3_gram_client
+<li>globus_gt3_gram_client_test
+<li>globus_ogsa_base_gram_managed_job
+<li>globus_ogsa_base_gram_mj_bindings
+<li>globus_ogsa_base_gram_mj_test
+<li>globus_ogsa_base_gram_mj
+</ul>
+</ul>
+<h3>
+CVS</h3>
+<p>To get the latest OGSA-C source code from CVS, use the module name "ogsa-c", and follow the instructions on the <a href="../development/remote-cvs.html">CVS Howto</a>.  Building the source from CVS can be done using the ogsa-c/build_tools/cvs-build-ogsa script.  Usually you can just run:
+<pre class="code">
+
+./cvs-build-ogsa gcc32dbg
+
+</pre>
+The <i>-help</i> option gives further information about using that script.  There a few pre-requisites before running the script:
+<ul>
+<li>The globus versions of autotools must be installed and at the front of your path.  See the <a href="../development/remote-cvs.html">CVS Howto</a> for further information on how to accomplish this.
+<li>GPT must be installed, and GPT_LOCATION set.  See <a href="../2.4/install.html#gpt">Installing GPT</a> for further information.
+<li>You must have at least a 2.4.1 version of the Globus Toolkit (version 2)
+  installed, with GLOBUS_LOCATION set to that installation. Version 2.4.1 comes
+  withe GT3 final release, or it can be downloaded and installed separately.
+  See the <a href="../../downloads/">Globus Toolkit Downloads </a> page for further
+  info.
+</ul>
+
+<h2><a name="WritingClient"></a>Writing a Client</h2>
+<p class="MsoNormal">The following steps are involved in writing a C client:</p>
+<ul>
+  <li>
+    <b>Step 1. Provide a gSOAP Service Description File</b></li>
+  <li>
+    <b>Step 2. Creating a GPT package from the gSOAP Description</b></li>
+  <li>
+    <b>Step 3. Generate Support Code</b></li>
+</ul>
+<h3>Step 1. Provide a gSOAP Service Description File</h3>
+<p>The C client framework uses gSOAP as the underlying SOAP implementation.  gSOAP generates client side stubs for a service from a gSOAP definition file (usually suffixed as ".gsoap").  The definition file has similar formatting to a C header file, but it should not be included in any C code or compiled by a C compiler.  Consider it a separately formatted schema file similar in function to WSDL.  Here is an <a href="globus_ogsa_samples_counter_bindings.gsoap">example gSOAP definition file</a> for a simple counter service, included in the GT3 distribution.  This coincides with the <a href="counter_port_type.gwsdl">GWSDL schema file</a> for the counter service.  See the <a href="http://www.cs.fsu.edu/~engelen/soap.html">gSOAP documentation</a> for complete documentation on the formatting of the gSOAP definition file.  A few OGSA-C specific features of the gSOAP definition file should be noted:
+<ul>
+<li>Namespaces must be defined in an associated namespace source file.  The namespaces for the counter example (defined in globus_ogsa_samples_counter_bindings_namespaces.c) are as follows:
+<pre class="code">
+#include &lt;stdsoap2.h&gt;
+
+struct Namespace globus_ogsa_samples_counter_bindings_namespaces[] =
+{
+    {"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", "http://www.w3.org/2002/06/soap-encoding"},
+    {"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/", "http://www.w3.org/2002/06/soap-envelope"},
+    {"xsi", "http://www.w3.org/2001/XMLSchema-instance", "http://www.w3.org/*/XMLSchema-instance"},
+    {"xsd", "http://www.w3.org/2001/XMLSchema", "http://www.w3.org/*/XMLSchema"},
+    {"ogsi", "http://www.gridforum.org/namespaces/2003/03/OGSI"},
+    {"gwsdl", "http://www.gridforum.org/namespaces/2003/03/gridWSDLExtensions"},
+    {"sd", "http://www.gridforum.org/namespaces/2003/03/serviceData"},
+    {"counter", "http://ogsa.globus.org/samples/counter"},
+    {NULL, NULL}
+};
+</pre>
+Notice that the namespace prefixes correspond to the prefixes for type definitions and function declarations in the associated gSOAP definition file.  When writing the support code for a grid service client, the gSOAP handle must be initialized with the appropriate namespaces array:
+
+<pre class="code">
+extern struct Namespace globus_ogsa_samples_counter_bindings_namespaces[];
+#define COUNTER_DEFAULT_NS "http://ogsa.globus.org/samples/counter"
+...
+
+globus_ogsa_utils_gsoap_handle_init(
+    &gsoap_handle,
+    COUNTER_DEFAULT_NS,
+    1,
+    globus_ogsa_samples_counter_bindings_namespaces);
+</pre>
+See the counter example in the GT3 distro for further documentation.
+<br><br>
+<li>Service Data for a grid service must be defined using the "gridService"
+operator as follows:
+<pre class="code">
+gridService struct counter__CounterService_s
+{
+    _counter__counter *                 counter;
+} counter__CounterService;
+</pre>
+This is similar to a "typedef", but the stub generator includes additional service data handling functions when it sees the "gridService" operator.  The functions generated for this type are:
+<pre class="code">
+int globus_counter__CounterService_s_deserialize(
+    struct soap *                       soap,
+    const char *                        sde_name,
+    void *                              service_handle);
+
+int globus_counter__CounterService_s_serialize(
+    struct soap *                       soap,
+    void *                              service_handle);
+
+void * globus_counter__CounterService_s_init(
+    struct soap *                       soap,
+    void **                             service_handle);
+
+void globus_counter__CounterService_s_destroy(
+    struct soap *                       soap,
+    void *                              service_handle);
+</pre>
+These functions can be used as callbacks to set which service a gSOAP
+handle expects for marshalling of SOAP messages.  This is explained further
+in the sections on <a href="#ServiceData">Service Data</a> and <a href="#Notifications">Notifications</a>.
+<p>
+To enable the service data elements associated with a basic Grid Service, or include those elements associated with a NotificationSource Service, the elements need to be included in the gridService type definition:
+<pre class="code">
+gridService struct counter__CounterService_s
+{
+    _counter__counter *                  counter;
+    
+    _xsd__QName                         interface;
+    _xsd__QName                         serviceDataName;
+    _ogsi__LocatorType                  factoryLocator;
+    _ogsi__HandleType                   gridServiceHandle;
+    _ogsi__ReferenceType                gridServiceReference;
+    _ogsi__OperationExtensibilityType   findServiceDataExtensibility;
+    _ogsi__OperationExtensibilityType   setServiceDataExtensibility;
+    _ogsi__TerminationTimeType          terminationTime;
+
+    _xsd__QName                         notifiableServiceDataName;
+    _ogsi__OperationExtensibilityType   subscribeExtensibility;
+} counter__CounterService;
+</pre>
+All the types in this gridService definition are pointers, allowing many
+of the service data values for a grid service to be set to NULL, since
+service data queries in most cases are only concerned with one or a few of the service data elements in the service.   
+The definitions of the other GridService types are
+included in the globus_ogsi_types.gsoap definition file.
+
+<p>
+<li>Port type operations are declared as two separate functions in the gSOAP definition file.  This allows the gSOAP compiler to generate stubs that separate the sending and receiving of a SOAP operation on the client.
+<pre class="code">
+int counter___add(
+    xsd__int                            value,
+    void                                dummy);
+
+int counter__addResponse(
+    xsd__int                            returnValue,
+    void                                dummy);
+
+</pre>
+From these declarations, the following valid C functions are generated:
+<pre class="code">
+int soap_send_counter__add(
+    struct soap *                       soap,
+    const char *                        URL,
+    const char *                        soap_action,
+    long                                value);
+
+int soap_recv_counter__add(
+    struct soap *                       soap,
+    struct counter__add *               value);
+
+int soap_send_counter__addResponse(
+    struct soap *                       soap,
+    const char *                        URL,
+    const char *                        soap_action,
+    long                                returnValue);
+
+int soap_recv_counter__addResponse(
+    struct soap *                       soap,
+    struct counter__addResponse *       returnValue);
+</pre>
+These functions allow non-blocking requests to be made to the server.  The counter_add and counter_addResponse structures are just wrappers to the integer value.
+</ul>
+<h3>Step 2. Creating a GPT package for a gSOAP definitions file</h3>
+The easiest way to generate and use the bindings code from your gSOAP definition
+file, is to include it in a GPT package, using the counter sample package as
+a template.  The list of files required to generate a GPT package for the counter sample are (located in ogsa-c/samples/counter/source):
+<pre class="code">
+Makefile.am*
+configure.in
+bootstrap
+globus_ogsa_samples_counter_bindings.gsoap*
+globus_ogsa_samples_counter_bindings_namespaces.c*
+pkgdata/pkg_data_src.gpt.in*
+dirt.sh
+</pre>
+The files with (*) need to be modified to work with your service name.  
+Be sure to replace all instances of globus_ogsa_samples_counter with your own service's name.  In order to build the package, the same prerequisites defined in the CVS portion of the <a href="#Download">Download section</a> must be met.
+From the package directory, the build steps are:
+<pre class="code">
+./bootstrap
+$GPT_LOCATION/sbin/gpt-build &lt;flavor&gt;
+</pre>
+This will run the gSOAP stub/skeleton compiler that will generate the bindings for your service, as well as compile the resulting C source code into a library, and install it into $GLOBUS_LOCATION.
+
+<h3>Step 3.  Generate Support Code</h3>
+This section provides details on the support code that must be written for a C client to interact with a Grid Service.  We will use the counter example with notifications enable as example code throughout.  The code can be found at: ogsac/impl/samples/counter/test/notification_counter_test.c.  In the bundles, its available in <i>BUILD/globus_ogsa_samples_counter_test-0.1/</i>.  You can run the sample test by doing:
+<pre class="code">
+
+$GLOBUS_LOCATION/test/globus_ogsa_samples_counter_test/test-counter-notify \<br>    http://10.0.0.1:8080/ogsa/services/samples/counter/notification/CounterFactoryService 10
+
+</pre>
+The GSH should be modified for your host and port as appropriate.  
+
+<p>This section has the following subsections:
+
+<ul>
+  <li>
+    <a href="#Modules">Activating Modules</a></li>
+  <li>  <a href="#CreateService">Creating a Service Instance</a></li>
+  <li>  <a href="#Signing">Signing the createService Request</a></li>
+  <li>  <a href="#Operations">Sending Operation Requests</a></li>
+  <li>  <a href="#Secure">Signing or Encrypting Operation Requests</a></li>
+  <li>  <a href="#ServiceData">Querying Service Data</a></li>
+  <li>  <a href="#Notifications">Subscribing to Notifications</a><br>
+                
+</li>
+</ul>
+<h4> 
+  <a name="Modules">Activating Modules</a></h4>
+<p>
+Since the OGSA-C libraries build on the Globus Toolkit, the Globus model
+of activating modules is used.  For all OGSA-C clients, the GLOBUS_OGSI_CORE_MODULE should be activated:
+<pre class="code">
+   result = (globus_result_t) globus_module_activate(
+        GLOBUS_OGSI_CORE_MODULE);
+    if(result != GLOBUS_SUCCESS)
+    {
+        /* handle error */
+    }
+</pre>
+A module should be activated before any functions from that module
+are called.  Some frequently used OGSA-C modules are:
+<ul>
+<li>GLOBUS_OGSA_UTILS_MODULE - provides simple utilities.
+<li>GLOBUS_OGSI_NOTIFICATION_MODULE - needed for subscribing to notifications
+<li>GLOBUS_GSOAP_IO_PLUGIN_MODULE - provides globus_io transport for gSOAP
+<li>GLOBUS_GSOAP_ERROR_PLUGIN_MODULE - provides globus error handling for gSOAP
+</ul>
+Modules can be deactivate all at once:
+<pre class="code">
+    result = (globus_result_t) globus_module_deactivate_all();
+</pre>
+or they can be deactivated in the order they were activated.
+
+<h4>
+  <a name="CreateService">Creating a Service Instance</a></h4>
+<p>
+As a first step for a Grid Service client, the client should perform the createService operation.  A simple createService operation for the counter service looks like this:
+<pre class="code">
+#include &lt;globus_ogsi_core.h&gt;
+
+...
+
+    result = globus_ogsi_core_createService(
+        contact, NULL, NULL, NULL, NULL,
+        &gsr, &gsh, NULL, NULL, NULL, 0);
+</pre>
+Further info can be found in the API documentation.  The contact is the GSH of the factory that creates the service.  The <i>gsr</i> and <i>gsh</i> parameters are returned from the createService call.  In this case, the service parameters included in the call are empty.  In order to add service parameters that get serialized as the call is sent, a callback should be passed in:
+<pre class="code">
+globus_result_t
+service_params_callback(
+    const char *                        tag,
+    void *                              value,
+    char **                             buffer,
+    size_t *                            buff_length,
+    void *                              user_data);
+
+...
+
+    result = globus_ogsi_core_createService(
+        contact, NULL, NULL, 
+        service_params_callback, service_params_args,
+        &gsr, &gsh, NULL, NULL, NULL, 0);
+</pre>
+The <i>service_params_callback</i> gets called during serialization of the createService call, and is passed the tag of the service parameters element.  The <i>service_params_args</i> should be user data that can be cast to <i>(void *)</i>, and appears in the callback as the <i>value</i> argument.  The result of the callback should be that <i>*buffer</i> is allocated and filled with the serialized XML of the service parameters.  <i>*buff_length</i> should be set to the length of <i>*buffer</i>.  If the user doesn't want to keep track of allocated memory, they should use the <i>soap_malloc</i> function, which will deallocate all memory associated with that gSOAP handle, when the handle is destroyed.  
+
+<h4>  
+  <a name="Signing">Signing the createService Request</a></h4>
+<p>
+If the createService call needs to be signed by the client's proxy certificate, just pass a nonzero value to the last parameter of <i>globus_ogsi_core_createService</i>.
+
+<h4>
+  <a name="Operations">Sending Operation Requests</a>
+</h4>
+<p>
+In order to use any of the generated bindings, a gSOAP handle needs to be initialized.  We provide a convenience function for this purpose:
+<pre class="code">
+#include &lt;globus_ogsa_utils.h&gt;
+
+...
+
+    globus_ogsa_utils_gsoap_handle_init(
+        &gsoap_handle,
+        COUNTER_DEFAULT_NS,
+        1,
+        globus_ogsa_samples_counter_bindings_namespaces);
+</pre>
+Once the gSOAP handle has been initialized, operation requests can be made:
+<pre class="code">
+    soap_send_counter__add(gsoap_handle, GSH, NULL, 10);
+</pre>
+This sends the <i>add</i> request to the counter service, which adds 10 to its current value.  In order to received the response the service returns from the <i>add</i> operation, the client needs to do the followiing:
+<pre class="code">
+    int                                 new_counter_service_value;
+
+    soap_recv_counter__addResponse(gsoap_handle, &addResponse);
+
+    new_counter_service_value = addResponse.returnValue;
+</pre>
+
+<h4>
+  <a name="Secure">Signing or Encrypting Operation Requests</a></h4>
+<p>
+If the counter service in the above example were secure, the request sent
+from the client would need to be signed or encrypted before being sent.  To
+do this, the following calls should be made: 
+<pre class="code">
+    result = globus_ogsa_security_authentication_init(
+        security_attrs,
+        GSH,
+        &gss_context,
+        &context_id);
+    if(result != GLOBUS_SUCCESS)
+    {
+        /* do something with error */
+    }
+
+    soap_result = soap_register_plugin(
+        gsoap_handle,
+        &globus_ogsa_security_wsse_gssapi_register);
+    if(soap_result != SOAP_OK)
+    {
+        /* do something with error */
+    }
+
+    gssapi_handle = soap_lookup_plugin(
+        gsoap_handle,
+        GLOBUS_OGSA_SECURITY_WSSE_GSSAPI_PLUGIN_ID);
+    if(!gssapi_handle)
+    {
+        /* error */
+    }
+
+    result = globus_ogsa_security_wsse_gssapi_add_gss_context(
+        gssapi_handle,
+        context_id,
+        gss_context);
+    if(result != GLOBUS_SUCCESS)
+    {
+        /* do something with error */
+    }
+
+    globus_libc_free(context_id);
+</pre>
+This code chunk initializes a GSS context, by negotiating with the grid
+service via Secure Conversation messages.  Once the context is initialized,
+it is added to the GSSAPI plugin of the gSOAP handle.  This allows all
+messages sent with the gSOAP handle to be encrypted or signed with the
+GSS context.
+
+<h4>
+  <a name="ServiceData">Querying Service Data</a></h4>
+<p>
+Before doing a query of service data, the service type (specifying the service data elements) needs to be specified.  This is done using the callbacks that were generated from the gSOAP service description:
+<pre class="code">
+#include &lt;globus_ogsi_service_plugin.h&gt;
+
+...
+
+    globus_ogsi_service_plugin_handle_attr_init(
+        &service_attrs,
+        globus_counter__CounterService_s_init,
+        globus_counter__CounterService_s_destroy,
+        globus_counter__CounterService_s_deserialize,
+        globus_counter__CounterService_s_serialize);
+</pre>
+This initializes a service attributes handle, which can then be passed
+to the findServiceData function:
+<pre class="code">
+#include &lt;globus_ogsi_core.h&gt;
+  
+...
+
+    globus_list_t *                     service_data_elements;    
+
+...
+
+    result = globus_ogsi_core_findServiceData(
+        GSH,
+        globus_ogsa_sample_counter_namespaces,
+        "CounterUpdate",
+        service_attrs,
+        NULL,
+        0,
+        &service_data_elements);
+   if(result != GLOBUS_SUCCESS)
+   {
+       /* do something with error */
+   }
+</pre>
+The result is an allocated <i>globus_list_t</i> that holds a list of <i>counter__CounterService</i> types.  Each element in the list refers to a service data element returned from the <i>findServiceData</i> request.
+
+<h4>
+<a name="Notifications">Subscribing to Notifications</a></h4>
+<p>
+In order to receive service data notifications, a notification handle
+needs to be initialized as a first step:
+<pre class="code">
+#include &lt;globus_ogsi_notification.h&gt;
+#include &lt;globus_ogsi_core.h&gt;
+
+...
+
+    result = globus_ogsi_service_plugin_handle_attr_init(
+        &service_attr,
+        globus_counter__CounterService_s_init,
+        globus_counter__CounterService_s_destroy,
+        globus_counter__CounterService_s_deserialize,
+        globus_counter__CounterService_s_serialize);
+    if(result != GLOBUS_SUCCESS)
+    {
+        goto exit;
+    }
+
+...
+
+    result = globus_ogsi_notification_handle_init(
+        &sink_handle,
+        globus_ogsa_samples_counter_notify_callback,
+        NULL,
+        service_attr,
+        NULL,
+        0,
+        "CounterUpdate",
+        expireTime,
+        globus_ogsa_samples_counter_bindings_namespaces);
+    if(result != GLOBUS_SUCCESS)
+    {
+        /* handle error */
+    }
+</pre>
+The service attributes are initialized and passed to the notification handle
+initialization function, as they were with the <i>findServiceData</i> operation discussed previously.  
+<i>globus_ogsa_samples_counter_notify_callback</i> specifies the callback
+function that will be called when notifications are received from the service.
+Once the notification handle is initialized, a simple notification sink
+service can be created that listens for incoming notifications:
+<pre class="code">
+    result = globus_ogsi_notification_sink_register_serve(
+        sink_handle);
+    if(result != GLOBUS_SUCCESS)
+    {
+        /* handle error */
+    }
+</pre>
+Now you're ready to perform the subscription and start receiving notifications:
+<pre class="code">
+    result = globus_ogsi_notification_subscribe(
+        sink_handle,
+        NULL,
+        GSH);
+    if(result != GLOBUS_SUCCESS)
+    {
+        /* handle error */
+    }
+</pre>
+Once this call returns, notifications will be sent to listening notification sink, and the specified user callback will be called.  The prototype definition for the callback is:
+<pre class="code">
+void
+globus_ogsa_samples_counter_notify_callback(
+    globus_ogsi_notification_handle_t   handle,
+    globus_list_t *                     elements,
+    void *                              data);
+</pre>
+In the callback, the elements parameter contains a list of counter__CounterService types, each referring to a service data element being notified on.   There are matching unsbuscribe and unregister functions in the notification api.  See the API documentation for further details.
+
+<h2><a name="Gram"></a>Gram Client Wrapper API</h2>
+The OGSA-C bundle includes a globus_gram_client API that works with GT3 Managed Job Services.  This is useful for anyone who has applications built on the GT2 globus_gram_client API.  For this implementation of the API, the function prototypes are identical, but the underlying implementation interacts with a GT3 Managed Job Services, instaed of GT2 jobmanagers.  This implementation of the globus_gram_client API can be linked into legacy GT2 applications to enable the application to work with GT3 Managed Job services.  Users wishing to do this should take notice of the following:
+<ul>
+<li>The GPT package name for the globus_gram_client package has changed in this implementation to globus_gt3_gram_client, and when linking the library into an application, <i>-lglobus_gt3_gram_client</i> should be used.  The header files for the package remain the same.
+<li>The <i>globus_gram_client_ping</i> behavior has changed.  It currently verifies that the factory is available for creating jobs, it doesn't verify that authentication takes place successfully.
+<li>The following job signals:
+<ul>
+<li>GLOBUS_GRAM_PROTOCOL_JOB_SIGNAL_SUSPEND
+<li>GLOBUS_GRAM_PROTOCOL_JOB_SIGNAL_RESUME
+<li>GLOBUS_GRAM_PROTOCOL_JOB_SIGNAL_PRIORITY
+<li>GLOBUS_GRAM_PROTOCOL_JOB_SIGNAL_STOP_MANAGER
+</ul>
+Are currently unsupported.
+<li>The <i>resource_manager_contact</i> passed to <i>globus_gram_client_register_job_request</i> should be the GSH of the ManagedJobFactoryService, instead of the GT2 contact string.
+</ul>
+
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
