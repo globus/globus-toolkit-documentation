@@ -2,9 +2,9 @@ Index: src/org/apache/axis/MessageContext.java
 ===================================================================
 RCS file: /home/cvs/ws-axis/java/src/org/apache/axis/MessageContext.java,v
 retrieving revision 1.144
-diff -u -w -r1.144 MessageContext.java
+diff -w -u -r1.144 MessageContext.java
 --- src/org/apache/axis/MessageContext.java	11 Jun 2004 19:09:07 -0000	1.144
-+++ src/org/apache/axis/MessageContext.java	9 Jun 2005 01:02:53 -0000
++++ src/org/apache/axis/MessageContext.java	16 Jun 2005 19:25:30 -0000
 @@ -379,9 +379,11 @@
       * during finalization, the dispose() method is called.
       * @see #dispose()
@@ -21,9 +21,9 @@ Index: src/org/apache/axis/client/Call.java
 ===================================================================
 RCS file: /home/cvs/ws-axis/java/src/org/apache/axis/client/Call.java,v
 retrieving revision 1.235
-diff -u -w -r1.235 Call.java
+diff -w -u -r1.235 Call.java
 --- src/org/apache/axis/client/Call.java	30 Nov 2004 21:54:32 -0000	1.235
-+++ src/org/apache/axis/client/Call.java	9 Jun 2005 01:03:02 -0000
++++ src/org/apache/axis/client/Call.java	16 Jun 2005 19:25:40 -0000
 @@ -91,6 +91,7 @@
  import java.util.Map;
  import java.util.StringTokenizer;
@@ -32,99 +32,120 @@ diff -u -w -r1.235 Call.java
  import java.rmi.RemoteException;
  
  /**
-@@ -2779,10 +2780,95 @@
+@@ -2779,10 +2780,116 @@
                  msgContext.removeProperty(Call.ONE_WAY);
              }
          };
-+        /*
-         //create a thread to run it
-         Thread thread = new Thread(runnable);
-         //run it
-         thread.start();
-+        */
 +
-+        NotificationManager.getNotificationManager().enqueue(runnable);
++        NotificationManager.fireNotification(runnable);
 +    }
 +
 +    private static class NotificationManager {
 +
-+        private static final int DEFAULT_NUM_THREADS = 3;
-+        private static NotificationManager notificationManager;
++        private static final int DEFAULT_NOTIFICATION_EXPONENT = 2;
++
++        private static double notificationExponent = getNotificationExponent();
++        private static NotificationManager notificationManager = 
++            new NotificationManager(notificationExponent);
++
++        public static void fireNotification(Runnable runnable) {
++            if (notificationExponent <= 1) {
+         //create a thread to run it
+         Thread thread = new Thread(runnable);
+         //run it
+         thread.start();
++            } else {
++                notificationManager.enqueue(runnable);
++            }
++        }
++
++        public static double getNotificationExponent() {
++            String prop = 
++                System.getProperty("axis.notificationThreadExponent");
++            return (prop == null) ? 
++                DEFAULT_NOTIFICATION_EXPONENT : Double.parseDouble(prop);
++        }
++        
++        // end of static stuff
 +
 +        private Queue queue;
-+        private NotificationThread[] threads;
++        private ArrayList threads;
++        private double exponent;
++        private int computedSize;
 +
-+        private NotificationManager(int num) {
++        private NotificationManager(double exponent) {
++            this.exponent = exponent;
 +            this.queue = new Queue();
-+            this.threads = new NotificationThread[num];
-+            for (int i=0;i<num;i++) {
-+                this.threads[i] = new NotificationThread(this.queue);
-+                this.threads[i].setDaemon(true);
-+                this.threads[i].start();
-+            }
++            this.threads = new ArrayList();
++            this.computedSize = 0;
 +        }
 +        
 +        public void enqueue(Runnable r) {
-+            this.queue.enqueue(r);
-+        }
-+
-+        public synchronized static NotificationManager 
-+            getNotificationManager() {
-+            if (notificationManager == null) {
-+                String prop = System.getProperty("axis.notificationThreads");
-+                int threads = (prop == null) ? 
-+                    DEFAULT_NUM_THREADS : Integer.parseInt(prop);
-+                notificationManager = new NotificationManager(threads);
-+            }
-+            return notificationManager;
++            int size = this.queue.enqueue(r);
++            addThread(size);
 +        }
 +        
++        private synchronized void computeSize() {
++            this.computedSize = 
++                (int)Math.pow(this.threads.size(), this.exponent);
++        }
++
++        private synchronized void addThread(int size) {
++            if (size > this.computedSize) {
++                NotificationThread thread = new NotificationThread();
++                thread.setDaemon(true);
++                this.threads.add(thread);
++                thread.start();
++                computeSize();
++            }
++        }
++
++        private synchronized void removeThread(Thread thread) {
++            this.threads.remove(thread);
++            computeSize();
++        }
++        
++        private class NotificationThread extends Thread {
++
++            public void run() {
++                Runnable r = null;
++                while(true) {
++                    try {
++                        r = (Runnable)queue.dequeue();
++                    } catch (InterruptedException e) {
++                        break;
++                    }
++                    if (r == null) {
++                        break;
++                    }
++                    try {
++                        r.run();
++                    } catch (Throwable e) {
++                        log.debug(Messages.getMessage("exceptionPrinting"), e);
++                    }
++                }
++                removeThread(this);
++            }
++        }
 +    }
 +    
 +    private static class Queue {
 +
 +        private LinkedList queue = new LinkedList();
 +        
-+        public synchronized void enqueue(Runnable r) {
++        public synchronized int enqueue(Runnable r) {
 +            queue.add(r);
 +            notify();
++            return queue.size();
 +        }
 +        
 +        public synchronized Object dequeue() throws InterruptedException {
-+            while (queue.isEmpty()) {
-+                wait();
++            if (queue.isEmpty()) {
++                wait(1000 * 60 * 2);
 +            }
-+            return queue.removeFirst();
++            return (queue.isEmpty()) ? null : queue.removeFirst();
 +        }
 +        
-+    }
-+
-+    private static class NotificationThread extends Thread {
-+
-+        private Queue queue;
-+            
-+        public NotificationThread(Queue queue) {
-+            this.queue = queue;
-+        }
-+
-+        public void run() {
-+            Runnable r = null;
-+            while(true) {
-+                try {
-+                    r = (Runnable)this.queue.dequeue();
-+                } catch (InterruptedException e) {
-+                    break;
-+                }
-+                if (r == null) {
-+                    break;
-+                }
-+                try {
-+                    r.run();
-+                } catch (Throwable e) {
-+                    log.debug(Messages.getMessage("exceptionPrinting"), e);
-+                }
-+            }
-+        }
      }
  
      /**
@@ -132,9 +153,9 @@ Index: src/org/apache/axis/encoding/ser/BeanSerializer.java
 ===================================================================
 RCS file: /home/cvs/ws-axis/java/src/org/apache/axis/encoding/ser/BeanSerializer.java,v
 retrieving revision 1.80
-diff -u -w -r1.80 BeanSerializer.java
+diff -w -u -r1.80 BeanSerializer.java
 --- src/org/apache/axis/encoding/ser/BeanSerializer.java	11 Jan 2005 23:35:48 -0000	1.80
-+++ src/org/apache/axis/encoding/ser/BeanSerializer.java	9 Jun 2005 01:03:28 -0000
++++ src/org/apache/axis/encoding/ser/BeanSerializer.java	16 Jun 2005 19:26:05 -0000
 @@ -175,9 +175,11 @@
                          if (propValue == null) {
                              // an element cannot be null if nillable property is set to 
