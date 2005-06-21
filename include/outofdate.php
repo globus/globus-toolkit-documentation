@@ -12,8 +12,11 @@ $uri = $_SERVER{'REQUEST_URI'};
 
 if ( preg_match("/^\/toolkit\/docs\/.+\//", $uri) ) {
 
-    if ( preg_match("/^\/toolkit\/docs\/development\/.+\//", $uri) ) {
-        print "<div id='obsolete'  align='center'><p>This document is a work-in-progress and applies to this development release.</p></div>";
+    if ( preg_match("/^\/toolkit\/docs\/development\//", $uri) ) {
+		# only show one subdirs to development
+	    if ( preg_match("/^\/toolkit\/docs\/development\/.+\//", $uri) ) {
+        	print "<div id='obsolete'  align='center'><p>This document is a work-in-progress and applies to this development release.</p></div>";
+		}
     }
     else if ( ! (preg_match("/^\/toolkit\/docs\/4.0\//", $uri) or
                  preg_match("/^\/toolkit\/docs\/3.2\//", $uri) ) ) {
