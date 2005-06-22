@@ -770,6 +770,12 @@ submitting bibliographic citations</a>.</b></p>
 
       <h2><a name="Java Cog Kit">Java CoG Kit</a></h2>
 
+    <p><em>Gregor von Laszewski has produced a list of
+    <a href="http://www-unix.mcs.anl.gov/~laszewsk/papers/cogkit-ref.pdf">selected 
+    Java CoG Kit references</a> that contains more than 60 references published by 
+    the Java CoG Kit Team.  The links in this PDF document can be clicked to obtain 
+    the manuscripts.</em></p>
+
     <p><font size="2"><strong><a name="infogram">InfoGram: A Grid Service that Supports Both Information Queries and 
    Job Execution</a></strong>. G. von Laszewski, I. Foster, J. Gawor, A. Schreiber, C. Pena.
     <em>Proceedings of the 11th IEEE International Symposium on High-Performance Distributed
