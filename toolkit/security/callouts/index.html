@@ -1,0 +1,186 @@
+<?php
+
+$title = "Globus Authorization Callouts (Pre-Web Services)";
+include_once( "/mcs/www-unix.globus.org/security/callouts/globus_header.inc" );
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+  <h2>Overview</h2>
+
+  The Globus Toolkit version 3.2 introduces the ability to customize
+  gridmap lookup (currently available in the Gatekeeper and GridFTP
+  servers) as well as a mechanism for doing fine-grained authorization
+  in the GRAM Jobmanager. Both of these features were built upon a new
+  callout library based on runtime library loading. For information
+  specific to these callouts take a look at the following two
+  sections:
+
+  <h3>Gridmap Callout</h3>
+  
+  The updated code contains a replacement for the gridmap lookup
+  function used in previous versions of the toolkit. The replacement
+  function looks for the callout configuration file and checks whether
+  any mapping or authorization callouts are defined. If any callouts
+  are defined the function proceeds to call the defined callouts. If
+  no mapping callout is defined or if no configuration file was found
+  the function behaves like the gridmap lookup function it replaces
+  (i.e. it does the normal Globus gridmap lookup). <br> 
+  A paper describing a system using these callouts for integration
+  with a site authorization system can be found <a
+  href="http://www.slac.stanford.edu/econf/C0303241/proc/papers/TUBT007.PDF">here</a> 
+
+  <h3>GRAM callout</h3>
+
+  The GRAM callout was implemented by placing explicit calls to the
+  callout API in the GRAM Jobmanager code. These calls were placed at
+  any of the entry points to Jobmanager functionality. Similar to the
+  gridmap callout, these calls look for the callout configuration
+  file, check whether any GRAM callouts are defined and then call any
+  callouts that were found. Should no callouts be defined then the
+  Jobmanager code will behave just like in previous releases of the
+  toolkit (no authorization in the Jobmanager itself). 
+
+  <h2>Developer Documentation</h2>
+
+  This section provides documentation resources for authorization
+  callout developers. <br/>
+
+  <h3>API & Code Documentation</h3>
+
+    <ul>
+      <li><a href="callout">Globus Callout Module Documentation</a><br/>
+          Informational only, a callout developer should not have to use
+          this API</li>
+      <li><a href="gram_callout_error">Globus GRAM Callout Errors</a><br/>
+          This defines the Globus errors that when returned from a callout are
+          propagated to the user. This package also provides a few macros which
+          can be used for error generation (not documented in the
+          above, see the example callout for usage examples)</li>
+      <li><a href="gram_callout_example">Example Globus GRAM
+          Authorization Callout</a><br/> Please take a look at the
+          actual code for more information</li>
+      <li><a href="gram_callout_setup_example">Example Globus GRAM 
+          Authorization Setup Package</a><br/> Please take a look at
+          the actual setup package for details</li> 
+      <li><a href="gridmap_callout_error">Globus Gridmap Callout
+          Errors</a><br/> 
+          This defines the Globus errors that are used by the
+          example gridmap callout. This package also provides a few
+          macros which can be used for error generation (not
+          documented in the above, see the example callout for usage
+          examples)</li>
+      <li><a href="gridmap_callout_example">Example Globus Gridmap
+          Callout</a><br/> 
+          Please take a look at the actual code (<a
+            href="globus_gridmap_callout.c">globus_gridmap_callout.c</a>)
+          for more information</li> 
+      <li><a href="gridmap_callout_setup_example">Example Globus
+          Gridmap Callout Setup Package</a><br/> 
+          Please take a look at the actual setup package for details</li>
+    </ul>
+    
+    <h4>Writing your own callout package</h4>
+    
+    <b>These instructions are not meant to be comprehensive and will
+      improve as questions come up.
+    </b><br/><br/>
+
+        Follow the directions on the <a
+          href="../../docs/development/remote-cvs.html">
+          CVS page</a> 
+        for building the GNU tools (ie follow steps 1-5) used for
+        bootstrapping Globus packages. Now that you have the right
+        tools you can modify the example callout package to suit your
+        needs (insert your source, change the Makefile.am, configure.in,
+        pkgdata/pkg_data_src.gpt.in). Once you have made you
+        modifications run the bootstrap script to regenerate build
+        related files. Once you have regenerated the build
+        environment you can build the package using "./configure
+        --with-flavor=<flavor>" followed by "make" or "make
+        install". If everything seems to be working to 
+        satisfaction you can generate a source package by running
+        "make dist".
+
+    <h3>Deployment Information</h3>
+    
+    The current version of the code checks the following locations
+    (in order) for the callout configurations file:
+
+    <ul>
+      <li> $GSI_AUTHZ_CONF </li>
+      <li> /etc/grid-security/gsi-authz.conf </li>
+      <li> $GLOBUS_LOCATION/etc/gsi-authz.conf </li>
+      <li> $HOME/.gsi-authz.conf </li>
+    </ul>
+
+  The code defines the following abstract callout types:
+
+  <ul>
+    <li>Gridmap Callout Types:</li>
+    <ul>
+      <li> <em> globus_mapping </em> Indicates a callout as described in
+        section 4 of the <a
+        href="GSI%20Authorization%20Callout%20Specification-04.pdf"> 
+      Authorization Callout Specification </a></li>
+      <li> <em> globus_authorization </em> Indicates a callout as described
+        in section 5 of the <a
+          href="GSI%20Authorization%20Callout%20Specification-04.pdf"> 
+          Authorization Callout Specification </a></li>
+    </ul>
+    <li>GRAM Callout Type:</li>
+    <ul>
+      <li><em>globus_gram_jobmanager_authz</em></li>
+    </ul>
+  </ul>
+  
+  These are the abstract types to be used in the callout
+  configuration file. The abstract type indicates a callback that
+  takes certain arguments and provides certain
+  functionality. You may define several callbacks of the same
+  abstract type.
+
+
+  <h2>Downloads</h2>
+
+  <ul>
+    <li><a href="globus_gram_job_manager_callout-0.2.tar.gz">GRAM
+        Authorization Callout Example Package</a><br/> 
+        Example callout implementation
+    </li>
+    <li><a
+        href="globus_gram_job_manager_setup_callout-0.1.tar.gz">GRAM
+        Authorization Callout Setup Example Package</a><br/> 
+        Setup package for the above example callout
+    </li>
+    <li><a href="globus_gridmap_callout-0.1.tar.gz">Gridmap
+        Authorization Callout Example Package</a><br/> 
+        Example callout implementation
+    </li>
+    <li><a
+        href="globus_gridmap_callout_setup-0.1.tar.gz">Gridmap
+        Authorization Callout Setup Example Package</a><br/> 
+        Setup package for the above example callout
+    </li>
+  </ul>
+
+  <h2>Building Example Packages</h2>
+  
+  To build and install the example packages you should do the
+  following:
+
+  <ul>
+    <li>Install the Globus Toolkit version 3.2 or later</li>
+    <li>Make sure $GLOBUS_LOCATION and $GPT_LOCATION are set
+    correctly</li>
+    <li>Run "${GPT_LOCATION}/sbin/gpt-build &lt;example callout package&gt;
+    &lt;flavor&gt;", where "&lt;flavor&gt;" is the flavor you used to
+    install the toolkit</li> 
+    <li>Run "${GPT_LOCATION}/sbin/gpt-build &lt;example callout setup
+    package&gt; &lt;flavor&gt;"</li> 
+    <li>Run "${GPT_LOCATION}/sbin/gpt-postinstall" and follow the
+    instructions printed by the setup package</li>
+  </ul>
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
+
