@@ -67,12 +67,11 @@ C, Java, and Python containers.</p>
         </ul></li>
 <li>Early Experiences with GT4 (90 mins) -- members of the Globus user community
         <ul>
-        <li>China National Grid, Hai Jin, Wuhan (15)</li>
         <li>GridCast, Terry Harmer, Queens University Belfast (15)</li>
         <li>Ravi Subramanian, Intel (15)</li>
         <li>Condor-G and GriPhyN, Jaime Frey, Wisconsin (15)</li>
         <li>Ninf-G4: GridRPC system on GT4, Hidemoto Nakada, AIST (15)</li>
-        <li>Discussion (15)</li>
+        <li>Discussion (30)</li>
         </ul></li>
 </ul>
 
