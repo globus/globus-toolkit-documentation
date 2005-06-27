@@ -19,13 +19,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
-              <td><span class="newsdate">06.02.2005</span></td>
-              <td><b>GT4 Tutorial at HPDC on July 24th.</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
+              <td><span class="newsdate">06.27.2005</span></td>
+              <td><b>Nimrod/G v3.0 (with support for GT4) released by the Nimrod Project.</b> 
+                <a class="learnmore" href="http://www.csse.monash.edu.au/~davida/nimrod">Learn more...</a></td>
             </tr>
             <tr>
               <td><span class="newsdate">06.02.2005</span></td>
-              <td><b>Globus tutorials in Kansas City and Champaign-Urbana this month.</b> 
+              <td><b>GT4 Tutorial at HPDC on July 24th.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
             <tr>

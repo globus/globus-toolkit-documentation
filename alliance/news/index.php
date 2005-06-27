@@ -44,6 +44,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p><a class="newspartners" href="http://www.csse.monash.edu.au/~davida/nimrod">Nimrod/G v3.0</a> 
+has been released. Nimrod/G is a parametric sweep tool used by
+UK and Dutch application projects, and the new version supports the Web services
+provided by the Globus Toolkit 4.0. (7/2005)</p>
 
 <p>Ian Foster will present 
 <a class="newsalliance" href="http://www.caip.rutgers.edu/hpdc2005/tutorial.html">a 
