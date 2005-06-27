@@ -57,7 +57,7 @@ C, Java, and Python containers.</p>
 <h2>Speakers</h2>
 
 <ul>
-<li>GT4 Introduction (90 mins) -- Globus Alliance members
+<li><a href="GGF14-IF.pdf">GT4 Introduction</a> (90 mins) -- Ian Foster & Lisa Childers
         <ul>
         <li>Overview (30 mins)</li>
         <li>Implementation of Web Services Standards (15)</li>
@@ -67,9 +67,9 @@ C, Java, and Python containers.</p>
         </ul></li>
 <li>Early Experiences with GT4 (90 mins) -- members of the Globus user community
         <ul>
-        <li>GridCast, Terry Harmer, Queens University Belfast (15)</li>
+        <li><a href="GGF14-TH.pdf">GridCast</a>, Terry Harmer, Queens University Belfast (15)</li>
         <li>Ravi Subramanian, Intel (15)</li>
-        <li>Condor-G and GriPhyN, Jaime Frey, Wisconsin (15)</li>
+        <li><a href="GGF14-JF.pdf">Condor-G and GriPhyN</a>, Jaime Frey, Wisconsin (15)</li>
         <li>Ninf-G4: GridRPC system on GT4, Hidemoto Nakada, AIST (15)</li>
         <li>Discussion (30)</li>
         </ul></li>
