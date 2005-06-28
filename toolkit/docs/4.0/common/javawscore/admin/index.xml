@@ -141,14 +141,73 @@ It is also recommended to experiment with other JVM settings to improve performa
     <para>To deploy Java WS Core installation into Tomcat run:</para>
 
 <screen>$ cd $GLOBUS_LOCATION
-$ ant -f share/globus_wsrf_common/tomcat/tomcat.xml deploySecureTomcat -Dtomcat.dir=<emphasis>&lt;tomcat.dir&gt;</emphasis></screen>
+$ ant -f share/globus_wsrf_common/tomcat/tomcat.xml redeploySecureTomcat -Dtomcat.dir=<emphasis>&lt;tomcat.dir&gt;</emphasis></screen>
+
 <para>Where <emphasis>&lt;tomcat.dir&gt;</emphasis> is an <emphasis>absolute</emphasis> path to the Tomcat installation directory. 
 Also, <computeroutput>-Dwebapp.name=&lt;name&gt;</computeroutput> can be specified to set the name of the web application under which the installation will be deployed. By default &quot;<computeroutput>wsrf</computeroutput>&quot; web application name is used.
 </para>
 <note>
    <simpara>Please note that during deployment a subset of the files from Java WS Core installation is copied into Tomcat. Also, the copied files in Tomcat might have different permissions then the originals.</simpara>
 </note>
-    <para>In addition to the above steps you may have to edit <filename>&lt;tomcat.dir&gt;/webapps/wsrf/WEB-INF/web.xml</filename> if you are running Tomcat on a non-default port, i.e. not using port 8443 (HTTPS). For example, if you run Tomcat on  port 443 using HTTPS then the WSRF servlet entry should be modified as follows:</para>
+
+    <para>In addition to the above deployment step you will also need to modify
+the Tomcat <filename>&lt;tomcat_root&gt;/conf/server.xml</filename> configuration file. In particular you will need to add the following configuration entries:
+</para>
+    <itemizedlist>
+      <listitem>
+        <para>Tomcat 4.1.x</para>
+        <orderedlist>
+            <listitem>
+              <para>Add a HTTPS Connector in the <emphasis>&lt;Service name=&quot;Tomcat-Standalone&quot;&gt;</emphasis> section and update the parameters
+appropriately with your local configuration:</para> 
+<screen>&lt;Connector
+  className=&quot;org.apache.catalina.connector.http.HttpConnector&quot;
+  port=&quot;8443&quot; minProcessors=&quot;5&quot; maxProcessors=&quot;75&quot;
+  authenticate=&quot;true&quot; secure=&quot;true&quot; scheme=&quot;https&quot;
+  enableLookups=&quot;true&quot; acceptCount=&quot;10&quot; debug=&quot;0&quot;&gt;
+    &lt;Factory
+       className=&quot;org.globus.tomcat.catalina.net.HTTPSServerSocketFactory&quot;
+        proxy=&quot;/path/to/proxy/file&quot;
+        cert=&quot;/path/to/certificate/file&quot;
+        key=&quot;/path/to/private/key/file&quot;
+        cacertdir=&quot;/path/to/ca/certificates/directory&quot;/&gt;
+&lt;/Connector&gt;</screen>
+              <para>In the above the proxy, cert, key and cacertdir attributes are optional. Furthermore, the proxy and the combination of cert and key attributes are mutually exclusive.
+</para>
+            </listitem>
+            <listitem>
+              <para>Add a HTTPS Valve in the <emphasis>&lt;Engine name=&quot;Standalone&quot; ... &gt; </emphasis>section:</para>
+<screen>&lt;Valve className=&quot;org.globus.tomcat.catalina.valves.HTTPSValve&quot;/&gt;</screen>
+            </listitem>
+          </orderedlist>
+      </listitem>
+      <listitem>
+        <para>Tomcat 5.0.x</para>
+    <orderedlist>
+            <listitem>
+              <para>Add a HTTPS Connector in the <emphasis>&lt;Service name=&quot;Catalina&quot;&gt;</emphasis> section and update the parameters
+appropriately with your local configuration: </para>
+<screen>&lt;Connector
+  className=&quot;org.globus.tomcat.coyote.net.HTTPSConnector&quot;
+  port=&quot;8443&quot; maxThreads=&quot;150&quot; minSpareThreads=&quot;25&quot; maxSpareThreads=&quot;75&quot; 
+  disableUploadTimeout=&quot;true&quot; scheme=&quot;https&quot;
+  enableLookups=&quot;true&quot; acceptCount=&quot;10&quot; debug=&quot;0&quot; 
+   proxy=&quot;/path/to/proxy/file&quot;
+   cert=&quot;/path/to/certificate/file&quot;
+   key=&quot;/path/to/private/key/file&quot;
+   cacertdir=&quot;/path/to/ca/certificates/directory&quot;/&gt;</screen>
+        <para>In the above the proxy, cert, key and cacertdir attributes are
+optional. Furthermore, the proxy and the combination of cert and key attributes are mutually exclusive.</para>
+            </listitem>
+            <listitem>
+              <para>Add a HTTPS Valve in the <emphasis>&lt;Engine name=&quot;Catalina&quot; ... &gt; </emphasis>section:</para>
+<screen>&lt;Valve className=&quot;org.globus.tomcat.coyote.valves.HTTPSValve&quot;/&gt;</screen>
+            </listitem>
+          </orderedlist>
+      </listitem>
+    </itemizedlist>
+
+    <para>Also, you may have to edit <filename>&lt;tomcat.dir&gt;/webapps/wsrf/WEB-INF/web.xml</filename> if you are running Tomcat on a non-default port, i.e. not using port 8443 (HTTPS). For example, if you run Tomcat on port 443 using HTTPS then the WSRF servlet entry should be modified as follows:</para>
     <screen>&lt;web-app&gt;
 ...
     &lt;servlet&gt;
@@ -169,8 +228,6 @@ Also, <computeroutput>-Dwebapp.name=&lt;name&gt;</computeroutput> can be specifi
     &lt;/servlet&gt;
 ...
 &lt;/web-app&gt;</screen>
-    <para>Please see the <ulink url="../../security/message/admin-index.html#s-message-admin-deploying">Tomcat &amp; Transport Security</ulink> documentation for  security related Tomcat configuration steps.
-</para>
 
 <note>
    <simpara>We recommend running Tomcat with Java 1.4.2+.</simpara>
