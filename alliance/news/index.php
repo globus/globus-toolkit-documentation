@@ -21,9 +21,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p>This page contains  the latest news from and about the Globus Alliance. The list is chronological, with archives dating to 1997.</p>
 
 <ul>
-<li>Stories with <span class="newsalliance">links in bold orange text</span> are news releases and other communications issued by the Globus Alliance.</li>
-<li>Stories with <span class="newspartners">links in plain blue text</span> are communications from our partners.</li>
-<li>Stories with <span class="newsmedia">links in italic text</span> are generally from independent news media.</li>
+<li>Stories with <a href="#" class="newsalliance">links in bold orange text</a> are news releases and other communications issued by the Globus Alliance.</li>
+<li>Stories with <a href="#" class="newspartners">links in plain blue text</a> are communications from our partners.</li>
+<li>Stories with <a href="#" class="newsmedia">links in italic text</a> are from independent news media.</li>
 </ul>
 
 <p>Our <a href="kit.php">on-line press kit</a> also has useful background on the Globus Alliance.  If you're a reporter seeking more information, send mail to <a href="mailto:info@globus.org">info@globus.org</a>.</p>
@@ -44,15 +44,19 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
-<p><a class="newspartners" href="http://www.csse.monash.edu.au/~davida/nimrod">Nimrod/G v3.0</a> 
-has been released. Nimrod/G is a parametric sweep tool used by
-UK and Dutch application projects, and the new version supports the Web services
-provided by the Globus Toolkit 4.0. (7/2005)</p>
-
 <p>Ian Foster will present 
 <a class="newsalliance" href="http://www.caip.rutgers.edu/hpdc2005/tutorial.html">a 
 half-day GT4 tutorial</a> at HPDC, Sunday July 24th, in Research Triangle Park, 
 North Carolina. (7/2005)</p>
+
+<p><cite>Government Technology</cite> publishes an article on Grid technology titled
+<a class="newsmedia" href="http://www.govtech.net/magazine/story.php?id=94421&issue=7:2005">Witnessing
+an Evolution</a>. (6/2005)</p>
+
+<p><a class="newspartners" href="http://www.csse.monash.edu.au/~davida/nimrod">Nimrod/G v3.0</a> 
+has been released. Nimrod/G is a parametric sweep tool used by
+UK and Dutch application projects, and the new version supports the Web services
+provided by the Globus Toolkit 4.0. (6/2005)</p>
 
 <p>The <a class="newspartners" href="http://www.grids-center.org/train/June2005.asp">2005 
 GRIDS Center Community Workshop</a> brings together leaders and technical staff 
