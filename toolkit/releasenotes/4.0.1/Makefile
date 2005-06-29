@@ -14,6 +14,7 @@ html:
 	xsltproc --xinclude --stringparam chunk.section.depth 0 \
 	--stringparam html.cellspacing "0" \
 	--stringparam suppress.navigation 1 \
+	--stringparam  chapter.autolabel 0 \
 	--catalogs \
            ../../docs/4.0/admin/docbook/chunk.xsl  \
           ${FILENAME}
