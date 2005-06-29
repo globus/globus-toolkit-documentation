@@ -13,7 +13,7 @@ all: html
 html:
 	xsltproc --xinclude --stringparam chunk.section.depth 0 \
 	--stringparam html.cellspacing "0" \
-	${GRAPHICS} ${NUMBERING} \
+	--stringparam suppress.navigation 1 \
 	--catalogs \
            ../../docs/4.0/admin/docbook/chunk.xsl  \
           ${FILENAME}
