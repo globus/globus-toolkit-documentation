@@ -12,6 +12,7 @@ html:
 	--stringparam  section.autolabel 1 \
 	--stringparam toc.section.depth 1\
            ../../docs/4.0/admin/docbook/chunk.xsl  \
+           --catalogs
            ${FILENAME}
 
 pdf:
