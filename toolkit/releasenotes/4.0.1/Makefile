@@ -1,4 +1,4 @@
-SGML_CATALOG_FILES=/etc/xml/catalog:../../catalog
+SGML_CATALOG_FILES=/etc/xml/catalog:../../docs/4.0/catalog
 export SGML_CATALOG_FILES
 #XML_DEBUG_CATALOG=1
 #export XML_DEBUG_CATALOG
