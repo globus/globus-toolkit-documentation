@@ -21,8 +21,20 @@ Results were obtained by sustaining a job load N from 1 to 128 by 2n
 from 1 to 128 by 2n giving actual sustained loads of N * M. For example, if
 4 client threads (M) are started with a job load value of 64 (N), then in total
 there would be in general 4 * 64 = 256 jobs being operated on by the service
-through the duration of the test. The results below show <b>submission rates in
-jobs per minute</b>.
+through the duration of the test.
+</p>
+<p>
+More specifically, each thread doesn't necessarily submit just N jobs for the
+entire duration of the test.  When one or more jobs finish (i.e. the load
+becomes less than N), the client thread that "owns" the jobs destroys the job
+resources and starts new jobs until the load is back to N.  When the test
+duration expires and at least N jobs were submitted for each client, then the
+submission rate is calculated by dividing the actual test duration by the total
+number of jobs submitted among all of the M client threads
+(i.e. at least but can be greater than M*N).
+</p>
+<p>
+The results below show <b>submission rates in jobs per minute</b>.
 </p>
 
 <p>
