@@ -1,0 +1,498 @@
+<?php
+
+$title = "GT 3.0 CAS: User's Guide";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+
+<ul>
+<li><a href="#using">Using the Community Authorization Service</a></li>
+<li><a href="#cas-proxy-init">Generating CAS credentials:cas-proxy-init</a></li>
+<li><a href="#cas-wrap">Using CAS credentials: cas-wrap</a></li>
+<li><a href="#cas-sd">CAS Service Data</a></li>
+<li><a href="#cas-client">Writing CAS Clients</a></li>
+</ul>
+<h2>
+<a name="using">Using the Community Authorization Service
+</a>
+</h2>
+
+<p>
+A typical CAS user will use only two CAS-specific commands:
+<i>cas-proxy-init</i>, which contacts a CAS server and obtains a
+credential, and <i>cas-wrap</i>, which wraps a grid-enabled client
+program, causing that client program to use the credential that was
+previously generated using <i>cas-proxy-init</i>. For example, a day
+in the life of a CAS user might look something like this:
+</p>
+1. In the morning, the user runs:
+</p>
+<pre>
+        % grid-proxy-init
+        % cas-proxy-init -t <i>tag</i>
+</pre>
+
+<p>
+The first line generates a Globus proxy credential; the second uses
+that credential to contact the CAS server and retrieve a CAS
+credential that includes all the permissions granted to the user by
+the community. The <i>tag</i> argument can be any string and is used
+to assign a name for that credential (<i>cas-wrap</i> uses this name
+to locate the credential).
+</p>
+
+<p>
+2.Several times throughout the day, the user runs commands that look
+like:
+</p>
+
+<pre>
+        % cas-wrap -t <i>tag grid-enabled-program args</i>
+</pre>
+
+<p>
+This runs the program <i>grid-enabled-program</i> with arguments
+<i>args</i>, using the CAS credential that had been created by and
+assigned the name <i>tag</i>. For example:
+</p>
+
+<pre>
+        % cas-wrap -t my-community gsincftp myhost.edu
+</pre>
+<p>
+looks for a CAS credential with the name "my-community" (e.g., a
+credential that had been created using "cas-proxy-init -t
+my-community") and then runs the command "gsincftp myhost.edu",
+causing the gsincftp program to use that CAS credential to
+authenticate.
+</p>
+<p>
+3. At the end of the day, the user runs:
+</p>
+
+<pre>
+        % cas-wrap -t <i>tag</i> grid-proxy-destroy
+</pre>
+<p>
+to destroy the CAS credential, and:
+</p>
+<pre>
+        % grid-proxy-destroy
+</pre>
+<p>
+to destroy the Globus proxy credential.Or the user might simply let both
+credentials expire.
+</p>
+
+<h2>
+<a name="cas-proxy-init">
+Generating CAS credentials: <i>cas-proxy-init</i>
+</a>
+</h2>
+
+<p>
+The syntax of the <i>cas-proxy-init</i> program is:
+</p>
+
+<pre>
+        cas-proxy-init [<i>options</i>] [ -t <i>tag</i> | -p <i>proxyfile</i> ]<o:p></o:p>
+</pre>
+
+<p>
+This program contacts the CAS server, obtains a credential, and places
+that credential into a file. If "-p <i>proxyfile</i>" is used, then
+the credential is placed in the file named <i>proxyfile</i>; if "-t
+<i>tag</i>" is used, then cas-proxy-init chooses a filename based on
+the value of <i>tag</i>. 
+
+<p> A environment variable, GLOBUS_LOCATION needs to be set to point
+to the GT3 install location. If CAS clients have been deployed, then
+this script is placed in GLOBUS_LOCATION/bin. This directory needs to
+be added to the PATH for it to be executed from other locations.
+
+</p>
+
+<p>
+The other options that can be used with <i>cas-proxy-init</i> are:
+</p>
+
+<table>
+ <tr>
+  <td width=127 valign=top>
+  <p><b>-c</b> <i>url</i></p>
+  </td>
+  <td width=463 valign=top>
+  <p>Contact URL for the CAS server. This typically looks like, 
+  <pre>
+    http://<i>GT3Host</i>:<i>GT3Port</i>/ogsa/services/base/cas/CASService
+  </pre> 
+  where <i>GT3Host</i> and <i>GT3Port</i> are host and port where
+  container with CAS service is running.
+   </p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p><b>-s</b> <i>server_identity</i></p>
+  </td>
+  <td valign=top>
+  <p class=MsoBodyText>When doing mutual authentication with the CAS server,
+  expect <i>server_identity</i> as the remote identity.</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p ><b>-f</b> <i>policy_file</i></p>
+  </td>
+  <td valign=top>
+  <p>Generate a CAS credential that includes only those permissions
+specified in file <i>policy_file</i> (the default is to generate a
+credential with all the user’s permissions).</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p><b>-l</b> <i>hours</i></p>
+  </td>
+  <td valign=top>
+  <p>Generate a credential that will time out after <i>hours</i>
+  hours. This is a request for lifetime, but the CAS server may
+  have a set maximum for the assertion lifetime which will be
+  enforced.</p>
+  </td>
+ </tr>
+</table>
+
+
+<p>The <i>cas-proxy-init</i> program also consults environment
+variables to determine the appropriate URL to connect to and server
+identity to expect.The URL is determined using this algorithm:</p>
+
+<ul>
+<li>If the <b>-c</b> option was specified, use the URL specified with
+that option is used.</li>
+
+<li>Otherwise, if the <b>CAS_SERVER_URL</b> environment variable is
+set, use the value of that variable as the URL.</p>
+</li>
+</ul>
+
+<p>The server identity is determined in a similar fashion:</p>
+
+<ul>
+<li>If the <b>-s</b> option was specified, use the identity
+specified with that option</li>
+
+<li>Otherwise, if the <b>CAS_SERVER_IDENTITY</b> environment variable
+is set, use the value of that variable as the expected server
+identity.</li>
+
+<li>If neither is set, host authorization is done and the
+expected server credential is <i>cas/<fqdn></i>, where <fqdn> is the
+fully qualified domain name of the host on which the CAS service is
+up.</li>
+</ul>
+
+
+
+
+<h3>Getting specific CAS rights</h3>
+
+<p>It is possible to request specific permissions from the CAS server
+using the <b>-f</b> option. This option causes <i>cas-proxy-init</i>
+to read a set of requested rights from a file.</p>
+
+<p>This file should contain one or more resource identifiers:</p>
+
+<pre>
+        Resource: <i>ResourceNamesapce</i>|<i>ResourceName </i></p>
+</pre>
+
+<p>For each resource, one or more actions identifers:</p>
+
+<pre>
+        <i>serviceType action </i>
+</pre>
+<p>For example, if the client needed assertions for
+&quot;file/read&quot; service/action for resource
+&quot;ftp://sample.org&quot; and &quot;ftp://sample3.org&quot;, both
+in &quot;FTPNamespace&quot; and &quot;directory/read&quot; and
+&quot;directory/write&quot; permissions on the former resource only,
+the policy file should have the following entries:</p>
+
+<pre>
+        Resource: FTPNamespace|ftp://sample1.org
+        file read
+        directory read
+        directory write
+        Resource: FTPNamespace|ftp://sample3.org
+        file read
+</pre>
+
+<p> To indicate any resource, the following wildcard notation should
+be used.
+<pre>uri:samlResourceWildcard</pre>
+
+
+<p> To indicate any action, the following wildcard notation for
+serviceType and action should be used. Note that this should be the
+first (and clearly the only action) in the list of action
+specified. All other actions in the list are ignored and if it is not
+the first, it is not treated as wildcard.
+<pre>uri:samlActionNSWildcard uri:samlActionWildcard</pre>
+
+<p>For example, if the client needs assertions for all resources and
+all actions the policy file should look like.
+
+<pre>
+       Resource: uri:samlResourceWildcard
+       uri:samlActionNSWildcard uri:samlActionWildcard
+</pre>
+
+<p>If the client needs assertions for all actions on resource
+&quot;FTPNamespace|ftp://sample1.org&quot;, the policy file should be
+as follows
+
+<pre>
+       Resource: FTPNamespace|ftp://sample1.org
+       uri:samlActionNSWildcard uri:samlActionWildcard
+</pre>
+
+<h2>
+<a name="cas-wrap">
+Using CAS credentials: <i>cas-wrap</i>
+</a>
+</h2>
+
+<p>The <i>cas-wrap</i> program runs a grid-enabled program, causing it
+to use previously-generated CAS credentials.Its syntax is:</p>
+
+<pre>
+        cas-wrap [-t <i>tag</i> | -p<i> proxyfile </i>] <i>command args</i>
+</pre>
+
+<p>Both versions of this command run:</p>
+
+<pre>
+        <i>command args</i>
+</pre>
+
+<p>in an environment in which command will use a previously-generated
+CAS credential.The first form should be used if <i>cas-proxy-init</i>
+was run with a <i>tag</i> argument; for example,</p>
+
+<p> A environment variable, GLOBUS_LOCATION needs to be set to point
+to the GT3 install location. If CAS clients have been deployed, then
+this script is placed in GLOBUS_LOCATION/bin. This directory needs to
+be added to the PATH for it to be executed from other locations.
+
+<pre>
+        % cas-wrap -t my-community gsincftp myhost.edu
+</pre>
+
+<p>will look for a credential generated by a previous
+execution of:</p>
+
+<pre>
+        % cas-proxy-init -t my-community
+</pre>
+
+<p>and then set the environment to use that credential while
+running the command</p>
+
+<pre>
+        % gsincftp myhost.edu
+</pre>
+
+<p>The second form should be used if <i>cas-proxy-init </i>was
+run with the <b>–o</b> option; for example,</p>
+
+<pre>
+        % cas-wrap –p /path/to/my/cas/credential gsincftp myhost.edu
+</pre>
+
+<p>will look for a credential generated by a previous
+execution of:</p>
+
+<pre>
+        % cas-proxy-init –o /path/to/my/cas/credential
+</pre>
+
+<p>and then set the environment to use that credential while
+running the command</p>
+
+<pre>
+        % gsincftp myhost.edu
+</pre>
+
+<p>Most grid-enabled programs (specifically, most programs written
+using the Globus GSI libraries) will honor the environment variable
+<b>X509_USER_PROXY</b>; if this variable is set, they will use its
+value as the name of a file containing the proxy credential to use
+when authenticating.A user could, for example, cause the gsincftp
+program to use CAS credentials by running these two commands:</p>
+
+<pre>
+        % setenv X509_USER_PROXY /path/to/my/cas/credential
+</pre>
+
+<p>The <i>cas-wrap</i> utility program works by running the specified
+command in an environment in which that variable is set.</p>
+
+<h2> <a name="cas-sd"> CAS Service Data </a> </h2>
+The CAS service exposes two strings as service data and is within the
+following namesapce <i>http://ogsa.globus.org/base/cas</i>. These are
+constants that are set at the service start up and cannot be modified.
+<p>
+<ul>
+ <li><i>ServerDN</i>: This is the DN of the credentials used by the CAS server.
+ <li><i>VODescription</i>: This is a short description of the VO in
+ which the CAS server is running.
+</ul>
+
+<p> There are scripts in the GT3 install to run get the values for the
+above said service data, <i>ogsi-find-service-data</i> in
+GLOBUS_LOCATION/bin. For more detailed instructions refer to the <a
+href="http://www-unix.globus.org/toolkit/3.0/ogsa/docs/users_guide.html">User's
+Guide</a> in GT3.
+
+<p> An example run of the command line client to get the value of the
+service data value of the server DN is shown below. The query was run
+against a GT3 container running on localhost and port number 8080 from
+GLOBUS_LOCATION/bin.
+ 
+<pre>
+C:\cygwin\home\Administrator\ogsa\impl\java\bin&gt;ogsi-find-service-data-by-name.bat -gsiSecConv sig -auth self "http://ogsa.globus.org/base/cas:ServerDN"  http://localhost:8080/ogsa/services/base/cas/CASService
+
+ServiceDataValues: 
+ &lt;ns2:serviceDataValues xmlns:ns2="http://www.gridforum.org/namespaces/2003/03/serviceData"&gt;
+     &lt;ns4:ServerDN xmlns:ns3="http://ogsa.globus.org/base/cas/casTypes" 
+     xmlns:ns4="http://ogsa.globus.org/base/cas" 
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+     xsi:type="ns3:ServerDN"&gt;
+      &lt;ns3:serverDN&gt;/O=Grid/O=Globus/OU=extreme.indiana.edu/CN=Rachana Ananthakrishnan&lt;/ns3:serverDN&gt;
+     &lt;/ns4:ServerDN&gt;
+    &lt;/ns2:serviceDataValues&gt;
+</pre>
+<h2> <a name="cas-client"> Writing CAS Clients </a> </h2>
+
+<p>Listed below are some helper methods in the client package that
+maybe used for writing clients for the CAS service. Refer to code
+and/or Java Docs for more information.
+
+<ul>
+<li> <b> Getting handle to CAS service port type</b>
+
+<p> org.globus.ogsa.impl.base.cas.client.CasClientSetup is used.
+
+<p> Code:</p>
+<ul>
+<li> To get a handle to CAS service with instance URL,
+<i>instanceURL</i> and identity <i>serviceIdentity</i>, 
+
+<pre> CasClientSetup clientSetup = new CasClientSetup();
+ CommunityAuthorizationServicePortType casPort = 
+	    clientSetup.getCASPort(instanceURL, serverIdentity);
+</pre>
+
+<li> To get a handle to CAS service with instance URL,
+<i>instanceURL</i> and use host authorization, 
+
+<pre> CasClientSetup clientSetup = new CasClientSetup();
+ CommunityAuthorizationServicePortType casPort = 
+	    clientSetup.getCASPort(instanceURL);
+<pre>
+</ul>
+
+<li> <b> Generating proxy with CAS assertions embedded </b>
+
+<p> API in class org.globus.ogsa.impl.base.cas.client.CasProxyHelper
+can be used to generate a proxy with CAS assertions embedded. To pass
+in relevant parameters, class
+org.globus.ogsa.impl.base.cas.client.ClientParams is used. The
+datatype, org.globus.ogsa.impl.base.cas.client.ResourceActionsMap is
+used to represent the resource/actions mapping for which assertions
+are requested on.
+
+<p> Listed below are steps to use the
+API. org.globus.ogsa.impl.base.cas.client.CasProxyInit has sample code
+that generates a proxy embedded with CAS assertions.
+
+<p> Code:</p>
+<ol>
+<li>
+
+<p>ClientParams class is used to construct the parameter. If the
+default constructor is used and none of the values are set, requested
+assertion lifetime is set to 24 hours, default proxy file is used, the
+proxy with assertions embedded is named with a &quot;.cas&quot; tag at
+the end of proxy file.
+
+<pre> ClientParams clientParams = new ClientParams();</pre>
+
+<li> Sets assertion lifetime. If not set, 24 hours is used.
+
+<pre>
+ clientParams.setAssertionLifetime(lifetime);
+</pre>
+
+<li> Sets file name of the proxy to use. If not set, defualt credential is used..
+<pre>
+ clientParams.setProxyFileName(proxyFilename);
+</pre>
+
+<li> Sets file name of the proxy with CAS assertions to be written
+to. If not set, original proxy file name is appended with a tag.
+<pre>
+ clientParams.setCasProxyFileName(casProxyFilename);
+</pre>
+
+<li> Sets tag to append to original proxy filename. If not set, the
+tag &quotcas&quot is used. The tag is used if a filename for assertion
+embedded proxy is not set.
+<pre>
+ clientParams.setCasProxyTag(tag);
+</pre>
+<li> Sets the resource/actions for which assertion is requested on. It
+uses an array of data type <i>ResourceActionsMap</i> (explained below)
+<pre>
+ clientParams.setResourceActionsMap(resActions);
+</pre>
+
+<li> <i>ResouceActionsMap</i> datatype is used to represent the
+resource and the actions on the resource for which the permissions are
+required. It has a String to represent resource and a vector of string
+sto represent the actions.
+
+<p> The resource should be of the form,
+&quot;<i>objectNamespace</i>|<i>objectName</i>&quot;. The action
+should be of the form, &quot;<i>serviceType actionName</i>&quot;
+
+<li> Instance of Helper class:
+<pre>
+ CasProxyHelper casProxyHelper = new CasProxyHelper(instanceURL, serverIdentity);
+</pre>
+where, 
+<ul>
+ <li> <i/>instanceURL</i> is the URL to contact CAS service.<br>
+ <li> <i>serverIdentity</i> is the expected identity of the server. If null,
+      host authorization is used.
+</ul>
+
+<li> Generating proxy with CAS assertions
+
+<pre>
+ String casProxyFilename = casProxyHelper.getCasProxy(clientParams);
+</pre>
+
+This methods contacts the CAS service, retrieves assertions, embeds in
+credetial and returns the path to the proxy file with CAS proxy
+embedded.
+
+</ul>
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
+

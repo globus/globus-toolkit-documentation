@@ -1,0 +1,272 @@
+<?php
+
+$title = "GT 3.0 CAS: Performance Notes";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+
+?>
+
+
+
+<h1 class="first"><?php echo $title; ?></h1>
+
+<h1> Summary of performance tests </h1>
+
+<ul>
+<li> Basic query test - <i>whoami</i> 
+<li> Query test - <i>findPolicyData</i>
+<li> Credential test - <i>getMaximalAssertion</i>
+<li> Size of credential test
+</ul>
+
+<p> Each of the first three tests were done once with 200 clients
+talking to the server serially and then with all them talking to the
+server concurrently. Each number is an average of the time taken to
+get a locator and handle to the CASPort and the actual method
+invocation. All numbers are in milliseconds.
+
+<p> The stress test framework in GT3 Core was used for testing. This
+framework allows a block of code defined in an "init" method for
+initializing, code to be timed in "run" method and finally a "postRun"
+methd. Two of the numbers the stress framework that are of relevance
+here are
+
+<ul>
+
+<li>"totalAverageTime" - this is the average time that each
+performance run takes (initialization, run and postRun). In the table
+below, these are the numbers given outside the bracket. (appears to be
+weird in concurent case since it does not account for the large time
+each thread takes).
+<li>"totalCallAverageTime" - this is the average time that each run of the
+relevant code takes (run). In the table below, these are the numbers
+given inside the bracket. In concurent runs, the time taken are very
+high.But look at end of this document to see what infrastructure
+contributes.)  </ul>
+
+<p>The server and client were run on the same machine. Database
+(PostGres) was used and was also on the same machine.
+
+<h2> Platform </h2>
+
+All tests were run on a i686, 2.2GHz machine running Linux 2.4.18.
+
+<h2> Database status </h2>
+
+<p>All tests were run with two different sets of data in the backend
+database. But in both cases the default bootstrap was done which
+populated the database with service/action implict to CAS service.
+
+<p> In the case of smaller data set, other than the data described
+above, a single trust anchor, usergroup, user and object was
+added. Two policies were added - one granting that user group super
+user permissions on the CAS server and another granting it access to
+the external object added. (only the latter is returned on an
+assertion generation request.)
+
+<p> In the other case, 100 user groups, 100 users, 100 resources and
+1000 polices was added above the deafult data. Each user group was
+given ten polices across the resources.
+
+<h2> Test results </h2>
+<h3>Basic query test </h3>
+<p> This test measures the time taken to query the database to get the
+  CAS nickname of the user making the call. There are no parameters to
+  process in this call and is the most rudimentary query in the CAS
+  service. Every single CAS invocation does this to get the name of the
+  user to ascertain permissiosns. 
+  
+</p>
+<p> The test was run with 200 client threads, serially and cocurrently.
+  
+</p>
+
+<table border="1" width="30%">
+      <tr><td></td><td>Serial</td><td></td><td>Concurrent</td></tr>
+      <tr><td>Small</td><td></td><td>253 (253)</td><td></td><td>155(26832)</td></tr>
+      <tr><td>Large</td><td></td><td>253(253)</td><td></td><td>214(40958)</td><td></td></tr>
+</table>
+
+<h3>Query test </h3>
+<p> This test measures the time taken to query the database to get all
+    applicable policy for the user making the call. The CAS server checks
+    permissions for the operation and performs the actual retrieval of
+    policy and is returned as an array of PolicyData objects.
+    
+</p>
+<p> The test was run with 200 client threads, serially and
+    cocurrently. With smaller data set only one policy is returned, with
+    larger dataset 10 amongst the 1000 policies are returned. 
+    
+</p>
+
+    <table border="1">
+      <tr><td><td>Serial<td><td>Concurrent<td></tr>
+      <tr><td>Small<td><td>315(315)<td><td>219(34425)<td></tr>
+      <tr><td>Large<td><td>479(479)<td><td>286(40298)<td></tr>
+    </table>
+
+<h3> Credential test </h3>
+<p> This test measures the time taken to query the database to get all
+  applicable assertions for the user making the invocation. The CAS
+  server checks permissions for the operation and performs the actual
+  retrieval of assertion. Since the assertion is returned as xsd:any the
+  time taken to convert them in SAMLAssertion object is also measure.
+  
+</p>
+<p> The test was run with 200 client threads, serially and
+  cocurrently. With smaller data set assertion contains only one
+  authorizatin policy , with larger dataset 10 polices amongst the 1000
+  policies are embedded in the assertion.
+  
+</p>
+
+    <table border="1">
+      <tr><td><td>Serial<td><td>Concurrent<td></tr>
+      <tr><td>Small<td><td>416(416)<td><td>303(50032)<td></tr>
+      <tr><td>Large<td><td>568(568)<td><td>400(52304)<td></tr>
+    </table>
+
+<h3> Size of credential test </h3>
+<p>The database was populated appropraitely to generate credentials of
+  various sizes and saved to file. The largest credential size tested
+  was approximately 70K. This required that the default timeout in the
+  Stub be incresed to allow for large call time. 
+  
+</p>
+<p>For credendial of size 70995, using 50 threads serially, the
+  avarage timetaken was 6833ms.
+  
+</p>
+<h2> Running performance tests </h2>
+
+All the classes needed to run these tests are in the package
+<i>org.globus.ogsa.impl.base.cas.server.test.performance</i> and
+targets have been provided in the build file for running them.
+
+<h3> Setting up database </h3>
+
+<p> These targets add some specific number of users to the
+database. One of the users needs to have the subect DN of the
+credential that will be used while running the tests. This is picked
+up from a variable "subject1DN" from a file, whose name is passes as a
+system property to each of this target. But default, this is set to
+"casTestProperties". To override it, set <i>-Dcas.test.properties</i>
+while invoking the target.
+
+<p> To get configuration parameters for database access, a file with
+database information is required as shown <a
+href="installGuide.html#dbConfig">here</a>. This is by default,
+"casDBProperties". To override it, set <i>-Dcas.db.properties</i>
+while invoking the target.
+
+<p> To set up small datasets in database, the following from CAS_HOME
+
+<pre>  psql -U tester -d casDatabase -f etc/delete.sql<br>
+       ant bootstrap<br>
+       ant populateDB -Dargs="small"
+</pre>
+
+<p> To set up large datasets, but credential size less than 50K, in
+database, the following from CAS_HOME
+
+<pre>  psql -U tester -d casDatabase -f etc/delete.sql<br>
+       ant bootstrap<br>
+       ant populateDB -Dargs="large"
+</pre>
+
+<p> To set up large datasets, but credential size greater than 50K, in
+database, the following from CAS_HOME
+
+<pre>  psql -U tester -d casDatabase -f etc/delete.sql<br>
+       ant bootstrap<br>
+       ant populateDB -Dargs="large largeCred"
+</pre>
+
+<h3><a name="gt3Cont"></a>Setting up GT3 container </h3>
+
+For large runs (greater than 200 clients) and/or large credential
+generation(greater than 50K), the default timout on the Stub needs to
+be altered. This can be done by editing the GLOBUS_LOCATION/build.xml,
+<i>stress</i> target and adding the following as another system
+property. The value needs to be set appropriately.
+
+<pre>
+	&lt;sysproperty key="org.globus.ogsa.client.timeout" value="200000"/&gt;
+</pre>
+
+<p>The above is the solution if "Read timeout error" is seen on the
+client side.  In all other cases, a default GT3 container with CAS
+service deployed should suffice.
+
+<h3> Running test targets </h3>
+
+All tests use the stress framework in GT3 core. For more details,
+refer to test documentation in GT3 distribution.
+
+All targets have the following options:
+
+<ul>
+<li>-Dstress.threads = number of threads
+<li>-Dstress.processes = number of processes<br>
+<li>-Dstress.concurrent = set to "yes" or "no"
+</ul>
+
+In each case the output is dumped as XML file in the directory from
+which the test is run.
+
+<ul>
+<li> <h4>Basic Query tests</h4>
+
+Running the following target after setting up the database and GT3
+container runs a test that measures time taken for a call to get the
+CAS nickname of the user.
+
+<pre>
+ ant basicQueryStress -Dstress.threads=300 -Dstress.processes=1 -Dstress.concurrent=yes </pre>
+
+<li> <h4>Query tests</h4>
+
+Running the following target after setting up the database and GT3
+container runs a test that measures time taken for getting all
+applicable policies of the user.
+
+<pre>
+ant queryStress -Dstress.threads=300 -Dstress.processes=1 -Dstress.concurrent=no
+</pre>
+
+<li> <h4>Credential tests</h4>
+
+Running the following target after setting up the database and GT3
+container runs a test that measures time taken for generating
+credential of all policies of user.
+
+<pre>
+ ant credentialStress -Dstress.threads=200 -Dstress.processes=1 -Dstress.concurrent=yes </pre>
+
+<li> <h4>Size of Credential</h4>
+
+This test is used to ensure that credentials of large sizes can be
+generated. To run this test, set up the data base using the
+"populateDB" target with options "large largeCred". This will ensure
+that the credential returned on running the following is around
+70K. This test requires that the timeout be set to a high value as
+descibed <a href="#gt3Cont">here</a>. Since this is a test of large
+credential generation, it maybe prudent to just have one or few threads
+execution, rather than many.
+
+<pre>
+ ant credentialStress -Dstress.threads=1 -Dstress.processes=1 -Dstress.concurrent=no</pre>
+</ul>
+
+<h2>Infrasture overhead test </h2>
+<p> The <i>whoami</i> method on CAS port was overridden to just return
+a dummy string without any processing. The above described "Basic
+Query Test" was done to measure performance with 200 serial and
+concurrent client. On serial testing, time taken was 252ms (252) and
+on concurrent testing it was 187ms (34209). So it appears that
+irrespective of the application code, the infrastructure takes a
+considerably long time on concurrent calls.</p>
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
+
