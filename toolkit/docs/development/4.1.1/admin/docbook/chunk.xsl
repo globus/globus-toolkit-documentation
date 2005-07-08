@@ -3,7 +3,7 @@
 		version="1.0"
                 exclude-result-prefixes="doc">
 
-<xsl:import href="/home/Jarek%20Gawor/docbook/xsl-stylesheets/html/docbook.xsl"/>
+<xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets/html/docbook.xsl"/>
 <xsl:import href="chunk-common.xsl"/>
 
 <!-- ==================================================================== -->
