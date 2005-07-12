@@ -1,12 +1,18 @@
+SGML_CATALOG_FILES=/etc/xml/catalog:../../catalog
+export SGML_CATALOG_FILES
+#XML_DEBUG_CATALOG=1
+#export XML_DEBUG_CATALOG
 FILENAME=index.xml
 
 all: html pdf
 
 html:
-	xsltproc --stringparam chunk.section.depth 0 \
+	xsltproc --xinclude --stringparam chunk.section.depth 0 \
            --stringparam suppress.navigation 1 \
 	   --stringparam  chapter.autolabel 0 \
 	   --stringparam  section.autolabel 1 \
+	   --stringparam html.cellspacing "0" \
+	   --catalogs \
            ../../admin/docbook/chunk.xsl \
            ${FILENAME}
 
