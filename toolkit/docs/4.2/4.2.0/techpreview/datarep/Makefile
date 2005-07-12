@@ -35,7 +35,7 @@ debian-sarge:
 withphp:
 	xsltproc --stringparam chunk.section.depth 0 \
 	--stringparam chapter.autolabel 0 \
-	  /mcs/www-unix.globus.org/toolkit/documentation/web/docs/development/4.0-drafts/admin/docbook/chunk.xsl \
+	  /mcs/www-unix.globus.org/toolkit/documentation/web/docs/4.0/admin/docbook/chunk.xsl \
 	$(FILENAME)
 
 debian-pdf:
