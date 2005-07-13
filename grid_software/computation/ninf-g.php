@@ -43,7 +43,7 @@ thread so that the application can proceed while the library call is executed re
 <?
 $software = "<a href='http://ninf.apgrid.org/'>Ninf-G</a>";
 $developer = "<a href='http://www.aist.go.jp/index_en.html'>National Institute of Advanced Industrial Science and Technology (Japan)</a>";
-$distros = "<a href='http://ninf.apgrid.org/packages/welcome.shtml'>Download from the Condor Project</a>";
+$distros = "<a href='http://ninf.apgrid.org/packages/welcome.shtml'>Download from the Ninf Project</a>";
 $contact = "<a href='mailto:ninf@apgrid.org'>ninf@apgrid.org</a>";
 
 
