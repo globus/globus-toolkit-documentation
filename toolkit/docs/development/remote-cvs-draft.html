@@ -1,0 +1,308 @@
+<?php
+
+$title = "Globus: Accessing the Globus Alliance's Code via CVS";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+
+<h1><?php echo $title; ?></h1>
+<p><b>DISCLAIMER</b></p>
+
+<p>Globus Toolkit<sup><font size=-2>&reg;</font></sup> development releases are
+  available by anonymous CVS.  Development releases contain code developed
+  by many sources that has not yet undergone the testing and  validation process
+  for a stable release of the Globus Toolkit. Our goal is for the development
+  release to always be in a state that will compile cleanly, but transient
+problems may occasionally arise.  A description of <a href="how-we-use-cvs.html"> how
+the Globus Alliance's core development team uses the CVS repository</a> (including
+details on branches and concurrent development procedures) is available.</p>
+
+<p>As an experienced developer, you should
+already be subscribed to <a href="mailto:developer-discuss@globus.org">developer-discuss@globus.org</a>,
+where porting and development issues are discussed.  If not, subscribe by visiting <a
+
+href="http://www-unix.globus.org/toolkit/support.html#lists">http://www-unix.globus.org/toolkit/support.html#lists</a>.
+To minimize confusion for the majority of
+subscribers there who do not use CVS, we ask that you preface any comments to <a
+
+href="mailto:developer-discuss@globus.org">developer-discuss@globus.org</a> by
+stating that you use code from CVS.</p>
+
+<p><b>Note that there is no implied obligation by the Globus Alliance to provide support or resolve
+problems that users might encounter with development code.</b>  Use
+of the development release is subject to terms of the <a href="../../legal/"> Globus Toolkit
+Public License</a>.
+Users wishing to contribute bug patches or
+discuss features should do so through the developers-discuss mailing list.</p>
+<ul>
+  <li><a href="#gt40">Accessing Remote CVS for GT 4.0</a></li>
+  <li><a href="#gt32">Accessing Remote CVS for GT 3.2 </a></li>
+  <li><a href="#cvs">CVS Options</a>
+    <ul>
+      <li><a href="#anonymous">Anonymous checkout </a></li>
+      <li><a href="#specifytags">Specify tags</a></li>
+      <li><a href="#turnoff">Turning off steps</a></li>
+      <li><a href="#subset">Specifying a subset of code to build</a></li>
+      <li><a href="#examples">Examples</a></li>
+    </ul>
+  </li>
+</ul>
+<h2><a name="gt40"></a>Accessing Remote CVS for GT 4.0</h2>
+<table width="650" border="0" cellpadding="5">
+  <tr>
+    <td valign="top"><a name="step1-gt40" id="step1-gt40">1</a></td>
+    <td width="578" valign="top">
+      <p>Set your CVSROOT to:</p>
+     <pre>:pserver:anonymous@cvs.globus.org:/home/globdev/CVS/globus-packages</pre></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step2-gt40" id="step2-gt40">2</a></td>
+    <td valign="top">
+      <p>Check out the packaging directory:
+</p>
+      <pre>cvs co packaging</pre>
+      <p>If you want to work from a particular branch or tag, make sure
+    to specify it when checking out packaging, for example:    </p>
+      <pre>cvs co -r globus_4_0_branch packaging</pre></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step3-gt40" id="step3-gt40">3</a></td>
+    <td valign="top">
+	    <p>The easiest thing to do next is to use a script which generates
+    releases.  For
+    HEAD and the globus_4_0_branch, run:</p>
+	    <pre>fait_accompli/installer.sh</pre>
+	    <p>        This script creates an installer subdirectory which will have
+        a configure script that will create a Makefile.  Read the INSTALL file
+	        for installation details. It just involves running:</p>
+	    <pre>configure
+make
+make install</pre>
+      <p>This creates an installer subdirectory using
+       the code from CVS.  You may then change into that directory and
+       run <font color="purple">[<code>install-gt4</code> and <code>install-gt4-mmjfs</code>?]</font>      the
+       same way the publically released installers work.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step4-gt40" id="step4-gt40">4</a></td>
+    <td valign="top">
+    Alternatively, you may use the <code>make-packages.pl</code>
+    script directly (the above release script just runs a
+    series of <code>make-packages.pl</code> commands).  It features
+    both <code>--help</code> and <code>--man</code> options.
+    <p>The flow of control in <code>make-packages.pl</code> is as follows:
+    <table width="100%"  border="1" cellspacing="0" cellpadding="5">
+      <tr>
+        <th valign="top">Stage</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td valign="top">1</td>
+        <td>Cleanup old build directories. </td>
+      </tr>
+      <tr>
+        <td valign="top">2</td>
+        <td>Checkout CVS source trees. This step creates one subdirectory of <code>source-trees/</code> per
+          CVS archive. </td>
+      </tr>
+      <tr>
+        <td valign="top">3</td>
+        <td><p>Build prerequisite tools (like autotools and globus_core). </p>
+          <p>The autotools prerequisite is installed under <code> packaging/source-trees/autotools/autotools/bin</code>.            </p>
+          <p>The GPT prerequisite is installed under <code> packaging/gpt-*</code>. <font color="purple">The
+              GPT version for GT 4.0 is currently  gpt-?, though that
+              may be upgraded in the future.</font></p>If make-packages determines that the prerequisites are available, it
+          will skip rebuilding them. If you would like to force a rebuild, you
+          could either delete <code>source-trees/autotools</code> or <code>gpt-*</code>.
+          This may be necessary, for instance, if you hit control C during the
+          build of autotools, and this winds up fooling the auto-detection of
+          make-packages.</td>
+      </tr>
+      <tr>
+        <td valign="top">4</td>
+        <td><p>Create GPT packages from CVS subdirectories. This step creates the <code>source-output</code> and <code>package-output</code> subdirectories.
+</p>
+          <ul>
+            <li>              <code>source-output</code> is used as an intermediate
+                          step;</li>
+            <li><code>package-output</code> contains the GPT
+              packages themselves.</li>
+          </ul></td>
+      </tr>
+      <tr>
+        <td valign="top">5</td>
+        <td>Create GPT bundles from packages. This step will create <code>bundle-output</code>. </td>
+      </tr>
+      <tr>
+        <td valign="top">6</td>
+        <td>By default, <code>make-packages.pl</code>  stops after creating
+          bundles (Stage 5). If you specify <code>--install=/directory/name</code>,
+          it  installs the bundles. </td>
+      </tr>
+    </table>    
+    <p>See <a href="#cvs">CVS Options for make-packages.pl</a>.</p></td>
+  </tr>
+</table>
+
+
+<h2><a name="gt32"></a>Accessing Remote CVS for GT 3.2</h2>
+<table width="650" border="0" cellpadding="5">
+  <tr>
+    <td valign="top"><a name="step1-gt32" id="step1-gt32">1</a></td>
+    <td width="578" valign="top"> <p>Set your CVSROOT to:</p>
+    <pre>:pserver:anonymous@cvs.globus.org:/home/globdev/CVS/globus-packages.</pre></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step2-gt32" id="step2-gt32">2</a></td>
+    <td valign="top"> Check out the packaging directory:
+        <pre>cvs co packaging</pre>
+        <p>If you want to work from a particular branch or tag, make sure to
+          specify it when checking out packaging, for example: </p>
+        <pre>cvs co -r globus_3_2_branch packaging</pre>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step3-gt32" id="step3-gt32">3</a></td>
+    <td valign="top"><p>The easiest thing to do next is to use a  script
+        which generates releases. For the <code>globus_3_2_branch</code>, your choices are:
+      </p>
+        <ul>
+            <li><code>fait_accompli/release.sh</code> - Creates the base installer.</li>
+            <li><code>fait_accompli/all-release.sh</code> - Creates the all installer.</li>
+            <li><code>fait_accompli/preogsi-release.sh</code> - Creates the preogsi
+              installer.</li>
+      </ul>
+          <p>This will create an installer subdirectory using
+            the code from CVS. You may then change into that directory and run <code>install-gt3</code> and <code>install-gt3-mmjfs</code> the
+            same way the publically released installers work.</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="step4-gt32" id="step4-gt32">4</a></td>
+    <td valign="top"> Alternatively, you may use the <code>make-packages.pl</code> script
+      directly (the above release script just runs a series of <code>make-packages.pl</code> commands).
+      It features both <code>--help</code> and <code>--man</code> options.
+          <p>The flow of control in <code>make-packages.pl</code> is as follows:
+          <table width="100%"  border="1" cellspacing="0" cellpadding="5">
+            <tr>
+              <th valign="top">Stage</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td valign="top">1</td>
+              <td>Cleanup old build directories. </td>
+            </tr>
+            <tr>
+              <td valign="top">2</td>
+              <td>Checkout CVS source trees. This step creates one subdirectory
+                of <code>source-trees/</code> per CVS archive. </td>
+            </tr>
+            <tr>
+              <td valign="top">3</td>
+              <td><p>Build prerequisite tools (like autotools and globus_core). </p>
+                  <p>The autotools prerequisite is installed under <code> packaging/source-trees/autotools/autotools/bin</code>. </p>
+                  <p>The GPT prerequisite is installed under <code> packaging/gpt-*</code>. <font color="purple">The
+                      GPT version for GT 3.2 is gpt-3.0.1.</font></p>
+                  If make-packages determines that the prerequisites are available,
+                  it will skip rebuilding them. If you would like to force a
+                  rebuild, you could either delete <code>source-trees/autotools</code> or <code>gpt-*</code>.
+                  This may be necessary, for instance, if you hit control C during
+                  the build of autotools, and this winds up fooling the auto-detection
+                  of make-packages.</td>
+            </tr>
+            <tr>
+              <td valign="top">4</td>
+              <td><p>Create GPT packages from CVS subdirectories. This step creates
+                  the <code>source-output</code> and <code>package-output</code> subdirectories. </p>
+                  <ul>
+                    <li> <code>source-output</code> is used as an intermediate
+                      step;</li>
+                    <li><code>package-output</code> contains the GPT packages
+                      themselves.</li>
+                </ul></td>
+            </tr>
+            <tr>
+              <td valign="top">5</td>
+              <td>Create GPT bundles from packages. This step will create <code>bundle-output</code>. </td>
+            </tr>
+            <tr>
+              <td valign="top">6</td>
+              <td>By default, <code>make-packages.pl</code> stops after creating
+                bundles (Stage 5). If you specify <code>--install=/directory/name</code>,
+                it installs the bundles. </td>
+            </tr>
+          </table>
+    <p>See <a href="#cvs">CVS Options for make-packages.pl</a>.</p></td>
+  </tr>
+</table>
+<h2><a name="cvs"></a>CVS options for make-packages.pl </h2>
+<p>If you decide to use the make-packages.pl script directly, the following are
+  various options.</p>
+<ul>
+  <li><a href="#anonymous">Anonymous checkout </a></li>
+  <li><a href="#specifytags">Specify tags</a></li>
+  <li><a href="#turnoff">Turning off steps</a></li>
+  <li>  <a href="#subset">Specifying a subset of code to build</a></li>
+  <li><a href="#examples">Examples</a></li>
+</ul>
+<h3><a name="anonymous"></a>Anonymous checkout </h3>
+<p>If you specify <code>--anonymous</code>, the CVS checkout will be anonymous,
+  otherwise it will use ssh checkouts.</p>
+<h3><a name="specifytags"></a>Specify tags</h3>
+<p>To specify tags, use the following options:</p>
+<dl>
+  <dt><code>--t2=</code>  </dt>
+  <dd>Specifies tags to use for GT2 and autotools.</dd>
+  <dt><code>--t3=</code> </dt>
+  <dd>Specifies
+      tags for GT3 and cbindings.</dd>
+  <dt><font color="purple"><code>--t4= (?) </code></font></dt>
+  <dd><font color="purple">This will specify
+      tags to use for GT4 and ?</font>.</dd>
+</dl>
+<h3><a name="turnoff"></a>Turning off steps </h3>
+<p>You can also turn off the some of the steps of the <code>make-packages.pl</code> flow if
+  you want to skip them:</p>
+<dl>
+  <dt><code>--no-updates -n </code> </dt>
+  <dd>Inhibits CVS checkouts/updates</dd>
+  <dt><code>--skippackage</code> </dt>
+  <dd>Does not make GPT packages</dd>
+  <dt><code>--skipbundle</code> </dt>
+  <dd>Does not create bundles.</dd>
+</dl>
+<p>The design intent is for you to be able to start and stop the tool where you
+  want. For example, you can create source bundles on one machine, then ship
+  them to another for building. On the second machine, you would use <code>--skippackage</code> and <code>--skipbundle</code>,
+  but then specify <code>--install</code>.</p>
+<h3><a name="subset"></a>Specifying a subset of code to build</h3>
+<p>Many times you just want to build what you're working on. The <code>--packages=</code>, <code>--bundles=</code>,
+  and <code>--trees</code> options are designed to restrict the working set of <code>make-packages.pl</code>.
+  Keep the following in mind when using these options: </p>
+<ul>
+  <li>The CVS archives are defined in the <code>%cvs_archives</code> hash at
+    the top of <code>make-packages.pl</code>. </li>
+  <li> There is a subdirectory of <code>etc/</code> per archive. </li>
+  <li>The <code>package-list</code> file contains a list of packages and their
+    CVS subdirectory. </li>
+  <li>The <code>bundles</code> file contains a list of bundles and their constituent
+    packages.</li>
+</ul>
+<h3><a name="examples"></a>Examples</h3>
+<p>The following are a few examples of using options with the <code>make-packages.pl</code>  script:
+<h4>Example A</h4>
+<pre>make-packages.pl --anonymous --bundles=globus-data-management-server   --install=/tmp/inst</pre>
+<p>These options checkout CVS anonymously, then make the <code>globus-data-management-server</code>  bundle and install it into <code>/tmp/inst</code>.</p>
+<h4>Example B</h4>
+<pre>make-packages.pl --t4=globus_x_y_z --anonymous --skippackage --skipbundle</pre>
+<p>  These options checkout CVS anonymously using the <code>globus_x_y_z</code> tag and do
+not make any packages or bundles. The CVS checkouts will be under <code> source-trees</code>.</p>
+<h4>Example C</h4>
+<pre>make-packages.pl --anonymous --packages=globus_xio</pre>
+<p>  These options checkout CVS anonymously, then create the <code>globus_xio</code> package.
+    It will be stored in <code>package-output/</code>.</p>
+<h4>Example D</h4>
+<pre>make-packages.pl -n --bundles=globus-gsi</pre>
+<p>  These options do not update CVS but do make the <code>globus-gsi</code> bundle. You must
+    already have CVS checkouts in <code>source-trees</code> to use this option.</p>
+<?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
