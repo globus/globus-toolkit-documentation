@@ -130,7 +130,8 @@ function globus_print_headlines(
         # rss link
         fwrite($fp, "<p><a href=\"$rss_url\">" .
                     "<img src=\"http://www-unix.globus.org/toolkit/images/iconRSS.gif\" " .
-                    " width=\"35\" height=\"13\" border=\"0\"></a></p>");
+                    " width=\"35\" height=\"13\" border=\"0\"></a>&npsp;"
+                    "<a href=\"http://www-unix.globus.org/toolkit/about_rss.html\">What's&npsp;this?</a></p>");
 
         fclose($fp);
     }
