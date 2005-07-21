@@ -161,6 +161,155 @@ to the tomcat configuration directory.
 index service, by pointing your web browser at
 <computeroutput>http://your-tomcat-host:your-tomcat-port/webmds</computeroutput> and clicking on the link labelled "A list of resources registered to
 the local default index service".</para>
+<para>For more in-depth tests, you can run the WebMDS unit tests, by doing
+the following:</para>
+<orderedlist>
+<listitem><simpara>Install <ulink url="http://httpunit.sourceforge.net">httpunit</ulink>, version 1.6 or later.  Set the environment variable GLOBUS_HTTPUNIT_DIR to the directory into which httpunit has been installed.</simpara></listitem>
+<listitem><para>Install the WebMDS test package; from the GT4 distribution directory, run
+<screen>
+make gt4-webmds-test
+</screen>
+</para>
+</listitem>
+<listitem>
+<para>Run the core WebMDS test suite.  This tests the WebMDS servlet itself,
+the File XML Source, and the more commonly-used xslt transforms.  There
+are two modes in which this test suite can be run.</para>
+<itemizedlist>
+<listitem>
+<para>The core WebMDS tests can be run in a servlet container simulator.  This tests the WebMDS code but does not test whether or not WebMDS has been deployed correctly into Tomcat:
+<screen>
+ant -f $GLOBUS_LOCATION/etc/globus_wsrf_mds_webmds_test/build.xml test-installed
+</screen>
+</para>
+<para>
+The output should look something like this:
+<screen>
+Buildfile: <parameter>GLOBUS_LOCATION</parameter>/etc/globus_wsrf_mds_webmds_test/build.xml
+
+test-installed:
+    [junit] Running org.globus.mds.webmds.test.PackageTests
+    [junit] Running org.globus.mds.webmds.test.SimpleServletTest tests with servlet simulator.
+    [junit] No webmds.test.servletURL property specified; skipping org.globus.mds.webmds.test.SimpleServletTest http tests
+    [junit] Running org.globus.mds.webmds.test.ServletXslTests tests with servlet simulator.
+    [junit] No webmds.test.servletURL property specified; skipping org.globus.mds.webmds.test.ServletXslTests http tests
+    [junit] Tests run: 8, Failures: 0, Errors: 0, Time elapsed: 4.516 sec
+
+BUILD SUCCESSFUL
+Total time: 8 seconds
+</screen>
+</para>
+</listitem>
+<listitem>
+<para>The core WebMDS tests can be run against a running WebMDS server, to test
+the local WebMDS deployment:
+<screen>
+ant \
+  -f $GLOBUS_LOCATION/etc/globus_wsrf_mds_webmds_test/build.xml \
+  "-Dwebmds.test.servletURL=http://<parameter>webmds_host</parameter>:<parameter>webmds_port</parameter>/webmds/webmds" \
+  test-installed
+</screen>
+</para>
+<para>
+The output should look something like this:
+<screen>
+Buildfile: <parameter>GLOBUS_LOCATION</parameter>/etc/globus_wsrf_mds_webmds_test/build.xml
+
+test-installed:
+    [junit] Running org.globus.mds.webmds.test.PackageTests
+    [junit] Running org.globus.mds.webmds.test.SimpleServletTest tests with servlet simulator.
+    [junit] Running org.globus.mds.webmds.test.SimpleServletTest tests against server at http://<parameter>webmds_host</parameter>:<parameter>webmds_port</parameter>/webmds/webmds
+    [junit] Running org.globus.mds.webmds.test.ServletXslTests tests with servlet simulator.
+    [junit] Running org.globus.mds.webmds.test.ServletXslTests tests against server at http://<parameter>webmds_host</parameter>:<parameter>webmds_port</parameter>/webmds/webmds
+    [junit] Tests run: 8, Failures: 0, Errors: 0, Time elapsed: 5.229 sec
+
+BUILD SUCCESSFUL
+Total time: 8 seconds
+</screen>
+</para>
+</listitem>
+</itemizedlist>
+The tests have passed if the number of failures and number of errors are both 0.
+Detailed test output can be found in the file <filename><parameter>$GLOBUS_LOCATION</parameter>/etc/globus_wsrf_mds_webmds_test/test-reports/TEST-org.globus.mds.webmds.test.PackageTests.xml</filename>.
+</listitem>
+<listitem>
+<simpara>Run the WebMDS resource property node source test suite, to test the ability of
+WebMDS to query a running MDS4 Index Server.  This test suite requires that both
+a secure Index server and an insecure Index server be running.  As with the core
+tests, the resource property tests may be run in two modes.</simpara>
+<itemizedlist>
+<listitem>
+<para>The tests can be run in a servlet container simulator.  This tests the
+WebMDS code, and the interaction between the WebMDS code and running Index
+servers, but does not test whether or not WebMDS has been deployed correctly
+into tomcat:
+<screen>
+ant -f \
+  $GLOBUS_LOCATION/etc/globus_wsrf_mds_webmds_resource_property_source_test/build.xml \
+  "-Dwebmds.rpTest.insecureServicePrefix=http://<parameter>index_server_host</parameter>:<parameter>index_server_port</parameter>/wsrf/services" \
+  "-Dwebmds.rpTest.secureServicePrefix=https://<parameter>index_server_host</parameter>:<parameter>index_server_port</parameter>/wsrf/services" \
+  test-installed
+</screen>
+</para>
+<para>
+The output should look something like this:
+<screen>
+Buildfile: <parameter>GLOBUS_LOCATION</parameter>/etc/globus_wsrf_mds_webmds_resource_property_source_test/build.xml
+
+test-installed:
+    [junit] Running org.globus.mds.webmds.xmlSources.resourceProperties.test.PackageTests
+    [junit] querying resource properties at 'http://<parameter>insecure_index_server_host</parameter>:<parameter>insecure_index_server_port</parameter>/wsrf/services/DefaultIndexService'
+    [junit] querying resource properties at 'https://<parameter>secure_index_server_host</parameter>:<parameter>secure_index_server_port</parameter>/wsrf/services/DefaultIndexService'
+    [junit] Tests will use Globus servers at https://<parameter>secure_index_server_host</parameter>:<parameter>secure_index_server_port</parameter>/wsrf/services/DefaultIndexService and http://<parameter>insecure_index_server_host</parameter>:<parameter>insecure_index_server_port</parameter>/wsrf/services/DefaultIndexService
+    [junit] Running org.globus.mds.webmds.xmlSources.resourceProperties.test.ResourcePropertyServletTest tests with servlet simulator.
+    [junit] Tests will use Globus servers at https://<parameter>secure_index_server_host</parameter>:<parameter>secure_index_server_port</parameter>/wsrf/services/DefaultIndexService and http://<parameter>insecure_index_server_host</parameter>:<parameter>insecure_index_server_port</parameter>/wsrf/services/DefaultIndexService
+    [junit] No webmds.test.servletURL property specified; skipping org.globus.mds.webmds.xmlSources.resourceProperties.test.ResourcePropertyServletTest http tests
+    [junit] Tests will use Globus servers at https://<parameter>secure_index_server_host</parameter>:<parameter>secure_index_server_port</parameter>/wsrf/services/DefaultIndexService and http://<parameter>insecure_index_server_host</parameter>:<parameter>insecure_index_server_port</parameter>/wsrf/services/DefaultIndexService
+    [junit] Tests run: 5, Failures: 0, Errors: 0, Time elapsed: 6.626 sec
+
+BUILD SUCCESSFUL
+Total time: 10 seconds
+</screen>
+</para>
+</listitem>
+<listitem>
+<para>
+To run an end-to-end test that tests the communication between a deployed WebMDS server and running index servers, do the following:
+<screen>
+ant -f \
+  $GLOBUS_LOCATION/etc/globus_wsrf_mds_webmds_resource_property_source_test/build.xml \
+  "-Dwebmds.rpTest.insecureServicePrefix=http://<parameter>insecure_index_server_host</parameter>:<parameter>index_server_port</parameter>/wsrf/services" \
+  "-Dwebmds.rpTest.secureServicePrefix=https://<parameter>secure_index_server_host</parameter>:<parameter>index_server_port</parameter>/wsrf/services" \
+  "-Dwebmds.test.servletURL=http://<parameter>webmds_host</parameter>:<parameter>webmds_port</parameter>/webmds/webmds" \
+  test-installed
+</screen>
+</para>
+<para>
+The output should look something like this:
+<screen>
+Buildfile: <parameter>GLOBUS_LOCATION</parameter>/etc/globus_wsrf_mds_webmds_resource_property_source_test/build.xml
+
+test-installed:
+    [junit] Running org.globus.mds.webmds.xmlSources.resourceProperties.test.PackageTests
+    [junit] querying resource properties at 'http://<parameter>insecure_index_server_host</parameter>:<parameter>insecure_index_server_port</parameter>/wsrf/services/DefaultIndexService'
+    [junit] querying resource properties at 'https://<parameter>secure_index_server_host</parameter>:<parameter>secure_index_server_port</parameter>/wsrf/services/DefaultIndexService'
+    [junit] Tests will use Globus servers at https://<parameter>secure_index_server_host</parameter>:<parameter>secure_index_server_port</parameter>/wsrf/services/DefaultIndexService and http://<parameter>insecure_index_server_host</parameter>:<parameter>insecure_index_server_port</parameter>/wsrf/services/DefaultIndexService
+    [junit] Running org.globus.mds.webmds.xmlSources.resourceProperties.test.ResourcePropertyServletTest tests with servlet simulator.
+    [junit] Tests will use Globus servers at https://<parameter>secure_index_server_host</parameter>:<parameter>secure_index_server_port</parameter>/wsrf/services/DefaultIndexService and http://<parameter>insecure_index_server_host</parameter>:<parameter>insecure_index_server_port</parameter>/wsrf/services/DefaultIndexService
+    [junit] Running org.globus.mds.webmds.xmlSources.resourceProperties.test.ResourcePropertyServletTest tests against server at http://<parameter>webmds_host</parameter>:<parameter>webmds_port</parameter>/webmds/webmds
+    [junit] Tests will use Globus servers at https://<parameter>secure_index_server_host</parameter>:<parameter>secure_index_server_port</parameter>/wsrf/services/DefaultIndexService and http://<parameter>insecure_index_server_host</parameter>:<parameter>insecure_index_server_port</parameter>/wsrf/services/DefaultIndexService
+    [junit] Tests run: 5, Failures: 0, Errors: 0, Time elapsed: 7.041 sec
+
+BUILD SUCCESSFUL
+Total time: 10 seconds
+</screen>
+</para>
+</listitem>
+</itemizedlist>
+The tests have passed if the number of failures and number of errors are both 0.
+Detailed test output can be found in the file <filename><parameter>$GLOBUS_LOCATION</parameter>/etc/globus_wsrf_mds_webmds_resource_property_source_test/test-reports/TEST-org.globus.mds.webmds.xmlSources.resourceProperties.test.PackageTests.xml</filename>.
+</listitem>
+</orderedlist>
 </section>
 
 <section id="s-webmds-admin-security_considerations"><title>Security Considerations </title>
