@@ -54,6 +54,6 @@ xep:
 	/homes/yusra/XEP/xep \
 	-xml $(FILENAME) \
 	-xsl ~/XEP/nwalsh/fo/docbook.xsl \
-	-out admin.pdf
+	-out index.pdf
 
 
