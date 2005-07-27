@@ -169,8 +169,8 @@ submitting bibliographic citations</a>.</b></p>
      [<a href="papers/gridftp_final.pdf">PDF</a>]</font></p>
      
 	<p><font size="2"><strong>A Peer-to-Peer Replica Location Service Based on A
-    Distributed Hash Table</strong>. M. Cai, A. Chervenak, M. Frank. To appear
-    in <em><i>Proceedings of the SC2004 Conference</i> (SC2004)</em>, November 2004.
+    Distributed Hash Table</strong>. M. Cai, A. Chervenak, M. Frank. 
+    <em><i>Proceedings of the SC2004 Conference</i> (SC2004)</em>, November 2004.
 	<br>[<a href="papers/sc2004v15.pdf">PDF</a>]</font></p>
     
     
