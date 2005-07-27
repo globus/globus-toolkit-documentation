@@ -44,6 +44,12 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p><a class="newspartners" href="http://www.cogkit.org/release/4_1_2">Java CoG Kit v4.1.2</a> has been released. This release includes a framework for 
+Grid workflows and the concept of providers that makes it possible to use GT2, GT3, 
+GT4, or Condor as part of your scientific workflows. The API allows you to access 
+elementary grid services to conduct file transfers, job submissions, and 
+authentication. (7/2005)</p>
+
 <p>Ian Foster will present 
 <a class="newsalliance" href="http://www.caip.rutgers.edu/hpdc2005/tutorial.html">a 
 half-day GT4 tutorial</a> at HPDC, Sunday July 24th, in Research Triangle Park, 
