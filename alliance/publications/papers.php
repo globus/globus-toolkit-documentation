@@ -164,11 +164,9 @@ submitting bibliographic citations</a>.</b></p>
 
     
     <p><font size="2"><strong>The Globus Striped GridFTP Framework and Server</strong>.
-    Bill Allcock, John
-    Bresnahan, Raj Kettimuthu, Mike Link, Catalin Dumitrescu, Ioan Raicu, 
-    Ian Foster.  <i>Submitted to the 2005 High Performance Distributed Computing
-     Conference (HPDC 14)</i>.<br>
-     [<a href="papers/gridftp-1.1.pdf">PDF</a>]</font></p>
+    W. Allcock, J.  Bresnahan, R. Kettimuthu, M. Link, C. Dumitrescu, I. Raicu, 
+    I. Foster.  <i>Proceedings of Super Computing 2005 (SC05)</i>, November 2005.<br>
+     [<a href="papers/gridftp_final.pdf">PDF</a>]</font></p>
      
 	<p><font size="2"><strong>A Peer-to-Peer Replica Location Service Based on A
     Distributed Hash Table</strong>. M. Cai, A. Chervenak, M. Frank. To appear
