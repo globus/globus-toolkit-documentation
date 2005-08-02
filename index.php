@@ -19,7 +19,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
-              <td><span class="newsdate">07.29.2005</span></td>
+              <td><span class="newsdate">07.28.2005</span></td>
               <td><b>UK Engineering Task Force releases its evaluation of GT4.</b> 
                 <a class="learnmore" href="http://www.nesc.ac.uk/technical_papers/UKeS-2005-02.pdf">Learn more...</a></td>
             </tr>
