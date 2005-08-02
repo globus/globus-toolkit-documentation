@@ -2,7 +2,6 @@ XML_CATALOG_FILES=/etc/xml/catalog ../../catalog
 export XML_CATALOG_FILES
 
 FILENAME=index.xml
-FILENAME=WS_AA_CAS_Release_Notes_401.xml
 
 all: html pdf
 
