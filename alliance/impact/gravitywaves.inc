@@ -1,6 +1,6 @@
      <p><img src="<?=$SITE_PATHS["WEB_ALLIANCE"]."impact/gravitywaves.jpg"; ?>" 
              alt="Gravity waves" /></p>
-     <p>Physicists used the Globus Toolkit to harness the power of multiple 
+     <p>Physicists used the Globus Toolkit and MPICH-G2 to harness the power of multiple 
         supercomputers to simulate the gravitational effects of black hole 
         collisions.  The team, which included researchers from Argonne 
         National Laboratory, the University of Chicago, Northern Illinois 
