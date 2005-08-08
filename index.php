@@ -19,9 +19,14 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">08.06.2005</span></td>
+              <td><b>Version 4.0.1 of the Globus Toolkit is available for download.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."news.html#18"; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">07.28.2005</span></td>
               <td><b>UK Engineering Task Force releases its evaluation of GT4.</b> 
-                <a class="learnmore" href="http://www.nesc.ac.uk/technical_papers/UKeS-2005-02.pdf">Learn more...</a></td>
+                <a class="learnmore" href="http://www.nesc.ac.uk/technical_papers/UKeS-2005-03.pdf">Learn more...</a></td>
             </tr>
             <tr>
               <td><span class="newsdate">07.18.2005</span></td>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">06.27.2005</span></td>
               <td><b>Nimrod/G v3.0 (with support for GT4) released.</b> 
                 <a class="learnmore" href="http://www.csse.monash.edu.au/~davida/nimrod">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">06.02.2005</span></td>
-              <td><b>GT4 Tutorial at HPDC on July 24th.</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
 
           </table>

@@ -44,6 +44,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p><a class="newsalliance" href="http://www-unix.globus.org/toolkit/news.html#18">Version 4.0.1
+of the Globus Toolkit</a> is now available for download. This incremental release includes important fixes for bugs reported against version 4.0.0 of the Globus Toolkit (GT4). (8/2005)</p>
+
 <p>The UK Engineering Task Force has released 
 <a class="newspartners" href="http://www.nesc.ac.uk/technical_papers/UKeS-2005-03.pdf">its 
 evaluation</a> of the Globus Toolkit 4.0. (7/2005)</p>
