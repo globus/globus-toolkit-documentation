@@ -14,7 +14,7 @@ html:
 	xsltproc --stringparam chunk.section.depth 0 \
            --stringparam suppress.navigation 1 \
 	   --stringparam  chapter.autolabel 0 \
-	   --stringparam  section.autolabel 0 \
+	   --stringparam  section.autolabel 1 \
            ../admin/docbook/chunk.xsl \
            ${FILENAME}
 
