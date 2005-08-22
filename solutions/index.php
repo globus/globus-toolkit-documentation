@@ -95,6 +95,17 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 -->
     </ul>
 
+    <h2>VO Management Challenges</h2>
+
+    <ul>
+      <li><b><a href="managed_computations/">The Managed Computation and its Application to EGEE and OSG Requirements</a></b><br>
+        The challenge: A virtual organization (VO) negotiates an
+        allocation from a resource provider and then disperses that
+        allocation across its members according to VO policy.
+        <a class="learnmore" href="managed_computations//">Learn how...</a>
+      </li>
+    </ul>
+
 </div>
 
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
