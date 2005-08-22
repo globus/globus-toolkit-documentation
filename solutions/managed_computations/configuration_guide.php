@@ -14,7 +14,7 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 
 <h1 class="first">Managed Computation Configuration Guide</h1>
 
-<h3>Introcution</h3>
+<h3>Introduction</h3>
 
 <p>
 This guide is to help reproduce the setup described in the paper named 
