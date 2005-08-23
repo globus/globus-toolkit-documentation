@@ -40,5 +40,5 @@ debian-pdf:
 mac:
 	xsltproc --stringparam chunk.section.depth 0 \
 	--stringparam chapter.autolabel 0 \
-	/usr/share/xml/xsl/docbook-xsl/html/chunk.xsl \
+	/sw/share/xml/xsl/docbook-xsl/html/chunk.xsl \
 	$(FILENAME)
