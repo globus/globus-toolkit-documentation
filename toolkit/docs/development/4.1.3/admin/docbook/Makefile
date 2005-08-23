@@ -46,6 +46,7 @@ debian-sarge:
 
 mac:
 	xsltproc --stringparam chunk.section.depth 0 \
+           --catalogs \
            --stringparam chapter.autolabel 0 \
            /sw/share/xml/xsl/docbook-xsl/html/chunk.xsl \
            $(FILENAME)
