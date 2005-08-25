@@ -1,7 +1,3 @@
-SGML_CATALOG_FILES=/etc/xml/catalog:../../catalog
-export SGML_CATALOG_FILES
-#XML_DEBUG_CATALOG=1
-#export XML_DEBUG_CATALOG
 FILENAME=index.xml
 
 all: html pdf
@@ -12,7 +8,6 @@ html:
 	   --stringparam  chapter.autolabel 0 \
 	   --stringparam  section.autolabel 1 \
 	   --stringparam html.cellspacing "0" \
-	   --catalogs \
            ../../admin/docbook/chunk.xsl \
            ${FILENAME}
 
