@@ -1720,23 +1720,20 @@
         </cmdsynopsis>
         <cmdsynopsis>
             <command>GLOBAL OPTIONS:</command>
-            <sbr/>
+            <sbr/><sbr/>
             <arg>-help|-usage</arg>
             <arg>-version</arg>
             <arg>-verbose</arg>
             <arg>-dumpcmd</arg>
             <arg>-dumpjdd</arg>
             <arg>-o|-job-epr-output-file <replaceable>filename</replaceable></arg>
-            <!-- globus-job-submit-ws version
-            <arg choice="plain">-o|-job-epr-output-file <replaceable>filename</replaceable></arg>
-            -->
-            <arg>-contact <replaceable>contact string</replaceable></arg>
-            <arg>-type <replaceable>ResourceID</replaceable></arg>
+            <arg>-contact <replaceable>factory contact</replaceable></arg>
+            <arg>-factory-type <replaceable>ResourceID</replaceable></arg>
             <arg>-z|-authorization <replaceable>authz</replaceable></arg>
             <arg>-delegation-epr-file <replaceable>EPR file</replaceable></arg>
             <arg>-gridftp <replaceable>URL</replaceable></arg>
             <arg>-jobid <replaceable>job ID</replaceable></arg>
-            <arg>-np|count <replaceable>N</replaceable></arg>
+            <arg>-np|-count <replaceable>N</replaceable></arg>
             <arg>-host-count <replaceable>N</replaceable></arg>
             <arg>-max-time <replaceable>minutes</replaceable></arg>
             <arg>-max-memory <replaceable>MB</replaceable></arg>
@@ -1748,18 +1745,19 @@
             <arg>-stdin <replaceable>file</replaceable></arg>
             <arg>-stdout <replaceable>file</replaceable></arg>
             <arg>-stderr <replaceable>file</replaceable></arg>
-            <arg>-library-path <replaceable>path</replaceable></arg>
+            <arg rep="repeat">-library-path <replaceable>path</replaceable></arg>
             <arg>-env <replaceable>name=value[ name=value]...</replaceable></arg>
             <arg>-args <replaceable>arg[ arg]...</replaceable></arg>
             <group choice="req">
-                <arg><replaceable>HOST CLAUSE</replaceable></arg>
+                <arg>HOST CLAUSE</arg>
                 <arg rep="repeat">-: <replaceable>OPTIONS</replaceable> HOST CLAUSE</arg>
             </group>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>OPTIONS:</command>
-            <sbr/>
-            <arg>-np|count <replaceable>N</replaceable></arg>
+            <sbr/><sbr/>
+            <arg>-factory-type <replaceable>ResourceID</replaceable></arg>
+            <arg>-np|-count <replaceable>N</replaceable></arg>
             <arg>-host-count <replaceable>N</replaceable></arg>
             <arg>-max-time <replaceable>minutes</replaceable></arg>
             <arg>-max-memory <replaceable>MB</replaceable></arg>
@@ -1775,60 +1773,330 @@
         </cmdsynopsis>
         <cmdsynopsis>
             <command>HOST CLAUSE:</command>
-            <sbr/>
-            <arg choic="req">contact string</arg>
+            <sbr/><sbr/>
+            <arg choice="req">contact</arg>
             <group>
                 <arg>-l</arg>
                 <arg>-s</arg>
             </group>
-            <arg choic="req">executable</arg>
-            <arg choic="req" rep="repeat">arg</arg>
+            <arg choice="req">executable</arg>
+            <arg choice="req" rep="repeat">arg</arg>
         </cmdsynopsis>
     </refsynopsisdiv>
     
     <refsect1 id="globus-job-run-ws-description"><title>Description</title>
         <para>
             <computeroutput>globus-job-run-ws</computeroutput> is a wrapper
-            script around <computeroutput>globusrun-ws</computeroutput>...
-            yadda yadda yadda BING!
+            script around <computeroutput>globusrun-ws</computeroutput>.
+            It makes it easier to submit interactive jobs with streaming output.
+            Interactive jobs are defined as those that are submitted and
+            actively monitored by the client for state changes.  The client
+            will not exit until the job is finished and the output has been
+            streamed back.  The job is also automatically destroyed and it's
+            scratch space cleaned up before the client exits.
         </para>
     </refsect1>
     
     <refsect1 id="globus-job-run-ws-commandoptions"><title>Command options</title>
         <refsect2><title>Global Options</title>
+            <para>
+                The global options are used to 1) affect the script execution,
+                2) control the job submission, and 3) provide defaults for
+                subjobs when using the multijob syntax.
+            </para>
             <variablelist>
                 <varlistentry><term>-help|-usage</term><listitem>
                     <para>
-                        Print the command usage
+                        Prints the command usage and exits.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-version</term><listitem>
+                    <para>
+                        Prints the version of the client program and exits.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-verbose</term><listitem>
+                    <para>
+                        Prints extra script execution debug messages.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-dumpcmd</term><listitem>
+                    <para>
+                        Prints the actual 
+                        <computeroutput>globusrun-ws</computeroutput>
+                        command that would have been executed and exits.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-dumpjdd</term><listitem>
+                    <para>
+                        Prints the actual Job Description Document that
+                        would have been passed to
+                        <computeroutput>globusrun-ws</computeroutput> and exits.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-o|-job-epr-output-file</term><listitem>
+                    <para>
+                        Causes the job's EPR to be written to the specified
+                        file.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-contact</term><listitem>
+                    <para>
+                        Specifies the factory contact string for where to
+                        submit the multijob.  This argument is ignored if
+                        there is only one single job host clause (i.e. no '-:'
+                        arguments).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-factory-type</term><listitem>
+                    <para>
+                        Specifies the factory resource ID for the target factory
+                        service.  Supported values are "Fork", "Multi",
+                        "Condor", "LSF", and "PBS". For single jobs the the
+                        default is "Fork".  For multijobs the default is
+                        "Multi".
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-z|-authorization</term><listitem>
+                    <para>
+                        Specifies the type of authorization to do against the
+                        service.  Valid values are "host", "self", or a
+                        certificate subject (i.e. identity authorization).
+                        The default is "host" if not specified.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-delegation-epr-file</term><listitem>
+                    <para>
+                        Specifies a file with an EPR to a delegated credential
+                        that is to be used for the job, staging, and transfer
+                        credential. If you need more flexibility over these
+                        different credentials separately, please use
+                        <computeroutput>globusrun-ws<computeroutput> directly.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-gridftp</term><listitem>
+                    <para>
+                        Specifies the base URL for the GridFTP server used local
+                        to the client for staging files to and from the server.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-jobid</term><listitem>
+                    <para>
+                        Specifies the ID of the job. This overrides the
+                        automatically generated UUID.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-np|-count</term><listitem>
+                    <para>
+                        Specifies the number of processes to spawn for this job.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-host-count</term><listitem>
+                    <para>
+                        Specifies the number of processing elements to employ
+                        for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-max-time</term><listitem>
+                    <para>
+                        Specifies the maximum amount of time the scheduler
+                        should allow for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-max-memory</term><listitem>
+                    <para>
+                        Specifies the maximum amount of memory the scheduler
+                        should allow for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-min-memory</term><listitem>
+                    <para>
+                        Specifies the minimum amount of memory the job needs
+                        to run.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-project</term><listitem>
+                    <para>
+                        Specifies the project ID associated with the job.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-queue</term><listitem>
+                    <para>
+                        Specifies the target queue that the job should be placed
+                        in when the job is submitted to the scheduler.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-dir</term><listitem>
+                    <para>
+                        Specifies the working directory for the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-job-type</term><listitem>
+                    <para>
+                        Specifies the type of job this is.  Valid values are
+                        "single", "multiple", "condor", and "mpi".  The default
+                        value is "multiple".
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stdin</term><listitem>
+                    <para>
+                        Specifies the stdin input file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stdout</term><listitem>
+                    <para>
+                        Specifies the stdout output file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stderr</term><listitem>
+                    <para>
+                        Specifies the stderr output file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-library-path</term><listitem>
+                    <para>
+                        Specifies the a path to be added to the library path of
+                        the job.  This argument can be repeated.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-env</term><listitem>
+                    <para>
+                        Specifies name/value pairs separated by '=' to be used
+                        as environment variable assignments for the job
+                        process(es). The name/value pair values can be repeated
+                        until a dashed argument is specified or there are only
+                        two arguments left on the command line
+                        (i.e. ending host clause).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-args</term><listitem>
+                    <para>
+                        Specifies default command arguments for the subjobs.
+                        The values can be repeated until a host clause is
+                        encountered.  Arguments specified with the executable
+                        in the host clause are appended to these values.
                     </para>
                 </listitem></varlistentry>
             </variablelist>
             
             <refsect3><title>Options</title>
                 <para>
-                    Specified before each subjob host clause...
+                    These options can be specified before each subjob host
+                    clause when using the multijob syntax.
                 </para>
                 
-                <variablelist>
-                    <varlistentry><term>-host-count</term><listitem>
-                        <para>
-                            The number of processing elements
-                        </para>
-                    </listitem></varlistentry>
-                </variablelist>
+                <varlistentry><term>-factory-type</term><listitem>
+                    <para>
+                        Specifies the factory resource ID for the target factory
+                        service.  Supported values are "Fork" "Condor", "LSF",
+                        and "PBS". The default is "Fork".  A value of "Multi"
+                        is not allowed in the subjob options because the service
+                        semantics do not allow this.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-np|-count</term><listitem>
+                    <para>
+                        Specifies the number of processes to spawn for this job.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-host-count</term><listitem>
+                    <para>
+                        Specifies the number of processing elements to employ
+                        for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-max-time</term><listitem>
+                    <para>
+                        Specifies the maximum amount of time the scheduler
+                        should allow for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-max-memory</term><listitem>
+                    <para>
+                        Specifies the maximum amount of memory the scheduler
+                        should allow for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-min-memory</term><listitem>
+                    <para>
+                        Specifies the minimum amount of memory the job needs
+                        to run.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-project</term><listitem>
+                    <para>
+                        Specifies the project ID associated with the job.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-queue</term><listitem>
+                    <para>
+                        Specifies the target queue that the job should be placed
+                        in when the job is submitted to the scheduler.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-dir</term><listitem>
+                    <para>
+                        Specifies the working directory for the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-job-type</term><listitem>
+                    <para>
+                        Specifies the type of job this is.  Valid values are
+                        "single", "multiple", "condor", and "mpi".  The default
+                        value is "multiple".
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stdin</term><listitem>
+                    <para>
+                        Specifies the stdin input file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stdout</term><listitem>
+                    <para>
+                        Specifies the stdout output file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stderr</term><listitem>
+                    <para>
+                        Specifies the stderr output file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-library-path</term><listitem>
+                    <para>
+                        Specifies the a path to be added to the library path of
+                        the job.  This argument can be repeated.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-env</term><listitem>
+                    <para>
+                        Specifies name/value pairs separated by '=' to be used
+                        as environment variable assignments for the job
+                        process(es). The name/value pair values can be repeated
+                        until a dashed argument is specified or there are only
+                        two arguments left on the command line
+                        (i.e. ending host clause).
+                    </para>
+                </listitem></varlistentry>
             </refsect3>
             
             <refsect3><title>Host Clause</title>
                 <para>
-                    Specifies the service contact string and executable...
+                    The host clause specifies the service contact string and
+                    executable.
                 </para>
                 
                 <variablelist>
                     <varlistentry><term>contact string</term><listitem>
                         <para>
-                            Specifies the target service.
-
-                            Valid forms of the contact string are:
+                            Specifies the target service.  Valid forms of the
+                            contact string are as follows:
+                            <screen>
                                hostname
                                hostname:port
                                hostname:port/service
@@ -1837,19 +2105,23 @@
                                protocol://hostname:port
                                protocol://hostname:port/service
                                protocol://hostname/service
+                            <screen/>
                         </para>
                     </listitem></varlistentry>
                     
                     <varlistentry><term>-l|-s</term><listitem>
                         
                         <para>
-                            Local or staged executable.
+                            Specifies whether the executable is already local
+                            to the execution machine (-l) or should be staged
+                            (-s). The default is -l.
                         </para>
                     </listitem></varlistentry>
                     
                     <varlistentry><term>executable</term><listitem>
                         <para>
-                            The executable.
+                            The local path to the program or script to be
+                            executed.
                         </para>
                     </listitem></varlistentry>
                 </variablelist>
@@ -1868,7 +2140,7 @@ The file modifiers -l and -s specify different filespaces:
 
 The working directory of the submitted job defaults to $HOME.
 
-More than one host-clause can be specified, in which case the job runs
+More than one host clause can be specified, in which case the job runs
 on all of the hosts simultaneously.
 
 The host clause begins with '-:' for a multi-request, and the contact string
@@ -1886,8 +2158,9 @@ a new host-clause.
 Two '-:' flags in a row are interpreted as an escaped '-:' and the host-
 clause continues until the next unpaired '-:' flag or end of input.
 
-If more than one setting is defined (such as two -stdin definitions),
-the setting defined last on the command line will be used.
+Except for -library-path, if more than one copy of an argument is specified
+(such as two -stdin definitions), the setting defined last on the command line
+will be used.
         </para>
     </refsect1>
 </refentry>
@@ -1908,7 +2181,7 @@ the setting defined last on the command line will be used.
         </cmdsynopsis>
         <cmdsynopsis>
             <command>GLOBAL OPTIONS:</command>
-            <sbr/>
+            <sbr/><sbr/>
             <arg>-help|-usage</arg>
             <arg>-version</arg>
             <arg>-verbose</arg>
@@ -1916,12 +2189,12 @@ the setting defined last on the command line will be used.
             <arg>-dumpjdd</arg>
             <arg choice="plain">-o|-job-epr-output-file <replaceable>filename</replaceable></arg>
             <arg>-contact <replaceable>contact string</replaceable></arg>
-            <arg>-type <replaceable>ResourceID</replaceable></arg>
+            <arg>-factory-type <replaceable>ResourceID</replaceable></arg>
             <arg>-z|-authorization <replaceable>authz</replaceable></arg>
             <arg>-delegation-epr-file <replaceable>EPR file</replaceable></arg>
             <arg>-gridftp <replaceable>URL</replaceable></arg>
             <arg>-jobid <replaceable>job ID</replaceable></arg>
-            <arg>-np|count <replaceable>N</replaceable></arg>
+            <arg>-np|-count <replaceable>N</replaceable></arg>
             <arg>-host-count <replaceable>N</replaceable></arg>
             <arg>-max-time <replaceable>minutes</replaceable></arg>
             <arg>-max-memory <replaceable>MB</replaceable></arg>
@@ -1933,18 +2206,18 @@ the setting defined last on the command line will be used.
             <arg>-stdin <replaceable>file</replaceable></arg>
             <arg>-stdout <replaceable>file</replaceable></arg>
             <arg>-stderr <replaceable>file</replaceable></arg>
-            <arg>-library-path <replaceable>path</replaceable></arg>
+            <arg rep="repeat">-library-path <replaceable>path</replaceable></arg>
             <arg>-env <replaceable>name=value[ name=value]...</replaceable></arg>
             <arg>-args <replaceable>arg[ arg]...</replaceable></arg>
             <group choice="req">
-                <arg><replaceable>HOST CLAUSE</replaceable></arg>
+                <arg>HOST CLAUSE</arg>
                 <arg rep="repeat">-: <replaceable>OPTIONS</replaceable> HOST CLAUSE</arg>
             </group>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>OPTIONS:</command>
-            <sbr/>
-            <arg>-np|count <replaceable>N</replaceable></arg>
+            <sbr/><sbr/>
+            <arg>-np|-count <replaceable>N</replaceable></arg>
             <arg>-host-count <replaceable>N</replaceable></arg>
             <arg>-max-time <replaceable>minutes</replaceable></arg>
             <arg>-max-memory <replaceable>MB</replaceable></arg>
@@ -1960,14 +2233,14 @@ the setting defined last on the command line will be used.
         </cmdsynopsis>
         <cmdsynopsis>
             <command>HOST CLAUSE:</command>
-            <sbr/>
-            <arg choic="req">contact string</arg>
+            <sbr/><sbr/>
+            <arg choice="req">contact string</arg>
             <group>
                 <arg>-l</arg>
                 <arg>-s</arg>
             </group>
-            <arg choic="req">executable</arg>
-            <arg choic="req" rep="repeat">arg</arg>
+            <arg choice="req">executable</arg>
+            <arg choice="req" rep="repeat">arg</arg>
         </cmdsynopsis>
     </refsynopsisdiv>
     
@@ -1975,45 +2248,317 @@ the setting defined last on the command line will be used.
         <para>
             <computeroutput>globus-job-submit-ws</computeroutput> is a wrapper
             script around <computeroutput>globusrun-ws</computeroutput>...
-            yadda yadda yadda BING!
+            It makes it easier to submit batch jobs. Batch jobs are defined as
+            those that are submitted but not actively monitored for state
+            changes.  One must use <computeroutput>globusrun-ws</computeroutput>
+            to check the job's state.  Also, when the job is finished one can
+            use <computeroutput>globus-job-get-output-ws</computeroutput> to
+            fetch the output of the job and
+            <computeroutput>globus-job-cliean-ws</computeroutput> to destroy
+            the job and clean up the job's scratch space.
         </para>
     </refsect1>
     
     <refsect1 id="globus-job-submit-ws-commandoptions"><title>Command options</title>
         <refsect2><title>Global Options</title>
+            <para>
+                The global options are used to 1) affect the script execution,
+                2) control the job submission, and 3) provide defaults for
+                subjobs when using the multijob syntax.
+            </para>
             <variablelist>
                 <varlistentry><term>-help|-usage</term><listitem>
                     <para>
-                        Print the command usage
+                        Prints the command usage and exits.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-version</term><listitem>
+                    <para>
+                        Prints the version of the client program and exits.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-verbose</term><listitem>
+                    <para>
+                        Prints extra script execution debug messages.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-dumpcmd</term><listitem>
+                    <para>
+                        Prints the actual 
+                        <computeroutput>globusrun-ws</computeroutput>
+                        command that would have been executed and exits.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-dumpjdd</term><listitem>
+                    <para>
+                        Prints the actual Job Description Document that
+                        would have been passed to
+                        <computeroutput>globusrun-ws</computeroutput> and exits.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-o|-job-epr-output-file</term><listitem>
+                    <para>
+                        Causes the job's EPR to be written to the specified
+                        file. This argument is not optional.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-contact</term><listitem>
+                    <para>
+                        Specifies the factory contact string for where to
+                        submit the multijob.  This argument is ignored if
+                        there is only one single job host clause (i.e. no '-:'
+                        arguments).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-factory-type</term><listitem>
+                    <para>
+                        Specifies the factory resource ID for the target factory
+                        service.  Supported values are "Fork", "Multi",
+                        "Condor", "LSF", and "PBS". For single jobs the the
+                        default is "Fork".  For multijobs the default is
+                        "Multi".
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-z|-authorization</term><listitem>
+                    <para>
+                        Specifies the type of authorization to do against the
+                        service.  Valid values are "host", "self", or a
+                        certificate subject (i.e. identity authorization).
+                        The default is "host" if not specified.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-delegation-epr-file</term><listitem>
+                    <para>
+                        Specifies a file with an EPR to a delegated credential
+                        that is to be used for the job, staging, and transfer
+                        credential. If you need more flexibility over these
+                        different credentials separately, please use
+                        <computeroutput>globusrun-ws<computeroutput> directly.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-gridftp</term><listitem>
+                    <para>
+                        Specifies the base URL for the GridFTP server used local
+                        to the client for staging files to and from the server.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-jobid</term><listitem>
+                    <para>
+                        Specifies the ID of the job. This overrides the
+                        automatically generated UUID.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-np|-count</term><listitem>
+                    <para>
+                        Specifies the number of processes to spawn for this job.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-host-count</term><listitem>
+                    <para>
+                        Specifies the number of processing elements to employ
+                        for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-max-time</term><listitem>
+                    <para>
+                        Specifies the maximum amount of time the scheduler
+                        should allow for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-max-memory</term><listitem>
+                    <para>
+                        Specifies the maximum amount of memory the scheduler
+                        should allow for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-min-memory</term><listitem>
+                    <para>
+                        Specifies the minimum amount of memory the job needs
+                        to run.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-project</term><listitem>
+                    <para>
+                        Specifies the project ID associated with the job.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-queue</term><listitem>
+                    <para>
+                        Specifies the target queue that the job should be placed
+                        in when the job is submitted to the scheduler.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-dir</term><listitem>
+                    <para>
+                        Specifies the working directory for the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-job-type</term><listitem>
+                    <para>
+                        Specifies the type of job this is.  Valid values are
+                        "single", "multiple", "condor", and "mpi".  The default
+                        value is "multiple".
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stdin</term><listitem>
+                    <para>
+                        Specifies the stdin input file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stdout</term><listitem>
+                    <para>
+                        Specifies the stdout output file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stderr</term><listitem>
+                    <para>
+                        Specifies the stderr output file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-library-path</term><listitem>
+                    <para>
+                        Specifies the a path to be added to the library path of
+                        the job.  This argument can be repeated.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-env</term><listitem>
+                    <para>
+                        Specifies name/value pairs separated by '=' to be used
+                        as environment variable assignments for the job
+                        process(es). The name/value pair values can be repeated
+                        until a dashed argument is specified or there are only
+                        two arguments left on the command line
+                        (i.e. ending host clause).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-args</term><listitem>
+                    <para>
+                        Specifies default command arguments for the subjobs.
+                        The values can be repeated until a host clause is
+                        encountered.  Arguments specified with the executable
+                        in the host clause are appended to these values.
                     </para>
                 </listitem></varlistentry>
             </variablelist>
             
             <refsect3><title>Options</title>
                 <para>
-                    Specified before each subjob host clause...
+                    These options can be specified before each subjob host
+                    clause when using the multijob syntax.
                 </para>
                 
-                <variablelist>
-                    <varlistentry><term>-host-count</term><listitem>
-                        <para>
-                            The number of processing elements
-                        </para>
-                    </listitem></varlistentry>
-                </variablelist>
+                <varlistentry><term>-factory-type</term><listitem>
+                    <para>
+                        Specifies the factory resource ID for the target factory
+                        service.  Supported values are "Fork" "Condor", "LSF",
+                        and "PBS". The default is "Fork".  A value of "Multi"
+                        is not allowed in the subjob options because the service
+                        semantics do not allow this.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-np|-count</term><listitem>
+                    <para>
+                        Specifies the number of processes to spawn for this job.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-host-count</term><listitem>
+                    <para>
+                        Specifies the number of processing elements to employ
+                        for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-max-time</term><listitem>
+                    <para>
+                        Specifies the maximum amount of time the scheduler
+                        should allow for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-max-memory</term><listitem>
+                    <para>
+                        Specifies the maximum amount of memory the scheduler
+                        should allow for running the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-min-memory</term><listitem>
+                    <para>
+                        Specifies the minimum amount of memory the job needs
+                        to run.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-project</term><listitem>
+                    <para>
+                        Specifies the project ID associated with the job.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-queue</term><listitem>
+                    <para>
+                        Specifies the target queue that the job should be placed
+                        in when the job is submitted to the scheduler.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-dir</term><listitem>
+                    <para>
+                        Specifies the working directory for the job process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-job-type</term><listitem>
+                    <para>
+                        Specifies the type of job this is.  Valid values are
+                        "single", "multiple", "condor", and "mpi".  The default
+                        value is "multiple".
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stdin</term><listitem>
+                    <para>
+                        Specifies the stdin input file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stdout</term><listitem>
+                    <para>
+                        Specifies the stdout output file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-stderr</term><listitem>
+                    <para>
+                        Specifies the stderr output file path local to the job
+                        process(es).
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-library-path</term><listitem>
+                    <para>
+                        Specifies the a path to be added to the library path of
+                        the job.  This argument can be repeated.
+                    </para>
+                </listitem></varlistentry>
+                <varlistentry><term>-env</term><listitem>
+                    <para>
+                        Specifies name/value pairs separated by '=' to be used
+                        as environment variable assignments for the job
+                        process(es). The name/value pair values can be repeated
+                        until a dashed argument is specified or there are only
+                        two arguments left on the command line
+                        (i.e. ending host clause).
+                    </para>
+                </listitem></varlistentry>
             </refsect3>
             
             <refsect3><title>Host Clause</title>
                 <para>
-                    Specifies the service contact string and executable...
+                    The host clause specifies the service contact string and
+                    executable.
                 </para>
                 
                 <variablelist>
                     <varlistentry><term>contact string</term><listitem>
                         <para>
-                            Specifies the target service.
-
-                            Valid forms of the contact string are:
+                            Specifies the target service.  Valid forms of the
+                            contact string are as follows:
+                            <screen>
                                hostname
                                hostname:port
                                hostname:port/service
@@ -2022,19 +2567,23 @@ the setting defined last on the command line will be used.
                                protocol://hostname:port
                                protocol://hostname:port/service
                                protocol://hostname/service
+                            <screen/>
                         </para>
                     </listitem></varlistentry>
                     
                     <varlistentry><term>-l|-s</term><listitem>
                         
                         <para>
-                            Local or staged executable.
+                            Specifies whether the executable is already local
+                            to the execution machine (-l) or should be staged
+                            (-s). The default is -l.
                         </para>
                     </listitem></varlistentry>
                     
                     <varlistentry><term>executable</term><listitem>
                         <para>
-                            The executable.
+                            The local path to the program or script to be
+                            executed.
                         </para>
                     </listitem></varlistentry>
                 </variablelist>
@@ -2053,7 +2602,7 @@ The file modifiers -l and -s specify different filespaces:
 
 The working directory of the submitted job defaults to $HOME.
 
-More than one host-clause can be specified, in which case the job runs
+More than one host clause can be specified, in which case the job runs
 on all of the hosts simultaneously.
 
 The host clause begins with '-:' for a multi-request, and the contact string
@@ -2071,8 +2620,9 @@ a new host-clause.
 Two '-:' flags in a row are interpreted as an escaped '-:' and the host-
 clause continues until the next unpaired '-:' flag or end of input.
 
-If more than one setting is defined (such as two -stdin definitions),
-the setting defined last on the command line will be used.
+Except for -library-path, if more than one copy of an argument is specified
+(such as two -stdin definitions), the setting defined last on the command line
+will be used.
         </para>
     </refsect1>
 </refentry>
@@ -2097,6 +2647,7 @@ the setting defined last on the command line will be used.
                 <arg>-err</arg>
             </group>
             <arg>-z|authorization <replaceable>authz method</replaceable></arg>
+            <arg choice="plain">&lt;EPR file&gt;</arg>
         </cmdsynopsis>
     </refsynopsisdiv>
     
@@ -2105,8 +2656,9 @@ the setting defined last on the command line will be used.
             <computeroutput>globus-job-get-output-ws</computeroutput> is a
             wrapper around 
             <computeroutput>wsrf-get-property</computeroutput> and
-            <computeroutput>globus-url-copy</computeroutput>...
-            yadda yadda yadda BING!
+            <computeroutput>globus-url-copy</computeroutput>. It is intended to
+            fetch either the stdout or stderr of a batch job submitted with
+            <computeroutput>globus-job-submit-ws</computeroutput>.
         </para>
     </refsect1>
     
@@ -2144,6 +2696,15 @@ the setting defined last on the command line will be used.
                     Either "host", "self", or a cert subject (identity authz).
                 </para>
             </listitem></varlistentry>
+            <varlistentry><term>EPR file</term><listitem>
+                <para>
+                    Specifies a path to a file containg a job EPR. This is
+                    usually the file written via the
+                    <computeroutput>-job-epr-output-file</computeroutput>
+                    argument to
+                    <computeroutput>globus-job-submit-ws</computeroutput>.
+                </para>
+            </listitem></varlistentry>
         </variablelist>
     </refsect1>
 </refentry>
@@ -2165,7 +2726,7 @@ the setting defined last on the command line will be used.
             <arg>-verbose</arg>
             <arg>-dumpcmd</arg>
             <arg>-z|authorization <replaceable>authz method</replaceable></arg>
-            <arg choice="plain">EPR file</arg>
+            <arg choice="plain">&lt;EPR file&gt;</arg>
         </cmdsynopsis>
     </refsynopsisdiv>
     
@@ -2209,6 +2770,15 @@ the setting defined last on the command line will be used.
             <varlistentry><term>-authorization</term><listitem>
                 <para>
                     Either "host", "self", or a cert subject (identity authz).
+                </para>
+            </listitem></varlistentry>
+            <varlistentry><term>EPR file</term><listitem>
+                <para>
+                    Specifies a path to a file containg a job EPR. This is
+                    usually the file written via the
+                    <computeroutput>-job-epr-output-file</computeroutput>
+                    argument to
+                    <computeroutput>globus-job-submit-ws</computeroutput>.
                 </para>
             </listitem></varlistentry>
         </variablelist>
