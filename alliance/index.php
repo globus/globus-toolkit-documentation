@@ -33,6 +33,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
                 <li><a href="affiliates.php">Academic Affiliates</a></li>
                 <li><a href="sponsors.php">Sponsors</a></li>
                 <li><a href="employment/">Job Opportunities</a></li>
+                <li><a href="logos/">Using Our Logos</a></li>
               </ul>
             </td>
             <td width="33%">
