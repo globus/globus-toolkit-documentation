@@ -77,6 +77,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/development/dev_tools.html"; ?>">CVS & Developer tools</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."downloads/development/"; ?>">Development Releases</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."downloads/4.0.0/"; ?>">Latest Stable Release: 4.0</a><br>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."legal/"; ?>">Licenses</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."quality_assurance.html"; ?>">Quality Assurance</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tools/"; ?>">Related Software</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."downloads/"; ?>">Software Archive</a>
@@ -98,9 +99,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 </p>
 
 <p><b>Components:</b><br>
-<a href="<?=$SITE_PATHS["WEB_TOOLKIT"].""; ?>">Common Runtime Components</a><br>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."common/"; ?>">Common Runtime Components</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."data/"; ?>">Data Management</a><br>
-<a href="<?=$SITE_PATHS["WEB_TOOLKIT"].""; ?>">Execution Management</a><br>
+<a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."gram/"; ?>">Execution Management</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."mds/"; ?>">Information Services</a><br>
 <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."security/"; ?>">Security</a>
 </p>
