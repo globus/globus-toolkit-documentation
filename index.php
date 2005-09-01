@@ -7,7 +7,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 ?>
 
         <div id="coverimage">
-             <?php include( $SITE_PATHS["SERV_ALLIANCE"]."impact/gravitywaves.inc" ); ?>
+             <?php include( $SITE_PATHS["SERV_ALLIANCE"]."impact/scec-2.inc" ); ?>
         </div>
 
         <div id="main">
