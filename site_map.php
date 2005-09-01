@@ -34,7 +34,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."team/alumni.php"; ?>">Globus Alumni</a><br>
 <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."team/"; ?>">Globus Team</a><br>
 <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."employment/"; ?>">Job Opportunities</a><br>
-<a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."sponsors.php"; ?>">Sponsors</a>
+<a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."sponsors.php"; ?>">Sponsors</a><br>
+<a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."logos/"; ?>">Using Our Logos</a>
 </p>
 
 <p><b>Publications:</b><br>
