@@ -38,10 +38,10 @@ metascheduler to support many submission interfaces.
 </p>
 
 <?
-$software = "<a href='http://www-unix.globus.org/toolkit/docs/3.2/gram/'>GRAM</a>";
+$software = "<a href='http://www.globus.org/toolkit/docs/4.0/execution/'>GRAM</a>";
 $developer = "<a href='http://www.globus.org/'>The Globus Alliance</a>";
-$distros = "<a href='http://www-unix.globus.org/toolkit/'>Globus Toolkit 3.2</a><br />
-           <a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a>";
+$distros = "<a href='http://www-unix.globus.org/toolkit/'>Globus Toolkit 4.0</a><br />
+           <a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a>";
 $contact = "<a href='mailto:info@globus.org'>info@globus.org</a>";
 
 // use the function below once problem is discovered, remove the two lines above
