@@ -32,10 +32,10 @@ Prior to the Globus Toolkit 3.0, this component was the primary implementation o
 </p>
 
 <?
-$software = "<a href='http://www-unix.globus.org/toolkit/docs/3.2/gsi/index.html'>Pre-Web Services Authentication and Authorization</a>";
+$software = "<a href='http://www.globus.org/toolkit/docs/4.0/security/prewsaa/'>Pre-Web Services Authentication and Authorization</a>";
 $developer = "<a href='http://www.globus.org/'>The Globus Alliance</a>";
-$distros = "<a href='http://www-unix.globus.org/toolkit/'>Globus Toolkiit 3.2</a><br />
-            <a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a>";
+$distros = "<a href='http://www.globus.org/toolkit/'>Globus Toolkiit 4.0</a><br />
+            <a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a>";
 $contact = "<a href='mailto:info@globus.org'>info@globus.org</a>";
 
 // use the function below once problem is discovered, remove the two lines above

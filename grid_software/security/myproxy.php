@@ -39,7 +39,8 @@ MyPorxy also provides an interface for integrating with web portals. This interf
 <?
 $software = "<a href='http://grid.ncsa.uiuc.edu/myproxy/'>MyProxy</a>";
 $developer = "<a href='http://www.ncsa.uiuc.edu/'>National Center for Supercomputing Applications</a>";
-$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a>";
+$distros = "<a href='http://www.globus.org/toolkit/'>Globus Toolkit 4.0</a><br>
+<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a>";
 $contact = "<a href='mailto:myproxy-users@ncsa.uiuc.edu'>myproxy-users@ncsa.uiuc.edu</a><br />(must be <a href='http://grid.ncsa.uiuc.edu/myproxy/'>subscribed</a> before posting messages)";
 
 app_info($software, $developer, $distros, $contact);

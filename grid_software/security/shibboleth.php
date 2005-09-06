@@ -58,7 +58,7 @@ uses their services</li>
 
 $software = "<a href='http://shibboleth.internet2.edu/'>Shibboleth</a>";
 $developer = "<a href='http://www.internet2.edu/'>Internet2</a>";
-$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a><br>
+$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a><br>
             Download from the <a href='http://shibboleth.internet2.edu/'>Shibboleth</a> website";
 $contact = "<a href='mailto:shibboleth-users@internet2.edu'>shibboleth-users@internet2.edu</a><br>
             (must be <a href='http://shibboleth.internet2.edu/shib-misc.html#mailinglist'>subscribed</a> before sending mail)";

@@ -35,7 +35,7 @@ Registration Service) solution.  See the
 $software = "<a href='http://www.globus.org/toolkit/docs/4.0/security/simpleca/'>Simple CA</a>";
 $developer = "<a href='http://www.globus.org/'>The Globus Alliance</a>";
 $distros = "<a href='http://www-unix.globus.org/toolkit/'>Globus Toolkit 4.0</a><br />
-            <a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a>";
+            <a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a>";
 $contact = "<a href='mailto:info@globus.org'>info@globus.org</a>";
 
 // use the function below once problem is discovered, remove the two lines above
