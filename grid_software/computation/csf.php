@@ -38,7 +38,8 @@ and is expected to be included in the Globus Toolkit 4.0 release.
 $software = "<a href='http://sourceforge.net/projects/gcsf/'>Platform CSF</a>";
 $developer = "<a href='http://www.platform.com/'>Platform Computing</a>";
 $distros = "<a href='http://www.platform.com/products/Globus/'>Platform Globus Toolkit</a><br />
-<a href='http://sourceforge.net/projects/gcsf/'>Download from SourceForge.net</a>";
+<a href='http://sourceforge.net/projects/gcsf/'>Download from SourceForge.net</a><br>
+<a href='http://www.globus.org/toolkit/'>Globus Toolkit 4.0</a>";
 $contact = "<a href='mailto:gcsf-discuss@sourceforge.net'>gcsf-discuss@sourceforge.net</a><br />(must be <a href='http://lists.sourceforge.net/lists/listinfo/gcsf-discuss'>subscribed</a> before posting)";
 
 app_info($software, $developer, $distros, $contact);
