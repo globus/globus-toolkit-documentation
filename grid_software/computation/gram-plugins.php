@@ -63,7 +63,7 @@ of needs.
 $software = "<a href='http://www.globus.org/toolkit/docs/4.0/execution/'>GRAM Scheduler Plugins</a>";
 $developer = "<a href='http://www.globus.org/'>The Globus Alliance</a>";
 $distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a><br />
-           <a href='http://www-unix.globus.org/toolkit/'>Globus Toolkit 4.0</a>";
+           <a href='http://www.globus.org/toolkit/'>Globus Toolkit 4.0</a>";
 $contact = "<a href='mailto:info@globus.org'>info@globus.org</a><br />
             (must be <a href='http://www.globus.org/about/subscriptions.html'>subscribed</a> before posting)";
 

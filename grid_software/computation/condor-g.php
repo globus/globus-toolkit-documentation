@@ -38,7 +38,7 @@ processing systems like the Virtual Data System.
 <?
 $software = "<a href='http://www.cs.wisc.edu/condor/'>Condor-G and DAGman</a>";
 $developer = "<a href='http://www.cs.wisc.edu/condor/'>The Condor Project</a>";
-$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a><br />
+$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a><br />
            <a href='http://www.cs.wisc.edu/condor/'>Download from the Condor Project</a>";
 $contact = "<a href='mailto:condor-users@cs.wisc.edu'>condor-users@cs.wisc.edu</a><br />(must be <a href='http://lists
 .cs.wisc.edu/mailman/listinfo/condor-users'>subscribed</a> before posting)";

@@ -27,7 +27,7 @@ NetSolve/GridSolve is an RPC-based library for executing solver code on Grid res
 <?
 $software = "<a href='http://icl.cs.utk.edu/netsolve/'>NetSolve/GridSolve</a>";
 $developer = "<a href='http://icl.cs.utk.edu/'>Innovative Computing Laboratory</a>";
-$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a><br />
+$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a><br />
           <a href='http://icl.cs.utk.edu/netsolve/'>Download from ICL</a>";
 $contact = "<a href='mailto:netsolve@cs.utk.edu'>netsolve@cs.utk.edu</a>";
 
