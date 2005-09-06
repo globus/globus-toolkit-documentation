@@ -20,6 +20,16 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 events.  The <a href="archive.php">Meetings and Events Archive</a> contains 
 information and notes from previous events.</p>
     
+<h2>September 2005</h2>
+
+<p><b><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/APAC/"; ?>">Globus Toolkit Tutorials in Australia</a></b><br>
+September 29-30, 2005<br>
+<u>Royal Pines Resort, Gold Coast</u><br>
+This two-day tutorial will provide an in-depth introduction to programming with the 
+latest version of the Globus Toolkit version 4 (GT4). Released at the end of April 
+2005, GT4 provides a robust set of new services and tools, and completes the first 
+stage of the migration to Web services that began in 2003 with GT3.</p>
+
 <h2>July 2005</h2>
 
 <p><b><a href="http://www.caip.rutgers.edu/hpdc2005/tutorial.html">Half-day GT4 Tutorial at HPDC</a></b><br>
