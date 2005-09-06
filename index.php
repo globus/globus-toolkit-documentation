@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">09.06.2005</span></td>
+              <td><b>APAC'05 will feature a two-day GT4 tutorial.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/APAC/"; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">08.06.2005</span></td>
               <td><b>Version 4.0.1 of the Globus Toolkit is available for download.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."news.html#18"; ?>">Learn more...</a></td>
@@ -33,12 +38,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><b>Java CoG Kit 4.1.2 (with support for GT4) released.</b> 
                 <a class="learnmore" href="http://www.cogkit.org/release/4_1_2">Learn more...</a></td>
             </tr>
-            <tr>
-              <td><span class="newsdate">06.27.2005</span></td>
-              <td><b>Nimrod/G v3.0 (with support for GT4) released.</b> 
-                <a class="learnmore" href="http://www.csse.monash.edu.au/~davida/nimrod">Learn more...</a></td>
-            </tr>
-
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
 
