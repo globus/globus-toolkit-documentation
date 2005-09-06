@@ -35,7 +35,7 @@ relocatable installations (multiple installs), setup (configuration) awareness, 
 <?
 $software = "<a href='http://www.ncsa.uiuc.edu/Divisions/ACES/GPT/'>Grid Packaging Tools (GPT)</a>";
 $developer = "<a href='http://www.ncsa.uiuc.edu/'>NCSA</a>";
-$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a><br />
+$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a><br />
             <a href='http://www.ncsa.uiuc.edu/Divisions/ACES/GPT/'>Download from NCSA</a>";
 $contact = "<a href='mailto:mbletzin@ncsa.uiuc.edu'>mbletzin@ncsa.uiuc.edu</a>";
 

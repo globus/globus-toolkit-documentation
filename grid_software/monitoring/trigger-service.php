@@ -41,9 +41,9 @@ a grid service client or email client.
 </p>
 
 <?
-$software = "<a href='http://www-unix.globus.org/toolkit/docs/development/3.9.4/info/trigger/'>Globus Trigger Service</a>";
+$software = "<a href='http://www.globus.org/toolkit/docs/4.0/info/trigger/'>Globus Trigger Service</a>";
 $developer = "<a href='http://www.globus.org/'>The Globus Alliance</a>";
-$distros = "<a href='http://www-unix.globus.org/toolkit/'>Globus Toolkit 3.9 (and 4.0)</a>";
+$distros = "<a href='http://www.globus.org/toolkit/'>Globus Toolkit 4.0</a>";
 $contact = "<a href='mailto:info@globus.org'>info@globus.org</a>";
 
 // use the function below once problem is discovered, remove the two lines above

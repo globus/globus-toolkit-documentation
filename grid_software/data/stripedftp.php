@@ -21,7 +21,8 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 
 <p>
 <img src='STRIPEDFTP-1.png' alt='Striped GridFTP' style='float: right; margin-left: 0.3em;' />
-The Striped GridFTP Service is a distributed GridFTP service that runs on a storage cluster. 
+The GridFTP Service in the Globus Toolkit 4.0 can be deployed in a striped configuration.
+In this configuration, it is a distributed GridFTP service that runs on a storage cluster. 
 Every node of the cluser (or combinations of nodes) can be used to transfer data into/out of 
 the cluster while one or more head nodes coordinate transfers.
 </p>
@@ -33,9 +34,9 @@ have been measured on 30 Gbps cross-country links.
 </p>
 
 <?
-$software = "Striped GridFTP";
+$software = "<a href='http://www.globus.org/toolkit/docs/4.0/data/gridftp/'>GridFTP</a>";
 $developer = "<a href='http://www.globus.org/'>The Globus Alliance</a>";
-$distros = "Software can be made available upon request";
+$distros = "<a href='http://www.globus.org/toolkit/'>Globus Toolkit 4.0</a>";
 $contact = "<a href='mailto:info@globus.org'>info@globus.org</a>";
 
 app_info($software, $developer, $distros, $contact);

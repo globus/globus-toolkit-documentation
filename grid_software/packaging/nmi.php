@@ -43,7 +43,7 @@ and WebISO (Web Initial Sign-on).
 <?
 $software = "<a href='http://www.nsf-middleware.org'>NMI</a>";
 $developer = "<a href='http://www.nsf-middleware.org/'>NSF Middleware Initiative</a>";
-$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a>";
+$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a>";
 $contact = "<a href='mailto:support@grids-center.org'>support@grids-center.org</a>";
 
 app_info($software, $developer, $distros, $contact);

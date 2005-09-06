@@ -59,11 +59,11 @@ Globus Toolkit 2.x.
 </p>
 
 <?
-$software = "<a href='http://www-unix.globus.org/toolkit/docs/3.2/rls/'>RLS</a>";
+$software = "<a href='http://www.globus.org/toolkit/docs/4.0/data/rls/'>RLS</a>";
 $developer = "<a href='http://www.globus.org/'>The Globus Alliance</a> and the 
 <a href='http://www.eu-datagrid.org/'>DataGrid Project</a>";
-$distros = "<a href='http://www-unix.globus.org/toolkit/'>Globus Toolkit 3.2</a><br />
-            <a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a>";
+$distros = "<a href='http://www.globus.org/toolkit/'>Globus Toolkit 4.0</a><br />
+            <a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a>";
 $contact = "<a href='mailto:info@globus.org'>info@globus.org</a>";
 
 app_info($software, $developer, $distros, $contact);

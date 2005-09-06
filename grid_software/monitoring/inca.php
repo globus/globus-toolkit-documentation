@@ -36,7 +36,7 @@ Inca provides a very simple "reporter" API, allowing existing test scripts (unit
 <?
 $software = "<a href='http://tech.teragrid.org/inca/'>Inca</a>";
 $developer = "<a href='http://www.teragrid.org/'>TeraGrid Project</a>";
-$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a><br />
+$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a><br />
             <a href='http://tech.teragrid.org/inca/www/downloads.html'>Download from TeraGrid</a>";
 $contact = "<a href='mailto:kericson@sdsc.edu'>kericson@sdsc.edu</a>";
 

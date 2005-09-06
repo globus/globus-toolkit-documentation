@@ -49,7 +49,7 @@ All of the above operations are conducted using Grid authentication.
 $software = "<a href='http://www.ogsadai.org.uk'>OGSA-DAI</a>";
 $developer = "<a href='http://www.globus.org/'>The Globus Alliance</a> &amp; 
               <a href='http://www.rcuk.ac.uk/escience/'>UK eScience Grid Core Project</a>";
-$distros = "<a href='http://www-unix.globus.org/toolkit/'>Globus Toolkit 3.2</a><br>
+$distros = "<a href='http://www.globus.org/toolkit/'>Globus Toolkit 4.0</a><br>
             <a href='http://www.ogsadai.org.uk/releases/ogsadai.php'>Download from OGSA-DAI</a>";
 $contact = "<a href='mailto:support@ogsadai.org.uk'>support@ogsadai.org.uk</a>";
 

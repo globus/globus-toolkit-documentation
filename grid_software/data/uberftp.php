@@ -33,7 +33,7 @@ UberFTP supports several of GridFTP's powerful extensions, including parallel tr
 <?
 $software = "<a href='http://dims.ncsa.uiuc.edu/set/uberftp/'>UberFTP</a>";
 $developer = "<a href='http://www.ncsa.uiuc.edu/'>NCSA</a>";
-$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a><br />
+$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a><br />
             Download from <a href='http://dims.ncsa.uiuc.edu/set/uberftp/'>NCSA</a>";
 $contact = "<a href='mailto:gridftp@ncsa.uiuc.edu'>gridftp@ncsa.uiuc.edu</a>";
 

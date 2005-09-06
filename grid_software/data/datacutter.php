@@ -36,7 +36,7 @@ run.
 <?
 $software = "<a href='http://bmi.osu.edu/areas_and_projects/datacutter.cfm'>DataCutter</a>";
 $developer = "<a href='http://bmi.osu.edu/'>Ohio State University Dept. of Biomedical Informatics</a>";
-$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a>";
+$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a>";
 $contact = "(614) 292-4778";
 
 app_info($software, $developer, $distros, $contact);

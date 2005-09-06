@@ -43,7 +43,7 @@ GSI-OpenSSH is implemented as a patch to the standard OpenSSH distribution.
 <?
 $software = "<a href='http://grid.ncsa.uiuc.edu/ssh/'>GSI-SCP/SFTP</a>";
 $developer = "GSI patch by <a href='http://www.ncsa.uiuc.edu/'>NCSA</a>";
-$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR6/AllItems.aspx'>NMI-R6</a><br />
+$distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a><br />
             <a href='http://grid.ncsa.uiuc.edu/ssh/'>Download from NCSA</a>";
 $contact = "<a href='mailto:gsi-openssh@globus.org'>gsi-openssh@globus.org</a><br />(must be subscribed before posting)";
 
