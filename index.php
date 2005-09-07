@@ -24,6 +24,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/APAC/"; ?>">Learn more...</a></td>
             </tr>
             <tr>
+              <td><span class="newsdate">08.29.2005</span></td>
+              <td><b>EGEE Grid supports a massive drug discovery application.</b> 
+                <a class="learnmore" href="http://public.eu-egee.org/news/fullstory.php?news_id=53">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">08.06.2005</span></td>
               <td><b>Version 4.0.1 of the Globus Toolkit is available for download.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."news.html#18"; ?>">Learn more...</a></td>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">07.28.2005</span></td>
               <td><b>UK Engineering Task Force releases its evaluation of GT4.</b> 
                 <a class="learnmore" href="http://www.nesc.ac.uk/technical_papers/UKeS-2005-03.pdf">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">07.18.2005</span></td>
-              <td><b>Java CoG Kit 4.1.2 (with support for GT4) released.</b> 
-                <a class="learnmore" href="http://www.cogkit.org/release/4_1_2">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>

@@ -52,6 +52,10 @@ of the Australian Partnership for Advanced Computing (APAN), September 29-30. (9
 <p>A <a class="newsalliance" href="http://www.sdsc.edu/user_services/news/announce/announcements/20050901_02.php">MyProxy presentation</a> 
 was given at the SDSC Cyberinfrastructure Seminar Series on September 6th. (9/2005)</p>
 
+<p>The EGEE Grid supported a massive 
+<a class="newspartners" href="http://public.eu-egee.org/news/fullstory.php?news_id=53">Drug Discovery application</a>
+in production operation. (8/2005)
+
 <p><a class="newsalliance" href="http://www-unix.globus.org/toolkit/news.html#18">Version 4.0.1
 of the Globus Toolkit</a> is now available for download. This incremental release includes important fixes for bugs reported against version 4.0.0 of the Globus Toolkit (GT4). (8/2005)</p>
 
