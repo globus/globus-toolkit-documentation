@@ -75,7 +75,7 @@ WS-Resource Framework announcement</a> was issued January 20, 2004.</p>
 <p>Three overview documents motivate the WS-Resource framework.</p>
 
 <ul>
-  <li><a href="http://www.ibm.com/developerworks/library/ws-resource/ws-modelingresources.html">Modeling 
+  <li><a href="http://www-128.ibm.com/developerworks/library/ws-resource/ws-modelingresources.pdf">Modeling 
       Stateful Resources with Web Services</a> describes the WS-Resource construct.</li>
   <li><a href="specs/ws-wsrf.pdf">The WS-Resource Framework</a> describes how the 
       WS-Resource construct is rendered in terms of six Web services 
