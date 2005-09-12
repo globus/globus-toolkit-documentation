@@ -1,5 +1,5 @@
 FILENAME=
-index.xml
+index.xml \
 dependencies.xml
 
 all: html pdf
