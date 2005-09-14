@@ -44,6 +44,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p><a class="newspartners" href="http://www.cerncourier.com/main/article/45/7/15">GridFTP used to transfer 270 TB</a> from Brookhaven to Japan. (9/2005)</p>
+
 <p><a class="newsalliance" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/APAC/"; ?>">Globus Toolkit tutorials</a> 
 will be given at the 
 <a class="newspartners" href="http://www.apac.edu.au/apac05/index.html">2005 meeting</a> 
