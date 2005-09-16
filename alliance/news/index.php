@@ -44,6 +44,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p><a class="newsalliance" href="http://gridshib.globus.org/">GridShib project produces 
+beta releases</a> of GridShib for Globus Toolkit and GridShib for Shibboleth. (9/2005)</p>
+
 <p><a class="newspartners" href="http://www.cerncourier.com/main/article/45/7/15">GridFTP used to transfer 270 TB</a> from Brookhaven to Japan. (9/2005)</p>
 
 <p><a class="newsalliance" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/APAC/"; ?>">Globus Toolkit tutorials</a> 

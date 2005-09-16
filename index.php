@@ -25,6 +25,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
             </tr>
             <tr>
               <td><span class="newsdate">09.06.2005</span></td>
+              <td><b>GridShib beta release is available.</b> 
+                <a class="learnmore" href="http://gridshib.globus.org/">Learn more...</a></td>
+            </tr>
+            <tr>
+              <td><span class="newsdate">09.06.2005</span></td>
               <td><b>APAC'05 will feature a two-day GT4 tutorial.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/APAC/"; ?>">Learn more...</a></td>
             </tr>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">08.29.2005</span></td>
               <td><b>EGEE Grid supports a massive drug discovery application.</b> 
                 <a class="learnmore" href="http://public.eu-egee.org/news/fullstory.php?news_id=53">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">08.06.2005</span></td>
-              <td><b>Version 4.0.1 of the Globus Toolkit is available for download.</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."news.html#18"; ?>">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
