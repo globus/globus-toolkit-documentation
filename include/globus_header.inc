@@ -21,7 +21,7 @@ function GlobusSubmit()
 }
 </script>
 </head>
-<body>
+<body class="section-3">
 
 <div id="headerlinks">
 <br />
