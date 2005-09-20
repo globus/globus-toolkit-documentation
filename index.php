@@ -7,7 +7,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 ?>
 
         <div id="coverimage">
-             <?php include( $SITE_PATHS["SERV_ALLIANCE"]."impact/scec-2.inc" ); ?>
+             <?php include( $SITE_PATHS["SERV_ALLIANCE"]."impact/leadimpact.inc" ); ?>
         </div>
 
         <div id="main">
@@ -18,6 +18,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
           <!--<h2>Recent News</h2> -->
           <table class="news">
+            <tr>
+              <td><span class="newsdate">09.14.2005</span></td>
+              <td><b>Globus tutorials and meetings at GGF-15 and SC05.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
+            </tr>
             <tr>
               <td><span class="newsdate">09.14.2005</span></td>
               <td><b>GridFTP used to transfer 270 TB from Brookhaven to Japan.</b> 
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">09.06.2005</span></td>
               <td><b>APAC'05 will feature a two-day GT4 tutorial.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/APAC/"; ?>">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">08.29.2005</span></td>
-              <td><b>EGEE Grid supports a massive drug discovery application.</b> 
-                <a class="learnmore" href="http://public.eu-egee.org/news/fullstory.php?news_id=53">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
