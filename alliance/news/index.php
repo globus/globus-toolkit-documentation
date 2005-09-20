@@ -44,6 +44,15 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>The SC05 conference (Seattle, Nov. 12-18) will feature 
+<a class="newsalliance" href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5272">a GT4 Birds of a Feather session</a> and 
+<a class="newsalliance" href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5102">a half-day tutorial</a> 
+on the Globus Toolkit in e-Science. (11/2005)</p>
+
+<p>A <a class="newsalliance" href="http://www.ggf.org/GGF15/ggf_events_schedule_Globus.htm">half-day tutorial</a> on developing Java 
+services using the Globus Toolkit (GT4) will be presented at GGF-15, October 6, 
+Boston, MA. (10/2005)</p>
+
 <p><a class="newsalliance" href="http://gridshib.globus.org/">GridShib project produces 
 beta releases</a> of GridShib for Globus Toolkit and GridShib for Shibboleth. (9/2005)</p>
 
