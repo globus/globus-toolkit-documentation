@@ -53,6 +53,14 @@ submitting bibliographic citations</a>.</b></p>
 
 	<h2><a name="Overview Papers">Overview Papers</a></h2>
 
+        <p><font size="2"><strong><a name="gt4overview">Globus Toolkit Version 4: 
+        Software for Service-Oriented Systems</a></strong>. I. Foster. 
+        <em>IFIP International Conference on Network and Parallel Computing</em>, 
+        Springer-Verlag LNCS 3779, pp 2-13, 2005.<br>
+        This paper is an excellent introduction to the Globus Toolkit 4.0 and its use.<br>
+        [<a href="#gt4overview">Citation</a>, 
+         <a href="papers/IFIP-2005.pdf">PDF</a>]</font></p>
+
 	<p><font size="2"><strong><a name="anatomy">The Anatomy of the Grid: Enabling Scalable Virtual Organizations</a></strong>. 
 	I. Foster, C. Kesselman, S. Tuecke. 
 	<em>International J. Supercomputer Applications</em>, 15(3), 2001.<br>
