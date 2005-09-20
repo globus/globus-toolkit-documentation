@@ -1,4 +1,4 @@
-FILENAME=index.xml           dependencies.xml
+FILENAME=index.xml
 
 all: html pdf
 
