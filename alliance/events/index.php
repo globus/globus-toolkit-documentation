@@ -20,6 +20,33 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 events.  The <a href="archive.php">Meetings and Events Archive</a> contains 
 information and notes from previous events.</p>
     
+<h2>November 2005</h2>
+
+<p><b><a href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5102">SC05 
+Tutorial: The Globus Toolkit in e-Science: Examples and Lessons</a></b><br>
+November 13, 2005<br>
+<u>Seattle, WA</u><br>
+This half-day tutorial provides three case studies from successful e-Science projects and 
+highlights the lessons learned from those experiences. Three challenging IT problems will 
+be presented in the context of specific science projects. The tutorial will explore the 
+science requirements, the technical approach taken in each solution, and the results. 
+Reusable Grid technologies from the Globus Toolkit such as GridFTP, MyProxy, and GRAM will 
+be introduced. Along the way, we will highlight the general lessons that these experiences 
+provided and the implications for new e-Science projects.</p>
+
+<p><b><a href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5272">SC05 Birds of a Feather (BOF): Globus Toolkit v4: Status and Experiences</a></b><br>
+November 15, 2005<br>
+<u>Seattle, WA</u><br>
+This BOF will provide an opportunity to learn about GT4, hear from early adopters, and provide feedback on future directions.</p>
+
+<h2>October 2005</h2>
+
+<p><b><a href="http://www.ggf.org/GGF15/ggf_events_schedule_Globus.htm">GGF-15 
+Community Event: Building a Java Service Using The Globus Toolkit v4</a></b><br>
+October 6, 2005<br>
+<u>Boston, MA</u><br>
+This half-day tutorial is designed to teach developers how to build a Java Service using the Globus Toolkit (GT4). This course is a compressed version of our standard, full-day, hands-on tutorial. Attendees are invited to follow along with the exercises on the laptops, though tech support will be very limited due to the amount of material to be covered.</p>
+
 <h2>September 2005</h2>
 
 <p><b><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/APAC/"; ?>">Globus Toolkit Tutorials in Australia</a></b><br>
