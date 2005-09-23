@@ -524,7 +524,110 @@ return the following value:
 
 <section id="s-wsgram-admin-extensions-constructs-nodes"><title>PBS Node Selection Parameters</title>
 <para>
+In addition to the <computeroutput>globus_gram_job_manager</computeroutput>
+update package, the
+<computeroutput>globus_gram_job_manager_setup_pbs</computeroutput>
+update package is required to take advantage of the PBS node selection
+extensions.
 </para>
+
+<para>
+Node selection constraints in PBS can be specified in two ways, generally using
+a construct intended to eventually apply to all resource managers which support
+node selection, or explicitly by sepcifiying a simple string element. The former
+will be more portable, but the later will appeal to those familiar with
+specifying node constraints for PBS jobs.
+</para>
+
+<para>
+To specify PBS node selection constraints explicitly, one can simply constuct
+a single, simple string extension element named
+<computeroutput>nodes</computeroutput> with a value that conforms to the
+<computeroutput>#PBS -l nodes=...</computeroutput> PBS job description
+directive. The Globus::GRAM::ExtensionsHandler module will make this available
+to the PBS adapter script by invoking
+<computeroutput>$description->{nodes}</computeroutput>.  The updated PBS
+adapter package checks for this value and will create a directive in the PBS
+job description using this value.
+</para>
+
+<para>
+To use the generic construct for specifying node selection constraints, use the
+<computeroutput>resourceAllocationGroup</computeroutput> construct:
+</para>
+
+<para>
+<literallayout><computeroutput>
+    &lt;resourceAllocationGroup&lt;
+        &lt;!-- Optionally select hosts by type and number... --&gt;
+        &lt;hostType&lt;...&lt;/hostType&lt;
+        &lt;hostCount&lt;...&lt;/hostCount&lt;
+
+        &lt;!-- *OR* by host names --&gt;
+
+        &lt;hostName&lt;...&lt;/hostName&lt;
+        &lt;hostName&lt;...&lt;/hostName&lt;
+        . . .
+
+
+        &lt;!-- With a total process count for this group... --&gt;
+        &lt;processCount&lt;...&lt;/processCount&lt;
+
+        &lt;!-- *OR* an explicit number of processes per node... --&gt;
+        &lt;processesPerNode&lt;...&lt;/processesPerNode&lt;
+    &lt;/resourceAllocationGroup&lt;
+</computeroutput></literallayout>
+</para>
+
+<para>
+Extension elements specified according to the above pseudo-schema will be
+converted to an appropriate <computeroutput>nodes</computeroutput> parameter
+which will be treated as if an explicit <computeroutput>nodes</computeroutput>
+extension element were specified.
+Multiple <computeroutput>resourceAllocationGroup</computeroutput> elements
+may be specified.  This will simply append the constraints to the
+<computeroutput>nodes</computeroutput> paramater with a '+' separator.
+Note that one cannot specify both hostType/hostCount and hostName elements.
+Similarly, one cannot specify both processCount and processesPerNode elements.
+</para>
+
+<para>
+Here are some examples of using
+<computeroutput>resourceAllocationGroup</computeroutput>:
+</para>
+
+<para>
+<computeroutput><literallayout>
+    &lt;!-- #PBS -l nodes=10 --&gt;
+    &lt;resourceAllocationGroup&lt;
+        &lt;processCount&lt;10&lt;/processCount&lt;
+    &lt;/resourceAllocationGroup&lt;
+
+    &lt;!-- #PBS -l nodes=activemural:10+5:ia64-compute:2 --&gt;
+    &lt;resourceAllocationGroup&lt;
+        &lt;hostType&lt;activemural&lt;/hostType&lt;
+        &lt;processCount&lt;10&lt;/processCount&lt;
+    &lt;/resourceAllocationGroup&lt;
+    &lt;resourceAllocationGroup&lt;
+        &lt;hostType&lt;ia64-compute&lt;/hostType&lt;
+        &lt;hostCount&lt;5&lt;/hostCount&lt;
+        &lt;processesPerHost&lt;2&lt;/processesPerHost&lt;
+    &lt;/resourceAllocationGroup&lt;
+
+    &lt;!-- #PBS -l nodes=vis001:5+vis002:5+comp014:2+comp015:2 --&gt;
+    &lt;resourceAllocationGroup&lt;
+        &lt;hostName&lt;vis001&lt;/hostName&lt;
+        &lt;hostName&lt;vis002&lt;/hostName&lt;
+        &lt;processCount&lt;10&lt;/processCount&lt;
+    &lt;/resourceAllocationGroup&lt;
+    &lt;resourceAllocationGroup&lt;
+        &lt;hostName&lt;comp014&lt;/hostName&lt;
+        &lt;hostName&lt;comp015&lt;/hostName&lt;
+        &lt;processesPerHost&lt;2&lt;/processesPerHost&lt;
+    &lt;/resourceAllocationGroup&lt;
+</computeroutput></literallayout>
+</para>
+
 </section>
 
 </section>
