@@ -2,7 +2,7 @@
 
 
 
-$title = "Globus: Alliance - Paricipants";
+$title = "Globus: Alliance - Participants";
 
 $section = "section-2";
 
