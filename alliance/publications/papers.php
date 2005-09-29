@@ -1224,6 +1224,12 @@ submitting bibliographic citations</a>.</b></p>
 
 	<h2><a name="Other Globus-Related Research">Other Globus-Related Research</a></h2>
 
+        <p><font size="2"><strong><a name="UKglobus">Report of the UK Globus Week 
+        Workshop 2005</a></strong>. Argonne National Laboratory Technical Memorandum 
+        ANL/MCS-TM-291, August 2005.<br>
+        [<a href="#UKglobus">Citation</a>,
+         <a href="papers/UKglobus-v4.pdf">PDF</a>]</font></p>
+
 	<p><font size="2"><strong>Run-time Prediction of Parallel Applications on
     Shared Environments</strong>. B. Lee and J. Schopf. <em>Poster Paper,
     Proceedings of Cluster2003</em>, December 2003.
