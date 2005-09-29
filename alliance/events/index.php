@@ -140,7 +140,8 @@ globally with a significant interest in the Grid; to present Globus developments
 research; to provide a program of tutorials, workshops, Q&A, and demonstrations from 
 the Globus Alliance; to develops a roadmap for continued Globus activities with
 significant contributions from UK and European experiences and expertise; to document 
-the event's proceedings as a UK eScience Technical Report.
+the event's proceedings as a UK eScience Technical Report. 
+(The <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/UKglobus-v4.pdf"; ?>">workshop report</a> is now available.)
 <a class="learnmore" href="http://www.nesc.ac.uk/esi/events/519/">Learn more...</a>
 </p>
 
