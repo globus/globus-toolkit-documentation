@@ -1,0 +1,107 @@
+<title>Execution Aggregator Sources in MDS4</title>
+<titleabbrev>Execution Aggregator Sources</titleabbrev>
+<section id="aggregator-execution_aggregator_source-intro"><title>Introduction</title>
+
+    <para>The execution aggregation source provides a way to aggregate
+        data (arbitrary XML information) about a registered resource using an arbitrary local
+        executable (such as an external script). The executable will be passed registration information as parameters 
+        and is expected to output the gathered data, as detailed below.</para>
+    
+    <para>A basic example of the use of this API is described in the
+        <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/info/aggregator/developer/pingtest.html">
+            ping test example for the aggregator execution source</ulink></para>
+    
+    <para>The execution aggregation source will periodically execute an
+        identified executable. The identity of the executable and the
+        frequency with which it is to run are specified in the registration
+        message.</para>
+
+</section>
+
+<section id="aggregator-execution_aggregator_source-config-registration"><title>Configuration file: general parameters</title>
+&WS_MDS_Aggregator_Sources_Frag;
+</section>
+
+<section id="aggregator-execution_aggregator_source-config-ExecutionAggregatorSource"><title>Configuration file: parameters for the execution aggregator source</title>
+    <para>The configuration block for <constant>ExecutionAggregatorSource</constant> (inside the <constant>Content</constant> block) looks like this: </para>
+    <screen>
+        &lt;Content xsi:type="agg:AggregatorContent"
+        xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+        &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+        &lt;agg:ExecutionPollType&gt;
+        &lt;agg:<emphasis>PollIntervalMillis</emphasis>&gt;<emphasis>interval_in_ms</emphasis>&lt;/agg:<emphasis>PollIntervalMillis</emphasis>&gt;
+        &lt;agg:<emphasis>ProbeName</emphasis>&gt;<emphasis>dummy_namespace</emphasis>:<emphasis>filename</emphasis>&lt;/agg:<emphasis>ProbeName</emphasis>&gt;
+        &lt;/agg:ExecutionPollType&gt;
+        &lt;/agg:AggregatorConfig&gt;
+        &lt;agg:AggregatorData/&gt;
+        &lt;/Content&gt;
+    </screen>
+   
+    <para>where:</para>
+    <variablelist>  
+        <varlistentry>
+            <term><constant>PollIntervalMillis</constant></term>
+            <listitem><para> This parameter is the poll refresh period in milliseconds. </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><constant>ProbeName</constant></term>
+            <listitem><para> This  parameter specifies the path name to the executable file, relative to the <filename>$GLOBUS_LOCATION/libexec/aggrexec</filename> directory. The path
+                name should be specified as the local name part of this QName; the namespace part is ignored.</para></listitem>
+        </varlistentry>
+    </variablelist>
+</section>
+ <section id="aggregator-execution_aggregator_source-troubleshooting"><title>Troubleshooting</title>
+     <para>
+        If you've properly configured and registered your script for
+        execution but are getting errors from the container because it cannot
+        find the specified script, there are two likely causes.  </para>
+       
+     <para>First, make sure that your script/program is executable and is located in the
+        <filename>$GLOBUS_LOCATION/libexec/aggrexec</filename> directory.
+        When it's specified in the configuration mentioned above, only specify
+        the name of the script/program, without any qualification or path.
+        For example, using the <constant>ProbeName</constant> as
+        <filename>test-script</filename> will be specifying the file
+        <filename>$GLOBUS_LOCATION/libexec/aggrexec/test-script</filename>
+        script.
+    </para>
+    <para>
+        The second most likely reason for an error is due to recent security
+        updates (that only apply to post 4.0 Globus Toolkit releases).  To
+        avoid allowing any user to execute arbitrary code, we've added a
+        name/mapping pair, which is a key/value pair that the administrator of
+        the running container must specify before starting the services.  To
+        configure this, look at the example in the
+        <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/jndi-config.xml</filename>
+        file.  It can be viewed under the <constant>configuration</constant>
+        section (specifically, it's the
+        <constant>executableMappings</constant> section), and extend it (using
+        a comma delimiter between each name=value entry added) to include your
+        own.  Then you use the aliased/logical name that you've just made up
+        as the <constant>ProbeName</constant> as in the above configuration
+        example.
+    </para>
+ </section>
+ <section id="aggregator-execution_aggregator_source-executable"><title>Configuring the executable</title>
+     <section><title>Name of executable</title>
+         <para>The executable to run will be
+             <filename>$GLOBUS_LOCATION/libexec/aggrexec/&lt;scriptname&gt;</filename>
+             with <filename>scriptname</filename> supplied by the <constant>ProbeName</constant> parameter in the configuration file.</para>
+     </section>
+     <section><title>Input to executable</title>
+         <para>Information about the registration will be supplied as
+             command line parameters and on stdin.</para>
+         <para>A single command line parameter will be supplied to the
+             executable. This will be the URL from the EPR of the registered
+             service.</para>
+         <para>Two XML documents will be sent to stdin, in sequence: </para>
+             <orderedlist>
+             <listitem>The first document will be the full EPR to the registered service. </listitem>
+             <listitem>The second document will be the AggregatorConfig block from the registration message (configuration file).</listitem>
+         </orderedlist>
+     </section>
+     <section><title>Output from executable</title>
+         <para>The executable must output a well-formed XML document to stdout. This output document will be delivered into the aggregator framework.</para>
+     </section>
+ </section>
+ 
