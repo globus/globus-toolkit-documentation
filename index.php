@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">10.06.2005</span></td>
+              <td><b>Buzz over Grid computing grows.</b> 
+                <a class="learnmore" href="http://www.toptechnews.com/news/Buzz-Over-Grid-Computing-Grows/story.xhtml?story_id=0120017V7H3C">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">09.14.2005</span></td>
               <td><b>Globus tutorials and meetings at GGF-15 and SC05.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">09.06.2005</span></td>
               <td><b>GridShib beta release is available.</b> 
                 <a class="learnmore" href="http://gridshib.globus.org/">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">09.06.2005</span></td>
-              <td><b>APAC'05 will feature a two-day GT4 tutorial.</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]."tutorials/BAS/APAC/"; ?>">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>

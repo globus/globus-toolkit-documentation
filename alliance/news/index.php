@@ -49,6 +49,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <a class="newsalliance" href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5102">a half-day tutorial</a> 
 on the Globus Toolkit in e-Science. (11/2005)</p>
 
+<p>An article in <cite>Top Tech News</cite> discusses buzz about 
+<a class="newsmedia" href="http://www.toptechnews.com/news/Buzz-Over-Grid-Computing-Grows/story.xhtml?story_id=0120017V7H3C">Grid technology in the business community</a>. (10/2005)</p>
+
 <p>A <a class="newsalliance" href="http://www.ggf.org/GGF15/ggf_events_schedule_Globus.htm">half-day tutorial</a> on developing Java 
 services using the Globus Toolkit (GT4) will be presented at GGF-15, October 6, 
 Boston, MA. (10/2005)</p>
