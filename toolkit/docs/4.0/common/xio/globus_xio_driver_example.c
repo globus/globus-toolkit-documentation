@@ -1,8 +1,9 @@
 #include "globus_xio_driver.h"
-#include &lt;stdarg.h&gt;
-#include &lt;sys/types.h&gt;
-#include &lt;sys/stat.h&gt;
-#include &lt;fcntl.h&gt;
+
+#include <stdarg.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 /*
  *  possible commands for att cntl
@@ -67,8 +68,8 @@ globus_xio_driver_file_attr_init(
     file_attr = (struct globus_l_xio_file_attr_s *)
         globus_malloc(sizeof(struct globus_l_xio_file_attr_s));
 
-    file_attr-&gt;flags = O_CREAT;
-    file_attr-&gt;mode = S_IRWXU;
+    file_attr->flags = O_CREAT;
+    file_attr->mode = S_IRWXU;
     
     /* set the out parameter to the driver attr */
     *out_attr = file_attr;
@@ -93,21 +94,21 @@ globus_xio_driver_file_attr_init(
     switch(cmd)
     {
     case GLOBUS_XIO_FILE_SET_MODE:
-    file_attr-&gt;mode = va_arg(ap, int);
+    file_attr->mode = va_arg(ap, int);
     break;
     
     case GLOBUS_XIO_FILE_GET_MODE:
     out_i = va_arg(ap, int *);
-    *out_i = file_attr-&gt;mode;
+    *out_i = file_attr->mode;
     break;
     
     case GLOBUS_XIO_FILE_SET_FLAGS:
-    file_attr-&gt;flags = va_arg(ap, int);
+    file_attr->flags = va_arg(ap, int);
     break;
     
     case GLOBUS_XIO_FILE_GET_FLAGS:
     out_i = va_arg(ap, int *);
-    *out_i = file_attr-&gt;flags;
+    *out_i = file_attr->flags;
     break;
     
     default:
@@ -170,8 +171,8 @@ globus_xio_driver_file_attr_init(
     /* create the target structure and copy the contact string into it */
     target = (struct globus_l_xio_file_target_s *)
     globus_malloc(sizeof(struct globus_l_xio_file_target_s));
-    strncpy(target-&gt;pathname, contact_string, sizeof(target-&gt;pathname) - 1);
-    target-&gt;pathname[sizeof(target-&gt;pathname) - 1] = '\0';
+    strncpy(target->pathname, contact_string, sizeof(target->pathname) - 1);
+    target->pathname[sizeof(target->pathname) - 1] = '\0';
     
     return GLOBUS_SUCCESS;
     }
@@ -213,17 +214,17 @@ globus_xio_driver_file_attr_init(
     * init.
     */
     fd = open(
-    file_target-&gt;pathname, 
-    (file_attr ? file_attr-&gt;flags : O_CREAT), 
-    (file_attr ? file_attr-&gt;mode : S_IRWXU));
-    if(fd &lt; 0)
+    file_target->pathname, 
+    (file_attr ? file_attr->flags : O_CREAT), 
+    (file_attr ? file_attr->mode : S_IRWXU));
+    if(fd < 0)
     {
     return GLOBUS_FAILURE;
     }
     
     file_handle = (struct globus_l_xio_file_handle_s *)
     globus_malloc(sizeof(struct globus_l_xio_file_handle_s));
-    file_handle-&gt;fd = fd;
+    file_handle->fd = fd;
     
     /* set the driver_handle return parameter to our handle */
     *driver_handle = file_handle;
@@ -249,7 +250,7 @@ globus_xio_driver_file_attr_init(
     file_handle = (struct globus_l_xio_file_handle_s *) driver_handle;
     
     /* preform the posix close operation */
-    close(file_handle-&gt;fd);
+    close(file_handle->fd);
     globus_free(file_handle);
     
     /* tell globus_xio that we have finished the close operation */
@@ -280,14 +281,14 @@ globus_xio_driver_file_attr_init(
     file_handle = (struct globus_l_xio_file_handle_s *) driver_handle;
     
     /* perform all read requests in the iovec */
-    for(ctr = 0; ctr &lt; iovec_count; ctr++)
+    for(ctr = 0; ctr < iovec_count; ctr++)
     {
-    nbytes = read(file_handle-&gt;fd,
+    nbytes = read(file_handle->fd,
     iovec[ctr].iov_base,
     iovec[ctr].iov_len);
     
     /* check the return codes */
-    if(nbytes &lt; 0)
+    if(nbytes < 0)
     {
     res = globus_error_put(
     globus_error_construct_errno_error(
@@ -335,13 +336,13 @@ globus_xio_driver_file_attr_init(
     file_handle = (struct globus_l_xio_file_handle_s *) driver_handle;
     
     /* preform all write requests in the iovec */
-    for(ctr = 0; ctr &lt; iovec_count; ctr++)
+    for(ctr = 0; ctr < iovec_count; ctr++)
     {
-    nbytes = write(file_handle-&gt;fd,
+    nbytes = write(file_handle->fd,
     iovec[ctr].iov_base,
     iovec[ctr].iov_len);
     /* check the return codes */
-    if(nbytes &lt; 0)
+    if(nbytes < 0)
     {
     res = globus_error_put(
     globus_error_construct_errno_error(
