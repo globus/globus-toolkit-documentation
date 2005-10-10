@@ -1,5 +1,4 @@
 #include "globus_xio_driver.h"
-
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
