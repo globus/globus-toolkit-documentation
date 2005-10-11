@@ -1226,7 +1226,8 @@ submitting bibliographic citations</a>.</b></p>
 
         <p><font size="2"><strong><a name="UKglobus">Report of the UK Globus Week 
         Workshop 2005</a></strong>. Argonne National Laboratory Technical Memorandum 
-        ANL/MCS-TM-291, August 2005.<br>
+        ANL/MCS-TM-291 and UK National e-Science Center Technical Report 
+        UKeS-2005-06, August 2005.<br>
         [<a href="#UKglobus">Citation</a>,
          <a href="papers/UKglobus-v4.pdf">PDF</a>]</font></p>
 
