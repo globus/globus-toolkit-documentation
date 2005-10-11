@@ -59,7 +59,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
   <option value="/mail_archive/cray/">cray@globus.org</option>
 
   <option value="/mail_archive/developer-discuss/">developer-discuss@globus.org</option>
-
+  
+ <option value="/mail_archive/gt4-friends/">gt4-friends@globus.org</option>
+ 
   <option selected value="/mail_archive/discuss/">discuss@globus.org</option>
 
   <option value="/mail_archive/java/">java@globus.org</option>
