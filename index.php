@@ -25,7 +25,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
             </tr>
             <tr>
               <td><span class="newsdate">09.14.2005</span></td>
-              <td><b>Globus tutorials and meetings at GGF-15 and SC05.</b> 
+              <td><b>Globus Toolkit tutorial and BOF at SC05.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
             <tr>
