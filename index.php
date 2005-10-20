@@ -19,14 +19,14 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">10.20.2005</span></td>
+              <td><b>Globus Toolkit tutorial and BOF at SC05.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">10.06.2005</span></td>
               <td><b>Buzz over Grid computing grows.</b> 
                 <a class="learnmore" href="http://www.toptechnews.com/news/Buzz-Over-Grid-Computing-Grows/story.xhtml?story_id=0120017V7H3C">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">09.14.2005</span></td>
-              <td><b>Globus Toolkit tutorial and BOF at SC05.</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
             <tr>
               <td><span class="newsdate">09.14.2005</span></td>
