@@ -171,6 +171,14 @@ submitting bibliographic citations</a>.</b></p>
       Chimera, Pegasus, etc.)</a></h2>
 
     
+    <p><font size="2"><strong><a name="chervenakGrid2005">Wide Area Data Replication 
+       for Scientific Collaborations</a></strong>.
+       A. Chervenak, R. Schuler, C. Kesselman, S. Koranda, B. Moe.
+       <i>Proceedings of 6th IEEE/ACM International Workshop on Grid Computing (Grid2005)</i>,
+       November 2005.<br>
+       [<a href="#chervenakGrid2005">Citaton</a>,
+        <a href="papers/chervenakGrid2005.pdf">PDF</a>]</font></p>
+
     <p><font size="2"><strong>The Globus Striped GridFTP Framework and Server</strong>.
     W. Allcock, J.  Bresnahan, R. Kettimuthu, M. Link, C. Dumitrescu, I. Raicu, 
     I. Foster.  <i>Proceedings of Super Computing 2005 (SC05)</i>, November 2005.<br>
