@@ -40,7 +40,8 @@ work with some of the brightest people in the world on cutting-edge scientific
 and engineering projects.  Our salaries are competitive with the software industry, 
 and we provide excellent benefits packages.  Our locations include the beaches of 
 Marina del Rey (Los Angeles, CA), the urban culture of Hyde Park (Chicago, 
-IL), and the midwestern quiet of suburban Chicago (Argonne National Laboratory).
+IL), and the midwestern quiet of suburban Chicago (Argonne National Laboratory
+and Univa).
       We value our quality of life: dress is casual (as a rule), attendance is
       flexible, and position descriptions are always negotiable.</p>
 
@@ -50,7 +51,9 @@ to deal with complex and open-ended problems, and a commitment to producing
 high-quality software.</p>
 
 <p><b>If you want a job where you can <i>define</i> the leading edge, this is it.
-Send your resume to <a href="mailto:jobs@globus.org">jobs@globus.org</a>.</b></p>
+For consideration at Argonne, University of Chicago, or USC ISI, send your resume to 
+<a href="mailto:jobs@globus.org">jobs@globus.org</a>.
+Please also consider employment at <a href="http://www.univa.com/jobs.shtml">Univa</a>.</b></p>
 
 </div>
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>

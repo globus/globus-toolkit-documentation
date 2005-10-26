@@ -25,50 +25,61 @@ We've formed partnerships and collaborations with <a href="../participants.php#a
 organizations around the world</a> to design and build the Grid.  We are leaders in and charter sponsors of the <a href="http://www.gridforum.org/"> Global Grid Forum</a>, the 
 current standards organization for the Grid.</p>
 
-<p>Now, we're looking for talented individuals to join us in this work!  Positions are available at <a href="http://www.anl.gov/">Argonne National Laboratory</a> in 
-Chicago, at the <a href="http://www.uchicago.edu/">University of Chicago</a>, and at the University of Southern California's
-<a href="http://www.isi.edu/">Information Sciences Institute</a> in Los Angeles. All three institutions offer excellent 
-benefits, state-of-the-art facilities, a rich intellectual environment, exposure to national 
-and international collaborations, and the opportunity to work on exciting and 
-ground-breaking projects. Visiting positions for faculty and students are also possible.</p>
+<p>We are always looking for talented individuals to join us in this work!  Positions are 
+available at <a href="http://www.anl.gov/">Argonne National Laboratory</a>, the
+<a href="http://www.uchicago.edu/">University of Chicago</a>, and 
+<a href="http://www.univa.com/">Univa</a> (all three in Chicago) and at the University of 
+Southern California's 
+<a href="http://www.isi.edu/">Information Sciences Institute</a> in Los Angeles. We
+offer excellent benefits, state-of-the-art facilities, a rich intellectual environment, 
+exposure to national and international collaborations, and the opportunity to work on 
+exciting and ground-breaking projects. Visiting positions for faculty and students are 
+also possible.</p>
 
-<table border=0 cellspacing=0 cellpadding=3 width="100%">
+<h2>Opportunities at Univa</h2>
+<p> We are growing the Univa team and are looking for talented individuals to join one 
+of the most exciting technology start-ups in the Midwest. We currently have exciting 
+opportunities in Engineering, Marketing, and Professional Services.  Our ideal 
+candidates are motivated, self-starters who are deadline and deliverables-driven, 
+and have a solid understanding of what it takes to develop, market and deliver 
+enterprise grade software to the Global 2000. 
+<a class="learnmore" href="http://www.univa.com/jobs.shtml">Learn more...</a></p>
 
-<tr valign=top>
-<td valign=top width="50%"><b>Research Programmers</b><br>
-Programmers in the Globus Alliance are the first people to implement new Grid
+<h2>Research Programmers</h2>
+<p>Programmers in the Globus Alliance are the first people to implement new Grid
 protocols, APIs, and services.  Our software
 is used by projects all over the world to build large-scale systems and applications 
-for advanced science and engineering. [<a href="programmers.php">more</a>]</td>
+for advanced science and engineering. 
+<a class="learnmore" href="programmers.php">Learn more...</a></p>
 
-<td valign=top width="50%"><b>Graduate and Undergraduate Students</b><br>
-Students can join us for a semester or longer to work on well-defined projects. 
-Argonne, for example, offers an Undergraduate Program in Computational Science. 
-Graduate students can also enter the University of Chicago or University of Southern 
-California.</td>
-</tr>
-
-<tr valign=top>
-<td valin=top width="50%"><b>Scientific Staff</b><br>
-The Globus Alliance employs scientists and engineers with outstanding records of
+<h2>Scientific Staff</h2>
+<p> The Globus Alliance employs scientists and engineers with outstanding records of
 accomplishment to lead explorations into applied Computer and Computational
 Science.  Members of the scientific staff define research programs and lead 
-teams of researchers, programmers, students, and external partners. [<a href="scientists.php">more</a>]</td>
+teams of researchers, programmers, students, and external partners. 
+<a class="learnmore" href="scientists.php">Learn more...</a></p>
 
-<td valign=top width="50%"><b>Postdoctoral Researchers</b><br>
-Recent PhD recipients can work with senior researchers at Argonne, the 
+<h2>Postdoctoral Researchers</h2>
+<p> Recent PhD recipients can work with senior researchers at Argonne, the 
 the Information Sciences Institute, or the University of Chicago.  Postdoctoral
 researchers work with programmers and external partners to develop tools and
 applications and work with researchers to write and present papers and other
-forms of scientific communication. [<a href="postdocs.php">more</a>]</td>
-</tr>
-</table>
-<br>
+forms of scientific communication. 
+<a class="learnmore" href="postdocs.php">Learn more...</a></p>
 
-<p>For more information or to discuss opportunities, please send email to 
-<a href="mailto:jobs@globus.org">jobs@globus.org</a>.</p>
+<h2>Graduate and Undergraduate Students</h2>
+<p>Students can join us for a semester or longer to work on well-defined projects. 
+Argonne, for example, offers an Undergraduate Program in Computational Science. 
+Graduate students can also enter the University of Chicago or University of Southern 
+California.</p>
 
-<p><small>Argonne National Laboratory, the University of Chicago, and the University of Southern California are affirmative action/equal opportunity employers.</small>
+<p>For jobs at Argonne, University of Chicago, or USC-ISI, please send email to 
+<a href="mailto:jobs@globus.org">jobs@globus.org</a>. For Univa, please send
+email to <a href="mailto:jobs@univa.com">jobs@univa.com</a>.</p>
+
+<p><small>Argonne National Laboratory, the University of Chicago, and the University of 
+Southern California are affirmative action/equal opportunity employers. Univa is an
+equal opportunity employer.</small>
 
 <!-- content ENDS here -->
 
