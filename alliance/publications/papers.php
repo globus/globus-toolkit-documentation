@@ -1002,6 +1002,15 @@ submitting bibliographic citations</a>.</b></p>
 	<h2><a name="Applications">Applications</a></h2>
       
       <font SIZE="2">
+      <p><a name="esgProcIEEE2005"><b>The Earth System Grid: Supporting the Next 
+         Generation of Climate Modeling Research</b>.</a> 
+         D. Bernholdt, S. Bharathi, D. Brown, K. Chancio, M. Chen, A. Chervenak, 
+         L. Cinquini, B. Drach, I. Foster, P. Fox, J. Garcia, C. Kesselman, R. Markel,
+         D. Middleton, V. Nefedova, L. Pouchard, A. Shoshani, A. Sim, G. Strand,
+         D. Williams. <i>Proceedings of the IEEE</i>, 93:3, March, 2005, 485-495.<br>
+      [<a href="#esgProcIEEE2005">Citation</a>, 
+       <a href="papers/esgProcIEEE2005.pdf ">PDF</a>]</p>
+      
       <p><b>Grids for Experimental Science: The Virtual Control Room</b>, K.
       Keahey, M. E. Papka, Q. Peng, D. Schissel, G. Abla, T. Araki, J. Burruss,
       E. Feibush, P. Lane, S. Klasky, T. Leggett, D. McCune, L. Randerson, <i>in
