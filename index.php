@@ -19,24 +19,24 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">10.24.2005</span></td>
+              <td><b>New article details how to use GT4 authorization mechanisms.</b> 
+                <a class="learnmore" href="http://www-128.ibm.com/developerworks/grid/library/gr-gt4auth/">Learn more...</a></td>
+            </tr>
+            <tr>
+              <td><span class="newsdate">10.24.2005</span></td>
+              <td><b>Technology preview of workspace service released.</b> 
+                <a class="learnmore" href="http://workspace.globus.org/">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">10.20.2005</span></td>
               <td><b>Globus Toolkit tutorial and BOF at SC05.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
             <tr>
-              <td><span class="newsdate">10.06.2005</span></td>
-              <td><b>Buzz over Grid computing grows.</b> 
-                <a class="learnmore" href="http://www.toptechnews.com/news/Buzz-Over-Grid-Computing-Grows/story.xhtml?story_id=0120017V7H3C">Learn more...</a></td>
-            </tr>
-            <tr>
               <td><span class="newsdate">09.14.2005</span></td>
               <td><b>GridFTP used to transfer 270 TB from Brookhaven to Japan.</b> 
                 <a class="learnmore" href="http://www.cerncourier.com/main/article/45/7/15">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">09.06.2005</span></td>
-              <td><b>GridShib beta release is available.</b> 
-                <a class="learnmore" href="http://gridshib.globus.org/">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>

@@ -53,6 +53,9 @@ on the Globus Toolkit in e-Science. (11/2005)</p>
 <a class="newsalliance" href="http://www-128.ibm.com/developerworks/grid/library/gr-gt4auth/">how authorization works</a> 
 in GT4-based Java Web services. (10/2005)</p>
 
+<p>The Workspace Team announces the first technology preview release of the 
+<a class="newsalliance" href="http://workspace.globus.org/">Workspace Service</a> based on a virtual machine implementation. (10/2005)</p>
+
 <p>An article in <cite>Top Tech News</cite> discusses buzz about 
 <a class="newsmedia" href="http://www.toptechnews.com/news/Buzz-Over-Grid-Computing-Grows/story.xhtml?story_id=0120017V7H3C">Grid technology in the business community</a>. (10/2005)</p>
 
