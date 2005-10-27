@@ -49,6 +49,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <a class="newsalliance" href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5102">a half-day tutorial</a> 
 on the Globus Toolkit in e-Science. (11/2005)</p>
 
+<p>An article in <cite>IBM DeveloperWorks</cite> covers technical details about
+<a class="newsalliance" href="http://www-128.ibm.com/developerworks/grid/library/gr-gt4auth/">how authorization works</a> 
+in GT4-based Java Web services. (10/2005)</p>
+
 <p>An article in <cite>Top Tech News</cite> discusses buzz about 
 <a class="newsmedia" href="http://www.toptechnews.com/news/Buzz-Over-Grid-Computing-Grows/story.xhtml?story_id=0120017V7H3C">Grid technology in the business community</a>. (10/2005)</p>
 
