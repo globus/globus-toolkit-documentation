@@ -1,7 +1,7 @@
 XML_CATALOG_FILES=/etc/xml/catalog ../../catalog
 export XML_CATALOG_FILES
 
-FILENAME=index.xml    WS_AA_CAS_HOWTO_Setup_GridFTP.xml
+FILENAME=index.xml
 
 all: html pdf
 
