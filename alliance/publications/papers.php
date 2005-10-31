@@ -37,7 +37,7 @@ submitting bibliographic citations</a>.</b></p>
       <li><a href="#Data Grid Components">Data Grid components</a>
         (GridFTP, GASS, Replica services, Chimera, Pegasus, etc.)</li>
       <li><a href="#Resource Management Components">Resource
-        Management Components</a> (GRAM, SNAP, GARA/QoS, etc)</li>
+        Management Components</a> (GRAM, workspaces, virtual machines, GARA/QoS, etc)</li>
       <li><a href="#Information Services Components">Information
         Services Components</a> (MDS, monitoring, etc.)</li>
       <li><a href="#Security Components">Security Components</a>
@@ -453,9 +453,24 @@ submitting bibliographic citations</a>.</b></p>
 
     <h2><a name="Resource Management Components">Resource Management Components (GRAM, SNAP, GARA/Qos, etc.)</a></h2>
 
-      <p><font size="2"><strong>Grid Resource Management</strong>. J. Nabrzyski,
-      J.M. Schopf, J. Weglarz (Eds). Kluwer Publishing, Fall 2003<span lang="en-us">.<br>
-      [<a href="http://www-unix.mcs.anl.gov/~schopf/Book/">Order</a>]</span></font></p>
+    <p><strong><a name="VM-SPJ2006">Virtual Workspaces: Achieving Quality of Service and 
+       Quality of Life in the Grid</a></strong>. K. Keahey, I. Foster, T. Freeman, 
+       and X. Zhang. <i>To appear in the Scientific Programming Journal</i>, 2006.<br>
+       [<a href="#VM-SPJ2006">Citation</a>,
+        <a href="http://workspace.globus.org/papers/VW_ScientificProgrammingJournal06.pdf">PDF</a>]</p>
+
+    <p><strong><a name="Europar5005">Virtual Workspaces in the Grid</a></strong>. 
+       K. Keahey, I. Foster, T. Freeman, X. Zhang, D. Galron.
+       <i>Proceedings of Europar 2005</i>, Lisbon, Portugal, September, 2005.<br>
+       [<a href="#Europar2005">Citation</a>,
+        <a href="http://workspace.globus.org/papers/VW_EuroPar05.pdf">PDF</a>]</p>
+
+    <p><strong><a name="VM-Grid2004">From Sandbox to Playground: Dynamic Virtual Environments in the Grid</a></strong>.
+       K. Keahey, K. Doering, and I. Foster. 
+       <i>Proceedings of 5th International Workshop in Grid Computing (Grid 2004)</i>,
+       Pittsburgh, PA, November 2004.<br>
+       [<a name="#VM-Grid2004">Citation</a>,
+        <a href="http://workspace.globus.org/papers/Sandbox_To_Playground_grid2004.pdf">PDF</a>]</p>
 
 	<p><font size="2"><strong>Providing Data Transfer with QoS as
     Agreement-Based Service</strong>. H. Zhang, K. Keahey, B. Allcock. <i>2004
@@ -470,11 +485,23 @@ submitting bibliographic citations</a>.</b></p>
 	[<a href="#end-to-end02">Citation</a>, <span lang="en-us">
       <a href="papers/e2e.pdf">PDF</a></span>]</font></p>
 
+      <p><font size="2"><strong>Grid Resource Management</strong>. J. Nabrzyski,
+      J.M. Schopf, J. Weglarz (Eds). Kluwer Publishing, Fall 2003<span lang="en-us">.<br>
+      [<a href="http://www-unix.mcs.anl.gov/~schopf/Book/">Order</a>]</span></font></p>
+
 	<p><font size="2"><strong><a name="scheduling-sc">Conservative Scheduling:
     Using Predicted Variance to Improve Scheduling Decisions in Dynamic
     Environments</a></strong>.L. Yang, J.M. Schopf, I. Foster. <em>Supercomputing
     2003</em>, November 2003.
 	<br>[<a href="#scheduling-sc">Citation</a>, <a href="papers/Scheduling_SC_CamraReady.pdf">PDF</a>]</font></p>
+
+    <p><strong><a name="WM-GGF9">Dynamic Creation and  Management of Runtime 
+       Environments in the Grid</a></strong>. 
+       K. Keahey, M. Ripeanu, and K. Doering.
+       <i>Proceedings of Workshop on Designing and Building Web Services (GGF 9)</i>,
+       Chicago, IL, October,  2003.<br>
+       [<a name="WM-GGF9">Citation</a>,
+        <a href="http://workspace.globus.org/papers/Dynamic_Runtime_Environments_dbgs2003.pdf">PDF</a>]</p>
 
 	<p><font size="2"><strong><a name="ogsi-agreement">Agreement-based Grid
     Service Management (OGSI-Agreement) (Draft 0)</a></strong>. K. Czajkowski,
