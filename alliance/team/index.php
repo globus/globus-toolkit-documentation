@@ -34,16 +34,15 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 	<li><a href="http://www.mcs.anl.gov/~foster/">Ian Foster</a></li>
         <li>Tim Freeman</li>
 	<li><a href="http://www.mcs.anl.gov/~gawor">Jarek Gawor</a></li>
-        <li>Scott Gose</li>
         <li>Mihael Hategan</li>
 	<li><a href="http://www-unix.mcs.anl.gov/~keahey/">Kate Keahey</a></li>
 	<li><a href="http://www-unix.mcs.anl.gov/~kettimut/">Raj Kettimuthu</a></li>
         <li>Deepti Kodeboyina</li>
+	<li><a href="http://www-unix.mcs.anl.gov/~lane/">Peter Lane</a></li></li>
       </ul>
     </td>
     <td width="50%">
       <ul>
-	<li><a href="http://www-unix.mcs.anl.gov/~lane/">Peter Lane</a></li></li>
 	<li><a href="http://www.mcs.anl.gov/~gregor/">Gregor von Laszewski</a></li>
 	<li><a href="http://www-unix.mcs.anl.gov/~liming/">Lee Liming</a></li>
 	<li><span lang="en-us">Mike Link</span></li>
@@ -82,7 +81,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       <li>Amy Krause</li>
       <li>Mark Parsons</li>
       <li>Tom Sugden</li>
-      <li>Martin Westhead</li>
       </ul>
     </td>
     </tr>
@@ -136,8 +134,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       <li><a href="http://www.isi.edu/~deelman">Ewa Deelman</a></li>
       <li><a href="http://www.isi.edu/~sridhar">Sridhar Gullapalli</a></li>
       <li><a href="http://www.isi.edu/~carl">Carl Kesselman</a></li>
-      <li><a href="http://www.isi.edu/~gmehta">Gaurang Mehta</a></li>
-      <li>John McGee</li>
     </ul>
     </td>
     <td width="50%">
@@ -147,7 +143,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       <li>Robert Schuler</li>
       <li>Mei-Hui Su</li>
       <li><a href="http://www.isi.edu/~thiebaux">Marcus Thiebaux</a>
-	<li>Karan Vahi</li>
 	<li>Cristina Williams</li>
     </ul> 
     </td>
