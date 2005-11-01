@@ -22,7 +22,7 @@ when the Globus Alliance was formed in September 2003. The Globus Academic
 Affiliates program recognizes major contributions to the Globus Toolkit by other 
 organizations, as contributors or as users. </p> 
 
-<table border="1" width="436">
+<table border="0" width="436">
 <tr>
 <td width="161"> <p style="margin-top: 0; margin-bottom: 0"><b>Europe:</b><td>
 <td width="259" align="center"></td>
@@ -43,6 +43,13 @@ organizations, as contributors or as users. </p>
 
 <td width="259" align="center"> <a href="images/logo_PSNC.jpg"> <img border="0" src="images/logo_PSNC_small.jpg" xthumbnail-orig-image="images/logo_PSNC.jpg" width="210" height="79"></a></td>
  </tr>
+
+<tr>
+<td width="161"><p style="margin-top: 0; margin-bottom: 0"> <a href="http://www.cs.umu.se/research/grid/">Ume&aring; University</a> (Sweden)<br></td>
+
+<td width="259" align="center"><img border="0" src="images/umulogo.gif"></td>
+ </tr>
+
 
 <tr>
 <td width="161"><p style="margin-top: 0; margin-bottom: 0"><b>Asia-Pacific:</b></td>
