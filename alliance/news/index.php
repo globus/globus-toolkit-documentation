@@ -44,6 +44,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>The <a class="newspartners" href="http://newswire.ascribe.org/cgi-bin/behold.pl?ascribeid=20051102.112412&time=12%2059%20PST&year=2005&public=0">Rocks 4.1 cluster software</a> has been released with support for the Globus Toolkit 4.0.1. (11/2005)</p>
+
 <p>The SC05 conference (Seattle, Nov. 12-18) will feature 
 <a class="newsalliance" href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5272">a GT4 Birds of a Feather session</a> and 
 <a class="newsalliance" href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5102">a half-day tutorial</a> 

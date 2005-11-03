@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">11.03.2005</span></td>
+              <td><b>Rocks 4.1 Cluster software released with support for GT4.0.1.</b> 
+                <a class="learnmore" href="http://newswire.ascribe.org/cgi-bin/behold.pl?ascribeid=20051102.112412&time=12%2059%20PST&year=2005&public=0">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">10.24.2005</span></td>
               <td><b>New article details how to use GT4 authorization mechanisms.</b> 
                 <a class="learnmore" href="http://www-128.ibm.com/developerworks/grid/library/gr-gt4auth/">Learn more...</a></td>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">10.20.2005</span></td>
               <td><b>Globus Toolkit tutorial and BOF at SC05.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">09.14.2005</span></td>
-              <td><b>GridFTP used to transfer 270 TB from Brookhaven to Japan.</b> 
-                <a class="learnmore" href="http://www.cerncourier.com/main/article/45/7/15">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
