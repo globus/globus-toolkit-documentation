@@ -23,6 +23,67 @@
 <para>To alter the security descriptor configuration, refer to <ulink url="../../security/authzframe/security_descriptor.html">Security Descriptors</ulink>. The file to be altered is <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_rft/security-config.xml</computeroutput>.</para>
 </section>
 
+<section id="s-rft-admin-postgresql"><title>Required configuration: configuring the PostgreSQL
+  database</title>
+  <para>PostgreSQL (version 7.1 or greater) needs to be installed and configured for
+    RFT to work. You can either use the packages which came with your operating
+    system (RPMs, DEBs, ...) or build from source. We used
+    PostgreSQL version 7.3.2 for our testing and the following instructions are
+    good for the same. </para>
+  
+  <orderedlist>
+    <listitem><para>Install PostgreSQL. Instructions on how to install/configure
+      PostgreSQL can be found <ulink
+        url="http://www.postgresql.org/docs/manuals/">here</ulink>.</para></listitem>
+    <listitem><para>Configure the postmaster daemon
+      so that it accepts TCP connections. This can be done by adding the "-o -i" switch
+      to the postmaster script (This is either the init.d script found in /etc/init.d/postgresql or /var/lib/, depending on how you installed PostgreSQL). Follow the instructions <ulink url="http://www.postgresql.org/docs/7.4/static/postmaster-start.html">here</ulink> to start the postmaster with the -i option.</para></listitem> 
+    <listitem><para> You will now need to create a PostgreSQL user that will connect to 
+      the database. This is usually the account under which the container is 
+      running. You can create a PostgreSQL user by running the following command:
+      <computeroutput>su postgres; createuser globus</computeroutput>. If you get the following error:
+      <computeroutput>
+        psql: could not connect to server: No such file or directory
+        Is the server running locally and accepting
+        connections on Unix domain socket "/tmp/.s.PGSQL.5432"?
+      </computeroutput>
+      this generally  means that either your postmaster is not started with the -i option or you didn't restart the postmaster after the above mentioned step.</para></listitem>
+    
+    <listitem><para> Now you need to set security on the database you are about to create. You can do it by following the steps below: </para>
+      <para>
+        <computeroutput>sudo vi /var/lib/pgsql/data/pg_hba.conf </computeroutput> and append the following line to the file:
+      </para>
+      <para>
+        <computeroutput>
+          host rftDatabase "username" "host-ip" 255.255.255.255 md5
+        </computeroutput>
+        Note: use crypt instead of md5 if you are using PostgreSQL 7.3 or earlier.
+      </para>
+      
+      <para><computeroutput> sudo /etc/init.d/postgresql restart </computeroutput>
+      </para></listitem>
+    <listitem><para>To create the database that is used for RFT run (as user globus):
+      <computeroutput>createdb rftDatabase</computeroutput>.</para></listitem>
+    <listitem><para>To populate the RFT database with the appropriate schemas run: <computeroutput>psql -d rftDatabase -f $GLOBUS_LOCATION/share/globus_wsrf_rft/rft_schema.sql</computeroutput>. Now that you have created a database to store RFT's state, the following steps configure RFT to find the database:
+    </para></listitem>
+    <listitem><para>Open <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_rft/jndi-config.xml</computeroutput>.</para></listitem>
+    <listitem><para>Find the <computeroutput>dbConfiguration</computeroutput> section under the <computeroutput>ReliableFileTransferService &lt;service&gt;</computeroutput> section. </para></listitem>
+    <listitem><para>Change the <computeroutput>connectionString</computeroutput> to point to the machine on which
+      you installed PostgreSQL and to the name of the database you used in step 2. 
+      If you installed PostgreSQL on the same machine as your Globus install, the
+      default should work fine for you.</para></listitem>
+    <listitem><para>Change the <computeroutput>userName</computeroutput> to the name of the user who owns/created
+      the database and do the same for the password (it also depends on how you configured your database).</para></listitem>
+    <listitem><para>Don't worry about the other parameters in the section. The defaults should
+      work fine for now.</para></listitem>
+    <listitem><para>Edit the configuration section under <computeroutput>ReliableFileTransferService</computeroutput>. There are two values that can be edited in this section:</para></listitem>
+    <listitem><para><itemizedlist>
+      <listitem><para><computeroutput>backOff</computeroutput>: Time in seconds you want RFT to backoff before a failed transfer is retried by RFT. The default should work fine for now.</para></listitem>
+      <listitem><para><computeroutput>maxActiveAllowed</computeroutput>: This is the number of transfers the container can do at given point. The default should be fine for now.</para></listitem>
+    </itemizedlist></para></listitem>
+  </orderedlist>
+</section>
+
 <section><title>RFT auto-registration with default WS MDS Index service</title>
   <para>With a default GT 4.0.1 installation, the RFT service is automatically registered with the default [WS MDS Index Service] running in the same container for monitoring 
   and discovery purposes.</para>
