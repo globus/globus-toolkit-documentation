@@ -40,6 +40,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     of successful Grid projects.  This section of our website provides a description of the role 
     that software plays in Grid projects and descriptions of many of the software tools that GRIDS 
     Center members and our partners have used successfully in ambitious Grid applications.
+    The <b><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></b> section relates several experiences using these tools in science
+    projects.
     You may choose from the following areas.</p>
 <?php } ?> 
 
@@ -79,6 +81,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     
     <li><b><a href="packaging/">Packaging and Distribution</a></b> describes tools 
     for helping to create integrated software distributions for use in Grid projects.</b></li>
+
+<?php if ($SITE_CONTENT["GRIDS"]) { ?>
+    <li><b><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></b> 
+    relates several experiences using these software tools in science projects.</b></li>
+<?php } ?> 
 
     </ul>
 
