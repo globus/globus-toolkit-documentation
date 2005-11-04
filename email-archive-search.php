@@ -72,6 +72,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
   <option value="/mail_archive/python-discuss/">python-discuss@globus.org</option>
   <option value="/mail_archive/security-announce/">security-announce@globus.org</option>
+  <option value="/mail_archive/usage-stats/">usage-stats@globus.org</option>
 </select></p>
 
 
