@@ -5,6 +5,10 @@ include_once( "../../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 ?>
+<!--<div id="left">
+<?php include($SITE_PATHS["SERV_INC"].'solutions.inc'); ?>
+</div>
+-->
 
 <div id="main">
 
