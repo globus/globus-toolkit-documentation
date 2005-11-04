@@ -9,12 +9,12 @@
       <ul>
         <ul>
         <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'ecology.php">'; ?>An Ecosystem of Grid Components</a></li>
-        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'security-components.php">'; ?>Security</a></li>
-        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'monitoring-components.php">'; ?>Monitoring & Discovery</a></li>
-        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'computation-components.php">'; ?>Computation</a></li>
-        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'data-components.php">'; ?>Data</a></li>
-        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'collaboration-components.php">'; ?>Collaboration</a></li>
-        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'packaging-tools-and-dist.php">'; ?>Packaging & Distribution</a></li>
+        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'security/">'; ?>Security</a></li>
+        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'monitoring/">'; ?>Monitoring & Discovery</a></li>
+        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'computation/">'; ?>Computation</a></li>
+        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'data/">'; ?>Data</a></li>
+        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'collaboration/">'; ?>Collaboration</a></li>
+        <li><?php echo '<a href="'.$SITE_PATHS["WEB_SOFTWARE"].'packaging/">'; ?>Packaging & Distribution</a></li>
         <li><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></li>
         </ul>
       </ul>
