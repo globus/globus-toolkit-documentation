@@ -27,6 +27,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 	<li><a href="http://people.cs.uchicago.edu/~dangulo/">Dave Angulo</a></li>
 	<li>Tom Garritano</li>
         <li>Scott Gose</li>
+        <li>Joe Insley</li>
       <li>Sam Lang</li>
       <li>Joe Link</li>
       <li>Greg Nawrocki (now President of the Globus Consortium)</li>
