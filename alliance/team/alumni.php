@@ -49,6 +49,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         <li><a href="http://www.hawaga.org.uk/ben/">Ben Clifford</a></li>
 	<li>Nabil Deeb</li>
 	<li>Steve Fitzgerald</li>
+	<li>Larry Flon</li>
 	<li>Leon Kuntz (in memoriam)</li>
 	<li>Bob Lindell</li>
         <li><a href="http://www.isi.edu/~gmehta">Gaurang Mehta</a></li>
