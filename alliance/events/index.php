@@ -39,6 +39,14 @@ November 15, 2005<br>
 <u>Seattle, WA</u><br>
 This BOF will provide an opportunity to learn about GT4, hear from early adopters, and provide feedback on future directions.</p>
 
+<p><b><a href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5267">SC05 Birds of a Feather (BOF): Grid Applications and Performance</a></b><br>
+November 15, 2005<br>
+<u>Seattle, WA</u><br>
+Following activities at the Third International Grid Performance Workshop (June 2005), 
+this BOF will allow further discussion between tool and application stakeholders to 
+forward performance work in Grids.</p>
+
+
 <h2>October 2005</h2>
 
 <p><b><a href="http://www.ggf.org/GGF15/ggf_events_schedule_Globus.htm">GGF-15 
