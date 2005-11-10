@@ -22,6 +22,13 @@ information and notes from previous events.</p>
     
 <h2>November 2005</h2>
 
+<p><b><a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/sc05/"; ?>">SC05</a></b><br>
+November 13-17, 2005<br>
+<u>Seattle, WA</u><br>
+Globus Alliance members will 
+<a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/sc05/"; ?>">showcase their recent work</a> 
+at SC05.</p>
+
 <p><b><a href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5102">SC05 
 Tutorial: The Globus Toolkit in e-Science: Examples and Lessons</a></b><br>
 November 13, 2005<br>

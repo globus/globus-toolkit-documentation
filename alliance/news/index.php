@@ -49,7 +49,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p>The SC05 conference (Seattle, Nov. 12-18) will feature 
 <a class="newsalliance" href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5272">a GT4 Birds of a Feather session</a> and 
 <a class="newsalliance" href="http://sc05.supercomputing.org/schedule/event_detail.php?evid=5102">a half-day tutorial</a> 
-on the Globus Toolkit in e-Science. (11/2005)</p>
+on the Globus Toolkit in e-Science. A 
+<a class="newsalliance" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/sc05/"; ?>">summary of our activities at SC05</a> is available. (11/2005)</p>
 
 <p>An article in <cite>IBM DeveloperWorks</cite> covers technical details about
 <a class="newsalliance" href="http://www-128.ibm.com/developerworks/grid/library/gr-gt4auth/">how authorization works</a> 
