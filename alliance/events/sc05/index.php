@@ -38,6 +38,10 @@ in our information packets this year.</p>
 
 <p><b><a href="MDS4-sc05-v3b.pdf">MDS4: The GT4 Monitoring and Discovery System</a></b></p>
 
+<p><b><a href="RLSsc2005handout.pdf">The Globus Replica Location Service</a></b></p>
+
+<p><b><a href="DRSsc2005handout.pdf">The Globus Data Replication Service</a></b></p>
+
 <p><b><a href="gridshib-sc05.pdf">GridShib: Integrating identity federation (Shibboleth) 
    with the Globus Toolkit to provide attribute-based authorization for distributed 
    scientific communities.</a></b></p>
