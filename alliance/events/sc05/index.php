@@ -11,9 +11,14 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h1>The Globus Alliance at SC|05</h1>
 
+<p>Globus Alliance members won't be hard to find at SC05 in Seattle, November 13-17, 2005.
+Our activities include a half-day tutorial on Sunday, two "birds of a feather" meetings
+on Tuesday, paper presentations, and continuous exhibits and presentations at the Argonne 
+National Laboratory booth (R1629) in the exhibiter hall.</p>
+
 <h2>Events</h2>
 
-<p>The Globus Alliance is providing the following elements of the SC|05 program.</p>
+<p>Alliance members are providing the following components of the SC|05 program.</p>
 
 <ul>
 <li><a href="Booth.pdf">Exhibits and presentations at the Argonne National Laboratory Booth (R1629)</a></li>
@@ -26,7 +31,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2>Information</h2>
 
-<p>The Globus Alliance is distributing information to SC|05 attendees from our
+<p>We are distributing information to SC|05 attendees from our
 base in the Argonne National Laboratory booth. The following materials are included
 in our information packets this year.</p>
 
