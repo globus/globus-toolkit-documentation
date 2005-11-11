@@ -1,3 +1,260 @@
+<section id="s-wsgram-admin-configuring-typical"><title>Typical Configuration</title>
+    
+    <section id="s-wsgram-admin-configsudo"><title>Configuring sudo</title>
+        <para>When the credentials of the service account and the job submitter are different
+            (multi user mode), then GRAM will prepend a call to sudo to the local adapter
+            callout command. <emphasis>Important:</emphasis> If sudo is not configured properly, the command
+            and thus job will fail.</para>
+        <para>
+            As <emphasis>root</emphasis>, here are the two lines to add to the
+            /etc/sudoers file for each GLOBUS_LOCATION installation, where
+            /opt/globus/GT4.0.0 should be replaced with the GLOBUS LOCATION for your
+            installation:
+            <screen># Globus GRAM entries
+                globus  ALL=(username1,username2) 
+                NOPASSWD: /opt/globus/GT4.0.0/libexec/globus-gridmap-and-execute 
+                -g /etc/grid-security/grid-mapfile
+                /opt/globus/GT4.0.0/libexec/globus-job-manager-script.pl *
+                globus  ALL=(username1,username2) 
+                NOPASSWD: /opt/globus/GT4.0.0/libexec/globus-gridmap-and-execute 
+                -g /etc/grid-security/grid-mapfile
+                /opt/globus/GT4.0.0/libexec/globus-gram-local-proxy-tool *
+            </screen>
+            
+        </para>
+        <para>
+            The <computeroutput>globus-gridmap-and-execute</computeroutput> program is
+            used to ensure that GRAM only runs programs under accounts that are in the
+            grid-mapfile.  In the sudo configuration, it is the first program called.
+            It looks up the account in the grid-mapfile and then runs the requested 
+            command.  It is redundant if sudo is properly locked down.  This tool 
+            could be replaced with your own authorization program.
+        </para>
+    </section>
+    <!-- Configuring sudo -->
+    
+    <section id="s-wsgram-admin-configuringscheduleradapters"><title>Configuring Scheduler Adapters</title>
+        <para>
+            The WS GRAM scheduler adapters included in the release tarball
+            are: <glossterm linkend="pbs">PBS</glossterm>, <glossterm linkend="condor">Condor</glossterm> and <glossterm linkend="lsf">LSF</glossterm>. To install, follow these steps (shown for pbs):
+            
+            <screen>    % cd $GLOBUS_LOCATION\gt4.0.0-all-source-installer
+                
+                % make gt4-gram-pbs
+                
+                % make install
+                
+            </screen>
+        </para>
+        <para>
+            Using PBS as the example, make sure the scheduler commands are in your
+            path (qsub, qstat, pbsnodes).
+        </para>
+        <para> For PBS, another setup step is required to configure the remote shell for
+            rsh access: 
+            
+            <screen>
+                
+                % cd $GLOBUS_LOCATION/setup/globus
+                
+                % ./setup-globus-job-manager-pbs --remote-shell=rsh
+                
+            </screen>
+        </para>
+        <para>
+            The last thing is to define the <link linkend="s-wsgram-Interface_Config_Frag-filesysmap">GRAM 
+                and GridFTP file system mapping</link> for PBS.  A default
+            mapping in this file is created to allow simple jobs to run.  However, the
+            actual file system mappings for your compute resource should be entered to
+            ensure:
+            <itemizedlist>
+                <listitem><para>files staging is performed correctly
+                </para>
+                </listitem>
+                <listitem><para>
+                    jobs with erroneous file path directives are rejected</para>
+                </listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            Done! You have added the PBS scheduler adapters to your GT installation.
+        </para>
+        <para>
+            Note for future GT builds with scheduler adapters: scheduler adapters can
+            be enabled by adding --enable-wsgram-pbs to the configure line when
+            building the entire toolkit.
+            <screen>
+                % configure --prefix=$GLOBUS_LOCATION --enable-wsgram-pbs ...
+                % make
+                % make install
+            </screen>
+        </para>
+    </section>
+    <!-- enabling scheduler adapters -->
+    
+</section>
+<!-- Typical Configuration -->
+
+<section id="s-wsgram-admin-configuring-nondefault"><title>Non-default Configuration</title>
+    
+    <section id="s-wsgram-admin-userproxy"><title>Non-default Credentials</title>
+        <para>
+            To run the container using just a user proxy, instead of host creds,
+            edit the
+            <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml</computeroutput>
+            file, and either comment out the credentials section...
+            <screen>
+                &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+                &lt;securityConfig xmlns="http://www.globus.org"&gt;
+                &lt;!--
+                &lt;credential&gt;
+                &lt;key-file value="/etc/grid-security/containerkey.pem"/&gt;
+                &lt;cert-file value="/etc/grid-security/containercert.pem"/&gt;
+                &lt;credential&gt;
+                --&gt;
+                &lt;gridmap value="/etc/grid-security/grid-mapfile"/&gt;
+                &lt;securityConfig&gt;
+            </screen>
+            or replace the credentials section with a proxy file location...
+            <screen>
+                &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+                &lt;securityConfig xmlns="http://www.globus.org"&gt;
+                &lt;proxy-file value="&lt;PATH TO PROXY FILE&gt;"/&gt;
+                &lt;gridmap value="/etc/grid-security/grid-mapfile"/&gt;
+                &lt;securityConfig&gt;
+            </screen>
+            Running in personal mode (user proxy), another GRAM configuration setting
+            is required. For GRAM to authorize the RFT service when performing
+            staging functions, it needs to know the subject DN for verification. Here are
+            the steps:
+            <screen>
+                % cd $GLOBUS_LOCATION/setup/globus
+                % ./setup-gram-service-common --staging-subject=
+                "/DC=org/DC=doegrids/OU=People/CN=Stuart Martin 564720"
+            </screen>
+            You can get your subject DN by running this command:
+            <screen>
+                % grid-cert-info -subject
+            </screen>
+        </para>
+    </section>
+    <!-- Non-default Credentials -->
+    
+    <section id="s-wsgram-admin-nondefaultgridftp"><title>Non-default GridFTP server </title>
+        <para>
+            By default, the GridFTP server is assumed to run as root on localhost:2811.
+            If this is not true for your site then change it by editing the GridFTP host
+            and/or port in the <link linkend="s-wsgram-Interface_Config_Frag-filesysmap">GRAM and GridFTP file system mapping</link> config file: <computeroutput>$GLOBUS_LOCATION/etc/gram-service/globus_gram_fs_map_config.xml</computeroutput>.
+        </para>
+        
+    </section>
+    <!-- Non-default GridFTP server -->
+    
+    <section id="s-wsgram-admin-nondefaultcontainerport"><title>Non-default container port</title>
+        <para>
+            By default, the globus services will assume 8443 is the port the Globus
+            container is using.  However the container can be run under a non-standard
+            port, for example:
+            <screen>
+                % globus-start-container -p 4321
+            </screen>
+        </para>
+    </section>
+    <!-- Non-default container port -->
+    
+    <section id="s-wsgram-admin-nondefaultgridmap"><title>Non-default gridmap</title>
+        <para>
+            If you wish to specify a non-standard gridmap file in a multi-user
+            installation, two basic configurations need to be changed:</para>
+        
+        <itemizedlist>
+            <listitem><para>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml
+                <itemizedlist><listitem><simpara>As specified in the <ulink url="http://www.globus.org/toolkit/docs/4.0/security/authzframe/security_descriptor.html#s-authzframe-secdesc-configGridmap">gridmap config</ulink> instructions, add a &lt;gridmap value="..."/&gt;
+                    element to the file appropriately.</simpara></listitem>
+                </itemizedlist>
+            </para></listitem>
+            
+            <listitem><para>/etc/sudoers
+                <itemizedlist>
+                    <listitem><para>Change the file path after all -g options<screen>-g /path/to/grid-mapfile</screen>.
+                    </para></listitem>
+                </itemizedlist>
+            </para></listitem>
+        </itemizedlist>
+        
+        <para>
+            Example:
+            
+            <emphasis>global_security_descriptor.xml</emphasis>
+            <screen>
+                ...
+                
+                &lt;gridmap value="/opt/grid-mapfile"/&gt;
+                
+                ...
+            </screen>
+            <emphasis>sudoers</emphasis>
+            <screen>
+                ...
+                
+                # Globus GRAM entries
+                globus  ALL=(username1,username2) 
+                NOPASSWD: /opt/globus/GT4.0.0/libexec/globus-gridmap-and-execute 
+                -g /opt/grid-mapfile
+                /opt/globus/GT4.0.0/libexec/globus-job-manager-script.pl *
+                globus  ALL=(username1,username2) 
+                NOPASSWD: /opt/globus/GT4.0.0/libexec/globus-gridmap-and-execute 
+                -g /opt/grid-mapfile
+                /opt/globus/GT4.0.0/libexec/globus-gram-local-proxy-tool *
+                
+                ...
+            </screen>
+        </para>
+    </section>
+    <!-- Non-default gridmap file -->
+    
+    <section id="s-wsgram-admin-nondefaultrft"><title>Non-default RFT deployment</title>
+        <para>
+            RFT is used by GRAM to stage files in and out of the job execution environment.
+            In the default configuration, RFT is hosted in the same container as GRAM and
+            is assumed to have the same service path and standard service names. This need
+            not be the case.  For example, the most likely alternative scenario is that RFT
+            would be hosted seperately in a container on a different machine.  In any case,
+            both the RFT and the Delegation Service endpoints need to be adjustable to allow
+            this flexibility.  The following options can be passed to the
+            <emphasis>setup-gram-service-common</emphasis> script to affect these settings:
+        </para>
+        <screen>
+            --staging-protocol=&lt;protocol&gt;
+            --staging-host=&lt;host&gt;
+            --staging-port=&lt;port&gt;
+            --staging-service-path=&lt;RFT and Delegation factory service path&gt;
+            --staging-factory-name=&lt;RFT factory service name&gt;
+            --staging-delegation-factory-name=&lt;name of Delegation factory service used by RFT&gt;
+        </screen>
+        <simpara>for example</simpara>
+        <screen>
+            % setup-gram-service-common \
+            --staging-protocol=http
+            --staging-host=somemachine.fakedomain.net
+            --staging-port=8444
+            --staging-service-path=/tomcat/services/
+            --staging-factory-name=MyReliableFileTransferFactoryService
+            --staging-delegation-factory-name=MyDelegationFactoryServiceForRFT
+        </screen>
+        <simpara>will internally cause the GRAM service code to construct the following
+            EPR addresses:</simpara>
+        <screen>
+            http://somemachine.fakedomain.net:8444/tomcat/services/MyReliableFileTransferFactoryService
+            
+            http://somemachine.fakedomain.net:8444/tomcat/services/MyDelegationFactoryServiceForRFT
+        </screen>
+    </section> 
+    <!-- Non-default RFT deployment -->
+    
+</section>
+<!-- Non-default Configuration -->
+
 <section id="s-wsgram-Interface_Config_Frag-configfilelocation"><title>Locating configuration files</title>
 <para>
 All the GRAM service configuration files are located in subdirectories of 
