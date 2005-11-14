@@ -43,6 +43,10 @@ in our information packets this year.</p>
 
 <p><b><a href="MDS4-sc05-v3b.pdf">MDS4: The GT4 Monitoring and Discovery System</a></b></p>
 
+<p><b><a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/chervenakGrid2005.pdf"; ?>">Wide Area Data Replication for Scientific Collaborations.</a></b> 
+A. Chervenak, R. Schuler, C. Kesselman, S. Koranda, B. Moe. <em>Proceedings of 6th 
+IEEE/ACM International Workshop on Grid Computing (Grid2005)</em>, November 2005.</p>
+
 <p><b><a href="RLSsc2005handout.pdf">The Globus Replica Location Service</a></b></p>
 
 <p><b><a href="DRSsc2005handout.pdf">The Globus Data Replication Service</a></b></p>
@@ -54,6 +58,8 @@ in our information packets this year.</p>
 <p><b><a href="DASH_SC05.pdf">DASH: Database for Secure Hyperinfrastructure</a></b></p>
 
 <p><b><a href="ESF_SC05_Flyer_OSG.pdf">ESF: Edge Services Framework for Computational Grids</a></b></p>
+
+<p><b><a href="http://www.cogkit.org/user/index.php/SC05">Java CoG Kit at SC05</a></b></p>
 
 </div>
 
