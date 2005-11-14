@@ -41,6 +41,7 @@ function GlobusSubmit()
     <li id="nav-3"><a href="http://www.globus.org/toolkit/">Globus Toolkit</a></li>
     <li id="nav-4"><a href="http://www.globus.org/grid_software/">Grid Software</a></li>
     <li id="nav-5"><a href="http://www.globus.org/solutions/">Grid Solutions</a></li>
+	<li id="nav-6"><a href="https://dev.globus.org/wiki/Welcome">GlobDev</a></li>
     <!-- end of navigation list -->
   </ul>
 
