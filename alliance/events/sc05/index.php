@@ -39,7 +39,7 @@ in our information packets this year.</p>
    I. Foster.  <em>IFIP International Conference on Network and Parallel Computing</em>, 
    Springer-Verlag LNCS 3779, pp 2-13, 2005.</p>
 
-<p><b>Service-Oriented Science</b>. I. Foster. <em>Science</em>, vol. 308, May 6, 2005.</p>
+<p><b><a href="http://www-fp.mcs.anl.gov/~foster/science-2005.htm">Service-Oriented Science</a></b>. I. Foster. <em>Science</em>, vol. 308, May 6, 2005.</p>
 
 <p><b><a href="MDS4-sc05-v3b.pdf">MDS4: The GT4 Monitoring and Discovery System</a></b></p>
 
