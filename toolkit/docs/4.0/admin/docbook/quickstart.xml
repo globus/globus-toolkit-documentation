@@ -1,0 +1,218 @@
+<chapter id="c-quickstart">
+<title>4.0.1 quickstart</title>
+
+<section id="q-intro"><title>Introduction</title>
+<para>
+This is a quickstart that shows a full installation of the Toolkit
+on two Debian 3.1 machines.  It shows the installation of prereqs, 
+installation of the toolkit, creation of certificates, and configuration
+of services.  It is designed to supplement the main admin guide.
+</para>
+</section>
+
+<section id="q-prereq"><title>Pre-requisites</title>
+
+<para>I will be installing all of the toolkit from source, so
+I'm going to double-check my system for pre-requisites.  The full list
+of prereqs is available at <xref linkend="s-prereq-required"/>.
+</para>
+
+<para>First I'll check for zlib development libraries for GSI-OpenSSH:
+<screen>
+choate % dpkg --list | grep zlib
+ii  zlib-bin       1.2.2-4.sarge. compression library - sample programs
+ii  zlib1g         1.2.2-4.sarge. compression library - runtime
+ii  zlib1g-dev     1.2.2-4.sarge. compression library - development
+</screen>
+I have zlib1g-dev installed, so I will be okay for building GSI-OpenSSH.
+</para>
+<note>
+<para>The package names may vary for non-Debian systems.  The RPM name
+we would look for is <filename>zlib-devel</filename>.</para>
+</note>
+
+<para>Next, I'll install java from Sun.  It's called the "J2SE SDK" on
+their website.
+<screen>
+root@choate:/usr/java# ./j2sdk-1_4_2_10-linux-i586.bin 
+                Sun Microsystems, Inc.
+             Binary Code License Agreement
+                     for the
+JAVATM 2 SOFTWARE DEVELOPMENT KIT (J2SDK), STANDARD EDITION,
+...
+Creating j2sdk1.4.2_10/jre/lib/plugin.jar
+Creating j2sdk1.4.2_10/jre/javaws/javaws.jar
+Done.
+</screen>
+</para>
+
+<para>Next, we install ant:
+<screen>
+root@choate:/usr/local# tar xzf apache-ant-1.6.5-bin.tar.gz 
+root@choate:/usr/local# ls apache-ant-1.6.5
+bin   INSTALL  LICENSE      LICENSE.xerces  TODO
+docs  KEYS     LICENSE.dom  NOTICE          welcome.html
+etc   lib      LICENSE.sax  README          WHATSNEW
+</screen>
+</para>
+
+<para>My system already has C/C++ compilers:
+<screen>
+choate % gcc --version
+gcc (GCC) 3.3.5 (Debian 1:3.3.5-13)
+Copyright (C) 2003 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+choate % g++ --version
+g++ (GCC) 3.3.5 (Debian 1:3.3.5-13)
+Copyright (C) 2003 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+</screen>
+</para>
+
+<para>GNU versions of tar/make/sed:
+<screen>
+choate % tar --version
+tar (GNU tar) 1.14
+Copyright (C) 2004 Free Software Foundation, Inc.
+This program comes with NO WARRANTY, to the extent permitted by law.
+You may redistribute it under the terms of the GNU General Public License;
+see the file named COPYING for details.
+Written by John Gilmore and Jay Fenlason.
+choate % sed --version
+GNU sed version 4.1.2
+Copyright (C) 2003 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE,
+to the extent permitted by law.
+choate % make --version
+GNU Make 3.80
+Copyright (C) 2002  Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+</screen>
+</para>
+
+<para>I have sudo for GRAM:
+<screen>
+choate % sudo -V
+Sudo version 1.6.8p7
+</screen>
+</para>
+
+<para>Let's check for postgres:
+<screen>
+choate % dpkg --list | grep postgres
+ii  postgresql-cli 7.4.7-6sarge1  front-end programs for PostgreSQL
+choate % dpkg --list | grep psql
+choate % 
+</screen>
+I don't have it, so I'll install them:
+<screen>
+root@choate:/usr/local# apt-get install postgresql
+Reading Package Lists... Done
+Building Dependency Tree... Done
+Suggested packages:
+  libpg-perl libpgjava libpgtcl postgresql-doc postgresql-dev
+  postgresql-contrib pidentd ident-server pgdocs pgaccess
+The following NEW packages will be installed:
+  postgresql
+...
+Success. The database server should be started automatically.
+If not, you can start the database server using:
+
+    /etc/init.d/postgresql start
+</screen>
+I will have to edit the configuration files later for RFT, but having
+it installed is enough for now.
+</para>
+
+<para>For the sake of completeness, I will also install IODBC, which
+is an optional prereq for RLS:
+
+<screen>
+root@choate:/root# tar xzf libiodbc-3.51.2.tar.gz 
+root@choate:/root# cd libiodbc-3.51.2
+root@choate:/root# ./configure --prefix=/usr/local/iodbc-3.51.2 --enable-static \
+   --disable-shared --disable-gui --disable-gtktest
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+...
+  GUI Extensions          false
+  ThreadSafe              true
+
+root@choate:/root/libiodbc-3.51.2# make &amp;&amp; make install 
+Making all in admin
+make[1]: Entering directory `/root/libiodbc-3.51.2/admin'
+...
+make[2]: Leaving directory `/root/libiodbc-3.51.2'
+make[1]: Leaving directory `/root/libiodbc-3.51.2'
+root@choate:/root/libiodbc-3.51.2# 
+</screen>
+</para>
+
+<para>
+That completes the list of build prereqs, so now I will download the installer and build it.
+
+<screen>
+root@choate:/etc/init.d# groupadd globus
+root@choate:/etc/init.d# useradd -m -g globus globus
+root@choate:/etc/init.d# mkdir /usr/local/globus-4.0.1/
+root@choate:/etc/init.d# chown globus:globus /usr/local/globus-4.0.1/
+root@choate:/etc/init.d# su - globus
+globus@choate:~$ tar xzf gt4.0.1-all-source-installer.tar.gz
+globus@choate:~$ cd gt4.0.1-all-source-installer
+globus@choate:~/gt4.0.1-all-source-installer$ ./configure --prefix=/usr/local/globus-4.0.1/ \
+    --with-iodbc=/usr/local/iodbc-3.51.2/
+checking build system type... i686-pc-linux-gnu
+checking for javac... no
+configure: WARNING: A Java compiler is needed for some parts of the toolkit
+configure: WARNING: This message can be ignored if you are only building the C parts of the toolkit
+checking for ant... no
+configure: WARNING: ant is needed for some parts of the toolkit
+configure: WARNING: If you know you will not need one
+configure: creating ./config.status
+config.status: creating Makefile
+</screen>
+Whoops!  I forgot to set my ANT_HOME and JAVA_HOME environment variables.  Let me do that now:
+<screen>
+globus@choate:~/gt4.0.1-all-source-installer$ export ANT_HOME=/usr/local/apache-ant-1.6.5
+globus@choate:~/gt4.0.1-all-source-installer$ export JAVA_HOME=/usr/java/j2sdk1.4.2_10/
+globus@choate:~/gt4.0.1-all-source-installer$ export PATH=$ANT_HOME/bin:$JAVA_HOME/bin:$PATH
+globus@choate:~/gt4.0.1-all-source-installer$ ./configure --prefix=/usr/local/globus-4.0.1/ \
+   --with-iodbc=/usr/local/iodbc-3.51.2/
+checking build system type... i686-pc-linux-gnu
+checking for javac... /usr/java/j2sdk1.4.2_10//bin/javac
+checking for ant... /usr/local/apache-ant-1.6.5/bin/ant
+configure: creating ./config.status
+config.status: creating Makefile
+</screen>
+Much better!
+</para>
+<note><para>
+The machine I am installing on doesn't have access to a scheduler.  If it did, I would have specified one of the wsgram scheduler options, like <option>--enable-wsgram-condor</option>, <option>--enable-wsgram-lsf</option>, or <option>--enable-wsgram-pbs</option>.
+</para></note>
+<note><para>
+Note that I really could have used the binary installer for this example,
+since Debian ia32 binaries are available.  To make the quickstart more
+general, I decided to use source instead.
+</para></note>
+
+<para>Now it's time to build the toolkit:
+<screen>
+globus@choate:~/gt4.0.1-all-source-installer$ make | tee installer.log
+cd gpt-3.2autotools2004 &amp;&amp; OBJECT_MODE=32 ./build_gpt
+build_gpt ====&gt; installing GPT into /usr/local/globus-4.0.1/
+...
+Time for a coffee break here, the build will take over an hour, possibly
+longer depending on how fast your machine is
+...
+</screen>
+</para>
+</section>
+
+</chapter>
+
