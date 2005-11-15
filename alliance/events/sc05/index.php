@@ -51,6 +51,8 @@ IEEE/ACM International Workshop on Grid Computing (Grid2005)</em>, November 2005
 
 <p><b><a href="DRSsc2005handout.pdf">The Globus Data Replication Service</a></b></p>
 
+<p><b><a href="sc05_brochure.pdf">Pegasus: Planning for Execution in Grids</a></b></p>
+
 <p><b><a href="gridshib-sc05.pdf">GridShib: Integrating identity federation (Shibboleth) 
    with the Globus Toolkit to provide attribute-based authorization for distributed 
    scientific communities.</a></b></p>
