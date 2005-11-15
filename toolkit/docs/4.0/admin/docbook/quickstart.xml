@@ -153,8 +153,23 @@ Setting up libiodbc2-dev (3.52.2-3) ...
 That completes the list of build prereqs, so now I will download the installer and build it.
 
 <screen>
-<prompt>root@choate:/etc/init.d#</prompt> <userinput>groupadd globus</userinput>
-<prompt>root@choate:/etc/init.d#</prompt> <userinput>useradd -m -g globus globus</userinput>
+<prompt>root@cognito:~#</prompt> <userinput>adduser globus</userinput>
+Adding user `globus'...
+Adding new group `globus' (1023).
+Adding new user `globus' (1023) with group `globus'.
+Creating home directory `/home/globus'.
+Copying files from `/etc/skel'
+Enter new UNIX password:<userinput>********</userinput>
+Retype new UNIX password:<userinput>********</userinput>
+passwd: password updated successfully
+Changing the user information for globus
+Enter the new value, or press ENTER for the default
+Full Name []: Globus
+Room Number []:
+Work Phone []:
+Home Phone []:
+Other []:
+Is the information correct? [y/N] <userinput>y</userinput>
 <prompt>root@choate:/etc/init.d#</prompt> <userinput>mkdir /usr/local/globus-4.0.1/</userinput>
 <prompt>root@choate:/etc/init.d#</prompt> <userinput>chown globus:globus /usr/local/globus-4.0.1/</userinput>
 <prompt>root@choate:/etc/init.d#</prompt> <userinput>su - globus</userinput>
@@ -565,6 +580,9 @@ export GLOBUS_LOCATION=/usr/local/globus-4.0.1
 export JAVA_HOME=/usr/java/j2sdk1.4.2_10/
 export ANT_HOME=/usr/local/apache-ant-1.6.5
 export GLOBUS_OPTIONS="-Xms256M -Xmx512M"
+
+. $GLOBUS_LOCATION/etc/globus-user-env.sh
+
 cd $GLOBUS_LOCATION
 case "$1" in
     start)
@@ -689,7 +707,7 @@ That is the expected output, so it looks like the container is up and running.  
 First, we'll configure the system to allow TCP/IP connections to postgres, as well as adding a trust entry for our current host:
 <screen>
 <prompt>root@choate:~#</prompt> <userinput>vim /var/lib/postgres/postmaster.conf </userinput>
-<prompt>root@choate:~#</prompt> <userinput>grep POSTMASTER /etc/postgresql/postmaster.conf </userinput>
+<prompt>root@choate:~#</prompt> <userinput>grep POSTMASTER /var/lib//postgres/postmaster.conf </userinput>
 POSTMASTER_OPTIONS="-i"
 <prompt>root@choate:~#</prompt> <userinput>vim /var/lib/postgres/data/pg_hba.conf </userinput>
 <prompt>root@choate:~#</prompt> <userinput>grep rftDatabase /etc/postgresql/pg_hba.conf </userinput>
@@ -741,7 +759,7 @@ I have created the database, loaded the RFT schema, and changed the password in 
 </para>
 
 <para>
-The database is etup, so we restart the container:
+The database is setup, so we restart the container:
 <screen>
 <prompt>root@choate:~#</prompt> <userinput>/etc/init.d/globus-4.0.1 restart</userinput>
 Stopping Globus container. PID: 29985
@@ -760,10 +778,363 @@ With the following services:
 </screen>
 Great, we got rid of the warning.  Now let's try an RFT transfer to make sure the service is really working:
 <screen>
-An RFT xfer
+<prompt>choate %</prompt> <userinput>cp /usr/local/globus-4.0.1/share/globus_wsrf_rft_test/transfer.xfr /tmp/rft.xfr</userinput>
+<prompt>choate %</prompt> <userinput>vim /tmp/rft.xfr </userinput>
+<prompt>choate %</prompt> <userinput>cat /tmp/rft.xfr </userinput>
+true
+16000
+16000
+false
+1
+true
+1
+null
+null
+false
+10
+gsiftp://choate.mcs.anl.gov:2811/etc/group
+gsiftp://choate.mcs.anl.gov:2811/tmp/rftTest_Done.tmp
+<prompt>choate %</prompt> <userinput>rft -h choate.mcs.anl.gov -f /tmp/rft.xfr </userinput>
+Number of transfers in this request: 1
+Subscribed for overall status
+Termination time to set: 60 minutes
+
+ Overall status of transfer:
+Finished/Active/Failed/Retrying/Pending
+0/1/0/0/0
+
+ Overall status of transfer:
+Finished/Active/Failed/Retrying/Pending
+1/0/0/0/0
+All Transfers are completed
+<prompt>choate %</prompt> <userinput>diff /etc/group /tmp/rftTest_Done.tmp </userinput>
+<prompt>choate %</prompt> 
+</screen>
+RFT did its job, starting up a reliable transfer and notifying us of the status and results.
+</para>
+</section>
+
+<section><title>Setting up WS GRAM</title>
+<para>
+Now that we have GridFTP and RFT working, we can setup GRAM for resource
+management.  First we have to setup sudo so the globus user can start jobs
+as a different user:
+<screen>
+<prompt>root@choate:~#</prompt> <userinput>visudo</userinput>
+<prompt>root@choate:~#</prompt> <userinput>cat /etc/sudoers </userinput>
+globus ALL=(bacon) NOPASSWD: /usr/local/globus-4.0.1/libexec/globus-gridmap-and-execute -g /etc/grid-security/grid-mapfile /usr/local/globus-4.0.1/libexec/globus-job-manager-script.pl *
+globus  ALL=(bacon) NOPASSWD: /usr/local/globus-4.0.1/libexec/globus-gridmap-and-execute -g /etc/grid-security/grid-mapfile /usr/local/globus-4.0.1/libexec/globus-gram-local-proxy-tool *
+</screen>
+With that addition, we can now run jobs:
+<screen>
+<prompt>choate %</prompt> <userinput>globusrun-ws -submit -c /bin/true</userinput>
+Submitting job...Done.
+Job ID: uuid:3304e3f2-55f2-11da-8b8f-00d0b7b7c0bc
+Termination time: 11/16/2005 16:09 GMT
+Current job state: Active
+Current job state: CleanUp
+Current job state: Done
+Destroying job...Done.
+<prompt>choate %</prompt> <userinput>echo $?</userinput>
+0
+<prompt>choate %</prompt> <userinput>globusrun-ws -submit -c /bin/false</userinput>
+Submitting job...Done.
+Job ID: uuid:456b7c9a-55f2-11da-9b0d-00d0b7b7c0bc
+Termination time: 11/16/2005 16:09 GMT
+Current job state: Active
+Current job state: CleanUp
+Current job state: Done
+Destroying job...Done.
+<prompt>choate %</prompt> <userinput>echo $?</userinput>
+1
+</screen>
+Success.  Now we've got a working GRAM installation.
+</para>
+</section>
+
+<section><title>Setting up your second machine: Prereqs</title>
+<para>
+Alas, it's not much of a grid with just one machine.  So let's start up
+on another machine and add it to this little test grid.  For a change of
+pace, I'm going to use the binary installer on this machine.  First, though,
+let's get some prereqs out of the way:
+<screen>
+<prompt>root@cognito:~#</prompt> <userinput>adduser globus</userinput>
+<prompt>root@cognito:~#</prompt> <userinput>mkdir /usr/local/globus-4.0.1</userinput>
+<prompt>root@cognito:~#</prompt> <userinput>chown globus:globus /usr/local/globus-4.0.1</userinput>
+<prompt>root@cognito:/usr/java#</prompt> <userinput>./j2sdk-1_4_2_10-linux-i586.bin </userinput>
+<prompt>root@cognito:/usr/local#</prompt> <userinput>tar xzf apache-ant-1.6.5-bin.tar.gz </userinput>
+<prompt>globus@cognito:~$</prompt> <userinput>tar xzf gt4.0.1-ia32_debian_3.1-binary-installer.tar.gz</userinput>
+<prompt>globus@cognito:~$</prompt> <userinput>export JAVA_HOME=/usr/java/j2sdk1.4.2_10/</userinput>
+<prompt>globus@cognito:~$</prompt> <userinput>export ANT_HOME=/usr/local/apache-ant-1.6.5/</userinput>
+<prompt>globus@cognito:~$</prompt> <userinput>export PATH=$ANT_HOME/bin:$JAVA_HOME/bin:$PATH</userinput>
+</screen>
+</para>
+<note><para>
+You might notice that I didn't install Postgres on this machine.  That's
+because my grid can actually share the services of the RFT located on my
+first machine.  Even if I weren't planning on that, I could add this new
+machine to the pg_hba.conf on the first machine and re-use the existing
+DB server.
+</para></note>
+
+</section>
+
+<section><title>Setting up your second machine: Installation</title>
+<para>
+Now we can install from binaries:
+<screen>
+
+<prompt>globus@cognito:~/gt4.0.1-ia32_debian_3.1-binary-installer$</prompt> <userinput>./configure --prefix=/usr/local/globus-4.0.1</userinput>
+checking for javac... /usr/java/j2sdk1.4.2_10//bin/javac
+checking for ant... /usr/local/apache-ant-1.6.5//bin/ant
+configure: creating ./config.status
+config.status: creating Makefile
+<prompt>globus@cognito:~/gt4.0.1-ia32_debian_3.1-binary-installer$</prompt> <userinput>make</userinput>
+cd gpt-3.2autotools2004 &amp;&amp; OBJECT_MODE=32 ./build_gpt
+...
+Binaries are much faster!  This is done in less than 10 minutes.
+...
+tar -C /usr/local/globus-4.0.1 -xzf binary-trees/globus_wsrf_rft_test-*/*.tar.gz
+tar -C /usr/local/globus-4.0.1 -xzf binary-trees/globus_rendezvous-*/*.tar.gz
+echo "Your build completed successfully.  Please run make install."
+Your build completed successfully.  Please run make install.
+<prompt>globus@cognito:~/gt4.0.1-ia32_debian_3.1-binary-installer$</prompt> <userinput>make install</userinput>
+ln -s /usr/local/globus-4.0.1/etc/gpt/packages /usr/local/globus-4.0.1/etc/globus_packages
+...
+config.status: creating fork.pm
+..Done
+</screen>
+</para>
+</section>
+
+<section><title>Setting up your second machine: Security</title>
+<para>Now let's get security setup on the second machine.  We're going to just add trust for the original simpleCA to this new machine, there's no need to
+create a new one:
+<screen>
+<prompt>globus@cognito:~$</prompt> <userinput>scp choate:.globus/simpleCA/globus_simple_ca_ebb88ce5_setup-0.18.tar.gz .</userinput>
+<prompt>globus@cognito:~$</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-4.0.1</userinput>
+<prompt>globus@cognito:~$</prompt> <userinput>$GLOBUS_LOCATION/sbin/gpt-build globus_simple_ca_ebb88ce5_setup-0.18.tar.gz </userinput>
+gpt-build ====&gt; CHECKING BUILD DEPENDENCIES FOR globus_simple_ca_ebb88ce5_setup
+gpt-build ====&gt; Changing to /sandbox/globus/BUILD/globus_simple_ca_ebb88ce5_setup-0.18/
+gpt-build ====&gt; BUILDING globus_simple_ca_ebb88ce5_setup
+gpt-build ====&gt; Changing to /sandbox/globus/BUILD
+gpt-build ====&gt; REMOVING empty package globus_simple_ca_ebb88ce5_setup-noflavor-data
+gpt-build ====&gt; REMOVING empty package globus_simple_ca_ebb88ce5_setup-noflavor-dev
+gpt-build ====&gt; REMOVING empty package globus_simple_ca_ebb88ce5_setup-noflavor-doc
+gpt-build ====&gt; REMOVING empty package globus_simple_ca_ebb88ce5_setup-noflavor-pgm_static
+gpt-build ====&gt; REMOVING empty package globus_simple_ca_ebb88ce5_setup-noflavor-rtl
+<prompt>globus@cognito:~$</prompt> <userinput>$GLOBUS_LOCATION/sbin/gpt-postinstall</userinput>
+running /usr/local/globus-4.0.1/setup/globus/./setup-ssl-utils.ebb88ce5..[ Changing to /usr/local/globus-4.0.1/setup/globus/. ]
+...
+setup-ssl-utils: Complete
+
+..Done
+WARNING: The following packages were not set up correctly:
+        globus_simple_ca_ebb88ce5_setup-noflavor-pgm
+Check the package documentation or run postinstall -verbose to see what happened
+</screen>
+That installed the package, but the warning is letting us know that root still needs to run the setup script:
+<screen>
+<prompt>root@cognito:~#</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-4.0.1</userinput>
+<prompt>root@cognito:~#</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.sh</userinput>
+<prompt>root@cognito:~#</prompt> <userinput>$GLOBUS_LOCATION/setup/globus_simple_ca_ebb88ce5_setup/setup-gsi -default</userinput>
+setup-gsi: Configuring GSI security
+Making /etc/grid-security...
+mkdir /etc/grid-security
+Making trusted certs directory: /etc/grid-security/certificates/
+mkdir /etc/grid-security/certificates/
+Installing /etc/grid-security/certificates//grid-security.conf.ebb88ce5...
+Running grid-security-config...
+nstalling Globus CA certificate into trusted CA certificate directory...
+Installing Globus CA signing policy into trusted CA certificate directory...
+setup-gsi: Complete
+</screen>
+Now our new machine's security directory looks like our other machine:
+<screen>
+root@cognito:~# ls /etc/grid-security/
+certificates  globus-host-ssl.conf  globus-user-ssl.conf  grid-security.conf
+root@cognito:~# ls /etc/grid-security/certificates/
+ebb88ce5.0                     globus-user-ssl.conf.ebb88ce5
+ebb88ce5.signing_policy        grid-security.conf.ebb88ce5
+globus-host-ssl.conf.ebb88ce5
 </screen>
 </para>
 
+<para>Now we need a hostcert for the new machine:
+<screen>
+<prompt>root@cognito:~#</prompt> <userinput>grid-cert-request -host `hostname`</userinput>
+The hostname cognito does not appear to be fully qualified.
+Do you wish to continue? [n] n
+Aborting
+...
+If you receive no response, contact Globus Simple CA at bacon@choate
+<prompt>root@cognito:~#</prompt> <userinput>hostname</userinput>
+cognito
+</screen>
+Uh-oh.  Our hostname isn't fully qualified, which is going to cause us
+trouble down the road.  For now, I will just spell out the FQDN by hand:
+<screen>
+root@cognito:~# grid-cert-request -host cognito.mcs.anl.gov -force
+
+    /etc/grid-security/hostcert_request.pem already exists
+    /etc/grid-security/hostcert.pem already exists
+    /etc/grid-security/hostkey.pem already exists
+...
+Your certificate will be mailed to you within two working days.
+If you receive no response, contact Globus Simple CA at bacon@choate
+</screen>
+The request already existed for "cognito", but the <option>-force</option> overwrote that request with one for "cognito.mcs.anl.gov".  Now I need to copy that back to choate and sign it:
+<screen>
+<prompt>root@cognito:~#</prompt> <userinput>cat /etc/grid-security/hostcert_request.pem | mail globus@choate</userinput>
+<prompt>globus@choate:/tmp$</prompt> <userinput>grid-ca-sign -in in.pem -out out.pem</userinput>
+
+To sign the request
+please enter the password for the CA key:
+
+The new signed certificate is at: /home/globus/.globus/simpleCA//newcerts/03.pem
+<prompt>globus@choate:/tmp$</prompt> <userinput> cat /tmp/out.pem | mail root@cognito</userinput>
+<prompt>root@cognito:~#</prompt> <userinput>cp out.pem /etc/grid-security/hostcert.pem </userinput>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>cp hostcert.pem containercert.pem</userinput>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>cp hostkey.pem containerkey.pem</userinput>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>chown globus:globus container*.pem</userinput>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>ls -l *.pem</userinput>
+-rw-r--r--  1 globus globus 2711 2005-11-15 11:14 containercert.pem
+-r--------  1 globus globus  887 2005-11-15 11:15 containerkey.pem
+-rw-r--r--  1 root   root   2711 2005-11-15 11:14 hostcert.pem
+-rw-r--r--  1 root   root   1405 2005-11-15 11:09 hostcert_request.pem
+-r--------  1 root   root    887 2005-11-15 11:09 hostkey.pem
+</screen>
+There.  Now cognito is setup with host and container certs, and it trusts the CA of my grid.  The last step for root is to create a grid-mapfile for myself again:
+<screen>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>vim grid-mapfile</userinput>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>cat grid-mapfile </userinput>
+"/O=Grid/OU=GlobusTest/OU=simpleCA-choate.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon" bacon
+</screen>
+Also, user bacon should get a local copy of the usercert:
+<screen>
+<prompt>cognito %</prompt> <userinput>scp -r choate:.globus .</userinput>
+Password: 
+usercert.pem                                  100%  895     0.9KB/s   00:00    
+usercert_request.pem                          100% 1426     1.4KB/s   00:00    
+userkey.pem                                   100%  963     0.9KB/s   00:00    
+</screen>
+</para>
+</section>
+
+<section><title>Setting up your second machine: GridFTP</title>
+<para>
+GridFTP setup on the second machine is identical to the first.  I'll just
+list the commands here:
+<screen>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>vim /etc/xinetd.d/gridftp</userinput>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>vim /etc/services </userinput>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>/etc/init.d/xinetd reload</userinput>
+Reloading internet superserver configuration: xinetd.
+</screen>
+Now we can test it:
+<screen>
+<prompt>cognito %</prompt> <userinput>setenv GLOBUS_LOCATION /usr/local/globus-4.0.1</userinput>
+<prompt>cognito %</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.csh</userinput>
+<prompt>cognito %</prompt> <userinput>grid-proxy-init -verify -debug</userinput>
+
+User Cert File: /home/bacon/.globus/usercert.pem
+User Key File: /home/bacon/.globus/userkey.pem
+
+Trusted CA Cert Dir: /etc/grid-security/certificates
+
+Output File: /tmp/x509up_u1817
+Your identity: /O=Grid/OU=GlobusTest/OU=simpleCA-choate.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon
+Enter GRID pass phrase for this identity:
+Creating proxy ...........++++++++++++
+........++++++++++++
+ Done
+Proxy Verify OK
+Your proxy is valid until: Tue Nov 15 23:33:37 2005
+<prompt>cognito %</prompt> <userinput>globus-url-copy gsiftp://cognito.mcs.anl.gov/etc/group gsiftp://choate.mcs.anl.gov/tmp/from-cognito</userinput>
+</screen>
+That was a slightly fancier test than I ran on choate.  In this case, I did a third-party transfer between two GridFTP servers.  It worked, so I have the local and remote security setup correctly.
+</para>
+</section>
+
+<section><title>Setting up your second machine: Webservices</title>
+<para>
+Setting up the container on the second machine is a lot like the first.  I'll list the commands here, or you can just copy the files:
+<screen>
+<prompt>globus@cognito:~$</prompt> <userinput>vim $GLOBUS_LOCATION/start-stop</userinput>
+<prompt>globus@cognito:~$</prompt> <userinput>chmod +x $GLOBUS_LOCATION/start-stop</userinput>
+<prompt>root@cognito:~#</prompt> <userinput>vim /etc/init.d/globus-4.0.1</userinput>
+<prompt>root@cognito:~#</prompt> <userinput>chmod +x /etc/init.d/globus-4.0.1</userinput>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>/etc/init.d/globus-4.0.1 start</userinput>
+Starting Globus container. PID: 17269
+</screen>
+</para>
+</section>
+
+<section><title>Setting up your second machine: GRAM</title>
+<para>
+For a change of pace, we'll setup GRAM first on the second machine, even
+though we haven't got a working RFT locally.  As with last time, we'll need
+to setup the sudoers:
+<screen>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>visudo</userinput>
+</screen>
+Next, however, we'll change the GRAM RFT configuration:
+<screen>
+<prompt>globus@cognito:~$</prompt> <userinput>vim $GLOBUS_LOCATION/start-stopglobus@cognito:~$ $GLOBUS_LOCATION/setup/globus/setup-gram-service-common --staging-host=choate.mcs.anl.gov</userinput>
+Running /usr/local/globus-4.0.1/setup/globus/setup-gram-service-common
+Determining system information...
+...
+BUILD SUCCESSFUL
+Total time: 21 seconds
+</screen>
+</para>
+
+<para>
+Now we try submitting to our new GRAM service after we restart the container:
+<screen>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>/etc/init.d/globus-4.0.1 restart</userinput>
+Stopping Globus container. PID: 17269
+Container stopped
+Starting Globus container. PID: 18069
+<prompt>cognito %</prompt> <userinput>vim a.rsl</userinput>
+<prompt>cognito %</prompt> <userinput>cat a.rsl</userinput>
+cognito % cat a.rsl
+<![CDATA[
+<job>
+    <executable>my_echo</executable>
+    <directory>${GLOBUS_USER_HOME}</directory>
+    <argument>Hello</argument>
+    <argument>World!</argument>
+    <stdout>${GLOBUS_USER_HOME}/stdout</stdout>
+    <stderr>${GLOBUS_USER_HOME}/stderr</stderr>
+    <fileStageIn>
+        <transfer>
+            <sourceUrl>gsiftp://cognito.mcs.anl.gov:2811/bin/echo</sourceUrl>
+            <destinationUrl>file:///${GLOBUS_USER_HOME}/my_echo</destinationUrl>
+        </transfer>
+    </fileStageIn>
+    <fileCleanUp>
+        <deletion>
+            <file>file:///${GLOBUS_USER_HOME}/my_echo</file>
+        </deletion>
+    </fileCleanUp>
+</job>
+]]>
+<prompt>cognito %</prompt> <userinput>globusrun-ws -submit -S -f a.rsl</userinput>
+Delegating user credentials...Done.
+Submitting job...Done.
+Job ID: uuid:6732f346-5604-11da-9951-0002b3882c16
+Termination time: 11/16/2005 18:19 GMT
+Current job state: StageIn
+Current job state: Active
+Current job state: CleanUp
+Current job state: Done
+Destroying job...Done.
+Cleaning up any delegated credentials...Done.
+</screen>
+This is an example of a staging job.  It copies the /bin/echo command from cognito to my home directory and names it my_echo.  Then it runs it with some arguments, and captures the stderr/stdout.  One of the neat features here is that it used the RFT service on choate to transfer the file via the GridFTP server on cognito.  It's starting to look like a Grid!
+</para>
 </section>
 
 </chapter>
