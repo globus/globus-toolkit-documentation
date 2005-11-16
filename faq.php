@@ -338,7 +338,7 @@ Toolkit 2.0, we also distribute binary versions for popular platforms.</p>
         provides access to Grid services via the Java programming language, which of 
         course is available on Windows systems.</li>
     <li><a href="http://www.cs.virginia.edu/~gsw2c/wsrf.net.html">WSRF.NET</a> is a 
-        .NET implementation of WSRF. It is available from the University of Virgunia.</li>
+        .NET implementation of WSRF. It is available from the University of Virginia.</li>
 </ul>
 
 <p></p>
