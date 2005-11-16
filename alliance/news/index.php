@@ -44,6 +44,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>The second beta release of <a class="newspartners" href="http://ninf.apgrid.org">Ninf-G4</a>
+is now available. (11/2005)</p>
+
+<p>The recent release of 
+<a class="newspartners" href="http://grid.deis.unical.it/weka4ws/">Weka4WS</a> offers WSRF 
+services to support data mining in Grid environments. (11/2005)</p>
+
 <p>Preview the future home of 
 Globus development! Built around a governance model derived from Apache, the prototype 
 <a class="newsalliance" href="http://dev.globus.org/">GlobDev website</a> is now available 
