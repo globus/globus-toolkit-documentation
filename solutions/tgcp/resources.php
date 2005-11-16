@@ -26,12 +26,12 @@ implementation.
 <td class="tablekey">GridFTP</td>
 <td>A GridFTP service that supports the striped configuration and its 
     related tools are available in the Globus Toolkit 4.0:<br>
-<a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/gridftp/">http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/gridftp/</a></td>
+<a href="http://www.globus.org/toolkit/docs/4.0/data/gridftp/">http://www.globus.org/toolkit/docs/4.0/data/gridftp/</a></td>
 </tr>
 <tr>
 <td class="tablekey">Reliable File Transfer (RFT) Service</td>
 <td>The RFT service and related client tools are available in the Globus Toolkit 4.0:
-<a href="http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/rft/">http://www-unix.globus.org/toolkit/docs/development/4.0-drafts/data/rft/</a></td>
+<a href="http://www.globus.org/toolkit/docs/4.0/data/rft/">http://www.globus.org/toolkit/docs/4.0/data/rft/</a></td>
 </tr>
 <tr>
 <td class="tablekey">TGCP</td>    
