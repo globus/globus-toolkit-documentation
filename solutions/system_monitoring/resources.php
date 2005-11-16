@@ -25,9 +25,9 @@ implementation.
 <tr>
 <td class="tablekey">Index Service</td>
 <td>An OGSI Index Service is available in the Globus Toolkit 3.2:<br>
-<a href="http://www-unix.globus.org/toolkit/downloads/3.2/index.html">http://www-unix.globus.org/toolkit/downloads/3.2/index.html</a><br>
+<a href="http://www.globus.org/toolkit/downloads/3.2/index.html">http://www.globus.org/toolkit/downloads/3.2/index.html</a><br>
 A WSRF Index Service is available in the Globus Toolkit 4.0:<br>
-<a href="http://www-unix.globus.org/toolkit/docs/4.0/info/index/">http://www-unix.globus.org/toolkit/docs/4.0/info/index/</a></td>
+<a href="http://www.globus.org/toolkit/docs/4.0/info/index/">http://www.globus.org/toolkit/docs/4.0/info/index/</a></td>
 </tr>
 <tr>
 <td class="tablekey">Web Service Data Browser</td>
@@ -35,7 +35,7 @@ A WSRF Index Service is available in the Globus Toolkit 4.0:<br>
 Available (OGSI) from the Grid Technology Repository:<br>
 <a href="http://gtr.globus.org/article.php?story=20030723143444410">http://gtr.globus.org/article.php?story=20030723143444410</a><br>
 Available (WSRF) in the Globus Toolkit 4.0:<br>
-<a href="">http://www-unix.globus.org/toolkit/docs/4.0/info/webmds/</a>http://www-unix.globus.org/toolkit/docs/4.0/info/webmds/</td>
+<a href="http://www.globus.org/toolkit/docs/4.0/info/webmds/">http://www.globus.org/toolkit/docs/4.0/info/webmds/</a></td>
 </tr>
 <tr>
 <td class="tablekey">Archive Service</td>    
@@ -47,7 +47,7 @@ Currently available (OGSI) through the Globus Toolkit CVS Repository</td>
 <td>Developed by Shishir Bharathi &lt;<a href="mailto:shishir@isi.edu">shishir@isi.edu</a>&gt;<br>
 Available (OGSI) through the Globus Toolkit CVS Repsitory<br>
 Available (WSRF) in Globus Toolkit 4.0:<br>
-<a href="http://www-unix.globus.org/toolkit/docs/4.0/info/trigger/">http://www-unix.globus.org/toolkit/docs/4.0/info/trigger/</a></td>
+<a href="http://www.globus.org/toolkit/docs/4.0/info/trigger/">http://www.globus.org/toolkit/docs/4.0/info/trigger/</a></td>
 </tr>
 </table>
 
