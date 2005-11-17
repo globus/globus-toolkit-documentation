@@ -16,7 +16,9 @@ of services.  It is designed to supplement the main admin guide.
 
 <para>I will be installing all of the toolkit from source, so
 I'm going to double-check my system for pre-requisites.  The full list
-of prereqs is available at <ulink url="http://www.globus.org/toolkit/docs/4.0/admin/docbook/ch03.html">Software Prerequisites</ulink> in the Admin Guide.
+of prereqs is available at 
+<ulink url="http://www.globus.org/toolkit/docs/4.0/admin/docbook/ch03.html">
+Software Prerequisites</ulink> in the Admin Guide.
 </para>
 
 <para>First I'll check for zlib development libraries for GSI-OpenSSH:
@@ -57,6 +59,12 @@ docs  KEYS     LICENSE.dom  NOTICE          welcome.html
 etc   lib      LICENSE.sax  README          WHATSNEW
 </screen>
 </para>
+<note><para>
+This was fine on my Debian box, because it doesn't come with ant pre-installed.  Most
+RedHat and Fedora Core boxes already ship with ant, but it is configured to use gcj.
+We don't want to use gcj!  To fix this, look for an /etc/ant.conf file.  If you have one,
+rename it to /etc/ant.conf.orig for the duration of this quickstart.
+</para></note>
 
 <para>My system already has C/C++ compilers:
 <screen>
@@ -83,12 +91,14 @@ This program comes with NO WARRANTY, to the extent permitted by law.
 You may redistribute it under the terms of the GNU General Public License;
 see the file named COPYING for details.
 Written by John Gilmore and Jay Fenlason.
+
 <prompt>choate</prompt> <userinput>% sed --version</userinput>
 GNU sed version 4.1.2
 Copyright (C) 2003 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE,
 to the extent permitted by law.
+
 <prompt>choate</prompt> <userinput>% make --version</userinput>
 GNU Make 3.80
 Copyright (C) 2002  Free Software Foundation, Inc.
@@ -173,7 +183,9 @@ Other []:
 Is the information correct? [y/N] <userinput>y</userinput>
 <prompt>root@choate:/etc/init.d#</prompt> <userinput>mkdir /usr/local/globus-4.0.1/</userinput>
 <prompt>root@choate:/etc/init.d#</prompt> <userinput>chown globus:globus /usr/local/globus-4.0.1/</userinput>
-<prompt>root@choate:/etc/init.d#</prompt> <userinput>su - globus</userinput>
+</screen>
+Now, as the newly created globus user:
+<screen>
 <prompt>globus@choate:~$</prompt> <userinput>tar xzf gt4.0.1-all-source-installer.tar.gz</userinput>
 <prompt>globus@choate:~$</prompt> <userinput>cd gt4.0.1-all-source-installer</userinput>
 <prompt>globus@choate:~/gt4.0.1-all-source-installer$</prompt> <userinput>./configure --prefix=/usr/local/globus-4.0.1/ \</userinput>
@@ -397,7 +409,7 @@ writing new private key to '/etc/grid-security/hostkey.pem'
 Your certificate will be mailed to you within two working days.
 If you receive no response, contact Globus Simple CA at bacon@choate
 </screen>
-We need to sign the certificate using our simpleCA.
+We need to sign the certificate using our simpleCA, as globus:
 <screen>
 <prompt>globus@choate:~$</prompt> <userinput>grid-ca-sign -in /etc/grid-security/hostcert_request.pem -out hostsigned.pem</userinput>
 To sign the request
@@ -428,7 +440,9 @@ We'll make a copy of these that are owned by globus:
 </para>
 
 <para>
-Now we'll get a usercert for bacon:
+Now we'll get a usercert for bacon.  In this example I'm running tcsh, just
+to show that the version of <filename>globus-user-env</filename> depends on your
+shell:
 <screen>
 choate % setenv GLOBUS_LOCATION /usr/local/globus-4.0.1/
 choate % source $GLOBUS_LOCATION/etc/globus-user-env.csh
@@ -483,6 +497,9 @@ If you receive no response, contact Globus Simple CA at bacon@choate
 Now I need to get that certificate request to the globus user so it can be signed, then send the signed cert back to bacon:
 <screen>
 <prompt>choate %</prompt> <userinput>cat /home/bacon/.globus/usercert_request.pem | mail globus@choate</userinput>
+</screen>
+Now, sign it as user globus:
+<screen>
 <prompt>globus@choate:~$</prompt> <userinput>grid-ca-sign -in request.pem -out signed.pem</userinput>
 
 To sign the request
@@ -490,6 +507,9 @@ please enter the password for the CA key: <userinput>******</userinput>
 
 The new signed certificate is at: /home/globus/.globus/simpleCA//newcerts/02.pem
 <prompt>globus@choate:~$</prompt> <userinput>cat signed.pem | mail bacon@choate</userinput>
+</screen>
+Now user bacon checks his mail and copies the cert to the proper location:
+<screen>
 <prompt>choate %</prompt> <userinput>cp signed.pem ~/.globus/usercert.pem</userinput>
 <prompt>choate %</prompt> <userinput>ls -l ~/.globus/</userinput>
 total 12
@@ -497,7 +517,7 @@ total 12
 -rw-r--r--  1 bacon globdev 1426 2005-11-15 07:51 usercert_request.pem
 -r--------  1 bacon globdev  963 2005-11-15 07:51 userkey.pem
 </screen>
-Our last act will be to create a grid-mapfile for authorization:
+Our last act will be to create a grid-mapfile as root for authorization:
 <screen>
 <prompt>root@choate:/etc/grid-security#</prompt> <userinput>vim /etc/grid-security/grid-mapfile</userinput>
 <prompt>root@choate:/etc/grid-security#</prompt> <userinput>cat /etc/grid-security/grid-mapfile </userinput>
@@ -516,7 +536,7 @@ will use the containercert.  Only real people need user certs.
 <para>
 Now that we have our secure credentials in place, we can start a service.  This setup comes from the <ulink url="http://www.globus.org/toolkit/docs/4.0/admin/docbook/ch08.html">GridFTP Admin Guide</ulink>.
 <screen>
-<prompt>root@choate:/etc/grid-security#</prompt> <userinput>vim /etc/xinetd.d/gridftp</userinput>
+<prompt>root@choate:/etc/grid-security#</prompt> <userinput>vim /etc/xinetd.d/gridftp</userinput> <co id="q-xinetd-co" linkends="q-xinetd"/>
 <prompt>root@choate:/etc/grid-security#</prompt> <userinput>cat /etc/xinetd.d/gridftp</userinput>
 service gsiftp
 {
@@ -525,7 +545,7 @@ socket_type             = stream
 wait                    = no
 user                    = root
 env                     += GLOBUS_LOCATION=/usr/local/globus-4.0.1
-env                     += LD_LIBRARY_PATH=/usr/local/globus-4.0.1/lib <co  id="ld_lib-co"  linkends="ld_lib" />
+env                     += LD_LIBRARY_PATH=/usr/local/globus-4.0.1/lib <co  id="q-ld_lib-co"  linkends="q-ld_lib" />
 
 server                  = /usr/local/globus-4.0.1/sbin/globus-gridftp-server
 server_args             = -i
@@ -551,8 +571,20 @@ Reloading internet superserver configuration: xinetd.
 tcp        0      0 0.0.0.0:2811            0.0.0.0:*               LISTEN     
 </screen>
 <calloutlist>
-  <callout arearefs="ld_lib-co"  id="ld_lib" >
-    <para>On MacOS X, this would be DYLD_LIBRARY_PATH.  Check your system documentation if LD_LIBARARY_PATH doesn't work on your system.</para>
+  <callout arearefs="q-xinetd-co"  id="q-xinetd" >
+    <para>I already had xinetd installed:
+    <screen>
+bacon@choate:~$ dpkg --list xinetd
+Desired=Unknown/Install/Remove/Purge/Hold
+| Status=Not/Installed/Config-files/Unpacked/Failed-config/Half-installed
+|/ Err?=(none)/Hold/Reinst-required/X=both-problems (Status,Err: uppercase=bad)
+||/ Name           Version        Description
++++-==============-==============-============================================
+ii  xinetd         2.3.13-3       replacement for inetd with many enhancements</screen>
+          You can use inetd instead, see <ulink url="http://www.globus.org/toolkit/docs/4.0/admin/docbook/ch08.html#s-gridftp-Interface_Config_Frag-config_xinetd_inetd">GridFTP xinetd/inetd examples</ulink> for details.  For now, though, you might want to apt-get install xinetd.</para>
+  </callout>
+  <callout arearefs="q-ld_lib-co"  id="q-ld_lib" >
+    <simpara>On MacOS X, this would be DYLD_LIBRARY_PATH.  Check your system documentation if LD_LIBARARY_PATH doesn't work on your system.</simpara>
   </callout>
 </calloutlist>
    
@@ -618,6 +650,10 @@ case "$1" in
 esac
 exit 0
 <prompt>globus@choate:~$</prompt> <userinput>chmod +x $GLOBUS_LOCATION/start-stop</userinput>
+</screen>
+Now, as root, we'll create an /etc/init.d script to call the globus user's start-stop
+script:
+<screen>
 <prompt>root@choate:~#</prompt> <userinput>vim /etc/init.d/globus-4.0.1</userinput>
 <prompt>root@choate:~#</prompt> <userinput>cat /etc/init.d/globus-4.0.1 </userinput>
 #!/bin/sh -e
@@ -917,6 +953,9 @@ let's get some prereqs out of the way:
 <prompt>root@cognito:~#</prompt> <userinput>chown globus:globus /usr/local/globus-4.0.1</userinput>
 <prompt>root@cognito:/usr/java#</prompt> <userinput>./j2sdk-1_4_2_10-linux-i586.bin </userinput>
 <prompt>root@cognito:/usr/local#</prompt> <userinput>tar xzf apache-ant-1.6.5-bin.tar.gz </userinput>
+</screen>
+Then, as user globus:
+<screen>
 <prompt>globus@cognito:~$</prompt> <userinput>tar xzf gt4.0.1-ia32_debian_3.1-binary-installer.tar.gz</userinput>
 <prompt>globus@cognito:~$</prompt> <userinput>export JAVA_HOME=/usr/java/j2sdk1.4.2_10/</userinput>
 <prompt>globus@cognito:~$</prompt> <userinput>export ANT_HOME=/usr/local/apache-ant-1.6.5/</userinput>
@@ -1028,7 +1067,42 @@ If you receive no response, contact Globus Simple CA at bacon@choate
 cognito
 </screen>
 Uh-oh.  Our hostname isn't fully qualified, which is going to cause us
-trouble down the road.  For now, I will just spell out the FQDN by hand:
+trouble down the road.  If you have this problem, there are several possible solutions.
+One is to run the hostname command as root to set your FQDN as your hostname.  Another
+possibility is that your <filename>/etc/hosts</filename> may have a short name listed for
+your IP address.  Let's see what the problem is on cognito:
+<screen>
+root@cognito:~# cat /etc/hosts
+127.0.0.1       localhost
+
+# The following lines are desirable for IPv6 capable hosts
+# (added automatically by netbase upgrade)
+
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+ff02::3 ip6-allhosts
+</screen>
+That looks okay.  On Debian, the hostname is stored in <filename>/etc/hostname</filename>.
+Let's see what it says:
+<screen>
+root@cognito:~# cat /etc/hostname
+cognito
+</screen>
+Ah, that's the problem.  But this is not so bad, because a reverse-lookup of my IP address
+should return my FQDN, since it will be looked up in DNS:
+<screen>
+root@cognito:~# host 140.221.8.109
+109.8.221.140.in-addr.arpa domain name pointer cognito.mcs.anl.gov.
+</screen>
+If the problem had been in /etc/hosts, I would have fixed it.  Here's what a good /etc/hosts line would look like:
+<screen>
+140.221.8.109   cognito.mcs.anl.gov cognito
+</screen>
+Since reverse lookups
+work okay, I will just spell out the FQDN by hand in this cert request:
 <screen>
 root@cognito:~# grid-cert-request -host cognito.mcs.anl.gov -force
 
@@ -1042,6 +1116,10 @@ If you receive no response, contact Globus Simple CA at bacon@choate
 The request already existed for "cognito", but the <option>-force</option> overwrote that request with one for "cognito.mcs.anl.gov".  Now I need to copy that back to choate and sign it:
 <screen>
 <prompt>root@cognito:~#</prompt> <userinput>cat /etc/grid-security/hostcert_request.pem | mail globus@choate</userinput>
+</screen>
+Now I sign it as globus on choate.  Remember, that's where I installed the SimpleCA, so
+that's where I sign it:
+<screen>
 <prompt>globus@choate:/tmp$</prompt> <userinput>grid-ca-sign -in in.pem -out out.pem</userinput>
 
 To sign the request
@@ -1049,6 +1127,9 @@ please enter the password for the CA key:
 
 The new signed certificate is at: /home/globus/.globus/simpleCA//newcerts/03.pem
 <prompt>globus@choate:/tmp$</prompt> <userinput> cat /tmp/out.pem | mail root@cognito</userinput>
+</screen>
+Root checks his email, then saves the signed cert:
+<screen>
 <prompt>root@cognito:~#</prompt> <userinput>cp out.pem /etc/grid-security/hostcert.pem </userinput>
 <prompt>root@cognito:/etc/grid-security#</prompt> <userinput>cp hostcert.pem containercert.pem</userinput>
 <prompt>root@cognito:/etc/grid-security#</prompt> <userinput>cp hostkey.pem containerkey.pem</userinput>
@@ -1115,10 +1196,13 @@ That was a slightly fancier test than I ran on choate.  In this case, I did a th
 
 <section id="q-container2"><title>Setting up your second machine: Webservices</title>
 <para>
-Setting up the container on the second machine is a lot like the first.  I'll list the commands here.  See <xref linkend="q-container"/>, or you can just copy the files from the first machine:
+Setting up the container on the second machine is a lot like the first.  I'll list the commands here.  See <xref linkend="q-container"/>, or you can just copy the files from the first machine.  First globus creates the start-stop script:
 <screen>
 <prompt>globus@cognito:~$</prompt> <userinput>vim $GLOBUS_LOCATION/start-stop</userinput>
 <prompt>globus@cognito:~$</prompt> <userinput>chmod +x $GLOBUS_LOCATION/start-stop</userinput>
+</screen>
+Then root creates an init.d script to call it:
+<screen>
 <prompt>root@cognito:~#</prompt> <userinput>vim /etc/init.d/globus-4.0.1</userinput>
 <prompt>root@cognito:~#</prompt> <userinput>chmod +x /etc/init.d/globus-4.0.1</userinput>
 <prompt>root@cognito:/etc/grid-security#</prompt> <userinput>/etc/init.d/globus-4.0.1 start</userinput>
@@ -1149,12 +1233,15 @@ Total time: 21 seconds
 </para>
 
 <para>
-Now we try submitting to our new GRAM service after we restart the container:
+Restart the container:
 <screen>
 <prompt>root@cognito:/etc/grid-security#</prompt> <userinput>/etc/init.d/globus-4.0.1 restart</userinput>
 Stopping Globus container. PID: 17269
 Container stopped
 Starting Globus container. PID: 18069
+</screen>
+Now we can submit a staging job:
+<screen>
 <prompt>cognito %</prompt> <userinput>vim a.rsl</userinput>
 <prompt>cognito %</prompt> <userinput>cat a.rsl</userinput>
 cognito % cat a.rsl
@@ -1256,6 +1343,9 @@ WebMDS has a dependency on the Tomcat container, so we'll install that now.  The
 <screen>
 <prompt>root@cognito:/usr/local#</prompt> <userinput>tar xzf jakarta-tomcat-5.0.28.tar.gz </userinput>
 <prompt>root@cognito:/usr/local#</prompt> <userinput>chown -R globus:globus jakarta-tomcat-5.0.28</userinput>
+</screen>
+Now the globus user can configure WebMDS:
+<screen>
 <prompt>globus@cognito:~$</prompt> <userinput>vim $GLOBUS_LOCATION/lib/webmds/conf/indexinfo</userinput>
 <prompt>globus@cognito:~$</prompt> <userinput>grep choate /usr/local/globus-4.0.1/lib/webmds/conf/indexinfo</userinput>
     &lt;value&gt;https://choate.mcs.anl.gov:8443/wsrf/services/DefaultIndexService&lt;/value&gt;
@@ -1353,10 +1443,10 @@ tcp        0      0 0.0.0.0:7512            0.0.0.0:*               LISTEN
 <para>
 Now we can check the <ulink url="http://www.globus.org/toolkit/docs/4.0/security/myproxy/user-index.html">Myproxy User's Guide</ulink> to see how to load up a credential and retrieve it remotely:
 <screen>
-<prompt>bacon@choate:~$</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-4.0.1</userinput>
+<prompt>bacon@choate:~$</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-4.0.1</userinput> <co id="q-bash-co" linkends="q-bash"/>
 <prompt>bacon@choate:~$</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.sh</userinput>
-bacon@choate:~$ grid-proxy-destroy 
-bacon@choate:~$ grid-proxy-info 
+<prompt>bacon@choate:~$</prompt> <userinput>grid-proxy-destroy </userinput>
+<prompt>bacon@choate:~$</prompt> <userinput>grid-proxy-info </userinput>
 
 
 ERROR: Couldn't find a valid proxy.
@@ -1379,6 +1469,12 @@ A proxy valid for 168 hours (7.0 days) for user bacon now exists on choate.
 ERROR: Couldn't find a valid proxy.
 Use -debug for further information.
 </screen>
+<calloutlist>
+   <callout id="q-bash" arearefs="q-bash-co">
+     <simpara>I got tired of tcsh and switched over to bash.</simpara>
+   </callout>
+</calloutlist>
+
 So what happened?  I just loaded a 7 day credential into the MyProxy server
 on choate.  For the next seven days, I'll be able to create proxies from there using the password I supplied as the MyProxy pass phrase.  I'll show you what
 it looks like from cognito:
