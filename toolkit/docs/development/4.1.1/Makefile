@@ -1,4 +1,4 @@
-FILENAME=toolkit.xml
+FILENAME=index.xml
 
 all: html pdf
 
@@ -7,7 +7,7 @@ html:
 	--stringparam suppress.navigation 1 \
 	--stringparam  chapter.autolabel 0 \
 	--stringparam  section.autolabel 1 \
-	--stringparam toc.section.depth 1\
+	--stringparam toc.section.depth 0\
            admin/docbook/chunk.xsl  \
            ${FILENAME}
 
@@ -18,6 +18,10 @@ pdf:
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
+	--stringparam suppress.navigation 1 \
+	--stringparam  chapter.autolabel 0 \
+	--stringparam  section.autolabel 1 \
+	--stringparam toc.section.depth 0\
            /usr/share/xml/docbook/stylesheet/nwalsh/html/chunk.xsl \
            $(FILENAME)
 
