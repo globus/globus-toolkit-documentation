@@ -444,9 +444,9 @@ Now we'll get a usercert for bacon.  In this example I'm running tcsh, just
 to show that the version of <filename>globus-user-env</filename> depends on your
 shell:
 <screen>
-choate % setenv GLOBUS_LOCATION /usr/local/globus-4.0.1/
-choate % source $GLOBUS_LOCATION/etc/globus-user-env.csh
-choate % grid-cert-request 
+<prompt>choate</prompt> <userinput>% setenv GLOBUS_LOCATION /usr/local/globus-4.0.1/</userinput>
+<prompt>choate</prompt> <userinput>% source $GLOBUS_LOCATION/etc/globus-user-env.csh</userinput>
+<prompt>choate</prompt> <userinput>% grid-cert-request </userinput>
 A certificate request and private key is being created.
 You will be asked to enter a PEM pass phrase.
 This pass phrase is akin to your account password, 
@@ -1515,6 +1515,872 @@ And that's how MyProxy works.  It turns out that I didn't need to copy my userce
 </para>
 </section>
 </section>
+
+<section id="q-cluster"><title>Setting up your cluster</title>
+<para>
+In this section I'll add a cluster to my environment.  I happen to have
+a PBS cluster already, so I'll add it.  The cluster has a headnode called
+lucky0, with compute nodes lucky1-lucky6.  The node lucky2 is currently down
+due to faulty memory hardware.  Here's what it looks like:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>pbsnodes -a</userinput>
+lucky1.mcs.anl.gov
+     state = free
+     np = 2
+     ntype = cluster
+
+lucky3.mcs.anl.gov
+     state = free
+     np = 2
+     ntype = cluster
+
+lucky4.mcs.anl.gov
+     state = free
+     np = 2
+     ntype = cluster
+
+lucky5.mcs.anl.gov
+     state = free
+     np = 2
+     ntype = cluster
+
+lucky6.mcs.anl.gov
+     state = free
+     np = 2
+     ntype = cluster
+</screen>
+</para>
+
+<para>
+The nodes share a file system called /home that is exported from lucky0:
+<screen>
+<prompt>[bacon@lucky1 bacon]$</prompt> <userinput>df -h</userinput>
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/cciss/c0d0p1      33G  1.9G   29G   7% /
+none                  252M     0  252M   0% /dev/shm
+/dev/cciss/c0d1p1     167G  6.2G  153G   4% /sandbox
+lucky0:/home          101G   83G   13G  87% /home
+</screen>
+</para>
+
+<para>
+The cluster is running the Ganglia monitoring system:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>ps auxww | grep gmond</userinput>
+nobody    2004  0.0  0.1 52132  916 ?        S    Jun30   0:00 /usr/sbin/gmond
+bacon    19941  0.0  0.1  3700  584 pts/5    S    13:52   0:00 grep gmond
+</screen>
+</para>
+
+<section id="q-cluster-prereq"><title>Cluster: prereqs</title>
+<para>
+First, let's make sure we have the prereqs on lucky0.
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>echo $JAVA_HOME</userinput>
+/usr/java/j2sdk1.4.2_03
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>echo $ANT_HOME</userinput>
+/home/software/apache-ant-1.6.1
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>echo $PBS_HOME</userinput>
+
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>ls /var/spool/pbs/</userinput>
+pbs_environment  sched_priv   server_name  spool
+sched_logs       server_logs  server_priv  undelivered
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>which sudo</userinput>
+/usr/bin/sudo
+</screen>
+We don't have a <envar>PBS_HOME</envar> variable set, but because
+we're using the default value of <filename>/var/spool/pbs</filename> our
+log files will be detected okay for GRAM.
+</para>
+<para>
+Given that, I created a globus user on the cluster and created a directory
+for the installation:
+<screen>
+<prompt>[root@lucky0 /usr/local]#</prompt> <userinput>id globus</userinput>
+uid=812(globus) gid=220(globus) groups=220(globus),564(globdev)
+<prompt>[root@lucky0 /usr/local]#</prompt> <userinput>mkdir globus-4.0.1</userinput>
+<prompt>[root@lucky0 /usr/local]#</prompt> <userinput>chown globus:globus globus-4.0.1</userinput>
+</screen>
+</para>
+</section>
+
+<section id="q-cluster-install"><title>Cluster: install</title>
+<para>
+Lucky is running Fedora Core 1, so I'm installing from source.  The
+first new option here is <option>--enable-wsgram-pbs</option>, which
+I'm running because lucky already has PBS installed.  This tells the
+installer to build/install the PBS GRAM scheduler adapter.  There are
+options for LSF and Condor already in the installer, and an SGE adapter
+is available elsewhere.
+<screen>
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>tar xzf gt4.0.1-all-source-installer.tar.gz </userinput>
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>cd gt4.0.1-all-source-installer</userinput>
+<prompt>[globus@lucky0 gt4.0.1-all-source-installer]$</prompt> <userinput>./configure --prefix=/usr/local/globus-4.0.1 --enable-wsgram-pbs</userinput>
+checking build system type... i686-pc-linux-gnu
+checking for javac... /usr/java/j2sdk1.4.2_03/bin/javac
+checking for ant... /home/software/apache-ant-1.6.1/bin/ant
+configure: creating ./config.status
+config.status: creating Makefile
+<prompt>[globus@lucky0 gt4.0.1-all-source-installer]$</prompt> <userinput>make 2>&amp;1 | tee installer.log</userinput>
+cd gpt-3.2autotools2004 &amp;&amp; OBJECT_MODE=32 ./build_gpt
+...
+echo "Your build completed successfully.  Please run make install."
+Your build completed successfully.  Please run make install.
+<prompt>[globus@lucky0 gt4.0.1-all-source-installer]$</prompt> <userinput>make install</userinput>
+/usr/local/globus-4.0.1/sbin/gpt-postinstall
+...
+running /usr/local/globus-4.0.1/setup/globus/setup-globus-job-manager-pbs..[ Changing to /usr/local/globus-4.0.1/setup/globus ]
+find-pbs-tools: WARNING: "Cannot locate mpiexec"<co id="q-mpi-co" linkends="q-mpi"/> 
+find-pbs-tools: WARNING: "Cannot locate mpirun"
+checking for mpiexec... no
+checking for mpirun... no
+checking for qdel... /home/software/openpbs-2.3.16/bin/qdel
+checking for qstat... /home/software/openpbs-2.3.16/bin/qstat
+checking for qsub... /home/software/openpbs-2.3.16/bin/qsub
+checking for ssh... /usr/bin/ssh
+find-pbs-tools: creating ./config.status
+config.status: creating /usr/local/globus-4.0.1/lib/perl/Globus/GRAM/JobManager/pbs.pm
+..Done
+</screen>
+<calloutlist>
+   <callout id="q-mpi" arearefs="q-mpi-co">
+   <para>This warning is fine, as I don't have MPI installed on my cluster</para>
+   </callout>
+</calloutlist>
+</para>
+</section>
+
+<section id="q-cluster-security"><title>Security on the cluster</title>
+<para>
+For a change of pace, I'm not going to use my SimpleCA on this cluster.
+Instead, I'm going to get a certificate from a real production CA.  If you
+don't have one of those, just install the SimpleCA setup package and
+get a hostcert like we did in <xref linkend="q-security2"/>.  I just thought
+it might be interesting to show you how to use a production CA and how
+to combine resources that have IDs issued from multiple CAs.
+</para>
+
+<para>
+In this example I'll be using the <ulink url="http://www.doegrids.org/">DOEGrids CA</ulink>.  Please note that there are eligibility requirements to use
+this CA.  I am eligible because I work at Argonne National Laboratory.
+If you're looking for a production CA, you might want to check the list
+at the <ulink url="http://www.tacar.org/">Terena Academic CA Repository</ulink>.
+</para>
+
+<para>
+First, I need to install the CA certificates for the DOE Grids CA:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>ls -l /etc/grid-security/certificates/</userinput>
+-rw-r--r--  1 12035  106 1436 May  2  2003 1c3f2ca8.0
+-rw-r--r--  1 12035  106 2114 May 27  2003 1c3f2ca8.signing_policy
+-rw-r--r--  1 12035  106  953 May  2  2003 6349a761.0
+-rw-r--r--  1 12035  106 1940 May 27  2003 6349a761.signing_policy
+-rw-r--r--  1 12035  106 1679 May  2  2003 9d8753eb.0
+-rw-r--r--  1 12035  106 1717 May 27  2003 9d8753eb.signing_policy
+-rw-r--r--  1 12035  106 1448 May  6  2003 d1b603c3.0
+-rw-r--r--  1 12035  106 2089 May 27  2003 d1b603c3.signing_policy
+-rw-r--r--  1 12035  106 4082 May 13  2003 globus-host-ssl.conf.1c3f2ca8
+-rw-r--r--  1 12035  106 4081 May 13  2003 globus-user-ssl.conf.1c3f2ca8
+-rw-r--r--  1 12035  106 1743 May 13  2003 grid-security.conf.1c3f2ca8
+</screen>
+</para>
+
+<para>
+The DOE Grids CA has a "Globus Support" package I installed, which came
+with these certificates, signing policies, and request files.  Using them,
+I request a hostcert for lucky0 and copy it into <filename>/etc/grid-security</filename>, and create a containercert copy:
+<screen>
+<prompt>[root@lucky0 /etc/grid-security]$</prompt> <userinput>ls -l host* container*</userinput>
+-rw-r--r--  1 globus globus 1181 Feb 21  2005 containercert.pem
+-r--------  1 globus globus  891 Feb 21  2005 containerkey.pem
+-rw-r--r--  1 root   root   1181 Feb 21  2005 hostcert.pem
+-rw-r--r--  1 root   root   1337 Feb 18  2005 hostcert_request.pem
+-r--------  1 root   root    891 Feb 18  2005 hostkey.pem
+<prompt>[root@lucky0 /etc/grid-security]$</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-4.0.1</userinput>
+<prompt>[root@lucky0 /etc/grid-security]$</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.sh</userinput>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>grid-cert-info -file /etc/grid-security/hostcert.pem -subject</userinput>
+/DC=org/DC=doegrids/OU=Services/CN=host/lucky0.mcs.anl.gov
+</screen>
+</para>
+
+<para>
+I also got a usercert from the DOEGrids CA:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>ls -l .globus/total 8</userinput>
+-rw-r--r--  1 bacon globdev 1600 Apr  4  2005 usercert.pem
+-rw-------  1 bacon globdev 1920 Apr  4  2005 userkey.pem
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-4.0.1</userinput>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.sh</userinput>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>grid-cert-info -subject</userinput>
+/DC=org/DC=doegrids/OU=People/CN=Charles Bacon 332900
+</screen>
+</para>
+
+<para>
+Because my subject name is different on this machine, the <filename>grid-mapfile</filename> looks a little different too:
+<screen>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>vim /etc/grid-security/grid-mapfile </userinput>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>grep bacon /etc/grid-security/grid-mapfile</userinput>
+"/DC=org/DC=doegrids/OU=People/CN=Charles Bacon 332900"         bacon
+</screen>
+</para>
+
+</section>
+
+<section id="q-cluster-gridftp"><title>GridFTP on the cluster</title>
+<para>
+This cluster doesn't have any special storage nodes, so we'll just setup
+GridFTP on the head-node lucky0:
+<screen>
+<prompt>root@lucky0 /etc/grid-security#</prompt> <userinput>vim /etc/xinetd.d/gridftp</userinput>
+<prompt>root@lucky0 /etc/grid-security#</prompt> <userinput>vim /etc/services </userinput>
+<prompt>root@lucky0 /etc/grid-security#</prompt> <userinput>/etc/init.d/xinetd reload</userinput>
+Reloading internet superserver configuration: xinetd.
+<prompt>[root@lucky0 ~]$</prompt> <userinput>netstat -an | grep 2811</userinput>
+tcp        0      0 0.0.0.0:2811            0.0.0.0:*               LISTEN      
+</screen>
+</para>
+
+<para>
+Now user bacon can run a test transfer:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>globus-url-copy gsiftp://lucky0.mcs.anl.gov/etc/group gsiftp://lucky0.mcs.anl.gov/tmp/newtest</userinput>
+
+error: globus_ftp_control: gss_init_sec_context failed
+globus_gsi_gssapi: Error with gss credential handle
+globus_credential: Valid credentials could not be found in any of the possible locations specified by the credential search order.
+Valid credentials could not be found in any of the possible locations specified by the credential search order.
+
+Attempt 1
+
+globus_credential: Error reading host credential
+globus_sysconfig: Error with certificate filename
+globus_sysconfig: Error with certificate filename
+globus_sysconfig: File is not owned by current user: /etc/grid-security/hostcert.pem is not owned by current user
+
+Attempt 2
+
+globus_credential: Error reading proxy credential
+globus_sysconfig: Could not find a valid proxy certificate file location
+globus_sysconfig: Error with key filename
+globus_sysconfig: File does not exist: /tmp/x509up_u1817 is not a valid file
+
+Attempt 3
+
+globus_credential: Error reading user credential
+globus_credential: Key is password protected: GSI does not currently support password protected private keys.
+OpenSSL Error: pem_lib.c:401: in library: PEM routines, function PEM_do_header: bad password read
+</screen>
+Whoops, forgot to create a proxy.  Let's try again:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>grid-proxy-init</userinput>
+Your identity: /DC=org/DC=doegrids/OU=People/CN=Charles Bacon 332900
+Enter GRID pass phrase for this identity:<userinput>********</userinput>
+Creating proxy .................................... Done
+Your proxy is valid until: Wed Nov 23 22:21:49 2005
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>globus-url-copy gsiftp://lucky0.mcs.anl.gov/etc/group gsiftp://lucky0.mcs.anl.gov/tmp/newtest</userinput>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>diff /tmp/newtest /etc/group</userinput>
+<prompt>[bacon@lucky0 bacon]$</prompt> 
+</screen>
+Much better.  Looks like GridFTP works on the new machine.
+</para>
+</section>
+
+<section id="q-cluster-container"><title>Cluster: Container</title>
+<para>
+I'm going to setup the init.d scripts for the container on the cluster
+now:
+<screen>
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>vim /usr/local/globus-4.0.1/start-stop</userinput>
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>cat /usr/local/globus-4.0.1/start-stop</userinput>
+#! /bin/sh
+set -e
+export GLOBUS_LOCATION=/usr/local/globus-4.0.1
+export JAVA_HOME=/usr/java/j2sdk1.4.2_03/
+export ANT_HOME=/home/software/apache-ant-1.6.1
+export GLOBUS_OPTIONS="-Xms256M -Xmx512M" 
+
+. $GLOBUS_LOCATION/etc/globus-user-env.sh
+
+cd $GLOBUS_LOCATION
+case "$1" in
+    start)
+        $GLOBUS_LOCATION/sbin/globus-start-container-detached -p 8443
+        ;;
+    stop)
+        $GLOBUS_LOCATION/sbin/globus-stop-container-detached
+        ;;
+    *)
+        echo "Usage: globus {start|stop}" >&amp;2
+        exit 1
+       ;;
+esac
+exit 0
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>chmod +x /usr/local/globus-4.0.1/start-stop</userinput>
+</screen>
+Notice that the JAVA_HOME and ANT_HOME are different because I'm using
+different versions on this machine than the other machines.
+</para>
+<para>
+Now, as root, we create the init.d script:
+<screen>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>vim /etc/init.d/globus-4.0.1</userinput>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>chmod +x /etc/init.d/globus-4.0.1 </userinput>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>/etc/init.d/globus-4.0.1 start</userinput>
+Starting Globus container. PID: 15388
+</screen>
+This init script looks the same because I'm using the same directory on this machine as I was using on the other machines.  It looks like the container started up alright, so we'll move on and configure RFT.
+</para>
+</section>
+
+<section id="q-cluster-rft"><title>Cluster: RFT</title>
+<para>
+I'd like to setup a second RFT server.  I could create a new database on
+choate and use that, but I'd rather let the server run its own DB.
+<screen>
+<prompt>[root@lucky0 ~]#</prompt> <userinput>yum install postgresql</userinput>
+Gathering header information file(s) from server(s)
+Server: Fedora Core 1 - i386 - Base
+Server: Fedora Core 1 - i386 - Released Updates
+Finding updated packages
+Downloading needed headers
+Resolving dependencies
+Dependencies resolved
+I will do the following:
+[install: postgresql 7.3.4-11.i386]
+Is this ok [y/N]: <userinput>y</userinput>
+Getting postgresql-7.3.4-11.i386.rpm
+postgresql-7.3.4-11.i386. 100% |=========================| 1.6 MB    00:01     
+Running test transaction:
+Test transaction complete, Success!
+postgresql 100 % done 1/1 
+Installed:  postgresql 7.3.4-11.i386
+Transaction(s) Complete
+<prompt>[12 10:41 root@lucky0:~]#</prompt> <userinput>yum install postgresql-server</userinput>
+Gathering header information file(s) from server(s)
+Server: Fedora Core 1 - i386 - Base
+Server: Fedora Core 1 - i386 - Released Updates
+Finding updated packages
+Downloading needed headers
+Resolving dependencies
+Dependencies resolved
+I will do the following:
+[install: postgresql-server 7.3.4-11.i386]
+Is this ok [y/N]: <userinput>y</userinput>
+Getting postgresql-server-7.3.4-11.i386.rpm
+postgresql-server-7.3.4-1 100% |=========================| 2.6 MB    00:02     
+Running test transaction:
+Test transaction complete, Success!
+postgresql-server 100 % done 1/1 
+Installed:  postgresql-server 7.3.4-11.i386
+Transaction(s) Complete
+</screen>
+</para>
+
+<para>
+Now I can edit the config files and create a globus postgres user:
+<screen>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>/etc/init.d/postgresql start</userinput>
+Initializing database:                                     [  OK  ]
+Starting postgresql service:                               [  OK  ]
+<prompt>[root@lucky0 ~]$</prompt> <userinput>vim /var/lib/pgsql/data/postgresql.conf.default</userinput>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>grep tcpip /var/lib/pgsql/data/postgresql.conf.default </userinput>
+tcpip_socket = true
+<prompt>[root@lucky0 ~]$</prompt> <userinput>cp /usr/share/pgsql/pg_hba.conf.sample /var/lib/pgsql/data/pg_hba.conf</userinput>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>vim /var/lib/pgsql/data/pg_hba.conf</userinput>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>tail -1 /var/lib/pgsql/data/pg_hba.conf</userinput>
+host rftDatabase "globus" "140.221.65.193" 255.255.255.255 md5
+<prompt>[root@lucky0 ~]$</prompt> <userinput>/etc/init.d/postgresql restart</userinput>
+Stopping postgresql service:                               [  OK  ]
+Starting postgresql service:                               [  OK  ]
+<prompt>[root@lucky0 ~]$</prompt> <userinput>netstat -an | grep 5432</userinput>
+tcp        0      0 0.0.0.0:5432            0.0.0.0:*               LISTEN      
+unix  2      [ ACC ]     STREAM     LISTENING     27017998 /tmp/.s.PGSQL.5432
+<prompt>[root@lucky0 ~]$</prompt> <userinput>su postgres -c "createuser -P globus"</userinput>
+bash: /root/.bashrc: Permission denied
+Enter password for user "globus":<userinput>******</userinput>
+Enter it again:<userinput>******</userinput>
+Shall the new user be allowed to create databases? (y/n) y
+Shall the new user be allowed to create more new users? (y/n) n
+CREATE USER
+</screen>
+For the netstat line, if you only see the unix socket, you haven't setup TCP/IP connections correctly.
+</para>
+
+<para>
+As you can see, the FC1 RPM for postgresql had a slightly different setup
+than the Debian .deb we used earlier, but the basic points were the same.  Now we can create the RFT database as the globus user and update the password
+in the RFT config file:
+<screen>
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>createdb rftDatabase</userinput>
+CREATE DATABASE
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>psql -d rftDatabase -f /usr/local/globus-4.0.1/share/globus_wsrf_rft/rft_schema.sql</userinput>
+psql:/usr/local/globus-4.0.1/share/globus_wsrf_rft/rft_schema.sql:6: NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index 'requestid_pkey' for table 'requestid'
+CREATE TABLE
+psql:/usr/local/globus-4.0.1/share/globus_wsrf_rft/rft_schema.sql:11: NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index 'transferid_pkey' for table 'transferid'
+CREATE TABLE
+psql:/usr/local/globus-4.0.1/share/globus_wsrf_rft/rft_schema.sql:30: NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index 'request_pkey' for table 'request'
+CREATE TABLE
+psql:/usr/local/globus-4.0.1/share/globus_wsrf_rft/rft_schema.sql:65: NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index 'transfer_pkey' for table 'transfer'
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>vim /usr/local/globus-4.0.1/etc/globus_wsrf_rft/jndi-config.xml</userinput>
+</screen>
+</para>
+<para>
+Now we can restart the container, and we shouldn't see any RFT warnings:
+<screen>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>/etc/init.d/globus-4.0.1 restart</userinput>
+Stopping Globus container. PID: 15388
+Container stopped
+
+Starting Globus container. PID: 15774
+<prompt>[root@lucky0 ~]$</prompt> <userinput>head /usr/local/globus-4.0.1/var/container.log </userinput>
+Starting SOAP server at: https://140.221.65.193:8443/wsrf/services/ 
+With the following services:
+
+[1]: https://140.221.65.193:8443/wsrf/services/TriggerFactoryService
+[2]: https://140.221.65.193:8443/wsrf/services/DelegationTestService
+[3]: https://140.221.65.193:8443/wsrf/services/SecureCounterService
+[4]: https://140.221.65.193:8443/wsrf/services/IndexServiceEntry
+[5]: https://140.221.65.193:8443/wsrf/services/DelegationService
+[6]: https://140.221.65.193:8443/wsrf/services/InMemoryServiceGroupFactory
+[7]: https://140.221.65.193:8443/wsrf/services/mds/test/execsource/IndexService
+</screen>
+Looks good.
+</para>
+</section>
+
+<section id="q-cluster-gram"><title>Cluster: GRAM</title>
+<para>
+Our GRAM configuration needs a few extra steps now that we're trying to
+use a scheduler.  First, we'll need the sudoers like last time:
+<screen>
+[root@lucky0 ~]$ visudo
+globus ALL=(bacon) NOPASSWD: /usr/local/globus-4.0.1/libexec/globus-gridmap-and-execute -g /etc/grid-security/grid-mapfile /usr/local/globus-4.0.1/libexec/globus-job-manager-script.pl *
+globus  ALL=(bacon) NOPASSWD: /usr/local/globus-4.0.1/libexec/globus-gridmap-and-execute -g /etc/grid-security/grid-mapfile /usr/local/globus-4.0.1/libexec/globus-gram-local-proxy-tool *
+</screen>
+</para>
+
+<para>
+Let's make sure we can submit a test job to the fork-run GRAM first:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>globusrun-ws -submit -s -c /bin/date</userinput>
+Delegating user credentials...Done.
+Submitting job...Done.
+Job ID: uuid:9ff8ce66-5c45-11da-8577-0002a5ad41e5
+Termination time: 11/24/2005 17:21 GMT
+Current job state: Active
+Current job state: CleanUp-Hold
+Wed Nov 23 11:21:52 CST 2005
+Current job state: CleanUp
+Current job state: Done
+Destroying job...Done.
+Cleaning up any delegated credentials...
+Done.
+</screen>
+</para>
+
+<para>
+Okay, so far so good.  Let's also make sure that PBS is working without GRAM:
+<screen>
+[bacon@lucky0 bacon]$ vim mysub
+#!/bin/sh
+
+/bin/hostname
+[bacon@lucky0 bacon]$ chmod +x mysub
+[bacon@lucky0 bacon]$ qsub mysub
+4217.lucky0.mcs.anl.gov
+[bacon@lucky0 bacon]$ cat mysub.o4217 
+lucky1.mcs.anl.gov
+</screen>
+As you can see, the PBS job was submitted, then ran on node lucky1.  The output was placed in my home directory.  Since the PBS server works, let's get the GRAM interface to it properly configured.
+</para>
+
+<para>
+For the notification system in GRAM to work, the globus user will need access
+to the scheduler logs.  The location of the logs is kept in <filename>
+$GLOBUS_LOCATION/etc/globus-pbs.conf</filename>.  We should verify that these are readable:
+<screen>
+<prompt>[globus@lucky0 etc]$</prompt> <userinput>cat globus-pbs.conf</userinput>
+log_path=/var/spool/pbs/server_logs
+<prompt>[globus@lucky0 etc]$</prompt> <userinput>ls -l /var/spool/pbs/server_logs</userinput>
+-rw-r--r--  1 root root    350 Jul 21 11:20 20050708
+-rw-r--r--  1 root root   2786 Jul 22 12:42 20050721
+-rw-r--r--  1 root root 241232 Jul 23 10:16 20050722
+-rw-r--r--  1 root root  30295 Jul 25 15:55 20050723
+-rw-r--r--  1 root root  53939 Sep 14 18:07 20050725
+-rw-r--r--  1 root root   2055 Oct 25 15:46 20050914
+-rw-r--r--  1 root root   4775 Oct 26 09:35 20051025
+-rw-r--r--  1 root root  10443 Nov  1 10:48 20051026
+-rw-r--r--  1 root root   5016 Nov 23 11:23 20051101
+-rw-r--r--  1 root root  10298 Nov 23 12:04 20051123
+</screen>
+As you can see, the logs are readable, so we will be okay.
+</para>
+
+<para>
+The one thing we might need to do now is create a filesystem mapping.  Lots of
+clusters have storage nodes that have a different view of the filesystem than the compute nodes.  For instance, a storage node might see <filename>/exports/home</filename> for the filesystem called <filename>/home</filename> on the cluster.
+Our cluster isn't that complicated, since lucky0 has the <filename>/home</filename> system mounted as <filename>/home</filename> already.  Therefore, we get to use the trivial filesystem map that performs no translations:
+<screen>
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>tail -11 /usr/local/globus-4.0.1/etc/gram-service/globus_gram_fs_map_config.xml</userinput>
+<![CDATA[
+ <ns1:scheduler xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:string">PBS</ns1:scheduler>
+ <ns1:ftpServer xsi:type="ns1:FtpServerType">
+  <ns1:protocol xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:string">gsiftp</ns1:protocol>
+  <ns1:host xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:string">lucky0.mcs.anl.gov</ns1:host>
+  <ns1:port xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:unsignedShort">2811</ns1:port>
+ </ns1:ftpServer>
+ <ns1:mapping xsi:type="ns1:FileSystemPathMappingType">
+  <ns1:jobPath xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:string">/</ns1:jobPath>
+  <ns1:ftpPath xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:string">/</ns1:ftpPath>
+ </ns1:mapping>
+]]>
+</screen>
+More information on the filesystem map is available from the <ulink
+url="http://www.globus.org/toolkit/docs/4.0/admin/docbook/ch11.html#s-wsgram-Interface_Config_Frag-filesysmap">GRAM Admin Guide</ulink>.
+</para>
+
+<para>
+So let's run some jobs through PBS:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>vim a.rsl</userinput>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>cat a.rsl</userinput>
+<![CDATA[
+<job>
+    <executable>my_echo</executable>
+    <directory>${GLOBUS_USER_HOME}</directory>
+    <argument>Hello</argument>
+    <argument>World!</argument>
+    <stdout>${GLOBUS_USER_HOME}/stdout</stdout>
+    <stderr>${GLOBUS_USER_HOME}/stderr</stderr>
+    <fileStageIn>
+        <transfer>
+            <sourceUrl>gsiftp://lucky0.mcs.anl.gov:2811/bin/echo</sourceUrl>
+            <destinationUrl>file:///${GLOBUS_USER_HOME}/my_echo</destinationUrl>
+        </transfer>
+    </fileStageIn>
+    <fileCleanUp>
+        <deletion>
+            <file>file:///${GLOBUS_USER_HOME}/my_echo</file>
+        </deletion>
+    </fileCleanUp>
+</job>
+]]>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>globusrun-ws -Ft PBS -submit -S -f a.rsl</userinput>
+Delegating user credentials...Done.
+Submitting job...Done.
+Job ID: uuid:fcc1cc9e-5c48-11da-be54-0002a5ad41e5
+Termination time: 11/24/2005 17:45 GMT
+Current job state: StageIn
+Current job state: Pending
+Current job state: Active
+Current job state: CleanUp
+Current job state: Done
+Destroying job...Done.
+Cleaning up any delegated credentials...Done.
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>cat stdout</userinput>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>cat stderr</userinput>
+Permission denied, please try again.
+Permission denied, please try again.
+Permission denied (publickey,password,keyboard-interactive).
+</screen>
+Oh, I see.  GRAM is trying to scp back my results, but the lucky cluster
+is configured to use rsh between nodes.
+</para>
+
+<para>
+A quick command will fix that:
+<screen>
+<prompt>[globus@lucky0 globus-4.0.1]$</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-4.0.1</userinput>
+<prompt>[globus@lucky0 globus-4.0.1]$</prompt> <userinput>$GLOBUS_LOCATION/setup/globus/setup-globus-job-manager-pbs --remote-shell=rsh</userinput>
+Error locating PBS commands, aborting!
+</screen>
+How's that?  Oh, it turns out the script wants to be run from the <filename>$GLOBUS_LOCATION/setup/globus</filename> directory so it can run some other tools:
+<screen>
+<prompt>[globus@lucky0 globus-4.0.1]$</prompt> <userinput>cd $GLOBUS_LOCATION/setup/globus</userinput>
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>./setup-globus-job-manager-pbs --remote-shell=rsh</userinput>
+find-pbs-tools: WARNING: "Cannot locate mpiexec"
+find-pbs-tools: WARNING: "Cannot locate mpirun"
+checking for mpiexec... no
+checking for mpirun... no
+checking for qdel... /home/software/openpbs-2.3.16/bin/qdel
+checking for qstat... /home/software/openpbs-2.3.16/bin/qstat
+checking for qsub... /home/software/openpbs-2.3.16/bin/qsub
+checking for rsh... /usr/bin/rsh
+find-pbs-tools: creating ./config.status
+config.status: creating /usr/local/globus-4.0.1/lib/perl/Globus/GRAM/JobManager/pbs.pm
+</screen>
+</para>
+<para>
+Okay, let's try our job submission again:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>rm stdout stderr</userinput>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>globusrun-ws -Ft PBS -submit -S -f a.rsl</userinput>
+Delegating user credentials...Done.
+Submitting job...Done.
+Job ID: uuid:63b064dc-5c4a-11da-804c-0002a5ad41e5
+Termination time: 11/24/2005 17:55 GMT
+Current job state: StageIn
+Current job state: Pending
+Current job state: Active
+Current job state: CleanUp
+Current job state: Done
+Destroying job...Done.
+Cleaning up any delegated credentials...Done.
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>cat stdout</userinput>
+Hello World!
+</screen>
+Success!
+</para>
+</section>
+
+<section id="q-cluster-mds"><title>Cluster: MDS</title>
+<para>
+In this section I'm going to configure the Ganglia providers for
+the Index Service.  This will let us do cluster monitoring through
+MDS.  Basically I just need to edit the file <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/gluerp.xml</filename>:
+<screen>
+<prompt>[globus@lucky0 etc]$</prompt> <userinput>vim $GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/gluerp.xml</userinput>
+<prompt>[globus@lucky0 etc]$</prompt> <userinput>head $GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/gluerp.xml</userinput>
+<![CDATA[
+<config xmlns="http://mds.globus.org/2004/10/gluerp-config">
+
+    <defaultProvider>java org.globus.mds.usefulrp.glue.GangliaElementProducer</defaultProvider>
+
+<!--
+
+To enable the use of ganglia to provide cluster information, replace the above
+with the following:
+]]>
+</screen>
+</para>
+<para>
+Now we restart the container:
+<screen>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>/etc/init.d/globus-4.0.1 restart</userinput>
+Stopping Globus container. PID: 15774
+Container stopped
+
+Starting Globus container. PID: 18683
+</screen>
+</para>
+
+<para>
+Now I get GLUE Schema information about my cluster in the wsrf-query output:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>wsrf-query -s https://140.221.65.193:8443/wsrf/services/DefaultIndexService '/*' | grep GLUE</userinput>
+<![CDATA[
+                 aggregated, which in this case is the GLUE cluster
+                <ns11:ResourcePropertyName>glue:GLUECE</ns11:ResourcePropertyName>
+    <ns1:GLUECE xmlns:ns1="http://mds.globus.org/glue/ce/1.1">
+    </ns1:GLUECE>
+                 aggregated, which in this case is the GLUE cluster
+                <ns11:ResourcePropertyName>glue:GLUECE</ns11:ResourcePropertyName>
+    <ns1:GLUECE xmlns:ns1="http://mds.globus.org/glue/ce/1.1">
+    </ns1:GLUECE>
+                 aggregated, which in this case is the GLUE cluster
+                <ns11:ResourcePropertyName>glue:GLUECE</ns11:ResourcePropertyName>
+    <ns1:GLUECE xmlns:ns1="http://mds.globus.org/glue/ce/1.1">
+    </ns1:GLUECE>
+]]>
+</screen>
+</para>
+
+<para>
+I'd really like to see this in WebMDS, though, which is running on cognito.
+That probably means it's time to establish cross-CA trust between lucky (using DOE Grids CA) and choate/cognito (using my SimpleCA).  That's probably worth a new section.
+</para>
+</section>
+</section> <!-- Cluster -->
+
+<section id="q-2ca"><title>Establishing Cross-CA Trust</title>
+<para>
+It's actually not that hard to add trust between these two environments.  First, let's get lucky to trust choate's SimpleCA.  That's easy enough, because we have the setup package we can install.  I copy it over from choate, then run:
+<screen>
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>$GLOBUS_LOCATION/sbin/gpt-build /tmp/globus_simple_ca_ebb88ce5_setup-0.18.tar.gz </userinput>
+gpt-build ====> CHECKING BUILD DEPENDENCIES FOR globus_simple_ca_ebb88ce5_setup
+gpt-build ====> Changing to /home/globus/BUILD/globus_simple_ca_ebb88ce5_setup-0.18/
+gpt-build ====> BUILDING globus_simple_ca_ebb88ce5_setup
+gpt-build ====> Changing to /home/globus/BUILD
+gpt-build ====> REMOVING empty package globus_simple_ca_ebb88ce5_setup-noflavor-data
+gpt-build ====> REMOVING empty package globus_simple_ca_ebb88ce5_setup-noflavor-dev
+gpt-build ====> REMOVING empty package globus_simple_ca_ebb88ce5_setup-noflavor-doc
+gpt-build ====> REMOVING empty package globus_simple_ca_ebb88ce5_setup-noflavor-pgm_static
+gpt-build ====> REMOVING empty package globus_simple_ca_ebb88ce5_setup-noflavor-rtl
+<prompt>[globus@lucky0 globus]$</prompt> <userinput>$GLOBUS_LOCATION/sbin/gpt-postinstall</userinput>
+running /usr/local/globus-4.0.1/setup/globus/./setup-ssl-utils.ebb88ce5..[ Changing to /usr/local/globus-4.0.1/setup/globus/. ]
+setup-ssl-utils: Configuring ssl-utils package
+Running setup-ssl-utils-sh-scripts...
+
+***************************************************************************
+
+Note: To complete setup of the GSI software you need to run the
+following script as root to configure your security configuration
+directory:
+
+/usr/local/globus-4.0.1/setup/globus_simple_ca_ebb88ce5_setup/setup-gsi
+
+For further information on using the setup-gsi script, use the -help
+option.  The -default option sets this security configuration to be 
+the default, and -nonroot can be used on systems where root access is 
+not available.
+
+***************************************************************************
+
+setup-ssl-utils: Complete
+
+..Done
+WARNING: The following packages were not set up correctly:
+        globus_simple_ca_ebb88ce5_setup-noflavor-pgm
+Check the package documentation or run postinstall -verbose to see what happened
+</screen>
+</para>
+
+<para>
+Then, as root, I run <command>setup-gsi</command>, but leave off the <option>-default</option>, because I don't want to switch CAs:
+<screen>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>$GLOBUS_LOCATION/setup/globus_simple_ca_ebb88ce5_setup/setup-gsi </userinput>
+setup-gsi: Configuring GSI security
+Installing /etc/grid-security/certificates//grid-security.conf.ebb88ce5...
+Running grid-security-config...
+Installing Globus CA certificate into trusted CA certificate directory...
+Installing Globus CA signing policy into trusted CA certificate directory...
+
+WARNING:  Can't match the previously installed GSI configuration files
+          to a CA certificate. For the configuration files ending in
+          "00000000" located in /etc/grid-security/certificates/,
+          change the "00000000" extension to the hash of the correct
+          CA certificate.
+
+setup-gsi: Complete
+</screen>
+The warning is harmless, it's just unsure about the DOE Grids CA configuration files in the <filename>/etc/grid-security/certificates</filename> directory.  The important part is that the SimpleCA files are now in place:
+<screen>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>ls -l /etc/grid-security/certificates/*ebb88ce5*</userinput>
+-rw-r--r--  1 root root  936 Nov 23 14:00 /etc/grid-security/certificates/ebb88ce5.0
+-rw-r--r--  1 root root 1353 Nov 23 14:00 /etc/grid-security/certificates/ebb88ce5.signing_policy
+-rw-r--r--  1 root root 2670 Nov 23 14:00 /etc/grid-security/certificates/globus-host-ssl.conf.ebb88ce5
+-rw-r--r--  1 root root 2781 Nov 23 14:00 /etc/grid-security/certificates/globus-user-ssl.conf.ebb88ce5
+-rw-r--r--  1 root root 1387 Nov 23 14:00 /etc/grid-security/certificates/grid-security.conf.ebb88ce5
+<prompt>[root@lucky0 ~]$</prompt> <userinput>grid-default-ca -list</userinput>
+The available CA configurations installed on this host are:
+
+Directory: /etc/grid-security/certificates
+
+1) 1c3f2ca8 -  /DC=org/DC=DOEGrids/OU=Certificate Authorities/CN=DOEGrids CA 1
+2) 42864e48 -  /C=US/O=Globus/CN=Globus Certification Authority
+3) 6349a761 -  /O=DOE Science Grid/OU=Certificate Authorities/CN=Certificate Manager
+4) 9d8753eb -  /DC=net/DC=es/OU=Certificate Authorities/OU=DOE Science Grid/CN=pki1
+5) d1b603c3 -  /DC=net/DC=ES/O=ESnet/OU=Certificate Authorities/CN=ESnet Root CA 1
+6) ebb88ce5 -  /O=Grid/OU=GlobusTest/OU=simpleCA-choate.mcs.anl.gov/CN=Globus Simple CA
+
+
+The default CA is: /O=Grid/OU=GlobusTest/OU=simpleCA-choate.mcs.anl.gov/CN=Globus Simple CA
+         Location: /etc/grid-security/certificates/ebb88ce5.0
+</screen>
+Hmm.  The default did switch to the new SimpleCA.  I will switch it back:
+<screen>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>grid-default-ca </userinput>
+The available CA configurations installed on this host are:
+
+Directory: /etc/grid-security/certificates
+
+1) 1c3f2ca8 -  /DC=org/DC=DOEGrids/OU=Certificate Authorities/CN=DOEGrids CA 1
+2) 42864e48 -  /C=US/O=Globus/CN=Globus Certification Authority
+3) 6349a761 -  /O=DOE Science Grid/OU=Certificate Authorities/CN=Certificate Manager
+4) 9d8753eb -  /DC=net/DC=es/OU=Certificate Authorities/OU=DOE Science Grid/CN=pki1
+5) d1b603c3 -  /DC=net/DC=ES/O=ESnet/OU=Certificate Authorities/CN=ESnet Root CA 1
+6) ebb88ce5 -  /O=Grid/OU=GlobusTest/OU=simpleCA-choate.mcs.anl.gov/CN=Globus Simple CA
+
+
+The default CA is: /O=Grid/OU=GlobusTest/OU=simpleCA-choate.mcs.anl.gov/CN=Globus Simple CA
+         Location: /etc/grid-security/certificates/ebb88ce5.0
+
+
+Enter the index number of the CA to set as the default:<userinput>1</userinput>
+
+setting the default CA to: /DC=org/DC=DOEGrids/OU=Certificate Authorities/CN=DOEGrids CA 1
+
+linking /etc/grid-security/certificates//grid-security.conf.1c3f2ca8 to
+        /etc/grid-security/grid-security.conf
+
+linking /etc/grid-security/certificates//globus-host-ssl.conf.1c3f2ca8 to
+        /etc/grid-security/globus-host-ssl.conf
+
+linking /etc/grid-security/certificates//globus-user-ssl.conf.1c3f2ca8 to
+        /etc/grid-security/globus-user-ssl.conf
+
+
+...done.
+</screen>
+</para>
+
+<para>
+Now on choate and cognito, I need a copy of the DOE Grids certificates.  I will just copy them into place:
+<screen>
+<prompt>root@choate:/etc/grid-security/certificates#</prompt> <userinput>scp lucky0:/etc/grid-security/certificates/\*.0 .</userinput>
+root@lucky0's password:<userinput>********</userinput> 
+1c3f2ca8.0                                    100% 1436     1.4KB/s   00:00    
+42864e48.0                                    100%  806     0.8KB/s   00:00    
+6349a761.0                                    100%  953     0.9KB/s   00:00    
+9d8753eb.0                                    100% 1679     1.6KB/s   00:00    
+d1b603c3.0                                    100% 1448     1.4KB/s   00:00    
+ebb88ce5.0                                    100%  936     0.9KB/s   00:00    
+<prompt>root@choate:/etc/grid-security/certificates#</prompt> <userinput>scp lucky0:/etc/grid-security/certificates/\*.signing_policy .</userinput>
+root@lucky0's password:<userinput>********</userinput> 
+1c3f2ca8.signing_policy                       100% 2114     2.1KB/s   00:00    
+42864e48.signing_policy                       100% 1329     1.3KB/s   00:00    
+6349a761.signing_policy                       100% 1940     1.9KB/s   00:00    
+9d8753eb.signing_policy                       100% 1717     1.7KB/s   00:00    
+d1b603c3.signing_policy                       100% 2089     2.0KB/s   00:00    
+ebb88ce5.signing_policy                       100% 1353     1.3KB/s   00:00    
+</screen>
+Of course, I do the same on cognito also.
+</para>
+
+<para>
+Next up is to modify the grid-mapfiles so that my user can use either identity to the machines.  First, lucky:
+<screen>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>vim /etc/grid-security/grid-mapfile </userinput>
+<prompt>[root@lucky0 ~]$</prompt> <userinput>grep bacon /etc/grid-security/grid-mapfile</userinput>
+"/DC=org/DC=doegrids/OU=People/CN=Charles Bacon 332900"         bacon
+"/O=Grid/OU=GlobusTest/OU=simpleCA-choate.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon" bacon
+</screen>
+</para>
+
+<para>
+Then, for  choate and cognito:
+<screen>
+<prompt>root@choate:/etc/grid-security/certificates#</prompt> <userinput>vim /etc/grid-security/grid-mapfile </userinput>
+<prompt>root@choate:/etc/grid-security/certificates#</prompt> <userinput>cat /etc/grid-security/grid-mapfile</userinput>
+"/O=Grid/OU=GlobusTest/OU=simpleCA-choate.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon" bacon
+"/DC=org/DC=doegrids/OU=People/CN=Charles Bacon 332900"         bacon
+</screen>
+</para>
+
+<para>
+As a test, I should be able to run a job on choate from lucky:
+<screen>
+<prompt>[bacon@lucky0 bacon]$</prompt> <userinput>globusrun-ws -F choate.mcs.anl.gov -submit -s -c /bin/hostname</userinput>
+Delegating user credentials...Done.
+Submitting job...Done.
+Job ID: uuid:84d1c372-5c5e-11da-a975-0002a5ad41e5
+Termination time: 11/24/2005 20:19 GMT
+Current job state: Active
+Current job state: CleanUp-Hold
+choate.mcs.anl.gov
+Current job state: CleanUp
+Current job state: Done
+Destroying job...Done.
+Cleaning up any delegated credentials...Done.
+</screen>
+Works like a champ!
+</para>
+</section> <!-- Cross-CA -->
 
 </chapter>
 
