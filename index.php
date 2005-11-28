@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">11.28.2005</span></td>
+              <td><b>CI Seminar series explains GridShib.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">11.16.2005</span></td>
               <td><b>The second beta release of Ninf-G4 is now available.</b> 
                 <a class="learnmore" href="http://ninf.apgrid.org/">Learn more...</a></td>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">11.13.2005</span></td>
               <td><b>Preview the future home of Globus development!</b> 
                 <a class="learnmore" href="http://dev.globus.org/">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">11.10.2005</span></td>
-              <td><b>Don't miss the exciting Globus activities at SC05!</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/sc05/"; ?>">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
