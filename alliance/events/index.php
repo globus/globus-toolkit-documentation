@@ -37,7 +37,7 @@ presentations on cyberinfrastructure and related research organized by NCSA and 
 These seminars are available on site at the presenting institution and remotely via the 
 Access Grid and webcast via <a href="http://www.cichannel.org/">CI Channel</a>. For more details 
 regarding the AG venue for this seminar, please refer to 
-<a href="http://agschedule.ncsa.uiuc.edu/meetingdetails.asp?MID=9804">the AG scheduler</a>. 
+<a href="http://agschedule.ncsa.uiuc.edu/meetingdetails.asp?MID=11627">the AG scheduler</a>. 
 All Access Grid sites are welcome to participate in this seminar. If you have any questions, 
 contact Jennie File, NCSA Training and Outreach Group.</p>
 
