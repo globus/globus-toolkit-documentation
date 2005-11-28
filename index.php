@@ -24,14 +24,14 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
             <tr>
+              <td><span class="newsdate">11.22.2005</span></td>
+              <td><b>GridBus Broker supports GT 4.0.</b> 
+                <a class="learnmore" href="http://www.gridbus.org/broker/">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">11.16.2005</span></td>
               <td><b>The second beta release of Ninf-G4 is now available.</b> 
                 <a class="learnmore" href="http://ninf.apgrid.org/">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">11.15.2005</span></td>
-              <td><b>Announcing Weka4WS: GT4-based distributed data mining.</b> 
-                <a class="learnmore" href="http://grid.deis.unical.it/weka4ws/">Learn more...</a></td>
             </tr>
             <tr>
               <td><span class="newsdate">11.13.2005</span></td>
