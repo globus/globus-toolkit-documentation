@@ -20,6 +20,27 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 events.  The <a href="archive.php">Meetings and Events Archive</a> contains 
 information and notes from previous events.</p>
     
+<h2>December 2005</h2>
+
+<p><b>Cyberinfrastructure Seminar Series: "GridShib: An Attribute-Based Authorization Framework"</b><br>
+11:00am-12:30pm PDT<br>
+December 6, 2005<br>
+<u>Access Grid, SDSC Auditorium, Webcast</u><br>
+The Globus Toolkit is the leading toolkit for the deployment of grids. Shibboleth is a 
+project from the Internet2 community that allows for cross-organizational sharing of web 
+resources. GridShib builds on these existing technologies to allow for interoperability 
+between them so that virtual organizations built on Globus Toolkit can leverage 
+Shibboleth.  This talk provides overviews of the Globus Toolkit, Shibboleth, and GridShib, 
+as well as future challenges. The talk will be technical, but will not presume an 
+understanding of security. The Cyberinfrastructure Seminar Series is a set of 
+presentations on cyberinfrastructure and related research organized by NCSA and SDSC. 
+These seminars are available on site at the presenting institution and remotely via the 
+Access Grid and webcast via <a href="www.cichannel.org">CI Channel</a>. For more details 
+regarding the AG venue for this seminar, please refer to 
+<a href="http://agschedule.ncsa.uiuc.edu/meetingdetails.asp?MID=9804">the AG scheduler</a>. 
+All Access Grid sites are welcome to participate in this seminar. If you have any questions, 
+contact Jennie File, NCSA Training and Outreach Group.</p>
+
 <h2>November 2005</h2>
 
 <p><b><a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/sc05/"; ?>">SC05</a></b><br>

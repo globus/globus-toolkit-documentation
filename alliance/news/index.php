@@ -44,6 +44,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2005">2005</a></h2>
 
+<p>The NCSA/SDSC Cyberinfrastructure Seminar Series presents 
+<a class="newsalliance" href="../events/">"GridShib: An Attribute-Based Authorization 
+Framework."</a> (12/2005)</p>
+
 <p>The second beta release of <a class="newspartners" href="http://ninf.apgrid.org">Ninf-G4</a>
 is now available. (11/2005)</p>
 
