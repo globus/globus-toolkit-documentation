@@ -15,13 +15,32 @@
 <section id="s-gtcp-admin-installing"><title>Building and installing</title>
 <para>To install GTCP:</para>
 <orderedlist>
-<listitem><simpara>Install the Globus Toolkit.</simpara></listitem>
+<listitem><para>Install the Globus Toolkit by doing one of the following:
+<itemizedlist>
+<listitem><simpara>If you do not want to use any other Globus services, install the Globus Core source or binary distribution, following the directions in the <ulink url="../../common/javawscore/admin-index.html">GT4.0 Java WS Core System Administrator's Guide</ulink>.</simpara></listitem>
+<listitem><simpara>If you want to use other Globus services, install the full Globus Toolkit, following the directions in the <ulink url="../../admin/docbook">GT4.0 System Administrator's Guide</ulink>.</simpara></listitem>
+</itemizedlist>
+</para>
+</listitem>
 <listitem><simpara>Set your GLOBUS_LOCATION environment variable to the directory in which the Globus Toolkit has been installed.</simpara></listitem>
-<listitem><para>Run this command:
+<listitem><para>Install GTCP, either from a distribution file or from source:
+<itemizedlist>
+<listitem><para>To install from a distribution file (the GTCP distribution file can
+be found in the "contrib" directory in the full Globus distribution), run:
 <screen>
-    $GLOBUS_LOCATION/sbin/gpt-build gt4-gtcp-0.1-src_bundle.tar.gz
+$GLOBUS_LOCATION/sbin/gpt-build gt4-gtcp-0.1-src_bundle.tar.gz
 </screen>
 </para></listitem>
+<listitem><para>To install from CVS, do the following:
+<screen>
+setenv CVSROOT :pserver:anonymous@cvs.globus.org:/home/globdev/CVS/globus-packagescvs co playground/telecontrol
+cd playground/telecontrol/gtcp
+ant
+</screen>
+</para></listitem>
+</itemizedlist>
+</para>
+</listitem>
 </orderedlist>
 </section>
 
@@ -29,7 +48,7 @@
 <para>The following parameters, set in
 <computeroutput>$GLOBUS_LOCATION/etc/globus_telecontrol_gtcp_service/server-config.wsdd</computeroutput>, are used to configure GTCP:
 </para>
-<table><title>TITLE</title>
+<table><title>GTCP configuration parameters</title>
 <tgroup cols="2"><thead>
 <row>
 <entry>Name</entry>
@@ -50,6 +69,35 @@
 </row>
 </tbody></tgroup>
 </table>
+<section id="s-gtcp-admin-running-without-security"><title>Running without security</title>
+<para>Note:  If you wish to run GTCP completely without security, then you must follow three steps:</para>
+<orderedlist>
+<listitem><simpara>In the file <filename>$GLOBUS_LOCATION/etc/globus_telecontrol_gtcp_service/server-config.wsdd</filename>, make sure that the <parameter>isSecure</parameter> is set to false.</simpara></listitem>
+<listitem><para>Make sure there is no global security descriptor set.  To
+do so, look at the file
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_core/server-config.wsdd</filename>.
+If you see an entry that looks like this:
+<screen>
+        &lt;parameter 
+            name="containerSecDesc" 
+            value="etc/globus_wsrf_core/global_security_descriptor.xml"/&gt;
+</screen>
+then you should comment it out:
+<screen>
+        <emphasis role="strong">&lt;!--</emphasis>&lt;parameter 
+            name="containerSecDesc" 
+            value="etc/globus_wsrf_core/global_security_descriptor.xml"/&gt;<emphasis role="strong">--&gt;</emphasis>
+</screen>
+</para>
+</listitem>
+<listitem><para>
+When you run <command>globus-start-container</command>, use the <command>-nosec</command> option, to tell Globus not to do transport-level security:
+<screen>
+globus-start-container -nosec
+</screen>
+</para></listitem>
+</orderedlist>
+</section>
 </section>
 
 <section id="s-gtcp-admin-deploying"><title>Deploying</title>
@@ -57,16 +105,54 @@
 </section>
 
 <section id="s-gtcp-admin-testing"><title>Testing</title>
-<para>To run the GTCP tests, start a Globus container,
-make sure that $GLOBUS_LOCATION is set and that you
-have a valid proxy certificate, and then run this command:
+<para>To run the GTCP tests, make sure that $GLOBUS_LOCATION is set and, if
+you're running with security, that you have a valid proxy certificate.  Then
+start the GTCP server and run the unit tests:</para>
+<orderedlist>
+<listitem><para>To start the GTCP server, do the following:</para>
+<screen>
+cd $GLOBUS_LOCATION
+bin/globus-start-container
+</screen>
+<para>You may also want to use one or more of these command-line options</para>
+<table><title>Server command-line options</title>
+<tgroup cols="2"><thead>
+<row>
+<entry>Option</entry>
+<entry>Effect</entry>
+</row>
+</thead><tbody>
+<row>
+<entry>-nosec</entry>
+<entry>Tells the Globus container not to do transport-level security</entry>
+</row>
+<row>
+<entry>-p 1234</entry>
+<entry>Tells the Globus container to listen on port 1234 instead of the default
+port (which is 8443 if the -nosec option is specified, 8080 otherwise).</entry>
+</row>
+
+</tbody></tgroup>
+</table>
+<para>
+Note:  the GTCP server will continue to run in the foreground.  You can also
+redirect the output to a file and run it in the background if you wish.
+</para>
+</listitem>
+<listitem>
+<para>
+To run the unit tests, in another window, make sure that $GLOBUS_LOCATION is set correctly and run:
 <screen>
     ant -f ${GLOBUS_LOCATION}/etc/globus_telecontrol_gtcp_service/build.xml \
         -Dweb.server.url=<emphasis>your_container_base_url</emphasis> \
         test-installed
 </screen>
 where <emphasis>your_container_base_url</emphasis> is the base url of your Globus container
-(for example, <computeroutput>https://127.0.0.1:8443/wsrf/services/</computeroutput>).  
+(for example, <computeroutput>https://127.0.0.1:8443/wsrf/services/</computeroutput>).
+</para>
+</listitem>
+</orderedlist>
+<para>
 If the
 test output ends with:
 <screen>
@@ -76,10 +162,6 @@ then the tests have passed.  Note:  because the test code checks that illegal re
 error messages and cause the container to print some error messages and/or stack
 traces.  This is normal; as long as the test output reports that it ran 2 tests
 with 0 failures and 0 errors, the tests have passed.
-</para><para>
-If you wish to run these tests with an insecure container, you can set
-the <computeroutput>isSecure</computeroutput> parameter to <computeroutput>false</computeroutput> in
-<computeroutput>$GLOBUS_LOCATION/etc/globus_telecontrol_gtcp_service/server-config.wsdd</computeroutput> and proceed as above.
 </para>
 </section>
 
