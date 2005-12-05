@@ -50,6 +50,9 @@ in Cracow. (1/2006)</p>
 
 <h2><a name="2005">2005</a></h2>
 
+<p>The National Science Foundation makes <a class="newspress" href="http://business.newsforge.com/article.pl?sid=05/12/02/1726235&from=rss">a $13M award</a> for continued support and 
+development of the Globus Toolkit. (12/2005)</p>
+
 <p>The NCSA/SDSC Cyberinfrastructure Seminar Series presents 
 <a class="newsalliance" href="../events/">"GridShib: An Attribute-Based Authorization 
 Framework."</a> (12/2005)</p>
