@@ -32,6 +32,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2>Sections by Date</h2>
 <p>
+<a href="#2006">2006</a>  
 <a href="#2005">2005</a>  
 <a href="#2004">2004</a>  
 <a href="#2003">2003</a>  
@@ -41,6 +42,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <a href="#1999">1999</a>  
 <a href="#1998">1998</a>  
 </p>
+
+<h2><a name="2006">2006</a></h2>
+
+<p>GridwiseTech offers <a class="newspartners" href="http://www.gridwisetech.com/globus-toolkit/content/view/9/12/lang,en/">Globus Toolkit training</a> 
+in Cracow. (1/2006)</p>
 
 <h2><a name="2005">2005</a></h2>
 

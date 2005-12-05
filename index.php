@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">12.05.2005</span></td>
+              <td><b>GridwiseTech offers Globus Toolkit training in Cracow.</b> 
+                <a class="learnmore" href="http://www.gridwisetech.com/globus-toolkit/content/view/9/12/lang,en/">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">11.28.2005</span></td>
               <td><b>CI Seminar series explains GridShib.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
