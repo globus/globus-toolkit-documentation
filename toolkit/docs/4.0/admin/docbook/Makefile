@@ -3,6 +3,7 @@ export SGML_CATALOG_FILES
 #XML_DEBUG_CATALOG=1
 #export XML_DEBUG_CATALOG
 FILENAME=index.xml quickstart.xml
+FILENAME=quickstart.xml
 GRAPHICS=--stringparam admon.graphics.path /docbook-images/ --stringparam admon.graphics 1
 NUMBERING=--stringparam  section.autolabel 1 --stringparam  section.label.includes.component.label 1
 
