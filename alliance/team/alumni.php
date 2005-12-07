@@ -52,11 +52,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 	<li>Larry Flon</li>
 	<li>Leon Kuntz (in memoriam)</li>
 	<li>Bob Lindell</li>
-        <li><a href="http://www.isi.edu/~gmehta">Gaurang Mehta</a></li>
         <li>John McGee</li>
 	<li>Clifford Neuman</li>
 	<li>Tatyana Ryutov</li>
-        <li>Karan Vahi</li>
     </ul>
 
 <h2><a href="http://epcc.ed.ac.uk/">EPCC</a>, <a href="http://www.ed.ac.uk/">University of Edinburgh</a></h2>
