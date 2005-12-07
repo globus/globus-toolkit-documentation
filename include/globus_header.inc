@@ -7,6 +7,7 @@
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
 <link href="http://www.globus.org/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
 <link rel="stylesheet" type="text/css" href="http://www.globus.org/toolkit/css/print.css" media="print" />
+<link rel="alternate" title="Globus Toolkit RSS" href="http://www-unix.globus.org/toolkit/rss/downloadNews/downloadNews.xml" type="application/rss+xml">
 <script>
 function GlobusSubmit()
 {
