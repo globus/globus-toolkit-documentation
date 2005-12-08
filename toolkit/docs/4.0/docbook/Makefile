@@ -4,7 +4,7 @@ all: html pdf
 html: 
 	xsltproc --stringparam chunk.section.depth 0 \
           ${GRAPHICS} \
-	  /usr/share/sgml/docbook/xsl-stylesheets/html/chunk.xsl ${FILENAME}
+	 ../admin/docbook/chunk.xsl ${FILENAME}
 pdf:
 	docbook2pdf -l /usr/share/sgml/docbook/dsssl-stylesheets/dtds/decls/xml.dcl \
           ${FILENAME}
