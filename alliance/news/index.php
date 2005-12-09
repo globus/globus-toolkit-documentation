@@ -50,6 +50,8 @@ in Cracow. (1/2006)</p>
 
 <h2><a name="2005">2005</a></h2>
 
+<p>The third release of the <a class="newsalliance" href="http://www.ogsadai.org.uk/dqp/">Open Grid Services Architecture - Distributed Query Processor (OGSA-DQP)</a> is now available. (12/2005)</p>
+
 <p>The National Science Foundation makes <a class="newsalliance" href="http://www.isi.edu/stories/123.html">a $13M award</a> for continued support and development of the Globus Toolkit. 
 (<a class="newspress" href="http://business.newsforge.com/article.pl?sid=05/12/02/1726235&from=rss">Additional coverage</a> in Newsforge.) (12/2005)</p>
 
