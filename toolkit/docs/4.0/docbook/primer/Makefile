@@ -3,8 +3,7 @@ export SGML_CATALOG_FILES
 #XML_DEBUG_CATALOG=1
 #export XML_DEBUG_CATALOG
 FILENAME=index.xml
-GRAPHICS=--stringparam admon.graphics.path /usr/share/sgml/docbook/xsl-stylesheets/images
- --stringparam admon.graphics 1
+GRAPHICS=--stringparam admon.graphics.path /usr/share/sgml/docbook/xsl-stylesheets/images    --stringparam admon.graphics 1
 NUMBERING=--stringparam  section.autolabel 1 --stringparam  section.label.includes.component.label 1
 
 # PDF needs to be generated on a machine which has Apache FOP
