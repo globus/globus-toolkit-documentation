@@ -26,7 +26,7 @@ include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
 <p>
 [Include information about the specific challenge in the science project's work that is motivating this solution (what was limiting them from doing what they wanted to do).]</p>
 
-
+<!-- commented out as it's a bit clunky for demonstration purposes
 <div id="solutions-sidebar" style="float: right; margin-right: 1em">
 <h2>More Information</h2>
 <ul>
@@ -36,7 +36,7 @@ include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
 <li><a href="#">[helpful external links]</a></li>
 </ul>
 </div>
-
+ -->
 
 <h2>The Solution</h2>
 
