@@ -47,18 +47,24 @@ include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
 <h2>Results</h2>
 
 <p>
-[When available, provide preliminary results from the solution.]
+[When available, provide preliminary results from the solution's use in the science project.]
 </p>
 
 <h2>Detailed Information</h2>
 
 <p>The following links provide more detail about [the solution].</p>
 
+<p>[Note: The detailed information provided on related pages might be different
+  depending on the solution and the information that's readily available. In
+  some cases, deployment details aren't very important but there might be implementation
+  issues that turned out to be interesting. Or perhaps there are related papers,
+  etc.]</p>
+
 <ul>
-<li><a href="architecture.php">Architecture of [the solution]</a></li>
-<li><a href="resources.php">Software availability</a></li>
-<li><a href="deployment.php">Deployment details</a></li>
-<li><a href="#">[helpful external links]</a></li>
+<li><a href="architecture.php">Architecture of [the solution - click for template]</a></li>
+<li><a href="resources.php">Software availability [click for template]</a></li>
+<li><a href="deployment.php">Deployment details [click for template]</a></li>
+<li>[include any helpful external links]</li>
 
 </ul>
 
