@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">01.09.2006</span></td>
+              <td><b>Congratulations to Carl Kesselman on honorary doctorate.</b> 
+                <a class="learnmore" href="http://www.science.uva.nl/english/object.cfm/objectID=81E0D1DB-A31C-4BB2-8937BBEF57D4185F">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">12.09.2005</span></td>
               <td><b>A new release of OGSA-DQP is available.</b> 
                 <a class="learnmore" href="http://www.ogsadai.org.uk/dqp/">Learn more...</a></td>
@@ -32,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">12.05.2005</span></td>
               <td><b>NSF commits $13M to the Globus Toolkit.</b> 
                 <a class="learnmore" href="http://www.isi.edu/stories/123.html">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">11.28.2005</span></td>
-              <td><b>CI Seminar series explains GridShib.</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Learn more...</a></td>
             </tr>
             <tr>
               <td><span class="newsdate">11.13.2005</span></td>

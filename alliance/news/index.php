@@ -48,6 +48,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p>GridwiseTech offers <a class="newspartners" href="http://www.gridwisetech.com/globus-toolkit/content/view/9/12/lang,en/">Globus Toolkit training</a> 
 in Cracow. (1/2006)</p>
 
+<p>Congratulations to Carl Kesselman on his 
+<a class="newsalliance" href="http://www.science.uva.nl/english/object.cfm/objectID=81E0D1DB-A31C-4BB2-8937BBEF57D4185F">honorary doctorate degree</a> from the Universiteit van Amsterdam (UvA). (1/2006)</p>
+
 <h2><a name="2005">2005</a></h2>
 
 <p>The third release of the <a class="newsalliance" href="http://www.ogsadai.org.uk/dqp/">Open Grid Services Architecture - Distributed Query Processor (OGSA-DQP)</a> is now available. (12/2005)</p>
