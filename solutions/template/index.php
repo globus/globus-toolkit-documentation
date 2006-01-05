@@ -15,7 +15,7 @@ include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
 <h1 class="first">[name of solution]</h1>
 
 <div style="float: right; margin-left: 10px; margin-bottom: 10px;">
-<img border=0 src="solutions-image-sample.jpg" width=400 height=300>
+<img border=0 src="solutions-image-sample.gif" width=400 height=300>
 </div>
 <p>
 [Write a brief description of what the science project is doing (about a paragraph).]
