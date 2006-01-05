@@ -9,6 +9,14 @@ include_once($SITE_PATHS["SERV_INC"] . "app-info.inc");
 <?php include($SITE_PATHS["SERV_INC"].'solutions.inc'); ?>
 </div>
 -->
+<font color="#999999">
+</font>
+<p><font color="#999999">NOTE: This is a template for a Grid Solution. Grid solutions
+    represent the use of one or more Grid technology (the Globus Toolkit as well
+    as other components) to overcome a problem in a project. For example, the <a href="../purse/">PURSE
+    Grid solution</a> describes
+    how a  project (in this case, ESG) had a particular problem (managing large
+    numbers of registrations) that PURSE was able to solve.</font></p>
 
 <div id="main">
 
