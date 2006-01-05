@@ -29,6 +29,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
                 <a class="learnmore" href="http://www.science.uva.nl/english/object.cfm/objectID=81E0D1DB-A31C-4BB2-8937BBEF57D4185F">Learn more...</a></td>
             </tr>
             <tr>
+              <td><span class="newsdate">12.26.2005</span></td>
+              <td><b>Ian Foster listed among 50 most powerful people in networking.</b> 
+                <a class="learnmore" href="http://www.networkworld.com/power/2005/122605-power50.html?page=2#foster">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">12.09.2005</span></td>
               <td><b>A new release of OGSA-DQP is available.</b> 
                 <a class="learnmore" href="http://www.ogsadai.org.uk/dqp/">Learn more...</a></td>
