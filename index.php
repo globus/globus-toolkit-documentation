@@ -19,6 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">01.03.2006</span></td>
+              <td><b>New Book: Globus<sup>&reg;</sup> Toolkit 4: Programming Java Services..</b> 
+                <a class="learnmore" href="http://www.amazon.com/gp/product/0123694043/qid=1136216629/sr=1-1/ref=sr_1_1/002-7679256-3876803?s=books&v=glance&n=283155">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">01.09.2006</span></td>
               <td><b>Congratulations to Carl Kesselman on honorary doctorate.</b> 
                 <a class="learnmore" href="http://www.science.uva.nl/english/object.cfm/objectID=81E0D1DB-A31C-4BB2-8937BBEF57D4185F">Learn more...</a></td>
@@ -37,11 +42,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">12.05.2005</span></td>
               <td><b>NSF commits $13M to the Globus Toolkit.</b> 
                 <a class="learnmore" href="http://www.isi.edu/stories/123.html">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">11.13.2005</span></td>
-              <td><b>Preview the future home of Globus development!</b> 
-                <a class="learnmore" href="http://dev.globus.org/">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
