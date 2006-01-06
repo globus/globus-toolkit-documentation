@@ -1,0 +1,188 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Using the Resource Property Provider component to generate GLUE 1.1 XML
+</title>
+</head>
+
+<body>
+
+<h2 align="center" style="text-align:center"><span style="font-family:Verdana">
+Using the Resource Property Provider component to generate dynamic GLUE-1.1 XML 
+in GT4 Java WSRF Core compatible services</span></h2>
+
+<h2 align="center">&nbsp;</h2>
+<p align="left"><u><font size="5" face="Verdana">Overview</font></u></p>
+<p align="left"><font face="Verdana">The latest release of GT4 MDS software contains a Java 
+package subsystem called <b><i>usefulrp</i></b> which is home to (among other 
+things) the <i>Resource</i> <i>Property</i> <i>Provider</i> component, otherwise known as the <i><b>
+rpprovider</b></i> package.&nbsp; The <i><b>rpprovider</b></i> package is an extensible 
+software component that can be used to dynamically generate XML values for one 
+or more WSRF Resource Properties in any given GT4 Java WSRF-Core compatible 
+service.&nbsp;&nbsp; </font></p>
+<p align="left"><font face="Verdana">The <i><b>rpprovider</b></i> 
+package is comprised of three main sub-components: </font></p>
+<p align="left">&nbsp;</p>
+<ul>
+  <li>
+  <p align="left"><font face="Verdana">A simple execution environment 
+  for collections of programs (generally called <i>information providers) </i>
+  which periodically output  XML data that compose the values of a Resource 
+  Property. This execution environment consists of an GT4 Java
+  <i>operation provider </i> that schedules periodic background tasks using the
+  <b>org.globus.wsrf.impl.timer.TimerManagerImpl</b> 
+  class to execute information providers in a seperate thread.&nbsp; When a timer event fires, the information provider code is 
+  invoked 
+  and the subsequent XML output ingested as Resource Property values.</font></li>
+</ul>
+<p align="left">&nbsp;</p>
+<ul>
+  <li>
+  <p align="left"><font face="Verdana">An API for creating plug-in (or 
+  adapter) modules for the execution environment and a standard set of basic 
+  information provider programs that can collect XML output using a variety of 
+  mechanisms, for example; reading from a file, reading the output of an HTTP 
+  GET operation, or executing a child process and parsing the standard output 
+  stream of the child process into valid XML, and others.&nbsp; These plug-in modules are 
+  generally called <i>element</i> <i>producers</i>, since the API interface 
+  which defines them (the <b>org.globus.mds.usefulrp.rpprovider.ResourcePropertyElementProducer</b> 
+  interface) uses a <b>org.w3c.dom.Element</b> as the return type.</font></li>
+</ul>
+<p align="left">&nbsp;</p>
+<ul>
+  <li>
+  <p align="left"><font face="Verdana">An API for performing arbitrary 
+  post-processing on the output XML of element producers known as <i>element</i>
+  <i>transforms</i>. Element transforms implement the <b>org.globus.mds.usefulrp.rpprovider.ResourcePropertyElementTransform</b> 
+  interface and can be configured to run against any given <b>ResourcePropertyElementProducer</b> via a configuration file setting.&nbsp; An 
+  example of a an element transform is the included sample <b>XSLTFileElementTransform</b>, 
+  which will take the output of a <b>ResourcePropertyElementProducer</b> and 
+  apply an arbitrary XSL transform to it, using the XSLT file specified by the 
+  configuration argument.</font></li>
+</ul>
+<p align="left">&nbsp;</p>
+<p align="left"><u><font size="5" face="Verdana">Usage</font></u></p>
+<p align="left"><font face="Verdana">The system administrator first enables a 
+given service or service resource to use the <b>org.globus.mds.usefulrp.rpprovider.ResourcePropertyProviderCollection</b> 
+operation provider by adding the fully qualified Java class name to the <b>
+providers</b> parameter value in the service descriptor of a service or 
+resource's <b>server-config.wsdd<i> </i> </b>file.&nbsp; Lastly, the administrator 
+must add a new parameter named <b>rpProviderConfigFile</b> and for its 
+corresponding value, 
+specify a full (absolute) OS-native file path to a valid <b>ResourcePropertyProviderConfig</b> configuration 
+file.&nbsp; The <b>ResourcePropertyProviderConfig</b> file contains all required information for 
+generating one or more Resource Properties for the hosting service or resource.</font></p>
+<p align="left"><font face="Verdana">At service startup, the <b>ResourcePropertyProviderCollection</b> operation provider code is initialized 
+and attempts to process the configuration entries found in the file specified by 
+the <b>rpProviderConfigFile</b> parameter into a set of one or more background 
+execution tasks (threads) that periodically update the contents of configured 
+Resource Properties with the results of the executing information providers.&nbsp; 
+By default, if there are errors that occur during the first execution of a 
+provider, the timer that controls that provider will be canceled and a warning 
+message output to the container log.</font></p>
+<p align="left"><font face="Verdana">Seen below is a sample service 
+descriptor for the MDS4 <i>DefaultIndexService</i> which shows how to configure the 
+service to use the <b>ResourcePropertyProviderCollection</b> operation provider 
+and specifies the <b>rpProviderConfigFile</b> location used for configuring the sample <b>
+GLUEResourceProperty</b> that the <b>ResourcePropertyProviderCollection</b> will process.</font></p>
+<p align="left"><font face="Verdana" size="2">&lt;service name=&quot;DefaultIndexService&quot; 
+provider=&quot;Handler&quot; use=&quot;literal&quot; style=&quot;document&quot;&gt;<br>
+&nbsp; &lt;parameter name=&quot;providers&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+value=&quot;<b>org.globus.mds.usefulrp.rpprovider.ResourcePropertyProviderCollection</b><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+org.globus.wsrf.impl.servicegroup.ServiceGroupRegistrationProvider<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+GetRPProvider<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+GetMRPProvider <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+QueryRPProvider<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+DestroyProvider <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+SetTerminationTimeProvider <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+SubscribeProvider <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+GetCurrentMessageProvider&quot;/&gt;<br>
+&nbsp; &lt;<b>parameter name=&quot;rpProviderConfigFile&quot; value=&quot;/YOUR-GLOBUS-LOCATION-HERE/etc/globus_wsrf_mds_index/</b></font><b><span style="font-size: 10.0pt; font-family: Verdana">gluece-rpprovider-sample-config.xml</span></b><font face="Verdana" size="2"><b>&quot;/</b>&gt;<br>
+&nbsp; &lt;parameter name=&quot;scope&quot; value=&quot;Application&quot;/&gt; <br>
+&nbsp; &lt;parameter name=&quot;allowedMethods&quot; value=&quot;*&quot;/&gt;<br>
+&nbsp; <b>&lt;</b>parameter name=&quot;handlerClass&quot; value=&quot;org.globus.axis.providers.RPCProvider&quot;/<b>&gt;</b><br>
+&nbsp; &lt;parameter name=&quot;className&quot; value=&quot;org.globus.mds.index.impl.DefaultIndexService&quot;/&gt;<br>
+&nbsp; &lt;wsdlFile&gt;share/schema/mds/index/index_service.wsdl&lt;/wsdlFile&gt;<br>
+&lt;/service&gt;</font></p>
+<p align="left">&nbsp;</p>
+<p align="left"><u><font face="Verdana" size="5">Configuration File Format</font></u></p>
+<p align="left"><font face="Verdana">The configuration file format for 
+the <b>ResourcePropertyProviderCollection</b> operation provider is simply the 
+XML-serialized form of the <b>ResourcePropertyProviderConfig</b> stub object, as defined in the 
+schema file <b>rpprovider.xsd</b> 
+[add link or text here].&nbsp; </font></p>
+<p align="left"><font face="Verdana">Below is a sample configuration file which 
+configures the GLUE Resource Property provider with element producers using 
+Ganglia to provide cluster information and PBS for scheduler information.&nbsp; 
+This sample configures the provider to generate cluster information using 
+Ganglia on the localhost with the default Ganglia port, and configures PBS as 
+the scheduler information provider. The period of execution is set to 300 
+seconds for each element producer, but may be configured separately if desired.&nbsp; 
+This configuration mirrors a common information provider setup in the GT4 GRAM
+<i>ManagedJobExecutable</i> service - using the <b><i>rpprovider</i></b> 
+component it is possible to generate this information in other services as well.</font></p>
+<p align="left"><br>
+<font face="Verdana" size="2">&lt;ns1:ResourcePropertyProviderConfigArray <br>
+&nbsp;&nbsp;&nbsp; xsi:type=&quot;ns1:ResourcePropertyProviderConfigArray&quot; <br>
+&nbsp;&nbsp;&nbsp; xmlns:ns1=&quot;<a href="http://mds.globus.org/rpprovider/2005/08">http://mds.globus.org/rpprovider/2005/08</a>&quot;
+<br>
+&nbsp;&nbsp;&nbsp; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;ns1:configArray xsi:type=&quot;ns1:resourcePropertyProviderConfig&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;ns1:resourcePropertyName xsi:type=&quot;xsd:QName&quot; 
+xmlns:mds=&quot;http://mds.globus.org/glue/ce/1.1&quot;&gt;<b>mds:GLUECE</b>&lt;/ns1:resourcePropertyName&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;ns1:resourcePropertyImpl xsi:type=&quot;xsd:string&quot;&gt;<b>org.globus.mds.usefulrp.rpprovider.GLUEResourceProperty</b>&lt;/ns1:resourcePropertyImpl&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;ns1:resourcePropertyElementProducers 
+xsi:type=&quot;ns1:resourcePropertyElementProducerConfig&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&lt;ns1:className xsi:type=&quot;xsd:string&quot;&gt;<b>org.globus.mds.usefulrp.glue.GangliaElementProducer</b>&lt;/ns1:className&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&lt;ns1:arguments xsi:type=&quot;xsd:string&quot;&gt;<b>localhost</b>&lt;/ns1:arguments&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&lt;ns1:arguments xsi:type=&quot;xsd:string&quot;&gt;<b>8649</b>&lt;/ns1:arguments&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;ns1:period 
+xsi:type=&quot;xsd:int&quot;&gt;<b>300</b>&lt;/ns1:period&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&lt;ns1:transformClass xsi:type=&quot;xsd:string&quot;&gt;<b>org.globus.mds.usefulrp.rpprovider.transforms.GLUEComputeElementTransform</b>&lt;/ns1:transformClass&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&lt;/ns1:resourcePropertyElementProducers&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;ns1:resourcePropertyElementProducers 
+xsi:type=&quot;ns1:resourcePropertyElementProducerConfig&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&lt;ns1:className xsi:type=&quot;xsd:string&quot;&gt;<b>org.globus.mds.usefulrp.rpprovider.producers.SchedulerInfoElementProducer</b>&lt;/ns1:className&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&lt;ns1:arguments xsi:type=&quot;xsd:string&quot;&gt;<b>libexec/globus-scheduler-provider-pbs</b>&lt;/ns1:arguments&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&lt;ns1:transformClass xsi:type=&quot;xsd:string&quot;&gt;<b>org.globus.mds.usefulrp.rpprovider.transforms.GLUESchedulerElementTransform</b>&lt;/ns1:transformClass&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;ns1:period 
+xsi:type=&quot;xsd:int&quot;&gt;<b>300</b>&lt;/ns1:period&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&lt;/ns1:resourcePropertyElementProducers&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;/ns1:configArray&gt;<br>
+&lt;/ns1:ResourcePropertyProviderConfigArray&gt;</font></p>
+<p align="left"><font face="Verdana">It is possible to configure the <b>
+GLUEResourceProperty</b> provider to use alternate mechanisms for providing 
+scheduler information by changing the <b>arguments</b> field that follows the <b>
+SchedulerInfoElementProducer</b> parameter to a string with a <i>GLOBUS_LOCATION</i> 
+relative-path that indicates the GRAM scheduler adapter to use, for example &quot;<i>libexec/globus-scheduler-provider-fork&quot;.</i></font></p>
+<p align="left"><i><font face="Verdana">TBD: It is also possible to pass 
+parameters to the <b>GLUESchedulerElementTransform </b>that control even more 
+advanced post-processing and sorting of results when generating GLUE 1.1 XML, 
+e.g. Teragrid resorting code.</font></i></p>
+<p align="left">&nbsp;</p>
+
+</body>
+
+</html>
