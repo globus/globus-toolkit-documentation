@@ -1,3 +1,4 @@
+<!--
 FILENAME=index.xml
 
 all: html pdf
@@ -30,3 +31,5 @@ mac:
 	--stringparam chapter.autolabel 0 \
 	/usr/share/xml/xsl/docbook-xsl/html/chunk.xsl \
 	$(FILENAME)
+	
+	-->
