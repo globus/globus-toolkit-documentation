@@ -45,7 +45,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2006">2006</a></h2>
 
-<p>A <a class="newsalliance" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/HAND-Submitted.php"; ?>">new paper</a> 
+<p>A <a class="newsalliance" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/HAND-Submitted.pdf"; ?>">new paper</a> 
 describes GT4 dynamic service deployment support. (1/2006)</p>
 
 <p><cite>SOA/Web Services Journal</cite> published an 

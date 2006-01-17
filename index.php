@@ -19,9 +19,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
-              <td><span class="newsdate">01.03.2006</span></td>
-              <td><b>New Book: Globus<sup>&reg;</sup> Toolkit 4: Programming Java Services..</b> 
-                <a class="learnmore" href="http://www.amazon.com/gp/product/0123694043/qid=1136216629/sr=1-1/ref=sr_1_1/002-7679256-3876803?s=books&v=glance&n=283155">Learn more...</a></td>
+              <td><span class="newsdate">01.17.2006</span></td>
+              <td><b>New paper describes GT4 dynamic service deployment support.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/HAND-Submitted.pdf"; ?>">Learn more...</a></td>
             </tr>
             <tr>
               <td><span class="newsdate">01.09.2006</span></td>
@@ -29,24 +29,19 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
                 <a class="learnmore" href="http://www.science.uva.nl/english/object.cfm/objectID=81E0D1DB-A31C-4BB2-8937BBEF57D4185F">Learn more...</a></td>
             </tr>
             <tr>
+              <td><span class="newsdate">01.06.2006</span></td>
+              <td><b>Article describes combining BPEL and WSRF using GT4.</b> 
+                <a class="learnmore" href="http://webservices.sys-con.com/read/155631_2.htm">Learn more...</a></td>
+            </tr>
+            <tr>
+              <td><span class="newsdate">01.03.2006</span></td>
+              <td><b>New Book: Globus<sup>&reg;</sup> Toolkit 4: Programming Java Services..</b> 
+                <a class="learnmore" href="http://www.amazon.com/gp/product/0123694043/qid=1136216629/sr=1-1/ref=sr_1_1/002-7679256-3876803?s=books&v=glance&n=283155">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">12.26.2005</span></td>
               <td><b>Ian Foster listed among 50 most powerful people in networking.</b> 
                 <a class="learnmore" href="http://www.networkworld.com/power/2005/122605-power50.html?page=2#foster">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">12.09.2005</span></td>
-              <td><b>A new release of OGSA-DQP is available.</b> 
-                <a class="learnmore" href="http://www.ogsadai.org.uk/dqp/">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">12.05.2005</span></td>
-              <td><b>GridwiseTech offers Globus Toolkit training in Cracow.</b> 
-                <a class="learnmore" href="http://www.gridwisetech.com/globus-toolkit/content/view/9/12/lang,en/">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">12.05.2005</span></td>
-              <td><b>NSF commits $13M to the Globus Toolkit.</b> 
-                <a class="learnmore" href="http://www.isi.edu/stories/123.html">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
