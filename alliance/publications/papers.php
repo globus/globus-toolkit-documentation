@@ -161,15 +161,16 @@ submitting bibliographic citations</a>.</b></p>
       [<a href="#OGSA-UseCases">Citation</a>,
        <a href="http://www.gridforum.org/documents/GWD-I-E/GFD-I.029v2.pdf">PDF</a>]</p>
 
-	<p><font size="2"><b>Modeling Stateful Resources with Web Services v. 1.1</b>.  I.
+	<p><b><a name="MSRWS">Modeling Stateful Resources with Web Services v. 1.1</a></b>.  I.
     Foster (ed), J. Frey (ed), S. Graham (ed), S. Tuecke (ed), K. Czajkowski, D.
     Ferguson, F. Leymann, M. Nally, I. Sedukhin, D. Snelling, T. Storey, W.
-    Vambenepe, S. Weerawarana, March 5, 2004.&nbsp;<br>
-    [<a href="http://www-106.ibm.com/developerworks/library/ws-resource/ws-modelingresources.pdf">PDF</a>]</font></p>
+    Vambenepe, S. Weerawarana, March 5, 2004.<br>
+    [<a href="#MSRWS">Citation</a>,
+     <a href="http://www-106.ibm.com/developerworks/library/ws-resource/ws-modelingresources.pdf">PDF</a>]</font></p>
 
       <p><b><a name="WSRF-Framework">The WS-Resource Framework</a></b>.
       K. Czajkowski, D. F. Ferguson, I. Foster, J. Frey, S. Graham, I. Sedukhin, 
-      D. Snelling, S. Tuecke, W. Vambenepe. March 5, 2004.
+      D. Snelling, S. Tuecke, W. Vambenepe. March 5, 2004.<br>
       [<a href="#WSRF-Framework">Citation</a>,
        <a href="http://www.globus.org/wsrf/specs/ws-wsrf.pdf">PDF</a>]</p>
 
