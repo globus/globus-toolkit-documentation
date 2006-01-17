@@ -130,6 +130,12 @@ submitting bibliographic citations</a>.</b></p>
     
       <h2><a name="Web Services">Web Services (OGSA, OGSI, WSRF, etc.)</a></h2>
 
+      <p><b><a name="HAND">HAND: Highly Available Dynamic Deployment 
+         Infrastructure for Globus Toolkit 4</a></b>.  L. Qi, H. Jin, I. Foster, J. Gawor. 
+         Submitted for Publication, 2006.<br>
+      [<a href="#HAND">Citation</a>,
+       <a href="papers/HAND-Submitted.pdf">PDF</a>]</p>
+
 	<p><font size="2"><b><a name="wsrf-eval">State and Events for Web Services: A 
            Comparison of Five WS-Resource Framework and WS-Notification  
            Implementations</a></b>. M. Humphrey, G. Wasson, K. Jackson, J. Boverhof, 
