@@ -45,6 +45,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2006">2006</a></h2>
 
+<p>A <a class="newsalliance" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/HAND-Submitted.php"; ?>">new paper</a> 
+describes GT4 dynamic service deployment support. (1/2006)</p>
+
+<p><cite>SOA/Web Services Journal</cite> published an 
+<a class="newspress" href="http://webservices.sys-con.com/read/155631_2.htm">article on 
+business process orchestration</a> with BPEL, WSRF, and GT4. (1/2006)</p>
+
 <p>New book: <a class="newsalliance" href="http://www.amazon.com/gp/product/0123694043/qid=1136216629/sr=1-1/ref=sr_1_1/002-7679256-3876803?s=books&v=glance&n=283155">Globus<sup>&reg;</sup> Toolkit 4, First Edition : Programming Java Services</a>. (1/2006) </p> 
 
 <p>GridwiseTech offers <a class="newspartners" href="http://www.gridwisetech.com/globus-toolkit/content/view/9/12/lang,en/">Globus Toolkit training</a> 
