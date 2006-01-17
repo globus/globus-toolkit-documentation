@@ -34,15 +34,15 @@ submitting bibliographic citations</a>.</b></p>
     <ol>
       <li><a href="#Overview Papers">Overviews</a> of the Globus 
       Alliance and the Grid.</li>
+      <li><a href="#Web Services">Web Services</a> (OGSA, OGSI, WSRF, etc.)</li>
       <li><a href="#Data Grid Components">Data Grid components</a>
-        (GridFTP, GASS, Replica services, Chimera, Pegasus, etc.)</li>
+        (GridFTP, RFT, replication, virtual data, etc.)</li>
       <li><a href="#Resource Management Components">Resource
-        Management Components</a> (GRAM, workspaces, virtual machines, GARA/QoS, etc)</li>
+        Management Components</a> (GRAM, workspaces, virtual machines, QoS, etc.)</li>
       <li><a href="#Information Services Components">Information
-        Services Components</a> (MDS, monitoring, etc.)</li>
+        Services Components</a> (MDS, monitoring, index services, etc.)</li>
       <li><a href="#Security Components">Security Components</a>
         (GSI, CAS, etc.)</li>
-      <li><a href="http://www.globus.org/wsrf/#relevant">Web Services</a></li>
       <li><a href="#Viz">Visualization</font></a></li>
       <li><a href="#Java Cog Kit">Java CoG Kit</a></li>
       <li><a href="#MPICH-G">MPICH-G2</a></li>
@@ -69,13 +69,6 @@ submitting bibliographic citations</a>.</b></p>
 	[<a href="#anatomy">Citation</a>, 
 	<a href="papers/anatomy.pdf">PDF</a>]</font></p>
 
-	<p><font size="2"><b><a name="OGSA">The Physiology of the Grid: An Open Grid Services Architecture for Distributed Systems 
-	Integration</a></b>.  I. Foster, C. Kesselman, J. Nick, S. Tuecke, Open Grid
-    Service Infrastructure WG, Global Grid Forum, June 22, 2002. (extended
-    version of <a href="#IEEE-CS-2">Grid Services for Distributed System
-    Integration</a>)<br>
-	[<a href="#OGSA">Citation</a>, <a href="papers/ogsa.pdf">PDF</a>]</font></p>
-
 	<p><font size="2"><b><a name="science05">Service-Oriented Science</a></b>.  
         I. Foster. <em>Science</em>, vol. 308, May 6, 2005.<br>
 	[<a href="#science05">Citation</a>, 
@@ -90,42 +83,10 @@ submitting bibliographic citations</a>.</b></p>
     55(2):42-47, 2002.<br>
 	[<a href="#physics02">Citation</a>]</font></p>
 
-	<p><font size="2"><b><a name="wsrf-eval">State and Events for Web Services: A 
-           Comparison of Five WS-Resource Framework and WS-Notification  
-           Implementations</a></b>. M. Humphrey, G. Wasson, K. Jackson, J. Boverhof, 
-           M. Rodriguez, Joe Bester, J. Gawor, S. Lang, I. Foster, S. Meder, S. Pickles, 
-           and M. McKeown, 4th IEEE International Symposium on High Performance 
-           Distributed Computing (HPDC-14), Research Triangle Park, NC, 24-27 July 2005.<br>
-	[<a href="#wsrf-eval">Citation</a>, 
-         <a href="papers/WSRFComparison2005-3.pdf">PDF</a>]</font></p>
-
 	<p><font size="2"><b>Grids: Top Ten Questions</b>. J.M. Schopf and B.
     Nitzberg, <i>Scientific Programming, special issue on Grid Computing</i>,
     10(2):103 - 111, August 2002.&nbsp;<br>
     [<a href="papers/topten.final.pdf">PDF</a>]</font></p>
-
-	<p><font size="2"><b>Modeling Stateful Resources with Web Services v. 1.1</b>.  I.
-    Foster (ed), J. Frey (ed), S. Graham (ed), S. Tuecke (ed), K. Czajkowski, D.
-    Ferguson, F. Leymann, M. Nally, I. Sedukhin, D. Snelling, T. Storey, W.
-    Vambenepe, S. Weerawarana, March 5, 2004.&nbsp;<br>
-    [<a href="http://www-106.ibm.com/developerworks/library/ws-resource/ws-modelingresources.pdf">PDF</a>]</font></p>
-
-	<p><font size="2"><b>From Open Grid Services Infrastructure to WS-Resource
-    Framework: Refactoring &amp; Evolution</b>. K. Czajkowski, D. Ferguson, I.
-    Foster, J. Frey, S. Graham, T. Maguire, D. Snelling, S. Tuecke, March 5,
-    2004.&nbsp;<br>
-    [<a href="http://www-106.ibm.com/developerworks/library/ws-resource/ogsi_to_wsrf_1.0.pdf">PDF</a>]</font></p>
-
-      <p><font size="2"><b><a name="GSSpec">Open Grid Services Infrastructure (OGSI)
-      Version 1.0</a></b>.  S. Tuecke, K. Czajkowski, I. Foster, 
-    J. Frey, S. Graham, C. Kesselman, T. Maguire, T. Sandholm, P. Vanderbilt, D.
-      Snelling; Global Grid Forum Draft Recommendation, <span lang="en-us">6/2</span>7/200<span lang="en-us">3</span>.<br>
-    [<a href="#GSSpec">Citation</a>, <a href="papers/Final_OGSI_Specification_V1.0.pdf">PDF</a>]</font></p>
-
-	<p><font size="2"><b><a name="IEEE-CS-2">Grid Services for Distributed System Integration</a></b>.  I. Foster, C. Kesselman,
-	J. Nick, S. Tuecke.
-	<em>Computer</em>, 35(6), 2002.<br>
-	[<a href="#IEEE-CS-2">Citation</a>, <a href="papers/ieee-cs-2.pdf">PDF</a>]</font></p>
 
       <p><font size="2"><strong><a name="DG1">The Data Grid: Towards an Architecture for the Distributed Management and Analysis of Large Scientific Datasets</a></strong>.&nbsp;
     A. Chervenak, I. Foster, C. Kesselman, C. Salisbury, S. Tuecke. 
@@ -167,8 +128,81 @@ submitting bibliographic citations</a>.</b></p>
     <a href="ftp://ftp.globus.org/pub/globus/papers/isoft.pdf">PDF</a>]</font></p>
     
     
-      <h2><a name="Data Grid Components">Data Grid Components (GridFTP, GASS, Replica,
-      Chimera, Pegasus, etc.)</a></h2>
+      <h2><a name="Web Services">Web Services (OGSA, OGSI, WSRF, etc.)</a></h2>
+
+	<p><font size="2"><b><a name="wsrf-eval">State and Events for Web Services: A 
+           Comparison of Five WS-Resource Framework and WS-Notification  
+           Implementations</a></b>. M. Humphrey, G. Wasson, K. Jackson, J. Boverhof, 
+           M. Rodriguez, Joe Bester, J. Gawor, S. Lang, I. Foster, S. Meder, S. Pickles, 
+           and M. McKeown, 4th IEEE International Symposium on High Performance 
+           Distributed Computing (HPDC-14), Research Triangle Park, NC, 24-27 July 2005.<br>
+	[<a href="#wsrf-eval">Citation</a>, 
+         <a href="papers/WSRFComparison2005-3.pdf">PDF</a>]</font></p>
+
+      <p><b><a name="OGSA-GGF">The Open Grid Services Architecture, Version 1.0</a></b>. 
+      I. Foster, H. Kishimoto, A. Savva, D. Berry, A. Djaoui, A. Grimshaw, B. Horn,
+      F. Maciel, F. Siebenlist, R. Subramaniam, J. Treadwell, J. Von Reich.
+      Informational Document, Global Grid Forum (GGF), January 29, 2005.<br>
+      This document provides information to the community regarding the specification 
+      of the Open Grid Services Architecture (OGSA). It does not define any standards 
+      or technical recommendations.<br>
+      [<a href="#OGSA-GGF">Citation</a>,
+       <a href="http://www.gridforum.org/documents/GWD-I-E/GFD-I.030.pdf">PDF</a>]</p>
+
+      <p><b><a name="OGSA-UseCases">Open Grid Services Architecture Use Cases</a></b>.
+      I. Foster, D. Gannon, H. Kishimoto, J. Von Reich.
+      Information Document, Global Grid Forum (GGF), October 28, 2004.<br>
+      [<a href="#OGSA-UseCases">Citation</a>,
+       <a href="http://www.gridforum.org/documents/GWD-I-E/GFD-I.029v2.pdf">PDF</a>]</p>
+
+	<p><font size="2"><b>Modeling Stateful Resources with Web Services v. 1.1</b>.  I.
+    Foster (ed), J. Frey (ed), S. Graham (ed), S. Tuecke (ed), K. Czajkowski, D.
+    Ferguson, F. Leymann, M. Nally, I. Sedukhin, D. Snelling, T. Storey, W.
+    Vambenepe, S. Weerawarana, March 5, 2004.&nbsp;<br>
+    [<a href="http://www-106.ibm.com/developerworks/library/ws-resource/ws-modelingresources.pdf">PDF</a>]</font></p>
+
+      <p><b><a name="WSRF-Framework">The WS-Resource Framework</a></b>.
+      K. Czajkowski, D. F. Ferguson, I. Foster, J. Frey, S. Graham, I. Sedukhin, 
+      D. Snelling, S. Tuecke, W. Vambenepe. March 5, 2004.
+      [<a href="#WSRF-Framework">Citation</a>,
+       <a href="http://www.globus.org/wsrf/specs/ws-wsrf.pdf">PDF</a>]</p>
+
+      <p><b><a name="#OGSI-to-WSRF">From Open Grid Services Infrastructure to WS-Resource
+         Framework: Refactoring & Evolution</a></b>.
+      K. Czajkowski, D. Ferguson, I. Foster, J. Frey, S. Graham, T. Maguire, 
+      D. Snelling, S. Tuecke. March 5, 2004.<br>
+      [<a href="#OGSI-to-WSRF">Citation</a>,
+       <a href="http://www.globus.org/wsrf/specs/ogsi_to_wsrf_1.0.pdf">PDF</a>]</p>
+
+      <p><b><a name="WSN-DeveloperWorks">Publish-Subscribe Notification for Web 
+         services</a></b>.
+      S. Graham (ed), P. Niblett (ed), D. Chappell, A. Lewis, N. Nagaratnam,
+      J. Parikh, S. Patil, S. Samdarshi, I. Sedukhin, D. Snelling, S. Tuecke,
+      W. Vambenepe, B. Weihl, March 5, 2004.<br>
+      [<a name="#WSN-DeveloperWorks">Citation</a>,
+       <a href="http://www-128.ibm.com/developerworks/library/ws-pubsub/WS-PubSub.pdf">PDF</a>]</p>
+
+      <p><font size="2"><b><a name="GSSpec">Open Grid Services Infrastructure (OGSI)
+      Version 1.0</a></b>.  S. Tuecke, K. Czajkowski, I. Foster, 
+    J. Frey, S. Graham, C. Kesselman, T. Maguire, T. Sandholm, P. Vanderbilt, D.
+      Snelling; Global Grid Forum Draft Recommendation, 6/27/2003.<br>
+    [<a href="#GSSpec">Citation</a>, <a href="papers/Final_OGSI_Specification_V1.0.pdf">PDF</a>]</font></p>
+
+	<p><font size="2"><b><a name="IEEE-CS-2">Grid Services for Distributed System Integration</a></b>.  I. Foster, C. Kesselman,
+	J. Nick, S. Tuecke.
+	<em>Computer</em>, 35(6), 2002.<br>
+	[<a href="#IEEE-CS-2">Citation</a>, <a href="papers/ieee-cs-2.pdf">PDF</a>]</font></p>
+
+	<p><font size="2"><b><a name="OGSA">The Physiology of the Grid: An Open Grid Services Architecture for Distributed Systems 
+	Integration</a></b>.  I. Foster, C. Kesselman, J. Nick, S. Tuecke, Open Grid
+    Service Infrastructure WG, Global Grid Forum, June 22, 2002. (extended
+    version of <a href="#IEEE-CS-2">Grid Services for Distributed System
+    Integration</a>)<br>
+	[<a href="#OGSA">Citation</a>, <a href="papers/ogsa.pdf">PDF</a>]</font></p>
+
+
+      <h2><a name="Data Grid Components">Data Grid Components (GridFTP, DAI, Replica,
+      Virtual Data System, etc.)</a></h2>
 
     
     <p><font size="2"><strong><a name="chervenakGrid2005">Wide Area Data Replication 
@@ -184,12 +218,63 @@ submitting bibliographic citations</a>.</b></p>
     I. Foster.  <i>Proceedings of Super Computing 2005 (SC05)</i>, November 2005.<br>
      [<a href="papers/gridftp_final.pdf">PDF</a>]</font></p>
      
+    <p>
+    <font size="2"><strong>Introduction to OGSA-DAI Services</strong>.
+    K. Karasavvas, M. Antonioletti, M.P. Atkinson, N.P. Chue Hong, T. Sugden, A.C.
+    Hume, M. Jackson, A. Krause, C. Palansuriya.
+    <em>To appear in Lecture Notes in Computer Science, 3458</em>.
+    </font></p>
+
+    <p>
+    <font size="2"><strong>The Design and Implementation of Grid Database Services
+    in OGSA-DAI</strong>.
+    M. Antonioletti, M.P. Atkinson, R. Baxter, A. Borley, N.P. Chue Hong, B.
+    Collins, N. Hardman, A. Hume, A. Knox, M. Jackson, A. Krause, S. Laws, J.
+    Magowan, N.W. Paton, D. Pearson, T. Sugden, P. Watson, and M. Westhead.
+    <em>To appear in Concurrency and Computation: Practice and Experience</em>.
+    </font></p>
+
 	<p><font size="2"><strong>A Peer-to-Peer Replica Location Service Based on A
     Distributed Hash Table</strong>. M. Cai, A. Chervenak, M. Frank. 
     <em><i>Proceedings of the SC2004 Conference</i> (SC2004)</em>, November 2004.
 	<br>[<a href="papers/sc2004v15.pdf">PDF</a>]</font></p>
     
-    
+<p>
+<font size="2"><strong>OGSA-DAI Status Report and Future Directions</strong>. 
+M. Antonioletti, M.P. Atkinson, R. Baxter, A. Borley, N.P. Chue Hong, B.Collins,
+J. Davies, D. Fitzgerald, N. Hardman, A.C. Hume, M. Jackson, A. Krause, S. Laws,
+N. W. Paton, T. Sugden, P. Watson, M. Westhead, and D. Vyvyan. 
+<em>Proceedings of the UK e-Science All Hands Meeting 2004</em>, September 2004.
+<br>[<a href="http://www.allhands.org.uk/2004/proceedings/papers/261.pdf">PDF</a>]
+</font></p>
+
+<p>
+<font size="2"><strong>OGSA-DAI Usage Scenarios and Behaviour: Determining good
+practice</strong>. 
+M. Antonioletti, M.P. Atkinson, A. Borley, N.P. Chue Hong, B.Collins, J. Davies,
+N. Hardman, A.C. Hume, M. Jackson, A. Krause, S. Laws, N. W. Paton, K. Qi,  T.
+Sugden, D. Vyvyan, P. Watson, and M. Westhead. 
+<em>Proceedings of the UK e-Science All Hands Meeting 2004</em>, September 2004.
+<br>[<a href="http://www.allhands.org.uk/2004/proceedings/papers/266.pdf">PDF</a>]
+</font></p>
+
+<p>
+<font size="2"><strong>Protecting Application Developers - A Client Toolkit for
+OGSA-DAI</strong>. 
+T. Sugden, A.C. Hume, M. Jackson, M. Antonioletti, N.P. Chue Hong, A. Krause,
+and M. Westhead. 
+<em>Proceedings of the UK e-Science All Hands Meeting 2004</em>, September 2004.
+<br>[<a href="http://www.allhands.org.uk/2004/proceedings/papers/143.pdf">PDF</a>]
+</font></p>
+
+<p>
+<font size="2"><strong>Performance Analysis of the OGSA-DAI Software</strong>. 
+M. Jackson, M. Antonioletti, N.P. Chue Hong, A.C. Hume, A. Krause, T. Sugden,
+and M. Westhead. 
+<em>Proceedings of the UK e-Science All Hands Meeting 2004</em>, September 2004.
+<br>[<a href="http://www.allhands.org.uk/2004/proceedings/papers/142.pdf">PDF</a>]
+</font></p>
+
 	<p><font size="2"><strong>Grid-Based Metadata Services</strong>. E. Deelman,
     G. Singh, M.P. Atkinson, A. Chervenak, N.P. Chue Hong, C. Kesselman, S.
     Patil, L. Pearlman, and M. Su. <em>16th International Conference on
@@ -213,6 +298,16 @@ submitting bibliographic citations</a>.</b></p>
     Schwartzkopf. <em>Proceedings of the International IEEE Symposium on High Performance
     Distributed Computing (HPDC-13)</em>, June 2004.<br>
     [<a href="papers/chervenakhpdc13.pdf">PDF</a>]</font></p>
+
+<font size="2"><strong>OGSA-DAI: Two years on</strong>. 
+M. Antonioletti, M.P. Atkinson, R. Baxter, A. Borley, N.P. Chue Hong, B.Collins,
+J. Davies, N. Hardman, G. Hicken, A.C. Hume, M. Jackson, A. Krause, S. Laws, J.
+Magowan, J. Nowell, N. W. Paton, T. Sugden, P. Watson, and M. Westhead. 
+<em>The Future of Grid Data Environments Workshop, GGF10</em>, March 2004.
+<br>[<a
+href="http://www.ogsadai.org.uk/docs/OtherDocs/15-Antonioletti-OGSA-DAI-DA-WS-final.pdf">PDF</a>]
+</font></p>
+
 
 	<p><font size="2"><b>Artificial Intelligence and Grids Workflow Planning and
     Beyond</b>. Y. Gil, E. Deelman, C. Kesselman, H. Tangmurarunkit. <em>IEEE
@@ -262,12 +357,45 @@ submitting bibliographic citations</a>.</b></p>
     Rots, O. Pevunova. <em>Proceedings of Supercomputing 2003 (SC2003)</em>, November 2003.<br>
     [<a href="http://www.isi.edu/~deelman/Pegasus/galmorph_sc03.pdf">PDF</a>]</font></p>
 
+<p>
+<font size="2"><strong>Experiences of Designing and Implementing Grid Database
+Services in the OGSA-DAI Project</strong>. 
+M. Antonioletti, N.P. Chue Hong, A.C. Hume, M. Jackson, A. Krause, J. Nowell, C.
+Palansuriya, T. Sugden, and M. Westhead. 
+<em>Designing and Building Grid Services Workshop, GGF9</em>, October 2003.
+<br>[<a
+href="http://www.ogsadai.org.uk/docs/OtherDocs/OGSA-DAI-dbgsws-v1.0.pdf">PDF</a>]
+</font></p>
+
+<p>
+<font size="2"><strong>The Design and Implementation of Grid Database Services
+in OGSA-DAI</strong>. 
+A. Anjomshoaa, M. Antonioletti, M.P. Atkinson, R. Baxter, A. Borley, N.P. Chue
+Hong, B. Collins, N. Hardman, G. Hicken, A. Hume, A. Knox, M. Jackson,
+A. Krause, S. Laws, J. Magowan, C. Palansuriya, N.W. Paton, D. Pearson,
+T. Sugden, P. Watson, and M. Westhead.
+<em>Proceedings of the UK e-Science All Hands Meeting 2003</em>, September 2003.
+<br>[<a href="http://www.nesc.ac.uk/events/ahm2003/AHMCD/pdf/156.pdf">PDF</a>]
+</font></p>
+
+
 	<p><font size="2"><strong><a name="use-VS03">Using Regression Techniques to Predict Large Data Transfers</a></strong>.
 	S. Vazhkudai, J. Schopf.
 	<em>The International Journal of High Performance Computing Applications (IJHPCA)</em>,
 	special issue on Grid Computing: Infrastructure and Applications, Vol 17,
     No. 3, August 2003.
 	<br>[<a href="#use-VS03">Citation</a>, <a href="papers/Final-JHPCA.zip">.zip</a>]</font></p>
+
+<p>
+<font size="2"><strong>Grid Database Access and Integration: Requirements and
+Functionalities
+</strong>. 
+M.P. Atkinson, V. Dialani, L. Guy, I. Narang, N.W. Paton, D. Pearson,
+T. Storey, and P. Watson.
+<em>Global Grid Forum Informational Document (GFD.13)</em>, March 2003.
+<br>[<a
+href="https://forge.gridforum.org/projects/ggf-editor/document/GFD.13/en/1">PDF</a>]
+</font></p>
 
     <p><font size="2"><b><a name="giggle">Giggle: A Framework for Constructing
     Sclable Replica Location Services</a></b>. A. Chervenak, E. Deelman, I. Foster,
@@ -302,6 +430,14 @@ submitting bibliographic citations</a>.</b></p>
     S. Vazhkudai, J. Schopf. <em>Proceedings of the 3rd International Workshop
     on Grid Computing (GRID 2002)<i>, </i></em>Baltimore, MD, November 2002.<br>
     [<a href="#pred-io">Citation</a>, <a href="papers/pred-io.pdf">PDF</a>]</font></p>
+
+<p>
+<font size="2"><strong> Data Access and Integration Services on the Grid</strong>. 
+N. Paton, M.P. Atkinson, V. Dialani, D. Pearson, T. Storey, and P. Watson.
+<em>UK e-Science Programme Technical Report Series (UKeS-2002-03)</em>, February
+ 2002.
+<br>[<a href="http://www.nesc.ac.uk/technical_papers/dbtf.pdf">PDF</a>]
+</font></p>
    
     <p><font size="2"><strong><a name="GridftpSpec02">GridFTP Protocol
     Specification (Global Grid Forum Recommendation GFD.20)</a>.</strong>
