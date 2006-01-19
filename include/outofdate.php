@@ -1,6 +1,5 @@
 <?php
 
-
 function globus_out_of_date()
 
 {
