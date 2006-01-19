@@ -20,6 +20,36 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <table>
   <tr>
+    <td><center><a href="http://www.amazon.com/gp/product/0123694043/qid=1137613152/sr=1-1/ref=sr_1_1/104-5354999-5655162?s=books&v=glance&n=283155"><img border=0 src="gt4prog.jpg" alt="Globus Toolkit 4: Programming Java Services"></a></center></td>
+    <td><b><a href="http://www.amazon.com/gp/product/0123694043/qid=1137613152/sr=1-1/ref=sr_1_1/104-5354999-5655162?s=books&v=glance&n=283155">Globus Toolkit 4: Programming Java Services</a></b><br>
+        Borja Sotomayor, Lisa Childers<br>
+        Morgan Kaufmann; First Edition (December 16, 2005)<br>
+        ISBN: 0123694043
+        <p>Globus Toolkit 4: Programming Java Services provides an introduction 
+           to the latest version of this widely acclaimed toolkit. Based on the 
+           popular web-based The Globus Toolkit 4 Programmer's Tutorial, this book 
+           far surpasses that document, providing greater detail, quick reference 
+           appendices, and many additional examples. If you're making the leap into 
+           Grid Computing using the Globus Toolkit, you'll want Globus Toolkit 4: 
+           Programming Java Services at your side as you take your first steps.</p>
+    </td>
+  </tr>
+  <tr>
+    <td><center><a href="http://www.amazon.com/gp/product/0127425039/103-5431111-7738254?v=glance&n=283155"><img border=0 src="savvygrid.jpg" alt="Grid Computing: The Savvy Manager's Guide"></a></center></td>
+    <td><b><a href="http://www.amazon.com/gp/product/0127425039/103-5431111-7738254?v=glance&n=283155">Grid Computing: The Savvy Manager's Guide</a></b><br>
+        Pawel Plaszczak, Richard Wellner, Jr.<br>
+        Morgan Kaufmann; First Edition (August 26, 2005)<br>
+        ISBN: 0127425039
+        <p>"This book explains grid in simple terms, using practical examples to 
+           demonstrate the technical and business benefits of grid and providing 
+           hands-on guidance for readers. This is a must read for everyone who is 
+           seriously investigating grid or planning to integrate grid technology 
+           in their IT environment."<br>
+           --Wolfgang Gentzsch, Managing Director of Grid Computing and Networking 
+           Services, MCNC, Inc.</p>
+    </td>
+  </tr>
+  <tr>
     <td><center><a href="http://www.amazon.com/exec/obidos/tg/detail/-/1558609334/qid=1112803437/sr=8-1/ref=pd_csp_1/103-4918058-7991028?v=glance&s=books&n=507846"><img border=0 src="thegrid2.jpg" alt="The Grid, 2nd Edition"></a></center></td>
     <td><b><a href="http://www.amazon.com/exec/obidos/tg/detail/-/1558609334/qid=1112803437/sr=8-1/ref=pd_csp_1/103-4918058-7991028?v=glance&s=books&n=507846">The 
            Grid 2: Blueprint for a New Computing Infrastructure</a></b><br>
