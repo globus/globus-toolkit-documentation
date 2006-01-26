@@ -17,26 +17,34 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 <div id="main">
 
 
-<h1 class="first">Platform CSF</h1>
+<h1 class="first">CSF</h1>
 
 <p>
-<img src='CSF-1.png' style='float: right; margin-left: 0.3em;'>
-Platform CSF is an open source implementation of an OGSA-based metascheduler. It supports the emerging 
-WS-Agreement specification and the Globus Toolkit's <a href="gram.php">GRAM service</a>. It also uses 
-the <a href="../monitoring/ws-core.php">WS Core monitoring mechanisms</a> and the Globus 
-<a href="../monitoring/index-service.php">Index Service</a>. Platform CSF fills in gaps in the 
-existing resource management picture and is integrated with Platform LSF and Platform Multicluster.
+<img src='CSF4.gif' width='309' height='241' style='float: right; margin-left: 0.3em;'>
+CSF ("Community Scheduler Framework") is an open source implementation of an OGSA-based metascheduler. It supports the 
+emerging WS-Agreement specification and the Globus Toolkit's 
+<a href="gram.php">GRAM service</a>. It also uses the 
+<a href="../monitoring/ws-core.php">WS Core monitoring mechanisms</a> and the Globus 
+<a href="../monitoring/index-service.php">Index Service</a>. CSF fills in gaps in the 
+existing resource management picture and it is integrated with Platform LSF and Platform 
+Multicluster.
 </p>
 
 <p>
-The CSF open source project is available on SourceForge (an open source development project hosting environment),
-is included in Platform Globus Toolkit (a commercially-supported version of the Globus Toolkit),
-and is expected to be included in the Globus Toolkit 4.0 release.
+The CSF open source project is available on SourceForge (an open source development 
+project hosting environment), is included in Platform Globus Toolkit (a 
+commercially-supported version of the Globus Toolkit), and is included in the 
+Globus Toolkit 4.0 release.
 </p>
+
+<p>
+The 4.0 version of CSF uses WSRF interfaces and supports the Globus Toolkit 4.0's 
+WS GRAM service. It also supports advanced reservations for systems that use LSF resource
+managers.</p>
 
 <?
-$software = "<a href='http://sourceforge.net/projects/gcsf/'>Platform CSF</a>";
-$developer = "<a href='http://www.platform.com/'>Platform Computing</a>";
+$software = "<a href='http://sourceforge.net/projects/gcsf/'>CSF</a>";
+$developer = "<a href='http://www.platform.com/'>Platform Computing</a>, <a href='http://en.jlu.edu.cn/'>Jilin University (China)</a>";
 $distros = "<a href='http://www.platform.com/products/Globus/'>Platform Globus Toolkit</a><br />
 <a href='http://sourceforge.net/projects/gcsf/'>Download from SourceForge.net</a><br>
 <a href='http://www.globus.org/toolkit/'>Globus Toolkit 4.0</a>";
