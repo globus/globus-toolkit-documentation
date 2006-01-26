@@ -79,7 +79,7 @@ via GRAM or Condor.</li>
 central point and distributing these requests to available resources in order to meet utilization goals.</p>
 
 <ul>
-<li><strong><a href='csf.php'>Platform CSF</a></strong> - The Community Scheduler 
+<li><strong><a href='csf.php'>CSF</a></strong> - The Community Scheduler 
 Framework (CSF) is a set of modules that can be assembled to create a metascheduling 
 system that accepts job requests and executes them using available Grid compute services.</li>
 <li><strong><a href="gridway.php">GridWay</a></strong> - GridWay is a lightweight 
