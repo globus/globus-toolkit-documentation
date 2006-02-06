@@ -20,7 +20,7 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 <h1 class="first">CSF</h1>
 
 <p>
-<img src='CSF4.gif' width='309' height='241' style='float: right; margin-left: 0.3em;'>
+<img src='CSF4b.gif' width='432' height='252' style='float: right; margin-left: 0.3em;'>
 CSF ("Community Scheduler Framework") is an open source implementation of an OGSA-based metascheduler. It supports the 
 emerging WS-Agreement specification and the Globus Toolkit's 
 <a href="gram.php">GRAM service</a>. It also uses the 
@@ -39,8 +39,11 @@ Globus Toolkit 4.0 release.
 
 <p>
 The 4.0 version of CSF uses WSRF interfaces and supports the Globus Toolkit 4.0's 
-WS GRAM service. It also supports advanced reservations for systems that use LSF resource
-managers.</p>
+WS GRAM service. It also includes support for Pre-WS GRAM.
+For systems that use LSF resource managers, a separate service is provided
+that runs alongside the GRAM service to coordinate reservations.</p>
+
+<p><em><small>Image provided by the CSF4 development team at Jilin University.</small></em></p>
 
 <?
 $software = "<a href='http://sourceforge.net/projects/gcsf/'>CSF</a>";
