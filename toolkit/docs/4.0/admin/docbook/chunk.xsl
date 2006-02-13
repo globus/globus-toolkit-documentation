@@ -4,8 +4,9 @@
                 exclude-result-prefixes="doc">
 <!-- gonna point to current place for stylesheet until web server shuffle is over
 <xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets/html/docbook.xsl"/>
-  -->
+
 <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/html/docbook.xsl"/>
+  -->
 <xsl:import href="chunk-common.xsl"/>
 
 <!-- ==================================================================== -->
