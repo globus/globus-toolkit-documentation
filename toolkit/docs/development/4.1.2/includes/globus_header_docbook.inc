@@ -132,8 +132,8 @@ shortcut for 2-digit version number = such as 4.0
 <li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'public_interfaces.html'; ?>">Public Interfaces</a></li>
 <li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'rp.html'; ?>">Resource Properties</a></li>
 <li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'samples.html'; ?>">Samples</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'[path to gtversion glossary]'; ?>">Glossary</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'[path to gtversion index]'; ?>">Index</a></li>
+<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'glossary.html'; ?>">Glossary</a></li>
+<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'top_index.html'; ?>">Index</a></li>
 <li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'perf_overview.html'; ?>">Performance Studies</a></li>
 </ul>
 </div>

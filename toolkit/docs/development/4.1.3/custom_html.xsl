@@ -75,8 +75,8 @@
                 <!-- Generate links from glossterm to glossentry automatically? -->
                 <xsl:param name="glossterm.auto.link">1</xsl:param>
                 
-                <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms? -->
-                <xsl:param name="firstterm.only.link">1</xsl:param>
+                <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms? 
+                <xsl:param name="firstterm.only.link">1</xsl:param>-->
                 
                 <!-- preventing other html/head/body HTML tags (since they're in the includes) have no idea if this will work!
                 got this idea from: http://www.mail-archive.com/docbook-apps@lists.oasis-open.org/msg01156.html
@@ -87,7 +87,6 @@
                                 
                                 <xsl:text disable-output-escaping="yes">&lt;?</xsl:text>
                                 <xsl:text>
-                                                include_once("includes/local_docbook.inc");
                                                 include_once("includes/globus_header_docbook.inc");
                                                 ?&gt;
                                 </xsl:text>
