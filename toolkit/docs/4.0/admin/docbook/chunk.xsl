@@ -2,10 +2,10 @@
                 xmlns:doc="http://nwalsh.com/xsl/documentation/1.0"
 		version="1.0"
                 exclude-result-prefixes="doc">
-<!-- gonna point to current place for stylesheet until web server shuffle is over - next line is original path
-<xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets/html/docbook.xsl"/>
-  -->
+<!-- The upcoming location -->
 <xsl:import href="/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/html/docbook.xsl"/>
+  -->
+<xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets/html/docbook.xsl"/>
   
 <xsl:import href="chunk-common.xsl"/>
 
