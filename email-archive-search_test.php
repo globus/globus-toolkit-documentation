@@ -147,11 +147,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
   <form method="GET" name="GlobusSearchForm" onSubmit="GlobusSubmit()">
     <input type="text" name="qinit" size="20"  maxlength="200" value="" />
 	<input type="submit" value="Search">
-    <input type="hidden" name="cof" VALUE="S:http://www.globus.org/;VLC:#cccccc;AH:center;BGC:#ffffff;LH:76;LC:#003390;L:http://www.globus.org/img/globusalliance-nourl.gif;ALC:#003390;LW:170;T:#000000;AWFID:fb67b77f3237ebb9;">
+    <input type="hidden" name="cof" VALUE="S:http://www.globus.org/;VLC:#cccccc;AH:center;BGC:#ffffff;LH:76;LC:#003390;L:http://www.globus.org/img/globusalliance-nourl.gif;ALC:#003390;LW:170;T:#000000;AWFID:fb67b77f3237ebb9;&q=+inurl%3Amail_archive+">
     <input type="hidden" name="domains" value="www.globus.org">
-
     <input type="hidden" name="sitesearch" value="www.globus.org">
-    <input type="hidden" name="q" value="inurl:mail_archive">
+
   </form>
 </div>
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
