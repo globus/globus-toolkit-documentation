@@ -744,7 +744,7 @@
     <xsl:text>
      include_once("/mcs/www-unix.globus.org/include/globus_header.inc"); 
       ?&gt;
-    
+    </xsl:text>
     <xsl:call-template name="user.header.navigation"/>
     
     <xsl:call-template name="header.navigation">
@@ -768,6 +768,6 @@
       <xsl:text>
     include_once("/mcs/www-unix.globus.org/include/globus_footer.inc");
         ?&gt;
-    
+      </xsl:text>
   </xsl:template>
 </xsl:stylesheet>
