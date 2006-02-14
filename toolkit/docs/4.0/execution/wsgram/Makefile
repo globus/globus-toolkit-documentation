@@ -7,7 +7,7 @@ html:
            --stringparam suppress.navigation 1 \
 	   --stringparam  chapter.autolabel 0 \
 	   --stringparam  section.autolabel 1 \
-	   ../../custom_html.xsl \
+	   ../../admin/docbook/chunk.xsl \
            ${FILENAME}
 
 pdf:
