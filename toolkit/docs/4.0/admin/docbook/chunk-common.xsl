@@ -741,7 +741,7 @@
     <xsl:param name="next"></xsl:param>
     
     
-    <?php include_once("http://www-unix.globus.org/include/globus_header.inc"); ?>
+    <?php include_once("/mcs/www-unix.globus.org/include/globus_header.inc"); ?>
     
     
     <xsl:call-template name="user.header.navigation"/>
@@ -764,7 +764,7 @@
     
     <xsl:call-template name="user.footer.navigation"/>
     
-    <?php   include_once("http://www-unix.globus.org/include/globus_footer.inc"); ?>
+    <?php   include_once("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
     
     
   </xsl:template>
