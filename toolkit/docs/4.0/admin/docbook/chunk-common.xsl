@@ -740,9 +740,10 @@
     <xsl:param name="prev"></xsl:param>
     <xsl:param name="next"></xsl:param>
     
-    
-    <?php include_once("/mcs/www-unix.globus.org/include/globus_header.inc"); ?>
-    
+    <xsl:text disable-output-escaping="yes">&lt;?php</xsl:text>
+    <xsl:text>
+     include_once("/mcs/www-unix.globus.org/include/globus_header.inc"); ?>
+      ?&gt;
     
     <xsl:call-template name="user.header.navigation"/>
     
@@ -763,9 +764,10 @@
     </xsl:call-template>
     
     <xsl:call-template name="user.footer.navigation"/>
-    
-    <?php   include_once("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
-    
+      <xsl:text disable-output-escaping="yes">&lt;?php</xsl:text>
+      <xsl:text>
+    include_once("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
+        ?&gt;
     
   </xsl:template>
 </xsl:stylesheet>
