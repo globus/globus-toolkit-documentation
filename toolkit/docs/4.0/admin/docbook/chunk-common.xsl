@@ -428,11 +428,7 @@
   <xsl:variable name="home" select="/*[1]"/>
   <xsl:variable name="up" select="parent::*"/>
 
-  <![CDATA[
-<?php
-include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
-?>
-]]>
+<!-- this is where we used to hack the header -->
     <xsl:call-template name="head.content"/>
     <xsl:call-template name="user.head.content"/>
 
@@ -651,9 +647,7 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
       </table>
     </div>
   </xsl:if>
-  <![CDATA[
- <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
-]]>
+<!-- this is where we used to hack the footer -->
 </xsl:template>
 
 <!-- ==================================================================== -->
@@ -706,7 +700,7 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
 </xsl:template>
 
 <!-- ==================================================================== -->
-
+<!-- this is original
 <xsl:template name="chunk-element-content">
   <xsl:param name="prev"></xsl:param>
   <xsl:param name="next"></xsl:param>
@@ -741,5 +735,37 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
     </body>
   </html>
 </xsl:template>
-
+  -->
+  <xsl:template name="chunk-element-content">
+    <xsl:param name="prev"></xsl:param>
+    <xsl:param name="next"></xsl:param>
+    
+    
+    <?php include_once("http://www-unix.globus.org/include/globus_header.inc"); ?>
+    
+    
+    <xsl:call-template name="user.header.navigation"/>
+    
+    <xsl:call-template name="header.navigation">
+      <xsl:with-param name="prev" select="$prev"/>
+      <xsl:with-param name="next" select="$next"/>
+    </xsl:call-template>
+    
+    <xsl:call-template name="user.header.content"/>
+    
+    <xsl:apply-imports/>
+    
+    <xsl:call-template name="user.footer.content"/>
+    
+    <xsl:call-template name="footer.navigation">
+      <xsl:with-param name="prev" select="$prev"/>
+      <xsl:with-param name="next" select="$next"/>
+    </xsl:call-template>
+    
+    <xsl:call-template name="user.footer.navigation"/>
+    
+    <?php   include_once("http://www-unix.globus.org/include/globus_footer.inc"); ?>
+    
+    
+  </xsl:template>
 </xsl:stylesheet>
