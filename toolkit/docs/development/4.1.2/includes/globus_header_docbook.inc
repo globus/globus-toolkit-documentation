@@ -25,7 +25,7 @@ function GlobusSubmit()
 </script>
 
 <?php
-include_once( "http://www.globus.org/toolkit/docs/development/4.2-drafts/local_docbook.inc"
+include_once( "/mcs/www.globus.org/toolkit/docs/development/4.2-drafts/local_docbook.inc"
 ?>
 
 </head>
@@ -106,35 +106,29 @@ globus_out_of_date(); ?>
 		</ul>
 		
 		<h2>Beginner's Links</h2>
-<!-- need some php way to map "http://docbook.globus.org/" to current doc directory (something like lee's local.inc? 
-one shortcut for base docs dir http://www.globus.org/toolkit/docs/
-one shortcut for doc path: path = such as 4.0/ or development/4.2-drafts/
-shortcut for current version number = such as 4.0.1 or 4.1.x
-shortcut for 2-digit version number = such as 4.0
--->
-
+<!-- using local_docbook.inc to map urls to current doc directory -->
 <ul>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'doc_overview.html'; ?>">Doc Structure</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'key/'; ?>">A Globus Primer</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'admin/docbook/quickstart.html'; ?>">Quickstart</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'admin/docbook/'; ?>">Installing GT</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'admin/docbook/ch03.html#s-platform'; ?>">Platform Notes</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'migration_guide_gt2.html'; ?>">Migrating from GT2</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'migration_guide_gt3.html'; ?>">Migrating from GT3</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'doc_overview.html'; ?>">Doc Structure</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'key/'; ?>">A Globus Primer</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'admin/docbook/quickstart.html'; ?>">Quickstart</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'admin/docbook/'; ?>">Installing GT</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'admin/docbook/ch03.html#s-platform'; ?>">Platform Notes</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'migration_guide_gt2.html'; ?>">Migrating from GT2</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'migration_guide_gt3.html'; ?>">Migrating from GT3</a></li>
 </ul>
 
 
 <h2>Manual Reference Links</h2>
 <ul>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'best_practices.html'; ?>">Best Practices</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'best_practices.html'; ?>">Best Practices</a></li>
 <li><a href="http://www.globus.org/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></li>
 <li><a href="http://www.globus.org/api/">API documentation</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'public_interfaces.html'; ?>">Public Interfaces</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'rp.html'; ?>">Resource Properties</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'samples.html'; ?>">Samples</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'glossary.html'; ?>">Glossary</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'top_index.html'; ?>">Index</a></li>
-<li><a href="<?=$SITE_PATHS["WEB_TOOLKIT_DOCS"].'perf_overview.html'; ?>">Performance Studies</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'public_interfaces.html'; ?>">Public Interfaces</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'rp.html'; ?>">Resource Properties</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'samples.html'; ?>">Samples</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'glossary.html'; ?>">Glossary</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'top_index.html'; ?>">Index</a></li>
+<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'perf_overview.html'; ?>">Performance Studies</a></li>
 </ul>
 </div>
 			

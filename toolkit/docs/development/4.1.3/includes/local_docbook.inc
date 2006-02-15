@@ -22,8 +22,8 @@ define("LOCAL_INC",1);
     $SITE_PATHS["WEB_TOOLKIT"]            = $SITE_PATHS["WEB_ROOT"]."toolkit/";
     $SITE_PATHS["WEB_SOFTWARE"]           = $SITE_PATHS["WEB_ROOT"]."grid_software/";
     $SITE_PATHS["WEB_SOLUTIONS"]          = $SITE_PATHS["WEB_ROOT"]."solutions/";
-    $SITE_PATHS["WEB_CSS"]                = $SITE_PATHS["WEB_ROOT"]."css/";
+    $SITE_PATHS["TOOLKIT_CSS"]            = $SITE_PATHS["WEB_ROOT"]."toolkit/css/";
     $SITE_PATHS["WEB_IMG"]                = $SITE_PATHS["WEB_ROOT"]."img/";
-	$SITE_PATHS["WEB_TOOLKIT_DOCS"]       = $SITE_PATHS["WEB_ROOT"]."toolkit/docs/development/4.2-drafts/";
+	$SITE_PATHS["TOOLKIT_DOCS"]       = $SITE_PATHS["WEB_ROOT"]."toolkit/docs/development/4.2-drafts/";
 } // end of ifndef
 
