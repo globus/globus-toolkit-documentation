@@ -13,8 +13,8 @@
                 <!-- Depth to which sections should be chunked -->
                 <xsl:param name="chunk.section.depth">0</xsl:param>
                 
-                <!-- Disable header and footer navigation -->
-                <xsl:param name="suppress.navigation">1</xsl:param>
+                <!-- Disable header and footer navigation 
+                <xsl:param name="suppress.navigation">1</xsl:param>-->
                 
                 <!-- Are chapters automatically enumerated? -->
                 <xsl:param name="chapter.autolabel">0</xsl:param>
@@ -85,11 +85,10 @@
                                 <xsl:param name="prev"></xsl:param>
                                 <xsl:param name="next"></xsl:param>
                                 
-                                <xsl:text disable-output-escaping="yes">&lt;?</xsl:text>
-                                <xsl:text>
-                                                include_once("includes/globus_header_docbook.inc");
-                                                ?&gt;
-                                </xsl:text>
+                                <xsl:processing-instruction name="php">
+                                                include_once("./includes/globus_header_docbook.inc");
+                                </xsl:processing-instruction>
+<!-- may need a question mark -->
                                                  
                                                 <xsl:call-template name="user.header.navigation"/>
                                                 
@@ -110,13 +109,12 @@
                                                 </xsl:call-template>
                                                 
                                                 <xsl:call-template name="user.footer.navigation"/>
-
-                                <xsl:text disable-output-escaping="yes">&lt;?</xsl:text>
-                                <xsl:text>
-                                                include_once("includes/globus_footer_docbook.inc");
-                                                ?&gt;
-                                </xsl:text>
-
+                                
+                                <xsl:processing-instruction name="php">
+                                                include_once("./includes/globus_footer_docbook.inc");
+                                                </xsl:processing-instruction>
+                                <!-- may need a question mark 
+                                other troubleshooting: http://www.oasis-open.org/archives/docbook-apps/200407/msg00143.html-->
                 </xsl:template>
                 
 
