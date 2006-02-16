@@ -45,6 +45,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2006">2006</a></h2>
 
+<p>Globus software supports the <a class="newspartners" href="http://info.web.cern.ch/Press/PressReleases/Releases2006/PR03.06E.html">LHC service challenge</a>. (2/2006)</p>
+
 <p>A <a class="newsalliance" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/HAND-Submitted.pdf"; ?>">new paper</a> 
 describes GT4 dynamic service deployment support. (1/2006)</p>
 
