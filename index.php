@@ -19,14 +19,14 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">02.16.2006</span></td>
+              <td><b>Globus software supports the LHC service challenge.</b> 
+                <a class="learnmore" href="http://info.web.cern.ch/Press/PressReleases/Releases2006/PR03.06E.html">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">01.17.2006</span></td>
               <td><b>New paper describes GT4 dynamic service deployment support.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/HAND-Submitted.pdf"; ?>">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">01.09.2006</span></td>
-              <td><b>Congratulations to Carl Kesselman on honorary doctorate.</b> 
-                <a class="learnmore" href="http://www.science.uva.nl/english/object.cfm/objectID=81E0D1DB-A31C-4BB2-8937BBEF57D4185F">Learn more...</a></td>
             </tr>
             <tr>
               <td><span class="newsdate">01.06.2006</span></td>
@@ -37,11 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">01.03.2006</span></td>
               <td><b>New Book: Globus<sup>&reg;</sup> Toolkit 4: Programming Java Services..</b> 
                 <a class="learnmore" href="http://www.amazon.com/gp/product/0123694043/qid=1136216629/sr=1-1/ref=sr_1_1/002-7679256-3876803?s=books&v=glance&n=283155">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">12.26.2005</span></td>
-              <td><b>Ian Foster listed among 50 most powerful people in networking.</b> 
-                <a class="learnmore" href="http://www.networkworld.com/power/2005/122605-power50.html?page=2#foster">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
