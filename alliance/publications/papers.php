@@ -225,6 +225,15 @@ submitting bibliographic citations</a>.</b></p>
     I. Foster.  <i>Proceedings of Super Computing 2005 (SC05)</i>, November 2005.<br>
      [<a href="papers/gridftp_final.pdf">PDF</a>]</font></p>
      
+    <p><strong><a name="XIO-HPGC05">The Globus eXtensible Input/Output System (XIO): 
+       A protocol independent IO system for the Grid</a></strong>.
+    W. Allcock, J. Bresnahan, R.  Kettimuthu, J. Link. 
+    <i>Proceedings of the Joint Workshop on High-Performance Grid Computing and 
+       High-Level Parallel Programming Models</i> held in conjunction with International 
+       Parallel and Distributed Processing Symposium (IPDPS 2005), April 2005.<br>
+    [<a href="#XIO-HPGC05">Citation</a>,
+     <a href="papers/hpgc05.pdf">PDF</a>]</p>
+
     <p>
     <font size="2"><strong>Introduction to OGSA-DAI Services</strong>.
     K. Karasavvas, M. Antonioletti, M.P. Atkinson, N.P. Chue Hong, T. Sugden, A.C.
