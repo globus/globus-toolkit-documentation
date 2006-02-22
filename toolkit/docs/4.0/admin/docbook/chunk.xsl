@@ -6,7 +6,6 @@
   <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/html/docbook.xsl"/>
   
 <xsl:import href="chunk-common.xsl"/>
-
   
 <!-- ==================================================================== -->
 
