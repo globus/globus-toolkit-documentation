@@ -1,4 +1,4 @@
-<!--
+
 XML_CATALOG_FILES="catalog.xml  file:///usr/share/xml/docbook/stylesheet/nwalsh/catalog.xml" \
    XML_DEBUG_CATALOG=1 \
 FILENAME=index.xml
@@ -32,4 +32,4 @@ mac:
 	/usr/share/xml/xsl/docbook-xsl/html/chunk.xsl \
 	$(FILENAME)
 	
-	-->
+
