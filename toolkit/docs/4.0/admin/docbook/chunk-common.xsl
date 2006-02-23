@@ -740,13 +740,11 @@
     <xsl:param name="prev"></xsl:param>
     <xsl:param name="next"></xsl:param>
     
-    
-    <![CDATA[
-    <?php
-    include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
-    ?>
-    ]]>
-    
+    <xsl:processing-instruction name="php">
+      include_once("./includes/globus_header_docbook.inc");
+    </xsl:processing-instruction>
+    <!-- may need a question mark 
+    may not be able to use relative path to includes...-->
     
     <xsl:call-template name="user.header.navigation"/>
     
@@ -768,10 +766,11 @@
     
     <xsl:call-template name="user.footer.navigation"/>
     
-   <![CDATA[
-    <?php include("http://www-unix.globus.org/include/globus_footer.inc"); ?>
-    ]]>
-    
-    
+    <xsl:processing-instruction name="php">
+      include_once("./includes/globus_footer_docbook.inc");
+    </xsl:processing-instruction>
+    <!-- may need a question mark 
+    may not be able to use relative path to includes...
+    other troubleshooting: http://www.oasis-open.org/archives/docbook-apps/200407/msg00143.html-->
   </xsl:template>
 </xsl:stylesheet>
