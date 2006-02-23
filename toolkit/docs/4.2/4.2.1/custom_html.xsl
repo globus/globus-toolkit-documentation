@@ -48,7 +48,7 @@
                                 </xsl:choose>
                 </xsl:template>
                 
-                <!-- want an appendix to use "Appendix" in the title  --> 
+                <!-- want an appendix to use "Appendix" in the title 
                 <xsl:param name="local.l10n.xml" select="document('')"/>
                 <l:i18n xmlns:l="http://docbook.sourceforge.net/xmlns/l10n/1.0";>
                                 <l:l10n language="en">
@@ -57,7 +57,7 @@
                                                 </l:context>
                                 </l:l10n>
                 </l:i18n>
-                
+                --> 
                 <!-- INDEX PARAMETERS -->
                 <!-- do you want an index? -->
                 <xsl:param name="generate.index">1</xsl:param>
@@ -87,9 +87,8 @@
                                 
                                 <xsl:processing-instruction name="php">
                                                 include_once("./includes/globus_header_docbook.inc");
-                                </xsl:processing-instruction>
-                                <!-- may need a question mark 
-                                may not be able to use relative path to includes...-->
+                                ?</xsl:processing-instruction>
+                                <!-- may not be able to use relative path to includes...-->
                                                  
                                                 <xsl:call-template name="user.header.navigation"/>
                                                 
@@ -113,9 +112,8 @@
                                 
                                 <xsl:processing-instruction name="php">
                                                 include_once("./includes/globus_footer_docbook.inc");
-                                                </xsl:processing-instruction>
-                                <!-- may need a question mark 
-                                may not be able to use relative path to includes...
+                                                ?</xsl:processing-instruction>
+                                <!-- may not be able to use relative path to includes...
                                 other troubleshooting: http://www.oasis-open.org/archives/docbook-apps/200407/msg00143.html-->
                 </xsl:template>
                 
