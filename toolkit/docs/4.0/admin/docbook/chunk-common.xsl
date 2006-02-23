@@ -741,8 +741,8 @@
     <xsl:param name="next"></xsl:param>
     
     <xsl:processing-instruction name="php">
-      include_once("./includes/globus_header_docbook.inc");
-    </xsl:processing-instruction>
+      include_once("/mcs/www-unix.globus.org/include/globus_header.inc");
+    ?</xsl:processing-instruction>
     <!-- may need a question mark 
     may not be able to use relative path to includes...-->
     
@@ -767,8 +767,8 @@
     <xsl:call-template name="user.footer.navigation"/>
     
     <xsl:processing-instruction name="php">
-      include_once("./includes/globus_footer_docbook.inc");
-    </xsl:processing-instruction>
+      include_once("/mcs/www-unix.globus.org/include/globus_footer.inc");
+    ?</xsl:processing-instruction>
     <!-- may need a question mark 
     may not be able to use relative path to includes...
     other troubleshooting: http://www.oasis-open.org/archives/docbook-apps/200407/msg00143.html-->
