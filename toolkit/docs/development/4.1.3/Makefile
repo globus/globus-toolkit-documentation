@@ -1,15 +1,14 @@
+export XML_CATALOG_FILES=catalog
+#export XML_DEBUG_CATALOG= 1
+FILENAME= index.xml
+GRAPHICS= --stringparam admon.graphics.path /user/share/xml/docbook/stylesheet/nwalsh/images/ --stringparam admon.graphics 1
 
-XML_CATALOG_FILES="catalog.xml  file:///usr/share/xml/docbook/stylesheet/nwalsh/catalog.xml" \
-   XML_DEBUG_CATALOG=1 \
-FILENAME=index.xml
-GRAPHICS=--stringparam admon.graphics.path /user/share/xml/docbook/stylesheet/nwalsh/images/ --stringparam admon.graphics 1
-
-all: html pdf
+all: html
 
 html:
-	xsltproc    \
-           custom_html.xsl  \
-           ${FILENAME}
+	xsltproc \
+	custom_html.xsl \
+	$(FILENAME)
 
 pdf:
 	/homes/yusra/XEP/xep \

@@ -1,52 +1,41 @@
+<?xml version="1.0"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:doc="http://nwalsh.com/xsl/documentation/1.0"
-                version="1.0"
-                exclude-result-prefixes="doc">
+                version="1.0">
                 
                 <!-- Which DocBook standard xsl file should we use - chunk or docbook? 
                 i'm going to start with the default chunk.xsl...the catalog points chunk.xsl to actual file location (not the one in admin/docbook/)-->
                 <xsl:import href="chunk.xsl"/>
                 
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
-                <xsl:param name="admon.graphics">1</xsl:param>
+                                <xsl:param name="admon.graphics">1</xsl:param>
+                
+                <!-- Set path to docbook graphics (production) 
+                                <xsl:param name="admon.graphics.path">/docbook-images/</xsl:param>
+                -->
+                
+                <!-- Set path to docbook graphics (testing) -->
+                <xsl:param name="admon.graphics.path">file:///Z:/testing/alliance/docbook-images/</xsl:param>
+                
+                <!-- Again, if 1 above, what is the filename extension for admon graphics? -->
+                <xsl:param name="admon.graphics.extension" select="'.gif'"/>
                 
                 <!-- Depth to which sections should be chunked -->
-                <xsl:param name="chunk.section.depth">0</xsl:param>
+                                <xsl:param name="chunk.section.depth">0</xsl:param>
                 
                 <!-- Disable header and footer navigation 
                 <xsl:param name="suppress.navigation">1</xsl:param>-->
                 
                 <!-- Are chapters automatically enumerated? -->
-                <xsl:param name="chapter.autolabel">0</xsl:param>
+                                <xsl:param name="chapter.autolabel">0</xsl:param>
                 
                 <!-- Are sections enumerated? -->
-                <xsl:param name="section.autolabel">1</xsl:param>
+                                <xsl:param name="section.autolabel">1</xsl:param>
+                
+                <!-- how deep should each toc be? (how many levels?) -->
+                                <xsl:param name="toc.max.depth">1</xsl:param>
                 
                 <!-- How deep should recursive sections appear in the TOC? -->
-                <xsl:param name="toc.section.depth">2</xsl:param>
-                
-                <!-- the following code configures the book TOC in HTML to just list the chapter titles, 
-                and then rely on complete TOCs in each chapter to provide section titles. -->
-                <xsl:template match="preface|chapter|appendix|article" mode="toc">
-                                <xsl:param name="toc-context" select="."/>
-                                
-                                <xsl:choose>
-                                                <xsl:when test="local-name($toc-context) = 'book'">
-                                                                <xsl:call-template name="subtoc">
-                                                                                <xsl:with-param name="toc-context" select="$toc-context"/>
-                                                                                <xsl:with-param name="nodes" select="foo"/>
-                                                                </xsl:call-template>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                                <xsl:call-template name="subtoc">
-                                                                                <xsl:with-param name="toc-context" select="$toc-context"/>
-                                                                                <xsl:with-param name="nodes"
-                                                                                                select="section|sect1|glossary|bibliography|index
-                                                                                                |bridgehead[$bridgehead.in.toc != 0]"/>
-                                                                </xsl:call-template>
-                                                </xsl:otherwise>
-                                </xsl:choose>
-                </xsl:template>
+                                <xsl:param name="toc.section.depth">2</xsl:param>
                 
                 <!-- want an appendix to use "Appendix" in the title 
                 <xsl:param name="local.l10n.xml" select="document('')"/>
@@ -59,9 +48,9 @@
                 </l:i18n>
                 --> 
                 <!-- INDEX PARAMETERS -->
-                <!-- do you want an index? -->
+                <!-- do you want an index?  -->
                 <xsl:param name="generate.index">1</xsl:param>
-                
+               
                 <!-- Select indexterms based on type attribute value -->
                 <xsl:param name="index.on.type">1</xsl:param>
                 
@@ -78,9 +67,7 @@
                 <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms? 
                 <xsl:param name="firstterm.only.link">1</xsl:param>-->
                 
-                <!-- preventing other html/head/body HTML tags (since they're in the includes) have no idea if this will work!
-                got this idea from: http://www.mail-archive.com/docbook-apps@lists.oasis-open.org/msg01156.html
-                -->
+                <!-- preventing other html/head/body HTML tags (since they're in the includes) -->
                 <xsl:template name="chunk-element-content">
                                 <xsl:param name="prev"></xsl:param>
                                 <xsl:param name="next"></xsl:param>
