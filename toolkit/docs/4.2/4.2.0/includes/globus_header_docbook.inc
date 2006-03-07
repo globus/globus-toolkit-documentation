@@ -1,14 +1,13 @@
-<!--
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
 <title><?php echo $title; ?></title>
--->
+
 <!-- <link rel="shortcut icon" href="/images/favicon.ico"> -->
 <!-- <link rel="icon" href="/images/favicon.ico"> -->
-<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
-<link href="http://www.globus.org/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
-<link rel="stylesheet" type="text/css" href="http://www.globus.org/toolkit/css/print.css" media="print" />
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-15">
+<link href="http://www-testing.globus.org/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
+<link rel="stylesheet" type="text/css" href="/toolkit/css/print.css" media="print" />
 <link rel="alternate" title="Globus Toolkit RSS" href="http://www-unix.globus.org/toolkit/rss/downloadNews/downloadNews.xml" type="application/rss+xml">
 <script>
 function GlobusSubmit()
@@ -23,10 +22,6 @@ function GlobusSubmit()
          }
 }
 </script>
-
-<?php
-include_once( "/mcs/www.globus.org/toolkit/docs/development/4.2-drafts/local_docbook.inc"
-?>
 
 </head>
 <body class="section-3">
@@ -82,56 +77,46 @@ maxlength="200" value="" />
   </table>
 
 </div>
-<div id="outer_wrapper">
-  <div id="wrapper">
     <div id="container">
 		<div id="content">
-
+<!--
 	<?php 
 include_once( "/mcs/www-unix.globus.org/include/outofdate.php" ); 
 globus_out_of_date(); ?>
+-->
 
-<table width="100%"  border="0" cellspacing="0" cellpadding="5">
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
 	<tr>
-		<td width="140px">
-		<div id="docbook-left-column">
-		<h2>Software Links</h2>
-		<ul>
-			<li><a href="http://www.globus.org/toolkit/releasenotes/">Release Notes</a></li>
-			<li><a href="http://www.globus.org/toolkit/versioning.html">Version Scheme</a></li>
-			<li><a href="http://www.globus.org/toolkit/downloads/">Downloads</a></li>
-			<li><a href="http://www.globus.org/toolkit/advisories.html">Software Advisories</a></li>
-			<li><a href="http://www.globus.org/toolkit/legal/">Licenses</a></li>
-			<li><a href="http://www.globus.org/toolkit/docs/development/dev_tools.html">CVS &amp; Developer Tools</a></li>
-		</ul>
+		<td width="120px" class="leftColumn">
+		<div id="leftbg">
+		<h2 class="smalltitle">Software Links</h2>
+		<p><a href="/toolkit/releasenotes/">Release Notes</a><br />
+		<a href="/toolkit/versioning.html">Versioning</a><br />
+		<a href="/toolkit/downloads/">Downloads</a><br />
+		<a href="/toolkit/advisories.html">Advisories</a><br />
+		<a href="/toolkit/legal/">Licenses</a><br />
+		<a href="/toolkit/docs/development/dev_tools.html">CVS &amp; Dev Tools</a></p>
 		
-		<h2>Beginner's Links</h2>
-<!-- using local_docbook.inc to map urls to current doc directory -->
-<ul>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'doc_overview.html'; ?>">Doc Structure</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'key/'; ?>">A Globus Primer</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'admin/docbook/quickstart.html'; ?>">Quickstart</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'admin/docbook/'; ?>">Installing GT</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'admin/docbook/ch03.html#s-platform'; ?>">Platform Notes</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'migration_guide_gt2.html'; ?>">Migrating from GT2</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'migration_guide_gt3.html'; ?>">Migrating from GT3</a></li>
-</ul>
-
-
-<h2>Manual Reference Links</h2>
-<ul>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'best_practices.html'; ?>">Best Practices</a></li>
-<li><a href="http://www.globus.org/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></li>
-<li><a href="http://www.globus.org/api/">API documentation</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'public_interfaces.html'; ?>">Public Interfaces</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'rp.html'; ?>">Resource Properties</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'samples.html'; ?>">Samples</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'glossary.html'; ?>">Glossary</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'top_index.html'; ?>">Index</a></li>
-<li><a href="<?=$SITE_PATHS["TOOLKIT_DOCS"].'perf_overview.html'; ?>">Performance Studies</a></li>
-</ul>
-</div>
-			
+		<h2 class="smalltitle">Getting Started</h2>
+		<p><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/admin/docbook/ch03.html#s-platform">Platform Notes</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt2.html">Migrating from GT2</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt3.html">Migrating from GT3</a></p>
+		
+		<h2 class="smalltitle">Reference</h2>
+		<p><a href="/toolkit/docs/development/4.2-drafts/best_practices.html">Best Practices</a><br />
+		<a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a><br />
+		<a href="/api/">API docs</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/public_interfaces.html">Public Interfaces</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/rp.html">Resource Properties</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/samples.html">Samples</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/top_index.html">Index</a><br />
+		<a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></p>
+		</div>
 		</td>
 		
 		<td>

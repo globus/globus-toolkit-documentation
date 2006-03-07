@@ -7,8 +7,7 @@
       <!--ending div of container-->
     </div>
     <div class="clearing">&nbsp;</div>
-    <!--ending div of wrapper-->
-  </div>
+
 <div id="footer">
   <hr class="first"/>
 
