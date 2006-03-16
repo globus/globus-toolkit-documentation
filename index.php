@@ -20,7 +20,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <table class="news">
             <tr>
               <td><span class="newsdate">03.16.2006</span></td>
-              <td><b>Ian Foster explains significance of new Web service convergence roadmap.</b> 
+              <td><b>Ian Foster explains new Web service convergence roadmap.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ROOT"]."wsrf/convergence.php"; ?>">Learn more...</a></td>
             </tr>
             <tr>
