@@ -12,16 +12,18 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <p>This page provides background information on the WS-Resource Framework 
        announced by the <a href="<?=$SITE_PATHS["WEB_ROOT"]; ?>">Globus Alliance</a> 
        and <a href="http://www.ibm.com/">IBM</a> in conjunction with HP on 
-       January 20, 2004. Updates occur regularly, so check here for the latest 
-       WSRF information.</p>
+       January 20, 2004.</p>
 
-    <p><b>March 2004:</b> The WSRF specifications have been submitted to 
-       <a href="http://www.oasis-open.org/">OASIS</a>.</p>
+<p><b>March 2006:</b> HP, IBM, Intel, and Microsoft 
+<a href="convergence.php">announced their intention to work together</a> toward 
+converging Web Service standards for resources, events, and management.</a></p>
+
+  
 
 <ul>
   <li><a href="#motivation">Motivation</a></li>
   <li><a href="#origins">Origins</a></li>
-  <li><a href="#announcement">Announcement</a></li>
+  <li><a href="#announcement">Announcements</a></li>
   <li><a href="#relevant">Relevant documents</a></li>
   <li><a href="#presentations">Presentations and Meetings</a></li>
   <li><a href="#faq">Frequently asked questions</a></li>
@@ -65,7 +67,14 @@ We discuss the relationship between the WS-Resource
 framework and OGSI in the document <cite>From OGSI to WSRF: Refactoring and Evolution.</cite>
 (See "Relevant Documents" below.)</p>
 
-<h2><a name="announcement">Announcement</a></h2>
+<h2><a name="announcement">Announcements</a></h2>
+
+<p><b>March 2006:</b> HP, IBM, Intel, and Microsoft 
+<a href="convergence.php">announced their intention to work together</a> toward 
+converging Web Service standards for resources, events, and management.</a></p>
+
+<p><b>March 2004:</b> The WSRF specifications have been submitted to 
+       <a href="http://www.oasis-open.org/">OASIS</a>.</p>
 
 <p>The <a href="http://www.marketwire.com/mw/release_html_b1?release_id=61977">
 WS-Resource Framework announcement</a> was issued January 20, 2004.</p>
