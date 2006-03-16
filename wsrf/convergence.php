@@ -1,6 +1,5 @@
 <?php
-$title = "Globus: Toward Converging Web Service Standards for Resources, Events, and
-Management ";
+$title = "Globus: The Holy Grail: Industry-Wide System Management Standards at Last?";
 $section = "section-5";
 include_once( "../include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
@@ -8,11 +7,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <div id="main">
 
-<h1 class="first">Toward Converging Web Service Standards for Resources, Events, and
-Management</h1>
+<h1 class="first">The Holy Grail: Industry-Wide System Management Standards at Last?</h1>
 
-<p>Commentary by Ian Foster, writing on behalf of the Globus Management
-Committee</p>
+<p>Commentary by Ian Foster, on behalf of the Globus Management Committee, on the new HP-IBM-Intel-Microsoft Roadmap, "Toward Converging Web Service Standards for Resources, Events, and Management".</p>
 
 <h2>Table of Contents</h2>
 
@@ -186,7 +183,8 @@ responding to them.</p>
 
 <li><a name="ref6">I. Foster et al. Modeling and Managing State in Distributed
     Systems: The Role of OGSI and WSRF. Proceedings of the IEEE,
-    93(3):604-612, 2005.</a></li>
+    93(3):604-612, 2005.<br>
+    <a href="http://www.unigrids.org/papers/wsrf.pdf">http://www.unigrids.org/papers/wsrf.pdf</a></li>
 </ol>
 
 </div>
