@@ -45,6 +45,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <h2><a name="2006">2006</a></h2>
 
+<p>HP, IBM, Intel, and Microsoft have <a href="http://www-128.ibm.com/developerworks/webservices/library/specification/ws-roadmap/">announced plans</a> to "develop a
+common set of [Web Services] specifications for resources, events, and
+management." Ian Foster <a href="<?=$SITE_PATHS["WEB_ROOT"]."wsrf/convergence.php"; ?>">explains what this means</a> for the Globus community. (3/2006)</p>
+
+<p>The <a href="http://www.dma.unina.it/~murli/ISSGC06/">Fourth International Summer School on Grid Computing</a> will be held in
+Ischia, Italy, July 9-21. (3/2006)</p>
+
 <p>Globus software supports the <a class="newspartners" href="http://info.web.cern.ch/Press/PressReleases/Releases2006/PR03.06E.html">LHC service challenge</a>. (2/2006)</p>
 
 <p>A <a class="newsalliance" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/HAND-Submitted.pdf"; ?>">new paper</a> 
