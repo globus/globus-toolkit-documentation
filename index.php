@@ -19,6 +19,16 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <!--<h2>Recent News</h2> -->
           <table class="news">
             <tr>
+              <td><span class="newsdate">03.16.2006</span></td>
+              <td><b>Ian Foster explains significance of new Web service convergence roadmap.</b> 
+                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ROOT"]."wsrf/convergence.php"; ?>">Learn more...</a></td>
+            </tr>
+            <tr>
+              <td><span class="newsdate">03.15.2006</span></td>
+              <td><b>4th Intl. Summer School on Grid Computing in Italy, July 9-21.</b> 
+                <a class="learnmore" href="http://www.dma.unina.it/~murli/ISSGC06/">Learn more...</a></td>
+            </tr>
+            <tr>
               <td><span class="newsdate">02.16.2006</span></td>
               <td><b>Globus software supports the LHC service challenge.</b> 
                 <a class="learnmore" href="http://info.web.cern.ch/Press/PressReleases/Releases2006/PR03.06E.html">Learn more...</a></td>
@@ -27,16 +37,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
               <td><span class="newsdate">01.17.2006</span></td>
               <td><b>New paper describes GT4 dynamic service deployment support.</b> 
                 <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/HAND-Submitted.pdf"; ?>">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">01.06.2006</span></td>
-              <td><b>Article describes combining BPEL and WSRF using GT4.</b> 
-                <a class="learnmore" href="http://webservices.sys-con.com/read/155631_2.htm">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">01.03.2006</span></td>
-              <td><b>New Book: Globus<sup>&reg;</sup> Toolkit 4: Programming Java Services..</b> 
-                <a class="learnmore" href="http://www.amazon.com/gp/product/0123694043/qid=1136216629/sr=1-1/ref=sr_1_1/002-7679256-3876803?s=books&v=glance&n=283155">Learn more...</a></td>
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
