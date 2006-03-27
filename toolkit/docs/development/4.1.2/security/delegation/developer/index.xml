@@ -245,6 +245,9 @@ credentials. Credential renewal follows the same steps as the initial delegation
   <section id="delegation-developer-wsdl"><title>Semantics and syntax of the WSDL</title>
     &WS_AA_Delegation_Service_Interface_WSDL_Frag;
   </section>
+  <section id="delegation-developer-protocols"><title>Semantics and syntax of non-WSDL protocols</title>
+    &WS_AA_Delegation_Service_Interface_Protocol_Frag;
+  </section>
   <section id="delegation-developer-cmd"><title>Command-line tools</title>
     <para>Please see the <xref linkend="delegation-commandline"/>.</para>
   </section>
@@ -266,51 +269,101 @@ credentials. Credential renewal follows the same steps as the initial delegation
 <section id="delegation-developer-scenarios">
 
   <title>Usage scenarios</title>
+  <para>The <constant>org.globus.delegation.DelegationUtil</constant> provides an API
+    that allows users to get the certificate chain resource property exposed by the Delegation Factory Service, delegate to a service, and to refresh and register listeners.</para>
 
   <section>
 
     <title> Client-side scenario </title>
+    
+    <section id="delegation-developer-getCertChain"><title>Getting a certificate chain of delegation factory service</title>
+      <para>Prior to delegating, the client needs to get information about the public key of the Delegation Factory Service.</para>
+      
+      <para><screen>static X509Certificate[] getCertificateChainRP(String delegationUrl)</screen></para>
+      <para>This takes  an endpoint URL to a Delegation Factory Service and queries
+        the <type>CertificateChain</type> resource property. The chain of
+        certificates is returned as an array of
+        <type>X509Certificate</type>. The client needs to delegate on the
+        first certificate in the returned chain.</para>
+    </section>
+    
+    <section id="delegation-developer-delegateCred"><title>Delegating the credential</title>
+      <para>Once the delegation client has the public key of the Delegation Factory Service, it needs to create a delegated credential using that public key and 
+        then invoke the remote interface on the factory to delegate the credential. A utility API to do all of the above is described in <xref linkend="delegation-pi-apis"/>. </para>
+      
+      <screen>public static EndpointReferenceType delegate(String delegationServiceUrl,
+        GlobusCredential issuingCred,
+        X509Certificate certificate,
+        int lifetime,
+        boolean fullDelegation,
+        ClientSecurityDescriptor desc)</screen>
+      <para>This utility method is used to create the security token to
+        delegate using the <parameter>issuingCred</parameter> and <parameter>certificate</parameter>
+        parameters. The lifetime and type of the delegated credential created
+        is determined by the <parameter>lifetime</parameter> and <parameter>fullDelegation</parameter>
+        parameters. The security token (delegated credential) thus created is
+        then stored  by the Delegation Factory Service specified by the
+        <parameter>delegationServiceUrl</parameter>. The client security descriptor determines
+        the authentication mechanism, protection and authorization  settings to
+        use.</para>
+      <para>The Endpoint Reference that is returned points to the delegated credential
+        and can be used by co-hosted services (services in the same hosting
+        environment) to retrieve the delegated credential.</para>
+      
+      </section>
 
-    <itemizedlist>
-
-      <listitem>
-
-        <simpara>Prior to delegating, the client needs to get information about the public key of the Delegation Factory Service. A utility API to do that is described in <xref linkend="delegation-pi-getCertChain"/>.</simpara>
-
-      </listitem>
-
-      <listitem>
-
-        <simpara>Once the delegation client has the public key of the Delegation Factory Service, it needs to create a delegated credential using that public key and then invoke the remote interface on the factory to delegate the credential. A utility API to do all of the above is described in <xref linkend="delegation-pi-apis"/>. The Endpoint Reference that is returned by this operation can be distributed to services that the user would like to delegate its rights to.</simpara>
-
-      </listitem>
-
-      <listitem>
-
-        <simpara>The user may need to refresh the delegated credential. The onus is on the user to do this prior to expiration of the delegated credential. If the user does not refresh the credential, the expired credential will be garbage collected and the Endpoint Reference cannot be reused. A utility API that can be used to refresh is described in <xref linkend="delegation-pi-refresh"/>.</simpara>
-
-      </listitem>
-
-    </itemizedlist>
+    <section id="delegation-developer-refreshCred"><title>Refreshing the delegated credential</title>
+        <para>The user may need to refresh the delegated credential. The onus is on the user to do this prior to expiration of the delegated credential. If the user does not refresh 
+          the credential, the expired credential will be garbage collected and the Endpoint Reference cannot be reused. </para>
+      
+      <screen>public static void refresh(GlobusCredential issuingCred,
+        X509Certificate certToSign,
+        int lifetime,
+        boolean fullDelegation,
+        ClientSecurityDescriptor desc,
+        EndpointReferenceType epr)</screen>
+      <para>This method can be used to refresh a delegated credential that is
+        referred to by  the EPR <parameter>epr</parameter>. A new delegated credential is created using the 
+        <parameter>issuingCred</parameter>, <parameter>certToSign</parameter>, <parameter>lifetime</parameter> and
+        <parameter>fullDelegation</parameter> parameters. The client security descriptor determines
+        the authentication mechanism, protection and authorization type to
+        use.</para>
+      
+        </section>
 
   </section>
 
   <section>
 
     <title> Service-side scenario </title>
+    <section><title>Registering a listener</title>
 
-    <para>This section describes the usage scenario where a service is provided with a delegated credential EPR and needs to access the credential. Typically, as a part of an application the delegated credential EPR is sent to the service and and it is assumed that the delegation service is co-hosted (that is, it runs in the same hosting environment).</para>
+    <para>This section describes the usage scenario where a service is provided with a delegated credential EPR and needs to access the credential. Typically, as a part of an 
+      application the delegated credential EPR is sent to the service and and it is assumed that the delegation service is co-hosted (that is, it runs in the same hosting environment).</para>
 
-    <para>The service needs to create a listener object that implements
-
- the <constant>org.globus.delegation.DelegationRefreshListener</constant>
-
-interface and register the listener with the Delegation Service.   Upon registering the listener  the Delegation Service checks  that the delegator identity matches either the identity  passed in the
-
-subject object or the identity contained in the peer subject 
-
-associated with the current message context. Once the listener has been authorized the delegated credential is made available to the listener. Details about the API are described <ulink url="WS_AA_Delegation_Service_Public_Interfaces.html#registerListener">here</ulink>.</para>
-
+    <para>The service needs to create a listener object that implements the <constant>org.globus.delegation.DelegationRefreshListener</constant> interface and register the listener with 
+      the Delegation Service.   Upon registering the listener,  the Delegation Service checks  that the delegator identity matches either the identity  passed in the subject object or the identity 
+      contained in the peer subject  associated with the current message context. Once the listener has been authorized the delegated credential is made available to the listener. 
+     </para>
+      
+      <screen>static void
+        registerDelegationListener(EndpointReferenceType epr,
+        DelegationRefreshListener listener,
+        Subject subject)</screen>
+      <para>This method registers the listener <parameter>listener</parameter> with the
+        delegation resource referenced by <parameter>epr</parameter>. The operation is
+        permitted only if the  identity in the subject object matches that of the user who delegated the credential.</para>
+      
+      <screen>static void
+        registerDelegationListener(EndpointReferenceType epr,
+        DelegationRefreshListener listener)</screen>
+      <para>This  method  provides the same functionality as the previous one,  except that the
+        subject object is picked up from the property
+        <constant>org.globus.wsrf.security.Constants.PEER_SUBJECT</constant> in the
+        current message context. If the identity of the  user who 
+        delegated the credential matches that  of the subject object referred to by the property, then the operation is
+        permitted.</para>
+</section>
   </section>
 
 </section>
