@@ -7,7 +7,7 @@
                 <xsl:import href="chunk.xsl"/>
                 
                 <!-- make sure to update this depending on testing or production -->
-                <xsl:param name="base.dir">/nfs/asd2/cristina/testing/alliance/toolkit/docs/development/4.2-drafts/</xsl:param>
+                <xsl:param name="base.dir">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/</xsl:param>
                 
                 <!-- speed up the chunking process? -->
                 <xsl:param name="chunk.fast">1</xsl:param>
