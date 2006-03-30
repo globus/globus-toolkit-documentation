@@ -42,7 +42,7 @@ function globus_print_alliance_news_headlines($limit)
                            "alliance_news='Y'",
                            $limit,
                            "http://www-unix.globus.org/news.html",
-                           "http://www-unix.globus.org/news.xml");
+                           "http://www-unix.globus.org/toolkit/rss/downloadNews/downloadPress.xml");
 }
 
 
