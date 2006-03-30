@@ -14,9 +14,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
          
           <p></p>
 
-         <!-- <hr> -->
-
-          <!--<h2>Recent News</h2> -->
+          <!--
           <table class="news">
             <tr>
               <td><span class="newsdate">03.16.2006</span></td>
@@ -40,8 +38,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
             </tr>
           </table>
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
+          -->
 
-          <!-- <hr> -->
+          <?     
+             include_once("/mcs/www-unix.globus.org/include/globus_news.php");
+             globus_print_alliance_news_headlines(5);
+          ?>
+          <p><a href="news.html">Archive of Globus Alliance news</a></p>
 
           <h1>Welcome to Globus<sup><small>&reg;</small></sup></h1>
 
