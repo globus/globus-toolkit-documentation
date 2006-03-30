@@ -9,6 +9,10 @@
 <link href="<?=$SITE_PATHS["WEB_CSS"]."default.css"; ?>" rel="stylesheet" type="text/css" />
 <link href="<?=$SITE_PATHS["WEB_CSS"]."print.css"; ?>" rel="stylesheet" type="text/css" media="print" />
 
+<?php if ($pagename == "home") { ?>
+<link rel="alternate" title="Globus Toolkit RSS" href="http://www-unix.globus.org/toolkit/rss/downloadNews/downloadNews.xml" type="application/rss+xml">
+<?php } ?>
+
 <script>
 function GlobusSubmit()
 {

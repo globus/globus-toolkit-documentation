@@ -2,6 +2,7 @@
 
 $title = "The Globus Alliance";
 $section = "section-1";
+$pagename = "home";
 include_once( "./include/local.inc" );
 include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
 ?>
