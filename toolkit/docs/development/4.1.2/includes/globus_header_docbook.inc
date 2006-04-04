@@ -43,7 +43,7 @@ function GlobusSubmit()
     <li id="nav-3"><a href="http://www.globus.org/toolkit/">Globus Toolkit</a></li>
     <li id="nav-4"><a href="http://www.globus.org/grid_software/">Grid Software</a></li>
     <li id="nav-5"><a href="http://www.globus.org/solutions/">Grid Solutions</a></li>
-	<li id="nav-6"><a href="https://dev.globus.org/wiki/Welcome">GlobDev</a></li>
+	<li id="nav-6"><a href="https://dev.globus.org/wiki/Welcome">dev.globus</a></li>
     <!-- end of navigation list -->
   </ul>
 
@@ -90,7 +90,8 @@ globus_out_of_date(); ?>
 		<td width="120px" class="leftColumn">
 		<div id="leftbg">
 		<h2 class="smalltitle">Software Links</h2>
-		<p><a href="/toolkit/releasenotes/">Release Notes</a><br />
+		<p><a href="/toolkit/docs/development/4.2-drafts/Usage_Stats.html">Usage Statistics</a><br />
+		<a href="/toolkit/releasenotes/">Release Notes</a><br />
 		<a href="/toolkit/versioning.html">Versioning</a><br />
 		<a href="/toolkit/downloads/">Downloads</a><br />
 		<a href="/toolkit/advisories.html">Advisories</a><br />
