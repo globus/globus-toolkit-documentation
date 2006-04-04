@@ -49,7 +49,7 @@ function GlobusSubmit()
     <li id="nav-3"><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Globus Toolkit</a></li>
     <li id="nav-4"><a href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">Grid Software</a></li>
     <li id="nav-5"><a href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Grid Solutions</a></li>
-    <li id="nav-6"><a href="http://dev.globus.org/">GlobDev</a></li>
+    <li id="nav-6"><a href="http://dev.globus.org/">dev.globus</a></li>
   </ul>
 
   <table class="navbartable" width="100%">
