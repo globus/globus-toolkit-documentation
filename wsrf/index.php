@@ -14,11 +14,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
        and <a href="http://www.ibm.com/">IBM</a> in conjunction with HP on 
        January 20, 2004.</p>
 
-<p><b>March 2006:</b> HP, IBM, Intel, and Microsoft 
-<a href="convergence.php">announced their intention to work together</a> toward 
-converging Web Service standards for resources, events, and management.</a></p>
-
-  
+<p><b>April 2006:</b> The <a href="http://www.oasis-open.org/">OASIS</a> organization 
+has <a href="http://lists.oasis-open.org/archives/tc-announce/200604/msg00000.html">approved 
+the WSRF v1.2 specifications</a> as an OASIS standard.</p>
 
 <ul>
   <li><a href="#motivation">Motivation</a></li>
@@ -68,6 +66,10 @@ framework and OGSI in the document <cite>From OGSI to WSRF: Refactoring and Evol
 (See "Relevant Documents" below.)</p>
 
 <h2><a name="announcement">Announcements</a></h2>
+
+<p><b>April 2006:</b> The <a href="http://www.oasis-open.org/">OASIS</a> organization 
+has <a href="ihttp://lists.oasis-open.org/archives/tc-announce/200604/msg00000.html">approved 
+the WSRF v1.2 specifications</a> as an OASIS standard.</p>
 
 <p><b>March 2006:</b> HP, IBM, Intel, and Microsoft 
 <a href="convergence.php">announced their intention to work together</a> toward 
