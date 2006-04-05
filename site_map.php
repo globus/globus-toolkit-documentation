@@ -48,7 +48,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."impact/"; ?>">Impact of Our Work</a><br>
 <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/"; ?>">Meetings and Events</a><br>
 <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."events/archive.php"; ?>">Meetings and Events Archive</a><br>
-<a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."news/"; ?>">News Archive</a><br>
+<a href="<?=$SITE_PATHS["WEB_ROOT"]."news.html"; ?>">News Archive</a><br>
+<a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."news/"; ?>">Older News Archive</a><br>
 <a href="<?=$SITE_PATHS["WEB_ALLIANCE"]."news/kit.php"; ?>">Press Kit</a>
 </p>
 </td>

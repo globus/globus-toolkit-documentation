@@ -52,10 +52,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
             <td width="33%">
               <h4>News and Events</h4>
               <ul>
-                <li><a href="news/">News Archive</a></li>
+                <li><a href="<?=$SITE_PATHS["WEB_ROOT"]."news.html"; ?>">News Archive</a></li>
                 <li><a href="events/">Meetings and Events</a></li>
                 <li><a href="impact/">Impact of Our Work</a></li>
                 <li><a href="news/kit.php">Press Kit</a></li>
+                <li><a href="news/">Older News Archive</a></li>
               </ul>
             </td>
           </tr>
