@@ -1,55 +1,67 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<para>The following problems are known to exist for OGSA-DAI at the time of the 4.0.1 release:</para>
-<itemizedlist>
-<listitem><simpara><emphasis>Problems retrieving BLOBS</emphasis></simpara>
+<para>The following problems are known to exist for OGSA-DAI at the time of the 4.0.2 release and
+    will be addressed in the future. If you have any others that you feel should be added to this list then please let us know.</para>
 
-<simpara>When trying to retrieve BLOBs from a
-        relational database you will get zero rows returned (or an error). The
-        following error message will be logged:
-    <screen>Base64Provider has not been set up with a Base64 implementation</screen></simpara>
-        
-<simpara>This will be fixed in the next release. In the meantime if you have
-        the source version of the release, you can correct this bug by
-        changing two files and rebuilding OGSA-DAI. 
-        See <ulink url="http://www.globus.org/toolkit/docs/4.0/techpreview/ogsadai/OGSA_DAI_BLOB_Error_Workaround.html">BLOB Error Workaround</ulink> for details.</simpara>
+<para>You may also want to consult the platform-specific <ulink url="http://www.ogsadai.org.uk/documentation/ogsadai-wsrf-2.1/doc/wsrf/FAQ.html">FAQ</ulink> 
+    and <ulink url="http://www.ogsadai.org.uk/documentation/ogsadai-wsrf-2.1/doc/misc/FAQ.html">general FAQ</ulink>. Additional information may be posted in the 
+    <ulink url="http://www.ogsadai.org.uk/support/advisories">advisories page</ulink> which report any problems since the release, 
+    or the <ulink url="http://bugs.ogsadai.org.uk/">OGSA-DAI bugzilla</ulink> which may also have information on any problems with the current release.</para>
+
+   <itemizedlist>
+<listitem>Performance:
+    <itemizedlist>
+          <listitem>Accessing the databaseSchema property for DB2/Cloudscape can sometimes retrieve unrelated meta-data and also cause OGSA-DAI to crash.</listitem>
+          <listitem>Accessing the databaseSchema property for Oracle causes a server-side java.lang.OutOfMemoryError.</listitem>
+          <listitem>Attempting to return a very large data set in a Response document can cause a server-side java.lang.OutOfMemoryError. This can be avoided by submitting an asynchronous request (one that uses an outputStream) and retrieving the results using a data service's data transport operations.</listitem>
+          <listitem>Queries of tables for millions of small rows can eventually cause a server-side java.lang.OutOfMemoryError even if using stream activities and data transport operations.</listitem>
+          <listitem>The fileWritingActivity attempts to read the whole file in a oner and so could cause a server-side java.lang.OutOfMemoryError for very large files.</listitem>
+          <listitem>Some databases, such as dBASE IV database on Microsoft Windows 2000, allow unusual characters, such as 0xC to be contained in certain field types. When field values containing this character, OGSA-DAI encodes them into invalid XML that subsequently causes Xerces-dependent components to raise an org.xml.sax.SAXParseException. Activities that have two outputs can sometimes cause java.lang.OutOfMemoryErrors to occur server-side if manipulating large amounts of data. This can arise when using the GZIP activities for example.
+              <itemizedlist>
+                <listitem>Such activities are driven by one of the two connected activities and the other activity can accumulate data without processing it. So, for example for the GZIP activities OGSA-DAI focuses on the GZIP meta-data output steam and data only flows from this stream when a file has been completely unzipped. Therefore for large files the whole contents of the file flows into the activity and is buffered without being sent on.</listitem>
+                <listitem>OGSA-DAI's GZIP activities will warn if memory usage is close to maximum and throw an OGSA-DAI exception server-side so that the web services container does not crash.</listitem>
+              </itemizedlist></listitem>
+    </itemizedlist>
 </listitem>
-<listitem>
-<simpara><emphasis>DeliverToStream activity is broken.</emphasis></simpara>
-    
-    <simpara>The DeliverToStream activity has a bug in the WSRF implementation. The
-    service URL passed to the servlet is 'null' rather than the correct
-    URL.</simpara>
-    
-    <simpara>Thus where the documentation says the data will be available from a
-    URL of the form:</simpara>
-    
-<simpara><filename>http://host:port/ogsa/servlet/DeliverToStreamServlet?url=</filename>
-    <filename>http://host:port/ogsa/ogsadai/DataService&amp;streamId=NAME</filename></simpara>
-    
-    <simpara>It will actually be available from a URL in the form:</simpara>
-    
-    <simpara><filename>http://host:port/ogsa/servlet/DeliverToStreamServlet?url=null&amp;streamId=NAME</filename></simpara>
-    
-   <simpara> This will be fixed for the next release.</simpara>
-</listitem>
-<listitem>
-<simpara><emphasis>Client toolkit asynchronous result set broken.</emphasis></simpara>
-   
-   <simpara>The ResultSet object returned by the OutputStreamActivity class'
-   getResultSet methods do not work for WSRF 1.0. This is because the
-   code attempts to use the getNBlocks service operation which is not
-   implemented in WSRF 1.0. This will be fixed in our next release.</simpara>
-   
-  <simpara> There are two possible work arounds to this problem:</simpara>
-   
-<orderedlist>
-    <listitem>Use synchronous delivery. The ResultSet returned by the SQLQuery
-        activity's getResultSet() method does work.</listitem>
-   
-   <listitem> Alter the client toolkit code to use the
-   getBlock() service operation. Unfortunately this option will be
-   very slow as only one row will be retrieved at a time.</listitem>
-   </orderedlist>
-   </listitem>
+<listitem>Error and exception handling:
+    <itemizedlist>
+            <listitem>The failure of a single activity in a request can cause the status of all activities to be set to ERROR, even those that are not connected and succeeded.</listitem>
+            <listitem>The data transport activities can gulp exceptions. For example if an sqlQueryStatement with a incorrectly formed SQL query statment is connected to an outputStream activity then attempting to pull data from the outputStream using the data transport operations results in no data - no indication of an error is given to the client.</listitem>
+            <listitem>The uk.org.ogsadai.exception.DAILogger methods can sometimes log the wrong line numbers. Searching the logs will usually reveal where the problem actually arose.</listitem>
 </itemizedlist>
-
+</listitem>
+<listitem>Security:
+<itemizedlist>    
+            <listitem>Encrypted role map files are currently unsupported.</listitem>
+            <listitem>If a client does not provide a certificate then deliverFromGridFTP and deliverToGridFTP in a request will fail.</listitem>
+</itemizedlist>
+</listitem>
+<listitem>File activities:
+    <itemizedlist>
+            <listitem>The fileAccessActivity encodes text line-by-line if Base 64 encoding is being used. This may give different results from encoding a whole file in a oner.</listitem>
+            <listitem>In fileWritingActivity, EOF means "end of file" when perLine has value false but "end of line" when perLine has value true.</listitem>
+            <listitem>In fileWritingActivity only strings from its input stream are handled. Other block types e.g. bytes are ignored.</listitem>
+    </itemizedlist>
+</listitem>
+<listitem>General:
+    <itemizedlist>
+            <listitem>Note that when deploying new data service resources dynamically via configurable data service this only works if the JARs required by the data service resource (e.g. database driver JARs) are already within the web service container's library directories. If this is not the case then the container has to be restarted.</listitem>
+            <listitem>The data service terminate operation currently does nothing. It is intended as a placeholder for future development.</listitem>
+            <listitem>Meta-data from a database, returned in the databaseSchema property, can be case-sensitive depending upon the database. For example MySQL might return a table called littleblackbook while DB2 returns LITTLEBLACKBOOK.</listitem>
+            <listitem>The uk.org.ogsadai.common.BinaryLob class contains unimplemented methods which throw java.lang UnsupportedMethodException.</listitem>
+            <listitem>Conversion of java.sql.ResultSet to XML WebRowSet returns empty key-column and map properties in the properties element.</listitem>
+            <listitem>deliverFromGridFTP and deliverToGridFTP do not allow the setting of certain GridFTP parameters.</listitem>
+</itemizedlist>
+</listitem>
+<listitem>There is no support in the client toolkit for certain activities. These include:
+<itemizedlist>    
+            <listitem>directoryAccessActivity</listitem>
+            <listitem>fileAccessActivity</listitem>
+            <listitem>fileManipulationActivity</listitem>
+            <listitem>deliverFromFTP</listitem>
+            <listitem>deliverToFTP</listitem>
+            <listitem>gzipDecompression</listitem>
+</itemizedlist>
+</listitem>
+        <listitem>The deliverToStream activity only works if services are deployed in Tomcat.</listitem>
+   </itemizedlist>
+                
