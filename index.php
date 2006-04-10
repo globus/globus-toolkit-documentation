@@ -100,7 +100,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
   <hr class="first"/>
 
-  <p class="panel">Comments? <a href="mailto:webmaster@globus.org">webmaster@globus.org</a></p>
+  <p class="panel">For questions or feedback about this website: 
+     <a href="mailto:webmaster@globus.org">webmaster@globus.org</a><br>
+   For technical support or questions about Globus software, visit our 
+     <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."support.html"; ?>">technical support</a> page.</p>
+
   <p class="panel">Globus, Globus Alliance, and Globus Toolkit are trademarks<br>
     held by the University of Chicago.</p>
   <!--ending div of footer-->
