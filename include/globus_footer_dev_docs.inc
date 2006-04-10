@@ -14,7 +14,10 @@
 	You are strongly encouraged to file bugs for both the development documentation and software on our <a href="http://www-unix.globus.org/toolkit/bugzilla.html">Bugzilla page</a>. <br><br>
 Consider joining a new discussion list called <strong>gt4-friends@globus.org</strong> to exchange ideas about GT4 development, such as documentation and testing.  To subscribe to gt4-friends, send an email to <a href="mailto:majordomo@globus.org">majordomo@globus.org</a> which contains the words "subscribe gt4-friends" in the message body.  You must subscribe to gt4-friends in order to send mail to it. We appreciate your participation.</div>
 <div id="footer">
-  <p>Comments? <a href="mailto:webmaster@globus.org">webmaster@globus.org</a></p>
+    <p>Comments?<br />
+  For questions or feedback about this website:  <a href="mailto:webmaster@globus.org">webmaster@globus.org</a><br />
+  For technical questions about the Globus Toolkit, please visit our <a href="http://dev.globus.org/wiki/Mailing_Lists">Mailing Lists</a> page.
+</p>
   <p>Globus Project and Globus Toolkit are trademarks<br />
     held by the University of Chicago</p>
   <!--ending div of footer-->
