@@ -38,7 +38,7 @@
     }
     else
     {
-        print "<p>[ <a href=../releasenotes/4.0.1/>4.0.1 Release Notes</a> ]<br>\n";
+        print "<p>[ <a href=../releasenotes/4.0.2/>4.0.2 Release Notes</a> ]<br>\n";
         print "[ <a href=../docs/4.0/>Full Documentation</a> ]<br>\n";
         print "[ <a href=../docs/4.0/admin/docbook/>Installation Guide</a> ]<br>\n";
         print "[ <a href=../downloads/4.0.0/>Download Page</a> ]</p>\n";
