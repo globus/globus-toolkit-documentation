@@ -16,20 +16,29 @@ deploying, and testing the installation.</para>
 </section>
 
 <section id="wsrls-admin-installing"><title>Building and Installing</title>
-<para>For detailed instructions on building and installing RLS, see <xref linkend="wsrls-Build_Install"/>. </para>
+    <para>The WS RLS is a new component to be included with the GT 4.2 bundle in an upcoming release. It is not available in an existing bundle from the downloads section of the Globus Toolkit web site. Furthermore, changes to the toolkit (WS Core and WSAA)  made between the 4.0.x release and the latest code base, make the GT 4.0.x build environment unsuitable for GT 4.2 components. As such the WS RLS cannot be deployed on an existing GT 4.0.x installation. The good news, if you will, is that the WS RLS can use your existing GT 4.0.x RLS without modification. If you have an existing RLS installation, and you want to try out the WS RLS interface layer, you need not reinstall RLS. Of course, you may want to reinstall RLS exclusively for testing with the WS RLS interface, but it is up to your own choosing. The following instructions will guide you through the steps necessary to download and install the WS RLS from source.</para>
+    <important><para>Please review <ulink href="http://www.globus.org/toolkit/docs/development/remote-cvs.html">Accessing the Globus Alliance's Code via CVS</ulink> for the authoratative information on building and installing the Globus Toolkit from source in our CVS.</para></important>
+    <para>The following instructions have been used by the WS RLS developers to build and install the WS RLS.</para>
+    <screen>
+setenv CVSROOT :pserver:anonymous@cvs.globus.org:/home/globdev/CVS/globus-packages
+cvs co packaging/
+cd packaging
+./make-packages.pl --bundles=gt4-wsrls --deps <emphasis>[--verbose]</emphasis>
+setenv GPT_LOCATION /path/to/packaging/gpt-3.2globus2
+$GPT_LOCATION/sbin/gpt-build <emphasis>[-verbose]</emphasis> ./bundle-output/custom-deps-1.0-src_bundle.tar.gz gcc32dbgpthr
+    </screen>
 </section>
-
 
 <section id="wsrls-admin-configuring"><title>Configuring </title>
 &WS_RLS_Interface_Config_Frag;
 </section>
 
 <section id="wsrls-admin-deploying"><title>Deploying</title>
-<para>This section does not apply to the WS RLS.</para>
+    <para>No additional information is necessary.</para>
 </section>
 
 <section id="wsrls-admin-testing"><title>Testing</title>
-<para>[describe]</para>
+    <para>At this time, the WS RLS does not yet provide an automated test suite.</para>
 </section>
 
 <section id="wsrls-admin-security_considerations"><title>Security Considerations </title>
@@ -37,7 +46,62 @@ deploying, and testing the installation.</para>
 </section>
 
 <section id="wsrls-admin-troubleshooting"><title>Troubleshooting</title>
-<para>[describe]</para>
+    <itemizedlist>
+        <listitem>
+            <simpara>Increasing log verbosity</simpara>
+            <simpara>Generating verbose log output is a critical aid in troubleshooting of the WS RLS and is useful when communicating problems to Globus support lists. To increase logging detail, add the following lines to the $GLOBUS_LOCATION/container-log4j.properties file.</simpara>
+            <screen>
+...
+log4j.category.org.globus.replica.location=DEBUG
+log4j.category.org.globus.replica.rls=DEBUG
+...
+            </screen>
+        </listitem>
+        <listitem>
+            <simpara>Error: java.lang.NullPointerException</simpara>
+            <simpara>When invoking the WS RLS command-line clients, a system-level exception like the one above may be encountered. The admin should check the constainer logs for the exact error.</simpara>
+        </listitem>
+        <listitem>
+            <simpara>Error: A server error occured while processing the request.</simpara>
+            <simpara>When invoking the WS RLS command-line clients, a <emphasis>server error</emphasis> like the one above may be encountered. The admin should check the constainer logs for the exact error.</simpara>
+        </listitem>
+        <listitem>
+            <simpara>java.lang.UnsatisfiedLinkError</simpara>
+            <screen>
+...
+Unexpected error during request processing
+java.lang.UnsatisfiedLinkError: init
+        at org.globus.replica.rls.RLSClient.init(Native Method)
+...
+            </screen>
+            <simpara>An <computeroutput>java.lang.UnsatisfiedLinkError</computeroutput> exception when using the WS RLS may indicate that the native RLS libraries that WS RLS depends on could not be located. To correct this problem, ensure that the <computeroutput>$GLOBUS_LOCATION/lib</computeroutput> directory is in the library search path (on some systems this the <computeroutput>LD_LIBRARY_PATH</computeroutput> variable).</simpara>
+        </listitem>
+        <listitem>
+            <simpara>Unable to connect to localhost:39281</simpara>
+            <screen>
+...
+Error: java.rmi.RemoteException: globus_rls_client: Globus I/O error: 
+globus_xio: Unable to connect to localhost:39281; nested exception is:
+        org.globus.replica.location.CatalogInternalException: globus_rls_client:
+ Globus I/O error: globus_xio: Unable to connect to localhost:39281
+...
+            </screen>
+            <simpara>The WS RLS is an interface layer that depends on the RLS for the replica location functionality. You must install and run RLS and configure WS RLS to use the RLS via its JNDI configuration. Check that RLS is installed, running, and check that the WS RLS JNDI configuration uses the correct hostname and port to connect to the RLS.</simpara>
+        </listitem>
+        <listitem>
+            <simpara>org.globus.common.ChainedIOException: Failed to initialize security context</simpara>
+            <simpara>An <computeroutput>org.globus.common.ChainedIOException</computeroutput> exception when using the WS RLS may indicate that the user's proxy is invalid.</simpara>
+            <screen>
+...
+Error: ; nested exception is:
+        org.globus.common.ChainedIOException: Failed to initialize security 
+context [Caused by: Defective credential detected [Caused by: Proxy file 
+(/tmp/x509up_u1234) not found.]]
+...
+            </screen>
+            <simpara>To correct the error, the user must properly initialize the user proxy. See <computeroutput>grid-proxy-init</computeroutput> for more information on proxy initialization.</simpara>
+        </listitem>
+    </itemizedlist>
 </section>
 
 <section id="wsrls-admin-usage"><title>Usage statistics collection by the Globus Alliance</title>
