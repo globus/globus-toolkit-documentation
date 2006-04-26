@@ -68,7 +68,7 @@
                 <xsl:param name="glossentry.show.acronym">yes</xsl:param>
                 
                 <!-- Name of the glossary collection file -->
-                <xsl:param name="glossary.collection">glossary.xml</xsl:param>
+                <xsl:param name="glossary.collection" select="'glossary.xml'"></xsl:param>
                 
                 <!-- Generate links from glossterm to glossentry automatically? -->
                 <xsl:param name="glossterm.auto.link">1</xsl:param>
