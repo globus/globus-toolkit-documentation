@@ -73,8 +73,8 @@
                 <!-- Generate links from glossterm to glossentry automatically? -->
                 <xsl:param name="glossterm.auto.link">1</xsl:param>
                 
-                <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms? -->
-                <xsl:param name="firstterm.only.link">1</xsl:param>
+                <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms?
+                <xsl:param name="firstterm.only.link">1</xsl:param> -->
                 
                 <!-- preventing other html/head/body HTML tags (since they're in the includes) -->
                 <xsl:template name="chunk-element-content">
