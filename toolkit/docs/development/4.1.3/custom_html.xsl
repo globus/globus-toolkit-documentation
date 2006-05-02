@@ -6,9 +6,9 @@
                 i'm going to start with the default chunk.xsl...the catalog points chunk.xsl to actual file location -->
                 <xsl:import href="chunk.xsl"/>
                 
-                <!-- make sure to update this depending on testing or production -->
+                <!-- make sure to update this depending on testing or production NECESSARY?
                 <xsl:param name="base.dir">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/</xsl:param>
-                
+                -->
                 <!-- speed up the chunking process? -->
                 <xsl:param name="chunk.fast">1</xsl:param>
                 
