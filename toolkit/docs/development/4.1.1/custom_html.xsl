@@ -2,9 +2,13 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 version="1.0">
                 
-                <!-- Which DocBook standard xsl file should we use - chunk or docbook? 
-                i'm going to start with the default chunk.xsl...the catalog points chunk.xsl to actual file location -->
-                <xsl:import href="chunk.xsl"/>
+                <!-- Which DocBook standard xsl file should we use as the default? -->
+                <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/html/chunk.xsl"/>
+                
+                <!-- testing: if you want to generate your own html without installing stylesheets, substitute the following url
+                for the import href above:
+                http://docbook.sourceforge.net/release/xsl/current/html/chunk.xsl
+                -->
                 
                 <!-- make sure to update this depending on testing or production NECESSARY?
                 <xsl:param name="base.dir">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/</xsl:param>
@@ -82,8 +86,8 @@
                                 <xsl:param name="next"></xsl:param>
                                 
                                 <xsl:processing-instruction name="php">
-                                                $title="Globus Toolkit Development Release Manuals";
-                                                include_once("/mcs/www-unix.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_header_docbook.inc");
+                                                <!--     $title="Globus Toolkit Development Release Manuals";  --> 
+                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_header_docbook.inc");
                                 ?</xsl:processing-instruction>
                                                  
                                                 <xsl:call-template name="user.header.navigation"/>
@@ -107,7 +111,7 @@
                                                 <xsl:call-template name="user.footer.navigation"/>
                                 
                                 <xsl:processing-instruction name="php">
-                                                include_once("/mcs/www-unix.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_footer_docbook.inc");
+                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_footer_docbook.inc");
                                                 ?</xsl:processing-instruction>
                 </xsl:template>
                 
