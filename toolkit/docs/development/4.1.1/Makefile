@@ -3,7 +3,7 @@ export XML_CATALOG_FILES=catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 
-all: html
+all: lint
 
 html:
 	xsltproc \
@@ -31,4 +31,10 @@ mac:
 	/usr/share/xml/xsl/docbook-xsl/html/chunk.xsl \
 	$(FILENAME)
 	
+lint:
+	xmllint \
+	--valid \
+	--noout \
+	--noent \
+	index.xml
 
