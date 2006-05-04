@@ -30,7 +30,7 @@ function GlobusSubmit()
 <br />
 <a href="http://www.globus.org/faq.php">FAQ</a><br />
 <a href="http://www.globus.org/site_map.php">Site Map</a><br />
-<a href="http://www.globus.org/toolkit/support.html#mailinglists">Contact Us</a>
+<a href="http://dev.globus.org/wiki/Mailing_Lists">Contact Us</a>
 </div>
 
 <div id="header"> <div align="left"> 
@@ -96,7 +96,7 @@ globus_out_of_date(); ?>
 		<a href="/toolkit/downloads/">Downloads</a><br />
 		<a href="/toolkit/advisories.html">Advisories</a><br />
 		<a href="/toolkit/legal/">Licenses</a><br />
-		<a href="/toolkit/docs/development/dev_tools.html">CVS &amp; Dev Tools</a></p>
+		<a href="http://dev.globus.org/wiki/How_to_contribute">CVS &amp; Dev Tools</a></p>
 		
 		<h2 class="smalltitle">Getting Started</h2>
 		<p><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a><br />
