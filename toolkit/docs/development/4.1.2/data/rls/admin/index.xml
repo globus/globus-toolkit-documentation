@@ -245,19 +245,116 @@
             <para>(*) See troubleshooting tip <xref linkend="rls-admin-trouble-unixodbc-install-osxfix"/></para>
             <para>If you build from source, be aware that some versions of a vendor's drivers do not build against some versions of the same vendor's clients. For instance, MySQL Connector/ODBC 3.51.06 does not appear to build againt MySQL 4.1.x client libraries, instead it requires MySQL 4.0.x client libraries. Also, we have noticed that psqlodbc-07.03.x will build against pgsql-7.4.x but when using the driver it fails with little or no information to indicate why it failed. We have found that psqlodbc-08.00.x works well with postgres-7.4.6. In all cases, consult the vendor's documentation.</para>
             <para>Support RLS development by sending your working RLS + ODBC Manager + ODBC Driver + RDBMS configuration to the rls-user@globus.org list! We cannot test on all platforms with all combinations so we rely on our user community to help advise new users. Your support in this matter is appreciated.</para>
+            <para>We provide the following tips from the troubleshooting section of this guide,</para>
+            <itemizedlist>
+                <listitem><simpara><xref linkend="rls-admin-trouble-odbc-recommend"/></simpara></listitem>
+            </itemizedlist>
         </section> <!-- Choosing DBMS and ODBC END -->
 
     </section> <!-- Prequisites END -->
 
-    <section id="rls-admin-install-binary"><title>Binary Installation of RLS</title>
-        <para>Follow instructions provided by <xref linkend="gtadmin"/> and <xref linkend="gtadmin-install"/> in order to install the RLS from one of the available binary bundles of the Globus Toolkit. As noted in <xref linkend="rls-admin-install-prereq-odbcman"/>, the <computeroutput>globus-rls-server</computeroutput> found in the binary bundles is statically linked to the ODBC Manager.</para>
-        <important><para>You must use the <computeroutput>--enable-rls</computeroutput> configure option, otherwise the RLS installation will be skipped. For more details refer to <xref linkend="gtadmin-install"/>.</para></important>
-    </section>
+    <section id="rls-admin-install-base"><title>Installation of RLS</title>
+        <para>The following section describes various options available to install RLS given that you have satisfied the prerequisites. The options include,</para>
+        <itemizedlist>
+            <listitem><simpara><xref linkend="rls-admin-install-binary"/></simpara></listitem>
+            <listitem><simpara><xref linkend="rls-admin-install-source"/></simpara></listitem>
+            <listitem><simpara><xref linkend="rls-admin-install-update"/></simpara></listitem>
+        </itemizedlist>
 
-    <section id="rls-admin-install-dbuser"><title>Create DBMS User Account</title>
-        <para>You or your system administrator must create a DBMS user account, to be used by the RLS Server to log on to the DBMS. Throughout this guide we refer to the username as <emphasis>dbuser</emphasis> and the password as <emphasis>dbpassword</emphasis>. Substitute your chosen username and password combination where applicable.</para>
-        <para>For MySQL users, the command may look something like this,</para>
-        <screen>
+        <note><para>If you set the <computeroutput>ODBCINI</computeroutput> environment variable to the path to the odbc.ini file prior to installation, the globus-rls-server.conf will be seeded with the value. If you are not already familiar with odbc.ini it we be explained in <xref linkend="rls-admin-install-db-dsn"/>. The setting is optional, since the globus-rls-server.conf can be changed at any time.</para></note>
+
+        <section id="rls-admin-install-binary"><title>Installing RLS using Globus Toolkit Binary Bundle</title>
+            <para>Follow instructions provided by <xref linkend="gtadmin"/> and <xref linkend="gtadmin-install"/> in order to install the RLS from one of the available binary bundles of the Globus Toolkit. As noted in <xref linkend="rls-admin-install-prereq-odbcman"/>, the <computeroutput>globus-rls-server</computeroutput> found in the binary bundles is statically linked to the ODBC Manager.</para>
+            <important><para>You must use the <computeroutput>--enable-rls</computeroutput> configure option, otherwise the RLS installation will be skipped. For more details refer to <xref linkend="gtadmin-install"/>.</para></important>
+            <para>Once you have unpackaged the binary bundle, the commands to install RLS may look something like,</para>
+            <screen>
+% ./configure --prefix=$GLOBUS_LOCATION --enable-rls
+% make
+% make install
+            </screen>
+        </section>
+
+        <section id="rls-admin-install-source"><title>Installing RLS using Globus Toolkit Source Bundle</title>
+            <para>Follow instructions provided by <xref linkend="gtadmin"/> and <xref linkend="gtadmin-install"/> in order to install the RLS from the available source bundle of the Globus Toolkit. In addition to the general requirements, you will also need to set environment variables pertaining to the include and lib path for your ODBC Manager installation.</para>
+            <para>If you have unixODBC installed, set the following environment variables.</para>
+            <screen>
+% setenv GLOBUS_UNIXODBC_INCLUDES /path/to/unixODBC/include
+% setenv GLOBUS_UNIXODBC_LIBS /path/to/unixODBC/lib
+            </screen>
+            <para>If you have iODBC installed, set the following environment variables.</para>
+            <screen>
+% setenv GLOBUS_IODBC_INCLUDES /path/to/libiodbc/include
+% setenv GLOBUS_IODBC_LIBS /path/to/libiodbc/lib
+            </screen>
+            <note><para>Your shell format setting environment variables may be <computeroutput>export VAR=VAL</computeroutput> instead of <computeroutput>setenv VAR VAL</computeroutput>.</para></note>
+            <para>Once you have unpackaged the source bundle, the commands to install RLS may look something like,</para>
+            <screen>
+% ./configure --prefix=$GLOBUS_LOCATION --enable-rls
+% make
+% make install
+            </screen>
+        </section>
+
+        <section id="rls-admin-install-update"><title>Updating RLS using Globus Toolkit Source Bundle</title>
+            <para>In some situations, you may wish to update an RLS installation using RLS source from the Globus Toolkit Source Bundle. For instance, the RLS found in the Globus Toolkit binary bundles is statically linked against an ODBC Manager. If a user would like to link to a different ODBC Manager, it may be easier to install the toolkit from the binary bundle and just update the RLS server package from source. This may save considerable time compared to building the entire Globus Toolkit from source.</para>
+            <para>To do this, one must first follow the complete instructions found in <xref linkend="rls-admin-install-binary"/> then set the environment according to the instructions found in <xref linkend="rls-admin-install-source"/>. If you have not already set the <computeroutput>GPT_LOCATION</computeroutput> then set it to the <computeroutput>GLOBUS_LOCATION</computeroutput> (i.e., <computeroutput>setenv GPT_LOCATION $GLOBUS_LOCATION</computeroutput>).</para>
+            <para>Once you have unpackaged the source bundle, the commands to install RLS may look something like,</para>
+            <screen>
+% cd source-trees-thr/replica/rls/server/
+% $GPT_LOCATION/sbin/gpt-build -verbose -force <emphasis>gcc32dbgpthr</emphasis>
+% $GPT_LOCATION/sbin/gpt-postinstall
+            </screen>
+            <para>You may select a flavor other than <emphasis>gcc32dbgpthr</emphasis> that is suitable to your platform and existing installation environment.</para>
+        </section>
+    </section> <!-- Installing RLS -->
+
+    <section id="rls-admin-install-db"><title>Database Setup</title>
+        <para>The following section describes the procedures necessary to complete the database setup for your RLS installation. Topics addressed include,</para>
+        <itemizedlist>
+            <listitem><simpara><xref linkend="rls-admin-install-db-choose"/></simpara></listitem>
+            <listitem><simpara><xref linkend="rls-admin-install-db-conf"/></simpara></listitem>
+            <listitem><simpara><xref linkend="rls-admin-install-db-user"/></simpara></listitem>
+            <listitem><simpara><xref linkend="rls-admin-install-db-dsn"/></simpara></listitem>
+            <!--
+            <listitem><simpara><xref linkend="rls-admin-install-db-"/></simpara></listitem>
+            -->
+        </itemizedlist>
+        <note><para>The rest of this section assumes that the DBMS has been started.</para></note>
+
+        <section id="rls-admin-install-db-choose"><title>Choose databases for RLS Server</title>
+            <para>Decide which database(s) the RLS server will use,</para>
+            <itemizedlist>
+                <listitem><simpara>If the RLS server is a Local Replica Catalog (LRC) server you, will need to create the LRC database.</simpara></listitem>
+                <listitem><simpara>If the server is a Replica Location Index (RLI) server, you may need to create a RLI database.</simpara></listitem>
+            </itemizedlist>
+            <para>An RLI server can receive updates from LRC servers in one of two forms, as LFN lists (in which case the RLI database must be created) or as highly compressed Bloom filters. Since Bloom filters are so small, they are kept in memory and no database is required. An RLS server can be configured as both an LRC and RLI server.</para>
+        </section>
+
+        <section id="rls-admin-install-db-conf"><title>Configure databases related RLS settings</title>
+            <para>The RLS Server configuration file (<computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>) contains a few settings related to your database setup. Throughout this guide we refer to the username as <emphasis>dbuser</emphasis> and the password as <emphasis>dbpassword</emphasis> and to the LRC database as <emphasis>lrc1000</emphasis> and the RLI database as <emphasis>rli1000</emphasis>. Substitute your chosen username, password, and database names where applicable.</para>
+            <para>Edit the following fields in <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>,</para>
+            <screen>
+# Database connection options
+db_user             dbuser 
+db_pwd              dbpassword 
+...
+# LRC options
+lrc_server          true
+lrc_dbname          lrc1000  # optional (if LRC server)
+...
+#RLI options
+rli_server          true
+rli_dbname          rli1000  # optional (if RLI server)
+...
+rli_bloomfilter     false
+...
+            </screen>
+        </section>
+
+        <section id="rls-admin-install-db-user"><title>Create a DBMS user account</title>
+            <para>You or your system administrator must create a DBMS user account to be used by the RLS Server to log on to the DBMS.</para>
+            <para>For MySQL users, the command may look something like this,</para>
+            <screen>
 % /path/to/mysql/bin/mysql -u root -p
 Enter password:
 Welcome to the MySQL monitor.  Commands end with ; or \g.
@@ -269,9 +366,9 @@ mysql> use mysql;
 Database changed
 mysql> grant all on lrc1000.* to dbuser@localhost identified by 'dbpassword';
 mysql> grant all on rli1000.* to dbuser@localhost identified by 'dbpassword';
-        </screen>
-        <para>For PostgreSQL user, the command may look something like this,</para>
-        <screen>
+            </screen>
+            <para>For PostgreSQL user, the command may look something like this,</para>
+            <screen>
 % /path/to/pgsql/bin/createuser -P dbuser -W
 Enter password for new user:
 Enter it again:
@@ -279,12 +376,37 @@ Shall the new user be allowed to create databases? (y/n) y
 Shall the new user be allowed to create more new users? (y/n) n
 Password:
 CREATE USER
-        </screen>
-    </section> <!-- Create DBMS User -->
+            </screen>
+        </section> <!-- Create DBMS User -->
 
-   <section><title>Building and installing details</title>
-       <para>For detailed instructions on building and installing RLS, see <xref linkend="rls-building-installing"/>. </para>
-   </section>
+        <section id="rls-admin-install-db-dsn"><title>Data Source Names (DSNs)</title>
+            <para>Data Source Names (DSNs) are used by ODBC software (and the applications that depend on ODBC software) to define connection settings between the database client and the DBMS. The RLS depends on the database names configured in <xref linkend="rls-admin-install-db-conf"/> for the <computeroutput>lrc_dbname</computeroutput> and <computeroutput>rli_dbname</computeroutput> settings.</para>
+            <para>DSNs are configured in a file named <computeroutput>odbc.ini</computeroutput>. Most ODBC Managers find this file in the following search order.</para>
+            <itemizedlist>
+                <listitem><simpara>The <computeroutput>ODBCINI</computeroutput> environment variable with value being the <computeroutput>/path/to/odbc.ini</computeroutput></simpara></listitem>
+                <listitem><simpara>The user odbc.ini found at <computeroutput>~/.odbc.ini</computeroutput></simpara></listitem>
+                <listitem><simpara>The system odbc.ini found at <computeroutput>/etc/odbc.ini</computeroutput> or similar location</simpara></listitem>
+            </itemizedlist>
+            <para>DSNs may be configured in a variety of ways, but they essentially contain the same information which includes,</para>
+            <itemizedlist>
+                <listitem><simpara><emphasis>DSN</emphasis> such as lrc1000 or rli1000 </simpara></listitem>
+                <listitem><simpara><emphasis>Driver</emphasis>: the path to the ODBC driver (such as psqlodbc.so or libmyodbc3.so)</simpara></listitem>
+                <listitem><simpara><emphasis>Server name</emphasis>: the hostname of the DBMS server</simpara></listitem>
+                <listitem><simpara><emphasis>Port</emphasis>: the port number of the DBMS server</simpara></listitem>
+                <listitem><simpara><emphasis>Socket</emphasis>: in some cases a local sock file if the DBMS runs locally</simpara></listitem>
+            </itemizedlist>
+            <para>We provide the following tips from the troubleshooting section of this guide,</para>
+            <itemizedlist>
+                <listitem><simpara><xref linkend="rls-admin-trouble-odbc-ini"/></simpara></listitem>
+            </itemizedlist>
+        </section>
+
+    </section> <!-- Database Setup -->
+
+    <section><title>Building and installing details</title>
+        <para>For detailed instructions on building and installing RLS, see <xref linkend="rls-building-installing"/>. </para>
+    </section>
+
 </section>
 
 
@@ -374,7 +496,7 @@ mysql>
     <section id="rls-admin-trouble-pgsql-install-check"><title>How can I check if PostgreSQL is installed correctly?</title>
         <para>There are probably numerous things you could do, but one simple check is to see if you can log on to the DBMS. Of course, this requires that you have a user account. Assuming you installed the DBMS yourself, you should be able to log on as root,</para>
         <screen>
-% ./pgsql/bin/psql
+% /path/to/pgsql/bin/psql
 Welcome to psql 7.4.6, the PostgreSQL interactive terminal.
 
 Type:  \copyright for distribution terms
@@ -402,7 +524,7 @@ Type:  \copyright for distribution terms
     </section>
 
     <section id="rls-admin-trouble-iodbc-install"><title>I need help installing iODBC</title>
-        <para>The iodbc.org website contains information on installation of the iODBC (or libiodbc) library. We have used the following commands to install iODBC in our development and test sites. From the libiodbc build directory,</para>
+        <para>The iodbc.org website contains information on installation of the iODBC (or libiodbc) library. We have used the following commands to install iODBC version 3.52.4 in our development and test sites. From the libiodbc build directory,</para>
         <screen>
 % ./configure <emphasis>--prefix=/path/to/libiodbc-3.52.4 \
 --with-iodbc-inidir=/path/to/etc --disable-gui --disable-gtktest</emphasis>
@@ -414,7 +536,7 @@ Type:  \copyright for distribution terms
     </section>
 
     <section id="rls-admin-trouble-unixodbc-install"><title>I need help installing unixODBC</title>
-        <para>The unixodbc.org website contains information on installation of the unixODBC library. We have used the following commands to install unixODBC in our development and test sites. From the unixODBC build directory,</para>
+        <para>The unixodbc.org website contains information on installation of the unixODBC library. We have used the following commands to install unixODBC version 2.2.11 in our development and test sites. From the unixODBC build directory,</para>
         <screen>
 % ./configure <emphasis>--prefix=/path/to/unixODBC --disable-gui \
   --disable-drivers</emphasis>
@@ -515,7 +637,7 @@ Have a nice day.
             <para>You must use the <computeroutput>--enable-thread-safe</computeroutput> flag.</para>
             <para>Also, be prepared to see a large number of compiler warnings when building this library.</para>
         </section>
-    </section>
+    </section> <!-- Help installing MySQL Connector/ODBC -->
 
     <section id="rls-admin-trouble-psqlodbc-install"><title>I need help installing psqlODBC</title>
         <para>The README file or docs directory included with the psqlODBC package contains information on installation of the psqlodbc library. We have noticed some differences between building and installing psqlodbc-7.2.5, psqlodbc-08.00.0102, and psqlodbc-08.01.0200 againt iODBC and unixODBC.</para>
@@ -566,11 +688,29 @@ Have a nice day.
         </section>
 
         <section id="rls-admin-trouble-psqlodbc-08010200"><title>psqlodbc-08.01.0200</title>
-            <para>We have succeeded installing psqlodbc-08.01.0200 from source with either iODBC or unixODBC.</para>
+            <para>We have NOT succeeded installing psqlodbc-08.01.0200 from source with either iODBC or unixODBC.</para>
         </section>
+    </section> <!-- Help installing psqlODBC -->
+
+    <section id="rls-admin-trouble-odbc-recommend"><title>Which libraries do you recommend to new users?</title>
+        <para>The short answer, consider the following options,</para>
+        <itemizedlist>
+            <listitem><simpara>PostgreSQL (recent stable) with psqlODBC (08.00.0102) with unixODBC (2.2.11)</simpara></listitem>
+            <listitem><simpara>MySQL (recent stable) with MySQL Connector/ODBC (3.51.12, binary package) with unixODBC (2.2.11)</simpara></listitem>
+        </itemizedlist>
+        <para>The long answer follows. First of all, if you are a new user and not confident installing system level software, you will save yourself a lot of time and trouble by consulting with your system administrator. If you are an administrator and you still find this troubling, then you are in good company.</para>
+        <para>As of the writing of this guide, we have experienced a higher success rate using unixODBC (current stable release at this time is version 2.2.11) than we have with iODBC (current stable release is version 3.52.4).</para>
+        <para>As of the writing of this guide, we have found PostgreSQL and psqlODBC installation from source to be reliable. We would recommend the use of psqlODBC version 08.00.0102 with unixODBC. If you are an iODBC user, you will need to use psqlODBC 7.2.5.</para>
+        <para>As of the writing of this guide, we have found MySQL and MySQL Connector/ODBC installation from binary to be reliable. We would recommend the use of MySQL Connector/ODBC version 3.51.12 with unixODBC. If you are a iODBC user, you will need to find a binary of MyODBC 3.51.06.</para>
+    </section>
+
+    <section id="rls-admin-trouble-odbc-ini"><title>I need help configuring my DSNs</title>
+        <para></para>
     </section>
 
 </section> <!-- Troubleshooting END -->
+
+<!-- </section>  Build & Install END -->
 
 <section id="rls-admin-usage"><title>Usage statistics collection by the Globus Alliance</title>
     &RLS_Usage_Statistics_Frag;
