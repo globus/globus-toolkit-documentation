@@ -2,28 +2,113 @@
 
 <section><title>Configuration overview</title>
 
-        <para>Configuration settings for the RLS are specified in the <computeroutput>globus-rls-server.conf</computeroutput> file.</para>
+    <para>Configuration settings for the RLS are specified in the <computeroutput>globus-rls-server.conf</computeroutput> file.</para>
 
-        <para>If the configuration file is not specified on the command line (see
-          the <link linkend="rls-admin-configuring"><computeroutput>-c</computeroutput></link> option) then it is looked for in both: </para>
-        <itemizedlist>
-          <listitem><simpara> <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput> </simpara></listitem>
-          <listitem><simpara><computeroutput>/usr/local/etc/globus-rls-server.conf </computeroutput> if
-            <computeroutput>GLOBUS_LOCATION</computeroutput> is not set</simpara></listitem>
-        </itemizedlist>
-        <para>NOTE: command line options always override items found in the configuration file.</para>
-        <para>The configuration file is a sequence of lines consisting of a keyword, whitespace, and a value.
-            Comments begin with <computeroutput>#</computeroutput> and end with a newline.</para>
+    <para>If the configuration file is not specified on the command line (see the <link linkend="globus-rls-server"><computeroutput>-c</computeroutput></link> option) then it is looked for in both: </para>
+    <itemizedlist>
+        <listitem><simpara><computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput></simpara></listitem>
+        <listitem><simpara><computeroutput>/usr/local/etc/globus-rls-server.conf </computeroutput> if <computeroutput>GLOBUS_LOCATION</computeroutput> is not set</simpara></listitem>
+    </itemizedlist>
+    <note><para>Command line options always override items found in the configuration file.</para></note>
+    <para>The configuration file is a sequence of lines consisting of a keyword, whitespace, and a value. Comments begin with <computeroutput>#</computeroutput> and end with a newline.</para>
+</section> <!-- Configuration overview -->
 
-</section>
+<section><title>Basic configuration</title>
+    <para>Review the server configuration file <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput> and change any options you want. The server man page <computeroutput>globus-rls-server(8)</computeroutput> has complete details on all the options.</para>
+    <para>A minimal configuration file for both an LRC and RLI server would be:</para>
+    <screen>
+# Configure the database connection info
+  db_user       dbuser
+  db_pwd        dbpassword
+   
+# If the server is an LRC server
+  lrc_server    true
+  lrc_dbname    lrc1000
+   
+# If the server is an RLI server
+  rli_server    true
+  rli_dbname    rli1000 # Not needed if updated by Bloom filters
+   
+# Configure who can make requests of the server
+  acl .*: all
 
+# RE matching grid-mapfile users or DNs from x509 certs
+...
+    </screen>
+    <para>The server uses a host certificate to identify itself to clients. By default this certificate is located in the files <computeroutput>/etc/grid-security/hostcert.pem</computeroutput> and <computeroutput>/etc/grid-security/hostkey</computeroutput>.pem. Host certificates have a distinguished name of the form <computeroutput>/CN=host/FQDN</computeroutput>. If the host you plan to run the RLS server on does not have a host certificate, you must obtain one from your Certificate Authority. The RLS server must be run as the same user who owns the host certificate files (typically root). The location of the host certificate files may be specified in <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>:</para>
+    <screen>
+rlscertfile     path-to-cert-file   # default /etc/grid-security/hostcert.pem
+rlskeyfile      path-to-key-file    # default /etc/grid-security/hostkey.pem
+    </screen>
+    <para>It is possible to run the RLS server without authentication, by starting it with the <computeroutput>-N</computeroutput> option, and using URL's of the form <computeroutput>rlsn://server</computeroutput> to connect to it. If authentication is enabled, RLI servers must include acl configuration options that match the identities of LRC servers that update it and that grant the <computeroutput>rli_update</computeroutput> permission to the LRCs.</para>
+</section> <!-- Basic configuration -->
 
+<section><title>Configuring the RLS Server for the MDS2 GRIS</title>
+    <para>The server package includes a program called <computeroutput>globus-rls-reporter </computeroutput> that
+        will report information about an RLS server to the MDS2 GRIS. Use
+        this procedure to enable this program:</para>
+    <orderedlist>
+        <listitem><simpara>To enable Index Service reporting, add the contents of the file <computeroutput>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf </computeroutput> to the MDS2 GRIS configuration file <computeroutput>$GLOBUS_LOCATION/etc/grid-info-resource-ldif.conf</computeroutput>.</simpara></listitem>
+        <listitem><simpara> If necessary, set your virtual organization (VO) name in <computeroutput>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf </computeroutput>. The default value is <computeroutput>local</computeroutput>. The VO name is referenced twice, on the lines beginning <computeroutput>dn:</computeroutput> and <computeroutput>args:</computeroutput>.</simpara></listitem>
+        <listitem><simpara>You must restart your MDS (GRIS) server after modifying <computeroutput>$GLOBUS_LOCATION/etc/grid-info-resoruce-ldif.conf</computeroutput> You can use the following commands to do so: </simpara></listitem>
+    </orderedlist>
+    <screen>
+$GLOBUS_LOCATION/sbin/SXXgris stop
+$GLOBUS_LOCATION/sbin/SXXgris start
+    </screen>
+</section> <!-- Configuring the RLS Server for the MDS2 GRIS -->
+
+<section><title>Configuring the RLS Server for the WS MDS Index Service</title>
+    <para>The server package includes a script <computeroutput>$GLOBUS_LOCATION/libexec/aggrexec/globus-rls-aggregatorsource.pl</computeroutput> that may be used as an Execution Aggregator Source by MDS. See  <link linkend="index">GT &shortversion; Index Services</link> for more information on setting up and using the Execution Aggregator Source scripts in MDS. The script may be invoked as follows and will generate output in the format as depicted.</para>
+    <screen>
+% $GLOBUS_LOCATION/libexec/aggrexec/globus-rls-aggregatorsource.pl <emphasis>rls://mysite</emphasis>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;rlsStats&gt;
+  &lt;site&gt;rls://mysite&lt;/site&gt;
+  &lt;version&gt;4.0&lt;/version&gt;
+  &lt;uptime&gt;03:08:15&lt;/uptime&gt;
+  &lt;serviceList&gt;
+    &lt;service&gt;lrc&lt;/service&gt;
+    &lt;service&gt;rli&lt;/service&gt;
+  &lt;/serviceList&gt;
+  &lt;lrc&gt;
+    &lt;updateMethodList&gt;
+      &lt;updateMethod&gt;lfnlist&lt;/updateMethod&gt;
+      &lt;updateMethod&gt;bloomfilter&lt;/updateMethod&gt;
+    &lt;/updateMethodList&gt;
+    &lt;updatesList&gt;
+      &lt;updates&gt;
+        &lt;site&gt;rls://myothersite:39281&lt;/site&gt;
+        &lt;method&gt;bloomfilter&lt;/method&gt;
+        &lt;date&gt;08/01/05&lt;/date&gt;
+        &lt;time&gt;16:16:38&lt;/time&gt;
+      &lt;/updates&gt;
+    &lt;/updatesList&gt;
+    &lt;numlfn&gt;283902&lt;/numlfn&gt;
+    &lt;numpfn&gt;593022&lt;/numpfn&gt;
+    &lt;nummap&gt;593022&lt;/nummap&gt;
+  &lt;/lrc&gt;
+  &lt;rli&gt;
+    &lt;updatedViaList&gt;
+      &lt;updatedVia&gt;bloomfilters&lt;/updatedVia&gt;
+    &lt;/updatedViaList&gt;
+    &lt;updatedByList&gt;
+      &lt;updatedBy&gt;
+        &lt;site&gt;rls://myothersite:39281&lt;/site&gt;
+        &lt;date&gt;08/01/05&lt;/date&gt;
+        &lt;time&gt;10:03:21&lt;/time&gt;
+      &lt;/updatedBy&gt;
+    &lt;/updatedByList&gt;
+  &lt;/rli&gt;
+&lt;/rlsStats&gt;
+    </screen>
+</section> <!-- Configuring the RLS Server for the WS MDS Index Service -->
 
 <section><!--can't have id's in a frag called more than once: turn one appearance into a link or remove the id tag; id="rls-config-settings"-->
+    <title>Syntax of the interface</title>
+    <para>This section describes the complete details of the RLS Server configuration settings.</para>
 
-<title>Syntax of the interface</title>
-
-        <table><title>Settings</title>
+    <table><title>Complete RLS Server settings</title>
 <tgroup cols="2"><tbody>
           <row>
             <entry><computeroutput>acl user: permission [permission] </computeroutput></entry>
@@ -332,9 +417,4 @@
         </tbody></tgroup>
 </table>
 </section>
-
-
-
-
-
 
