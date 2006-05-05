@@ -41,10 +41,12 @@
 
             <para>We provide the following tips from the troubleshooting section of this guide,</para>
             <itemizedlist>
-                <listitem><simpara><xref linkend="rls-admin-trouble-mysql-install"/></simpara></listitem>
                 <listitem><simpara><xref linkend="rls-admin-trouble-pgsql-install"/></simpara></listitem>
-                <listitem><simpara><xref linkend="rls-admin-trouble-mysql-install-check"/></simpara></listitem>
                 <listitem><simpara><xref linkend="rls-admin-trouble-pgsql-install-check"/></simpara></listitem>
+                <listitem><simpara><xref linkend="rls-admin-trouble-pgsql-tcpip"/></simpara></listitem>
+                <listitem><simpara><xref linkend="rls-admin-trouble-pgsql-vacuum"/></simpara></listitem>
+                <listitem><simpara><xref linkend="rls-admin-trouble-mysql-install"/></simpara></listitem>
+                <listitem><simpara><xref linkend="rls-admin-trouble-mysql-install-check"/></simpara></listitem>
             </itemizedlist>
         </section>
 
@@ -77,8 +79,8 @@
 
             <para>We provide the following tips from the troubleshooting section of this guide,</para>
             <itemizedlist>
-                <listitem><simpara><xref linkend="rls-admin-trouble-myodbc-install"/></simpara></listitem>
                 <listitem><simpara><xref linkend="rls-admin-trouble-psqlodbc-install"/></simpara></listitem>
+                <listitem><simpara><xref linkend="rls-admin-trouble-myodbc-install"/></simpara></listitem>
             </itemizedlist>
         </section>
 
@@ -261,7 +263,7 @@
             <listitem><simpara><xref linkend="rls-admin-install-update"/></simpara></listitem>
         </itemizedlist>
 
-        <note><para>If you set the <computeroutput>ODBCINI</computeroutput> environment variable to the path of the odbc.ini file prior to installation, the globus-rls-server.conf will be seeded with the corresponding value. If you are not already familiar with odbc.ini it we be explained in <xref linkend="rls-admin-install-db-dsn"/>. The setting is optional, since the globus-rls-server.conf can be changed at any time.</para></note>
+        <note><para>If you set the <computeroutput>ODBCINI</computeroutput> environment variable to the path of the odbc.ini file prior to installation, the globus-rls-server.conf will be seeded with the corresponding value. If you are not already familiar with odbc.ini it will be explained in <xref linkend="rls-admin-install-db-dsn"/>. The setting is optional, since the globus-rls-server.conf can be changed at any time.</para></note>
 
         <section id="rls-admin-install-binary"><title>Installing RLS using Globus Toolkit Binary Bundle</title>
             <para>Follow instructions provided by <xref linkend="gtadmin"/> and <xref linkend="gtadmin-install"/> in order to install the RLS from one of the available binary bundles of the Globus Toolkit. As noted in <xref linkend="rls-admin-install-prereq-odbcman"/>, the <computeroutput>globus-rls-server</computeroutput> found in the binary bundles is statically linked to the ODBC Manager.</para>
@@ -331,12 +333,13 @@
         </section>
 
         <section id="rls-admin-install-db-conf"><title>Configure database related RLS settings</title>
-            <para>The RLS Server configuration file (<computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>) contains a few settings related to your database setup. Throughout this guide we refer to the username as <emphasis>dbuser</emphasis> and the password as <emphasis>dbpassword</emphasis> and to the LRC database as <emphasis>lrc1000</emphasis> and the RLI database as <emphasis>rli1000</emphasis>. Substitute your chosen username, password, and database names where applicable.</para>
+            <para>The RLS Server configuration file (<computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>) contains a few settings related to your database setup. Throughout this guide we refer to the username as <emphasis>dbuser</emphasis> and the password as <emphasis>dbpassword</emphasis> and to the LRC database as <emphasis>lrc1000</emphasis> and the RLI database as <emphasis>rli1000</emphasis>. Substitute your chosen username, password, and database names where applicable. Also, change the <computeroutput>odbcini</computeroutput> setting to reflect the location of your ODBC Manager's odbc.ini file. You should be familiar with the location of this file from the installation of your ODBC Manager. We discuss more about odbc.ini in <xref linkend="rls-admin-install-db-dsn"/>.</para>
             <para>Edit the following fields in <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>,</para>
             <screen>
 # Database connection options
 db_user             dbuser 
-db_pwd              dbpassword 
+db_pwd              dbpassword
+odbcini             /path/to/var/odbc.ini
 ...
 # LRC options
 lrc_server          true
@@ -448,8 +451,34 @@ CREATE USER
     &RLS_Interface_Config_Frag;
 </section>
 
+<!-- Why bother including this section???
 <section id="rls-admin-deploying"><title>Deploying</title>
     <para>This section does not apply to the RLS.</para>
+</section>
+-->
+
+<section id="rls-admin-start"><title>Starting the RLS Server</title>
+    <para>The RLS Server may be started by directly invoking the executable and passing it command-line arguments or by using the startup script. For complete details on starting the server directly, refer to <xref linkend="globus-rls-server"/>. We provide a startup script found at <computeroutput>$GLOBUS_LOCATION/sbin/SXXrls</computeroutput>, which you may use in places like <computeroutput>/etc/init.d</computeroutput> for automated startup and shutdown of the server. You may start the RLS Server by using this script as follows:</para>
+    <screen>
+% $GLOBUS_LOCATION/sbin/SXXrls start
+    </screen>
+    <para>We provide the following tips from the troubleshooting section of this guide,</para>
+    <itemizedlist>
+        <listitem><simpara><xref linkend="rls-admin-trouble-start"/></simpara></listitem>
+    </itemizedlist>
+</section>
+
+<section id="rls-admin-stop"><title>Stopping the RLS Server</title>
+    <para>The RLS Server may be stopped by directly issuing a <computeroutput>KILL</computeroutput> signal, by using the RLS Admin client, or by using the startup script.</para>
+    <para>If you have started the RLS Server directly, using <xref linkend="globus-rls-server"/>, and you have not detached the process, you may issue a <computeroutput>CTRL-C</computeroutput> in the terminal window. If the server is running detached or was started using the startup script, you may issue a <computeroutput>KILL</computeroutput> signal to the globus-rls-server process. The RLS Server will catch the KILL signal and safely shutdown.</para>
+    <para>Using the RLS Admin client (see <xref linkend="globus-rls-admin"/> for details), you may shutdown the RLS Server using the following command (this is also effective for shutting down remote RLS Servers):</para>
+    <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-admin -q <emphasis>rls[n]://hostname:port</emphasis>
+    </screen>
+    <para>Using the RLS Server startup script found at <computeroutput>$GLOBUS_LOCATION/sbin/SXXrls</computeroutput>, you may shutdown the RLS Server using the following command:</para>
+    <screen>
+% $GLOBUS_LOCATION/sbin/SXXrls stop
+    </screen>
 </section>
 
 <section id="rls-admin-testing"><title>Testing</title>
@@ -461,7 +490,7 @@ CREATE USER
 
     <orderedlist>
         <listitem><para>Start the server in debug mode with the command:</para>
-            <screen>$GLOBUS_LOCATION/bin/globus-rls-server -d [-N] </screen>
+            <screen>$GLOBUS_LOCATION/bin/globus-rls-server [-N] -d -L 3</screen>
             <para>The <computeroutput>-N </computeroutput>option is helpful: if you do not have a host 
                 certificate for the server host, or a user certificate for yourself, it 
                 disables authentication. </para></listitem>
@@ -555,6 +584,14 @@ Type:  \copyright for distribution terms
  
 <emphasis>dbname</emphasis>=>
         </screen>
+    </section>
+
+    <section id="rls-admin-trouble-pgsql-tcpip"><title>I cannot connect to PostgreSQL</title>
+        <para>If you cannot connect to PostgreSQL but you know that the process is alive, you may have forgotten to use the <computeroutput>-i</computeroutput> when starting the DBMS. This option instructs <computeroutput>postmaster</computeroutput> to listen on TCP/IP socket. Without it, postmaster will not accept socket connections from clients.</para>
+    </section>
+
+    <section id="rls-admin-trouble-pgsql-vacuum"><title>Performance of RLS with PostgreSQL has degraded over time</title>
+        <para>Be sure to do periodic <computeroutput>vacuum</computeroutput> and <computeroutput>analyze</computeroutput> commands on all your PostgreSQL databases. The PostgreSQL documentation recommends doing this daily from <computeroutput>cron</computeroutput>. Failure to do this can seriously degrade performance, to the point where routine RLS operations (such as LRC to RLI soft state updates) timeout and fail. Please see the PostgreSQL documentation for further details.</para>
     </section>
 
     <section id="rls-admin-trouble-iodbc-install"><title>I need help installing iODBC</title>
@@ -844,6 +881,55 @@ SQL>quit
 Have a nice day.
         </screen>
     </section> <!-- Testing ODBC configuration -->
+
+    <section id="rls-admin-trouble-start"><title>Important notes on RLS initialization</title>
+        <para>Please be advised (and advise other users responsible for bringing up the RLS) that the startup initialization may take a few minutes before the RLS may be accessible. The initialization involves two key operations that may consume significant resources causing the server to appear temporarily unresponsive. Users of RLS may mistakenly assume that RLS failed to startup and may kill the server and start over. Some users may fall into this in a repeated cycle, believing that the RLS is unable to startup properly.</para>
+        <para>If the RLS is configured to send compressed updates (Bloom filters) to other RLIs, the RLS startup will involve initialization of the Bloom filter representing the current contents of the local replica catalog (LRC). This step is a prerequisite before any additional operations may be allowed, therefore no client connections are permitted until the initialization is complete. In our test environment, we have seen over 30 seconds delay due to creation of the Bloom filter corresponding to 1 million LFN names on a system with Dual 1 GHz CPU and 1.5 GB RAM. You may experience greater delays at larger scales and/or when running RLS with more limited system resources.</para>
+        <para>If the RLS is configured to send uncompressed updates (LFN lists) to other RLIs, the RLS startup will not involve any additional initialization delay. However, the RLS will spawn an initial full catalog update to all RLIs it updates. Though these updates will take place on separate threads of execution after the initialization of the system, they will consume a great amount of processor activity. Depending on the volume of the local replica catalog (LRC), this processor activity may initially interfere with a client operation. In our test environment, we have seen our initial "globus-rls-admin ping..." operation may suffer a delay and timeout in 30 seconds, the second "ping" may delay for a few seconds but will successfully return, and the third and every subsequent "ping" operation will successfully return immediately throughout the duration of the update. The system exhibits the same behavior for any other client operation, such as a <computeroutput>globus-rls-cli query...</computeroutput> operation.</para>
+    </section> <!-- RLS Server initialization -->
+
+    <section id="rls-admin-trouble-kernel"><title>Linux kernel and glibc incompatibility</title>
+        <para>This note originated based on observations of RLS Server running on RedHat 9 but could also apply to other Linux distributions. There have been occurrences of RLS servers hanging on RedHat 9 systems. The external symptoms are:</para>
+        <itemizedlist>
+            <listitem><simpara>The server does not accept new connections from clients, with an error message similar to:</simpara>
+                <screen>
+connect(rls://XXXXX): globus_rls_client: IO timeout:
+globus_io_tcp_register_connect() timed out after 30 seconds
+                </screen>
+            </listitem>
+            <listitem><simpara>Often, the server continues to receive and send updates as configured and respond to signals. You can check this by querying other servers that interact with the one that's hung. Under gdb: All the server threads are waiting to be signaled on a condition variable. Sometimes, this is in <computeroutput>globus_io functions</computeroutput>, particularly in <computeroutput>globus_io_cancel()</computeroutput>.</simpara></listitem>
+        </itemizedlist>
+        <section><title>Probably cause</title>
+            <para>This seems to be due to a problem in the new kernel and thread libraries of RedHat 9. A problem in <computeroutput>pthread_cond_wait()</computeroutput> causes threads not to wake up correctly. This problem has been seen with the following kernels and glibc packages:</para>
+            <itemizedlist>
+                <listitem><simpara>Kernels: 2.4.20-30.9 and 2.4.20-8</simpara></listitem>
+                <listitem><simpara>glibc: glibc-2.3.2-27.9.7</simpara></listitem>
+            </itemizedlist>
+        </section>
+        <section><title>Suggested workaround</title>
+            <para>The problems don't seem to arise when RLS is linked with older pthread libraries. This can be done as by adding a couple of lines to the RLS startup script in <computeroutput>$GLOBUS_LOCATION/sbin/SXXrls</computeroutput>, as shown:</para>
+            <screen>
+#!/bin/sh
+
+GLOBUS_LOCATION=/opt/gt3.2
+MYSQL=/opt/mysql
+IODBC=/opt/iodbc
+
+export GLOBUS_LOCATION
+
+#RedHat 9 workaround
+LD_ASSUME_KERNEL=2.4.1
+export LD_ASSUME_KERNEL
+...
+            </screen>
+            <para>On i586 systems, set:</para>
+            <screen>
+...
+LD_ASSUME_KERNEL=2.2.5
+...
+            </screen>
+        </section>
+    </section>
 
 </section> <!-- Troubleshooting END -->
 
