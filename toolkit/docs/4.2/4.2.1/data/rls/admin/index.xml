@@ -261,7 +261,7 @@
             <listitem><simpara><xref linkend="rls-admin-install-update"/></simpara></listitem>
         </itemizedlist>
 
-        <note><para>If you set the <computeroutput>ODBCINI</computeroutput> environment variable to the path to the odbc.ini file prior to installation, the globus-rls-server.conf will be seeded with the value. If you are not already familiar with odbc.ini it we be explained in <xref linkend="rls-admin-install-db-dsn"/>. The setting is optional, since the globus-rls-server.conf can be changed at any time.</para></note>
+        <note><para>If you set the <computeroutput>ODBCINI</computeroutput> environment variable to the path of the odbc.ini file prior to installation, the globus-rls-server.conf will be seeded with the corresponding value. If you are not already familiar with odbc.ini it we be explained in <xref linkend="rls-admin-install-db-dsn"/>. The setting is optional, since the globus-rls-server.conf can be changed at any time.</para></note>
 
         <section id="rls-admin-install-binary"><title>Installing RLS using Globus Toolkit Binary Bundle</title>
             <para>Follow instructions provided by <xref linkend="gtadmin"/> and <xref linkend="gtadmin-install"/> in order to install the RLS from one of the available binary bundles of the Globus Toolkit. As noted in <xref linkend="rls-admin-install-prereq-odbcman"/>, the <computeroutput>globus-rls-server</computeroutput> found in the binary bundles is statically linked to the ODBC Manager.</para>
@@ -302,7 +302,9 @@
             <screen>
 % cd source-trees-thr/replica/rls/server/
 % $GPT_LOCATION/sbin/gpt-build -verbose -force <emphasis>gcc32dbgpthr</emphasis>
+...
 % $GPT_LOCATION/sbin/gpt-postinstall
+...
             </screen>
             <para>You may select a flavor other than <emphasis>gcc32dbgpthr</emphasis> that is suitable to your platform and existing installation environment.</para>
         </section>
@@ -314,10 +316,8 @@
             <listitem><simpara><xref linkend="rls-admin-install-db-choose"/></simpara></listitem>
             <listitem><simpara><xref linkend="rls-admin-install-db-conf"/></simpara></listitem>
             <listitem><simpara><xref linkend="rls-admin-install-db-user"/></simpara></listitem>
+            <listitem><simpara><xref linkend="rls-admin-install-db-create"/></simpara></listitem>
             <listitem><simpara><xref linkend="rls-admin-install-db-dsn"/></simpara></listitem>
-            <!--
-            <listitem><simpara><xref linkend="rls-admin-install-db-"/></simpara></listitem>
-            -->
         </itemizedlist>
         <note><para>The rest of this section assumes that the DBMS has been started.</para></note>
 
@@ -351,7 +351,7 @@ rli_bloomfilter     false
             </screen>
         </section>
 
-        <section id="rls-admin-install-db-user"><title>Create a DBMS user account</title>
+        <section id="rls-admin-install-db-user"><title>Create a database user account</title>
             <para>You or your system administrator must create a DBMS user account to be used by the RLS Server to log on to the DBMS.</para>
             <para>For MySQL users, the command may look something like this,</para>
             <screen>
@@ -379,8 +379,41 @@ CREATE USER
             </screen>
         </section> <!-- Create DBMS User -->
 
-        <section id="rls-admin-install-db-dsn"><title>Data Source Names (DSNs)</title>
-            <para>Data Source Names (DSNs) are used by ODBC software (and the applications that depend on ODBC software) to define connection settings between the database client and the DBMS. The RLS depends on the database names configured in <xref linkend="rls-admin-install-db-conf"/> for the <computeroutput>lrc_dbname</computeroutput> and <computeroutput>rli_dbname</computeroutput> settings.</para>
+        <section id="rls-admin-install-db-create"><title>Create databases</title>
+            <para>We provide SQL Data Definition (DDL) scripts to create the databases required by the RLS Server. Configure the script(s) for the database(s) you will create. The SQL scripts for the LRC and RLI databases are installed in <computeroutput>$GLOBUS_LOCATION/setup/globus</computeroutput>.</para>
+            <para>For PostgreSQL, use:</para>
+            <itemizedlist>
+                <listitem><simpara><computeroutput>globus-rls-lrc-postgres.sql</computeroutput></simpara></listitem>
+                <listitem><simpara><computeroutput>globus-rls-rli-postgres.sql.</computeroutput></simpara></listitem>
+            </itemizedlist>
+            <para>For MySQL, use:</para>
+            <itemizedlist>
+                <listitem><simpara><computeroutput>globus-rls-lrc-mysql.sql</computeroutput></simpara></listitem>
+                <listitem><simpara><computeroutput>globus-rls-rli-mysql.sql</computeroutput></simpara></listitem>
+            </itemizedlist>
+            <para>For Oracle DBMS, use:</para>
+            <itemizedlist>
+                <listitem><simpara><computeroutput>globus-rls-lrc-oracle.sql</computeroutput></simpara></listitem>
+                <listitem><simpara><computeroutput>globus-rls-rli-oracle.sql</computeroutput></simpara></listitem>
+            </itemizedlist>
+            <para>Edit these files to set the name of the database user you created for RLS and the names of the databases configured in <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>.</para>
+            <para>Create the database(s) using the appropriate tool for your chosen DBMS.</para>
+            <para>For PostgreSQL, the commands should look like this,</para>
+            <screen>
+% createdb -O <emphasis>dbuser</emphasis>  -U <emphasis>dbuser</emphasis>  -W <emphasis>lrc1000</emphasis>
+% createdb -O <emphasis>dbuser</emphasis>  -U <emphasis>dbuser</emphasis>  -W <emphasis>rli1000</emphasis>
+% psql -W -U <emphasis>dbuser</emphasis>  -d <emphasis>lrc1000</emphasis>  -f $GLOBUS_LOCATION/setup/globus/globus-rls-lrc-postgres.sql
+% psql -W -U <emphasis>dbuser</emphasis>  -d <emphasis>rli1000</emphasis>  -f $GLOBUS_LOCATION/setup/globus/globus-rls-rli-postgres.sql
+            </screen>
+            <para>For MySQL, the commands should look like this,</para>
+            <screen>
+% mysql -p -u <emphasis>dbuser</emphasis>  &lt; $GLOBUS_LOCATION/setup/globus/globus-rls-lrc-mysql.sql
+% mysql -p -u <emphasis>dbuser</emphasis>  &lt; $GLOBUS_LOCATION/setup/globus/globus-rls-rli-mysql.sql
+            </screen>
+        </section> <!-- Create databases -->
+
+        <section id="rls-admin-install-db-dsn"><title>Specify Data Source Names (DSNs)</title>
+            <para>Data Source Names (DSNs) are used by ODBC software (and the applications that depend on ODBC software) to define connection settings between the database client and the DBMS. The RLS depends on the data source names configured in <xref linkend="rls-admin-install-db-conf"/> for the <computeroutput>lrc_dbname</computeroutput> and <computeroutput>rli_dbname</computeroutput> settings.</para>
             <para>DSNs are configured in a file named <computeroutput>odbc.ini</computeroutput>. Most ODBC Managers find this file in the following search order.</para>
             <itemizedlist>
                 <listitem><simpara>The <computeroutput>ODBCINI</computeroutput> environment variable with value being the <computeroutput>/path/to/odbc.ini</computeroutput></simpara></listitem>
@@ -393,24 +426,25 @@ CREATE USER
                 <listitem><simpara><emphasis>Driver</emphasis>: the path to the ODBC driver (such as psqlodbc.so or libmyodbc3.so)</simpara></listitem>
                 <listitem><simpara><emphasis>Server name</emphasis>: the hostname of the DBMS server</simpara></listitem>
                 <listitem><simpara><emphasis>Port</emphasis>: the port number of the DBMS server</simpara></listitem>
-                <listitem><simpara><emphasis>Socket</emphasis>: in some cases a local sock file if the DBMS runs locally</simpara></listitem>
+                <listitem><simpara><emphasis>Socket</emphasis>: in some cases a local sock file is used if the DBMS and RLS are installed on the same server</simpara></listitem>
             </itemizedlist>
             <para>We provide the following tips from the troubleshooting section of this guide,</para>
             <itemizedlist>
                 <listitem><simpara><xref linkend="rls-admin-trouble-odbc-ini"/></simpara></listitem>
+                <listitem><simpara><xref linkend="rls-admin-trouble-odbc-ini-find"/></simpara></listitem>
+                <listitem><simpara>In particular, please see <xref linkend="rls-admin-trouble-odbc-test"/></simpara></listitem>
             </itemizedlist>
-        </section>
+        </section> <!-- Specify DSNs -->
 
     </section> <!-- Database Setup -->
 
-    <section><title>Building and installing details</title>
+    <section><title>Building and installing details (WORK IN PROGRESS)</title>
         <para>For detailed instructions on building and installing RLS, see <xref linkend="rls-building-installing"/>. </para>
     </section>
 
-</section>
+</section> <!-- Building and Installing -->
 
-
-<section id="rls-admin-configuring"><title>Configuring </title>
+<section id="rls-admin-configuring"><title>Configuring (WORK IN PROGRESS)</title>
     &RLS_Interface_Config_Frag;
 </section>
 
@@ -705,8 +739,111 @@ Have a nice day.
     </section>
 
     <section id="rls-admin-trouble-odbc-ini"><title>I need help configuring my DSNs</title>
-        <para></para>
+        <para>There are a variety of ways that you can specify the Data Source Names (DSNs) in the odbc.ini file. You may use a GUI or command-line tool provided with your ODBC Manager (unixODBC or iODBC), however, we tend to edit the odbc.ini file directly when working in our development and test sites.</para>
+        <para>The following is an example of a typical setup when using PostgreSQL</para>
+        <screen>
+[lrc1000]
+Driver      = /path/to/lib/psqlodbc.so
+Database    = lrc1000
+Servername  = hostname
+Port        = 5432
+
+[rli1000]
+Driver      = /path/to/lib/psqlodbc.so
+Database    = rli1000
+Servername  = hostname
+Port        = 5432
+        </screen>
+        <para>The following is an example of a typical setup when using MySQL,</para>
+        <screen>
+[lrc1000]
+Driver      = /path/to/lib/libmyodbc3.so
+Database    = lrc1000
+SERVER      = hostname
+PORT        = 3306
+SOCKET      = /path/to/mysql/mysql.sock
+
+[rli1000]
+Driver      = /path/to/lib/libmyodbc3.so
+Database    = rli1000
+SERVER      = hostname
+PORT        = 3306
+SOCKET      = /path/to/mysql/mysql.sock
+        </screen>
     </section>
+
+    <section id="rls-admin-trouble-odbc-ini-find"><title>How can I tell which odbc.ini is being used?</title>
+        <para>The ODBC libraries look for the odbc.ini file along a search path. We are not experts in this matter and it seems that it varies from vendor to vendor over time. But to the best of our knowledge the general search path is in the following order:</para>
+        <itemizedlist>
+            <listitem><simpara>According to environment variable <computeroutput>$ODBCINI</computeroutput></simpara></listitem>
+            <listitem><simpara>In the user's home at <computeroutput>~/.odbc.ini</computeroutput></simpara></listitem>
+            <listitem><simpara>In the system default <computeroutput>/etc/odbc.ini</computeroutput></simpara></listitem>
+        </itemizedlist>
+        <para>When we are troubleshooting a system, we tend to use the <computeroutput>strace</computeroutput> to see exactly which files it is reading.</para>
+    </section>
+
+    <section id="rls-admin-trouble-odbc-test"><title>Testing your ODBC configuration</title>
+        <para>The commands below demonstrate the <computeroutput>show tables</computeroutput> command with a MySQL database. Use the equivalent of this command if you are using a different DBMS. Alternately, you may simply perform a few <computeroutput>SELECT</computeroutput> queries against the listed tables.</para>
+        <para>Testing with unixODBC, run:</para>
+        <screen>
+% /path/to/unixODBC-2.2.11/bin/isql <emphasis>lrc1000 dbuser dbpassword</emphasis>
++---------------------------------------+
+| Connected!                            |
+|                                       |
+| sql-statement                         |
+| help [tablename]                      |
+| quit                                  |
+|                                       |
++---------------------------------------+
+SQL> <emphasis>show tables;</emphasis>
++------------------+
+| Tables_in_lrc1000|
++------------------+
+| t_attribute      |
+| t_date_attr      |
+| t_flt_attr       |
+| t_int_attr       |
+| t_lfn            |
+| t_map            |
+| t_pfn            |
+| t_rli            |
+| t_rlipartition   |
+| t_str_attr       |
++------------------+
+SQLRowCount returns 10
+10 rows fetched
+SQL> quit
+        </screen>
+        <para>Testing with iODBC, run:</para>
+        <screen>
+% /path/to/bin/iodbctest <emphasis>&quot;DSN=lrc1000;UID=dbuser;PWD=dbpassword&quot;</emphasis>
+iODBC Demonstration program
+This program shows an interactive SQL processor
+Driver Manager: 03.51.0002.0224
+Driver: 03.51.06
+
+SQL><emphasis>show tables;</emphasis>
+ 
+Tables_in_lrc1000
+-----------------
+t_attribute
+t_date_attr
+t_flt_attr
+t_int_attr
+t_lfn
+t_map
+t_pfn
+t_rli
+t_rlipartition
+t_str_attr
+ 
+ result set 1 returned 10 rows.
+
+SQL>quit
+ 
+Have a nice day.
+        </screen>
+    </section> <!-- Testing ODBC configuration -->
 
 </section> <!-- Troubleshooting END -->
 
