@@ -1,31 +1,3 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-<head>
-<title><?php echo $title; ?></title>
-
-<!-- <link rel="shortcut icon" href="/images/favicon.ico"> -->
-<!-- <link rel="icon" href="/images/favicon.ico"> -->
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-15">
-<link href="/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
-<link rel="stylesheet" type="text/css" href="/toolkit/css/print.css" media="print" />
-<link rel="alternate" title="Globus Toolkit RSS" href="/toolkit/rss/downloadNews/downloadNews.xml" type="application/rss+xml">
-<script>
-function GlobusSubmit()
-{
-         var f=document.GlobusSearchForm;
-
-         f.action="http://www.google.com/custom";
-         if (f.elements[0].checked) {
-              f.q.value = f.qinit.value + " -inurl:mail_archive " ;
-         } else {
-              f.q.value = f.qinit.value + " inurl:mail_archive " ;
-         }
-}
-</script>
-
-</head>
-<body class="section-3">
-
 <div id="headerlinks">
 <br />
 <a href="http://www.globus.org/faq.php">FAQ</a><br />
@@ -58,10 +30,8 @@ globus_current_location(); ?>
 
       <td>
 	  
-         <form method="GET" name="GlobusSearchForm"  
-onSubmit="GlobusSubmit()">
-         <input type="radio" name="domain" value="nomail"  
-checked>&nbsp;Website&nbsp;
+         <form method="GET" name="GlobusSearchForm"  onSubmit="GlobusSubmit()">
+         <input type="radio" name="domain" value="nomail"  checked>&nbsp;Website&nbsp;
          <input type="radio" name="domain" value="mail">&nbsp;Email Lists&nbsp;
          Search:&nbsp;<input type="text" name="qinit" size="20"  
 maxlength="200" value="" />
@@ -90,33 +60,39 @@ globus_out_of_date(); ?>
 		<td width="120px" class="leftColumn">
 		<div id="leftbg">
 		<h2 class="smalltitle">Software Links</h2>
-		<p><a href="/toolkit/docs/development/4.2-drafts/Usage_Stats.html">Usage Statistics</a><br />
-		<a href="/toolkit/releasenotes/">Release Notes</a><br />
-		<a href="/toolkit/versioning.html">Versioning</a><br />
-		<a href="/toolkit/downloads/">Downloads</a><br />
-		<a href="/toolkit/advisories.html">Advisories</a><br />
-		<a href="/toolkit/legal/">Licenses</a><br />
-		<a href="http://dev.globus.org/wiki/How_to_contribute">CVS &amp; Dev Tools</a></p>
+		<dl>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/Usage_Stats.html">Usage Statistics</a></dt>
+			<dt><a href="/toolkit/releasenotes/">Release Notes</a></dt>
+			<dt><a href="/toolkit/versioning.html">Versioning</a></dt>
+			<dt><a href="/toolkit/downloads/">Downloads</a></dt>
+			<dt><a href="/toolkit/advisories.html">Advisories</a></dt>
+			<dt><a href="/toolkit/legal/">Licenses</a></dt>
+			<dt><a href="http://dev.globus.org/wiki/How_to_contribute">CVS &amp; Dev Tools</a></dt>
+		</dl>
 		
 		<h2 class="smalltitle">Getting Started</h2>
-		<p><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/admin/docbook/ch03.html#s-platform">Platform Notes</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt2.html">Migrating from GT2</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt3.html">Migrating from GT3</a></p>
+		<dl>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/ch03.html#s-platform">Platform Notes</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt2.html">Migrating from GT2</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt3.html">Migrating from GT3</a></dt>
+		</dl>
 		
 		<h2 class="smalltitle">Reference</h2>
-		<p><a href="/toolkit/docs/development/4.2-drafts/best_practices.html">Best Practices</a><br />
-		<a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a><br />
-		<a href="/api/">API docs</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/public_interfaces.html">Public Interfaces</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/rp.html">Resource Properties</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/samples.html">Samples</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/top_index.html">Index</a><br />
-		<a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></p>
+		<dl>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/best_practices.html">Best Practices</a></dt>
+			<dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
+			<dt><a href="/api/">API docs</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/public_interfaces.html">Public Interfaces</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/rp.html">Resource Properties</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/samples.html">Samples</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
+			<dt><a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
+		</dl>
+
 		</div>
 		</td>
 		

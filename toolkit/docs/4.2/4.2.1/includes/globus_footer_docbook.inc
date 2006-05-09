@@ -15,6 +15,4 @@
   <p>Globus Project and Globus Toolkit are trademarks<br />
     held by the University of Chicago</p>
   <!--ending div of footer-->
-</div>
-</body>
-</html>
+  </div>
