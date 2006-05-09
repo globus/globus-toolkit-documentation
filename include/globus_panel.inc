@@ -132,7 +132,7 @@
     <img src="http://www-unix.globus.org/images/right_arrow.gif" alt="">
 </td>
 <td class="panel">
-    <a href="http://www-unix.globus.org/toolkit/bugzilla.html">
+    <a href="http://dev.globus.org/wiki/Bugzilla">
     Bugzilla</a>
 </td>
 </tr>
