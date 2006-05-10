@@ -77,6 +77,10 @@
                 <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms?
                 <xsl:param name="firstterm.only.link">1</xsl:param> -->
                 
+                <!-- make sure there's a DOCTYPE in the html output (otherwise, some css renders strangely -->
+                <xsl:param name="chunker.output.doctype-public" select="'-//W3C//DTD HTML 4.01 Transitional//EN'"/>
+                <xsl:param name="chunker.output.doctype-system" select="'http://www.w3.org/TR/html4/loose.dtd'"/>
+                
                 <!-- add elements to the HEAD tag -->
                 <xsl:template name="user.head.content">
                                 <link href="/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
