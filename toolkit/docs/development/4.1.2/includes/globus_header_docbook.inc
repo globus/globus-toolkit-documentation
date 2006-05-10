@@ -47,6 +47,7 @@ maxlength="200" value="" />
   </table>
 
 </div>
+<div id="wrapper">
     <div id="container">
 		<div id="content">
 
