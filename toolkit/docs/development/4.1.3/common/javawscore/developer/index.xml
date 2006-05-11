@@ -188,20 +188,48 @@ long as it uses common or standard interfaces to operate on resources).
   </section>
 
   <section id="javawscore-developer-JNDIDetails">
-    <title>JNDI configuration file</title>
-    <para>Java WS Core provides <ulink url="http://jakarta.apache.org/tomcat/tomcat-5.0-doc/jndi-resources-howto.html">Tomcat&apos;s JNDI</ulink> implementation. The file format of Java WS Core&apos;s <computeroutput>jndi-config.xml</computeroutput> is slightly different from the Tomcat&apos;s <computeroutput>server.xml</computeroutput> file. One main difference is that the <computeroutput>&lt;resourceParams&gt;</computeroutput> are specified as children of <computeroutput>&lt;resource&gt;</computeroutput> objects. Also, Java WS Core&apos;s <computeroutput>jndi-config.xml</computeroutput> parser is case sensitive and all element names are lowercase. 
+    <title>JNDI configuration and programming</title>
+    <para>Java WS Core uses a simple in-memory JNDI implementation provided by the <ulink url="http://directory.apache.org/subprojects/naming/">Naming subproject</ulink> of the Apache Directory Project.
+    </para>
+    <para>
+    The <computeroutput>jndi-config.xml</computeroutput> files are used to configure the JNDI registry in Java WS Core. The file format of <computeroutput>jndi-config.xml</computeroutput> is slightly different from the <ulink url="http://jakarta.apache.org/tomcat/tomcat-5.0-doc/jndi-resources-howto.html">Tomcat&apos;s <computeroutput>server.xml</computeroutput></ulink> file. One main difference is that the <computeroutput>&lt;resourceParams&gt;</computeroutput> are specified as children of <computeroutput>&lt;resource&gt;</computeroutput> objects. Also, Java WS Core&apos;s <computeroutput>jndi-config.xml</computeroutput> parser is case sensitive and all element names are lowercase. 
 </para>
     <para>All elements defined in the <computeroutput>&lt;global&gt;</computeroutput> section of the JNDI configuration file are deployed into the <computeroutput>java:comp/env</computeroutput> context under the name specified in the &apos;name&apos; attribute. All <computeroutput>&lt;service&gt;</computeroutput> elements are deployed into the <computeroutput>java:comp/env/services/&lt;service name&gt;</computeroutput> context. New objects and contexts can be added or modified dynamically at runtime but they will not be persisted. The only way to always have an object around is to deploy it in the <computeroutput>jndi-config.xml</computeroutput> file. All services <emphasis>share</emphasis> the same <computeroutput>java:comp/env</computeroutput> context. This is different from EJBs where each EJB has a separate <computeroutput>java:comp/env</computeroutput> context. 
 </para>
-    <para>When deploying <computeroutput>&lt;resource&gt;</computeroutput> in <computeroutput>jndi-config.xml</computeroutput>,
-make sure to use the <computeroutput>org.globus.wsrf.tools.jndi.BeanFactory</computeroutput> as a
-BeanFactory (value of a &apos;factory&apos; parameter) instead of <computeroutput>org.apache.naming.factory.BeanFactory</computeroutput>.
-Your bean must have a default constructor. If your bean implements the <computeroutput>org.globus.wsrf.jndi.Initializable</computeroutput> interface,
-the <computeroutput>initialize()</computeroutput> function will be automatically called after all
-parameters are set on the bean. 
+  <para>Please see <ulink url="http://java.sun.com/products/jndi/tutorial/">The JNDI Tutorial</ulink> for more information on JNDI programming. 
 </para>
-    <para>Please see <ulink url="http://java.sun.com/products/jndi/tutorial/">The JNDI Tutorial</ulink> for more information on JNDI programming. 
-</para>
+
+    <section id="javawscore-developer-JNDIDetails-beans">
+     <title>Deploying Java Beans</title>
+
+     <para>When deploying a Java Bean using the <computeroutput>&lt;resource&gt;</computeroutput> entry in <computeroutput>jndi-config.xml</computeroutput> please note the following:</para>
+    <itemizedlist>
+      <listitem><para>Use the <computeroutput>org.globus.wsrf.tools.jndi.BeanFactory</computeroutput> as a BeanFactory (value of a &apos;factory&apos; parameter) instead of <computeroutput>org.apache.naming.factory.BeanFactory</computeroutput>.</para>
+      </listitem>
+      <listitem>
+        <para>The Java Bean must have a default constructor.</para>
+      </listitem>
+      <listitem>
+        <para>If the Java Bean implements the <computeroutput>org.globus.wsrf.jndi.Initializable</computeroutput> interface the <computeroutput>initialize()</computeroutput> method will be automatically called after all parameters are set on the bean.</para>
+      </listitem>
+      <listitem>
+        <para>If the Java Bean implements the <computeroutput>org.globus.wsrf.jndi.Destroyable</computeroutput> interface the <computeroutput>destroy()</computeroutput> method will be automatically called on container shutdown.</para>
+      </listitem>
+     </itemizedlist>
+    </section>
+
+    <section id="javawscore-developer-JNDIDetails-initctx">
+     <title>Obtaining <computeroutput>InitialContext</computeroutput></title>
+     <para>
+       To obtain JNDI <computeroutput>InitialContext</computeroutput> do:
+     </para>
+     <screen>import org.globus.wsrf.jndi.JNDIUtils;
+...
+InitialContext ctx = JNDIUtils.getInitialContext();
+Foo foo = (Foo)ctx.lookup(...);</screen>
+     <note><para>It is important to use this API to obtain the <computeroutput>InitialContext</computeroutput> as the context must be initialized with the right properties. That ensures that the right JNDI implementation is used as there might be other JNDI implementations present as for example in application servers such as JBoss.</para></note>
+   </section>
+
   </section>
 
 
