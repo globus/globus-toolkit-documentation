@@ -869,6 +869,14 @@ N. Paton, M.P. Atkinson, V. Dialani, D. Pearson, T. Storey, and P. Watson.
 
       <h2><a name="Security Components">Security Components (GSI, CAS, etc.)</a></h2>
 
+      <p><b><a name="NCA06">A Multipolicy Authorization Framework for Grid Security</a>.</b>
+         Bo Lang, Ian Foster, Frank Siebenlist, Rachana Ananthakrishnan, 
+         Tim Freeman.  Accepted by the IEEE NCA06 Workshop on Adaptive Grid 
+         Computing (to appear in <em>Proc. Fifth IEEE Symposium on Network Computing 
+         and Application</em>), Cambridge, USA, July 24-26, 2006.<br>
+         [<a href="#NCA06">Citation</a>,
+          <a href="papers/IEEE_NCA_AGC.pdf">PDF</a>]</p>
+
 	<p><font size="2"><strong><a name="GT3-WSFBCGKMPT03">X.509 Proxy
     Certificates for Dynamic Delegation</a></strong>. 
 	V. Welch, I. Foster, C. Kesselman, O. Mulmo, L. Pearlman, S. Tuecke, J.
