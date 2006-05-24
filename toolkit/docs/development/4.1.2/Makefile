@@ -11,9 +11,9 @@ html:
 	$(FILENAME)
 
 pdf:
-	/homes/yusra/XEP/xep \
+	~bacon/XEP/xep \
 	-xml $(FILENAME) \
-	-xsl ~/XEP/nwalsh/fo/docbook.xsl \
+	-xsl custom_fo.xsl \
 	-out index.pdf
 
 debian-sarge:
