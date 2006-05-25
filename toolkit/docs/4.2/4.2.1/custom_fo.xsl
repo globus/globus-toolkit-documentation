@@ -1,7 +1,7 @@
 <?xml version="1.0"  encoding="iso-8859-1" ?>
 <xsl:stylesheet
- xmlns:xsl="http://www.w3.org/1999/XSL/Transform";
- xmlns:fo="http://www.w3.org/1999/XSL/Format";
+ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+ xmlns:fo="http://www.w3.org/1999/XSL/Format"
  version="1.0">
  
  <!-- now replace all these settings with those specific for use with the fo stylesheet (for pdf output) -->
