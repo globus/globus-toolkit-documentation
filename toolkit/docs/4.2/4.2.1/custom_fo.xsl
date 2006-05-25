@@ -1,10 +1,11 @@
 <?xml version="1.0"  encoding="iso-8859-1" ?>
-<!-- now replace all these settings with those specific for use with the fo stylesheet (for pdf output) -->
-<!-- just realized both html and fo can share many parameters - need to create common.xsl that gets imported to both so i can single source
+<xsl:stylesheet 		xmlns:xsl="http://www.w3.org/1999/XSL/Transform";
+ xmlns:fo="http://www.w3.org/1999/XSL/Format";
+ version="1.0">
+ 
+ <!-- now replace all these settings with those specific for use with the fo stylesheet (for pdf output) -->
+ <!-- just realized both html and fo can share many parameters - need to create common.xsl that gets imported to both so i can single source
  those variables -->
-
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                version="1.0">
                 
                 <!--.the catalog points to actual file location -->
  <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl"/>
@@ -29,10 +30,10 @@
                 <xsl:param name="callout.graphics.path">/docbook-images/</xsl:param>
                 
                 <!-- are parts enumerated?  COMMON -->
-                <xsl:param name="part.autolabel">I</xsl:param>
+                <xsl:param name="part.autolabel">1</xsl:param>
                 
                 <!-- Are chapters automatically enumerated? COMMON -->
-                <xsl:param name="chapter.autolabel">0</xsl:param>
+                <xsl:param name="chapter.autolabel">1</xsl:param>
                 
                 <!-- Are sections enumerated? COMMON -->
                 <xsl:param name="section.autolabel">1</xsl:param>
