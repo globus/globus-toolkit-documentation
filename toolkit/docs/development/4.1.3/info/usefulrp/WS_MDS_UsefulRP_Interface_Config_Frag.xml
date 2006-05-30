@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<section><title>Configuration overview</title>
+  <para>The system administrator first enables a given service or service resource to use the 
+    <filename>org.globus.mds.usefulrp.rpprovider.ResourcePropertyProviderCollection</filename> operation provider 
+    by adding the fully qualified Java class name to the provider's parameter value in the service descriptor of a service or resource's server-config.wsdd  file.  </para>
+    
+  <para>Lastly, the administrator must add a new parameter named <filename>rpProviderConfigFile</filename> and for its corresponding value, 
+    specify a full (absolute) OS-native file path to a valid <filename>ResourcePropertyProviderConfig</filename> configuration file.  
+    The <filename>ResourcePropertyProviderConfig</filename> file contains all required information for generating one or more Resource Properties 
+    for the hosting service or resource.</para>
+  
+  <para>At service startup, the <filename>ResourcePropertyProviderCollection</filename> operation provider code is initialized and attempts to process the 
+    configuration entries found in the file specified by the <filename>rpProviderConfigFile</filename> parameter into a set of one or more background execution 
+    tasks (threads) that periodically update the contents of configured Resource Properties with the results of the executing information providers.  
+    
+    By default, if there are errors that occur during the first execution of a provider, the timer that controls that provider will be canceled and a warning message 
+    output to the container log.</para>
+  
+  <para>Seen below is a sample service descriptor for the MDS4 DefaultIndexService which shows how to configure the service to use the 
+    <computeroutput>ResourcePropertyProviderCollection</computeroutput> operation provider and specifies the rpProviderConfigFile location used for configuring the sample 
+    GLUEResourceProperty that the ResourcePropertyProviderCollection will process.</para>
+  
+  <screen>
+  &lt;service name="DefaultIndexService"   provider="Handler" use="literal" style="document"&gt;
+    &lt;parameter name="providers"
+      value="org.globus.mds.usefulrp.rpprovider.ResourcePropertyProviderCollection
+      org.globus.wsrf.impl.servicegroup.ServiceGroupRegistrationProvider
+      GetRPProvider
+      GetMRPProvider 
+      QueryRPProvider
+      DestroyProvider 
+      SetTerminationTimeProvider 
+      SubscribeProvider 
+      GetCurrentMessageProvider"/&gt;
+    &lt;parameter name="rpProviderConfigFile" value="/YOUR-GLOBUS-LOCATION-HERE/etc/globus_wsrf_mds_index/gluece-rpprovider-sample-config.xml"/&gt;
+    &lt;parameter name="scope" value="Application"/&gt; 
+    &lt;parameter name="allowedMethods" value="*"/&gt;
+    &lt;parameter name="handlerClass" value="org.globus.axis.providers.RPCProvider"/&gt;
+    &lt;parameter name="className" value="org.globus.mds.index.impl.DefaultIndexService"/&gt;
+    &lt;wsdlFile&gt;share/schema/mds/index/index_service.wsdl&lt;/wsdlFile&gt;
+  &lt;/service&gt;
+  </screen>
+  
+  <section><title>Configuration File Format</title>
+  
+  <para>The configuration file format for the <computeroutput>ResourcePropertyProviderCollection</computeroutput> operation provider is simply the 
+    XML-serialized form of the <computeroutput>ResourcePropertyProviderConfig</computeroutput> stub object, as defined in the schema file 
+    <ulink url="http://viewcvs.globus.org/viewcvs.cgi/ws-mds/usefulrp/schema/schema/mds/usefulrp/rpprovider.xsd?rev=1.2.6.1&amp;only_with_tag=wsmds_usefulrp_update_4_0_branch&amp;content-type=text/vnd.viewcvs-markup">rpprovider.xsd</ulink>. </para>
+  
+  <para>Below is a sample configuration file which configures the GLUE Resource Property provider with element producers using Ganglia to provide cluster information 
+    and PBS for scheduler information.  This sample configures the provider to generate cluster information using Ganglia on the localhost with the default Ganglia port,
+    and configures PBS as the scheduler information provider. The period of execution is set to 300 seconds for each element producer, but may be configured separately 
+    if desired.  This configuration mirrors a common information provider setup in the GT4 GRAM ManagedJobExecutable service. Using the RPProvider Framework, 
+    it is possible to generate this information in other services as well.</para>
+  
+  <screen>
+  &lt;ns1:ResourcePropertyProviderConfigArray 
+    xsi:type="ns1:ResourcePropertyProviderConfigArray" 
+    xmlns:ns1="http://mds.globus.org/rpprovider/2005/08"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+    &lt;ns1:configArray xsi:type="ns1:resourcePropertyProviderConfig"&gt;
+      &lt;ns1:resourcePropertyName xsi:type="xsd:QName"   xmlns:mds="http://mds.globus.org/glue/ce/1.1"&gt;mds:GLUECE&lt;/ns1:resourcePropertyName&gt;
+      &lt;ns1:resourcePropertyImpl xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.GLUEResourceProperty&lt;/ns1:resourcePropertyImpl&gt;
+      &lt;ns1:resourcePropertyElementProducers   xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+        &lt;ns1:className xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.glue.GangliaElementProducer&lt;/ns1:className&gt;
+        &lt;ns1:arguments xsi:type="xsd:string"&gt;localhost&lt;/ns1:arguments&gt;
+        &lt;ns1:arguments xsi:type="xsd:string"&gt;8649&lt;/ns1:arguments&gt;
+        &lt;ns1:period   xsi:type="xsd:int"&gt;300&lt;/ns1:period&gt;
+        &lt;ns1:transformClass xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.transforms.GLUEComputeElementTransform&lt;/ns1:transformClass&gt;
+      &lt;/ns1:resourcePropertyElementProducers&gt;
+      &lt;ns1:resourcePropertyElementProducers   xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+        &lt;ns1:className xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.producers.SchedulerInfoElementProducer&lt;/ns1:className&gt;
+        &lt;ns1:arguments xsi:type="xsd:string"&gt;libexec/globus-scheduler-provider-pbs&lt;/ns1:arguments&gt;
+        &lt;ns1:transformClass xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.transforms.GLUESchedulerElementTransform&lt;/ns1:transformClass&gt;
+        &lt;ns1:period   xsi:type="xsd:int"&gt;300&lt;/ns1:period&gt;
+      &lt;/ns1:resourcePropertyElementProducers&gt;
+    &lt;/ns1:configArray&gt;
+  &lt;/ns1:ResourcePropertyProviderConfigArray&gt;
+  </screen>
+  
+  <para>It is possible to configure the GLUEResourceProperty provider to use alternate mechanisms for providing scheduler information by changing the arguments 
+    field that follows the SchedulerInfoElementProducer parameter to a string with a GLOBUS_LOCATION relative-path that indicates the GRAM scheduler adapter to 
+    use, for example, <filename>libexec/globus-scheduler-provider-fork</filename>.</para>
+  
+  <para>TBD: It is also possible to pass parameters to the GLUESchedulerElementTransform that control even more advanced post-processing and sorting of results 
+    when generating GLUE 1.1 XML, e.g. Teragrid resorting code.</para>
+  </section>
+</section>
+
+
+
+<section><!--fyi: can't have id's in a frag called more than once-->
+
+<title>Syntax of the interface</title>
+<!-- use the following as a template for your own config settings -->
+        <table><title>Settings</title>
+<tgroup cols="2"><tbody>
+          <row>
+            <entry><computeroutput>acl user: permission [permission] </computeroutput></entry>
+            <entry><para><computeroutput>acl </computeroutput> entries may be a combination of
+                DNs and local usernames. If a DN is not found in the gridmap
+                file then the file is used to search the <computeroutput>acl</computeroutput> list. </para>
+              <para>A gridmap file may also
+                  be used to map DNs to local usernames, which in turn are matched
+                  against the regular expressions in the <computeroutput>acl </computeroutput> list to
+                  determine the user's permissions. </para>              <para><computeroutput>user </computeroutput> is a regular expression matching distinguished
+                names (or local usernames if a gridmap file is used) of users
+              allowed to make calls to the server. </para>
+              <para>There may be multiple <computeroutput>acl</computeroutput> entries, with the first match found used to determine a user's privileges.</para>
+              <para><computeroutput>[permission]</computeroutput> is one or more
+            of the following values: </para>
+<itemizedlist>
+  <listitem><simpara><computeroutput>lrc_read</computeroutput> Allows  client to read an LRC.
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>lrc_update</computeroutput> Allows  client to update an LRC.
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>rli_read</computeroutput>
+  Allows client to read an RLI.
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>rli_update</computeroutput> Allows client to update an RLI. 
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>admin</computeroutput> Allows client to update an LRC's list of RLIs to send updates to. 
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>stats</computeroutput> Allows client to read performance statistics.
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>all</computeroutput> Allows client to do all of the above.
+</simpara></listitem>
+</itemizedlist>
+</entry>
+   </row>
+        <row>
+            <entry><computeroutput>authentication true|false </computeroutput></entry>
+            <entry><para>Enable or disable GSI authentication.
+                </para>
+              <para>The default value is <computeroutput>true</computeroutput>. </para>
+              <para>If authentication is enabled (<computeroutput>true</computeroutput>), clients
+                should use the URL schema <computeroutput>rls:</computeroutput> to
+            connect to the server.</para>
+            <para>If authentication is <emphasis>not</emphasis> enabled (<computeroutput>false</computeroutput>), clients
+              should use the URL schema
+            <computeroutput>rlsn:</computeroutput>.</para></entry>
+          </row>
+        </tbody></tgroup>
+</table>
+</section>
+
+
+
+
+
+
