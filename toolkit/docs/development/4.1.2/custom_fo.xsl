@@ -8,9 +8,12 @@
  <!-- just realized both html and fo can share many parameters - need to create common.xsl that gets imported to both so i can single source
  those variables -->
                 
-                <!--.the catalog points to actual file location -->
- <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl"/>
+                <!-- which stylesheet to use? -->
+                <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl"/>
                 
+               <!-- enable extensions -->
+               <xsl:param name="use.extensions" select="'1'"></xsl:param>
+               
                 <!-- enable XEP extensions? -->
                 <xsl:param name="xep.extensions">1</xsl:param>
 
