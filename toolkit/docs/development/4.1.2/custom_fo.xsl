@@ -14,6 +14,9 @@
                <!-- enable extensions -->
                <xsl:param name="use.extensions" select="'1'"></xsl:param>
                
+               <!-- turn off table column extensions (unless you use xalan or saxon - it's a java thing -->
+               <xsl:param name="tablecolumns.extension" select="'0'"></xsl:param>
+               
                 <!-- enable XEP extensions? -->
                 <xsl:param name="xep.extensions">1</xsl:param>
 
