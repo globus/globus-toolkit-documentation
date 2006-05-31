@@ -17,7 +17,14 @@
                <!-- turn off table column extensions (unless you use xalan or saxon - it's a java thing -->
                <xsl:param name="tablecolumns.extension" select="'0'"></xsl:param>
                
-
+               <!-- should output be in draft mode? -->
+               <xsl:param name="draft.mode" select="'yes'"></xsl:param>
+               
+               <!-- ALIGNMENT -->
+               <xsl:param name="alignment">left</xsl:param>
+               
+               <!-- GRAPHICS -->
+               
                <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc COMMON -->
                 <xsl:param name="admon.graphics">1</xsl:param>
                 
@@ -32,7 +39,7 @@
                 <xsl:param name="admon.graphics.extension" select="'.png'"/> 
                
                <!-- for some reason, xep makes the admon graphics too large, this scales them back down -->
-               <xsl:template match="*" mode="admon.graphic.width">12pt</xsl:template>
+               <xsl:template match="*" mode="admon.graphic.width">14pt</xsl:template>
                 
                <!-- Set path to callout graphics COMMON
                <xsl:param name="callout.graphics.path">/www/www-unix.globus.org/docbook-images/callouts/</xsl:param> -->
@@ -41,6 +48,8 @@
                <xsl:param name="callout.graphics" select="'0'"></xsl:param>
                
                <xsl:param name="callout.unicode" select="1"></xsl:param>
+               
+               <!-- NUMBERING -->
 
                <!-- are parts enumerated?  COMMON -->
                 <xsl:param name="part.autolabel">1</xsl:param>
@@ -58,11 +67,13 @@
                 <xsl:param name="toc.section.depth">1</xsl:param>
               
 
-                <!-- INDEX PARAMETERS -->
+                <!-- INDEX  -->
+               
                 <!-- do you want an index? COMMON
                 <xsl:param name="generate.index">1</xsl:param> -->
                 
-                <!-- GLOSSARY PARAMETERS -->
+                <!-- GLOSSARY  -->
+               
                <!-- Display glossentry acronyms? COMMON> -->
                 <xsl:param name="glossentry.show.acronym">yes</xsl:param>
 
@@ -74,6 +85,15 @@
                 
                 <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms? COMMON
                 <xsl:param name="firstterm.only.link">1</xsl:param>-->
+               
+               <!-- reduce 'indentation' of body text -->
+               <xsl:param name="body.start.indent">
+                              <xsl:choose>
+                                             <xsl:when test="$fop.extensions != 0">0pt</xsl:when>
+                                             <xsl:when test="$passivetex.extensions != 0">0pt</xsl:when>
+                                             <xsl:otherwise>0pc</xsl:otherwise>
+                              </xsl:choose>
+               </xsl:param>
                 
                  <!-- try to add titleabbrev to part -->
                <xsl:template match="part">
