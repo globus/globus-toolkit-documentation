@@ -32,7 +32,7 @@
  <xsl:param name="admon.graphics.extension" select="'.png'"/> 
                 
                <!-- Set path to callout graphics COMMON -->
- <xsl:param name="callout.graphics.path">/www/www-unix.globus.orgdocbook-images/</xsl:param>
+ <xsl:param name="callout.graphics.path">/www/www-unix.globus.org/docbook-images/</xsl:param>
 
                <!-- are parts enumerated?  COMMON -->
  <xsl:param name="part.autolabel">1</xsl:param>
