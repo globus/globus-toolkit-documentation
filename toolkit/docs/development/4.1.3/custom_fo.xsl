@@ -32,7 +32,7 @@
  <xsl:param name="admon.graphics.extension" select="'.png'"/> 
                 
                <!-- Set path to callout graphics COMMON -->
- <xsl:param name="callout.graphics.path">/www/www-unix.globus.org/docbook-images/</xsl:param>
+ <xsl:param name="callout.graphics.path">/www/www-unix.globus.org/docbook-images/callouts/</xsl:param>
 
                <!-- are parts enumerated?  COMMON -->
  <xsl:param name="part.autolabel">1</xsl:param>
@@ -59,7 +59,7 @@
  <xsl:param name="glossentry.show.acronym">yes</xsl:param>
 
                               <!-- Name of the glossary collection file COMMON -->
- <xsl:param name="glossary.collection">glossary.xml</xsl:param>
+               <xsl:param name="glossary.collection">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/glossary.xml</xsl:param>
                 
                <!-- Generate links from glossterm to glossentry automatically?  COMMON-->
  <xsl:param name="glossterm.auto.link">1</xsl:param>
