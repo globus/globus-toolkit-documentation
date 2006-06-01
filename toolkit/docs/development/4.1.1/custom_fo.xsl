@@ -65,12 +65,22 @@
                 
                <!-- How deep should recursive sections appear in the TOC? COMMON -->
                 <xsl:param name="toc.section.depth">1</xsl:param>
+               
+               <!-- TABLES -->
+               
+               <xsl:param name="default.table.width" select="'7in'"></xsl:param>
               
 
                 <!-- INDEX  -->
                
-                <!-- do you want an index? COMMON
-                <xsl:param name="generate.index">1</xsl:param> -->
+               <!-- do you want an index? COMMON -->
+                <xsl:param name="generate.index">1</xsl:param>
+               
+               <!-- index attributes for xep -->
+               <xsl:attribute-set name="xep.index.item.properties">
+                              <xsl:attribute name="merge-subsequent-page-numbers">true</xsl:attribute>
+                              <xsl:attribute name="link-back">true</xsl:attribute>
+               </xsl:attribute-set>
                 
                 <!-- GLOSSARY  -->
                
