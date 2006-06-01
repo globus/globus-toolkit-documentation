@@ -17,13 +17,53 @@
 <itemizedlist>
     <listitem><simpara>Make sure the the log_path in
     $GLOBUS_LOCATION/etc/globus-pbs.conf points to locally accessible scheduler
-    logs.  The Scheduler Event Generator (SEG) will not work without local scheduler
-    logs to monitor.  This can also apply to other resource managers, but is
-    most comonly seen with PBS.
+    logs that are readable by the user running the container.  The Scheduler
+    Event Generator (SEG) will not work without local scheduler logs to monitor.
+    This can also apply to other resource managers, but is most comonly seen
+    with PBS.
     </simpara></listitem>
-    <listitem><simpara>If the SEG configuration is sane, then you will have to
-    debug the PBS adapter to figure out what error is not being propagated back
-    to the client.  See <xref linkend="wsgram-developer-debugging"/> in the Developer's Guide.
+    <listitem><simpara>If the SEG configuration looks sane, try running the SEG
+    tests. They are located in
+    $GLOBUS_LOCATION/test/globus_scheduler_event_generator_*_test/. If Fork jobs
+    work, you only need to run the PBS test. Run each test by going to the
+    associated directory and run ./TESTS.pl. If any tests fail, report this to
+    the gram-dev@globus.org mailing list.
+    </simpara></listitem>
+    <listitem><simpara>If the SEG tests succeed, the next step is to figure out
+    the ID assigned by PBS to the queued job. Enable GRAM debug logging by
+    uncommenting the appropriate line in the
+    $GLOBUS_LOCATION/container-log4j.properties configuration file.
+    Restart the container, run a PBS job, and search the container log for a
+    line that contains "Received local job ID" to obtain the local job ID.
+    </simpara></listitem>
+    <listitem><simpara>Once you have the local job ID you can check the latest
+    PBS logs pointed to by the value of "log_path" in
+    $GLOBUS_LOCATION/etc/globus-pbs.conf to make sure the job's status is being
+    logged. If the status is not being logged, check the documentation for your
+    flavor of PBS to see if there's any futher configuration that needs to be
+    done to enable job status logging. For example, PBS Pro requires a
+    sufficient -e &lt;bitmask&gt; option added to the pbs_server command line to
+    enable enough logging to satisfy the SEG.
+    </simpara></listitem>
+    <listitem><simpara>If the correct status is being logged, try running the
+    SEG manually to see if it is reading the log file properly. The general
+    form of the SEG command line is as follows:
+
+    <computeroutput>
+    $GLOBUS_LOCATION/libexec/globus-scheduler-event-generator -s pbs -t &lt;timestamp&gt;
+    </computeroutput>
+
+    The timestamp is in seconds since the epoch and dictates how far back in the
+    log history the SEG should scan for job status events. The command should
+    hang after dumping some status data to stdout. If no data appears, change
+    the timestamp to an earlier time. If nothing ever appears, report this to
+    the gram-user@globus.org mailing list.
+    </simpara></listitem>
+    <listitem><simpara>If running the SEG manually succeeds, try running another
+    job and make sure the job process actually finishes and PBS has logged the
+    correct status before giving up and cancelling globusrun-ws. If things are
+    still not working, report your problem and exactly what you have tried to
+    remedy the situtation to the gram-user@globus.org mailing list.
     </simpara></listitem>
 </itemizedlist>
 
