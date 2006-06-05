@@ -13,6 +13,7 @@
                 
                <!-- enable extensions -->
                <xsl:param name="use.extensions" select="'0'"></xsl:param>
+               <xsl:param name="xep.extensions" select="0"></xsl:param>
                
                <!-- turn off table column extensions (unless you use xalan or saxon - it's a java thing -->
                <xsl:param name="tablecolumns.extension" select="'0'"></xsl:param>
@@ -66,9 +67,19 @@
                <!-- How deep should recursive sections appear in the TOC? COMMON -->
                 <xsl:param name="toc.section.depth">1</xsl:param>
                
+               <!-- LINKS -->
+               
+               <!-- display ulinks as footnotes at bottom of page? -->
+               <xsl:param name="ulink.footnotes" select="1"></xsl:param>
+               
+               <!-- display xref links with underline? -->
+               <xsl:attribute-set name="xref.properties">
+                              <xsl:attribute name="text-decoration">underline</xsl:attribute> 
+               </xsl:attribute-set>
+               
                <!-- TABLES -->
                
-               <xsl:param name="default.table.width" select="'7in'"></xsl:param>
+               <xsl:param name="default.table.width" select="'6in'"></xsl:param>
               
 
                 <!-- INDEX  -->
