@@ -68,7 +68,7 @@ framework and OGSI in the document <cite>From OGSI to WSRF: Refactoring and Evol
 <h2><a name="announcement">Announcements</a></h2>
 
 <p><b>April 2006:</b> The <a href="http://www.oasis-open.org/">OASIS</a> organization 
-has <a href="ihttp://lists.oasis-open.org/archives/tc-announce/200604/msg00000.html">approved 
+has <a href="http://lists.oasis-open.org/archives/tc-announce/200604/msg00000.html">approved 
 the WSRF v1.2 specifications</a> as an OASIS standard.</p>
 
 <p><b>March 2006:</b> HP, IBM, Intel, and Microsoft 
