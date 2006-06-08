@@ -1,0 +1,424 @@
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!-- &copy; International Business Machines Corporation, 2004 -->
+<!-- &copy; The University of Edinburgh, 2004 -->
+<head>
+<title>How to Write a Configurable Activity</title>
+<link rel="stylesheet" type="text/css" href="../../style.css"/>
+</head>
+<body>
+
+<h1>How to Write a Configurable Activity</h1>
+
+<p>
+	This tutorial follows on from the previous
+	<a href="../activitywrite/index.html">How to Write a Basic Activity</a>
+	tutorial. It describes how to develop and deploy a more advanced type of
+	activity known as a "Configurable Activity". In the previous tutorial,
+	the example of a <span class="activity">stringTokenizer</span> activity
+	was used. This activity received all the settings that determined its
+	behaviour from the user via a perform document. For example, a perform
+	document containing	the following XML fragment would tokenize its input
+	data using the <span class="xml">","</span> character as a delimiter:
+</p>
+
+<pre class="xml">
+...
+&lt;stringTokenizer name="tokenizer"&gt;
+  &lt;stringBlocksInput from="myOutput"/&gt;
+  &lt;delimiters value=","/&gt;
+  &lt;stringTokensOutput name="myTokens"/&gt;
+&lt;/stringTokenizer&gt;
+...
+</pre>
+
+<p>
+	While the <span class="xml">delimiters</span> element is sufficient to
+	provide user control of the simple <span class="activity">stringTokenizer</span>
+	activity, there are many cases where an activity requires more complex
+	configuration by the service provider. Consider the case of a
+	<span class="activity">distributedJoin</span> activity that performs
+	several queries against different data resources and joins the results
+	in some way, as shown in the diagram below:
+</p>
+
+<div class="figure"><img src="distributedJoin.gif" alt="Distributed join activity" /></div>
+<p>
+	The <span class="activity">distributedJoin</span> activity may need
+	to be configured with a list of the Grid Data Services Factory (GDSF) handles.
+	These handles could then be used by a <span class="activity">distributedJoin</span>
+	activity to access various GDSFs and create the Grid Data Services (GDSs) used
+	to query their underlying data resources.
+</p>
+
+<h2>Two Levels of Activity Configuration</h2>
+
+<p>
+	OGSA-DAI provides two mechanisms through which an activity can be
+	configured:
+</p>
+
+<ol>
+	<li>
+		<em>Property Configuration</em> &ndash; this facilitates simple
+		configuration of an activity using a sequence of one or more property
+		key-value pairs.
+	</li>
+	<li>
+		<em>External File Configuration</em> &ndash; this facilitates more
+		complex configuration of an activity using arbitrary XML specified
+		in an external file.
+	</li>
+</ol>
+
+<p>
+	The remainder of the tutorial describes how to use one or both of these mechanisms
+	to create a configurable activity.
+</p>
+
+<h2>1. Property Configuration</h2>
+
+<p>
+	Property configuration allows a sequence of one or more property elements
+	to be positioned within any activity element of the
+	<a href="../../reference/config/ActivityConfig.html">activity configuration	file</a>.
+	This mechanism is best suited to simple, non-structured configuration
+	information. For example, an <span class="activity">sqlQuery</span> activity
+	might use property elements to specify the timeout and maximum number of rows
+	that can be returned from a query, as shown below:
+</p>
+
+<pre class="xml">
+...
+&lt;activity name="sqlQuery"
+          implementation="my.package.SQLQueryActivity"
+          schemaFileName="path/to/my-sql-query-activity.xsd"&gt;
+  &lt;property key="maxResults" value="100"/&gt;
+  &lt;property key="timeout" value="5000"/&gt;
+&lt;/activity&gt;
+...
+</pre>
+
+<p>
+  The activity implementation can then access these properties using
+  the following methods inherited from the base
+  <span class="activity">Activity</span> class:
+</p>
+
+	<table summary="" class="info" width="100%">
+		<tr>
+			<th class="info">Method</th>
+			<th class="info">Returns</th>
+			<th class="info">Description</th>
+		</tr>
+		<tr>
+			<td class="info"><span class="java">hasProperties()</span></td>
+			<td class="info"><span class="java">boolean</span></td>
+			<td class="info">
+			  Indicates whether or not the activity has any
+			  configuration properties.
+			</td>
+		</tr>
+		<tr>
+			<td class="info"><span class="java">getProperties()</span></td>
+			<td class="info"><span class="java">java.util.Properties</span></td>
+			<td class="info">
+			  Accesses the activity configuration properties,
+			  if the activity has any.
+			</td>
+		</tr>
+	</table>
+<p>
+  The activity implementation is responsible for performing validation
+  to ensure that all the required properties have been specified and
+  their values are suitable. The code fragment below shows how an
+	<span class="java">SQLQueryActivity</span> might perform property validation
+	within the <span class="java">initialise</span> method. An
+	<span class="java">ActivitySystemException</span> is raised whenever
+	the properties are deemed invalid.
+</p>
+<pre class="java">
+protected void initialise() throws ActivitySystemException
+{
+    if (hasProperties() &amp;&amp;
+        getProperties().containsKey("maxResults") &amp;&amp;
+        getProperties().containsKey("timeout"))
+    {
+        Properties properties = getProperties();
+
+        try
+        {
+            mMaxResults =
+                Integer.parseInt(properties.getProperty("maxResults"));
+            mTimeout =
+                Integer.parseInt(properties.getProperty("timeout"));
+        }
+        catch (NumberFormatException e)
+        {
+            throw new ActivitySystemException(
+                getName(),
+                "Activity configuration error. The values for the " +
+                "sqlActivity \"maxResults\" and \"timeout\" " +
+                "properties must be valid integers.",
+                LOG);
+        }
+    }
+    else
+    {
+        throw new ActivitySystemException(
+            getName(),
+            "Activity configuration error. The sqlActivity must be " +
+            "configured with two properties: \"maxResults\" and " +
+            "\"timeout\".",
+            LOG);
+    }
+
+    ...etc...
+}
+</pre>
+
+<p>
+	Note that <span class="java">mMaxResults</span> and
+	<span class="java">mTimeout</span> are both instance variables
+	used by the activity for storing the property values. These
+	can then be used elsewhere in the activity, for instance during
+	processing. <span class="java">LOG</span> is a static final variable
+	referencing the Log4J <span class="java">org.apache.log4j.Logger</span>
+	object for the activity class. OGSA-DAI requires that a logger is passed
+	into all exception constructors to ensure that exception messages are
+	properly logged.
+</p>
+
+<h2>2. External File Configuration</h2>
+
+<p>
+  External file configuration facilitates more complex activity configuration
+  using arbitrary XML specified in an external file. This mechanism is suitable
+  for activities that require structured configuration information, rather than
+  a flat list of property key-value pairs.
+</p>
+
+<p>
+  To use an external configuration file, a <span class="xml">config</span>
+  attribute should be added to the desired <span class="xml">activity</span>
+  element within the
+  <a href="../../reference/config/ActivityConfig.html">activity configuration	file</a>.
+  This attribute should contain either the absolute URL of the external configuration file,
+  or alternatively, the path relative to a base URL specified using the
+  <span class="xml">configBase</span> attribute of
+  the surrounding <span class="xml">activityMap</span> element.
+  For example:
+</p>
+
+<pre>
+...
+&lt;activityMap
+  schemaBase="file:C:/ogsadai/config/"&gt;
+  <b>configBase</b>="file:C:/ogsadai/schema/ogsadai/xsd/activities/"&gt;
+  ...
+  &lt;activity name="distributedJoin"
+    implementation="package.MyDistributedJoin"
+    schema="my-distributed-join-activity.xsd"
+    <b>config</b>="my-distributed-join-config.xml"/&gt;
+...
+</pre>
+
+<p>
+	Note that the file URLs used in the above example are specified in a
+	format that Windows accepts. A similar file URL in Unix could be expressed
+	as <span class="xml">file:/home/ogsadai/config/</span>. Returning to the example
+	of a <span class="activity">distributedJoin</span> activity, the external
+	configuration file may contain the following XML data:
+</p>
+
+<pre class="xml">
+&lt;configuration&gt;
+  &lt;joinNodes&gt;
+    &lt;node handle="http://www.turnip.org/ogsa/services/MySQLGDSF"&gt;
+    &lt;node handle="http://www.parsnip.org/ogsa/services/DB2GDSF"&gt;
+    &lt;node handle="http://www.pumpkin.org/ogsa/services/SQL2000GDSF"&gt;
+  &lt;/joinNodes&gt;
+&lt;/configuration&gt;
+</pre>
+
+<p>
+  In order for this information to be accessed within the activity
+  implementation, the developer must implement two interfaces:
+</p>
+
+  <table summary="Describes the interfaces used for activity configuration" class="info" width="100%">
+    <tr>
+      <th class="info">Interface</th>
+      <th class="info">Description</th>
+    </tr>
+    <tr>
+      <td class="info"><span class="java">uk.org.ogsadai.engine.ActivityConfiguration</span></td>
+      <td class="info">
+      	Defines an <span class="java">initialise</span> method that receives a
+      	DOM <span class="java">Document</span> containing the XML from the external
+      	configuration file. An implementation should validate and encapsulate this
+      	document, providing convenient methods for accessing the details that will
+      	be used by the <span class="java">Activity</span> implementation.
+      </td>
+    </tr>
+    <tr>
+      <td class="info"><span class="java">uk.org.ogsadai.engine.ActivityConfigurationCreator</span></td>
+      <td class="info">
+      	Defines a <span class="java">createActivityConfiguration</span> method
+      	that creates an instance of an <span class="java">ActivityConfiguration</span>
+      	implementation. Any activity making use of an external configuration file must
+      	implement this interface. This is an example of the <em>Factory Method</em>
+      	design pattern.
+      </td>
+    </tr>
+  </table>
+
+<p>
+	The UML diagram below demonstrates how these interfaces would be used by the
+	developer of the <span class="activity">distributedJoin</span> activity:
+</p>
+
+<div class="figure">
+  <img src="classDiagram.gif" alt="Activity configuration class diagram"/>
+</div>
+
+<p>
+	In summary, the <span class="java">DistributedJoinConfiguration</span> class
+	implements the <span class="java">ActivityConfiguration</span> interface,
+	providing an <span class="java">initialise</span> method to receive the configuration
+	document and a number of convenient methods for exposing the details.
+	The <span class="java">DistributedJoinActivity</span> extends the abstract
+	base <span class="java">Activity</span> class and implements the
+	<span class="java">ActivityConfigurationCreator</span> interface, providing a
+	method that creates an instance of
+	<span class="java">DistributedJoinConfiguration</span>. OGSA-DAI will invoke
+	this method internally and make the
+	<span class="java">ActivityConfiguration</span> object accessible
+	to the activity implementation via the inherited
+	<span class="java">getActivityConfiguration</span> method. A
+	<span class="java">hasActivityConfiguration</span> method is also
+	provided to indicate whether or not a particular activity has been configured
+	using an external configuration file.
+</p>
+
+<p>
+	The remainder of this tutorial contains some example code for the
+	<span class="java">DistributedJoinActivity</span> and
+	<span class="java">DistributedJoinConfiguration</span> classes.
+	For a more comprehensive example, download the OGSA-DAI source
+	distribution and refer to
+	<span class="java">src/java/uk/org/ogsadai/activity/indexedfiles/AddAndIndexFileActivity.java</span>.
+</p>
+
+<h3>DistributedJoinActivity.java</h3>
+
+<pre class="java">
+package my.package;
+
+import uk.org.ogsadai.engine.Activity;
+import uk.org.ogsadai.engine.ActivityConfiguration;
+import uk.org.ogsadai.engine.ActivityConfigurationCreator;
+..etc...
+
+public class DistributedJoinActivity extends Activity
+    implements ActivityConfigurationCreator
+{
+    private DistributedJoinConfiguration mConfig;
+
+    ...etc...
+
+    public ActivityConfiguration createActivityConfiguration()
+    {
+        return new DistributedJoinConfiguration();
+    }
+
+    public void initialise()
+    {
+        if (hasActivityConfiguration())
+        {
+            mConfig = (DistributedJoinConfiguration)
+                getActivityConfiguration();
+        }
+    }
+
+    ...etc...
+}
+</pre>
+
+<h3>DistributedJoinConfiguration.java</h3>
+
+<pre class="java">
+package my.package;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import uk.org.ogsadai.engine.ActivityConfiguration;
+import uk.org.ogsadai.engine.ActivityConfigurationException;
+...etc...
+
+public class DistributedJoinConfiguration
+    implements ActivityConfiguration
+{
+    private List mHandles = new ArrayList();
+
+    public void initialise(Document document)
+        throws ActivityConfigurationException
+    {
+        Element configuration = document.getDocumentElement();
+
+        NodeList nodes =
+            configuration.getElementsByTagName("joinNodes");
+
+        if (nodes.getLength()&gt;0)
+        {
+            Element joinNodes = (Element) nodes.item(0);
+            nodes = joinNodes.getElementsByTagName("node");
+
+            for (int i = 0; i &lt; nodes.getLength(); i++)
+            {
+                Element node = (Element) nodes.item(i);
+                mHandles.add(node.getAttribute("handle"));
+            }
+        }
+        else
+        {
+            throw new ActivityConfigurationException(
+                "Activity configuration error. The configuration " +
+                "document for the distributedJoin activity does " +
+                "not contain a joinNodes element under the root " +
+                "element.",
+                LOG);
+        }
+    }
+
+    public int numberOfNodes()
+    {
+        return mHandles.size();
+    }
+
+    ...etc...
+}
+</pre>
+
+<hr/>
+<table width="100%" summary="Navigation" class="footer">
+<tr>
+<td/>
+<td class="footer">Up: <a href="../../index.html">OGSA-DAI User Guide</a></td>
+<td/>
+</tr>
+<tr>
+<td>
+&copy; International Business Machines Corporation, 2004.
+</td>
+<td>
+&copy; The University of Edinburgh, 2004.
+</td>
+<td/>
+</tr>
+</table>
+</body>
+</html>

@@ -47,56 +47,11 @@ maxlength="200" value="" />
   </table>
 
 </div>
-<div id="wrapper">
-    <div id="container">
-		<div id="content">
 
 	<?php 
 include_once( "/mcs/www-unix.globus.org/include/outofdate.php" ); 
 globus_out_of_date(); ?>
 
-
-<table width="100%"  border="0" cellspacing="0" cellpadding="0">
-	<tr>
-		<td width="120px" class="leftColumn">
-		<div id="leftbg">
-		<h2 class="smalltitle">Software Links</h2>
-		<dl>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/Usage_Stats.html">Usage Statistics</a></dt>
-			<dt><a href="/toolkit/releasenotes/">Release Notes</a></dt>
-			<dt><a href="/toolkit/versioning.html">Versioning</a></dt>
-			<dt><a href="/toolkit/downloads/">Downloads</a></dt>
-			<dt><a href="/toolkit/advisories.html">Advisories</a></dt>
-			<dt><a href="/toolkit/legal/">Licenses</a></dt>
-			<dt><a href="http://dev.globus.org/wiki/How_to_contribute">CVS &amp; Dev Tools</a></dt>
-		</dl>
-		
-		<h2 class="smalltitle">Getting Started</h2>
-		<dl>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/ch03.html#s-platform">Platform Notes</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt2.html">Migrating from GT2</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt3.html">Migrating from GT3</a></dt>
-		</dl>
-		
-		<h2 class="smalltitle">Reference</h2>
-		<dl>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/best_practices.html">Best Practices</a></dt>
-			<dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
-			<dt><a href="/api/">API docs</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/public_interfaces.html">Public Interfaces</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/rp.html">Resource Properties</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/samples.html">Samples</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
-			<dt><a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
-		</dl>
-
-		</div>
-		</td>
-		
-		<td>
+<div id="docbookContent">
 
 		<!-- content STARTS here -->

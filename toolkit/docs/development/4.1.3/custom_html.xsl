@@ -77,6 +77,14 @@
                 <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms?
                 <xsl:param name="firstterm.only.link">1</xsl:param> -->
                 
+                <!-- permit wrapping of long lines of code
+                <xsl:attribute-set name="monospace.verbatim.properties" 
+                                use-attribute-sets="verbatim.properties monospace.properties">
+                                <xsl:attribute name="wrap-option">wrap</xsl:attribute>
+                </xsl:attribute-set> -->
+                
+                <!-- INCORPORATING DOCBOOK PAGES INTO WEBSITE -->
+                
                 <!-- make sure there's a DOCTYPE in the html output (otherwise, some css renders strangely -->
                 <xsl:param name="chunker.output.doctype-public" select="'-//W3C//DTD HTML 4.01 Transitional//EN'"/>
                 <xsl:param name="chunker.output.doctype-system" select="'http://www.w3.org/TR/html4/loose.dtd'"/>
@@ -128,8 +136,47 @@
                                                 <body>
                                                                 <xsl:call-template name="body.attributes"/>
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_header_docbook.inc");
+                                                                                include_once("http://www-testing.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_header_docbook.inc");
                                                                                 ?</xsl:processing-instruction>
+                                                                
+                                                                <div id="sidebarMenu">
+                                                                                <h2 class="smalltitle">Software Links</h2>
+                                                                                <dl class="leftColumn">
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/Usage_Stats.html">Usage Statistics</a></dt>
+                                                                                                <dt><a href="/toolkit/releasenotes/">Release Notes</a></dt>
+                                                                                                <dt><a href="/toolkit/versioning.html">Versioning</a></dt>
+                                                                                                <dt><a href="/toolkit/downloads/">Downloads</a></dt>
+                                                                                                <dt><a href="/toolkit/advisories.html">Advisories</a></dt>
+                                                                                                <dt><a href="/toolkit/legal/">Licenses</a></dt>
+                                                                                                <dt><a href="http://dev.globus.org/wiki/How_to_contribute">CVS &amp; Dev Tools</a></dt>
+                                                                                </dl>
+                                                                                
+                                                                                <h2 class="smalltitle">Getting Started</h2>
+                                                                                <dl class="leftColumn">
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/ch03.html#s-platform">Platform Notes</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt2.html">Migrating from GT2</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt3.html">Migrating from GT3</a></dt>
+                                                                                </dl>
+                                                                                
+                                                                                <h2 class="smalltitle">Reference</h2>
+                                                                                <dl class="leftColumn">
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/releaseManuals.pdf">PDF version</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/best_practices.html">Best Practices</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
+                                                                                                <dt><a href="/api/">API docs</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/public_interfaces.html">Public Interfaces</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/rp.html">Resource Properties</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/samples.html">Samples</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
+                                                                                </dl>
+                                                                                
+                                                                </div>
+                                                                
                                                                 <xsl:call-template name="user.header.navigation"/>
                                                                 
                                                                 <xsl:call-template name="header.navigation">
@@ -139,6 +186,10 @@
                                                                 </xsl:call-template>
                                                                 
                                                                 <xsl:call-template name="user.header.content"/>
+                                                                
+                                                                
+                                                               
+
                                                                 
                                                                 <xsl:copy-of select="$content"/>
                                                                 
@@ -151,11 +202,39 @@
                                                                 </xsl:call-template>
                                                                 
                                                                 <xsl:call-template name="user.footer.navigation"/>
+                                                                
+                                                                <div id="footer">
+                                                                                <hr class="first"/>
+                                                                                
+                                                                                <p>Comments? <a href="mailto:webmaster@globus.org">webmaster@globus.org</a></p>
+                                                                                <p>Globus Project and Globus Toolkit are trademarks<br />
+                                                                                                held by the University of Chicago</p>
+                                                                                <!--ending div of footer-->
+                                                                </div>
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_footer_docbook.inc");
+                                                                                include_once("http://www-testing.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_footer_docbook.inc");
                                                                                 ?</xsl:processing-instruction>
+                                                      
                                                 </body>
                                 </html>
+                </xsl:template>
+                
+                <!-- prevent h1 and h2 using clear: both - want to control in css, instead -->
+                <xsl:template name="section.heading">
+                                <xsl:param name="section" select="."/>
+                                <xsl:param name="level" select="'1'"/>
+                                <xsl:param name="title"/>
+                                <xsl:element name="h{$level+1}">
+                                                <xsl:attribute name="class">title</xsl:attribute>
+                                                <a>
+                                                                <xsl:attribute name="name">
+                                                                                <xsl:call-template name="object.id">
+                                                                                                <xsl:with-param name="object" select="$section"/>
+                                                                                </xsl:call-template>
+                                                                </xsl:attribute>
+                                                </a>
+                                                <xsl:copy-of select="$title"/>
+                                </xsl:element>
                 </xsl:template>
 
 </xsl:stylesheet>

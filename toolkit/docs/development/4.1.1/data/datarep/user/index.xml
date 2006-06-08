@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<title>GT &shortversion; DRS: User's Guide</title>
+<titleabbrev>User's Guide</titleabbrev>
+
+
+<section id="datarep-user-introduction"><title>Introduction</title>
+  &DataRep_Overview_Brief_Frag;
+</section>
+
+<section id="datarep-user-commandline"><title>Command-line tools</title>
+    <para>Please see the <xref linkend="datarep-commandline"/>.</para>
+</section>
+
+<section id="datarep-user-usage"><title>Usage scenarios</title>
+    <para>This section describes a few key usage scenarios and provides examples of using the DRS command-line tools.</para>
+
+    <section id="datarep-user-usage-proxyinit"><title>Generate a valid proxy</title>
+        <para>Before using any of the tools, a user must generate a valid user proxy. Use <xref linkend="grid-proxy-init"/>.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/grid-proxy-init
+Your identity: /O=Grid/OU=GlobusTest/OU=simpleCA.mymachine/OU=mymachine/CN=John Doe
+Enter GRID pass phrase for this identity:
+Creating proxy ................................. Done
+Your proxy is valid until: Tue Oct 26 01:33:42 2004
+        </screen>
+    </section>
+
+    <section id="datarep-user-usage-delegation"><title>Delegate user credentials</title>
+        <para>Once you have generated a valid proxy you must create a delegated credential. Your delegated credential will be used by the DRS to make secure calls to other services (e.g., RLS, RFT, etc.) in order to perform the data replication. It is important to ensure that you give your delegated credential enough <computeroutput>lifetime</computeroutput> to support the running time of your replication activities. To delegate your credential use <xref linkend="globus-credential-delegate"/>.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-credential-delegate -h <emphasis>myhostname</emphasis> \
+ -p <emphasis>8443</emphasis> <emphasis>mycredential.epr</emphasis>
+EPR will be written to: mycredential.epr
+Delegated credential EPR:
+Address: https://128.9.72.118:8443/wsrf/services/DelegationService
+Reference property[0]:
+&lt;ns1:DelegationKey xmlns:ns1=&quot;http://www.globus.org/08/2004/delegationService&quot;
+&gt;3b6cb210-e9b2-11d9-ab74-f7fa10f094cd&lt;/ns1:DelegationKey&gt;
+        </screen>
+    </section>
+
+    <section id="datarep-user-usage-requestfile"><title>Replication request file</title>
+        <para>A key parameter for any replication request is the request file. The replication request file is a text file containing CRLF-terminated rows of tab-delimited pairs of Logical Filename (LFN) names and destination (URL) locations. An example of such a file is shown.</para>
+        <screen>
+% cat testrun.req
+testrun-1      gsiftp://myhost:9001/sandbox/files/testrun-1
+testrun-2      gsiftp://myhost:9001/sandbox/files/testrun-2
+testrun-3      gsiftp://myhost:9001/sandbox/files/testrun-3
+testrun-4      gsiftp://myhost:9001/sandbox/files/testrun-4
+testrun-5      gsiftp://myhost:9001/sandbox/files/testrun-5
+        </screen>
+    </section>
+
+    <section id="datarep-user-usage-create" xreflabel="Create replication resource"><title>Create replication resource</title>
+        <para>The initial step for any replication is to create the replication resource. Creating the resource depends on the availability of a DRS service, a delegated credential, and a properly formatted replication request file. The replication request file must be specified by its URL. Currently supported URL schemes for the request file include <computeroutput>file</computeroutput>, <computeroutput>http</computeroutput>, and <computeroutput>ftp</computeroutput>. If the replication client is run local to the service the <computeroutput>file</computeroutput> scheme is appropriate, whereas if the client is remote than the latter schemes must be used. It is a good practice to specify a filename to save the replication resource's endpoint reference. The endpoint reference is required for all other operations on the resource, such as getting resource properties, starting/stopping, and destroying it. Numerous options are available to influence the behavior of the data replication activities (see <xref linkend="globus-replication-create"/>). One option of particular interest is the <computeroutput>--start</computeroutput> option, which immediately starts the replication activities following creation of the replication resource. An example of using the <xref linkend="globus-replication-create"/> tool is shown.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-replication-create -s \
+ <emphasis>https://myhost:8443/wsrf/services/ReplicationService</emphasis> \
+ -C <emphasis>mycredential.epr</emphasis> -V <emphasis>myreplicator.epr</emphasis> <emphasis>file:///scratch/testrun.req</emphasis>
+        </screen>
+        <para>This command does not write to <computeroutput>stdout</computeroutput> when successful unless the <computeroutput>--debug</computeroutput> option is specified.</para>
+    </section>
+
+    <section id="datarep-user-usage-start"><title>Start replication</title>
+        <para>Once a replication resource has been create, the replication activities may be started. As mentioned in <xref linkend="datarep-user-usage-create"/> the replication may be immediately started after it is created. If the immediate start option is not specified, the <xref linkend="globus-replication-start"/> tool must be used to start the replication.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-replication-start -e myreplicator.epr
+        </screen>
+        <para>No output is expect from this command when successful.</para>
+    </section>
+
+    <section id="datarep-user-usage-getrp"><title>Get replication resource properties</title>
+        <para>Throughout the lifecycle and after the completion of the replication resource, it will be important to lookup its Resource Properties. The standard WS-RF port types are supported and the supplied tools (e.g., <xref linkend="wsrf-get-property"/>) may be used with the DRS and its resources.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/wsrf-get-property -e <emphasis>myreplicator.epr</emphasis> \
+ &quot;{http://www.globus.org/namespaces/2005/05/replica/replicator}status&quot;
+&lt;ns1:status xmlns:ns1=&quot;http://www.globus.org/namespaces/2005/05/replica/replicator&quot;&gt;
+Active&lt;/ns1:status&gt;
+        </screen>
+        <para>And,</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/wsrf-get-property -e <emphasis>myreplicator.epr</emphasis> \ 
+ &quot;{http://www.globus.org/namespaces/2005/05/replica/replicator}count&quot;
+&lt;ns1:count xmlns:ns1=&quot;http://www.globus.org/namespaces/2005/05/replica/replicator&quot;&gt;
+ &lt;ns1:total&gt;10&lt;/ns1:total&gt;
+ &lt;ns1:finished&gt;0&lt;/ns1:finished&gt;
+ &lt;ns1:failed&gt;0&lt;/ns1:failed&gt;
+ &lt;ns1:terminated&gt;0&lt;/ns1:terminated&gt;
+&lt;/ns1:count&gt;
+        </screen>
+    </section>
+
+    <section id="datarep-user-usage-finditem"><title>Find replication item status</title>
+        <para>Throughout the lifecycle and after the completion of the replication resource, it may be helpful to find individual replication items in the replication resource to inspect the detailed status of the replication activities. The <xref linkend="globus-replication-finditems"/> tool is used to find replication items. The following example demonstrates the usage when finding a limited number of items, offset into the lookup results set, for a specified status.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-replication-finditems -e <emphasis>myreplicator.epr</emphasis> -S Pending -O 1 -L 2
+&lt;ns1:FindItemsResponse xmlns:ns1="http://www.globus.org/namespaces/2005/05/replica/replicator"&gt;
+ &lt;ns1:items xsi:type="ns1:ReplicationItemType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;ns1:uri xsi:type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;testrun-2&lt;/ns1:uri&gt;
+  &lt;ns1:priority xsi:type="xsd:int" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;1000&lt;/ns1:priority&gt;
+  &lt;ns1:status xsi:type="ns1:ReplicationItemStatusEnumerationType"&gt;Pending&lt;/ns1:status&gt;
+  &lt;ns1:destinations xsi:type="ns1:DestinationType"&gt;
+   &lt;ns1:uri xsi:type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+     gsiftp://myhost:9001/sandbox/files/testrun-2&lt;/ns1:uri&gt;
+   &lt;ns1:status xsi:type="ns1:DestinationStatusEnumerationType"&gt;Pending&lt;/ns1:status&gt;
+  &lt;/ns1:destinations&gt;
+ &lt;/ns1:items&gt;
+ &lt;ns1:items xsi:type="ns1:ReplicationItemType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;ns1:uri xsi:type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;testrun-3&lt;/ns1:uri&gt;
+  &lt;ns1:priority xsi:type="xsd:int" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;1000&lt;/ns1:priority&gt;
+  &lt;ns1:status xsi:type="ns1:ReplicationItemStatusEnumerationType"&gt;Pending&lt;/ns1:status&gt;
+  &lt;ns1:destinations xsi:type="ns1:DestinationType"&gt;
+   &lt;ns1:uri xsi:type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+     gsiftp://myhost:9001/sandbox/files/testrun-3&lt;/ns1:uri&gt;
+   &lt;ns1:status xsi:type="ns1:DestinationStatusEnumerationType"&gt;Pending&lt;/ns1:status&gt;
+  &lt;/ns1:destinations&gt;
+ &lt;/ns1:items&gt;
+&lt;/ns1:FindItemsResponse&gt;
+        </screen>
+    </section>
+
+    <section id="datarep-user-usage-destroy"><title>Destroy replication resource</title>
+        <para>When the replication is complete, the replication resource may be destroyed. Destroying the replication resource will help to free up system resources (namely, memory), especially in the case that the replication entailed a large amount of individual replication activities (i.e., many files specified in the replication request file). The standard WS-RF port types are supported and the supplied <xref linkend="wsrf-destroy"/> tool may be used to destroy the DRS resource.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/wsrf-destroy -e <emphasis>myreplicator.epr</emphasis>
+Destroy operation was successful
+        </screen>
+    </section>
+</section>
+
+<section id="datarep-user-troubleshooting"><title>Troubleshooting</title>
+    <para>The following section provides information about common troubleshooting tips for end users.</para>
+
+    <section id="datarep-user-trouble-hostauthz"><title>Authorization failure: expected hostname</title>
+        <para>When authorization is enabled on the container you may need to use the proper hostname when referencing the DRS service rather than using <emphasis>localhost</emphasis>.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-replication-create -s \
+ https://<emphasis>localhost</emphasis>:8443/wsrf/services/ReplicationService \
+ -C mycredential.epr -V myreplicator.epr file:///scratch/testrun.req
+Error: ; nested exception is:
+        org.globus.common.ChainedIOException: Authentication failed [Caused by:
+        Operation unauthorized (Mechanism level: Authorization failed. Expected 
+        &quot;/CN=host/loopback&quot; target but received &quot;/C=US/O=Globus Alliance/OU=
+        Service/CN=host/<emphasis>myhost</emphasis>&quot;)]
+        </screen>
+    </section>
+
+    <section id="datarep-user-trouble-filename"><title>Cannot find request file</title>
+        <para>When using the DRS, ensure that the request file's filename is correct, that it is reachable by the DRS service, and that it has the appropriate permissions for the DRS service to access it.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-replication-create -s \
+ https://myhost:8443/wsrf/services/ReplicationService -C <emphasis>mycredential.epr</emphasis> \
+ -V <emphasis>myreplicator.epr</emphasis> <emphasis>file:///scratch/testrun</emphasis>
+Error: java.rmi.RemoteException: Unable to create resource; nested exception is:  
+        org.globus.wsrf.ResourceException: Failed to create Replication: 
+        /scratch/testrun (No such file or directory); nested exception is:
+        java.io.FileNotFoundException: /scratch/testrun (No such file or directory)
+        </screen>
+    </section>
+
+    <section id="datarep-user-trouble-malformedreq"><title>Malformed request file</title>
+        <para>It is important to ensure that the request file is well-formed as specified. A malformed request file will result in a runtime exception.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-replication-create -s \
+ https://myhost:8443/wsrf/services/ReplicationService -C <emphasis>mycredential.epr</emphasis> \
+ -V <emphasis>myreplicator.epr</emphasis> <emphasis>file:///scratch/testrun.req</emphasis>
+Error: java.rmi.RemoteException: Unable to create resource; nested exception is:  
+        org.globus.wsrf.ResourceException: Failed to create Replication: String
+        index out of range: -1; nested exception is:
+        java.lang.StringIndexOutOfBoundsException: String index out of range: -1
+        </screen>
+        <para>The above error was produced by replacing a delimiting <computeroutput>tab</computeroutput> character with <computeroutput>space</computeroutput> characters.</para>
+    </section>
+
+</section>
+

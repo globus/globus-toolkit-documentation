@@ -1,0 +1,124 @@
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!-- &copy; International Business Machines Corporation, 2004 -->
+<!-- &copy; The University of Edinburgh, 2004 -->
+<head>
+<title>How Activities Inter-communicate</title>
+<link rel="stylesheet" type="text/css" href="../../style.css"/>
+</head>
+<body>
+<h1>How Activities Inter-communicate</h1>
+<p>
+Communication between activities within a request is done via pipes
+(created by the engine) that link activities together. Blocks of data
+are passed through these pipes from producer to consumer. These pipes
+are made available to an activity via the context and are
+retrieved when the activity is initialised. A pipe implements the
+<span class="java">uk.org.ogsadai.engine.BlockReader</span> and
+<span class="java">uk.org.ogsadai.engine.BlockWriter</span>
+interfaces, used by the consumer and producer respectively. Any given
+activity must use a pipe as either as a <span
+class="java">BlockReader</span> or a <span 
+class="java">BlockWriter</span>. 
+</p>
+
+<h2 id="Blocks">Blocks</h2>
+<p>
+The blocks of data that activities pass between them are represented
+by Java objects. In consequence, any object in Java can be put into 
+a <span class="java">BlockWriter</span> for consumption by another 
+activity. Currently there is no type checking done between
+activities. This means that it is possible to link two activities
+together that do not have a common data type that they understand,
+e.g. activity A provides <span class="java">org.w3c.dom.Element</span> 
+objects to activity B and B expects to be reading in 
+<span class="java">ByteArray</span> objects. This will result in a  
+<span class="java">ClassCastException</span> being thrown by the
+activity receiving the unknown type (activity B in this example). Each 
+activity may do type checking, but this is not required. If a 
+<span class="java">ClassCastException</span> is generated the 
+engine will catch it and allow the request to fail gracefully,
+returning a Response document containing the exception noted against
+the activity it occurred in.  
+</p>
+<p>
+There is currently no notion of block size beyond that which an
+activity imposes itself. To elaborate, if a query activity defines a
+block to be one row of output from some result set obtained from a
+relational database then a block is one row. If that activity has a
+configuration option to set the block size to ten rows then a block is
+ten rows. However, both the single row and the ten rows block sizes
+will be handled in exactly the same way by the 
+engine. They are both passed between activities as a single Java
+object by the engine. There is no mechanism provided for the consumer
+to find out the block size that the producer was using. 
+</p>
+
+<h2 id="BlockWriter"><span class="java">BlockWriter</span></h2>  
+<p>
+<span class="java">BlockWriter</span>s are used by activities to write
+blocks (<span class="java">Objects</span>) to an output. A <span
+class="java">BlockWriter</span> normally is one side of a pipe; the
+other side of which is a <span class="java">BlockReader</span>. 
+</p>
+<p>
+<span class="java">BlockWriter</span> exposes the two methods:
+</p>
+<pre class="java">
+public void put(Object)
+public void close()
+</pre>
+<p>
+To write an object to an output, simply pass it to the <span
+class="java">put(Object)</span> method. Once there is nothing more to
+write the pipe should be closed using the <span
+class="java">close()</span> method, thereby notifying any consumers of 
+the output that there are no more blocks.
+</p>
+ 
+<h2 id="BlockReader"><span class="java">BlockReader</span></h2>
+<p>
+<span class="java">BlockReader</span>s are used by activities to read
+blocks from an input. The status of this class (either open for
+reading or closed for reading) will track the status of the <span
+class="java">BlockWriter</span> with which it is paired, if any. The
+class exposes only one method: 
+</p>
+<pre class="java">
+public Object next() throws NoSuchElementException
+</pre>
+<p>
+The <span class="java">next()</span> method returns the next block
+from its input. What constitutes a block is arbitrary and is
+determined by whatever produced the <span class="java">Object</span> 
+that has been published via the <span
+class="java">BlockReader</span>. If the end of the input is reached
+and there are no more blocks to consume then a <span
+class="java">NoSuchElementException </span> is thrown.
+</p>
+<p>
+A call to <span class="java">next()</span> may block the calling
+thread until the source has produced a block to be consumed. Blocking
+is the norm rather than the exception because the logic governing the
+extent of internal caching is not yet implemented.
+</p>
+
+<hr/>
+<table width="100%" summary="Navigation" class="footer">
+<tr>
+<td class="footer">Back: <a href="Context.html">The Activity Execution Context</a></td>
+<td class="footer">Up: <a href="index.html">How Activities Work</a></td>
+<td class="footer">Next: <a href="Lifecycle.html">The Life-cycle of an Activity During Execution of a Perform Document</a></td>
+</tr>
+<tr>
+<td>
+&copy; International Business Machines Corporation, 2004.
+</td>
+<td>
+&copy; The University of Edinburgh, 2004.
+</td>
+<td/>
+</tr>
+</table>
+</body>
+</html>
