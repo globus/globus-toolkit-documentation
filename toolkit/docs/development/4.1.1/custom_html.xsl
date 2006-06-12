@@ -142,7 +142,7 @@
                                                                 <div id="sidebarMenu">
                                                                                 <h2 class="smalltitle">Software Links</h2>
                                                                                 <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/Usage_Stats.html">Usage Statistics</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/Usage_Stats.html">Usage Statistics</a></dt>
                                                                                                 <dt><a href="/toolkit/releasenotes/">Release Notes</a></dt>
                                                                                                 <dt><a href="/toolkit/versioning.html">Versioning</a></dt>
                                                                                                 <dt><a href="/toolkit/downloads/">Downloads</a></dt>
@@ -153,26 +153,27 @@
                                                                                 
                                                                                 <h2 class="smalltitle">Getting Started</h2>
                                                                                 <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/ch03.html#s-platform">Platform Notes</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt2.html">Migrating from GT2</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/migration_guide_gt3.html">Migrating from GT3</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/admin/docbook/ch03.html#s-platform">Platform Notes</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/migration_guide_gt2.html">Migrating from GT2</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/migration_guide_gt3.html">Migrating from GT3</a></dt>
                                                                                 </dl>
                                                                                 
                                                                                 <h2 class="smalltitle">Reference</h2>
                                                                                 <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/releaseManuals.pdf">PDF version</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/best_practices.html">Best Practices</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/releaseManuals.pdf">PDF version</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/best_practices.html">Best Practices</a></dt>
                                                                                                 <dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
                                                                                                 <dt><a href="/api/">API docs</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/public_interfaces.html">Public Interfaces</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/rp.html">Resource Properties</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/samples.html">Samples</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/public_interfaces.html">Public Interfaces</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/toolkit-rp.html">Resource Properties</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/samples.html">Samples</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/si01.html">Index</a></dt>
+                                                                                                <dt><a href="http://www.globus.org/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
                                                                                 </dl>
                                                                                 
                                                                 </div>
