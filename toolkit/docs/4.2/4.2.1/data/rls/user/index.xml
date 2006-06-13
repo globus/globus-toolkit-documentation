@@ -36,6 +36,99 @@
 <para>Please see the <xref linkend="rls-commandline"/>.</para>
 </section>
 
+<section id="rls-user-usage-scenarios"><title>Usage scenarios</title>
+    <para>This section describes a few key usage scenarios and provides examples of using the RLS command-line tools.</para>
+
+    <section id="rls-user-usage-proxyinit"><title>Generate a valid proxy</title>
+        <para>Before using any of the tools, a user must generate a valid user proxy. Use <xref linkend="grid-proxy-init"/>.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/grid-proxy-init
+Your identity: /O=Grid/OU=GlobusTest/OU=simpleCA.mymachine/OU=mymachine/CN=John Doe
+Enter GRID pass phrase for this identity:
+        </screen>
+    </section>
+
+    <section id="rls-user-usage-gra-ping"><title>Ping the server</title>
+        <para>To check whether your server is active you may use the <xref linkend="globus-rls-admin"/> <emphasis>ping</emphasis> command.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-admin -p <emphasis>rls://localhost</emphasis>
+ping rls://localhost: 0 seconds
+        </screen>
+    </section>
+
+    <section id="rls-user-usage-grc-create"><title>Creating replica location mappings</title>
+        <para>When the RLS server is first installed its database of replica location information will be empty, as expected. To create a replica location mapping, use the <xref linkend="globus-rls-client"/> <emphasis>create</emphasis> command. Replica information in RLS is represented as mappings from logical names to target names. Typically the logical name will a unique identifier for a given replicated data set and the target name will be a URL identifying a particular replica of the data set.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli create <emphasis>my-logical-name-1 url-for-target-name-1 rls://localhost</emphasis>
+        </screen>
+        <note><simpara>The create command is intended for creating the initial replica mapping entry for a given logical name. If the user attempts to create another entry using an existing logical name, RLS will report a user error. To map additional target names to an existing logical name, see <xref linkend="rls-user-usage-grc-add"/>.</simpara></note>
+    </section>
+
+    <section id="rls-user-usage-grc-add"><title>Adding replica location mappings</title>
+        <para>To map additional target names to a logical name created by the previously described create command, use the <xref linkend="globus-rls-client"/> <emphasis>add</emphasis> command.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli add <emphasis>my-logical-name-1 url-for-target-name-2 rls://localhost</emphasis>
+        </screen>
+    </section>
+
+    <section id="rls-user-usage-grc-query"><title>Querying replica location mappings</title>
+        <para>Once your RLS server is populated with replica location mappings, you can query the server for useful information using the <xref linkend="globus-rls-client"/> <emphasis>query</emphasis> command.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli query lrc lfn <emphasis>my-logical-name-1 rls://localhost</emphasis>
+  my-logical-name-1: url-for-target-name-1
+  my-logical-name-1: url-for-target-name-2
+        </screen>
+    </section>
+
+    <section id="rls-user-usage-grc-del"><title>Deleting replica location mappings</title>
+        <para>To remove unwanted replica location mappings from your RLS server, use the <xref linkend="globus-rls-client"/> <emphasis>delete</emphasis> command. The delete operation works <emphasis>directly</emphasis> on the mapping and <emphasis>indirectly</emphasis> on the logical and target names. When the delete operation is performed by the RLS server the association between the specified logical name and the specified target name is eliminated. However, there may still be other target names associated with the logical name, and there could still be other logical names associated with the target name, though the latter scenarios is less likely. Only when all mapping associations for a given logical name (or a given target name) are eliminated (i.e., the specified logical name has no target names associated with it) will the logical (or target) name be deleted from the RLS server.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli delete <emphasis>my-logical-name-1 url-for-target-name-1 rls://localhost</emphasis>
+% $GLOBUS_LOCATION/bin/globus-rls-cli query lrc lfn <emphasis>my-logical-name-1 rls://localhost</emphasis>
+  my-logical-name-1: url-for-target-name-2
+% $GLOBUS_LOCATION/bin/globus-rls-cli delete <emphasis>my-logical-name-1 url-for-target-name-2 rls://localhost</emphasis>
+% $GLOBUS_LOCATION/bin/globus-rls-cli query lrc lfn <emphasis>my-logical-name-1 rls://localhost</emphasis>
+globus_rls_client: LFN doesn't exist: my-logical-name-1
+        </screen>
+    </section>
+
+    <section id="rls-user-usage-grc-bulk"><title>Using bulk operations</title>
+        <para>The <xref linkend="globus-rls-client"/> supports a variety of bulk operations that enhance productivity for users and reduce network connection overhead from making multiple, separate invocations of the client. The general pattern for bulk operation support as implemented by the client is a parameter list consisting of <computeroutput>bulk command-name [command-modifiers] param-1 param-2 param-N</computeroutput>, such as <computeroutput>bulk query lrc lfn my-logical-name-1 my-logical-name-2 my-logical-name-3</computeroutput>.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli bulk create <emphasis>my-logical-name-1 url-for-target-name-1-1 my-logical-name-2 url-for-target-name-2-1 rls://localhost</emphasis>
+% $GLOBUS_LOCATION/bin/globus-rls-cli bulk add <emphasis>my-logical-name-1 url-for-target-name-1-2 my-logical-name-2 url-for-target-name-2-2 rls://localhost</emphasis>
+homer.isi.edu 51% $GLOBUS_LOCATION/bin/globus-rls-cli bulk query lrc lfn <emphasis>my-logical-name-1 my-logical-name-2 my-logical-name-3 rls://localhost</emphasis>
+  my-logical-name-3: LFN doesn't exist
+  my-logical-name-2: url-for-target-name-2-1
+  my-logical-name-2: url-for-target-name-2-2
+  my-logical-name-1: url-for-target-name-1-1
+  my-logical-name-1: url-for-target-name-1-2
+        </screen>
+    </section>
+
+    <section id="rls-user-usage-grc-interactive"><title>Using interactive mode</title>
+        <para>The <xref linkend="globus-rls-client"/> supports an interactive mode in addition to the general command-line mode. To enter the interactive mode, simply invoke the client without any command.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli <emphasis>rls://localhost</emphasis>
+rls> query lrc lfn my-logical-name-2
+  my-logical-name-2: url-for-target-name-2-1
+  my-logical-name-2: url-for-target-name-2-2
+rls> query lrc lfn my-logical-name-1
+  my-logical-name-1: url-for-target-name-1-1
+  my-logical-name-1: url-for-target-name-1-2
+rls> bulk delete my-logical-name-1 url-for-target-name-1-1 my-logical-name-1 
+ url-for-target-name-1-2 my-logical-name-2 url-for-target-name-2-1 
+ my-logical-name-2 url-for-target-name-2-2
+rls> bulk query lrc lfn my-logical-name-2 my-logical-name-1
+  my-logical-name-1: LFN doesn't exist
+  my-logical-name-2: LFN doesn't exist
+rls> exit
+        </screen>
+    </section>
+
+</section>
+
+
 <section id="rls-user-gui"><title>Graphical user interfaces</title>
 &RLS_Interface_GUI_Frag;
 </section>
