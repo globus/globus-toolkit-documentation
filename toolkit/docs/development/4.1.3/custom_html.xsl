@@ -176,21 +176,21 @@
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
                                                                                 </dl>
                                                                                 
-                                                                                <h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/common/">Common Runtime</a></h2>
+                                                                                <h2 class="smalltitle">Common Runtime</h2>
                                                                                 <dl class="leftColumn">
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/common/javawscore/">Java WS Core</a></dt>
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/commont/cwscore/">C WS Core</a></dt>
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/commont/pythonwscore/">Python WS Core</a></dt>
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/commont/xio/">XIO</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/commont/javacog/">CoG jglobus (non-WS Java Core)</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/commont/pyglobus/">pyGlobus (non-WS Python Core)</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/commont/javacog/">CoG jglobus</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/commont/pyglobus/">pyGlobus</a></dt>
                                                                                 </dl>
                                                                                 
-                                                                                <h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/security/">Security</a></h2>
+                                                                                <h2 class="smalltitle">Security</h2>
                                                                                 <dl class="leftColumn">
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/security/prewsaa/">Pre-WS A&amp;A</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/message/">WS A&amp;A Message-level</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/authzframe/">WS A&amp;A Framework</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/message/">Message-level</a></dt>
+                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/authzframe/">Authz Framework</a></dt>
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/security/cas/">CAS</a></dt>
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/security/delegation/">Delegation Service</a></dt>
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/security/myproxy/">MyProxy</a></dt>
@@ -198,7 +198,7 @@
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/security/simpleca/">SimpleCA</a></dt>
                                                                                 </dl>
                                                                                 
-                                                                                <h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/data/">Data Management</a></h2>
+                                                                                <h2 class="smalltitle">Data Mgt</h2>
                                                                                 <dl class="leftColumn">
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/data/rft/">RFT</a></dt>
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/data/gridftp/">GridFTP</a></dt>
@@ -208,7 +208,7 @@
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/data/datarep/">DRS</a></dt>
                                                                                 </dl>
                                                                                 
-                                                                                <h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/info/">Information Services</a></h2>
+                                                                                <h2 class="smalltitle">Information Svcs</h2>
                                                                                 <dl class="leftColumn">
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">WS MDS Aggregator</a></dt>
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/info/index/">WS MDS Index</a></dt>
@@ -218,7 +218,7 @@
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/info/prewsmds/">Pre-WS MDS (legacy)</a></dt>
                                                                                 </dl>
                                                                                 
-                                                                                <h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/execution/">Execution Management</a></h2>
+                                                                                <h2 class="smalltitle">Execution Mgt</h2>
                                                                                 <dl class="leftColumn">
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/execution/wsgram/">WS GRAM</a></dt>
                                                                                                 <dt><a href="/toolkit/docs/development/4.2-drafts/execution/gtcp/">GTCP</a></dt>
