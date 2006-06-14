@@ -1,0 +1,3260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <title> GT &shortversion; Mapping WSDL and XML Schema to C</title>
+    <titleabbrev>WSDL to C Bindings</titleabbrev>
+
+    <sect1 id="cwscore-bindings-intro">
+        <title>Introduction</title>
+
+        <para>
+            This document defines the structure and format of the C bindings
+            generated from WSDL and XSD schema in the Globus Toolkit 4.0. This
+            version only provides mappings for the document/literal style of
+            WSDL.
+        </para>
+    </sect1>
+
+    <sect1 id="cwscore-bindings-namespacemapping">
+        <title>XML Namespace Mapping</title>
+
+        <para>
+            In WSDL and XML Schema, XML namespaces are used to provide global
+            resolution for types, elements and operations. In order to prevent
+            clashes between local names when mapping to C, each target
+            namespace can have an associated string defined that is prefixed to
+            the types, variables, and filenames generated within that
+            namespace. The format for the mapping is as follows:
+        </para>
+
+        <figure>
+            <title>Definition: Namespace to Prefix Mapping Format</title>
+            <synopsis><emphasis>namespace URI</emphasis> = <emphasis>prefix</emphasis>
+            </synopsis>
+        </figure>
+        <para>
+            <emphasis>namespace URI</emphasis> must be a valid XML namespace.
+        </para>
+        <para>
+            <emphasis>prefix</emphasis> must be a string, conforming to the
+            valid ANSI-C typename restrictions. As an example, the XML Schema
+            in both <link linkend="cwscore-bindings-schema1"
+            endterm="cwscore-bindings-schema1.title"/> and
+            <link linkend="cwscore-bindings-schema2"
+            endterm="cwscore-bindings-schema2.title"/> contains a
+            <code>MyType</code> type definition.
+        </para>
+
+        <para>
+            For each global structure, union, type and function definition
+            generated from the XML schema binding to C within that namespace,
+            the defined prefix will be prepended to the defined type name. 
+        </para>
+
+        <para>
+            As an example, we define the following segment of XML schema with the
+            targetNamespace "http://foo.com/FooTypes".
+        </para>
+
+        <formalpara id="cwscore-bindings-schema1">
+            <title id="cwscore-bindings-schema1.title">FooTypes schema</title>
+
+            <para>
+                <programlisting ><![CDATA[<schema xmlns:targetNamespace="http://foo.com/FooTypes">
+ <complexType name="MyType">
+    <sequence>
+      <element name="MyInt" type="xsd:int"/>
+      <element name="MyString" type="xsd:string"/>
+    </sequence>
+  </complexType>
+</xsd:schema>]]></programlisting>
+            </para>
+        </formalpara>
+
+        <para>
+            And another with the targetNamespace "http://bar.com/BarTypes".
+        </para>
+
+        <formalpara id="cwscore-bindings-schema2">
+            <title id="cwscore-bindings-schema2.title">BarTypes schema</title>
+
+            <para>
+                <programlisting><![CDATA[<schema xmlns:targetNamespace="http://bar.com/BarTypes">
+    <complexType name="MyType">
+        <sequence>
+            <xsd:element name="MyQN" type="xsd:QName"/>
+        </sequence>
+    </complexType>
+</xsd:schema>]]></programlisting>
+            </para>
+        </formalpara>
+
+        <para>
+            If the C bindings were generated without namespace to prefix mappings,
+            the structures would look like this.
+        </para>
+
+        <formalpara id="cwscore-bindings-listing1">
+            <title id="cwscore-bindings-listing1.title">C bindings for <link linkend="cwscore-bindings-schema1" endterm="cwscore-bindings-schema1.title"/></title>
+            <para>
+                <programlisting>typedef struct MyType_s
+{
+    xsd_int MyInt;
+    xsd_string MyString;
+} MyType;</programlisting>
+            </para>
+        </formalpara>
+
+        <formalpara id="cwscore-bindings-listing2">
+            <title id="cwscore-bindings-listing2.title">C bindings for <link linkend="cwscore-bindings-schema1" endterm="cwscore-bindings-schema2.title"/></title>
+            <para>
+                <programlisting>typedef struct MyType_s
+{
+    xsd_QName MyQN;
+} MyType;</programlisting>
+            </para>
+        </formalpara>
+
+        <para>
+            Although the generated bindings in <link linkend="cwscore-bindings-listing1" endterm="cwscore-bindings-listing1.title"/>
+            and <link linkend="cwscore-bindings-listing2" endterm="cwscore-bindings-listing2.title"/> will be defined in
+            different header files, there will be obvious name clashes if both are
+            included into the same source file, or when the linker attempts to link
+            two object files with these types defined. In order to prevent these
+            clashes when binding to C, a mapping table must be provided:
+        </para>
+
+        <figure>
+            <title>Mapping table for example schemas</title>
+
+            <programlisting>
+http://bar.com/BarTypes=bar_
+http://foo.com/FooTypes=foo_</programlisting>
+        </figure>
+
+        <para>
+            When this table is provided to the binding generator, the resulting
+            bindings will look like the following.
+        </para>
+
+    
+        <formalpara id="cwscore-bindings-listing1a">
+            <title id="cwscore-bindings-listing1a.title">C bindings for <link
+            linkend="cwscore-bindings-schema1"
+            endterm="cwscore-bindings-schema1.title"/> using the namespace to
+            prefix mapping.</title>
+
+            <para>
+                <programlisting>
+typedef struct foo_MyType_s
+{
+   xsd_int MyInt;
+    xsd_string MyString;
+} foo_MyType;</programlisting>
+            </para>
+        </formalpara>
+
+        <formalpara id="cwscore-bindings-listing2a">
+            <title id="cwscore-bindings-listing2a.title">C bindings for the
+            BarType namespace with Namespace to Prefix mapping.
+            </title>
+
+            <para>
+                <programlisting>
+typedef struct bar_MyType_s
+{
+xsd_QName MyQN;
+} bar_MyType;</programlisting>
+            </para>
+        </formalpara>
+
+        <para>
+            The prefixes that are pre-pended to the type definitions in
+            <link linkend="cwscore-bindings-listing1a"
+            endterm="cwscore-bindings-listing1a.title"/> and
+            <link linkend="cwscore-bindings-listing2a"
+            endterm="cwscore-bindings-listing2a.title"/> prevent name clashes
+            during compilation or object linking.
+        </para>
+    </sect1>
+
+    <sect1 id="cwscore-bindings-c14nrules">
+        <title>Canonicalization Rules</title>
+
+        <para>
+        XML Schema allows for characters in name definitions that will cause C
+        compilers to break. For example, an XML Schema type element definition
+        may have the name <emphasis>Foo-BarType</emphasis>, but mapping this to
+        C would result in a compiler error, since in C, <emphasis>-</emphasis>
+        is the mathematical symbol for subtraction. We dictate the following
+        rules when mapping names from XML schema to C:
+        </para>
+
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Hyphens: All instances of <emphasis>-</emphasis> become
+                    <emphasis>_</emphasis>.
+                </para>
+            </listitem>
+
+            <listitem>
+                <para>
+                    Spaces:All instances of <emphasis> </emphasis> become
+                    <emphasis>_</emphasis>.
+                </para>
+            </listitem>
+
+            <listitem>
+                <para>
+                    Language Keywords: All language keywords in C and C++ are capitalized.
+                    For example, <emphasis>register</emphasis> becomes
+                    <emphasis>Register</emphasis>.
+                </para>
+            </listitem>
+
+            <listitem>
+                <para>
+                    Attributes: Names of attributes get prefixed with
+                    <emphasis>_</emphasis> to prevent conflicts with element names.
+                </para>
+            </listitem>
+      </itemizedlist>
+    </sect1>
+
+    <sect1 id="cwscore-bindings-types">
+        <title>Types</title>
+
+        <para>
+            In the binding generation model we've chosen, each type defined in
+            XML Schema gets a number of structures, functions and files
+            generated for it. In each of the following sub-sections, we
+            explain the different components of generated bindings for a XML
+            schema type.
+        </para>
+
+        <sect2 id="cwscore-bindings-types.files">
+            <title>Generated Files</title>
+            
+            <para>
+                Each XML Schema type will generate a header file, a header file for
+                the array of that type, and a source file. This breakdown allows
+                us to include the generated type in other header and source files
+                as appropriate. The format of the files is as follows:
+            </para>
+
+            <itemizedlist>
+                <listitem>
+                    <simpara>
+                        <emphasis>Header</emphasis>:
+                        <filename>&lt;prefix&gt;&lt;typename&gt;.h</filename>
+                    </simpara>
+                </listitem>
+
+                <listitem>
+                    <simpara>
+                        <emphasis>Header Array:</emphasis>
+                        <filename>&lt;prefix&gt;&lt;typename&gt;_array.h</filename>
+                    </simpara>
+                </listitem>
+
+                <listitem>
+                    <simpara>
+                        <emphasis>Source:</emphasis>
+                        <filename>&lt;prefix&gt;&lt;typename&gt;.c</filename>
+                    </simpara>
+                </listitem>
+            </itemizedlist>
+
+            <para>
+                In the above, <emphasis>&lt;prefix&gt;</emphasis> refers to the
+                namespace prefix mapped from the namespace for that type in the
+                Namespace to Prefix mapping file.
+                <emphasis>&lt;typename&gt;</emphasis> refers to the local name
+                of the type.
+            </para>
+
+            <para>
+                As an example, the type <emphasis>MyType</emphasis> with
+                namespace prefix <emphasis>bar_</emphasis> will generate the
+                files: <filename>bar_MyType.h</filename>,
+                <filename>bar_MyType_array.h</filename>, and
+                <filename>bar_MyType.c</filename>.
+            </para>
+
+        </sect2>
+
+        <sect2 id="cwscore-bindings-types.structures">
+            <title>Generated Structures</title>
+            
+            <para>
+                Types in XML Schema are defined using
+                <emphasis>complexType</emphasis> or
+                <emphasis>simpleType</emphasis> elements. The structures and
+                types generated in C for each defined schema type varies based
+                on the content of the schema type. In general though, a
+                typedef exists for each XML schema type, defining a type in C
+                that maps directly to the type in XML schema. This is done for
+                convenience and consistency with other types. The format of
+                the typedef is the typename as a canonicalized and prefixed
+                form of the XML Schema type name. The general format of the
+                typedef is:
+            </para>
+
+            <programlisting>typedef ...  &lt;nsprefix&gt;&lt;typename&gt;;</programlisting>
+
+            <para>
+                The content of the generated type varies based on the
+                parameters of the XML schema type. Some of the types are
+                structs, some are just typedefs from other types, while some
+                are more complex combinations of structs and unions. The rules
+                for generation of the structures are described in the next
+                sub-sections.
+            </para>
+
+            <sect3 id="cwscore-bindings-types.complex">
+                <title>ComplexType Definitions</title>
+
+                <para>
+                    For complexType definitions, a struct is defined containing
+                    the complexType's contents. The format of the generated
+                    struct is as follows:
+                </para>
+
+                <programlisting><![CDATA[
+struct <nsprefix><typename>_s
+{
+<field1_type>[_(o|array)]        <field1_element>;
+<field2_type>[_(o|array)]        <field2_element>;
+...
+};
+
+typedef <nsprefix><typename>_s<nsprefix><typename>;]]></programlisting>
+
+                <para>
+                    Where in the above, the field elements are expanded to:
+                </para>
+
+                <programlisting><![CDATA[
+<field?_type> = <type?_nsprefix><type?_localname>
+<field?_element> = <element?_nsprefix><element?_localname>]]></programlisting>
+
+                <para>
+                    For example, the following complexType definition in XML Schema:
+                </para>
+
+                <programlisting><![CDATA[
+<complexType name="Foo-BarType">
+    <sequence>
+        <element name="Foo" type="xsd:string"/>
+        <element name="Bar" type="xsd:int"/>
+    </sequence>
+</complexType>]]></programlisting>
+                <para>
+                    gets mapped to the following struct definition in C:
+                </para>
+
+                <programlisting>struct Foo_BarType_s
+{
+    xsd_string    Foo;
+    xsd_int       Bar;
+};
+
+typedef  Foo_BarType_s Foo_BarType;</programlisting>
+                <para>
+                    Each field element type definition of the generated struct
+                    also contains optional <emphasis>_o</emphasis> or
+                    <emphasis>_array</emphasis> suffixes. If an element field
+                    within a type definition contains
+                    <emphasis>minOccurs="0"</emphasis> and
+                    <emphasis>maxOccurs="1"</emphasis>, then the element is
+                    considered optional, and is given the
+                    <emphasis>_o</emphasis> suffix. If the element field contains
+                    <emphasis>minOccurs > 1</emphasis>, then the element is
+                    considered an array, and is given the
+                    <emphasis>_array</emphasis> suffix. For example, we modify
+                    the above complexType definition to this:
+                </para>
+                
+                <programlisting><![CDATA[
+<complexType name="Foo-BarType">
+    <sequence>
+    <element name="Foo" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <element name="Bar" type="xsd:int" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>]]></programlisting>
+
+                <para>
+                    The generated struct now becomes:
+                </para>
+
+                <programlisting>
+struct Foo_BarType_s
+{
+    xsd_string_o    Foo;
+    xsd_int_array   Bar;
+};
+
+typedef Foo_BarType_s Foo_BarType;</programlisting>
+
+                <para>
+                    For descriptions on what these optional and array types
+                    look like, see the following subsections on Optional Types
+                    and Arrays.
+                </para>
+            </sect3>
+
+            <sect3 id="cwscore-bindings-types.simple">
+                <title>SimpleType Definitions</title>
+
+                <para>
+                    For simpleType definitions, if the simpleType contains no
+                    attribute definitions, then the typedef of the XML Schema
+                    type is generated from the base primitive type that the
+                    simpleType represents.
+                </para>
+
+                <programlisting><![CDATA[
+typedef <base_nsprefix><base_typename> <nsprefix><typename>;]]></programlisting>
+
+                <para>
+                    For example, with the following simpleType definition:
+                </para>
+
+                <programlisting><![CDATA[
+<simpleType name="BazType">
+    <restriction base="xsd:base64Binary"/>
+</simpleType>]]></programlisting>
+
+                <para>
+                    The typedef in this case would be:
+                </para>
+
+                <programlisting>
+typedef xsd_base64Binary BazType;</programlisting>
+
+                <para>
+                    If the simpleType contains attribute definitions, then the
+                    type must be mapped to a C struct, so that the attributes
+                    can be maintained as well. In this case the struct
+                    contains a <emphasis>base_value</emphasis> field, which
+                    is an instance of the primitive type of simpleType's
+                    restriction base. For example, the simpleType can be:
+                </para>
+
+                <programlisting><![CDATA[
+<simpleType name="FozType">
+    <restriction base="xsd:base64Binary"/>
+    <attribute name="Boz" type="xsd:string"/>
+    <attribute name="Coz" type="xsd:int"/>
+    <attribute name="Doz" type="xsd:string"/>
+</simpleType>]]></programlisting>
+                
+                <para>
+                    This type definition gets mapped to the following C
+                    structure and typedef:
+                </para>
+                
+                <programlisting>struct FozType_s
+{
+    xsd_base64Binary base_value;
+    xsd_string       Boz;
+    xsd_int          Coz;
+    xsd_string       Doz;
+};
+
+typedef FozType_s FozType;</programlisting>
+
+            </sect3>
+
+            <sect3 id="cwscore-bindings-types.optional">
+                <title>Optional Types</title>
+                
+                <para>
+                    For each type, independent of how it is defined, a type
+                    that represents an optional instance is also defined:
+                </para>
+
+                <programlisting>
+typedef Foo_BarType * Foo_BarType_o;</programlisting>
+
+                <para>
+                    This allows for values of instances to be optional, by
+                    either setting the value of such an instance to null, or
+                    initializing it to be non-null. This is useful for members
+                    of other types that are declared to have
+                    <emphasis>minOccurs=0</emphasis>.
+                </para>
+            </sect3>
+
+            <sect3 id="cwscore-bindings-types.array">
+                <title>Array Types</title>
+
+                <para>
+                    For each type, independent of how it is defined, a type
+                    that represents an array of that type is also defined:
+                </para>
+
+                <programlisting>
+typedef Foo_BarType_array_s
+{
+    struct Foo_BarType_s *    elements;
+    int                       length;
+} Foo_BarType_array;</programlisting>
+
+                <para>
+                    This allows for multiple values to exist as a single
+                    instance for a given member of a type. This is useful for
+                    members that have <emphasis>maxOccurs &gt; 1</emphasis>.
+                    This type is defined in the
+                    <filename>Foo_BarType_array.h</filename> header.
+                </para>
+
+                <para>
+                    Note that each of these different generated types will be
+                    defined in their assocated header files:
+                    <filename>Foo_BarType.h</filename>, <filename>BazType.h</filename>,
+                    <filename>FozType.h</filename>.
+                </para>
+
+            </sect3>
+
+            <sect3 id="cwscore-bindings-types.restrictions">
+                <title>Restrictions, Extensions and Choice</title>
+
+                <para>
+                    TODO
+                </para>
+            </sect3>
+        </sect2>
+
+        <sect2 id="cwscore-bindings-functions">
+            <title>Generated Functions</title>
+            
+            <para>
+                For the generated C structures defined for a given type, a set
+                of utility functions are also generated. These functions
+                are:
+            </para>
+
+            <sect3 id="cwscore-bindings-functions.init">
+                <title>Initialization</title>
+
+                <para>
+                    The following generated functions perform initialization of
+                    a generated type:
+                </para>
+
+                <sect4 id="cwscore-bindings-functions.init.contents">
+                    <title>Initialize Contents</title>
+
+                    <programlisting><![CDATA[
+globus_result_t
+<nsprefix><typename>_init_contents(
+    <typename> *                                  instance)]]></programlisting>
+                    
+                    <formalpara>
+                        <title>Parameters:</title>
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>instance</emphasis> - pointer to the
+                                        variable to be initialized.
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return Value:</title>
+                        
+                        <para>
+                            globus_result_t - a globus return value. If this
+                            initialize succeeds, the value will be
+                            <code>GLOBUS_SUCCESS</code>, otherwise an error
+                            object reference will be returned.  See the globus
+                            error API for further info.
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This function allows variable instances of types to be
+                        defined, and initializes the contents of those
+                        variables to null values. This is useful for local
+                        variable definitions, such as those that might be
+                        passed as input parameters to operations. For the
+                        <emphasis>Foo-BarType</emphasis> defined in the
+                        previous sub-section, the init contents function will
+                        be:
+
+                        <programlisting>
+globus_result_t
+Foo_BarType_init_contents(
+    Foo_BarType *    instance);
+</programlisting>
+                    </para>
+                </sect4>
+
+                <sect4 id="cwscore-bindings-functions.init.pointer">
+                    <title>Initialize Pointer</title>
+
+                    <programlisting><![CDATA[globus_result_t
+<nsprefix><typename>_init(
+    <typename> **   instance);]]></programlisting>
+
+                    <formalpara>
+                        <title>Parameters:</title>
+                        
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>instance</emphasis> - the
+                                        reference to the pointer to be
+                                        initialized
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return Value:</title>
+
+                        <para>
+                            globus_result_t - a globus return value. If this
+                            initialize succeeds, the value will be
+                            GLOBUS_SUCCESS, otherwise an error object reference
+                            will be returned.  See the globus error API for
+                            further info.
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This function allows variable instances of
+                        pointers-to-types to be allocated without using C
+                        memory allocation functions directly. This is useful
+                        for variables that must exist outside the scope where
+                        they are defined, or for optional instances or array
+                        elements. The example _init declaration for the
+                        <emphasis>Foo-BarType</emphasis> is:
+
+                        <programlisting>
+globus_result_t
+Foo_BarType_init(
+    Foo_BarType **   instance);
+</programlisting>
+                    </para>
+                </sect4>
+            </sect3>
+
+            <sect3 id="cwscore-bindings-functions.destroy">
+                <title>Destruction</title>
+                
+                <para>
+                    The following generated functions perform destruction of a
+                    generated type:
+                </para>
+
+                <sect4 id="cwscore-bindings-functions.destroy.contents">
+                    <title>Destroy Contents</title>
+
+                    <programlisting>
+void
+&lt;nsprefix&gt;&lt;typename&gt;_destroy_contents(
+    &lt;typename&gt; *        instance);
+</programlisting>
+
+                    <formalpara>
+                        <title>Parameters:</title>
+
+                        <para>
+                            <emphasis>instance</emphasis> - the pointer to
+                            instance whose members are to be destroyed.
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return value:</title>
+                        
+                        <para>
+                            None
+                        </para>
+                    </formalpara>
+
+
+                    <para>
+                        The destroy_contents function provides a convenient
+                        method of destruction for all the members of an
+                        instance. This function steps through the members of
+                        &lt;typename&gt; and calls the associated destruction
+                        functions for those members. An associated
+                        init_contents function will likely have been called
+                        previously. The example declaration is:
+
+                        <programlisting>
+void
+Foo_BarType_destroy_contents(
+    Foo_BarType *       instance);</programlisting>
+
+                        This function can be called for locally declared
+                        variable instances that you want to be sure don't have
+                        any memory allocated members.
+                    </para>
+                </sect4>
+                <sect4 id="cwscore-bindings-functions.destroy.pointer">
+                    <title>Destroy Pointer</title>
+
+                    <programlisting>
+void
+&lt;nsprefix&gt;&lt;typename&gt;_destroy(
+    &lt;typename&gt; *      instance);</programlisting>
+                    
+                    <formalpara>
+                        <title>Parameters:</title>
+                        
+                        <para>
+                            <emphasis>instance</emphasis> - the pointer to be
+                            destroyed. The members of the instance pointed to
+                            are destroyed first
+                        </para>
+                    </formalpara>
+        
+                    <formalpara>
+                        <title>Return Value:</title>
+
+                        <para>
+                            None
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This function allows a pointer-to-type instance to be
+                        deallocated conveniently. Most of the time, this will
+                        be called on an instance that was previously allocated
+                        with the associated <emphasis>init</emphasis> function.
+                        This function does the same thing as
+                        <emphasis>destroy_contents</emphasis> function defined
+                        above, but also deallocates the memory associated with
+                        the pointer.
+                    </para>
+                </sect4>
+            </sect3>
+
+            <sect3 id="cwscore-bindings-functions.copy">
+                <title>Duplication</title>
+
+                <para>
+                    The following generated functions perform duplication of a
+                    generated type:
+                </para>
+
+                <sect4 id="cwscore-bindings-functions.copy.contents">
+                    <title>Copy Contents</title>
+
+                    <programlisting>
+globus_result_t
+&lt;nsprefix&gt;&lt;typename&gt;_copy_contents(
+    &lt;typename&gt; *       dest,
+    &lt;typename&gt; *       src);</programlisting>
+
+                    <formalpara>
+                        <title>Parameters:</title>
+                        
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>dest</emphasis> - the
+                                        destination instance that contains the
+                                        copied contents.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>src</emphasis> - the instance
+                                        to copy.
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return Value:</title>
+                        
+                        <para>
+                            <emphasis>globus_result_t</emphasis> - a globus
+                            return value. If this copy succeeds, the value will
+                            be GLOBUS_SUCCESS, otherwise an error object
+                            reference will be returned.  See the globus error
+                            API for further info.
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This function copies the contents of src to the
+                        contents of dest using the associated copy function for
+                        each member. The <emphasis>Foo-BarType</emphasis>
+                        example declaration is:
+
+                        <programlisting>
+globus_result_t
+Foo_BarType_copy_contents(
+    Foo_BarType *       dest,
+    Foo_BarType *       src);</programlisting>
+                    </para>
+                </sect4>
+
+                <sect4 id="cwscore-bindings-functions.copy.pointer">
+                    <title>Copy Pointer</title>
+
+                    <programlisting>
+globus_result_t
+&lt;nsprefix&gt;&lt;typename&gt;_copy(
+&lt;typename&gt; **       dest,
+&lt;typename&gt; *        src);</programlisting>
+    
+                    <formalpara>
+                        <title>Parameters:</title>
+
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>dest</emphasis> - the
+                                        reference to the pointer to be
+                                        initialized and copied to.
+                                    </simpara>
+                                </listitem>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>src</emphasis> - the instance to copy
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return Value:</title>
+
+                        <para>
+                            <emphasis>globus_result_t</emphasis> - a globus
+                            return value. If this copy succeeds, the value will
+                            be GLOBUS_SUCCESS, otherwise an error object
+                            reference will be returned. See the globus error
+                            API for further info.
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This function first allocates a pointer for the new
+                        instance, and then copies the contents of src over to
+                        the new pointer instance. dest is dereferenced and set
+                        to that new pointer.
+                    </para>
+                </sect4>
+            </sect3>
+
+            <sect3 id="cwscore-bindings-functions.serialize">
+                <title>Serialization</title>
+
+                <para>
+                    The following generated functions perform serialization of
+                    the generated type.
+                </para>
+
+                <sect4 id="cwscore-bindings-functions.serialize.contents">
+                    <title>Serialize Contents</title>
+
+                    <programlisting><![CDATA[
+globus_result_t
+<nsprefix><typename>_serialize_contents(
+    xsd_QName *                         element_name,
+    <typename> *                        instance,
+    globus_soap_message_handle_t        message,
+    globus_xsd_element_options_t        options);]]></programlisting>
+
+                    <formalpara>
+                        <title>Parameters:</title>
+
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>element_name</emphasis> - because
+                                        only the contents are being serialized, this
+                                        parameter is ignored, but kept as part of the
+                                        function signature for consistency. It should
+                                        be NULL.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>instance</emphasis> - the
+                                        instance whose contents (fields) are to be
+                                        serialized
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>message</emphasis> - the soap
+                                        message handle to serialize the instance
+                                        to.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>options</emphasis>> - options
+                                        that control the behavior of
+                                        serialization
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return value:</title>
+
+                        <para>
+                            <emphasis>globus_result_t</emphasis> - a globus
+                            return value. If this serialization succeeds, the
+                            value will be GLOBUS_SUCCESS, otherwise an error
+                            object reference will be returned. See the globus
+                            error API for further info.
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This function serializes the contents of instance to
+                        the message handle. In this function, the element_name
+                        parameter is ignored, but is included in the function
+                        declaration for consistency. The message must be refer
+                        to a valid soap message handle, with optional values
+                        set in options to modify the behavior of the
+                        serialization.
+                    </para>
+                </sect4>
+
+                <sect4 id="cwscore-bindings-functions.serialize.pointer">
+                    <title>Serialize</title>
+
+                    <programlisting><![CDATA[
+globus_result_t
+<nsprefix><typename>_serialize(
+    xsd_QName *                         element_name,
+    <typename> *                        instance,
+    globus_soap_message_handle_t        message,
+    globus_xsd_element_options_t        options);]]></programlisting>
+
+                    <formalpara>
+                        <title>Parameters:</title>
+
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>element_name</emphasis> the QName
+                                        of the outermost element of the serialized
+                                        instance. This can be any valid QName.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>instance</emphasis> - the
+                                        instance whose contents (fields) are to be
+                                        serialized.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>message</emphasis> - the soap
+                                        message handle to serialize the instance
+                                        to.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>options</emphasis> - options that
+                                        control the behavior of serialization.
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return Value:</title>
+                        
+                        <para>
+                            <emphasis>globus_result_t</emphasis> - a globus
+                            return value. If this serialization succeeds, the
+                            value will be GLOBUS_SUCCESS, otherwise an error
+                            object reference will be returned. See the globus
+                            error API for further info.
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This function serializes the instance to the message
+                        handle.
+                    </para>
+                </sect4>
+            </sect3>
+
+            <sect3 id="cwscore-bindings-functions.deserialize">
+                <title>Deserialization</title>
+
+                <para>
+                    These generated functions perform deserialization of the
+                    generated type:
+                </para>
+
+                <sect4 id="cwscore-bindings-functions.deserialize.contents">
+                    <title>Deserailize Contents</title>
+                    
+                    <programlisting><![CDATA[globus_result_t
+<nsprefix><typename>_deserialize_contents(
+    xsd_QName *                         element_name,
+    <typename> *                        instance,
+    globus_soap_message_handle_t        message,
+    globus_xsd_element_options_t        options);]]></programlisting>
+
+                    <formalpara>
+                        <title>Parameters:</title>
+
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>element_name</emphasis> -
+                                        because only the contents are being
+                                        deserialized, this parameter is
+                                        ignored, but kept as part of the
+                                        function signature for consistency.  It
+                                        should be NULL.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>instance</emphasis> - the
+                                        instance whose contents (fields) are to
+                                        be deserialized. This parameter is
+                                        filled in, so the previous values of
+                                        the members are overwritten. A valid
+                                        instance should probably only be passed
+                                        in directly after being initialized
+                                        with init_contents or init. If this
+                                        function succeeds, the contents of this
+                                        field must be destroyed by the caller.
+                                    </simpara>
+                                </listitem>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>message</emphasis> - the soap
+                                        message handle to deserialize the
+                                        instance to.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>options</emphasis> - options
+                                        that control the behavior of
+                                        deserialization
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return Value:</title>
+                        
+                        <para>
+                            <emphasis>globus_result_t</emphasis>> - a globus
+                            return value. If this deserialization succeeds, the
+                            value will be GLOBUS_SUCCESS, otherwise an error
+                            object reference will be returned. See the globus
+                            error API for further info.
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This function deserializes the contents of the type
+                        &lt;typename&gt; from the message handle into the
+                        instance. In this function, the element_name is
+                        ignored, but is included in the function declaration
+                        for consistency.
+                    </para>
+                </sect4>
+
+                <sect4 id="cwscore-bindings-functions.deserialize.">
+                    <title>Deserialize</title>
+
+                    <programlisting><![CDATA[globus_result_t
+<nsprefix><typename>_deserialize(
+    xsd_QName *                         element_name,
+    <typename> *                        instance,
+    globus_soap_message_handle_t        message,
+    globus_xsd_element_options_t        options);]]></programlisting>
+
+                    <formalpara>
+                        <title>Parameters:</title>
+                        
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>element_name</emphasis> - this is
+                                        a QName instance that should be the
+                                        expected value for the outermost element of
+                                        the XML serialized content for this
+                                        instance. If this value does not match that
+                                        outermost error, the return value will be
+                                        an error object reference.  The value of
+                                        this field can be NULL, in which case, the
+                                        outermost element can be anything.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>instance</emphasis> - the
+                                        instance whose contents (fields) are to be
+                                        deserialized. This parameter is filled in,
+                                        so the previous values of the members are
+                                        overwritten. A valid instance should
+                                        probably only be passed in directly after
+                                        being initialized with init_contents or
+                                        init. If this function succeeds, the
+                                        contents of this field must be destroyed by
+                                        the caller.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>message</emphasis> - the soap
+                                        message handle to deserialize the instance
+                                        to.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>options</emphasis> - options
+                                        that control the behavior of
+                                        deserialization.
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>>Return Value:</title>
+
+                        <para>
+                            <emphasis>globus_result_t</emphasis> - a globus
+                            return value. If this deserialization succeeds, the
+                            value will be GLOBUS_SUCCESS, otherwise an error
+                            object reference will be returned. See the globus
+                            error API for further info.
+                        </para>
+                    </formalpara>
+                    
+                    <para>
+                        This function deserializes the type &lt;typename&gt;
+                        from the message handle into the instance. The
+                        element_name is the expected value of the outermost
+                        element for the XML component of this message.
+                    </para>
+                </sect4>
+                
+                <sect4 id="cwscore-bindings-functions.deserialize.pointer">
+                    <title>Deserialize Pointer</title>
+
+                    <programlisting><![CDATA[globus_result_t
+<nsprefix><typename>_deserialize_pointer(
+    xsd_QName *                                 element_name,
+    <typename> **                               instance,
+    globus_soap_message_handle_t                message,
+    globus_xsd_element_options_t                options);]]></programlisting>
+
+                    <formalpara>
+                        <title>Parameters</title>
+
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>element_name</emphasis> -
+                                        this is a QName instance that should be
+                                        the expected value for the outermost
+                                        element of the XML serialized content
+                                        for this instance. If this value does
+                                        not match that outermost error, the
+                                        return value will be an error
+                                        object reference. The value of this
+                                        field can be NULL, in which case,
+                                        the outermost element can be
+                                        anything.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>instance</emphasis> - the
+                                        reference to pointer whose contents
+                                        (fields) are to be deserialized. A
+                                        valid pointer is first allocated, then
+                                        filled in.  This field is dereferenced
+                                        and set to that pointer. If this
+                                        function succeeds, the instance this
+                                        field points to may be NULL (signifying
+                                        the serialized content for this type
+                                        did not exist in the message). If it is
+                                        non-null, it must be destroyed by the
+                                        caller.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>message</emphasis> - the soap
+                                        message handle to deserialize the
+                                        instance from.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>options</emphasis> - options
+                                        that control the behavior of
+                                        deserialization
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return Value:</title>
+                        
+                        <para>
+                            <emphasis>globus_result_t</emphasis> - a globus
+                            return value. If this deserialization succeeds, the
+                            value will be GLOBUS_SUCCESS, otherwise an error
+                            object reference will be returned. See the globus
+                            error API for further info.
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This function allows for deserialization of elements
+                        that are optionally supplied in the serialized form of
+                        the XML message (usually only useful for arrays and
+                        optional fields: _o). If the outermost element exists,
+                        the deserialization of this type takes place, and the
+                        instance pointed to will be filled in. If the
+                        outermost element doesn't exist, the instance pointed
+                        to will be set to NULL, and the function will return
+                        successfully.
+                    </para>
+                </sect4>
+            </sect3>
+        </sect2>
+
+        <sect2 id="cwscore-bindings-globaltypes">
+            <title>Global Type Variables</title>
+
+            <para>
+                Each generated type in the C bindings includes generated global
+                variables that provide information about that type. These
+                global variables are useful primarily for marshalling and
+                demarshalling of extensibility elements. The type information
+                provided by each type's global variable allows for direct
+                comparison at runtime of the type info to determine the actual
+                type of an extensibility element. Also, the QName global
+                variable is also used as a key into a registry of types
+                maintained by the process. This allows the type lookup for
+                extensibility elements to happen naturally. The format of the
+                two global variables defined for each type are:
+            </para>
+
+            <formalpara>
+                <title>QName</title>
+                
+                <para>
+                An instance of type <type>xsd_QName</type> defining the
+                qualified name for the type (the definition of the
+                xsd_QName type is defined in the next section). It
+                contains the XML Schema namespace and local name
+                for the type.
+
+                    <programlisting><![CDATA[xsd_QName <nsprefix><typename>_qname =
+{
+    "<Namespace of type>",
+    "<local name of type>"
+};]]></programlisting>
+                </para>
+            </formalpara>
+
+            <para>
+                For example, if the <type>Foo-BarType</type> were defined in
+                the <emphasis>http://foobar</emphasis> namespace, the generated
+                QName variable would be:
+
+                <programlisting>xsd_QName Foo_BarType_qname =
+{
+    "http://foobar",
+    "Foo-BarType"
+};</programlisting>
+            </para>
+
+            <formalpara>
+                <title>Type Info</title>
+                
+                <para>
+                    An instance of the type <type>globus_xsd_type_info_t</type>
+                    defining the functions used to perform initialization,
+                    copying, and marshalling. The definition of the
+                    globus_xsd_type_info_t type is (taken from
+                    globus_xsd_type_info.h):
+
+                    <programlisting>
+struct globus_xsd_type_info_s
+{
+    xsd_QName *                        type;
+    globus_xsd_serialize_func_t        serialize;
+    globus_xsd_deserialize_func_t      deserialize;
+    globus_xsd_init_func_t             initialize;
+    globus_xsd_destroy_func_t          destroy;
+    globus_xsd_copy_func_t             copy;
+    globus_xsd_init_contents_func_t    initialize_contents;
+    globus_xsd_destroy_contents_func_t destroy_contents;
+    globus_xsd_copy_contents_func_t    copy_contents;
+    size_t                             type_size;
+    globus_xsd_array_push_func_t       push;
+    globus_xsd_type_info_t             contents_info;
+    globus_xsd_type_info_t             array_info;
+};</programlisting>
+                </para>
+            </formalpara>
+
+            <para>
+                This is similar to virtual tables in C++, except the type
+                information is held outside the actual type definition. The
+                format of the type info variable for a given type is:
+
+                <programlisting><![CDATA[
+struct globus_xsd_type_info_s <nsprefix><typename>_info =
+{
+    &<nsprefix><typename>,
+    <nsprefix><typename>_serialize_wrapper,
+    <nsprefix><typename>_deserialize_wrapper,
+    <nsprefix><typename>_init_wrapper,
+    <nsprefix><typename>_destroy_wrapper,
+    <nsprefix><typename>_copy_wrapper,
+    <nsprefix><typename>_init_contents_wrapper,
+    <nsprefix><typename>_destroy_contents_wrapper,
+    <nsprefix><typename>_copy_contents_wrapper,
+    sizeof(<nsprefix><typename>),
+    <nsprefix><typename>_array_push_wrapper,
+    &<nsprefix><typename>_contents_info,
+    &<nsprefix><typename>_array_info
+};]]></programlisting>
+            </para>
+
+            <para>
+                The <code>_wrapper</code> function pointers are nearly
+                identical to the non-wrapper versions, except that void * is
+                used in place of the actual type pointer to allow the function
+                signatures to match. In other words, the wrapper form of
+                deserialize is:
+
+                <programlisting>globus_result_t
+&lt;nsprefix&gt;&lt;typename&gt;_deserialize_wrapper(
+    xsd_QName *                         element,
+    void *                              value,
+    globus_soap_message_handle_t        message,
+    globus_xsd_element_options_t        options);</programlisting>
+            </para>
+
+            <para>
+                Following with our <type>Foo-BarType</type> example, the info
+                variable definition would be:
+
+                <programlisting>
+globus_xsd_type_info_t Foo_BarType_info =
+{
+    &amp;Foo_BarType_qname,
+    Foo_BarType_serialize_wrapper,
+    Foo_BarType_deserialize_wrapper,
+    Foo_BarType_init_wrapper,
+    Foo_BarType_destroy_wrapper,
+    Foo_BarType_copy_wrapper,
+    ...
+}</programlisting>
+            </para>
+        </sect2>
+
+        <sect2 id="cwscore-bindings-primitivetypes">
+            <title>Primitive Types</title>
+
+            <para>
+                XML Schema defines a set of primitive types to represent
+                different data formats. In order to maintain consistency, we
+                define mappings to C primitive types, and include typedefs of
+                the XSD primitives in C form. The following typedefs are
+                defined in associated
+                <filename>xsd_&lt;typename&gt;.h</filename> header files.
+            </para>
+
+            <table align="center">
+              <title>Primitive Type Bindings</title>
+                <tgroup cols="3">
+                    <thead>
+                        <row>
+                            <entry>Type Name</entry>
+                            <entry>Header File</entry>
+                            <entry>Type Definition</entry>
+                        </row>
+                    </thead>
+                    <tbody>
+                        <row>
+                            <entry><type>any</type></entry>
+                            <entry><filename>xsd_any.h</filename></entry>
+                            <entry>
+                                <programlisting>
+typedef struct xsd_any_s
+{
+    globus_xsd_type_registry_t     registry;
+    globus_xsd_type_info_t         any_info;
+    xsd_QName *                    element;
+    void *                         value;
+} xsd_any;</programlisting>
+                            </entry>
+                        </row>
+                        <row>
+                            <entry><type>anyAttributes</type></entry>
+                            <entry><filename>xsd_anyAttributes.h</filename></entry>
+                            <entry>
+                                <programlisting>
+typedef globus_hashtable_t xsd_anyAttributes;</programlisting>
+                            </entry>
+                        </row>
+                        <row>
+                            <entry><type>anyType</type></entry>
+                            <entry><filename>xsd_anyType.h</filename></entry>
+                            <entry>
+                                <programlisting>
+typedef struct xsd_anyType_s
+{
+    globus_xsd_type_registry_t registry;
+    globus_xsd_type_info_t     any_info;
+    void *                     value;
+} xsd_anyType;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>anyURI</type></entry>
+                            <entry><filename>xsd_anyURI.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef char * xsd_anyURI</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>base64Binary</type></entry>
+                            <entry><filename>xsd_base64Binary.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef struct 
+{
+        char *          value;
+        size_t          length;
+} xsd_base64Binary;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>boolean</type></entry>
+                            <entry><filename>xsd_boolean.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef int xsd_boolean;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>byte</type></entry>
+                            <entry><filename>xsd_byte.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef char xsd_byte;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>date</type></entry>
+                            <entry><filename>xsd_date.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef struct tm xsd_date;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>dateTime</type></entry>
+                            <entry><filename>xsd_dateTime.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef struct tm xsd_dateTime;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>decimal</type></entry>
+                            <entry><filename>xsd_decimal.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef float xsd_decimal;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>double</type></entry>
+                            <entry><filename>xsd_double.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef double xsd_double;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>duration</type></entry>
+                            <entry><filename>xsd_duration.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef struct tm xsd_duration;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>float</type></entry>
+                            <entry><filename>xsd_float.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef float xsd_float;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>hexBinary</type></entry>
+                            <entry><filename>xsd_hexBinary.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef struct
+{
+    char *        value;
+    size_t        length;
+} xsd_hexBinary;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>ID</type></entry>
+                            <entry><filename>xsd_ID.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef char * xsd_ID;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>int</type></entry>
+                            <entry><filename>xsd_int.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef int32_t xsd_int;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>integer</type></entry>
+                            <entry><filename>xsd_integer.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef BIGNUM * xsd_integer;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>language</type></entry>
+                            <entry><filename>xsd_language.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef char * xsd_language;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>long</type></entry>
+                            <entry><filename>xsd_long.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef int64_t xsd_long;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>negativeInteger</type></entry>
+                            <entry><filename>xsd_negativeInteger.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef BIGNUM * xsd_negativeInteger;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>NCName</type></entry>
+                            <entry><filename>xsd_NCName.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef char * xsd_NCName;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>nonNegativeInteger</type></entry>
+                            <entry><filename>xsd_nonNegativeInteger.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef BIGNUM * xsd_nonNegativeInteger;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>nonPositiveInteger</type></entry>
+                            <entry><filename>xsd_nonPositiveInteger.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef BIGNUM * xsd_nonPositiveInteger;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>positiveInteger</type></entry>
+                            <entry><filename>xsd_positiveInteger.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef BIGNUM * xsd_positiveInteger;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>QName</type></entry>
+                            <entry><filename>xsd_QName.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef struct
+{
+    char *        Namespace;
+    char *        local;
+} xsd_QName;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>short</type></entry>
+                            <entry><filename>xsd_short.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef int16_t xsd_short;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>string</type></entry>
+                            <entry><filename>xsd_string.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef char * xsd_string;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>time</type></entry>
+                            <entry><filename>xsd_time.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef struct tm xsd_time;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>unsignedByte</type></entry>
+                            <entry><filename>xsd_unsignedByte.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef unsigned char xsd_unsignedByte;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>unsignedInt</type></entry>
+                            <entry><filename>xsd_unsignedInt.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef uint32_t xsd_unsignedInt;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>unsignedLong</type></entry>
+                            <entry><filename>xsd_unsignedLong.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef uint64_t xsd_unsignedLong;</programlisting>
+                            </entry>
+                        </row>
+
+                        <row>
+                            <entry><type>unsignedShort</type></entry>
+                            <entry><filename>xsd_unsignedShort.h</filename></entry>
+                            <entry>
+                                <programlisting>typedef uint16_t xsd_unsignedShort;</programlisting>
+                            </entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </table>
+        </sect2>
+
+        <sect2 id="cwscore-bindings-elements">
+            <title>Elements</title>
+            <para>
+                In XML Schema, top-level elements are declared that provide a
+                QName useful for serializing types. While no structures or new
+                types are generated by the bindings for elements (as they are
+                for types), we do generate files for each element containing
+                global variables that provide runtime information about the
+                element. The files generated for each element are:
+
+                <itemizedlist>
+                    <listitem>
+                        <simpara>
+                            <emphasis>Header:</emphasis>
+                            <filename>&lt;nsprefix&gt;&lt;elementname&gt;.h</filename>
+                        </simpara>
+                    </listitem>
+                    <listitem>
+                        <simpara>
+                            <emphasis>Source:</emphasis>
+                            <filename>lt;nsprefix&gt;&lt;elementname&gt;.c</filename>
+                        </simpara>
+                    </listitem>
+                </itemizedlist>
+            </para>
+
+            <para>
+                So for the following XML schema with a namespace to prefix
+                mapping of "http://foobar=foo_":
+
+                <programlisting><![CDATA[
+<schema xmlns:foo="http://foobar"
+        xmlns:targetNamespace="http://foobar">
+    <element name="Bar" type="foo:Foo-BarType"/>
+</schema>]]></programlisting>
+
+                The files generated for element Bar would be
+                <filename>foo_Bar.h</filename> and
+                <filename>foo_Bar.c</filename>. The contents of element's
+                header file include the QName and type info defined for that
+                element. Defining these global variables for each element
+                allows us to insert elements into the type registry as a method
+                for runtime deserialization of unknown types (wildcards). We
+                describe the format of these two global variables.
+            </para>
+
+            <formalpara>
+                <title>QName</title>
+                
+                <para>
+                    An instance of type <type>xsd_QName</type> defining the
+                    qualified name for the type. It contains the XML Schema
+                    namespace and loca name for the type.
+
+                    <programlisting>xsd_QName &lt;nsprefix&gt;&lt;elementname&gt;_qname =
+{
+    "&lt;Namespace of element&gt;",
+    "&lt;local name of element&gt;"
+};</programlisting>
+                </para>
+            </formalpara>
+
+            <para>
+                For example, if the <emphasis>Foo</emphasis> element were
+                defined in the <emphasis>"http://foobar"</emphasis>
+                namespace, the generated QName variable would be:
+
+                <programlisting>xsd_QName foo_Bar_qname =
+{
+    "http://foobar"
+    "Bar"
+};</programlisting>
+            </para>
+
+            <formalpara>
+                <title>Type Info</title>
+                
+                <para>
+                    An instance of the type <type>globus_xsd_type_info_t</type>
+                    defining the functions used to perform initialization,
+                    copying, and marshalling for the element. The type info for
+                    elements contains the same function pointers as those of
+                    the element's type, but it contains the QName of the
+                    element instead of the type. So he format of the type info
+                    variable for a given type is:
+
+                    <programlisting><![CDATA[
+struct globus_xsd_type_info_s <nsprefix><elementname>_info =
+{
+    &amp;<nsprefix><elementname>,
+    <nsprefix><typename>_serialize_wrapper,
+    <nsprefix><typename>_deserialize_wrapper,
+    <nsprefix><typename>_init_wrapper,
+    <nsprefix><typename>_destroy_wrapper,
+    <nsprefix><typename>_copy_wrapper,
+    <nsprefix><typename>_init_contents_wrapper,
+    <nsprefix><typename>_destroy_contents_wrapper,
+    <nsprefix><typename>_copy_contents_wrapper,
+    sizeof(<nsprefix><typename>),
+    <nsprefix><typename>_array_push_wrapper,
+    &amp;<nsprefix><typename>_contents_info,
+    &amp;<nsprefix><typename>_array_info
+};]]></programlisting>
+                </para>
+            </formalpara>
+
+            <para>
+                So the example type info global variable definition for the Bar
+                element in <filename>foo_Bar.h</filename> would be:
+
+                <programlisting>
+struct globus_xsd_type_info_s foo_Bar_info =
+{
+    &amp;foo_Bar_qname,
+    foo_Foo_BarType_serialize_wrapper,
+    foo_Foo_BarType_deserialize_wrapper,
+    foo_Foo_BarType_init_wrapper,
+    foo_Foo_BarType_destroy_wrapper,
+    ...
+};</programlisting>
+            </para>
+        </sect2>
+    </sect1>
+
+    <sect1 id="cwscore-bindings-client">
+        <title>Client Bindings</title>
+        
+        <para>
+            WSDL provides the operation definition as the method for
+            message passing from client to web service. Mapping the
+            operation to C naturally includes a stub function that will
+            perform the operation invocation. In this bindings
+            specification, we provide such a function definition, allowing
+            the client-side developer to easily interact with a service. 
+        </para>
+
+        <para>
+            The bindings specification also provides nonblocking stub
+            functions for each operation as well. These are functions that
+            allow the client to take advantage of the Globus Toolkit's
+            nonblocking event handling architecture, and make many client
+            invocations simultaneously.
+        </para>
+
+        <sect2 id="cwscore-bindings-client.files">
+            <title>Generated Files</title>
+
+            <para>
+                The client-side bindings containing the stubs to allow
+                invocation of service operations are generated in a set of
+                source and header files, which are compiled into C static
+                and dynamic libraries for linkage with client programs.
+                For each service definition in WSDL, the following client
+                interface files are generated:
+
+                <itemizedlist>
+                    <listitem>
+                        <formalpara>
+                            <title>Header:</title>
+                            <para>
+                                <filename>&lt;service_prefix&gt;&lt;service_name&gt;_client.h</filename>
+                            </para>
+                        </formalpara>
+                    </listitem>
+                    <listitem>
+                        <formalpara>
+                            <title>Library:</title>
+                            <para>
+                                <filename>&lt;libprefix&gt;&lt;service_prefix&gt;&lt;service_name&gt;_client_bindings_&lt;flavor&gt;.&lt;libsuffix&gt;</filename>
+                            </para>
+                        </formalpara>
+                    </listitem>
+                </itemizedlist>
+            </para>
+
+            <para>
+                Note that for the client library, the format of the library
+                name greatly depends on the platform being used, the flavor
+                type compiled with the Globus Toolkit, and other
+                user-defined parameters.
+            </para>
+        </sect2>
+
+        <sect2 id="cwscore-bindings-client.module">
+            <title>Client Module</title>
+            
+            <para>
+                The client bindings include a module definition that must be
+                activated before client binding functions can be called, and
+                deactivated once all client bindings functions have completed.
+                The module name for a client is:
+
+                <programlisting>&lt;SERVICE_NAME&gt;_MODULE</programlisting>
+
+            </para>
+
+            <para>
+                The module activation and deactivation for the
+                CounterService would look like this:
+                <programlisting>
+rc = globus_module_activate(COUNTERSERVICE_MODULE);
+if(rc != GLOBUS_SUCCESS)
+{
+    ...
+}
+rc = globus_module_deactivate(COUNTERSERVICE_MODULE);
+if(rc != GLOBUS_SUCCESS)
+{
+    ...
+}
+</programlisting>
+            </para>
+
+        </sect2>
+
+        <sect2 id="cwscore-bindings-client.handle">
+            <title>Client Handle</title>
+
+            <para>
+                Each of the stub functions defined takes as its first
+                parameter the client handle, which is an abstraction of the
+                configuration and message properties of the service. This
+                reduces the overall number of parameters passed to the
+                stub, and provides abstraction and containment of
+                configurable parameters for a service. The client handle
+                is generated for each service definition in WSDL. The
+                format of the handle is as follows:
+
+                <programlisting>typedef &lt;service_prefix&gt;&lt;service_name&gt;_client_handle_s *
+        &lt;service_prefix&gt;&lt;service_name&gt;_client_handle_t;</programlisting>
+
+            </para>
+
+            <para>
+                Notice that the handle is actually a pointer to an
+                internally defined struct, and as such can be set to NULL.
+                A set of functions are also generated as part of the
+                client bindings to manage the lifetime of the client
+                handle.
+            </para>
+
+            <sect3 id="cwscore-bindings-client.handle.init">
+                <title>Client Handle Initialize</title>
+
+                <programlisting><![CDATA[globus_result_t
+<service_prefix><service_name>_client_handle_init(
+        <service_prefix><service_name>_client_handle_t *                handle,
+        globus_soap_message_attr_t                                      attrs,
+        globus_handler_chain_t                                          handlers);]]></programlisting>
+
+                <formalpara>
+                    <title>Parameters:</title>
+
+                    <para>
+                        <itemizedlist>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>handle</emphasis> - the client
+                                    handle to be initialized. The pointed to
+                                    handle must be freed by the caller.
+                                </simpara>
+                            </listitem>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>attrs</emphasis> - the attributes
+                                    to set on the handle. The attributes are
+                                    copied to the handle, so the caller may
+                                    destroy this parameter at any time after
+                                    the invocation. May be NULL.
+                                </simpara>
+                            </listitem>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>handlers</emphasis> - a handler
+                                    chain for user-defined management and
+                                    control of message marshalling. The chain
+                                    is copied to the client handle. May be
+                                    NULL.
+                                </simpara>
+                            </listitem>
+                        </itemizedlist>
+                    </para>
+                </formalpara>
+
+                <formalpara>
+                    <title>Return value:</title> 
+
+                    <para>
+                        <emphasis>globus_result_t</emphasis> - a globus return
+                        value. If this deserialization succeeds, the value
+                        will be GLOBUS_SUCCESS, otherwise an error object
+                        reference will be returned. See the globus error API
+                        for further info.
+                    </para>
+                </formalpara>
+            </sect3>
+
+            <sect3 id="cwscore-bindings-client.handle.destroy">
+                <title>Client Handle Destroy</title>
+
+                <programlisting><![CDATA[void
+<service_prefix><service_name>_client_handle_destroy(
+    <service_prefix><service_name>_client_handle_t handle);]]></programlisting>
+
+                <formalpara>
+                    <title>Parameters:</title>
+
+                    <para>
+                        <itemizedlist>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>handle</emphasis> - the client
+                                    handle to be destroyed.
+                                </simpara>
+                            </listitem>
+                        </itemizedlist>
+                    </para>
+                </formalpara>
+
+                <formalpara>
+                    <title>Return value:</title>
+
+                    <para>
+                        NONE
+                    </para>
+                </formalpara>
+
+                <para>
+                    The client handle is generally used throughout the
+                    lifetime of service invocations, and must not be
+                    destroyed until the final service invocation has
+                    completed. This happens when either the blocking call
+                    returns or the nonblocking callback is called.
+                </para>
+            </sect3>
+        </sect2>
+
+        <sect2 id="cwscore-bindings-client.stubs">
+            <title>Client Stubs</title>
+
+            <para>
+                The client bindings generated from WSDL include stub functions
+                for each operation that can be called by clients to invoke
+                operations on services. This section defines the format of the
+                generated bindings as well as how they are used. For each
+                operation defined in a service, four groups of stub functions
+                are generated.  The four are: blocking, nonblocking
+                request/response, nonblocking request, and nonblocking
+                response. For each of these four functions, there are EPR
+                counterparts that allow an operation to invoked based on an
+                EndpointReference instead of an endpoint URI. We detail the EPR
+                counterparts at the end of this section.
+            </para>
+
+            <sect3 id="cwscore-bindings-client.blockingop">
+                <title>Blocking Operation</title>
+
+                <programlisting>
+<lineannotation>For a request-response operation</lineannotation>
+<![CDATA[
+globus_result_t
+<portType_name>_<operation_name>(
+    <service_name>_client_handle_t              handle,
+    const char *                                endpoint,
+    <operation_input_type> *                    <input_name>,
+    <operation_output_type> **                  <output_name>,
+    <operation_fault_type> *                    fault_type,
+    xsd_any **                                  fault]);]]>
+
+<lineannotation>For a request-only operation</lineannotation>
+<![CDATA[
+globus_result_t
+<portType_name>_<operation_name>(
+    <service_name>_client_handle_t              handle,
+    const char *                                endpoint,
+    <operation_input_type> *                    <input_name>);]]></programlisting>
+
+                <formalpara>
+                    <title>Parameters:</title>
+
+                    <para>
+                        <itemizedlist>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>handle</emphasis> - the client
+                                    handle to use for the invocation.
+                                </simpara>
+                            </listitem>
+
+                            <listitem>
+                                <simpara>
+                                    <emphasis>endpoint</emphasis> - a URI
+                                    string that specifies the endpoint of the
+                                    service.
+                                </simpara>
+                            </listitem>
+                            
+                            <listitem>
+                                <simpara>
+                                    <emphasis>&lt;input_name&gt;</emphasis> -
+                                    the operation's input parameter defined in
+                                    WSDL. This parameter has to be a pointer
+                                    to&lt;operation_input_type&gt;, which is
+                                    the type defined in WSDL by the input
+                                    message part. The input parameter should
+                                    already be initialized and filled in with
+                                    appropriate values for marshalling.
+                                </simpara>
+                            </listitem>
+
+                            <listitem>
+                                <simpara>
+                                    <emphasis>&lt;output_name&gt;</emphasis> -
+                                    the operation's output parameter defined in
+                                    WSDL. This parameter has to be a referenced
+                                    pointer to &lt;operation_output_type&gt;,
+                                    which is the type defined in WSDL by the
+                                    output message part. This parameter will
+                                    only exist in the function if the operation
+                                    is <emphasis>request-response</emphasis>.
+                                    <emphasis>One-way</emphasis> operations do
+                                    not have output parameters. If the return
+                                    value is GLOBUS_SUCCESS, this parameter
+                                    will be filled in by the function based on
+                                    the values returned in the response from
+                                    the service, and the allocated pointer to
+                                    &lt;operation_output_type&gt; must be
+                                    destroyed with a call to
+                                    &lt;operation_output_type&gt;_destroy().
+                                    If a non-zero value is returned by this
+                                    function, the value of this parameter is
+                                    undefined.
+                                </simpara>
+                            </listitem>
+
+                            <listitem>
+                                <simpara>
+                                    <emphasis>fault_type</emphasis> - the
+                                    operation's fault type defined in WSDL.
+                                    This parameter will only exist in the
+                                    function declaration for
+                                    <emphasis>request-response</emphasis>
+                                    operations. One-way operations do not have
+                                    faults. See the Faults section for possible
+                                    values of this parameter. If the response
+                                    from the service is not a fault message,
+                                    the value of this parameter will be zero
+                                    (NOFAULT). If the response from the service
+                                    is a fault, the value of this parameter
+                                    will be appropriate enumerated value of the
+                                    fault type.
+                                </simpara>
+                            </listitem>
+
+                            <listitem>
+                                <simpara>
+                                    <emphasis>fault</emphasis> -a reference to
+                                    the extensibility element containing the
+                                    deserialized fault. This parameter will
+                                    only exist in the function declaration for
+                                    <emphasis>request-response</emphasis>
+                                    operations.  <emphasis>One-way</emphasis>
+                                    operations do not have faults. The value of
+                                    this parameter is either NULL (if the
+                                    response message is not a fault), or the
+                                    deserialized contents of the fault message.
+                                    See the Wildcards section for how to
+                                    examine xsd_any types. If a fault message
+                                    was returned in the response from the
+                                    service, this parameter will be non-null,
+                                    and must be freed by the caller with a call
+                                    to xsd_any_destroy().
+                                </simpara>
+                            </listitem>
+                        </itemizedlist>
+                    </para>
+                </formalpara>
+
+                <formalpara>
+                    <title>Return value:</title>
+
+                    <para>
+                        <emphasis>globus_result_t</emphasis> - a globus return
+                        value. If this operation invocation succeeds, the value
+                        will be GLOBUS_SUCCESS, otherwise an error object
+                        reference will be returned. An error object can either
+                        be caused by a fault message from the service, or by a
+                        client side error in the marshalling and transport of
+                        the message. See the globus error API for further info.
+                    </para>
+                </formalpara>
+
+                <para>
+                    The blocking function serializes the input to a soap
+                    message, sends the invocation of the operation request
+                    to the service, and waits for the response message.
+                    Once the response message is received, it deserializes
+                    it into the output parameter and returns. If the
+                    return value is GLOBUS_SUCCESS, the response parameter
+                    pointed to must be destroyed. If the return value is
+                    non-zero, the response may have been a fault, and can
+                    be checked with the fault_type and fault parameters.
+                    If fault is non-null, it must be freed with
+                    xsd_any_destroy once the caller is finished with it.
+                    If the return value is non-zero, but the fault_type is
+                    NOFAULT, then a client error occurred during message
+                    invocation.
+                </para>
+
+                <para>
+                    As an example, we define the CounterService with the
+                    following operation:
+
+                        <programlisting><![CDATA[<xsd:types>
+    <xsd:element name="add" type="xsd:int"/>
+    <xsd:element name="addResponse" type="xsd:int"/>
+</xsd:types>
+
+<wsdl:message name="AddInputMessage">
+    <wsdl:part name="parameters" element="tns:add"/>
+</wsdl:message>
+<wsdl:message name="AddOutputMessage">
+  <wsdl:part name="parameters" element="tns:addResponse"/>
+</wsdl:message>
+<wsdl:portType name="CounterPortType" wsrp:ResourceProperties="tns:CounterRP">
+
+<wsdl:portType name="Counter">
+    <wsdl:operation name="add">
+           <wsdl:input message="tns:AddInputMessage"/>
+       <wsdl:output message="tns:AddOutputMessage"/>
+    </wsdl:operation>
+</wsdl:portType>]]></programlisting>
+                </para>
+
+                <para>
+                    The generated blocking function for the add operation
+                    is:
+                    <programlisting>globus_result_t
+Counter_add(
+    CounterService_client_handle_t      handle,
+    xsd_int *                           add,
+    xsd_int **                          addResponse,
+    Counter_fault_type_t                fault_type,
+    xsd_any *                           fault);</programlisting>
+                </para>
+            </sect3>
+
+            <sect3 id="cwscore-bindings-client.nonblockingop">
+                <title>Nonblocking Operation</title>
+
+                <para>
+                    Here we define the functions for making nonblocking
+                    invocations to a web service. These functions use the
+                    globus callback event handling code to register events
+                    that trigger callbacks on completion. The events in
+                    this case are a request being sent, or a response being
+                    received. We define two callbacks to match these
+                    events.
+                </para>
+
+                <sect4 id="cwscore-bindings-client.nonblockingop.reqcallback">
+                    <title>Request Callback Template</title>
+
+                    <programlisting><![CDATA[void
+(* <portType_name>_<operation_name>_request_callback_func_t) (
+    <service_prefix><service_name>_client_handle_t    handle,
+    void *                                            user_args,
+    globus_result_t                                   result);]]></programlisting>
+                    <formalpara>
+                        <title>Parameters:</title>
+
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>handle</emphasis> - the
+                                        client handle used to make the
+                                        invocation. If this handle was only
+                                        used for this invocation, it can be
+                                        freed once this callback is called.
+                                        Multiple invocations with the same
+                                        handle will require reference counting.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>user_args</emphasis> - a
+                                        pointer containing the user arguments
+                                        passed in during the register call.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>result</emphasis> - the
+                                        result of the completed request. If an
+                                        error occurred during marshalling or
+                                        sending of the request, this result
+                                        will be non-zero. Otherwise it will be
+                                        GLOBUS_SUCCESS.
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return value:</title>
+                        <para>
+                            NONE
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This callback template gives the signature of the
+                        function that must be defined by the user. This
+                        fuction is passed as the third argument to the
+                        &lt;portType&gt;_&lt;operation_name&gt;_register_request
+                        function. Once the request has been sent, this
+                        callback gets called.
+                    </para>
+                </sect4>
+
+                <sect4 id="cwscore-bindings-client.nonblockingop.respcallback">
+                    <title>Response Callback Template</title>
+
+                    <programlisting><![CDATA[void
+(* <portType_name>_<operation_name>_response_callback_func_t) (
+    <service_name>_client_handle_t                        handle,
+    void *                                                user_args,
+    globus_result_t                                       result,
+    const <operation_output_type> *                       <operation_output_name>,
+    <portType_name>_<operation_name>_fault_t              fault_type,
+    const xsd_any *                                       fault);]]></programlisting>
+                    <formalpara>
+                        <title>Parameters:</title>
+
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>handle</emphasis> - the
+                                        client handle used to make the
+                                        invocation. If this handle was only
+                                        used for this invocation, it can be
+                                        freed once this callback is called.
+                                        Multiple invocations with the same
+                                        handle will require reference counting.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>user_args</emphasis> - a
+                                        pointer containing the user arguments
+                                        passed in during the register call.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>result</emphasis> - the
+                                        result of the completed request. If an
+                                        error occurred during marshalling or
+                                        sending of the request, this result
+                                        will be non-zero. Otherwise it will be
+                                        GLOBUS_SUCCESS.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>&lt;operation_output_name&gt;</emphasis>
+                                        - the output parameter of the operation
+                                        filled in once the response is received
+                                        and deserialized. This needs to be
+                                        copied if the user wants to reference
+                                        it outside of the callback's scope. 
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>fault_type</emphasis> - the
+                                        fault type of the fault sent back in
+                                        the response. This will be _NOFAULT if
+                                        no fault occured.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>fault</emphasis> - a
+                                        reference to the extensibility element
+                                        containing the deserialized fault.  The
+                                        value of this parameter is either NULL
+                                        (if the response message is not a
+                                        fault), or the deserialized contents of
+                                        the fault message.  See the Wildcards
+                                        section for how to examine xsd_any
+                                        types. This needs to be copied if the
+                                        user wants to reference it outside of
+                                        the callback's scope. 
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return value:</title>
+
+                        <para>
+                            NONE
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        This callback template gives the signature of the
+                        function that must be defined by the user. This
+                        fuction is passed as the third argument to the
+                        &lt;portType&gt;_&lt;operation_name&gt;_register_request
+                        function. Once the request has been sent, this
+                        callback gets called.
+                    </para>
+                </sect4>
+
+                <sect4 id="cwscore-bindings-client.nonblockingop.reqresp">
+                    <title>Nonblocking Request/Response</title>
+
+                    <programlisting><![CDATA[globus_result_t
+<portType_name>_<operation_name>_register(
+    <service_name>_client_handle_t          handle,
+    <operation_input_type> *                <operation_input_name>,
+    <portType_name>_<operation_name>_response_callback_func_t
+                                            response_callback,
+    void *                                  user_args);]]></programlisting>
+                    <formalpara>
+                        <title>Parameters:</title>
+
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>handle</emphasis> - The
+                                        client handle to register the client
+                                        operation invocation on.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>endpoint</emphasis> - The URI
+                                        of the service to contact.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>&lt;operation_input_name&gt;</emphasis>
+                                        - The operation input pointer that
+                                        contains the structure to be serialized
+                                        as the request to the operation.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>response_callback</emphasis>
+                                        - The callback to be called once the
+                                        response is received and deserialized.
+                                        This function callback must match the
+                                        template
+                                        &lt;portType&gt;_&lt;operation_name&gt;_response_callback_func_t.
+                                    </simpara>
+                                </listitem>
+
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>user_args</emphasis> - The
+                                        user arguments passed directly to the
+                                        callback
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return value:</title>
+
+                        <para>
+                            <emphasis>globus_result_t</emphasis> - a globus
+                            return value. If this operation invocation
+                            succeeds, the value will be GLOBUS_SUCCESS,
+                            otherwise an error object reference will be
+                            returned. An error object can either be caused by
+                            a fault message from the service, or by a client
+                            side error in the marshalling and transport of the
+                            message. See the globus error API for further
+                            info.
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        The nonblocking function allows a client to register
+                        an operation invocation, so that other computation can
+                        take place while the response is being received.  Once
+                        the response is received, the callback is called.  In
+                        environments where the client bindings are installed
+                        with a non-threaded flavor, the user must poll for
+                        events to allow the message invocation to be processed.
+                        This is done with functions like globus_poll() or
+                        globus_cond_wait().  As an example, the asynchronous
+                        binding declaration for the CounterService_add
+                        operation and the response callback template is:
+
+                        <programlisting>globus_result_t
+CounterPortType_add_register(
+    CounterService_client_handle_t                 handle,
+    const char *                                   endpoint,
+    xsd_int *                                      add,
+    CounterPortType_add_response_callback_t        callback,
+    void *                                         user_args);</programlisting>
+                    </para>
+                </sect4>
+
+                <sect4 id="cwscore-bindings-client.nonblockingop.req">
+                    <title>Nonblocking Request</title>
+
+                    <programlisting><![CDATA[globus_result_t
+<portType_name>_<operation_name>_register_request(
+    <service_name>_client_handle_t      handle,
+    const char *                        endpoint,
+    <operation_input_type> *            <operation_input_name>,
+    <portType_name>_<operation_name>_request_callback_func_t
+                                        request_callback,
+    void *                              user_args);]]></programlisting>
+
+                    <formalpara>
+                        <title>Parameters:</title>
+                        
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>handle</emphasis> - The
+                                        client handle to register the client
+                                        operation invocation on.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>endpoint</emphasis> - The URI
+                                        of the service to invoke.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>&lt;operation_input_name&gt;</emphasis>
+                                        - The operation input pointer that
+                                        contains the structure to be serialized
+                                        as the request to the operation.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>request_callback</emphasis> -
+                                        The callback to be called once the
+                                        response is
+                                        received and deserialized. This function
+                                        callback must match the template
+                                        &lt;portType&gt;_&lt;operation_name&gt;_request_callback_func_t.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>user_args</emphasis> - The
+                                        user arguments passed directly to the
+                                        callback.
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return value:</title>
+
+                        <para>
+                            <emphasis>globus_result_t</emphasis> - a globus
+                            return value. If this operation invocation
+                            succeeds, the value will be GLOBUS_SUCCESS,
+                            otherwise an error object reference will be
+                            returned. An error object can either be caused by a
+                            fault message from the service, or by a client side
+                            error in the marshalling and transport of the
+                            message. See the globus error API for further info.
+                        </para>
+                    </formalpara>
+
+                    <para>
+                        The nonblocking request function allows a client to
+                        register an operation invocation, so that other
+                        computation can take place while the request is being
+                        serialized and sent. Once the request is fully sent,
+                        the callback is called. In environments where the
+                        client bindings are installed with a non-threaded
+                        flavor, the user must poll for events to allow the
+                        message request to be processed. This is done with
+                        functions like globus_poll() or globus_cond_wait().
+                        For the CounterService client, the declaration of the
+                        nonblocking request function for the add operation
+                        is:
+
+                        <programlisting>globus_result_t
+CounterPortType_add_register_request(
+    CounterService_client_handle_t                handle,
+    const char *                                  endpoint,
+    xsd_int *                                     add,
+    CounterPortType_add_request_callback_t        callback,
+    void *                                        user_args);</programlisting>
+                    </para>
+                </sect4>
+
+                <sect4 id="cwscore-bindings-client.nonblockingop.resp">
+                    <title>Nonblocking Response</title>
+
+                    <programlisting><![CDATA[globus_result_t
+<portType_name>_<operation_name>_register_response(
+    <service_name>_client_handle_t      handle,
+    <portType_name>_<operation_name>_response_callback_func_t
+                                        response_callback,
+    void *                              user_args);]]></programlisting>
+                    <formalpara>
+                        <title>Parameters:</title>
+                        
+                        <para>
+                            <itemizedlist>
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>handle</emphasis> - The
+                                        client handle to register the client
+                                        operation invocation on
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>response_callback</emphasis>
+                                        - The callback to be called once the
+                                        response is received and deserialized.
+                                        This function callback must match the
+                                        template
+                                        &lt;portType&gt;_&lt;operation_name&gt;_response_callback_func_t.
+                                    </simpara>
+                                </listitem>
+                                
+                                <listitem>
+                                    <simpara>
+                                        <emphasis>user_args</emphasis> - The
+                                        user arguments passed directly to the
+                                        callback.
+                                    </simpara>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </formalpara>
+
+                    <formalpara>
+                        <title>Return value:</title>
+
+                        <para>
+                            <emphasis>globus_result_t</emphasis> - a globus
+                            return value. If this operation invocation
+                            succeeds, the value will be GLOBUS_SUCCESS,
+                            otherwise an error object reference will be
+                            returned. An error object can either be caused by a
+                            fault message from the service, or by a client side
+                            error in the marshalling and transport of the
+                            message. See the globus error API for further info.
+                        </para>
+                    </formalpara>
+                    
+                    <para>
+                        The asynchronous response function allows a client to
+                        register a callback to be triggered when the response
+                        of a message invocation has been received and
+                        deserialized and is ready for processing. This allows
+                        other computation can take place while the response is
+                        being received. Once the response is received, the
+                        callback is called. In environments where the client
+                        bindings are installed with a non-threaded flavor, the
+                        user must poll for events to allow the message
+                        invocation to be processed. This is done with
+                        functions like globus_poll() or globus_cond_wait().
+                        For the CounterService client, the declaration of the
+                        asynchronous response function that receives the
+                        response from the add operation is:
+
+                        <programlisting>globus_result_t
+CounterPortType_add_register_response(
+    CounterService_client_handle_t                handle,
+    CounterPortType_add_response_callback_t       callback,
+    void *                                        user_args);</programlisting>
+                    </para>
+                </sect4>
+            </sect3>
+
+            <sect3 id="cwscore-bindings-client.eprstubs">
+                <title>EndpointReference Stubs</title>
+                
+                <para>
+                    As mentioned previously, each of the above stub functions
+                    also has an EPR counterpart. This allows a client to
+                    invoke a service operation based on an EndpointReference
+                    (actually a C representation of it) instead of an endpoint
+                    URI. This can be useful for clients that have received an
+                    EndpointReference from a previous operation, such as a
+                    resource factory call. We only provide the stub templates
+                    for the three EPR functions that will be generated for each
+                    operation, the parameters and behavior of these functions
+                    is the same as their non-EPR counterparts.
+                </para>
+
+                <programlisting>globus_result_t
+<lineannotation>For a one-way operation</lineannotation>
+<![CDATA[<porttype_name>_<operation_name>_epr(
+    <service_name>_client_handle_t      handle,
+    wsa_endpointreferencetype *         endpoint_reference,
+    <operation_input_type> *            <input_name>);]]>
+
+<lineannotation>For a request-response operation</lineannotation>
+<![CDATA[globus_result_t
+<portType_name>_<operation_name>_epr(
+    <service_name>_client_handle_t      handle,
+    wsa_EndpointReferenceType *         endpoint_reference,
+    <operation_input_type> *            <input_name>,
+    <operation_output_type> **          <output_name>,
+    <operation_fault_type> *            fault_type,
+    xsd_any **                          fault);
+
+globus_result_t
+    <portType_name>_<operation_name>_epr_register(
+    <service_name>_client_handle_t      handle,
+    wsa_EndpointReferenceType *         endpoint_reference,
+    <operation_input_type> *            <operation_input_name>,
+    <portType_name>_<operation_name>_response_callback_func_t
+                                        response_callback,
+    void *                              user_args);
+
+globus_result_t
+<portType_name>_<operation_name>_epr_register_request(
+    <service_name>_client_handle_t      handle,
+    wsa_EndpointReferenceType *         endpoint_reference,
+    <operation_input_type> *            <operation_input_name>,
+    <portType_name>_<operation_name>_request_callback_func_t
+                                        request_callback,
+    void *                              user_args);]]></programlisting>
+                <para>
+                    Notice that the <emphasis>register_response</emphasis> stub
+                    function does not have an EPR counterpart, because that
+                    stub just receives the response from the service after the
+                    request has been invoked. The only difference between
+                    these templates and the non-EPR versions is in the second
+                    parameter, where a pointer to a <type>wsa_EndpointReferenceType</type>
+                    is passed in instead of an endpoint URI string of the
+                    service. In most scenarios, the user won't have to create
+                    the endpoint_reference by hand. Instead, the
+                    endpoint_reference will likely be returned from a previous
+                    service invocation.
+                </para>
+            </sect3>
+        </sect2>
+    </sect1>
+
+    <sect1 id="cwscore-bindings-service">
+        <title>Service Bindings</title>
+
+        <para>
+            The implementation of a service consists of the parsing and
+            operation invocation code that is often called the skeletons,
+            as well as the service implementation itself. Because the
+            input and output parameters are defined only by the particular
+            service definition, and not necessarily known in advance, the
+            parsing of all the types and subtypes of the input and output
+            parameters must be contained with the service bindings
+            themselves. This allows us to separate the generated code that
+            is the service bindings from the state machine that handles
+            transport, basic message handling (SOAP), and service
+            invocations (the service container). The generated code for a
+            service can then easily be contained in a module, which we
+            describe in the following section.
+        </para>
+
+        <sect2 id="cwscore-bindings-service.modules">
+            <title>Service Module</title>
+            
+            <para>
+                In C, the functionality of a service as defined by WSDL and
+                the user's implementation is contained within a dynamic
+                module, that gets loaded and used as needed by the service
+                container. The service module is created from
+                parsing/invocation code (the generated skeletons) for the
+                service, and the actual service implementation. It gets
+                compiled into a dynamic library to be loaded at runtime.
+                The default name of the library is
+
+                <programlisting>
+lib&lt;service_name&gt;_&lt;flavor&gt;.&lt;suffix&gt;</programlisting>
+            </para>
+
+            <para>
+                This will get installed in a library sub-directory within the
+                Globus Toolkit's install directory. The sub-directory will
+                match the directory prefix of the endpoint for the service
+                defined in the WSDL.
+            </para>
+        </sect2>
+
+        <sect2 id="cwscore-bindings-service.files">
+            <title>Service Source Files</title>
+
+            <para>
+                The files generated for the service module from a WSDL
+                service definition are:
+                
+                <itemizedlist>
+                    <listitem>
+                        <simpara>
+                            <filename>&lt;service_name&gt;.h</filename>
+                            - contains fault type definitions for each
+                            operation used by both client and service, as
+                            well as QName declarations for each
+                            operation.
+                        </simpara>
+                    </listitem>
+                    <listitem>
+                        <simpara>
+                            <filename>&lt;service_name&gt;_internal_skeleton.h</filename>
+                            -  contains error and debugging macro
+                            definitions for the service implementation, to
+                            be used by the service implementer for
+                            debugging and returning errors.
+                        </simpara>
+                    </listitem>
+                    
+                    <listitem>
+                        <simpara>
+                            <filename>&lt;service_name&gt;_skeleton.h</filename>
+                            - contains the service impl function
+                            declarations that get implemented by the
+                            service implementer.
+                        </simpara>
+                    </listitem>
+                    
+                    <listitem>
+                        <simpara>
+                            <filename>&lt;service_name&gt;_module.c</filename>
+                            - contains the routing, marshalling, and
+                            invocation code that make up the service-side
+                            skeletons.
+                        </simpara>
+                    </listitem>
+                    
+                    <listitem>
+                        <simpara>
+                            <filename>&lt;service_name&gt;_skeleton.c</filename>
+                            - contains empty service implementation
+                            functions that must be filled in by the service
+                            implementer. NOTE: this file is poorly named.
+                            The "skeletons" are really contained within
+                            the &lt;service_name&gt;_module.c file, while
+                            this function contains the service
+                            implementation functions.
+                        </simpara>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </sect2>
+
+        <sect2 id="cwscore-bindings-service.impl">
+            <title>Service Implementation</title>
+
+            <para>
+                A service definition in WSDL contains operations that are
+                expected to perform some application-specific functionality.
+                This functionality is defined by the service implementer in the
+                service implementation functions. The functions themselves have
+                the following template.
+            </para>
+
+            <sect3 id="cwscore-bindings-service.init">
+                <title>Service Initialization</title>
+
+                <programlisting>globus_result_t
+&lt;service_name&gt;_init(
+globus_service_descriptor_t *    service_desc);</programlisting>
+
+                <formalpara>
+                    <title>Parameters:</title>
+                    
+                    <para>
+                        <itemizedlist>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>service_desc</emphasis> - The
+                                    global service descriptor variable
+                                    containing attributes about the service,
+                                    such as the service's handler chain. Any
+                                    fields that the implementer expects to be
+                                    setup during service invocation should be
+                                    initialized here.
+                                </simpara>
+                            </listitem>
+                        </itemizedlist>
+                    </para>
+                </formalpara>
+
+                <formalpara>
+                    <title>Return value:</title>
+                    
+                    <para>
+                        <emphasis>globus_result_t</emphasis> - a globus return
+                        value. If this operation invocation succeeds, the value
+                        will be GLOBUS_SUCCESS, otherwise an error object
+                        reference will be returned. An error object can either
+                        be caused by a fault message from the service, or by a
+                        client side error in the marshalling and transport of
+                        the message. See the globus error API for further info.
+                    </para>
+                </formalpara>
+
+                <para>
+                    The service init function is called once when the service
+                    module is activated. This is done before any service
+                    invocations. A common use for this function is loading any
+                    operation providers for the service. An empty function is
+                    generated by default (returning GLOBUS_SUCCESS), and should
+                    be filled in if the service implementer wishes to do
+                    something before any service invocations. An example
+                    service init function for the CounterService is:
+
+                    <programlisting>globus_result_t
+CounterService_init(
+    globus_service_descriptor_t *                 service_desc);</programlisting>
+                </para>
+
+            </sect3>
+
+            <sect3 id="cwscore-bindings-service.finalize">
+                <title>Service Finalize</title>
+
+                <programlisting>globus_result_t
+CounterService_finalize(
+globus_service_descriptor_t *                     service_desc);</programlisting>
+
+                <formalpara>
+                    <title>Parameters:</title>
+
+                    <para>
+                        <itemizedlist>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>service_desc</emphasis> - The
+                                    global service descriptor variable
+                                    containing attributes about the service,
+                                    such as the service's handler chain. Any
+                                    fields that the implementer initialized in
+                                    service init should be destroyed here.
+                                </simpara>
+                          </listitem>
+                        </itemizedlist>
+                    </para>
+                </formalpara>
+
+                <formalpara>
+                    <title>Return value:</title>
+                    
+                    <para>
+                        <emphasis>globus_result_t</emphasis> - a globus return
+                        value. If this operation invocation succeeds, the value
+                        will be GLOBUS_SUCCESS, otherwise an error object
+                        reference will be returned. An error object can either
+                        be caused by a fault message from the service, or by a
+                        client side error in the marshalling and transport of
+                        the message. See the globus error API for further info.
+                    </para>
+                </formalpara>
+
+                <para>
+                    The service finalize function is called once after all
+                    service invocations have completed, and the service
+                    container is shutting down. Any initialization/setup that
+                    takes place in the service init function should be cleaned
+                    up here.
+                </para>
+
+            </sect3>
+
+            <sect3 id="cwscore-bindings-service.opimpl">
+                <title>Operation Implementation</title>
+
+                <programlisting><![CDATA[globus_result_t
+<portType_name>_<operation_name>_impl(
+    globus_service_engine_t             engine,
+    globus_soap_message_handle_t        message,
+    globus_service_descriptor_t *       descriptor,
+    <operation_input_type> *            <input_name>,
+    <operation_output_type> *           <output_name>,
+    const char **                       fault_name,
+    void **                             fault);]]></programlisting>
+
+                <formalpara>
+                    <title>Parameters:</title>
+
+                    <para>
+                        <itemizedlist>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>engine</emphasis> - The service
+                                    engine that processes the service
+                                    invocations and manages the services
+                                    modules. This parameter can be useful for
+                                    accessing attributes on the service engine,
+                                    or contacting other services.
+                                </simpara>
+                            </listitem>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>message</emphasis> - The soap
+                                    message handle contains attributes and
+                                    parameters associated with the current
+                                    message request.  Also, attributes
+                                    associated with the message response can be
+                                    set on the handle as well.
+                                </simpara>
+                            </listitem>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>descriptor</emphasis> - The
+                                    service descriptor containing information
+                                    about the service, such as the base path of
+                                    the service, and the table of operation ids
+                                    to function pointers for operation
+                                    providers.
+                                </simpara>
+                            </listitem>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>&lt;input_name&gt;</emphasis> -
+                                    The input parameter that the client
+                                    serialized and sent. This parameter has
+                                    been deserialized by the service engine and
+                                    is ready for processing to compute the next
+                                    parameter.
+                                </simpara>
+                            </listitem>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>&lt;output_name&gt;</emphasis> -
+                                    The output parameter to be filled in by
+                                    this function. The service implementer
+                                    should assume that this parameter will be
+                                    serialized and passed back to the client,
+                                    so it must be filled in appropriately. The
+                                    service skeleton code will call
+                                    &lt;operation_output_type&gt;_destroy_contents
+                                    on this parameter once the function returns
+                                    and the output parameter is no longer
+                                    needed.
+                                </simpara>
+                            </listitem>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>fault_name</emphasis> - Allow a
+                                    fault to be passed back to the client
+                                    instead of filling in the
+                                    &lt;output_name&gt;. The fault name should
+                                    be set with the
+                                    &lt;portType_name&gt;&lt;operation_name&gt;FaultString()
+                                    macro and the fault enum value. If a fault
+                                    is returned, the &lt;output_name&gt;
+                                    parameter is expected to be undefined and
+                                    its contents will not be destroyed. This
+                                    dereferenced string pointed to by this
+                                    parameter should be set to NULL if no fault
+                                    occurs.
+                                </simpara>
+                            </listitem>
+                            <listitem>
+                                <simpara>
+                                    <emphasis>fault</emphasis> - The allocated
+                                    and filled in fault structure. If the
+                                    fault_name element is non-null, this
+                                    parameter should point to an allocated
+                                    instance of they fault type, filled in with
+                                    the values of the fault.  This parameter is
+                                    expected to be non-null if fault_name is
+                                    non-null, but will not cause an error if
+                                    only the fault_name is set to the fault
+                                    string of the fault.
+                                </simpara>
+                            </listitem>
+                        </itemizedlist>
+                    </para>
+                </formalpara>
+
+                <formalpara>
+                    <title>Return value:</title>
+                    
+                    <para>
+                        <emphasis>globus_result_t</emphasis> - a globus return
+                        value. If this operation invocation succeeds, the value
+                        must be GLOBUS_SUCCESS, otherwise an error object
+                        reference must be returned. The service implementer
+                        should use either
+                        &lt;service_name&gt;_&lt;operation_name&gt;_error() or
+                        &lt;service_name&gt;_&lt;operation_name&gt;_chain_error()
+                        to create the error result. If the return value is not
+                        GLOBUS_SUCCESS, a fault will be returned to the client.
+                    </para>
+                </formalpara>
+
+                <para>
+                    The operation impl function is the meat and potatoes of the
+                    service. The service implementer should fill in this
+                    function with the code that performs the appropriate
+                    transactions for the service operation, and set the output
+                    parameter or fault parameters as appropriate. If an
+                    unrecoverable error occurs, the result returned should be
+                    non-null (GLOBUS_SUCCESS). In this case a fault will be
+                    returned.
+                </para>
+            </sect3>
+        </sect2>
+    </sect1>
+
+    <sect1 id="cwscore-bindings-faults">
+        <title>Faults</title>
+        
+        <para>
+            Each operation defined in WSDL can also have a set of
+            associated fault types that may be returned from the service.
+            The service implementer may choose to return faults either due
+            to invalid processing of the input parameter or due to failures
+            in computation for the operation. The generated bindings in C
+            include an enum type of the valid fault types available for the
+            operation, as well as strings of the fault typenames. The
+            bindings also provide a mapping table from enum value to fault
+            typename string. The enum type for a particular service
+            operation looks like this:
+
+            <programlisting><![CDATA[typedef enum
+{
+    <PORTTYPE_NAME>_<OPERATION_NAME>_NOFAULT,
+    <PORTTYPE_NAME>_<OPERATION_NAME>_UNKNOWN_FAULT,
+    <PORTTYPE_NAME>_<OPERATION_NAME>_<FAULT1_NAME>,
+    ...
+    <PORTTYPE_NAME>_<OPERATION_NAME>_<FAULTN_NAME>
+} <portType_name>_<operation_name>_fault_t;]]></programlisting>
+        </para>
+
+        <para>
+            This type is used in the client stubs as a parameter in which to
+            return the fault type. The enum values can also be used by the
+            service to access the fault typename strings which must be returned
+            by the service impl function if a fault has occurred.  In order to
+            access the fault typename string based on the fault type enum
+            value, the following macro is defined for each operation:
+
+            <programlisting>&lt;portType_name&gt;_&lt;operation_name&gt;FaultString(FAULT_TYPE)</programlisting>
+        </para>
+
+        <para>
+            This macro can be called with the enum value of the appropriate
+            fault type to get the fault typename as a string as the result.
+            As an example of the fault type generated for a service
+            operation, we list the fault type definition for the
+            CounterService's Destroy operation:
+
+            <programlisting>typedef enum
+{
+    COUNTERPORTTYPE_DESTROY_NOFAULT = 0,
+    COUNTERPORTTYPE_DESTROY_UNKNOWN_FAULT = 1,
+    COUNTERPORTTYPE_DESTROY_RESOURCEUNKNOWNFAULT,
+    COUNTERPORTTYPE_DESTROY_RESOURCENOTDESTROYEDFAULT
+} CounterPortType_Destroy_fault_t;</programlisting>
+        </para>
+    </sect1>
+
+    <sect1 id="cwscore-bindings-errors">
+        <title>Errors</title>
+
+        <para>
+            The bindings generated for each operation include macro definitions
+            for the creation of globus_result_t error instances, which can
+            returned from service implementation functions. These should
+            be used when the operation's service implementation is unable
+            to proceed due to invalid input parameters or some other
+            failure specific to the service. The two macros defined and
+            made available in the service implementation file are as
+            follows:
+        </para>
+
+        <sect2 id="cwscore-bindings-errors.root">
+            <title>Root Error</title>
+
+            <programlisting><![CDATA[globus_result_t
+<portType_name>_<operation_name>_error(MESSAGE);]]></programlisting>
+
+            <para>
+                The MESSAGE parameter passed to this macro must be a
+                null-terminated string containing a description of the
+                error.
+            </para>
+        </sect2>
+
+        <sect2 id="cwscore-bindings-errors.nonroot">
+            <title>Non-Root Error</title>
+
+            <programlisting><![CDATA[globus_result_t
+<portType_name>_<operation_name>_chain_error(RESULT, MESSAGE);]]></programlisting>
+
+            <para>
+                The RESULT parameter passed as the first argument to this macro
+                must be a valid globus_result_t error reference, created by
+                some other globus API function. The MESSAGE parameter must be
+                a null-terminated string containing a description of the error.
+                This macro is useful in scenarios where a globus API function
+                is called and it returns a faulure result (not equal to
+                GLOBUS_SUCCESS). This allows that error reference to be
+                chained and returned by the service implementation.
+            </para>
+        </sect2>
+    </sect1>
