@@ -1,20 +1,22 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
 <section><title>Configuration overview</title>
+    <para>RLS configuration involves statically-defined, system settings as defined in the RLS configuration file (see <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>), settings changed temporarally at run-time using the RLS Admin tool (see <xref linkend="globus-rls-admin"/> <computeroutput>-C option value</computeroutput> command), and finally LRC-to-RLI and RLI-to-RLI updates configured using the RLS Admin tool (see <xref linkend="globus-rls-admin"/> <computeroutput>-a</computeroutput>, <computeroutput>-A</computeroutput>, <computeroutput>-d</computeroutput> commands).</para>
+</section> <!-- Configuration overview -->
 
-    <para>Configuration settings for the RLS are specified in the <computeroutput>globus-rls-server.conf</computeroutput> file.</para>
+<section><title>Server configuration file (globus-rls-server.conf)</title>
 
-    <para>If the configuration file is not specified on the command line (see the <link linkend="globus-rls-server"><computeroutput>-c</computeroutput></link> option) then it is looked for in both: </para>
+    <para>Configuration settings for the RLS are specified in the <computeroutput>globus-rls-server.conf</computeroutput> file. If the configuration file is not specified on the command line (see the <link linkend="globus-rls-server"><computeroutput>-c</computeroutput></link> option) then it is looked for in both: </para>
     <itemizedlist>
         <listitem><simpara><computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput></simpara></listitem>
         <listitem><simpara><computeroutput>/usr/local/etc/globus-rls-server.conf </computeroutput> if <computeroutput>GLOBUS_LOCATION</computeroutput> is not set</simpara></listitem>
     </itemizedlist>
     <note><para>Command line options always override items found in the configuration file.</para></note>
     <para>The configuration file is a sequence of lines consisting of a keyword, whitespace, and a value. Comments begin with <computeroutput>#</computeroutput> and end with a newline.</para>
-</section> <!-- Configuration overview -->
+</section> <!-- Configuration file -->
 
 <section><title>Basic configuration</title>
-    <para>Review the server configuration file <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput> and change any options you want. The server man page <computeroutput>globus-rls-server(8)</computeroutput> has complete details on all the options.</para>
+    <para>Review the server configuration file <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput> and change any options you want. The server man page <computeroutput>globus-rls-server(8)</computeroutput> has complete details on all the options. The complete details are also provided later in this section.</para>
     <para>A minimal configuration file for both an LRC and RLI server would be:</para>
     <screen>
 # Configure the database connection info
@@ -35,31 +37,74 @@
 # RE matching grid-mapfile users or DNs from x509 certs
 ...
     </screen>
-    <para>The server uses a host certificate to identify itself to clients. By default this certificate is located in the files <computeroutput>/etc/grid-security/hostcert.pem</computeroutput> and <computeroutput>/etc/grid-security/hostkey</computeroutput>.pem. Host certificates have a distinguished name of the form <computeroutput>/CN=host/FQDN</computeroutput>. If the host you plan to run the RLS server on does not have a host certificate, you must obtain one from your Certificate Authority. The RLS server must be run as the same user who owns the host certificate files (typically root). The location of the host certificate files may be specified in <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>:</para>
+</section> <!-- Basic configuration -->
+
+<section><title>Host key and certificate configuration</title>
+    <para>The server uses a host certificate to identify itself to clients. By default this certificate is located in the files <computeroutput>/etc/grid-security/hostcert.pem</computeroutput> and <computeroutput>/etc/grid-security/hostkey.pem</computeroutput>. Host certificates have a distinguished name of the form <computeroutput>/CN=host/FQDN</computeroutput>. If the host you plan to run the RLS server on does not have a host certificate, you must obtain one from your Certificate Authority. The RLS server must be run as the same user who owns the host certificate files (typically root). The location of the host certificate files may be specified in <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>:</para>
     <screen>
 rlscertfile     path-to-cert-file   # default /etc/grid-security/hostcert.pem
 rlskeyfile      path-to-key-file    # default /etc/grid-security/hostkey.pem
     </screen>
-    <para>It is possible to run the RLS server without authentication, by starting it with the <computeroutput>-N</computeroutput> option, and using URL's of the form <computeroutput>rlsn://server</computeroutput> to connect to it. If authentication is enabled, RLI servers must include acl configuration options that match the identities of LRC servers that update it and that grant the <computeroutput>rli_update</computeroutput> permission to the LRCs.</para>
-</section> <!-- Basic configuration -->
-
-<section><title>Configuring the RLS Server for the MDS2 GRIS</title>
-    <para>The server package includes a program called <computeroutput>globus-rls-reporter </computeroutput> that
-        will report information about an RLS server to the MDS2 GRIS. Use
-        this procedure to enable this program:</para>
+    <para>It is possible to run the RLS server without authentication, by starting it with the <computeroutput>-N</computeroutput> option, and using URL's of the form <computeroutput>rlsn://server</computeroutput> to connect to it. Notice that the URL scheme is <computeroutput>rlsn</computeroutput> as opposed to <computeroutput>rls</computeroutput>.</para>
+    <para>It is generally recommended to run the server with a user account other than root for added security. In order to do so, you will need to create complimentary key and certificate files owned by a designated user account, <computeroutput>globus</computeroutput> for instance.</para>
     <orderedlist>
-        <listitem><simpara>To enable Index Service reporting, add the contents of the file <computeroutput>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf </computeroutput> to the MDS2 GRIS configuration file <computeroutput>$GLOBUS_LOCATION/etc/grid-info-resource-ldif.conf</computeroutput>.</simpara></listitem>
-        <listitem><simpara> If necessary, set your virtual organization (VO) name in <computeroutput>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf </computeroutput>. The default value is <computeroutput>local</computeroutput>. The VO name is referenced twice, on the lines beginning <computeroutput>dn:</computeroutput> and <computeroutput>args:</computeroutput>.</simpara></listitem>
-        <listitem><simpara>You must restart your MDS (GRIS) server after modifying <computeroutput>$GLOBUS_LOCATION/etc/grid-info-resoruce-ldif.conf</computeroutput> You can use the following commands to do so: </simpara></listitem>
+        <listitem><simpara>Begin by copying the <computeroutput>/etc/grid-security/hostcert.pem</computeroutput> and <computeroutput>/etc/grid-security/hostkey.pem</computeroutput> to <computeroutput>/etc/grid-security/containercert.pem</computeroutput> and <computeroutput>/etc/grid-security/constainerkey.pem</computeroutput>. Not that we use the prefix &quot;container&quot; to conform with the recommended naming scheme for other services distributed with the Globus Toolkit.</simpara>
+            <screen>
+% cp /etc/grid-security/hostcert.pem /etc/grid-security/containercert.pem
+% cp /etc/grid-security/hostkey.pem /etc/grid-security/containerkey.pem
+            </screen>
+        </listitem>
+        <listitem><simpara>Then change ownership of the files to the designated user account, <computeroutput>globus</computeroutput> in our example.</simpara>
+            <screen>
+% chown globus /etc/grid-security/containercert.pem
+% chown globus /etc/grid-security/containerkey.pem
+            </screen>
+        </listitem>
+        <listitem><simpara>Change the <computeroutput>rlskeyfile</computeroutput> and <computeroutput>rlscertfile</computeroutput> settings in the RLS configuration file (<computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>) to reflect the appropriate filenames.</simpara>
+            <screen>
+rlscertfile     /etc/grid-security/containercert.pem
+rlskeyfile      /etc/grid-security/containerkey.pem
+            </screen>
+        </listitem>
+        <listitem><simpara>Finally, bear in mind that your certificate and key files must always have file permissions <computeroutput>644</computeroutput> and <computeroutput>400</computeroutput> respectively.</simpara>
+            <screen>
+% ls -l /etc/grid-security/*.pem
+-rw-r--r--    1 globus  gridstaff      818 Dec  8  2005 /etc/grid-security/containercert.pem
+-r--------    1 globus  gridstaff      887 Dec  8  2005 /etc/grid-security/containerkey.pem
+-rw-r--r--    1 root     root          818 Dec  8  2005 /etc/grid-security/hostcert.pem
+-r--------    1 root     root          887 Dec  8  2005 /etc/grid-security/hostkey.pem
+            </screen>
+        </listitem>
     </orderedlist>
-    <screen>
-$GLOBUS_LOCATION/sbin/SXXgris stop
-$GLOBUS_LOCATION/sbin/SXXgris start
-    </screen>
-</section> <!-- Configuring the RLS Server for the MDS2 GRIS -->
+    <para>If authentication is enabled, RLI servers must include acl configuration options that match the identities of LRC servers that update it and that grant the <computeroutput>rli_update</computeroutput> permission to the LRCs.</para>
+</section> <!-- Key and cert configuration -->
 
-<section><title>Configuring the RLS Server for the WS MDS Index Service</title>
-    <para>The server package includes a script <computeroutput>$GLOBUS_LOCATION/libexec/aggrexec/globus-rls-aggregatorsource.pl</computeroutput> that may be used as an Execution Aggregator Source by MDS. See  <link linkend="index">GT &shortversion; Index Services</link> for more information on setting up and using the Execution Aggregator Source scripts in MDS. The script may be invoked as follows and will generate output in the format as depicted.</para>
+<section><title>Configuring LRC to RLI updates</title>
+    <para>One of the key benefits to using the RLS for managing replica location information is its distributed architecture. In a distributed deployment, one or more Local Replica Catalog (LRC) services will send updates of its contents to one or more Replica Location Index (RLI) services.</para>
+    <para>By default the installed RLS LRC is not configured to send updates to any RLI, even the local RLS RLI co-located with the local RLS LRC. Use the <xref linkend="globus-rls-admin"/> tool to configure the LRC to send updates to one or more RLI services.</para>
+    <itemizedlist>
+        <listitem><simpara>To configure the LRC to send uncompressed lists of its logical names to a RLI, use the following command:</simpara>
+            <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-admin -a <emphasis>rls://rli_host</emphasis> rls://lrc_host
+            </screen>
+        </listitem>
+        <listitem><simpara>To configure the LRC to send compressed bitmaps (using Bloom filters) of its logical names to a RLI, use the following command:</simpara>
+            <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-admin -A <emphasis>rls://rli_host</emphasis> rls://lrc_host
+            </screen>
+        </listitem>
+        <listitem><simpara>To configure the LRC to stop sending updates to a RLI, use the following command:</simpara>
+            <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-admin -d <emphasis>rls://rli_host</emphasis> rls://lrc_host
+            </screen>
+        </listitem>
+    </itemizedlist>
+    <note><simpara>While any given LRC is capable of sending uncompressed or compressed updates to any RLI. The RLI service must be configured to support either uncompressed or compressed updates but not both. See the <computeroutput>rli_bloomfilter</computeroutput> setting of the RLS configuration file for more details.</simpara></note>
+    <para>There are tradeoffs between using uncompressed and compressed updates in your configuration. The advantage of using compressed updates, not surprisingly, is a significant reduction in network overhead. As replica location mappings grow into the 10's of millions or more, the savings of using compressed updates becomes important. On the otherhand, due to the compressed nature of the Bloom filter bitmap used to represent the logical names in the LRC, the wildcard query at the RLI cannot be supported when update compression is used.</para>
+</section> <!-- Configuring updates -->
+
+<section><title>Configuring the RLS Server for the MDS4 Index Service</title>
+    <para>The server package includes a script <computeroutput>$GLOBUS_LOCATION/libexec/aggrexec/globus-rls-aggregatorsource.pl</computeroutput> that may be used as an Execution Aggregator Source by MDS4. See  <link linkend="index">GT &shortversion; Index Services</link> for more information on setting up and using the Execution Aggregator Source scripts in MDS4. The script may be invoked as follows and will generate output in the format as depicted.</para>
     <screen>
 % $GLOBUS_LOCATION/libexec/aggrexec/globus-rls-aggregatorsource.pl <emphasis>rls://mysite</emphasis>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
@@ -103,6 +148,19 @@ $GLOBUS_LOCATION/sbin/SXXgris start
 &lt;/rlsStats&gt;
     </screen>
 </section> <!-- Configuring the RLS Server for the WS MDS Index Service -->
+
+<section><title>Configuring the RLS Server for the MDS2 GRIS</title>
+    <para>The server package includes a program called <computeroutput>globus-rls-reporter</computeroutput> that will report information about an RLS server to the MDS2 GRIS. Use this procedure to enable this program:</para>
+    <orderedlist>
+        <listitem><simpara>To enable Index Service reporting, add the contents of the file <computeroutput>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf </computeroutput> to the MDS2 GRIS configuration file <computeroutput>$GLOBUS_LOCATION/etc/grid-info-resource-ldif.conf</computeroutput>.</simpara></listitem>
+        <listitem><simpara> If necessary, set your virtual organization (VO) name in <computeroutput>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf </computeroutput>. The default value is <computeroutput>local</computeroutput>. The VO name is referenced twice, on the lines beginning <computeroutput>dn:</computeroutput> and <computeroutput>args:</computeroutput>.</simpara></listitem>
+        <listitem><simpara>You must restart your MDS (GRIS) server after modifying <computeroutput>$GLOBUS_LOCATION/etc/grid-info-resoruce-ldif.conf</computeroutput> You can use the following commands to do so: </simpara></listitem>
+    </orderedlist>
+    <screen>
+$GLOBUS_LOCATION/sbin/SXXgris stop
+$GLOBUS_LOCATION/sbin/SXXgris start
+    </screen>
+</section> <!-- Configuring the RLS Server for the MDS2 GRIS -->
 
 <section><!--can't have id's in a frag called more than once: turn one appearance into a link or remove the id tag; id="rls-config-settings"-->
     <title>Syntax of the interface</title>

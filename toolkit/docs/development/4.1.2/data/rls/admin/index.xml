@@ -82,6 +82,8 @@
                 <listitem><simpara><xref linkend="rls-admin-trouble-psqlodbc-install"/></simpara></listitem>
                 <listitem><simpara><xref linkend="rls-admin-trouble-myodbc-install"/></simpara></listitem>
             </itemizedlist>
+
+            <note><simpara>If you are installing RLS from a Globus Toolkit binary bundle, you do not need to install the psqlODBC driver software. The binary installation of GT, starting with version 4.1.x, comes with psqlODBC libs in the GT/lib directory. These libraries are sufficient for connecting to a PostgreSQL DBMS, which you will need to setup if you do not have one already installed.</simpara></note>
         </section>
 
         <section id="rls-admin-install-prereq-obs"><title>Choosing the right DBMS &amp; ODBC software</title>
@@ -276,11 +278,16 @@
         <section id="rls-admin-install-binary"><title>Installing RLS using Globus Toolkit Binary Bundle</title>
             <para>Follow instructions provided by <xref linkend="gtadmin"/> and <xref linkend="gtadmin-install"/> in order to install the RLS from one of the available binary bundles of the Globus Toolkit. As noted in <xref linkend="rls-admin-install-prereq-odbcman"/>, the <computeroutput>globus-rls-server</computeroutput> found in the binary bundles is statically linked to the ODBC Manager.</para>
             <important><para>You must use the <computeroutput>--enable-rls</computeroutput> configure option, otherwise the RLS installation will be skipped. For more details refer to <xref linkend="gtadmin-install"/>.</para></important>
-            <para>Once you have unpackaged the binary bundle, the commands to install RLS may look something like:</para>
+            <para>Once you have unpackaged the binary bundle, the following commands may be used to install RLS:</para>
             <screen>
 % ./configure --prefix=$GLOBUS_LOCATION --enable-rls
 % make
 % make install
+            </screen>
+
+            <para>In addition, you may also install a PostgreSQL ODBC Driver from the source bundle. As of Globus Toolkit 4.1.x, a GPT wrapper package is available which includes the psqlodbc-08.00.0102 library. The package depends on the same iODBC and unixODBC environment settings or configure options. To install it, you may use the following command any time after <computeroutput>configure</computeroutput>:</para>
+            <screen>
+% make globus_database_psqlodbc
             </screen>
         </section>
 
@@ -297,6 +304,7 @@
 % setenv GLOBUS_IODBC_LIBS /path/to/libiodbc/lib
             </screen>
             <note><para>Your shell format for setting environment variables may be <computeroutput>export VAR=VAL</computeroutput> instead of <computeroutput>setenv VAR VAL</computeroutput>.</para></note>
+            <para>Alternately, instead of setting the above environment variables you may choose to specify the includes and libs path for your ODBC Manager using the Globus Toolkit <computeroutput>configure</computeroutput> script's options, which include <computeroutput>--with-unixodbc-includes=DIR</computeroutput> and <computeroutput>--with-unixodbc-libs=DIR</computeroutput> or <computeroutput>--with-iodbc-includes=DIR</computeroutput> and <computeroutput>--with-iodbc-libs=DIR</computeroutput>.</para>
             <para>Once you have unpackaged the source bundle, the commands to install RLS may look something like:</para>
             <screen>
 % ./configure --prefix=$GLOBUS_LOCATION --enable-rls
@@ -341,12 +349,12 @@
         </section>
 
         <section id="rls-admin-install-db-conf"><title>Configure database related RLS settings</title>
-            <para>The RLS Server configuration file (<computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>) contains a few settings related to your database setup. Throughout this guide we refer to the username as <emphasis>dbuser</emphasis> and the password as <emphasis>dbpassword</emphasis> and to the LRC database as <emphasis>lrc1000</emphasis> and the RLI database as <emphasis>rli1000</emphasis>. Substitute your chosen username, password, and database names where applicable. Also, change the <computeroutput>odbcini</computeroutput> setting to reflect the location of your ODBC Manager's odbc.ini file. You should be familiar with the location of this file from the installation of your ODBC Manager. We discuss more about odbc.ini in <xref linkend="rls-admin-install-db-dsn"/>.</para>
+            <para>The RLS Server configuration file (<computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>) contains a few settings related to your database setup. Throughout this guide we refer to the username as <emphasis>dbuser</emphasis> and the password as <emphasis>dbpassword</emphasis> and to the LRC database as <emphasis>lrc1000</emphasis> and the RLI database as <emphasis>rli1000</emphasis>. Substitute your chosen username, password, and database names where applicable. Also, you may change the <computeroutput>odbcini</computeroutput> setting to reflect the location of your ODBC Manager's odbc.ini file. You should be familiar with the location of this file from the installation of your ODBC Manager. As of the GT 4.1.x release, the RLS setup includes a default <computeroutput>odbc.ini</computeroutput> file installed to <computeroutput>$GLOBUS_LOCATION/var/odbc.ini</computeroutput> which is the initial default value of the <computeroutput>odbcini</computeroutput> configuration parameter. We discuss more about odbc.ini in <xref linkend="rls-admin-install-db-dsn"/>.</para>
             <para>Edit the following fields in <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>:</para>
             <screen>
 # Database connection options
 db_user             dbuser 
-db_pwd              dbpassword
+db_pwd              dbpasswordgoeshere
 odbcini             /path/to/var/odbc.ini
 ...
 # LRC options
@@ -439,6 +447,7 @@ CREATE USER
                 <listitem><simpara><emphasis>Port</emphasis>: the port number of the DBMS server</simpara></listitem>
                 <listitem><simpara><emphasis>Socket</emphasis>: in some cases a local socket file is used if the DBMS and RLS are installed on the same server</simpara></listitem>
             </itemizedlist>
+            <para>As of the Globus Toolkit 4.1.x release, the RLS setup includes a default odbc.ini file installed to <computeroutput>$GLOBUS_LOCATION/var/odbc.ini</computeroutput>. The settings of the included odbc.ini are appropriate for usage with the psqlODBC driver and reference psqlODBC libraries installed to <computeroutput>$GLOBUS_LOCATION/lib/psqlodbc.so</computeroutput>, which is the location of the libraries as installed by the Globus Toolkit binary installer and the source installer using by using the <computeroutput>make globus_database_psqlodbc</computeroutput> target. When using the installed odbc.ini file, you may still need to set your <computeroutput>ODBCINI</computeroutput> environment variable to the odbc.ini file's location.</para>
             <para>We provide the following tips from the troubleshooting section of this guide:</para>
             <itemizedlist>
                 <listitem><simpara><xref linkend="rls-admin-trouble-odbc-ini"/></simpara></listitem>
