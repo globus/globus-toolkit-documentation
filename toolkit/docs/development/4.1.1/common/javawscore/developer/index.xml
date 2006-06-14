@@ -624,6 +624,37 @@ System.out.println("Patch: " + Version.getPatch());</screen>
       <para>
         Java WS Core supports SOAP with Attachments. DIME, MIME, and MTOM formats are supported. 
       </para>
+      <para>To add an attachment to a request do:</para>
+<screen>import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
+import javax.xml.rpc.Stub;
+import org.apache.axis.client.Call;
+....
+File file = new File(..);
+DataHandler dataHandler = 
+        new DataHandler(new FileDataSource(file));
+
+((Stub)port)._setProperty(
+        Call.ATTACHMENT_ENCAPSULATION_FORMAT,
+        Call.ATTACHMENT_ENCAPSULATION_FORMAT_MTOM);
+            
+((org.apache.axis.client.Stub)port).addAttachment(dataHandler);</screen>
+      <para>To retrieve attachments associated with a request do:</para>
+      <screen>import javax.activation.DataHandler;
+import javax.xml.soap.AttachmentPart;
+import org.apache.axis.Message;
+import org.apache.axis.MessageContext;
+....
+MessageContext msgContext = MessageContext.getCurrentContext();
+Message reqMsg = msgContext.getRequestMessage();
+if (reqMsg.getAttachmentsImpl() == null) {
+  throw new Exception("Attachments are not supported");
+}
+Iterator it = reqMsg.getAttachments();
+while (it.hasNext()) {
+  AttachmentPart part = (AttachmentPart) it.next();
+  DataHandler dataHandler = part.getDataHandler();
+}</screen>
       <para>
         The SwA support adds a small overhead to overall SOAP processing. To disable SwA support for improved performance delete <filename>$GLOBUS_LOCATION/lib/common/geronimo-activation_1.0.2_spec-1.1-SNAPSHOT.jar</filename> and <filename>$GLOBUS_LOCATION/lib/common/geronimo-javamail_1.3.1_spec-1.1-SNAPSHOT.jar</filename> files.
       </para>
