@@ -30,32 +30,180 @@
   </tgroup>
   </informaltable>
 
-  <para>Each of these is represented as an object and can
-  be altered programmatically. Service and container security
-  descriptors can be configured as  XML files in the deployment
-  descriptor as shown below.  Resource security descriptors can only
-  be created dynamically, either programmatically or from a descriptor
-  file. Client security descriptor can be configured as a XML file and set as property on Stub. If the security descriptor file is altered at runtime, it
-  will <emphasis>not</emphasis> be reloaded</para>
+  <para>Each of these is represented as a Java object and can be
+  altered programmatically. If the security descriptor file is altered
+  at runtime, it will <emphasis>not</emphasis> be reloaded</para>
+
+  <para> Service and container security descriptors can be configured as  XML files in the global and service deployment descriptor as shown below.  Resource security descriptors can only be created dynamically, either programmatically or from a descriptor  file. Client security descriptor can be configured as a XML file and set as property on Stub. </para>
+
 </section>
+
 <section id="authzframe-secdesc-configDesc">
   <title>Configuring security descriptors </title>
-  <para>The following shows how the service and container security descriptor files
-are configured:</para>
+
+  <section id="authzframe-secdesc-configDesc-container">
+  <title>Configuring Container Security Descriptor</title>
+
+  <orderedlist>
+
+  <listitem> <para>The container security descriptor can be configured in the <emphasis>&lt;globalConfiguration&gt;</emphasis> section of the Java WS Core deployment descriptor. That file is in <filename>wsrf/java/core/source/deploy-server.wsdd</filename> if editing source, prior to deploy or <filename>$GLOBUS_LOCATION/etc/globus_wsrf_core/server-config.wsdd</filename> in a binary install.</para>
+
   <screen>
    &lt;globalConfiguration&gt;
    ...
    &lt;parameter name=&quot;containerSecDesc&quot;
-              value=&quot;etc/container-security-config.xml&quot;&gt;
+              value=&quot;/path/to/container/descrptor/file.xml&quot;&gt;
    ...
    &lt;globalConfiguration&gt;
    ...
+   </screen>
+  </listitem>
+
+  <listitem> <para> The descriptor file name can also be specified as a parameter when the Java WS Core continer is started up. The option is <command>-containerSecDesc &quot;/path/to/container/descrptor/file.xml&quot;</command></para>
+
+  <note><para>This setting takes precendence over 1</para></note>
+  </listitem>
+  </orderedlist>
+
+  </section> <!-- container sec desc -->
+
+ <section id="authzframe-secdesc-configDesc-service">
+  <title>Configuring Service Security Descriptor</title>
+  <orderedlist>
+  <listitem><para> The service security descriptor can be configured in the service's deployment descriptor section as parameter. The parameter is a name/value that provides the path to the security descriptor file.
+
+<screen>
    &lt;service name=&quot;MyDummyService&quot; provider=&quot;Handler&quot; style=&quot;document&quot;&gt;
    ...
    &lt;parameter name=&quot;securityDescriptor&quot; value=&quot;org/globus/wsrf/impl/security/descriptor/security-config.xml&quot;/&gt;
    ...
    &lt;/service&gt;</screen>
-  <para>If the security descriptor is configured to be read from a file, it is loaded as follows:<orderedlist>
+
+  </para>
+  </listitem>
+  <listitem><para> A ServiceSecurityDescriptor object can be created and initialized in the service's contructor.
+<screen>
+    public MyDummyService() throws Exception {
+
+        ServiceSecurityDescriptor serviceDesc = 
+            new ServiceSecurityDescriptor();
+
+        // set security properties on the above object using get/set methods
+        // in the API
+
+        ServiceSecurityHelper
+            .setSecurityDescriptor(&quot;DummyServiceName&quot;
+                                   serviceDesc);
+</screen>
+  </para>
+
+  <note><para> This method takes precendence over 1 </para></note>
+  </listitem>
+
+  <listitem><para> A ServiceSecurityDescriptor object can be created similar to above, but initialized from a file and set in the constructor.
+<screen>
+    public MyDummyService() throws Exception {
+
+        ServiceSecurityDescriptor serviceDesc = 
+            new ServiceSecurityDescriptor(&quot;/path/to/security/file&quot;);
+
+        ServiceSecurityHelper
+            .setSecurityDescriptor(&quot;DummyServiceName&quot;
+                                   serviceDesc);
+</screen>
+  </para>
+
+  <note><para> This method takes precendence over 1 </para></note>
+  </listitem>
+  </orderedlist>
+</section> <!-- service sec desc -->
+
+ <section id="authzframe-secdesc-configDesc-resource">
+  <title>Configuring Resource Security Descriptor</title>
+  <orderedlist>
+  <listitem><para> A ServiceSecurityDescriptor object can be created and initialized in the service's contructor.
+<screen>
+    public MyDummyService() throws Exception {
+
+        ServiceSecurityDescriptor serviceDesc = 
+            new ServiceSecurityDescriptor();
+
+        // set security properties on the above object using get/set methods
+        // in the API
+
+        ServiceSecurityHelper
+            .setSecurityDescriptor(&quot;DummyServiceName&quot;
+                                   serviceDesc);
+</screen>
+  </para>
+  </listitem>
+
+  <listitem><para> A ServiceSecurityDescriptor object can be created similar to above, but initialized from a file and set in the constructor.
+<screen>
+    public MyDummyService() throws Exception {
+
+        ServiceSecurityDescriptor serviceDesc = 
+            new ServiceSecurityDescriptor(&quot;/path/to/security/file&quot;);
+
+        ServiceSecurityHelper
+            .setSecurityDescriptor(&quot;DummyServiceName&quot;
+                                   serviceDesc);
+</screen>
+  </para>
+  </listitem>
+  </orderedlist>
+</section> <!-- resource sec desc -->
+
+ <section id="authzframe-secdesc-configDesc-client">
+  <title>Configuring Client Security Descriptor</title>
+ <orderedlist>
+ <listitem><para> Client security descriptors from a file can be configured directory on stub as follows:
+<screen>
+// Client security descriptor file 
+String CLIENT_DESC = &quot;org/globus/wsrf/samples/counter/client/client-security-config.xml&quot;;
+//Set descriptor on Stub 
+((Stub)port)._setProperty(Constants.CLIENT_DESCRIPTOR_FILE, CLIENT_DESC);
+</screen>
+</para>
+</listitem>
+
+<listitem><para>Client security descriptors object can be constructed from a file and configured directory on stub as follows:
+<screen>
+// Client security descriptor file 
+String CLIENT_DESC = &quot;org/globus/wsrf/samples/counter/client/client-security-config.xml&quot;;
+ClientSecurityDescriptor desc = new ClientSecurityDescriptor(CLIENT_DESC);
+//Set descriptor on Stub 
+((Stub)port)._setProperty(Constants.CLIENT_DESCRIPTOR, desc);
+</screen>
+</para>
+<note><para> This takes precedence over 1</para></note>
+</listitem>
+
+<listitem><para>Client security descriptors object can be created and get/set methods can be used to set security properties. The object then ca be configured on stub as follows:
+<screen>
+ClientSecurityDescriptor desc = new ClientSecurityDescriptor();
+
+// set security properties on the above object using set/get object
+
+//Set descriptor on Stub 
+((Stub)port)._setProperty(Constants.CLIENT_DESCRIPTOR, desc);
+</screen>
+</para>
+<note><para> This takes precedence over 1</para></note>
+</listitem>
+
+ </orderedlist>
+</section> <!-- client sec desc -->
+
+</section> <!-- common configuration -->
+
+
+
+<section id="authzframe-secdesc-file-config">
+<title> Reading security descriptor files </title>
+
+  <para>If security descriptor is configured to be read from a file, it is loaded as follows:
+    <orderedlist>
       <listitem>
         <simpara>As a file if an absolute file path is specified.</simpara>
       </listitem>
@@ -65,58 +213,109 @@ are configured:</para>
       <listitem>
         <simpara>As a file, assuming that the specified path is relative to the installation root, typically pointed to by environment variable <envar>GLOBUS_LOCATION</envar>.</simpara>
       </listitem>
-    </orderedlist></para>
-  <para>The security descriptor files need to comply with the <ulink url="&docpath;security/authzframe/service_security_descriptor.xsd">service security descriptor schema</ulink> or <ulink url="&docpath;security/authzframe/container_security_descriptor.xsd">container security descriptor schema</ulink> as appropriate. The resource security
-    descriptor file uses the same schema as the service security
-    descriptor. In all cases, the security descriptor is contained
-    within the <constant>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;</constant> element.</para>
-
-<section id="authzframe-secdesc-client-config"> <title> Configuring Client Security Descriptor</title>
-<para>
-Client security descriptors are configured as shown below:
+    </orderedlist>
 </para>
-<screen>
-// Client security descriptor file 
-String CLIENT_DESC = &quot;org/globus/wsrf/samples/counter/client/client-security-config.xml&quot;;
-//Set descriptor on Stub 
-((Stub)port)._setProperty(Constants.CLIENT_DESCRIPTOR_FILE, CLIENT_DESC);
-</screen>
-<para>
-  The client security descriptor files need to comply with the <ulink url="&docpath;security/authzframe/client_security_descriptor.xsd">client security descriptor schema</ulink>.</para>
-</section>
-</section>
+</section> <!-- file read -->
+
+<section id="authzframe-secdesc-schema">
+<title> Security Descriptor Schemas </title>
+
+<para> All security descriptor files need to comply with a defined schema and should be written within the defined namespace.
+<table>
+      <title>Security descriptor schema</title>
+      <tgroup cols="3">
+        <tbody>
+          <row>
+          <entry> Descriptor </entry>
+          <entry> Schema </entry>
+          <entry> Namespace </entry>
+          <entry> Element </entry>
+          </row>
+          <row>
+          <entry> Container security descriptor  </entry>
+          <entry> <para><ulink url="&docpath;security/authzframe/container_security_descriptor.xsd">Schema</ulink></para></entry>
+          <entry> http://www.globus.org/security/descriptor/container </entry>
+          <entry> containerSecurityConfig </entry>
+          </row>
+          <row>
+          <entry> Service security descriptor  </entry>
+          <entry> <para><ulink url="&docpath;security/authzframe/service_security_descriptor.xsd">Schema</ulink></para></entry>
+          <entry> http://www.globus.org/security/descriptor/service </entry>
+          <entry> serviceSecurityConfig </entry>
+          </row>
+          <row>
+          <entry> Resource security descriptor  </entry>
+          <entry> <para>Same schema as service, (<ulink url="&docpath;security/authzframe/service_security_descriptor.xsd">Schema</ulink>)</para></entry>
+          <entry> http://www.globus.org/security/descriptor/service </entry>
+          <entry> serviceSecurityConfig </entry>
+          </row>
+          <row>
+          <entry> Client security descriptor  </entry>
+          <entry> <para><ulink url="&docpath;security/authzframe/client_security_descriptor.xsd">Schema</ulink></para></entry>
+          <entry> http://www.globus.org/security/descriptor/client </entry>
+          <entry> clientSecurityConfig </entry>
+          </row>
+        </tbody>
+     </tgroup>
+</table>
+</para>
+</section> <!-- schemas -->
+
 <section id="authzframe-secdesc-server-descFile">
-  <title>Writing server-side security descriptor files </title>
+  <title>Common Configuration for server-side security descriptors </title>
 
   <para>The next few sections deal with writing server side security
-  descriptor files&mdash;that is, container, service and resource descriptor files
-  to set various properties. Please note that not all parameters are
-  applicable for all three types of descriptors and are appropriately
-  annotated in the relevant sections. The few parameters relevant only
-  for the container security descriptor are described in <xref linkend="authzframe-secdesc-descProgram"/>.</para>
+  descriptor files&mdash;that is, container, service and resource
+  descriptor files to set various properties. Only the properties that
+  are common across these descriptor are discussed here. Other
+  specific properties are discussed in following sections.</para>
+
+  <para> When parameters are configured in multiple descriptors the
+  order of precendence is resource, service and then
+  container. </para>
 
   <section id="authzframe-secdesc-configCred">
     <title>Configuring credentials</title>
+
     <para>The container and each service can each be configured with a
     separate set of credentials. The credentials can be set using
-    either: a) the path to a proxy file, or b) the path to a certificate and
-    key file. If the configured credential file is modified/updated at
-    runtime, the credentials will be automatically reloaded. The credentials can be configured by adding one of the following blocks to the container or service
-    security descriptor. </para>
-    <para>Example for option (a):<screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
-   ...&lt;credential&gt;&lt;key-file value=&quot;keyFile&quot;/&gt;
-      &lt;cert-file value=&quot;certFile&quot;/&gt;
-   &lt;/credential&gt;
-   ...
-&lt;/securityConfig&gt;</screen></para>
-    <para>Example for option (b):
+    either: a) the path to a proxy file, or b) the path to a
+    certificate and key file. If the configured credential file is
+    modified/updated at runtime, the credentials will be automatically
+    reloaded. The credentials can be configured by adding one of the
+    following blocks to the container or service security
+    descriptor. </para>
+
+    <para>Example for option (a):
 
 <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
    ...
    &lt;proxy-file value=&quot;proxyFile&quot;/&gt;
    ...
-&lt;/securityConfig&gt;</screen></para>
-    <para>The  framework will look for credentials in the following order:
+&lt;/securityConfig&gt;</screen>
+
+</para>
+
+    <para>Example for option (b):
+
+    <screen>&lt;serviceSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
+   ...
+   &lt;credential&gt;
+       &lt;key-file value=&quot;keyFile&quot;/&gt;
+       &lt;cert-file value=&quot;certFile&quot;/&gt;
+   &lt;/credential&gt;
+   ...
+&lt;/serviceSecurityConfig&gt;</screen>
+
+</para>
+
+<note><para>The above examples show use of service security
+descriptor. If setting in container security descriptor, set namespace
+and outer element as shown in <xref
+linkend="authzframe-secdesc-schema"/>.</para></note>
+
+ <para>Credentials can be configured at resource, service or container level and the framework will look for credentials in the following order:
   <orderedlist>
         <listitem>
           <simpara>Resource credentials </simpara>
@@ -132,291 +331,104 @@ String CLIENT_DESC = &quot;org/globus/wsrf/samples/counter/client/client-securit
         </listitem>
       </orderedlist> 
 </para>
-  </section>
-  <section id="authzframe-secdesc-configGridmap">
-    <title>Configuring grid map files</title>
-    <para>The container and each service can be configured with a separate
-    grid map file in each of their security descriptors as shown below:</para>
-    <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
+</section> <!-- credentials -->
+
+  <section id="authzframe-secdesc-replayAttack">
+    <title>Configuring replay attack prevention parameters</title>
+    <para> For message level security one may also set the amount of time for which to track received messages for the purpose of preventing replay attacks. Messages outside of this window will be rejected automatically, whereas messages within this window are checked against recently received messages through the use of the message UUID.
+    </para>
+    <itemizedlist>
+    <listitem><para> Parameter <emphasis>replay-attack-fileter</emphasis> can be set to true or false to enable or disable replay attack prevention framework. By default, this feature is enabled.
+
+        <screen>&lt;serviceSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
    ...
-   &lt;gridmap value=&quot;gridMapFile&quot;/&gt;
+       &lt;replay-attack-filter value=&quot;true&quot;/&gt;
    ...
-&lt;/securityConfig&gt;</screen>
-    <para>The  framework will first look for a gridmap configured by the resource,
-    then by the service and then by the container. For services configured to perform
-    grid map file authorization, the grid map file can be updated
-    dynamically using the SecurityManager API. Also, if the gridmap
-    file changes at runtime it will be automatically reloaded.</para>
-  </section>
-  <section id="authzframe-secdesc-configAuth">
-    <title>Configuring authentication methods</title>
-    <para><emphasis>This can only be done at service or resource level.</emphasis> </para>
-    <para>The authentication methods a service requires are specified using
-    the <constant>&lt;auth-method&gt;</constant> element.  The authentication
-    methods can also be configured on a per method basis.  This is
-    done by specifying the <constant>&lt;auth-method&gt;</constant> element
-    within a <constant>&lt;method name=&quot;operation name&quot;&gt;</constant> element. The
-    value of the <emphasis>name</emphasis> attribute can be set to either the operation
-    name (preferred) or the operation name with a given namespace.</para>
-    <para>Currently, the following authentication methods are supported:</para>
-    <table>
-      <title>Authentication methods</title>
-      <tgroup cols="2">
-        <tbody>
-          <row>
-            <entry>
-              <constant>&lt;none/&gt;</constant>
-            </entry>
-            <entry>
-              <para>Indicates that no authentication is required.</para>
-              <para>This method <emphasis>cannot</emphasis> be specified with any
-          other authentication method.</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;GSISecureMessage/&gt;</constant>
-            </entry>
-            <entry>
-              <para>Indicates the GSI Secure
-            Message authentication method.</para>
-              <para>The <constant>&lt;protection-level&gt; </constant>sub element can
-          be used to specify a protection level that must be
-          applied to the message:</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;integrity/&gt;</constant>
-            </entry>
-            <entry>Indicates that the message must be integrity protected (signed).</entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;privacy/&gt;</constant>
-            </entry>
-            <entry>Indicates that the message must be privacy protected (encrypted and signed).</entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;GSISecureConversation/&gt;</constant>
-            </entry>
-            <entry>
-              <para>Indicates the GSI Secure
-            Conversation authentication method (with integrity or
-            privacy protection).</para>
-              <para>The <constant>&lt;protection-level&gt;</constant> sub element can be used
-          to indicate a specific protection level that must be applied to the
-          message:</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;integrity/&gt;</constant>
-            </entry>
-            <entry>Indicates that the message must be integrity protected (signed).</entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;privacy/&gt;</constant>
-            </entry>
-            <entry>Indicates that the message must be privacy protected (signed and encrypted).</entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;GSITransport/&gt;</constant>
-            </entry>
-            <entry>
-              <para>Indicates the GSI Secure Transport authentication method.</para>
-              <para>The <constant>&lt;protection-level&gt;</constant> sub element can be used
-          to specify a specific protection level that must be applied to the
-          message:</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;integrity/&gt;</constant>
-            </entry>
-            <entry>Indicates that the message must be integrity protected (signed). This is always true in this mechanism.</entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;privacy/&gt;</constant>
-            </entry>
-            <entry>Indicates that the message must be privacy protected (encrypted and signed).</entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <para><emphasis>Notes:</emphasis></para>
-    <itemizedlist>
-      <listitem>
-        <simpara>Multiple authentication methods can be specified under the <constant>&lt;auth-method&gt;</constant> element (except for the <constant>&lt;none/&gt;</constant> method, see above). As long as one of the specified authentication methods is used, access to the service is allowed.</simpara>
-      </listitem>
-      <listitem>
-        <simpara>If <emphasis>no</emphasis> <constant>&lt;protection-level&gt;</constant> sub element is specified, then all protection levels are available to clients. However, if the <constant>&lt;protection-level&gt;</constant> sub element <emphasis>is</emphasis> specified, then the service will only accept the protection levels listed under said element.</simpara>
-      </listitem>
-      <listitem>
-        <simpara>The <constant>org.globus.wsrf.impl.security.authentication.SecurityPolicyHandler</constant> handler <emphasis>must</emphasis> be installed properly in order for this to work. This handler is installed by default.</simpara>
-      </listitem>
-      <listitem>
-        <simpara>If a security descriptor is <emphasis>not</emphasis> specified, authentication method enforcement is <emphasis>not</emphasis> performed.</simpara>
-      </listitem>
-    </itemizedlist>
-    <para><emphasis>Example:</emphasis></para>
-    <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
+&lt;/serviceSecurityConfig&gt;</screen></para>
+     </listitem>
 
-   &lt;method name=&quot;findServiceData&quot;&gt;
-      &lt;auth-method&gt;
-         &lt;none/&gt;
-      &lt;/auth-method&gt;
-   &lt;/method&gt;
+    <listitem><para> Parameter <emphasis>replay-attack-window</emphasis> can be set to number of minutes the replay window should be. By default it is 5 minutes.
 
-   &lt;method name=&quot;destroy&quot;&gt;
-      &lt;auth-method&gt;
-         &lt;GSISecureMessage/&gt;
-         &lt;GSISecureConversation&gt;
-            &lt;protection-level&gt;
-               &lt;integrity/&gt;
-            &lt;/protection-level&gt;
-         &lt;/GSISecureConversation&gt;
-      &lt;/auth-method&gt;
-   &lt;/method&gt;
+        <screen>&lt;serviceSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
+   ...
+       &lt;replay-attack-window value=&quot;100&quot;/&gt;
+   ...
+&lt;/serviceSecurityConfig&gt;</screen></para>
+     </listitem>
+    </itemizedlist>
 
-   &lt;!-- default auth-method for any other method --&gt;
-   &lt;auth-method&gt;
-      &lt;GSISecureConversation/&gt;
-   &lt;/auth-method&gt;
-&lt;/securityConfig&gt;</screen>
-    <para>In the above example:</para>
-    <itemizedlist>
-      <listitem>
-        <simpara>the <function>findServiceData()</function> operation does not require any authentication.</simpara>
-      </listitem>
-      <listitem>
-        <simpara>the <function>destroy()</function> operation requires either <emphasis>GSI Secure Message</emphasis> authentication with either level of protection or <emphasis>GSI Secure Conversation</emphasis> authentication with integrity protection.</simpara>
-      </listitem>
-      <listitem>
-        <simpara>all other operations must be authenticated with <emphasis>GSI Secure Conversation</emphasis> with either level of protection.</simpara>
-      </listitem>
-    </itemizedlist>
-  </section>
-  <section id="authzframe-secdesc-configRunas">
-    <title>Configuring the run-as mode</title>
-    <para>The <constant>&lt;run-as&gt;</constant> element is used to configure the
-    JAAS run-as identity under which the service method will be
-    executed. The run-as identity can be configured on a per method
-    basis. Currently, the following run-as identities are
-    supported:</para>
-    <table>
-      <title>Run-as methods</title>
-      <tgroup cols="2">
-        <tbody>
-          <row>
-            <entry>
-              <constant>&lt;caller-identity/&gt;</constant>
-            </entry>
-            <entry>
-              <para>The service method will be run with the security identity
-          of the client. The caller Subject will contain the following:</para>
-              <itemizedlist>
-                <listitem>
-                  <simpara>If using <emphasis>GSI Secure Message</emphasis>: a GlobusPrincipal (the identity of the signer) is added to the principal set of the caller-identity Subject. Also, the signer&apos;s certificate chain is added to the public credentials set of the Subject object.</simpara>
-                </listitem>
-                <listitem>
-                  <para>If using <emphasis>GSI Secure Conversation</emphasis>: a
-            GlobusPrincipal (the identity of the initiator) is added
-            to the principal set of the Subject.  <itemizedlist>
-                      <listitem>
-                        <simpara>If client authentication was performed, the client&apos;s certificate chain will be added to the public credentials set of the Subject object. </simpara>
-                      </listitem>
-                      <listitem>
-                        <simpara>Also, if delegation was performed, the delegated credential is added to the private credential set of the Subject object. </simpara>
-                      </listitem>
-                    </itemizedlist></para>
-                </listitem>
-                <listitem>
-                  <simpara>If grid map file authorization was performed, a UserNamePrincipal is added to the principal set of the Subject object.</simpara>
-                </listitem>
-              </itemizedlist>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;system-identity/&gt;</constant>
-            </entry>
-            <entry>The service method will be run with the security identity of the container.</entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;service-identity/&gt;</constant>
-            </entry>
-            <entry>The service method will be run with the security identity of the service itself (if the service has one, otherwise the container identity will be used).</entry>
-          </row>
-          <row>
-            <entry>
-              <constant>&lt;resource-identity/&gt;</constant>
-            </entry>
-            <entry>The service method will be run with the security identity of the resource. If no resource is specified or if the resource does not have a configured subject, credentials in this order of occurrence will be used: service credential, container credential.</entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <para><emphasis>Notes:</emphasis> </para>
-    <itemizedlist>
-      <listitem>
-        <simpara><emphasis>resource-identity</emphasis> is the default setting.</simpara>
-      </listitem>
-      <listitem>
-        <simpara>The <constant>org.globus.wsrf.impl.security.authentication.SecurityPolicyHandler</constant> handler <emphasis>must</emphasis> be installed properly in order for this to work. It is installed by default.</simpara>
-      </listitem>
-      <listitem>
-        <simpara>If the security descriptor is <emphasis>not</emphasis> specified, then the run-as identity is not set and there will be no JAAS subject associated with the execution of the operation. This means that any method calls that require credentials and that are invoked by the service method itself will fail.</simpara>
-      </listitem>
-    </itemizedlist>
-    <para><emphasis>Example:</emphasis></para>
-    <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
-   &lt;method name=&quot;add&quot;&gt;
-      &lt;run-as&gt;
-         &lt;caller-identity/&gt;
-      &lt;/run-as&gt;
-   &lt;/method&gt;
+<note><para>The above examples show use of service security
+descriptor. If setting in container security descriptor, set namespace
+and outer element as shown in <xref
+linkend="authzframe-secdesc-schema"/>.</para></note>
 
-   &lt;method name=&quot;subtract&quot;&gt;
-      &lt;run-as&gt;
-         &lt;system-identity/&gt;
-      &lt;/run-as&gt;
-   &lt;/method&gt; 
-   
-   &lt;!-- default run-as for any other method --&gt;
-   &lt;run-as&gt; 
-      &lt;service-identity/&gt;
-   &lt;/run-as&gt;
-&lt;/securityConfig&gt;</screen>
-    <para>In the above example:</para>
-    <itemizedlist>
-      <listitem>
-        <simpara>the <function>add()</function>operation will be run with the caller&apos;s identity.</simpara>
-      </listitem>
-      <listitem>
-        <simpara>the <function>subtract()</function> call will be run with the system identity.</simpara>
-      </listitem>
-      <listitem>
-        <simpara>all other operations will be run with the service identity (if the service has one set).</simpara>
-      </listitem>
-    </itemizedlist>
-  </section>
+  </section> <!-- replay attack -->
+
+  <section id="authzframe-secdesc-rejectLimProxy">
+    <title>Reject Limited Proxy</title>
+    <para> This parameter can be used to configure if clients that present limited proxies can be allowed to authenticate successfully. By default, limited proxes are accepted.</para>
+
+        <screen>&lt;serviceSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
+   ...
+       &lt;reject-limited-proxy value=&quot;true&quot;/&gt;
+   ...
+&lt;/serviceSecurityConfig&gt;</screen>
+
+<note><para>The above examples show use of service security
+descriptor. If setting in container security descriptor, set namespace
+and outer element as shown in <xref
+linkend="authzframe-secdesc-schema"/>.</para></note>
+
+  </section> <!-- reject limited proxy -->
+
+  <section id="authzframe-secdesc-contextLifetime">
+    <title>Context lifetime</title>
+      <para>When <emphasis>GSI Secure Conversation</emphasis> is used, a security context is established and by default the life of the context is determined by the least lifetime of the chain of certificates used in establishing the context. The value of the lifetime can be altered to be lesser than the above value by setting the value for following parameter in milliseconds.</para>
+
+        <screen>&lt;serviceSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
+   ...
+       &lt;context-lifetime value=&quot;1000&quot;/&gt;
+   ...
+&lt;/serviceSecurityConfig&gt;</screen>
+
+<note><para>The above examples show use of service security
+descriptor. If setting in container security descriptor, set namespace
+and outer element as shown in <xref
+linkend="authzframe-secdesc-schema"/>.</para></note>
+
+  </section> <!-- context lifetime -->
+
+  
   <section id="authzframe-secdesc-configAuthz">
     <title>Configuring authorization mechanisms</title>
-    <para>The container and each service can be configured with a chain of
-  authorization mechanisms (also known as Policy Decision Points (PDPs)),
-  using the <emphasis>authz</emphasis> element. Each PDP name is scoped and the
-  format is <emphasis>prefix:FQDN of the PDP</emphasis>. For example,
-  <emphasis>self:org.globus.wsrf.impl.security.authorization.SelfAuthorization</emphasis>.  The prefix is used to allow multiple instances of the same PDP to exist in the same PDP chain. The
-  authorization is deemed to be a permit if each of the authorization
-  mechanisms in the chain returns a permit.</para>
+
+    <para>FILL ME</para>
+    <para>The container and each service/resource can be configured
+    with a chain of interceptor, where each interceptor is a Policy
+    Decision Points (PDPs) or Policy Information Points (PIPs). The
+    element <constant>authzChain</constant> can be used to configure
+    it. Each interceptor name is scoped and the format is
+    <emphasis>prefix:FQDN of the interceptor</emphasis>. For example,
+    <emphasis>self:org.globus.wsrf.impl.security.authorization.SelfAuthorization</emphasis>.
+    The prefix is used to allow multiple instances of the same
+    intercepor to exist in the same PDP chain.</para>
+
+   <para>The authorization chain can be configured with a combining
+   algorithm using the attribute
+   <emphasis>combiningAlg</emphasis>. The value should be a FQDN of a
+   class that implements
+   <constant>org.globus.wsrf.security.authorization.AuthorizationEngineSpi</constant>. The
+   attribute is optional and by default the
+   <constant>org.globus.wsrf.impl.security.authorization.providers;.PermitOverrideAlgorithm</constant>
+   is used. </para>
+
     <para><emphasis>Example:</emphasis></para>
-    <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
+    <screen>&lt;serviceSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
    ...
    &lt;authz value=&quot;foo1:org.foo.authzMechanism bar1:org.bar.barMechanism&quot;/&gt;
    ...
@@ -716,7 +728,343 @@ public class FooPDP implements PDP
 &lt;/service&gt;</screen>
     <para>Note that the parameter <parameter>foo1-authorizedIdentity</parameter> in the above configures the identity the PDP uses  for authorizing incoming requests. The parameter name is derived by composing the prefix (<parameter>foo1</parameter>) used when specifying the PDP in the security descriptor with the property  (<parameter>authorizedIdentity</parameter>) used in the PDP code.</para>
   </section>
-</section>
+</section> <!-- server side common config -->
+
+<section id="authzframe-secdesc-container">
+  <title>Container-only security configuration</title>
+  <para>Other than the security properties that have been described in previous section, few more properties are exclusive to the container security descriptor.</para>
+
+  <section id="authzframe-secdesc-container-context">
+    <title>Context Timer Interval</title>
+      <para>When <emphasis>GSI Secure Conversation</emphasis> is used, a security context is established and a worker thread cleans up expired contexts. This parameter sets the interval on the timer thread that collects expired contexts established when GSI Secure Conversation is used. The value is the number of seconds between each run and defaults to 10minutes.</para>
+
+        <screen>&lt;containerSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/container&quot;&gt;
+   ...
+       &lt;context-timer-interval value=&quot;100000&quot;/&gt;
+   ...
+&lt;/containerSecurityConfig&gt;</screen>
+</section> <!-- context-timer-interval -->
+
+  <section id="authzframe-secdesc-container-replay">
+    <title>Replay Timer Interval</title>
+      <para>This parameter sets the interval on the timer thread that collects expired message digest ids, stored to prevent replay attack in the case of Secure Message. The value is set in seconds and the default value is 1 minute.</para>
+
+        <screen>&lt;containerSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/container&quot;&gt;
+   ...
+       &lt;replay-timer-interval value=&quot;100&quot;/&gt;
+   ...
+&lt;/containerSecurityConfig&gt;</screen>
+</section> <!-- replay-timer-interval -->
+
+  <section id="authzframe-secdesc-container-trusted">
+    <title>Trusted Certificates</title>
+      <para>This parameter sets location of trusted certificates to be used. The value should be a comma separated list of locations.</para>
+
+        <screen>&lt;containerSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/container&quot;&gt;
+   ...
+       &lt;trusted-certificates value=&quot;/home/user1/trustedCerts /home/user1/newCerts&quot;/&gt;
+   ...
+&lt;/containerSecurityConfig&gt;</screen>
+</section> <!-- replay-timer-interval -->
+
+<!-- FILLME admin authz chain, default authz parameter -->
+
+</section> <!-- container only configuration -->
+
+<section id="authzframe-secdesc-service-config">
+<title> Service Security Descriptor Configuration </title>
+
+<!-- FIXME -->
+  <section id="authzframe-secdesc-configGridmap">
+    <title>Configuring grid map files - REWORK </title>
+    <para>The container and each service can be configured with a separate
+    grid map file in each of their security descriptors as shown below:</para>
+    <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
+   ...
+   &lt;gridmap value=&quot;gridMapFile&quot;/&gt;
+   ...
+&lt;/securityConfig&gt;</screen>
+    <para>The  framework will first look for a gridmap configured by the resource,
+    then by the service and then by the container. For services configured to perform
+    grid map file authorization, the grid map file can be updated
+    dynamically using the SecurityManager API. Also, if the gridmap
+    file changes at runtime it will be automatically reloaded.</para>
+  </section>
+
+  <section id="authzframe-secdesc-configAuth">
+
+    <title>Configuring authentication methods</title>
+    
+    <para> The authentication method required for accessing a service can be configured in the descriptor using the <constant>&lt;auth-method&gt;</constant> element. A per method configuration can also be done as described in <xref linkend="authzframe-secdesc-configPerMethod"/>.</para>
+
+    <para>Currently, the following authentication methods are supported:</para>
+    <table>
+      <title>Authentication methods</title>
+      <tgroup cols="3">
+        <tbody>
+        <row> 
+        <entry>Authentication Method </entry>
+        <entry>Element </entry>
+        <entry>Options/Notes </entry>
+        </row>
+          <row>
+          <entry> No Authentication </entry>
+            <entry>
+              <constant>&lt;none/&gt;</constant>
+            </entry>
+            <entry>
+              <para>This method <emphasis>cannot</emphasis> be specified with any
+          other authentication method.</para>
+            </entry>
+          </row>
+          <row>
+          <entry> GSI Secure Message </entry>
+            <entry>
+              <constant>&lt;GSISecureMessage/&gt;</constant>
+            </entry>
+            <entry>
+              <para>The <constant>&lt;protection-level&gt; </constant>sub element can
+          be used to specify a protection level that must be
+          applied to the message:
+          <itemizedlist>
+            <listitem><para>
+              <constant>&lt;integrity/&gt;</constant>, indicates that the message must be integrity protected (signed).</para>
+            </listitem>
+            <listitem><para>
+              <constant>&lt;privacy/&gt;</constant>, indicates that the message must be privacy protected (encrypted and signed).</para>
+            </listitem>
+          </itemizedlist>
+</para>
+            </entry>
+          </row>
+          <row>
+             <entry> GSI Secure Conversation </entry>
+            <entry>
+              <constant>&lt;GSISecureConversation/&gt;</constant>
+            </entry>
+            <entry>
+              <para>The <constant>&lt;protection-level&gt; </constant>sub element can
+          be used to specify a protection level that must be
+          applied to the message:
+          <itemizedlist>
+            <listitem><para>
+              <constant>&lt;integrity/&gt;</constant>, indicates that the message must be integrity protected (signed).</para>
+            </listitem>
+            <listitem><para>
+              <constant>&lt;privacy/&gt;</constant>, indicates that the message must be privacy protected (encrypted and signed).</para>
+            </listitem>
+          </itemizedlist>
+</para>
+            </entry>
+          </row>
+          <row>
+          <entry> GSI Secure Transport Authentication</entry>
+            <entry>
+              <constant>&lt;GSITransport/&gt;</constant>
+            </entry>
+            <entry>
+              <para>The <constant>&lt;protection-level&gt; </constant>sub element can
+          be used to specify a protection level that must be
+          applied to the message:
+          <itemizedlist>
+            <listitem><para>
+              <constant>&lt;integrity/&gt;</constant>, indicates that the message must be integrity protected (signed).</para>
+            </listitem>
+            <listitem><para>
+              <constant>&lt;privacy/&gt;</constant>, indicates that the message must be privacy protected (encrypted and signed).</para>
+            </listitem>
+          </itemizedlist>
+</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para><emphasis>Notes:</emphasis></para>
+    <itemizedlist>
+      <listitem>
+        <simpara>Multiple authentication methods can be specified under the <constant>&lt;auth-method&gt;</constant> element (except for the <constant>&lt;none/&gt;</constant> method, see above). As long as one of the specified authentication methods is used, access to the service is allowed.</simpara>
+      </listitem>
+      <listitem>
+        <simpara>If <emphasis>no</emphasis> <constant>&lt;protection-level&gt;</constant> sub element is specified, then all protection levels are available to clients. However, if the <constant>&lt;protection-level&gt;</constant> sub element <emphasis>is</emphasis> specified, then the service will only accept the protection levels listed under said element.</simpara>
+      </listitem>
+      <listitem>
+        <simpara>The <constant>org.globus.wsrf.impl.security.authentication.SecurityPolicyHandler</constant> handler <emphasis>must</emphasis> be installed properly in order for this to work. This handler is installed by default.</simpara>
+      </listitem>
+      <listitem>
+        <simpara>If a security descriptor is <emphasis>not</emphasis> specified, authentication method enforcement is <emphasis>not</emphasis> performed.</simpara>
+      </listitem>
+    </itemizedlist>
+
+    <para><emphasis>Example:</emphasis></para>
+    <screen>&lt;serviceSecurityConfig xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
+
+   &lt;!-- default auth-method for any other method --&gt;
+   &lt;auth-method&gt;
+      &lt;GSISecureConversation/&gt;
+   &lt;/auth-method&gt;
+&lt;/securityConfig&gt;</screen>
+
+  </section>
+
+
+  <section id="authzframe-secdesc-configRunas">
+    <title>Configuring the run-as mode</title>
+
+    <para>The <constant>&lt;run-as&gt;</constant> element is used to configure the
+    JAAS run-as identity under which the service method will be
+    executed. The run-as identity can be configured on a per method
+    basis also as described in <xref linkend="authzframe-secdesc-configPerMethod"/>. Currently, the following run-as identities are
+    supported:</para>
+    <table>
+      <title>Run-as methods</title>
+      <tgroup cols="2">
+        <tbody>
+          <row>
+            <entry>
+              <constant>&lt;run-as value=&quot;caller&quot;/&gt;</constant>
+            </entry>
+            <entry>
+              <para>The service method will be run with the security identity
+          of the client. The caller Subject will contain the following:</para>
+              <itemizedlist>
+                <listitem>
+                  <simpara>If using <emphasis>GSI Secure Message</emphasis>: a GlobusPrincipal (the identity of the signer) is added to the principal set of the caller-identity Subject. Also, the signer&apos;s certificate chain is added to the public credentials set of the Subject object.</simpara>
+                </listitem>
+                <listitem>
+                  <para>If using <emphasis>GSI Secure Conversation</emphasis>: a
+            GlobusPrincipal (the identity of the initiator) is added
+            to the principal set of the Subject.  <itemizedlist>
+                      <listitem>
+                        <simpara>If client authentication was performed, the client&apos;s certificate chain will be added to the public credentials set of the Subject object. </simpara>
+                      </listitem>
+                      <listitem>
+                        <simpara>Also, if delegation was performed, the delegated credential is added to the private credential set of the Subject object. </simpara>
+                      </listitem>
+                    </itemizedlist></para>
+                </listitem>
+                <listitem>
+                  <simpara>If grid map file authorization was performed, a UserNamePrincipal is added to the principal set of the Subject object.</simpara>
+                </listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+
+          <row>
+            <entry>
+              <constant>&lt;run-as value=&quot;service&quot;/&gt;</constant>
+            </entry>
+            <entry>The service method will be run with the security identity of the service itself (if the service has one, otherwise the container identity will be used).</entry>
+          </row>
+          <row>
+            <entry>
+              <constant>&lt;run-as value=&quot;resource&quot;/&gt;</constant>
+            </entry>
+            <entry>The service method will be run with the security identity of the resource. If no resource is specified or if the resource does not have a configured subject, credentials in this order of occurrence will be used: service credential, container credential.</entry>
+          </row>
+          <row>
+            <entry>
+              <constant>&lt;run-as value=&quot;system&quot;/&gt;</constant>
+            </entry>
+            <entry>The service method will be run with the security identity of the container.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <para><emphasis>Notes:</emphasis> </para>
+    <itemizedlist>
+      <listitem>
+        <simpara><emphasis>resource-identity</emphasis> is the default setting.</simpara>
+      </listitem>
+      <listitem>
+        <simpara>The <constant>org.globus.wsrf.impl.security.authentication.SecurityPolicyHandler</constant> handler <emphasis>must</emphasis> be installed properly in order for this to work. It is installed by default.</simpara>
+      </listitem>
+      <listitem>
+        <simpara>If the security descriptor is <emphasis>not</emphasis> specified, then the run-as identity is not set and there will be no JAAS subject associated with the execution of the operation. This means that any method calls that require credentials and that are invoked by the service method itself will fail.</simpara>
+      </listitem>
+    </itemizedlist>
+    <para><emphasis>Example:</emphasis></para>
+    <screen>&lt;servicesecurityConfig xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
+
+   &lt;!-- default run-as for any other method --&gt;
+   &lt;run-as&gt; 
+      &lt;service-identity/&gt;
+   &lt;/run-as&gt;
+
+&lt;/serviceSecurityConfig&gt;</screen>
+  </section>
+
+  <section id="authzframe-secdesc-configPerMethod">
+    <title>Configuring per method authentication and run-as</title>
+
+    <para> A per method configuration can be used to define expected authentication method for the method and also a run-as configuration. The element <constant>methodAuthentication</constant> is used to list all the method configuration. For each method, element <constant>method</constant> with method name as attribute needs to be used. If a method does not have such a configuration, default configuration, described in the last two sections are used. </para>
+
+<para> Example</para>
+<screen>
+
+&lt;serviceSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
+ ...
+   &lt;method name=&quot;findServiceData&quot;&gt;
+      &lt;auth-method&gt;
+         &lt;none/&gt;
+      &lt;/auth-method&gt;
+   &lt;/method&gt;
+
+   &lt;method name=&quot;subtract&quot;&gt;
+      &lt;run-as&gt;
+         &lt;service-identity/&gt;
+      &lt;/run-as&gt;
+   &lt;/method&gt; 
+
+   &lt;method name=&quot;destroy&quot;&gt;
+      &lt;auth-method&gt;
+         &lt;GSISecureMessage/&gt;
+         &lt;GSISecureConversation&gt;
+            &lt;protection-level&gt;
+               &lt;integrity/&gt;
+            &lt;/protection-level&gt;
+         &lt;/GSISecureConversation&gt;
+      &lt;/auth-method&gt;
+   &lt;/method&gt;
+
+   &lt;!-- default run-as for any other method --&gt;
+   &lt;run-as&gt; 
+      &lt;system-identity/&gt;
+   &lt;/run-as&gt;
+
+   &lt;!-- default auth-method for any other method --&gt;
+   &lt;auth-method&gt;
+      &lt;GSISecureConversation/&gt;
+   &lt;/auth-method&gt;
+...
+&lt;/serviceSecurityConfig&gt;
+
+</screen>
+
+    <para>In the above example:</para>
+    <itemizedlist>
+      <listitem>
+        <simpara>the <function>findServiceData()</function> operation does not require any authentication. Since no run-as per method is specified, default specification, system-identity is used.</simpara>
+      </listitem>
+      <listitem>
+        <simpara>the <function>destroy()</function> operation requires either <emphasis>GSI Secure Message</emphasis> authentication with either level of protection or <emphasis>GSI Secure Conversation</emphasis> authentication with integrity protection. Default run-as is used.</simpara>
+      </listitem>
+      <listitem>
+        <simpara>substract method does not have a specific authentication speicifed, so the default GSI Secure Conversation is used. But the operation is run with service identity. </simpara>
+      </listitem>
+      <listitem>
+        <simpara>all other operations must be authenticated with <emphasis>GSI Secure Conversation</emphasis> with either level of protection.</simpara>
+      </listitem>
+    </itemizedlist>
+  </section>
+</section> <!-- server side descriptor -->
+
+
 <section id="authzframe-secdesc-client">
   <title>Writing client side security descriptors </title>
 
@@ -798,6 +1146,8 @@ The following sample sets GSI Secure Conversation with privacy and full delegati
   &lt;/securityConfig&gt;
 </screen>
 </para>
+
+<!-- FILL ME: hostSelfAuthz, usernametype, trustedCertificates -->
  </section>
 <section id="authzframe-secdesc-client-secMsg">
   <title>Configuring GSI Secure Message </title>
@@ -985,35 +1335,4 @@ config.setProperty(&quot;idenAuthz&quot;, &quot;identity&quot;, &quot;O=this, OU
 // Property used by CustomAuthz: scope, property name, property value
 config.setProperty(&quot;custom&quot;, &quot;someProp&quot;, &quot;foo&quot;);
 desc.setAuthzChain(authzChain, config, &quot;Name of Chain&quot;, &quot;Some id&quot;);</screen>
-</section>
-<section id="authzframe-secdesc-container">
-  <title>Container-only security configuration</title>
-  <para>Other than the security properties that have been described in <link linkend="authzframe-security-descriptor">Security Descriptor</link>, two more properties are exclusive
-  to the container security descriptor.
-</para>
-  <itemizedlist>
-    <listitem>
-      <para>When <emphasis>GSI Secure Conversation</emphasis> is used, a security context is established.
-    A sweeper task is run every 10 minutes to delete all expired contexts. This
-    interval can be set (in milliseconds) in the container security descriptor
-    as shown below:
-    <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
-   ... 
-   &lt;context-lifetime value=&quot;10000&quot;/&gt;
-   ... 
-&lt;/securityConfig&gt;</screen></para>
-    </listitem>
-    <listitem>
-      <para>For message level security one may also set the amount of time for which to track received messages for the purpose of preventing replay attacks. Messages outside of this window will be rejected automatically, whereas messages within this window are checked against recently received messages through the use of the message UUID. This window can be configured (in milliseconds) as shown below:
-  <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
-   ... 
-   &lt;replay-attack-interval value=&quot;100&quot;/&gt;
-   ... 
-&lt;/securityConfig&gt;</screen> </para>
-    </listitem>
-  </itemizedlist>
-</section>
-<section id="authzframe-secdesc-configOthers">
-  <title>Other configuration</title>
-  <para>The container security descriptor can be set up at the command line (rather than configured in the deployment descriptor as described in <xref linkend="authzframe-secdesc-configDesc"/>) by using the <emphasis>-containerDesc</emphasis> option when starting up the container using <emphasis>globus-start-container</emphasis>.<screen> bin\globus-start-container -containerDesc path/to/desc</screen></para>
 </section>
