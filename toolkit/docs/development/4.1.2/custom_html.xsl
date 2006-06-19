@@ -84,7 +84,7 @@
                 </xsl:attribute-set> -->
                 
                 <!-- INCORPORATING DOCBOOK PAGES INTO WEBSITE -->
-                
+
                 <!-- make sure there's a DOCTYPE in the html output (otherwise, some css renders strangely -->
                 <xsl:param name="chunker.output.doctype-public" select="'-//W3C//DTD HTML 4.01 Transitional//EN'"/>
                 <xsl:param name="chunker.output.doctype-system" select="'http://www.w3.org/TR/html4/loose.dtd'"/>
@@ -136,99 +136,10 @@
                                                 <body>
                                                                 <xsl:call-template name="body.attributes"/>
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_header_docbook.inc");
+                                                                                include_once("http://www-testing.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_header_docbook.inc");
                                                                                 ?</xsl:processing-instruction>
                                                                 
-                                                                <div id="sidebarMenu">
-                                                                                <h2 class="smalltitle">Software Links</h2>
-                                                                                <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/Usage_Stats.html">Usage Statistics</a></dt>
-                                                                                                <dt><a href="/toolkit/releasenotes/">Release Notes</a></dt>
-                                                                                                <dt><a href="/toolkit/versioning.html">Versioning</a></dt>
-                                                                                                <dt><a href="/toolkit/downloads/">Downloads</a></dt>
-                                                                                                <dt><a href="/toolkit/advisories.html">Advisories</a></dt>
-                                                                                                <dt><a href="/toolkit/legal/">Licenses</a></dt>
-                                                                                                <dt><a href="http://dev.globus.org/wiki/How_to_contribute">CVS &amp; Dev Tools</a></dt>
-                                                                                </dl>
-                                                                                
-                                                                                <h2 class="smalltitle">Getting Started</h2>
-                                                                                <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/gtadmin-platform.html">Platform Notes</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-migrating-gt2.html">Migrating from GT2</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-migrating-gt3.html">Migrating from GT3</a></dt>
-                                                                                </dl>
-                                                                                
-                                                                                <h2 class="smalltitle">Reference</h2>
-                                                                                <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/releaseManuals.pdf">PDF version</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-bestpractices.html">Best Practices</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
-                                                                                                <dt><a href="/api/">API docs</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-public-interface">Public Interfaces</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-rp.html">Resource Properties</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-samples.html">Samples</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/si01.html">Index</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
-                                                                                </dl>
-                                                                                
-                                                                                <h2 class="smalltitle">Common Runtime</h2>
-                                                                                <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/common/javawscore/">Java WS Core</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/commont/cwscore/">C WS Core</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/commont/pythonwscore/">Python WS Core</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/commont/xio/">XIO</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/commont/javacog/">CoG jglobus</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/commont/pyglobus/">pyGlobus</a></dt>
-                                                                                </dl>
-                                                                                
-                                                                                <h2 class="smalltitle">Security</h2>
-                                                                                <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/prewsaa/">Pre-WS A&amp;A</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/message/">Message-level</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/authzframe/">Authz Framework</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/cas/">CAS</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/delegation/">Delegation Service</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/myproxy/">MyProxy</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/openssh/">GSI-OpenSSH</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/security/simpleca/">SimpleCA</a></dt>
-                                                                                </dl>
-                                                                                
-                                                                                <h2 class="smalltitle">Data Mgt</h2>
-                                                                                <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/data/rft/">RFT</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/data/gridftp/">GridFTP</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/data/rls/">RLS</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/data/wsrls/">WS RLS</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/data/ogsadai/">OGSA-DAI</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/data/datarep/">DRS</a></dt>
-                                                                                </dl>
-                                                                                
-                                                                                <h2 class="smalltitle">Information Svcs</h2>
-                                                                                <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">WS MDS Aggregator</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/info/index/">WS MDS Index</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/info/trigger/">WS MDS Trigger</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/info/webmds/">WS MDS WebMDS</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/info/usefulrp/">WS MDS UsefulRP</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/info/prewsmds/">Pre-WS MDS (legacy)</a></dt>
-                                                                                </dl>
-                                                                                
-                                                                                <h2 class="smalltitle">Execution Mgt</h2>
-                                                                                <dl class="leftColumn">
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/execution/wsgram/">WS GRAM</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/execution/gtcp/">GTCP</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/execution/csf/">CSF</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/execution/wms/">WMS</a></dt>
-                                                                                                <dt><a href="/toolkit/docs/development/4.2-drafts/execution/prewsgram/">Pre-WS GRAM (legacy)</a></dt>
-                                                                                </dl>
-                                                                                
-                                                                </div>
-                                                                
+ 
                                                                 <xsl:call-template name="user.header.navigation"/>
                                                                 
                                                                 <xsl:call-template name="header.navigation">
@@ -254,17 +165,9 @@
                                                                 </xsl:call-template>
                                                                 
                                                                 <xsl:call-template name="user.footer.navigation"/>
-                                                                
-                                                                <div id="footer">
-                                                                                <hr class="first"/>
-                                                                                
-                                                                                <p>Comments? <a href="mailto:webmaster@globus.org">webmaster@globus.org</a></p>
-                                                                                <p>Globus Project and Globus Toolkit are trademarks<br />
-                                                                                                held by the University of Chicago</p>
-                                                                                <!--ending div of footer-->
-                                                                </div>
+
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_footer_docbook.inc");
+                                                                                include_once("http://www-testing.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_footer_docbook.inc");
                                                                                 ?</xsl:processing-instruction>
                                                       
                                                 </body>
