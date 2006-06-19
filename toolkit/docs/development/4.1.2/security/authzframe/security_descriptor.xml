@@ -406,46 +406,173 @@ linkend="authzframe-secdesc-schema"/>.</para></note>
   <section id="authzframe-secdesc-configAuthz">
     <title>Configuring authorization mechanisms</title>
 
-    <para>FILL ME</para>
     <para>The container and each service/resource can be configured
     with a chain of interceptor, where each interceptor is a Policy
     Decision Points (PDPs) or Policy Information Points (PIPs). The
     element <constant>authzChain</constant> can be used to configure
-    it. Each interceptor name is scoped and the format is
-    <emphasis>prefix:FQDN of the interceptor</emphasis>. For example,
-    <emphasis>self:org.globus.wsrf.impl.security.authorization.SelfAuthorization</emphasis>.
-    The prefix is used to allow multiple instances of the same
-    intercepor to exist in the same PDP chain.</para>
+    it. 
 
-   <para>The authorization chain can be configured with a combining
-   algorithm using the attribute
-   <emphasis>combiningAlg</emphasis>. The value should be a FQDN of a
-   class that implements
-   <constant>org.globus.wsrf.security.authorization.AuthorizationEngineSpi</constant>. The
-   attribute is optional and by default the
-   <constant>org.globus.wsrf.impl.security.authorization.providers;.PermitOverrideAlgorithm</constant>
-   is used. </para>
+    <itemizedlist>
+
+    <listitem><para>Each chain can contain an optional list of
+    Bootstrap PIPs, an optional list of PIPs and a list of PDPs (with
+    atleast one PDP).</para></listitem>
+
+    <listitem><para> Each interceptor name is scoped and the format is
+    <emphasis>prefix:FQDN of the interceptor</emphasis>. For example,
+    <emphasis>self:org.globus.wsrf.impl.security.authorization.SelfAuthorization</emphasis>. The
+    prefix is used to allow multiple instances of the same intercepor
+    to exist in the same PDP chain.</para>
 
     <para><emphasis>Example:</emphasis></para>
-    <screen>&lt;serviceSecurityConfig 
+
+    <screen>
+&lt;serviceSecurityConfig 
             xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
    ...
-   &lt;authz value=&quot;foo1:org.foo.authzMechanism bar1:org.bar.barMechanism&quot;/&gt;
+&lt;authzChain&gt;
+
+   &lt;pips&gt;
+	&lt;interceptor name=&quot;scope2:org.globus.sample.PIP1&quot;/&gt;
+   &lt;/pips&gt;
+   &lt;pdps&gt;
+        &lt;interceptor name=&quot;foo1:org.foo.authzMechanism bar1:org.bar.barMechanism&quot;/&gt;
+   &lt;/pdps&gt;
+
+&lt;/authzChain&gt;
    ...
 &lt;serviceSecurityConfig/&gt;</screen>
-    <para>Each PDP is instantiated with some configuration information that
- can be used to get any further information that the PDP may need to make
-authorization decisions. If the authorization chain is configured at the
-container level, then the parameters are picked up from the global configuration
-section of the container deployment descriptor. If the authorization chain is
-configured at the service level, the PDPs will pick up parameters from the relevant
-  service section of the deployment descriptor. Resource level configuration
-  has to be done programmatically and is described <xref linkend="authzframe-secdesc-resDesc"/>.
-  In all three cases, the prefix specified in the authorization chain configuration is used to get the right property. For example, all properties for
-        <emphasis>foo1:org.foo.authzMechanism</emphasis>
-      are picked up from properties that have been scoped with the prefix
-        <emphasis>foo1-</emphasis>.
-      </para>
+
+    </listitem>
+    
+    <listitem>
+    <para>
+    Bootstap PIPs are optional and by default, <emphasis>org.globus.wsrf.impl.security.authorization.X509BootstrapPIP</emphasis> is used by the framework. Any other PIPs listed with in the &lt;bootstrapPips&gt; element is appended to the default PIP. If the configuration should override (that is X5008BootstapPIP should not be used), the optional attribute <constant>overwrite</constant> can be set to true.
+    </para>
+
+<screen>
+&lt;serviceSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
+   ...
+
+&lt;authzChain combiningAlg=&quot;org.globus.sample.SampleAlg&gt;
+   &lt;bootstrapPips overwrite=&quot;true&quot;
+      &lt;interceptor name=&quot;scope1:org.globus.sample.BootstrapPIP1&quot;/&gt;
+&lt;/bootstrapPips&gt;
+   &lt;pips&gt;
+	&lt;interceptor name=&quot;scope2:org.globus.sample.PIP1&quot;/&gt;
+   &lt;/pips&gt;
+   &lt;pdps&gt;
+	&lt;interceptor name=&quot;scope3:org.globus.sample.PDP1&quot;/&gt;
+   &lt;/pdps&gt;
+&lt;/authzChain&gt;
+..
+&lt;/serviceSecurityConfig&gt;
+</screen>
+
+<para>In the above case, X509BootstrapPIP will not be used adn the BoostrapPIP1 will be used.</para>
+
+<screen>
+&lt;serviceSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
+   ...
+
+&lt;authzChain combiningAlg=&quot;org.globus.sample.SampleAlg&gt;
+   &lt;bootstrapPips&gt;
+      &lt;interceptor name=&quot;scope1:org.globus.sample.BootstrapPIP1&quot;/&gt;
+&lt;/bootstrapPips&gt;
+   &lt;pips&gt;
+	&lt;interceptor name=&quot;scope2:org.globus.sample.PIP1&quot;/&gt;
+   &lt;/pips&gt;
+   &lt;pdps&gt;
+	&lt;interceptor name=&quot;scope3:org.globus.sample.PDP1&quot;/&gt;
+   &lt;/pdps&gt;
+&lt;/authzChain&gt;
+..
+&lt;/serviceSecurityConfig&gt;
+</screen>
+
+<para>In the above case, X509BootstrapPIP followed by BoostrapPIP1 will be used.</para>
+
+    </listitem>
+
+    <listitem><para>The authorization chain can be configured with a
+    combining algorithm using the attribute
+    <emphasis>combiningAlg</emphasis>. The value should be a FQDN of a
+    class that implements
+    <constant>org.globus.wsrf.security.authorization.AuthorizationEngineSpi</constant>. The
+    attribute is optional and by default the
+    <constant>org.globus.wsrf.impl.security.authorization.providers.PermitOverrideAlgorithm</constant>
+    is used. </para>
+
+    <para>Example:</para>
+<screen>
+&lt;serviceSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/service&quot;&gt;
+   ...
+
+&lt;authzChain combiningAlg=&quot;org.globus.sample.SampleAlg&gt;
+   &lt;pips&gt;
+	&lt;interceptor name=&quot;scope2:org.globus.sample.PIP1&quot;/&gt;
+   &lt;/pips&gt;
+   &lt;pdps&gt;
+	&lt;interceptor name=&quot;scope3:org.globus.sample.PDP1&quot;/&gt;
+        &lt;interceptor name=&quot;scope4:org.globus.sample.PDP2&quot;/&gt;
+   &lt;/pdps&gt;
+&lt;/authzChain&gt;
+..
+&lt;/serviceSecurityConfig&gt;
+</screen>
+
+<para> In the above, the default <constant>X509BootstrapPIP</constant> will be used. Following that, the PIPs, <constant>PIP1</constant> will be invoked to collect attributes. Finally the <constant>SampleAlg</constant> combining algorithm is used with the configured PDPs (<constant>PDP1</constant> and <constant>PDP2</constant>) are run to determine the decision.</para>
+    </listitem>
+
+    <listitem><para> Each interceptor can specify a parameter value
+    and the schema defines it as xsd:any to allow for any user defined
+    parameters. The parser extracts the elements in &lt;parameter&gt;
+    element and returns them as DOM Element. It is left up to the
+    Interceptor to parse the Element. The DOM object created is placed
+    in the ChainConfig object passed to the authorization engine as a
+    parameter called &quot;parameterObject&quot;. The prefix will be
+    the scope specified in the interceptor name.  </para> 
+
+    <para>Since schema validation is done, a schema must be supplied for the
+    user defined parameters. The schema location is loaded as a
+    resource and hence can be included in some jar placed in
+    GLOBUS_LOCATION lib directory.  </para>
+    
+    </listitem>
+
+    <listitem>
+    <para>
+    The toolkit provides a parameter schema by default, that allows
+    for a name/value pair, where the value is a string. Example :
+    <screen>
+
+&lt;containerSecurityConfig xmlns=&quot;http://www.globus.org/security/descriptor/container&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xsi:schemaLocation=&quot;http://www.globus.org/security/descriptor name_value_type.xsd&quot;
+xmlns:param=&quot;http://www.globus.org/security/descriptor&quot;&gt;
+&lt;authzChain&gt;
+&lt;pdps&gt;
+   &lt;interceptor name=&quot;gridmapAuthz:org.globus.wsrf.impl.security.GridMapAuthorization&quot;&gt;
+                    &lt;parameter&gt;
+                        &lt;param:nameValueParam&gt;
+                            &lt;param:parameter name=&quot;gridmap-file&quot;
+                                            value=&quot;/home/user1/grid-mapfile&quot;/&gt;
+                        &lt;/param:nameValueParam&gt;
+                    &lt;/parameter&gt;
+		&lt;/interceptor&gt;
+	&lt;/pdps&gt;
+&lt;/containerSecurityConfig&gt;
+    
+    </screen>
+    </para>
+
+    <para>When the above is parsed, a DOM Element is constructed with element &lt;param:nameValuParam&gt; and stored in the ChainConfig object as parameter with name &quot;gridmapAuthz:parameterObject&quot;. The GridMapAuthorization PDP, uses ObjectDeserializer to retrieve the name/value pairs.</para>
+    </listitem>
+
+    </itemizedlist> 
+</para>
+
     <para> The following PDPs are a part of the toolkit and are configured as shown. The framework maps and plugs in the scoped name of the PDP at the time of authorization.
 </para>
     <table>
@@ -726,13 +853,65 @@ public class FooPDP implements PDP
                      value=&quot;/DC=org/DC=doe/OU=People/CN=John D&quot;/&gt;
    ...
 &lt;/service&gt;</screen>
-    <para>Note that the parameter <parameter>foo1-authorizedIdentity</parameter> in the above configures the identity the PDP uses  for authorizing incoming requests. The parameter name is derived by composing the prefix (<parameter>foo1</parameter>) used when specifying the PDP in the security descriptor with the property  (<parameter>authorizedIdentity</parameter>) used in the PDP code.</para>
+    <para>Note that the parameter &lt;parameter&gt;foo1-authorizedIdentity&lt;/parameter&gt; in the above configures the identity the PDP uses  for authorizing incoming requests. The parameter name is derived by composing the prefix (&lt;parameter&gt;foo1&lt;/parameter&gt;) used when specifying the PDP in the security descriptor with the property  (&lt;parameter&gt;authorizedIdentity&lt;/parameter&gt;) used in the PDP code.</para>
   </section>
 </section> <!-- server side common config -->
 
 <section id="authzframe-secdesc-container">
   <title>Container-only security configuration</title>
+
   <para>Other than the security properties that have been described in previous section, few more properties are exclusive to the container security descriptor.</para>
+
+  <section id="authzframe-secdesc-container-adminAuthz">
+    <title>Administrator Authorization Chain</title>
+
+    <para>Other than the container/service/resource authorization, a administrative level authorization chain can be configured using the &lt;adminAuthz&gt; element. The decision returned by this chain, overrides subsequent authorization decision. That is, if the administator's authorizaiton chain returns a deny, the rest of the configured authorization (at container/service/resource) is <emphasis>not</emphasis> evaluated and the operation is denied. If the the administattor's chain returns the permit, the rest of the configuration is evaluated to see if the operation is allowed. </para>
+
+<para>The element has the same schema as described in <xref linkend="authzframe-secdesc-configAuthz"/>, with the outer element called <constant>adminAuthz</constant> in palce of <constant>authzChain</constant>.</para>
+
+    <para><emphasis>Example:</emphasis></para>
+
+    <screen>
+&lt;containerSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/container&quot;&gt;
+   ...
+&lt;adminAuthz&gt;
+
+   &lt;pips&gt;
+	&lt;interceptor name=&quot;scope2:org.globus.sample.PIP1&quot;/&gt;
+   &lt;/pips&gt;
+   &lt;pdps&gt;
+        &lt;interceptor name=&quot;foo1:org.foo.authzMechanism bar1:org.bar.barMechanism&quot;/&gt;
+   &lt;/pdps&gt;
+
+&lt;/adminAuthz&gt;
+   ...
+&lt;containerSecurityConfig/&gt;</screen>
+
+  </section>
+   
+  <section id="authzframe-secdesc-container-defaultAuthz">
+    <title> Default Authorization Chain</title>
+    <para>This element is used to configure default properties for any
+    interceptor configured in authorization chains. The schema for
+    this is similar to the authorization chain specification as described in <xref linkend="authzframe-secdesc-configAuthz"/> and
+    allows for xsd:any as interceptor parameter.  </para>
+
+<screen>
+&lt;defaultAuthzParam&gt;
+	&lt;interceptor name=&quot;scope1:org.globus.sample.SamplePDP&quot;/&gt;
+                    &lt;parameter&gt;
+                        &lt;param:nameValueParam&gt;
+                            &lt;param:parameter name=&quot;policy-file&quot; 
+                                            value=&quot;/home/user1/samplePDPConfig&quot;/&gt;
+                        &lt;/param:nameValueParam&gt;
+                    &lt;/parameter&gt;
+	&lt;/interceptor&gt;
+&lt;/defaultAuthzParam&gt;
+
+</screen>
+
+  </section>
 
   <section id="authzframe-secdesc-container-context">
     <title>Context Timer Interval</title>
