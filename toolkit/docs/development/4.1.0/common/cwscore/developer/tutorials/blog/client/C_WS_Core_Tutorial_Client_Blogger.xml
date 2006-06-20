@@ -1,0 +1,543 @@
+<section id="cwscore-tutorial-client-Intro"><title>Introduction: A Blog Service</title>
+<para>
+The Globus Toolkit C WS-Core codebase provides tools and APIs for interacting 
+with web services from a client written in C.  It provides additional support 
+for interacting with resource enabled (WSRF) web services.
+This tutorial provides a walkthrough of the steps 
+to take to create such a C client.
+</para><para>
+The client we implement interacts with the BlogService, which is a simple 
+ example of a Blog web service.  See the 
+<ulink url="http://en.wikipedia.org/w/wiki.phtml?title=weblog">
+Wikipedia entry on Blogs</ulink> for more information on Blogging.
+
+In our simple example, the topic for each Blog is maintained as a
+<emphasis>WS-Resource</emphasis>.  The primary ResourceProperty type associated
+with each Blog resource is an array of strings 
+of all the entries made to that blog topic.  
+</para>
+
+<para>
+Clients can create new Blog
+resources with the <emphasis>createBlogTopic</emphasis> factory operation, and
+append their own entries to that resource with the <emphasis>addEntry</emphasis>
+operation.  Because the blog stores the entries beyond the lifetime
+of a single web service invocation (such as <emphasis>addEntry</emphasis>), 
+maintaining each blog topic as a resource is a natural use of the framework.
+</para>
+<para>
+The public interface to a Blog's entry strings is through
+the <emphasis>resource property</emphasis> named <computeroutput>BlogEntry</computeroutput>, 
+and the resource property operations (i.e. <emphasis>GetResourceProperty</emphasis>)
+that are inherited by the BlogService.
+</para>
+<para>
+The tutorial walks through creation of a blog resource, invoking the
+<emphasis>addEntry</emphasis> operation on that resource, accessing
+the blog's entries, and finally destroying the blog resource.
+</para>
+
+<para>
+For this tutorial we provide the following:
+
+<itemizedlist>
+
+<listitem><para>Complete source for the clients:
+
+<itemizedlist>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/create_blog.c">create_blog.c</ulink></simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/add_blog_entry.c">add_blog_entry.c</ulink></simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/get_blog_entries.c">get_blog_entries.c</ulink></simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/destroy_blog.c">destroy_blog.c</ulink></simpara></listitem>
+</itemizedlist>
+</para></listitem>
+
+<listitem><para>
+WSDL schemas:
+
+<itemizedlist>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/blog.wsdl">blog.wsdl</ulink> - Includes the input/output
+type definitions for the BlogService operations, the ResourceProperty
+definitions, and the portType definition.</simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/blog_bindings.wsdl">blog_bindings.wsdl</ulink> - Includes
+the binding definition for the BlogService.  The <computeroutput>blog.wsdl</computeroutput>
+schema file is imported.</simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/blog_service.wsdl">blog_service.wsdl</ulink> - Includes
+the service definition.  The <computeroutput>blog_binding.wsdl</computeroutput> schema
+file is imported.</simpara></listitem>
+</itemizedlist>
+
+</para></listitem>
+
+<listitem><simpara>
+A GPT package 
+    <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/blog_client_bindings-0.2.tar.gz">blog_client_bindings-0.2.tar.gz</ulink> 
+of the blog bindings source code.  This is the package generated from
+the WSDL schemas using the <computeroutput>globus-wsrf-cgen</computeroutput> command.
+</simpara></listitem>
+<listitem><simpara>
+    A tarball <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/blog_client.tar.gz">blog_client.tar.gz</ulink> 
+of the counter client source and Makefiles described in this tutorial.
+</simpara></listitem>
+
+</itemizedlist>
+
+See: <xref linkend="cwscore-developer-tutorials-Service"/> for further information on
+the service side of the implementation.  Here, we provide
+the steps for creating the C client:
+</para>
+
+</section>
+
+<section id="cwscore-tutorial-client-Step0" xreflabel="Step 0: Acquire a WSDL schema"><title>Step 0: Acquire a WSDL schema</title>
+<para>This is the first step to writing your own client.  You must
+either obtain a pre-existing WSDL schema file (or files), or
+you must write your own.  If you are just going to write
+a client that interacts with a pre-existing service, the WSDL
+schema for that service already exists, and you should be able
+to obtain it from the service author.
+</para>
+<para>
+    For the BlogService, we provide <ulink url="&docpath;common/cwscore/developer/tutorials/blog/blog.wsdl">blog.wsdl</ulink>
+that defines
+the factory operation <computeroutput>createBlogTopic</computeroutput>, 
+the append operation <computeroutput>addEntry</computeroutput>, and the
+<computeroutput>BlogEntry</computeroutput> resource property for each blog resource.  The WSDL schema files should be installed somewhere in the $GLOBUS_LOCATION/share/schema tree.  In the case of the blog WSDL, you need to install them into $GLOBUS_LOCATION/share/schema/tutorials/blog/.  This allows the relative paths in the schema import declarations to work.
+ </para>
+</section>
+
+<section id="cwscore-tutorial-client-Step1" xreflabel="Step 1: Generate Client Bindings"><title>Step 1: Generate Client Bindings</title>
+<para>Once you have the WSDL schema(s) for the service, you
+need to generate the client bindings from that schema.  This
+will provide the C types and functions (bindings) you need
+to use to interact with the service.  The command used to generate
+the bindings is <computeroutput>globus-wsrf-cgen</computeroutput>.
+</para>
+<para>
+To run this command on the blog
+schema files, they must be placed in 
+<computeroutput>$GLOBUS_LOCATION/share/schema/tutorials/blog/</computeroutput>,
+as described in Step 0.
+The command for generating the blog client bindings looks like this:
+<screen>
+$GLOBUS_LOCATION/bin/globus-wsrf-cgen -no-service -s blog_client \
+    -flavor &lt;flavor&gt; -d $PWD/bindings \
+    $GLOBUS_LOCATION/share/schema/tutorials/blog/blog_service.wsdl
+</screen>
+This command will generate the GPT package listed above.  The package
+can be built and installed using the following command:
+<screen>
+$GLOBUS_LOCATION/sbin/gpt-build bindings/blog_client_bindings-0.2.tar.gz &lt;flavor&gt;
+</screen>
+</para>
+</section>
+
+
+
+<section id="cwscore-tutorial-client-Step2" xreflabel="Step 2: Write the Client"><title>Step 2: Write the Client</title>
+<para>In order to write a C WS-Core client, the following steps should
+be followed in general:
+</para>
+
+    <section id="cwscore-tutorial-client-Header" xreflabel="Include the Client Header"><title>Include the Client Header</title>
+<para>
+The client bindings generated from <xref linkend="cwscore-tutorial-client-Step1" /> include a client header
+which provides the necessary function
+declarations to perform the client invocations we need to make.
+In the case of the BlogService, the 
+    <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/BlogService_client.h">BlogService_client.h</ulink> is
+the header we need, so it gets included at the top of the file:
+<screen>
+#include "BlogService_client.h"
+</screen>
+</para>
+</section>
+
+    <section id="cwscore-tutorial-client-Activation" xreflabel="Module Activation"><title>Module Activation</title>
+<para>
+The first step of the client is to activate the module defined
+for the client.  Module activation is a pattern used frequently
+in the Globus Toolkit.  It provides initialization and setup for
+a particular library, and the libraries it depends on.  In this case,
+the module we are activating is the <computeroutput>BLOGSERVICE_MODULE</computeroutput>,
+defined in 
+    <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/BlogService_client.h"><computeroutput>BlogService_client.h</computeroutput></ulink>,
+as follows:
+<screen>
+globus_module_activate(BLOGSERVICE_MODULE);
+</screen>
+</para>
+</section>
+
+    <section id="cwscore-tutorial-client-Handle" xreflabel="Client Handle Init"><title>Client Handle Init</title>
+<para>Once the module is activated, the client handle must be initialized:
+<screen>
+BlogService_client_handle_t  blog_handle;
+
+...
+
+result = BlogService_client_init(
+    &amp;blog_handle,
+    NULL, NULL);
+</screen>
+This handle provides abstraction for messaging and transport configuration
+parameters, and is used by all Blog service invocations.  The
+second and third parameters are attrs and handler chains that determine
+how the message is serialized and transported.  In this example, we use
+the default configuration, so the parameters are <computeroutput>NULL</computeroutput>.
+</para>
+<para>
+In some scenarios, attrs and handlers will need to be setup explicitly
+by the user. 
+</para>
+</section>
+
+    <section id="cwscore-tutorial-client-Resource" xreflabel="Creating a Resource"><title>Creating a Resource</title>
+<para>Once the client handle is initialized, the next step is to create the
+    blog resource in the BlogService.  The <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/create_blog.c">create_blog.c</ulink>
+performs resource creation by invoking the <emphasis>createBlogTopic</emphasis> factory
+operation.  The bindings call
+from the client looks like this:
+<screen>
+
+    createBlogTopicType                 createBlogTopic;
+    createBlogTopicResponseType *       createBlogTopicResponse;
+    Blog_createBlogTopic_fault_t        create_fault_type;
+    xsd_any *                           fault;
+
+    ...
+
+    createBlogTopic.Topic = "Emacs vs. vi: Which is better?";
+    createBlogTopic.Creator = "slang";
+
+    result = Blog_createBlogTopic(
+        blog_handle,
+        "http://the.service.host:8080/wsrf/services/BlogService",
+        &amp;createBlogTopic,
+        &amp;createBlogTopicResponse,
+        &amp;create_fault_type,
+        &amp;fault);
+</screen>
+This is a code of the createBlogTopic invocation, similar to
+    what's in the <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/create_blog.c">create_blog.c</ulink>
+example.
+The <computeroutput>Blog_createBlogTopic</computeroutput> function is defined
+    in <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/BlogService_client.h">BlogService_client.h</ulink>.  The
+parameters are the initialized blog handle, the endpoint URI to the
+BlogService 
+(i.e. <emphasis>"http://the.service.host:8080/wsrf/services/BlogService"</emphasis>),
+the input and output parameters, and the fault parameters.  In this
+particular example, the <computeroutput>createBlogTopic</computeroutput> input parameter
+holds the topic for the blog, and the creator of the blog.
+The <computeroutput>createBlogTopicResponse</computeroutput> output parameter is
+filled in by the function call, with the EndpointReference of the resource
+created by the <emphasis>createBlogTopic</emphasis> invocation.
+In our example code, we export the EndpointFeference to a file, which
+allows us to access it after the createBlogTopic process has completed.
+<screen>
+    globus_soap_message_handle_t        epr_out_handle;
+
+...
+
+    result = globus_soap_message_handle_init_to_file(
+        &amp;epr_out_handle,
+        "emacs_vi_epr.xml",
+        GLOBUS_XIO_FILE_CREAT);
+
+...
+
+    result = wsa_EndpointReferenceType_serialize(
+        &amp;BlogEPR_qname,
+        &amp;createBlogTopicResponse->EndpointReference,
+        epr_out_handle,
+        0);
+...
+
+    globus_soap_message_handle_destroy(epr_out_handle);
+
+</screen>
+Now we must destroy the response from <emphasis>createBlogTopic</emphasis> invocation:
+<screen>
+createBlogTopicResponse_destroy(createBlogTopicResponse);
+</screen>
+</para>
+</section>
+
+    <section id="cwscore-tutorial-client-Invoke" xreflabel="Invoking a Resource Operation"><title>Invoking a Resource Operation</title>
+<para>Once the EndpointReference has been written to file, we have
+a reference to the blog resource, so we can call the
+<computeroutput>addEntry</computeroutput> operation on that resource from another process.
+    This is what the <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/add_blog_entry.c">add_blog_entry.c</ulink>
+client example does.  The EndpointReference for the blog resource
+is first imported from the file:
+<screen>
+    globus_soap_message_handle_t        epr_in_handle;
+
+...
+
+    result = globus_soap_message_handle_init_from_file(
+        &amp;epr_in_handle,
+        "emacs_vi_epr.xml");
+
+...
+
+    result = wsa_EndpointReferenceType_init(&amp;blog_resource_reference);
+
+...
+
+    result = wsa_EndpointReferenceType_deserialize(
+        &amp;BlogEPR_qname,
+        blog_resource_reference,
+        epr_in_handle,
+        0);
+
+...
+
+    globus_soap_message_handle_destroy(epr_in_handle);
+</screen>
+
+Once the EndpointReference is imported, the addEntry operation 
+is invoked as follows:
+<screen>
+    addEntryType                      entry;
+    addEntryResponseType *            blog_entries;
+
+    Blog_addEntry_fault_t             add_fault_type;
+    xsd_any *                           fault;
+
+    entry.Comment = "What's vi??";
+    entry.Author = "EmacsPowerUser";
+
+    result = Blog_addEntry_epr(
+        blog_handle,
+        blog_resource_reference,
+        &amp;entry,
+        &amp;blog_entries,
+        &amp;add_fault_type,
+        &amp;fault);
+</screen>
+
+For this invocation, we're using the 
+<computeroutput>Blog_addEntry_epr</computeroutput> function 
+(instead of <computeroutput>Blog_addEntry</computeroutput>).
+This allows us to pass in the EndpointReference of the resource directly 
+as the second parameter (that's why the function ends in <computeroutput>_epr</computeroutput>).  
+The first parameter is the client handle,
+The third and fourth parameters are the input and output parameters to the
+operation (the blog entry to add, and the resulting entries on the blog),
+followed by the fault parameters.  Once this function call returns 
+successfully, the <computeroutput>addEntryResponse</computeroutput> parameter will contain
+all the entries made to the blog.
+This call can be made subsequently and entries will continue to be appended
+to the resource.
+
+Once the response is no longer needed after a call to
+<computeroutput>Blog_addEntry_epr</computeroutput>, we must destroy it:
+<screen>
+xsd_string_destroy(addEntryResponse);
+</screen>
+
+The output of running <computeroutput>add-blog-entry</computeroutput> 
+will look something like this:
+<screen>
+./add-blog-entry emacs_vi_blog.xml "Emacs rocks!" anonymous
+
+BLOG ENTRIES:
+
+On Wed Dec 22 04:57:42 CST 2004, anonymous said: "Emacs rocks!"
+
+On Tue Oct 26 01:01:11 CST 2004, wq said: "CTRL-ALT-SHIFT-X CTRL-C...I'm running out of fingers..."
+
+On Thu Aug 12 10:44:32 CST 2004, EmacsPowerUser said: "What's vi??"
+
+</screen>
+</para>
+</section>
+
+    <section id="cwscore-tutorial-client-GetRP" xreflabel="Getting a Resource Property Value"><title>Getting a Resource Property Value</title>
+<para>The WSDL schema for the BlogService defines a Resource Property 
+<emphasis>BlogEntry</emphasis> as part of the
+resource property document for the Blog port type.  This resource property
+allows us to access the state of the resource (get the entries) with the 
+<computeroutput>GetResourceProperty</computeroutput> operation defined in the WS-ResourceProperties
+schema and inherited by the Blog portType.  The 
+    <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/get_blog_entries.c">get_blog_entries.c</ulink> client example performs
+this operation on the Blog resource.
+The invocation is made as follows:
+<screen>
+#include "BlogEntry.h"
+
+...
+
+    wsrp_GetResourcePropertyResponseType *      RPResponse;
+    Blog_GetResourceProperty_fault_t            getrp_fault_type;
+    xsd_any *                                   fault;
+
+    ...
+
+    result = Blog_GetResourceProperty_epr(
+        blog_handle,
+        blog_resource_reference,
+        &amp;BlogEntry_qname,
+        &amp;RPResponse,
+        &amp;getrp_fault_type,
+        &amp;fault);
+</screen>
+In this function call, the client handle and endpoint reference are
+passed as the first two parameters.  The third parameter (the operation
+input) is the qualified name of the Resource Property.  In this case,
+the QName is declared in the generated header <emphasis>BlogEntry.h</emphasis> as the global
+variable <computeroutput>BlogEntry_qname</computeroutput>.  The output parameter 
+<computeroutput>RPResponse</computeroutput> is the response from 
+the <computeroutput>GetResourceProperty</computeroutput> operation.  On successful
+completion of the function, this response parameter will contain
+the value(s) of the ResourceProperty.  Because resource properties
+can have any type, the response is deserialized as an array of
+<computeroutput>xsd_any *</computeroutput> instances.  In order to access the actual
+value from this structure, the type of the <computeroutput>xsd_any *</computeroutput>
+instance must be verified to match the expected type:
+<screen>
+    if(RPResponse->any.elements[i].any_info->type !=
+       (&amp;BlogEntry_qname) &amp;&amp;
+       (RPResponse->any.elements[i].any_info->type !=
+       (&amp;Blog_BlogEntry_rp_qname))
+    {
+        /* error!  Unexpected type */
+    }
+</screen>
+What's happening here?  The <computeroutput>wsrp_GetResourcePropertyResponseType</computeroutput> 
+structure contains
+the field <computeroutput>any</computeroutput>, which is an <computeroutput>xsd_any_array</computeroutput>.  This
+array is assumed to contain one element at index 0.  In order to check
+that the element was deserialized as the appropriate element 
+(i.e. <emphasis>BlogEntry</emphasis>), we must compare the <computeroutput>any_info</computeroutput> 
+field against the reference
+to the global variable <computeroutput>BlogEntry_qname</computeroutput> 
+declared in <emphasis>BlogEntry.h</emphasis>.
+</para>
+<para>
+Once the type of the element in the response is verified, we can access
+the value contained in the <computeroutput>value</computeroutput> field of the <computeroutput>xsd_any</computeroutput>.
+<screen>
+    blog_entry = *RPResponse->any.elements[i].value;
+
+    printf("BLOG ENTRIES:\n\n%s\n", blog_comments);
+</screen>
+</para>
+
+<para>
+After the value of the resource property has been accessed, we need to
+destroy the response instance created by the 
+<computeroutput>Blog_GetResourceProperty_epr</computeroutput> function call:
+<screen>
+wsrp_GetResourcePropertyResponseType_destroy(RPResponse);
+</screen>
+</para>
+<para>
+The output of running <computeroutput>get-blog-entries</computeroutput> 
+will look something like this:
+
+<screen>
+./get-blog-entries emacs_vi_blog.xml
+
+BLOG ENTRIES:
+
+On Wed Dec 22 04:57:42 CST 2004, anonymous said: "Emacs rocks!"
+
+On Tue Oct 26 01:01:11 CST 2004, wq said: "CTRL-ALT-SHIFT-X CTRL-C...I'm running out of fingers..."
+
+On Thu Aug 12 10:44:32 CST 2004, EmacsPowerUser said: "What's vi??"
+</screen>
+
+</para>
+</section>
+
+    <section id="cwscore-tutorial-client-Destroy" xreflabel="Destroy the Resource"><title>Destroy the Resource</title>
+<para>In order to destroy the resource we've created after all our invocations
+to it are complete, we use the <computeroutput>Destroy</computeroutput> operation defined
+in WS-ResourceLifetime schema and inherited by the Blog portType.  The
+    <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/destroy_blog.c">destroy_blog.c</ulink> client is an example of using
+this operation for the blog resource.  The example imports the resource
+reference, calls the <computeroutput>Destroy</computeroutput> operation, and then removes
+the file that referenced the resource.
+
+<screen>
+    wsrl_DestroyType                    Destroy;
+    wsrl_DestroyResponseType *          DestroyResponse;
+    Blog_Destroy_fault_t                destroy_fault_type;
+    xsd_any *                           fault;
+
+    result = globus_wsrf_core_import_endpoint_reference(
+        "emacs_vi_blog.xml", &amp;blog_resource_reference, NULL);
+
+    ...
+
+    result = Blog_Destroy_epr(
+        blog_handle,
+        blog_resource_reference,
+        &amp;Destroy,
+        &amp;DestroyResponse,
+        &amp;destroy_fault_type,
+        &amp;fault);
+</screen>
+As with the previous EndpointReference invocations, the first two
+parameters passed to this function are the client handle and the 
+endpoint reference to the resource.  In the case of invoking 
+the <computeroutput>Destroy</computeroutput> operation, the <computeroutput>Destroy</computeroutput> and
+<computeroutput>DestroyResponse</computeroutput> input and output parameters are just
+empty structures and don't contain any pertinent information.
+Nevertheless, the <computeroutput>DestroyResponse</computeroutput> variable should
+be cleaned up after the <computeroutput>Destroy</computeroutput> operation has completed:
+<screen>
+    wsrl_DestroyResponse_destroy(DestroyResponse);
+</screen>
+</para>
+</section>
+    <section id="cwscore-tutorial-Cleanup" xreflabel="Cleanup"><title>Cleanup</title>
+<para>Once all the desired invocations have completed for a particular process,
+the client handle needs to be destroyed, and the module must be deactivated.
+<screen>
+    Blog_client_handle_destroy(blog_handle);
+
+    globus_module_deactivate(BLOGSERVICE_MODULE);
+</screen>
+These calls exist in each of the client examples.
+</para>
+</section>
+</section>
+
+<section id="cwscore-tutorial-client-Step3" xreflabel="Step 3: Build the Client"><title>Step 3: Build the Client</title>
+<para>Now you've written an end-to-end C WS-Core WSRF-enabled client.  In order
+to compile the client we demonstrate how to write a Makefile for it.
+First, the following command must be run:
+<screen>
+$GLOBUS_LOCATION/bin/globus-makefile-header \
+    --flavor=&lt;flavor&gt; &lt;package&gt; \
+    &gt; MyMakefile.include
+</screen>
+Assuming you compiled the Globus Toolkit with a <computeroutput>gcc32dbg</computeroutput> flavor,
+and using the blog client bindings package from this tutorial, the
+command would be:
+<screen>
+$GLOBUS_LOCATION/bin/globus-makefile-header \
+    --flavor=gcc32dbg blog_client_bindings \
+    &gt; BlogClientMakefile.include
+</screen>
+The resulting 
+    <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/BlogClientMakefile.include">
+<computeroutput>BlogClientMakefile.include</computeroutput>
+</ulink>
+contains include and
+link definitions for our client.  Now we just need to write a Makefile,
+using the variables defined in the output of 
+the <computeroutput>globus-makefile-header</computeroutput>  command.  We've
+    provided a blog client <ulink url="&docpath;common/cwscore/developer/tutorials/blog/client/Makefile.example">Makefile</ulink>.
+Once your Makefile is written, running <computeroutput>make</computeroutput>
+will generate the client executables.  At this
+point you're not quite ready to run it.  The client needs to have
+a service running somewhere to interact with.  See 
+<xref linkend="cwscore-developer-tutorials-Service"/>
+in order to create and run a BlogService that you can invoke
+with your new client.
+</para></section>
+

@@ -1,0 +1,682 @@
+
+<section id="cwscore-tutorial-service-Intro" xreflabel="Introduction: A Blog Service"><title>Introduction: A Blog Service</title>
+<para>
+The Globus Toolkit's C WS-Core component provides tools and APIs for creating
+web services in C.  It also provides additional support for creating web
+services which are WSRF-enabled, meaning the service can manage resources
+and the associated resource properties.  This tutorial provides
+a walkthrough of the steps needed to create a WSRF-enabled
+service in C, from defining a WSDL schema for the service to actually running
+the service in the C service container.
+</para>
+<para>
+The service we implement in this tutorial is the BlogService, which
+is a simple service that allows new Blog topics to be created as resources,
+and then allows comments to be added to a particular Blog topic.  See
+the 
+<ulink url="http://en.wikipedia.org/w/wiki.phtml?title=Blog&amp;redirect=no">
+Blog Wikipedia entry</ulink>
+for more information on Blogs.
+</para>
+<para>
+In our BlogService, the primary resource 
+property is the <computeroutput>BlogEntry</computeroutput> element,
+which is an array of BlogEntryType instances containing
+the comment, author, and timestamp of each entry posted to the Blog topic.  
+For the tutorial,
+we will demonstrate how to generate the service stubs and skeletons for the
+BlogService, and how to provide the service implementation, including creation
+of new Blog topics as resources, and adding new blog entries to the 
+BlogEntry Resource Property.
+
+For the purposes of this tutorial, we provide the following:
+
+<itemizedlist>
+<listitem><para>WSDL schema files for the BlogService:
+<itemizedlist>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/blog.wsdl">blog.wsdl</ulink> - Includes the input/output 
+type definitions for the BlogService operations, 
+the ResourceProperty definitions, and the portType definition.</simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/blog_bindings.wsdl">blog_bindings.wsdl</ulink> - Includes the 
+binding definition for the BlogService. 
+The blog.wsdl schema file is imported.</simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/blog_service.wsdl">blog_service.wsdl</ulink> - Includes the 
+service definition. The blog_binding.wsdl schema file is imported.</simpara></listitem>
+</itemizedlist>
+</para></listitem>
+<listitem><para>Source file for the complete BlogService implementation:
+<itemizedlist>
+    <listitem><simpara><ulink url="&docpath;common/cwscore/developer/tutorials/blog/service/BlogService_skeleton.c">BlogService_skeleton.c</ulink></simpara></listitem>
+</itemizedlist>
+</para></listitem>
+<listitem><simpara>
+A GPT package 
+    <ulink url="&docpath;common/cwscore/developer/tutorials/blog/service/blog_service_bindings-0.2.tar.gz">
+blog_service_bindings-0.2.tar.gz</ulink> that contains the complete
+BlogService implementation (includes the skeleton from the above bullet).
+</simpara></listitem>
+</itemizedlist>
+
+
+
+
+This tutorial defines 5 steps needed to create
+any WSRF-enabled service using C WS-Core, and then provides example
+walkthroughs of those steps with the BlogService.
+</para>
+</section>
+
+<section id="cwscore-tutorial-service-Step1" xreflabel="Step 1: Acquiring a WSDL Schema"><title>Step 1: Acquiring a WSDL Schema</title>
+
+<para>You must either obtain pre-existing WSDL schema files or write your own.
+The schema files must contain a service definition that defines the service.
+Please note that the C WS-Core only supports document/literal style WSDL
+schema files at present.
+</para>
+<para>
+    For the BlogService, we provide <ulink url="&docpath;common/cwscore/developer/tutorials/blog/blog.wsdl">blog.wsdl</ulink> that defines
+the factory operation <computeroutput>createBlogTopic</computeroutput> and the append operation
+<computeroutput>addEntry</computeroutput>, as well as the <computeroutput>BlogEntry</computeroutput> resource property
+for each blog resource.
+</para>
+</section>
+
+<section id="cwscore-tutorial-service-Step2" xreflabel="Step 2: Generating Service Bindings"><title>Step 2: Generating Service Bindings</title>
+<para>Once you have the WSDL schema(s) for the service, you need to generate the
+service bindings from that schema.  This will provide the C skeleton functions
+for the service implementation.  The command used to generate the bindings is
+<computeroutput>globus-wsrf-cgen</computeroutput>.
+</para>
+<para>
+To run this command on the Blog schema files, they must be placed in
+<computeroutput>$GLOBUS_LOCATION/share/schema/tutorials/blog/</computeroutput>, so that the
+relative import paths are correct.  The command for generating the blog 
+service bindings looks like this:
+<screen>
+$GLOBUS_LOCATION/bin/globus-wsrf-cgen -no-client -s blog_service \
+    -d $PWD/bindings -flavor &lt;flavor&gt; \
+    $GLOBUS_LOCATION/share/schema/tutorials/blog/blog_service.wsdl
+</screen>
+
+This command generates source and header files for the service, and
+as a final step, creates a GPT package (a <computeroutput>.tar.gz</computeroutput> file)
+that contains all the source, headers and necessary build files.  Building
+this package is described in <xref linkend="cwscore-tutorial-service-Step4" />.  The above command generates build files
+and type bindings files in the
+bindings directory as a sub-directory of the current directory.  
+Service specific files
+are output to a sub-directory of bindings
+named &lt;service name&gt;  ($PWD/bindings/&lt;servicename&gt;/).  
+In this example the sub-directory is
+named <computeroutput>BlogService</computeroutput>.  
+</para>
+<para>
+The <computeroutput>-d &lt;dir&gt;</computeroutput> argument
+outputs the generated files to <computeroutput>&lt;dir&gt;</computeroutput>.  Use
+the <computeroutput>-help</computeroutput> argument to get further info.
+</para>
+</section>
+
+<section id="cwscore-tutorial-service-Step3" xreflabel="Step 3: Writing the Service implementation"><title>Step 3: Writing the Service implementation</title>
+<para>
+Once the service binding generation has completed, 
+the service skeleton functions will reside
+in the &lt;service name&gt;_skeleton.c source file contained
+in the &lt;service name&gt; directory.
+This is the file with the operation functions 
+that must be filled in to complete the implementation of the service.  
+For this example, the file we must
+modify is <computeroutput>BlogService/BlogService_skeleton.c</computeroutput>. 
+This source file includes skeleton functions for each of the operations
+    defined in the <ulink url="&docpath;common/cwscore/developer/tutorials/blog/blog.wsdl">blog.wsdl</ulink> 
+schema file.  
+
+The two
+operations that need to be implemented are 
+<computeroutput>createBlogTopic</computeroutput> and
+<computeroutput>addEntry</computeroutput>.  The associated functions in 
+    <ulink url="&docpath;common/cwscore/developer/tutorials/blog/service/BlogService_skeleton.c">
+BlogService_skeleton.c</ulink> 
+are <computeroutput>Blog_createBlogTopic_impl</computeroutput>
+and <computeroutput>Blog_addEntry_impl</computeroutput>.  
+</para>
+    <section id="cwscore-tutorial-service-Resource" xreflabel="Creating a Resource">
+<title>Creating a Resource</title>
+<para>
+In the WS-ResourceFramework, operations which create 
+new resources and provide us with references to 
+them are called <emphasis>factories</emphasis>.  In the BlogService, 
+the <computeroutput>createBlogTopic</computeroutput> operation is the factory
+that creates a new resource (a new Blog topic), and returns
+a reference to it (as an EnpointReference).  This function
+creates the resource instance, fills in the EndpointReference
+to be returned, and creates a resource property <computeroutput>BlogEntry</computeroutput>
+on the resource.
+</para>
+</section>
+
+    <section id="cwscore-tutorial-service-ResourceID" xreflabel="The Resource ID"><title>The Resource ID</title>
+<para>As the first step
+of creating a resource in our <computeroutput>Blog_createBlogTopic_impl</computeroutput>
+function, we must acquire a resource ID.  The resource ID is an application
+specific object that acts as a unique
+identifier for the resource within the service, and gets embedded within
+the EndpointRerence for the new resource.  For C WS-Core, the
+resource ID must be in the form of a string.
+In many services, the resource ID is a UUID string, generated by the
+<computeroutput>globus_uuid_create</computeroutput> function.  See the
+UUID library documentation for further info.
+</para>
+<para>
+In the case of the BlogService,
+we assume that no two Blogs created by the same person
+will have the same topic, so we can join the author and topic strings 
+together as the resource ID for the new resource we are about to
+create.
+<screen>
+globus_result_t
+Blog_createBlogTopic_impl(
+    globus_service_engine_t             engine,
+    globus_soap_message_handle_t        message,
+    globus_service_descriptor_t *       descriptor,
+    createBlogTopicType * createBlogTopic,
+    createBlogTopicResponseType * createBlogTopicResponse,
+    const char ** fault_name,
+    void ** fault)
+{
+    char *                              resource_id;
+    globus_result_t                     result = GLOBUS_SUCCESS;
+
+    GlobusFuncName(Blog_createBlogTopic_impl);
+    BlogServiceDebugEnter();
+
+    blog_id = globus_common_create_string(
+        "%s#%s", createBlogTopic->Creator, createBlogTopic->Topic);
+</screen>
+The <computeroutput>blog_id</computeroutput> is then passed to the
+ <computeroutput>globus_resource_create</computeroutput>
+function, which will create a managed resource and return it in
+<computeroutput>blog_resource</computeroutput>.
+<screen>
+    result = globus_resource_create(
+        blog_id,
+        &amp;blog_resource);
+
+    ...
+
+    result = BlogServiceInitResource(blog_id);
+</screen>
+The second call in the code listing above is
+the service's resource init function, which allows the operation
+providers to initialize the resource properties of the resource
+you've just created.  For example, the WS-ResourceLifetime operation
+provider adds <computeroutput>CurrentTime</computeroutput> and <computeroutput>TerminationTime</computeroutput>
+resource properties to the resource.
+</para>
+<para>
+The bindings for any service definition will include a 
+<computeroutput>&lt;service name&gt;InitResource([resource id]);</computeroutput>
+macro which calls the resource initialization functions for
+each operation provider the service includes.
+</para>
+
+</section>
+    <section id="cwscore-tutorial-service-EndpointReference" xreflabel="The EndpointReference (EPR)"><title>The EndpointReference (EPR)</title>
+<para>Once the resource is created the EndpointReference must be created.
+The first step is to initialize a reference property of the EPR,
+which will contain the resource ID we just created.  The 
+reference property is a field in the <computeroutput>wsa_EndpointReferenceType</computeroutput>
+type.  Since the property can be anything, it is typed to the XSD wildcard
+<computeroutput>xsd_any</computeroutput>,
+which we must create an instance of and initialize
+to contain the appropriate type and value for the
+reference property.
+<screen>
+    result = xsd_any_init(&amp;reference_property);
+    reference_property->any_info = &amp;xsd_string_info;
+
+    ...
+
+    result = xsd_QName_init(reference_property->element);
+
+    ...
+
+    reference_property->element->Namespace = globus_libc_strdup(
+        BlogService_service_qname.Namespace);
+    reference_property->element->local = globus_libc_strdup("BlogID");
+
+    result = xsd_string_copy_cstr(
+        (xsd_string **)&amp;reference_property->value, 
+        blog_id);
+</screen>
+The <computeroutput>xsd_any</computeroutput> type we initialize has 3 important fields.
+The <computeroutput>any_info</computeroutput> field contains the type information used
+by the marshalling engine to determine how to serialize the reference
+property.  In this case the reference property is just a string, so
+we set the <computeroutput>any_info</computeroutput> field to the globally defined 
+<computeroutput>xsd_string_info</computeroutput> variable.  For more information on
+using wildcards in your service implementation, see  
+<xref linkend="cwscore-developer-scenarios"/>.
+</para>
+<para>
+The <computeroutput>element</computeroutput> field in <computeroutput>xsd_any</computeroutput>
+is a <emphasis>QName</emphasis> of the element to define for
+serializing the type.
+In the BlogService case, we set the element to 
+<emphasis>http://globus.org/blog#BlogID</emphasis>.  The other field
+we need to set in the reference property is the <computeroutput>value</computeroutput>, which 
+is a <computeroutput>(void *)</computeroutput>, set to the pointer of the instance of the
+resource id (in this case the blog id string).  We use the
+<computeroutput>xsd_string_copy_cstr</computeroutput> function to actually copy the
+contents of the string to the <computeroutput>value</computeroutput> field.
+</para>
+<para>
+Once the reference property has been initialized, we can create
+the EndpointReference.  The 
+<computeroutput>globus_wsrf_core_create_endpoint_reference</computeroutput> convenience
+function has been provided to create the endpoint reference.
+<screen>
+    result = globus_wsrf_core_create_endpoint_reference(
+        engine,
+        BLOGSERVICE_BASE_PATH,
+        &amp;reference_property,
+        &amp;createBlogTopicResponse->EndpointReference);
+</screen>
+This call takes the <computeroutput>engine</computeroutput> passed into the
+skeleton function, the base path of the URI for the service
+(each service has a <computeroutput>&lt;service name&gt;_BASE_PATH</computeroutput>
+variable defined), and the reference property we just initialized.
+The resulting EndpointReference must be set to the 
+<computeroutput>EndpointReference</computeroutput> field in the 
+<computeroutput>createBlogTopicResponse</computeroutput> variable passed into the skeleton
+function.
+</para>
+
+</section>
+    <section id="cwscore-tutorial-service-ResourceProperty" xreflabel="The Resource Property"><title>The Resource Property</title>
+<para>As the last step of the <computeroutput>Blog_createBlogTopic_impl</computeroutput>
+function, we set the BlogEntry resource property of the resource.
+Since the Blog initially doesn't contain any entries, we set the
+resource property to an empty array.
+We will add new entries to this resource property in the 
+<computeroutput>Blog_addEntry_impl</computeroutput> skeleton function.  
+<screen>
+    result = BlogEntryType_array_init(&amp;blog_entries);
+
+    ...
+
+    result = globus_resource_create_property(
+        blog_resource,
+        &amp;Blog_BlogEntry_rp_qname, 
+        &amp;BlogEntry_array_info,
+        blog_entries);
+</screen>
+The arguments passed to this function are the created resource, the
+QName of the resource property (in this case, <emphasis>BlogEntry</emphasis>),
+the info variable of the resource property type to create, and 
+    the empty blog array instance.  See the <ulink url="http://www.globus.org/api/c-globus-&shortversion;/globus_c_wsrf_resource/html/index.html">
+        Resource API</ulink> for further documentation. 
+</para>
+</section>
+
+    <section id="cwscore-tutorial-service-AddEntry" xreflabel="Add an Entry to the Blog Topic"><title>Add an Entry to the Blog Topic</title>
+<para>Once a resource has been created, clients will invoke the <computeroutput>addEntry</computeroutput>
+operation to add new entries to the blog.  The implementation
+of the <computeroutput>Blog_addEntry_impl</computeroutput> adds the new entry to
+the blog topic.
+</para>
+</section>
+    <section id="cwscore-tutorial-service-AccessResource" xreflabel="Access the Resource"><title>Access the Resource</title>
+<para>
+The resource is accessed through the EndpointReference contained
+in the message.  The utility function 
+<computeroutput>globus_wsrf_core_get_resource</computeroutput> is used to access the
+resource.  The EndpointReference is accessed through the 
+first parameter (<computeroutput>message</computeroutput>) passed to the function.
+<screen>
+    result = globus_wsrf_core_get_resource(
+        message,
+        descriptor,
+        &amp;blog_resource);
+</screen>
+Information about how the resource ID is accessed from the EndpointReference
+is maintained by the service descriptor, so this gets passed
+in as the second parameter (<computeroutput>service</computeroutput>).
+</para>
+</section>
+    <section id="cwscore-tutorial-service-GetResourceProperty" xreflabel="Get the Resource Property"><title>Get the Resource Property</title>
+<para>
+Once we have the resource we can access the BlogEntry resource property
+using the <computeroutput>globus_resource_get_property</computeroutput> function.  
+<screen>    
+    result = globus_resource_get_property(
+        resource,
+        &amp;Blog_BlogEntry_rp_qname,
+        (void **)&amp;blog_entries,
+        NULL);
+</screen>
+The first parameter is the blog 
+resource we just accessed, the second parameter
+is the QName of the BlogEntry resource property.  
+<computeroutput>Blog_BlogEntry_rp_qname</computeroutput> is a global variable declared
+in <computeroutput>BlogService.h</computeroutput>.  Global QName
+variables exist for each resource property in a service.  The third
+parameter is the array of blog entries we want to get.  The last
+parameter is the type info structure of the resource property we're
+accessing.  Since we know the type of the resource property, we
+can just set this to <computeroutput>NULL</computeroutput>.
+</para>
+</section>
+    <section id="cwscore-tutorial-service-AddBlogEntry" xreflabel="Add the Blog Entry"><title>Add the Blog Entry</title>
+<para>Now that we have the array of blog entries, we need to add a new
+element to the end of it with the values of the entry.  Each array
+type generated from an XML schema document has an associated
+<computeroutput>_array_push</computeroutput> function, which creates a
+new instance of the type and adds it to the end of the array, returning
+the new instance.  In this case, we create a new entry at the
+end of the array with the <computeroutput>BlogEntryType_array_push</computeroutput>
+function.
+<screen>
+    new_entry = BlogEntryType_array_push(blog_entries);
+</screen>
+Now we need to fill in this entry with the values passed into
+the skeleton function.
+<screen>
+    tstamp = time(NULL)
+    result = xsd_dateTime_copy_contents(
+        &amp;new_entry->Timestamp,
+        (xsd_dateTime *)localtime(&amp;tstamp));
+
+    ...
+
+    result = xsd_string_copy_contents(
+        &amp;new_entry->Author,
+        (xsd_string *)&amp;addEntry->Author);
+
+    ...
+
+    result = xsd_string_copy_contents(
+        &amp;new_entry->Comment,
+        (xsd_string *)&amp;addEntry->Comment);
+</screen>
+These functions copy the entry's comment and author from
+the input parameter to the new entry instance we've created.  The
+timestamp of the entry is set to the current local time.  This
+completes the addition of a resource property value to the resource
+property maintained by the resource instance.
+</para>
+<para>
+The <computeroutput>addEntry</computeroutput> operation expects as the response a list
+of the entries in the Blog.  Since this is just the array of blog entries
+that we just added to, we can simply copy this array to the response
+output parameter:
+<screen>
+    result = BlogEntryType_array_copy_contents(
+        &amp;addEntryResponse->BlogEntries,
+        blog_entries);
+</screen>
+</para>
+</section>
+
+    <section id="cwscore-tutorial-service-Finish" xreflabel="Resource Finish"><title>Resource Finish</title>
+<para>As a last step of the <computeroutput>Blog_addEntry_impl</computeroutput> function, we need
+to release the blog resource we accessed in the first step.  This allows the
+resource management computeroutput to handle locking and reference counting
+for the resource.
+<screen>
+    globus_resource_finish(blog_resource);
+</screen>
+</para>
+</section>
+
+<section id="cwscore-tutorial-service-Other"><title>Other Issues</title>
+<para>In this section we describe other parts of implementing the
+skeleton functions that might be of interest.
+</para>
+   </section>
+    <section id="cwscore-tutorial-service-ServiceInit" xreflabel="Service Initialization"><title>Service Initialization</title>
+<para>
+Besides the skeleton functions defined for each operation in a service,
+<computeroutput>BlogService_skeleton.c</computeroutput> also contains functions
+for initializing and finalizing the BlogService.  
+The <computeroutput>BlogService_init</computeroutput> function should contain any service specific
+computeroutput that needs to be run when the service is loaded, and the 
+<computeroutput>BlogService_finalize</computeroutput> function should contain computeroutput that needs
+to be run when the service is unloaded 
+(presumably cleanup from <computeroutput>BlogService_init</computeroutput>).  These
+functions most likely can remain empty no-ops, but if for example
+you want a service to have 
+ persistent resources which exist throughout the lifetime of the
+service, they should be created in the service's <computeroutput>init</computeroutput> function
+and destroyed in the <computeroutput>finalize</computeroutput> function.
+</para>
+    </section>
+
+    <section id="cwscore-tutorial-service-Errors" xreflabel="Error Handling"><title>Error Handling</title>
+<para>Almost all of the function calls in our BlogService return a 
+<computeroutput>globus_result_t</computeroutput> type.  The <computeroutput>globus_result_t</computeroutput>
+informs the caller of the success or failure of the function call,
+and is used to reference the error object created if an the function
+call failed.  The standard practice in the Globus Toolkit for handling
+errors is to check the return value of the function:
+<screen>
+    if(result != GLOBUS_SUCCESS)
+</screen>
+and if an error occurred, either chain the error or handle the error
+at that level (exit the process, print an error message, etc.).  
+The skeleton functions we've implemented in this tutorial have a
+<computeroutput>globus_result_t</computeroutput> return value, so the skeleton function
+needs to create and return error values if and when they occur
+within the service implementation.
+
+
+The bindings generated for a service include macros for each operation
+in the service's header file that create <computeroutput>globus_result_t</computeroutput>
+error values to be returned by the skeleton function.  For example,
+the signatures of the
+macros generated for the <computeroutput>addEntry</computeroutput> operation are:
+<screen>
+globus_result_t
+Blog_addEntry_error(const char *);
+
+globus_result_t
+Blog_addEntry_chain_error(globus_result_t, const char *);
+</screen>
+
+In general, each operation will have an associated error create function
+that takes a string and returns a <computeroutput>globus_result_t</computeroutput> error
+as well as an 
+error function that takes a base error <computeroutput>globus_result_t</computeroutput> and
+a string and returns a new <computeroutput>globus_result_t</computeroutput>.
+</para>
+<para>
+The first function macro listed is useful for error cases where the error
+is the primary base cause, while the second function is useful when
+another globus function has been called and value which is not
+equal to <computeroutput>GLOBUS_SUCCESS</computeroutput>.
+</para>
+ </section>
+
+   <section id="cwscore-tutorial-service-OperationProviders"><title>Operation Providers</title>
+<para>For the operations inherited from the WSRF schemas (<emphasis>GetResourceProperty</emphasis>,
+<emphasis>Destroy</emphasis>, <emphasis>SetTerminationTime</emphasis>), their implementation 
+has already been provided for us.  This is achieved using 
+operation providers,
+which replace the functions defined in the <computeroutput>BlogService_skeleton.c</computeroutput>
+source file with generic pre-defined versions of those functions
+when the service is loaded by the container.   Even
+though the contents of those functions remain empty in the skeleton source
+file, they don't get used, so they can be safely ignored.
+</para>  
+ </section>
+
+  <section id="cwscore-tutorial-service-Notif"><title>Service-Side Notifications</title>
+<para>
+<computeroutput>BlogService_skeleton.c</computeroutput> also includes functions for
+the <emphasis>Subscribe</emphasis> and <emphasis>GetCurrentMessage</emphasis> operations that 
+are part of the
+<emphasis>WS-BaseN</emphasis> schema (inherited by the BlogService), but the C WS-Core 
+currently doesn't provide
+implementations of <emphasis>NotificationProducer</emphasis> or <emphasis>SubscriptionManager</emphasis>
+at present, so these skeleton functions can remain empty as well.
+</para>
+   </section>
+
+</section>
+
+<section id="cwscore-tutorial-service-Step4"><title>Step 4: Building/Installing the Service Package</title>
+
+
+   <section id="cwscore-tutorial-service-Packaging"><title>Packaging</title>
+<para>Once the service implementation is complete, the service package
+can be re-packaged (create the tarball) with the 
+implemented computeroutput using <computeroutput>make</computeroutput>.  Change the working directory
+to the directory the bindings were generated in, and run:
+<screen>
+make dist
+</screen>
+This will create (or re-create) the 
+<computeroutput>blog_service_bindings-0.2.tar.gz</computeroutput> package in that directory
+with the new service implementation.  This package can be distributed
+to any machine with a C WS-Core installation and installed there.
+</para> 
+ </section>
+
+   <section id="cwscore-tutorial-service-Building"><title>Building</title>
+<para>To build the package you just created, run the following command:
+<screen>
+$GPT_LOCATION/sbin/gpt-build blog_service_bindings-0.2.tar.gz &lt;flavor&gt;
+</screen>
+This will compile the source files for the types and service and
+build them into a library module named 
+<computeroutput>libblog_service_bindings.so</computeroutput> (the suffix of the library
+may differ depending on the platform).  The header files are installed
+into <computeroutput>$GLOBUS_LOCATION/include/&lt;flavor&gt;</computeroutput> and the library
+is installed in <computeroutput>$GLOBUS_LOCATION/lib/&lt;service base path&gt;</computeroutput>.
+</para> 
+  </section>
+
+</section>
+
+
+
+
+
+
+<section id="cwscore-tutorial-service-Step5"><title>Step 5: Running the Service Container</title>
+<para>
+Once the BlogService library module has been installed,
+the service container can be run and the BlogService can be invoked,
+causing execution of the service implementation.  The service container
+is run with the command:
+<screen>
+$GLOBUS_LOCATION/bin/globus-wsc-container
+</screen>
+</para>
+</section>
+
+<section id="cwscore-tutorial-service-Step6"><title>Step 6: Debugging the Service Implementation</title>
+
+<section><title>Adding Debug Statements</title>
+
+<para>
+Each service module includes debugging macros that allow the service
+developer to print debug statements in a configurable way.  The debug
+statements can have different levels of severity, and are controlled by
+environment variables.  Debug statements are only printed when the service
+module is compiled with a debug flavor (such as gcc32dbg).
+</para>
+
+<para>
+The macro declaration for printing a debug statement in the service skeleton
+is:
+<screen>
+&lt;service&gt;DebugPrintf(LEVEL, MESSAGE);
+</screen>
+Where <computeroutput>LEVEL</computeroutput> is one of:
+<itemizedlist>
+<listitem><simpara>
+<computeroutput>&lt;SERVICE&gt;_INFO</computeroutput>
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>&lt;SERVICE&gt;_DEBUG</computeroutput>
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>&lt;SERVICE&gt;_TRACE</computeroutput>
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>&lt;SERVICE&gt;_WARN</computeroutput>
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>&lt;SERVICE&gt;_ERROR</computeroutput>
+</simpara></listitem>
+</itemizedlist>
+The <computeroutput>MESSAGE</computeroutput> parameter consists of the
+debug message to be printed.  It must contain parentheses () around the
+actual message.  Inside the parentheses can be a format string, and a
+variable number of arguments (like printf).
+
+For example, in the BlogService's <computeroutput>addEntry</computeroutput>
+skeleton implementation (<computeroutput>Blog_addEntry_impl</computeroutput>), 
+the developer may want to see the entry to be added for debugging purposes.
+The following statement would print the debug message if the DEBUG level
+was turned on:
+<screen>
+BlogServiceDebugPrintf(BLOGSERVICE_DEBUG,
+                       ("ADD ENTRY:\n\tCOMMENT: %s\n\tAUTHOR: %s\n",
+                        addEntry->Comment,
+                        addEntry->Author));
+</screen>
+
+</para>
+</section>
+
+<section><title>Setting Debug Environment Variables</title>
+<para>
+In order for debug statements to be printed to the terminal, the
+user must set the appropriate environment variable before running the
+service container.  Each service has a separate debug environment variable
+that can be set to different debug levels.  Optionally, the value of the
+variable can include a filename to write the debug output to as well.
+</para><para>
+The environment variable to set for service debugging
+is:</para>
+<screen>
+&lt;SERVICE&gt;_DEBUG=&lt;DEBUG LEVEL&gt;
+</screen>
+<para>
+This environment variable has five disjoint debug levels that can
+be set, and match the level definitions used for the debug statement
+in the previous section.  The five levels are:</para>
+<itemizedlist>
+<listitem><simpara><computeroutput>INFO</computeroutput> - general information useful
+to users of the service.
+</simpara></listitem>
+<listitem><simpara><computeroutput>DEBUG</computeroutput> - debug output used by the
+service skeleton implementor to verify code works.
+</simpara></listitem>
+<listitem><simpara><computeroutput>TRACE</computeroutput> - output the entry and exit
+points of each of the service skeleton functions.
+</simpara></listitem>
+<listitem><simpara><computeroutput>WARN</computeroutput> - warn the user that something
+bad may be happening.
+</simpara></listitem>
+<listitem><simpara><computeroutput>ERROR</computeroutput> - output an error for the user
+to see as it gets returned.
+</simpara></listitem>
+</itemizedlist>
+<para>There is also a <computeroutput>ALL</computeroutput> level that will
+show the debug output for all the levels.
+</para><para>
+For our BlogService example, if we wanted to see the debug statements at the DEBUG level, then in bash we would set:</para>
+<screen>
+export BLOGSERVICE_DEBUG=DEBUG
+</screen>
+<para>If the user wants to see output from multiple debug levels, the levels can
+be joined together:
+</para><screen>
+export BLOGSERVICE_DEBUG="DEBUG|TRACE"
+</screen>
+
+</section>
+</section>
