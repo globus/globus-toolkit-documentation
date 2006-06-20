@@ -1,0 +1,270 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<section><!-- no ids in frags that are used in more than one place:id="cas-admin-config-overview" --><title>Configuration overview</title>
+
+  <para>The CAS service can be configured with a description of the VO the
+
+CAS service serves and the maximum lifetime of the assertions it can
+
+issue. Also, the service needs to be configured with information about
+
+the back end database it uses. Any database with a JDBC   driver and reasonable SQL support can be used. 
+
+That said, PostgreSQL was used for development and testing  and we strongly recommend that you use it.  The CAS
+
+database schema to be used with PostgreSQL has been provided in <emphasis>$GLOBUS_LOCATION/etc/globus_cas_service/casDbSchema/cas_pgsql_database_schema.sql</emphasis>. </para>
+
+  <para>Other than that, the security  settings of the service can be
+
+modified  in the security descriptor associated with the CAS service. It allows for configuring the
+
+credentials that will be used by the service, the type of authentication
+
+and message protection required as  well as the authorization mechanism. By default, the following
+
+security configuration is installed:</para>
+
+  <itemizedlist>
+
+    <listitem>
+
+      <simpara>Credentials are determined by the container level security descriptor. If there is no container level security descriptor or if it does not specify which credentials to use then default credentials are used. </simpara>
+
+    </listitem>
+
+    <listitem>
+
+      <simpara>Authentication and message integrity protection is enforced for all methods except <emphasis role="italic">queryResourceProperties</emphasis> and <emphasis role="italic">getResourceProperty.</emphasis> This means that you may use any of GSI <glossterm baseform="transport-level security">Transport</glossterm>, GSI Secure Message or GSI Secure Conversation when interacting with the CAS service.</simpara>
+
+    </listitem>
+
+    <listitem>
+
+      <simpara>The standard authorization framework is not used for authorization. Instead the the service uses the back end database to determine if the call is permitted. </simpara>
+
+    </listitem>
+
+  </itemizedlist>
+
+  <note>
+
+    <para>Changing required authentication and authorization
+
+methods will require  matching changes to the clients that contact this
+
+service.
+
+</para>
+
+  </note>
+
+ <important>
+ <para> 
+ If the service is configured to use GSI Secure Transport, then container credentials are used for the handshake, irrespective of whether service level credentials are specified.
+ </para>
+ </important>
+</section>
+
+  
+  <section><!-- no ids in frags that are used in more than one place: id="cas-Interface_Config_Frag-loading" --><title>Loading the CAS service at start up</title>
+    <para>By default, the CAS service is not loaded at start up. To change this behavior, uncomment the <emphasis>loadOnStartup</emphasis> 
+      property set in <emphasis>$GLOBUS_LOCATION/etc/globus_cas_service/server-config.wsdd</emphasis> as shown below. </para>
+      
+    <para>Once the <emphasis>loadOnStartup</emphasis> property is uncommented, the following happens at start up:</para>
+    <orderedlist>
+      <listitem><simpara>The CAS service is loaded.</simpara></listitem>
+      <listitem><simpara>The database connection pool is initialized.</simpara></listitem>
+      <listitem><simpara>The service registers itself to the default MDS Index Service.</simpara><!--FIXME: add info about automagic MDS registration--></listitem> 
+    </orderedlist>
+       
+    <screen>&lt;service name=&quot;CASService&quot; provider=&quot;Handler&quot; use=&quot;literal&quot; 
+      
+      style=&quot;document&quot;&gt;
+      
+      &lt;!-- Uncomment if the service needs to be initialized at startup --&gt;
+      
+      &lt;parameter name=&quot;loadOnStartup&quot; value=&quot;true&quot;/&gt;
+      
+      &lt;parameter name=&quot;allowedMethodsClass&quot; 
+      
+      value=&quot;org.globus.cas.CASPortType&quot;/&gt;
+      
+      .
+      
+      .
+      
+      .
+      
+      &lt;/service&gt;</screen>
+    
+  </section>
+  
+  <section><!-- no ids in frags that are used in more than one place: id="cas-Interface_Config_Frag-change-max-assertion" --><title>Changing the maximum assertion lifetime</title>
+    <para>To change the maximum assertion lifetime and VO description, set the parameters <constant>maxAssertionLifetime</constant> 
+    and <constant>voDescription</constant> in <filename>$GLOBUS_LOCATION/etc/globus_cas_service/jndi-config.xml</filename> to the desired values.</para>
+  </section>
+  
+  <section><!-- no ids in frags that are used in more than one place: id="cas-Interface_Config_Frag-db-backend" --><title>Configuring database backend</title>
+  <para>To alter the configuration of the database back end edit the <constant>databseConfiguration</constant> section of
+    
+    <filename>$GLOBUS_LOCATION/etc/globus_cas_service/jndi-config.xml</filename> as follows:</para>
+  
+  <table><title>Database parameters</title>
+    
+    <tgroup cols="2">
+      
+      <tbody>
+        
+        <row>
+          
+          <entry>driver </entry>
+          
+          <entry>The JDBC driver to be used</entry>
+          
+        </row>
+        
+        <row>
+          
+          <entry>connectionURL </entry>
+          
+          <entry>The JDBC connection url to be used when connecting to the database</entry>
+          
+        </row>
+        
+        <row>
+          
+          <entry>userName </entry>
+          
+          <entry>The user name to connect to the database as</entry>
+          
+        </row>
+        
+        <row>
+          
+          <entry>password </entry>
+          
+          <entry>The corresponding database password</entry>
+          
+        </row>
+        
+        <row>
+          
+          <entry>activeConnections </entry>
+          
+          <entry>The maximum number of active connections at any given instance </entry>
+          
+        </row>
+        
+        <row>
+          
+          <entry>onExhaustAction </entry>
+          
+          <entry>The action to perform when the connection pool is exhausted. If value is 0 then fail, if 1 then block and if 2 then grow the pool (get more connections)</entry>
+          
+        </row>
+        
+        <row>
+          
+          <entry>maxWait </entry>
+          
+          <entry>The maximum time in milliseconds that the pool will wait for a connection to be returned </entry>
+          
+        </row>
+        
+        <row>
+          
+          <entry>idleConnections </entry>
+          
+          <entry>The maximum number of idle connections at any given time</entry>
+          
+        </row>
+        
+      </tbody>
+      
+    </tgroup>
+    
+  </table>
+  
+</section>
+  
+  <section><!-- no ids in frags that are used in more than one place: id="cas-Interface_Config_Frag-security-descriptor" --><title>Configuring security descriptor</title>
+    
+    <para>To alter the security descriptor configuration refer to 
+      <link linkend="authzframe-security-descriptor">Security Descriptors</link>. 
+      The file to be changed is <filename>$GLOBUS_LOCATION/etc/globus_cas_service/security-config.xml</filename>.</para>
+    
+    </section>
+
+  <section><!-- no ids in frags that are used in more than one place: id="cas-Interface_Config_Frag-gridftp" --><title>Configuring with a GridFTP Server</title>
+   <para>CAS is used to administer access rights to files and directories and the GridFTP server can be configured to enforce those rights.</para>
+    <para> For detailed information about configuring CAS for use with a GridFTP server, see <xref linkend="cas-howto-gridftp" />.</para>
+  </section>
+
+<section><!-- no ids in frags that are used in more than one place: id="cas-Interface_Config_Frag-autoregistration" --><title>CAS auto-registration with default WS MDS Index Service</title>
+  <para>With a default GT 4.0.1 installation, CAS is automatically registered with the default <link linkend="index">WS MDS Index Service</link> running in the same container for monitoring 
+    and discovery purposes.</para>
+  
+  <note><simpara> If you are using GT 4.0.0, we strongly recommend upgrading to 4.0.1 to take advantage of this capability. </simpara></note>
+  <para>   However, if must use GT 4.0.0, or if this registration was turned off and you want to turn it back on, this is how it is configured:</para>
+  
+  <para>There is a jndi resource defined in <filename>$GLOBUS_LOCATION/etc/globus_cas_service/jndi-config.xml</filename> as follows :</para>
+  <screen> 
+    &lt;resource name="mdsConfiguration" 
+    
+    type="org.globus.wsrf.impl.servicegroup.client.MDSConfiguration"&gt;
+    &lt;resourceParams&gt;
+    &lt;parameter&gt; 
+    &lt;name&gt;reg&lt;/name&gt;
+    &lt;value&gt;true&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt; 
+    &lt;name&gt;factory&lt;/name&gt;
+    &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;/resourceParams&gt;
+    &lt;/resource&gt;
+  </screen>
+  
+  <para>To configure the automatic registration of CAS to the default WS MDS Index Service, change the value of the parameter 
+    <computeroutput>&lt;reg&gt;</computeroutput> as follows:</para>
+  <itemizedlist>
+    <listitem><simpara><computeroutput>true</computeroutput> turns on auto-registration; this is the default in GT 4.0.1.</simpara></listitem>
+    <listitem><simpara><computeroutput>false</computeroutput> turns off auto-registration; this is the default in GT 4.0.0.</simpara></listitem>
+  </itemizedlist>
+  
+  <section><title>Configuring resource properties</title>
+    <para>By default, the <computeroutput>VoDescription</computeroutput> resource property (which describes the virtual organization relevant to the CAS Service) is sent to the default Index Service.</para>
+    
+    <para> You can configure which resource properties are sent in the registration.xml file, <filename>$GLOBUS_LOCATION/etc/globus_cas_service/registration.xml</filename>.  
+      The following is the relevant section of the file:</para>
+    
+    <screen>
+      &lt;Content xsi:type="agg:AggregatorContent"
+      xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+      
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+      
+      &lt;agg:GetResourcePropertyPollType
+      xmlns:cas="http://www.globus.org/07/2004/cas"&gt;
+      &lt;!-- Specifies that the index should refresh information
+      every 8 hours (28800000ms) --&gt;
+      &lt;agg:PollIntervalMillis&gt;28800000&lt;/agg:PollIntervalMillis&gt;
+      
+      &lt;!-- specifies that all Resource Properties should be
+      collected from the RFT factory --&gt;
+      
+      &lt;agg:ResourcePropertyName&gt;cas:VoDescription&lt;/agg:ResourcePropertyName&gt;
+      
+      &lt;/agg:GetResourcePropertyPollType&gt;
+      &lt;/agg:AggregatorConfig&gt; 
+      &lt;agg:AggregatorData/&gt;
+      &lt;/Content&gt;
+    </screen>
+    
+  </section>
+
+</section>
+  <section><!-- no ids in frags that are used in more than one place: id="s-wsgram-Interface_Config_Frag-registering-remotely" --><title>Registering CAS manually with default WS MDS Index Service</title>
+    <para>If a third party needs to register an CAS service manually, see <link linkend="mds-servicegroup-add-registering">Registering with mds-servicegroup-add</link>
+      in the WS MDS Aggregator Framework documentation.</para>
+  </section>  

@@ -1,0 +1,376 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<title>How to Set Up CAS to Use with GridFTP</title>
+<titleabbrev>Setting up CAS for GridFTP</titleabbrev>
+
+<para>This document is intended to be used with the <link linkend="cas">CAS</link> and 
+   <link linkend="gridftp">GridFTP</link> documents, to configure and use CAS with GridFTP.</para>
+     
+     <section id="cas-howto-gridftp-overview"><title>Overview</title>
+  <para> CAS is used to administer access rights to files and directories
+     and GridFTP server can be configured to enforce those rights. The following is an overview of the process:</para>
+     
+  <orderedlist>
+     <listitem><simpara>A CAS administrator sets up rights on the CAS server.</simpara></listitem>
+     <listitem><simpara>A user retrieves those rights in the form of a signed assertion and presents it to the GridFTP server at the time of access. </simpara></listitem>
+     <listitem><simpara>If the assertion presented has the necessary permissions and the GridFTP server trusts the CAS server that issued it, access is allowed.</simpara></listitem>
+   </orderedlist>
+   
+  <para>In a default Globus Toolkit installation, CAS is installed with a set of credentials associated with the CAS server. A
+   CAS administrator has all rights on the CAS server and manages
+   users. To be used with GridFTP, the administrator needs to
+     add users,
+     add the files and directories he wants protected and 
+     grant specific rights to the files.</para>
+   
+
+   <para>The user then retrieves a CAS assertion from the server, for either
+   specific files/directories or all his access rights stored in CAS. This is done using the
+      client side command, <link linkend="cas-proxy-init">cas-proxy-init</link>, which embeds the assertion in the
+      user's proxy. Another client side command, <link linkend="cas-wrap">cas-wrap</link> can then be used to run
+      the GridFTP command, <link linkend="globus-url-copy">globus-url-copy</link>, to ensure that the proxy is used.</para>
+   
+   <para>Details about the CA who issues these credentials needs to be added to
+   the CAS server as a trust anchor. Each user has a nick name, a subject
+   DN and is associated with a trust anchor. A particular user is designated as
+   superuser, so has permissions to add users and manager rights. This
+   can be set up using the <link linkend="cas-admin-bootstrapingDb">bootstrap</link> step.</para>
+   
+        <para>   Users who are not administrators can be added using <link linkend="cas-using-commandlines">command line
+   tools</link>. Permissions in a CAS
+      database are granted to user groups, rather than users. So a user
+      group needs to be created and users added to it prior to assigning
+      permissions.</para>
+     </section>
+     <section id="cas-howto-gridftp-files-dirs"><title>Files and directories in CAS</title>
+        
+        <para>Files and directories are "objects" in CAS. Each object has a name and a
+           namespace assocated with it. The namespace determines the scope of the
+           object and also the comparison method to use with object names. A
+           predefined namespace, called FTPDirectoryTree is loaded in the CAS
+           database upon bootstrap and this is the namespace expected for GridFTP
+           objects. </para>
+        
+        <para>For example, if permission on file "some_file_path" on host
+           "somehost.edu" needs to be managed, it needs to be added as an
+           object, with name "ftp://somehost.edu/some_file_path" and namespace
+           "FTPDirectoryTree". 
+           
+           This object "ftp://somehost.edu/some_file_path" 
+           will be recognized by the CAS-enabled GridFTP server at "somehost.edu" as
+           referring to the file named "some_file_path". 
+           
+           An object in the
+           FTPDirectoryTree namespace with the name "ftp://somehost.edu/some_directory_path/*"
+           will be recognized by the CAS-enabled GridFTP server at "somehost.edu" as 
+           referring to all files and directories under "some_directory_path".</para>
+        
+        <para> In some cases, it may be desirable to have a GridFTP server recognize CAS 
+           assertions that use a hostname other than the server's fully qualified domain 
+           name. Starting the GridFTP server with the option "-H otherhost" will cause the 
+           GridFTP server to recognize objects with names that start with 
+           "ftp://otherhost/" instead.</para>
+        
+        <para>The actions that are allowed on a file and a directory are listed in the following table:</para>
+        
+        <informaltable>
+           <tgroup cols="3">
+              <thead>
+                 <row><entry>Action</entry>
+                    <entry>Result for a file</entry>
+                    <entry>Result for a directory</entry>
+                 </row>
+              </thead>
+              <tbody>
+                 <row>
+                    <entry>read</entry>
+                    <entry>Gives permission to read the file.   </entry>
+                    <entry>Gives permission to chdir to the directory.</entry>
+                 </row>
+                 <row>
+                    <entry>lookup</entry>
+                    <entry>Gives the right to get Unix stat() information.</entry>
+                    <entry>Gives the right to chdir to and to list the contents of the directory.</entry>
+                 </row>
+                 <row>
+                    <entry>write</entry>
+                    <entry>Allows modification of an existing file. </entry>
+                    <entry>Gives the right to chdir to the directory.</entry>
+                 </row>
+                 <row>
+                    <entry>create</entry>
+                    <entry>Allows creation of the file if it does not exist.</entry>
+                    <entry> Allows creation of the directory if it does not exist and gives the  right to chdir to the directory if it does exist.</entry>
+                 </row>
+                 <row>
+                    <entry>delete</entry>
+                    <entry>Allows deletion of the file. </entry>
+                    <entry>Allows deletion of the directory, if empty; also gives the right to chdir to the directory.</entry>
+                 </row>
+                 <row>
+                    <entry>chdir</entry>
+                    <entry>Does not apply. </entry>
+                    <entry>Allows making the directory the current default directory.</entry>
+                 </row>
+              </tbody>
+           </tgroup>
+        </informaltable>
+        
+        <para>These actions are predefined and loaded onto CAS database when bootstrap is 
+           done. Apart from these actions on files/directories, there is another action
+           "authz_assert" which is used to override the existing assertions (either from
+           proxy or from a previous "authz_assert" command) with the assertions received
+           over the GridFTP control channel. FTP clients can use the command "SITE 
+           AUTHZ_ASSERT" to send assertions to the GridFTP server.</para>
+        
+        <para>The following is a summary of supported FTP commands and the permissions they 
+           require:</para>
+        
+        <informaltable>
+           <tgroup cols="3">
+              <thead>
+                 <row><entry>Typical Client Commande</entry>
+                    <entry>FTP Protocol Command</entry>
+                    <entry>Rights Required</entry>
+                 </row>
+              </thead>
+              <tbody>
+                 <row>
+                    <entry>get</entry>
+                    <entry>RETR </entry>
+                    <entry>read</entry>
+                 </row>
+                 <row>
+                    <entry>put</entry>
+                    <entry>STOR</entry>
+                    <entry>write, if file exists; create, if file does not exist</entry>
+                 </row>
+                 <row>
+                    <entry>delete</entry>
+                    <entry>DELE </entry>
+                    <entry>delete</entry>
+                 </row>
+                 <row>
+                    <entry>ls</entry>
+                    <entry>LIST</entry>
+                    <entry> lookup</entry>
+                 </row>
+                 <row>
+                    <entry>chdir</entry>
+                    <entry>CWD</entry>
+                    <entry>any of: chdir, lookup, read, write, create, or delete</entry>
+                 </row>
+                 <row>
+                    <entry>mkdir</entry>
+                    <entry>MKD</entry>
+                    <entry>create</entry>
+                 </row>
+                 <row>
+                    <entry>rmdir</entry>
+                    <entry>RMD</entry>
+                    <entry>delete</entry>
+                 </row>
+                 <row>
+                    <entry>rename</entry>
+                    <entry>RNFR / RNTO</entry>
+                    <entry>read and delete on old file; write on new file, if it exists, create on new file, if it does not exist</entry>
+                 </row>
+              </tbody>
+           </tgroup>
+        </informaltable>
+     </section>
+     <section id="cas-howto-gridftp-configuring"><title>Configuring the CAS server to work with the GridFTP server</title>
+   <section><title>Step 1: Set up the CAS server.</title>
+      <para>This must be done by user "casAdmin".</para>
+   </section>
+   
+<section><title>Step 2: Run the CAS server with host credentials </title>
+   <para>Run the CAS server with host credentials <computeroutput>/O=Grid/OU=test/CN=foo.bar.edu</computeroutput>.</para>
+   
+   <note><simpara>The CA that issues these credentials should be trusted by the GridFTP server. Setting up of trusted CA is described <link linkend="prewsaa-admin-configuring">here</link></simpara></note>
+
+</section>
+   
+   <section><title>Step 3: Enable CAS support in the GridFTP server</title>
+      
+     <para> The GridFTP Server reads two files (gsi-authz.conf and gsi-gaa.conf) to 
+      determine how to perform certain authorization and mapping functions. If these 
+      files are not present (as is the case after a standard Globus Toolkit 
+      installation), the GridFTP server will not support CAS authorization (that is, 
+      the GridFTP server will ignore the CAS policy assertions in the user's 
+      credential and determine the user's permissions based solely on the user's 
+      identity).</para>
+      
+      <para>Run <command>[setup-globus-gaa-authz-callout]</command> to create <filename>gsi-authz.conf</filename> 
+      and <filename>gsi-gaa.conf</filename> files that will cause the GridFTP server to honor CAS policy 
+      assertions. There are two ways to run this command:</para> 
+      <orderedlist>
+      <listitem><simpara>To create the config files in the directory
+      /etc/grid-security (where the GridFTP server looks for them by default), run the following as root:</simpara>
+      
+      <screen>$GLOBUS_LOCATION/setup/globus/setup-globus-gaa-authz-callout</screen>
+      </listitem>
+     <listitem> <simpara>To create the config files to another directory, run:</simpara>
+      
+      <screen>$GLOBUS_LOCATION/setup/globus/setup-globus-gaa-authz-callout -d mydir</screen>
+      
+      <simpara>Where 'mydir' is the path to the desired directory. You then must make sure the GridFTP server  
+      finds these files by setting the following environment variable <emphasis>before</emphasis> starting 
+      the GridFTP server:</simpara>
+      <itemizedlist>
+      <listitem><simpara>Set GSI_AUTHZ_CONF to mydir/gsi-authz.conf.</simpara></listitem>
+      <listitem><simpara>Set GSI_GAA_CONF to mydir/gsi-gaa.conf. </simpara></listitem>
+      </itemizedlist></listitem>
+      </orderedlist>
+      
+     <para> By default, setup-globus-gaa-authz-callout will not overwrite an existing 
+      configuration file. Use the following options to overwrite existing GridFTP config files:</para>
+      <itemizedlist>
+         <listitem><simpara>Use the -force option to overwrite an existing gsi-authz.conf file</simpara></listitem>
+         <listitem><simpara>Use the -overwrite_gaa_config option to overwrite an existing gsi-gaa.conf file.</simpara></listitem>
+         </itemizedlist>
+   </section>
+   
+<section><title>Step 4: Configure the GridFTP server to trust the CAS server</title>
+     <para> The previous step configured the GridFTP server to understand CAS credentials. 
+      However, the GridFTP server will not allow a user authenticating with a CAS 
+      credential to perform any action that it would not allow the CAS server itself 
+      to perform. To configure the GridFTP server to trust a particular CAS server:</para>
+      <orderedlist>
+            <listitem><simpara>Create a local user account corresponding to the CAS server.</simpara></listitem>
+            <listitem><simpara>Use file permissions to allow that user account to have the desired level of file access.</simpara></listitem>
+            <listitem><simpara>Create a gridmap entry that maps the CAS server's distinguished name to that local account.</simpara></listitem>
+      </orderedlist>
+</section>
+   
+<section><title>Step 5: Add a CAS administrator</title>
+   <para>Add a CAS admin, we'll use the CAS nickname, "casAdmin", and DN
+      "/O=Grid/OU=test/CN=CAS Administrator". This credential is issued by a
+      CA with certificate "/O=Grid/OU=test/CN=CA"</para>
+      
+   <section><title>Using bootstrap to add a CAS administrator</title>
+      <para>This can be setup during <link linkend="cas-admin-bootstrapingDb">bootstrap</link> and below is
+      the bootstrap file for the above scenario.</para>
+      
+      <screen>ta-name=defaultTrustAnchor
+ta-authMethod=X509
+ta-authData=/O=Grid/OU=test/CN=CA
+user-name=superUser
+user-subject=/O=Grid/OU=test/CN=CAS Administrator
+userGroupname=superUserGroup</screen>
+   </section>
+   
+</section>
+   
+     <section><title>Step 6: Add a CAS user group </title>
+      <para>Since permissions are only on user groups, we need to add a user
+         group, for example "readGroup". This can be done using <link linkend="cas-using-commandlines-maintainUserGp">cas-group-admin</link>.</para>
+      
+      <screen>cas-group-admin user create superUserGroup readGroup</screen>
+      
+      <note><simpara>The superUserGroup here determined the user group that has
+      permissions to manipulate the group that is being created i.e
+      readGroup.</simpara></note>
+     </section>
+   
+<section><title>Step 7: Add a CAS user </title>
+      <para>Add the user who needs access to files. For example, add User1, with DN
+      "/O=Grid/OU=test/CN=User 1" issued by the CA in [Step 4], using [cas-enroll]:</para>
+      
+      <screen>cas-enroll user superUserGroup User1 "/O=Grid/OU=test/CN=User 1" defaultTrustAnchor</screen>
+      
+      <note><simpara>The superUserGroup here determined the user group that has
+         permissions to manipulate the user that is being created i.e User1.</simpara></note>
+   
+</section>
+   
+<section><title>Step 8: Add user to the user group</title>
+   
+   <para>To add the CAS user to the CAS user group, use <link linkend="cas-using-commandlines-maintainUserGp">cas-group-add-entry</link>:</para>
+      
+      <screen>cas-group-add-entry user readGroup User1</screen>
+   
+</section>
+   
+   <section><title>Step 9: Add CAS object </title>
+      <para>Add the file (on which you want to set permissions) as a CAS object with the name
+      "ftp://foo.bar.edu/tmp/file1" and namespace "FTPDirectoryTree":</para>
+      
+      <screen>cas-enroll object superUserGroup "ftp://foo.bar.edu/tmp/file1" "FTPDirectoryTree"</screen>
+      
+      <note><simpara>The superUserGroup here determined the user group that has
+         permissions to manipulate the object that is being created.</simpara></note>
+      
+      <section><title>Giving permissions to all files in a directory</title>
+         <para>To give permissions to all files in a directory, create the CAS object with a wild card "*". For example, object name "ftp://foo.bar.edu/tmp/admin/*". If permission is given on this object, all files in that directory are affected. </para>
+         
+         <para>For example, if you create a new user group called "adminGroup", you give read permission to all users in that group as follows, any user in "adminGroup" can read any file in "/tmp/admin" on that server.</para>
+         
+         <screen>cas-rights-admin grant adminGroup object FTPDirectoryTree "ftp://foo.bar.edu/tmp/admin/*" serviceAction file read</screen>
+         
+      </section>
+      
+   </section>   
+   
+<section><title>Step 10: Add permission for users </title>
+   
+   <para>Add permission for users in "readGroup" to be able to read object added in the previous step.</para>
+   
+   <screen>cas-rights-admin grant readGroup object FTPDirectoryTree "ftp://foo.bar.edu/tmp/file1" serviceAction file read</screen>
+   
+   <para>Now any user added to readGroup can read the file (that was added in Step 9).</para>
+   
+</section>
+   
+</section>
+
+     <section id="cas-howto-gridftp-transferring"><title>Transferring files using CAS and GridFTP </title>
+   <para>Once the CAS server has been configured (as above), if User1 wants to transfer the file "/tmp/file1" on
+      "ftp://foo.bar.edu", User1 performs the following two steps: </para>
+   
+   <orderedlist>
+      <listitem><simpara>Runs <command>cas-proxy-init</command> to get the CAS assertion:</simpara>
+         <screen>cas-proxy-init -p casProxy</screen>
+         <note><simpara>This gets the assertion from the CAS server, generates a proxy
+      with the assertion and writes it out to "casProxy".</simpara></note>
+      </listitem>
+      
+     <listitem><simpara>Runs <command>cas-wrap</command> to transfer the file:</simpara>
+        <screen>cas-wrap -p casProxy globus-url-copy gsiftp://somehost.edu/some_file_path
+         file:///some_file_path</screen></listitem>
+   </orderedlist>
+         </section>
+      
+     <section id="cas-howto-gridftp-managing"><title>Managing policy</title>
+   <para>The CAS administrator can create groups of users and groups of objects to
+      ease policy management. </para>
+   
+   <para>Also, if the administrator wants to provide a set of rights,
+   such as read and lookup, the administrator can create a service
+   action group with these action as members. User groups can then be
+   provided with access to all actions in the group.</para>
+
+   <para> Similarly the administrator can create groups of objects,
+   which would be a group of GridFTP server and files on it, and grant
+   access rights to users.</para>
+   
+     </section>
+     <section id="cas-howto-gridftp-enforcing-authz"><title> Authorization Enforcement at the GridFTP Server</title>
+<para>The following describes how the GridFTP server processes a file transfer using CAS:</para>
+   
+      <orderedlist>
+      <listitem><simpara>During the authentication phase, GridFTP server extracts the CAS
+      assertion in the proxy credentials and stores it.</simpara></listitem>
+      <listitem><simpara>If the GridFTP server receives a CAS assertion over the control
+      channel, it overwrites the old assertion (if any) with the new
+      one.</simpara></listitem>
+      <listitem><simpara>Upon receiving a file transfer request, the GridFTP server looks for
+      a CAS assertion.</simpara></listitem>
+      <listitem><simpara>If the assertion is present, checks whether the file being accessed has
+      permission. If assertion has permission for the file, the access is
+      allowed. Otherwise an error is thrown.</simpara></listitem>
+      <listitem><simpara>If  no CAS assertion is  found, the presence of  user DN is
+      checked  in   the  gridmap  file.   If  DN  exists,  then   access  is
+      allowed. Otherwise an error is thrown.</simpara></listitem>
+      </orderedlist>
+</section>
+

@@ -1,0 +1,1451 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<title>Using CAS Command line Clients</title>
+<section id="cas-using-commandlines-admin-clients">
+    <title>CAS Administrator clients</title>
+    <para>The CAS administrator clients can be used to manipulate and maintain
+        the data in the CAS database. It allows one to enroll (and unenroll) CAS
+        Objects, create (and delete) groups, add (and remove) members from
+        groups, and add (and remove) service type and action mappings. Typically
+        these operation are performed by the CAS Administrator.</para>
+    
+    <para>All enroll operations involve granting cas/grantAll permission on the
+        enrolled object to some user group (to which the user may belong or
+        otherwise).</para>
+    
+    <para>All operations require that the user have specific permissions to
+        perform the operation. Permissions and policies are given and applied
+        to user groups. Hence a user is said to have permission to perform an
+        operation if one of the user groups that the user belongs to has
+        permission to perform that operation.</para>
+    
+    <para>If some user group to which the user belongs has permission
+        "superuser" on cas server object then they may perform any operation,
+        even if they do not have the specific rights that are outlined below for
+        each operation.</para>
+    
+    <para>If a user has cas/grantAll permission on any object, then the user is
+        permitted to perform any operation on that object.</para>
+    
+    <section id="cas-using-commandlines-namespaces">  <title>Enrolling and Unenrolling Namespaces</title>
+        
+        <para>To enroll a namespace, the user must have cas/enroll_namespace
+            permission (that is, the user must have permission to perform the
+            enroll_namespace action on the cas service type).  The enroll
+            operation allows the user to choose a userGroup to have cas/grantAll
+            permission on the enrolled object. The comparison algorithm specified
+            should be the name of the Comparison class that needs to be used to
+            compare objects that belong to this namespace. The nickname should be
+            unique across the CAS database and is used to refer to this user.</para>
+        
+        <screen>
+            casAdmin$ cas-enroll [<emphasis>options</emphasis>] namespace <emphasis>userGpName</emphasis> <emphasis>nickname</emphasis> <emphasis>basename</emphasis> <emphasis>comparisonAlg</emphasis>
+            
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            
+            <title>cas-enroll options for namespaces</title>
+            
+            <tgroup cols="2">
+                
+                <tbody>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>userGpName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The user group to which cas/grantAll permission should be
+                            granted on this trust anchor entity</para>
+                            </entry>
+                        
+                    </row>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>nickname</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The nickname of the namespace.</para>
+                            
+                            <para>If the trust anchor nickname specified does not exist, an error is
+                                <emphasis>not</emphasis> thrown. If the unenroll operation is successful all
+                                policy data on that trust anchor is purged.</para></entry>
+                        
+                    </row>
+                    
+                    <row>
+                        <entry>
+                            <emphasis>
+                                basename
+                            </emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                                The base URL for the namespace.
+                            </para>
+                        </entry>
+                    </row>
+                    
+                    <row>
+                        <entry>
+                            <emphasis>
+                                comparisonAlg
+                            </emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                                The comparison algorithm to be used. Unless the standard
+                                comparison algorithms described below are used, the
+                                fully qualified name of the class that needs to be used
+                                should be given. The class needs to extend from the
+                                abstract class
+                                <computeroutput>org.globus.cas.impl.service.ObjectComparison</computeroutput>.
+                            </para>
+                            <para>        
+                                The two comparison classes provided as a part of the distribution are:
+                            </para>
+                            <itemizedlist>
+                                
+                                <listitem><simpara>ExactComparison: This class does a case-sensitive exact comparison
+                                    of the object names. If comparisonAlg in the above method is set to
+                                    "ExactComparison", the class in the distribution is loaded and used.
+                                </simpara></listitem>
+                                <listitem><simpara>WildcardComparison: This class does wild card matching as described
+                                    in "CAS Simple Policy Language". (FIXME link to that doc) It assumes
+                                    that the wild card character is "*" and "/" is the file separator. If
+                                    comparisonAlg in the above method is set to "WildCardComparison", the
+                                    class in the distribution is loaded and used. </simpara></listitem>
+                            </itemizedlist>
+                            
+                        </entry>
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                    
+                </tbody>
+                
+            </tgroup>
+            
+        </table>
+        
+ 
+
+        <para> Also two namespaces are added to the CAS database at boot up time,
+            other than the inherent CAS Namespace.</para>
+        
+        <itemizedlist>
+            <listitem><simpara>FTPDirectoryTree: Uses the WildCardComparison Algorithm and has
+                the base URL set to the current directory.</simpara></listitem>
+            <listitem><simpara>FTPExact: Uses the ExactComparison Algorithm and has the base
+                URL set to the current directory.</simpara></listitem>
+        </itemizedlist>
+        
+        <para>To unenroll a namespace, the user must have cas/unenroll permission on
+            that namespace.  The namespace must also be unused&mdash;that is, there may
+            not be any object in the database that belongs to this namespace.</para>
+        
+        <screen>
+            casAdmin$ cas-remove [<emphasis>options</emphasis>] namespace <emphasis>nickname</emphasis>
+            
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            
+            <title>cas-remove options for namespaces</title>
+            
+            <tgroup cols="2">
+                
+                <tbody>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>nickname</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The nickname of the namespace to be unenrolled.</para>
+                            
+                            <para>If the namespace nickname specified does not exist, an error is
+                                <emphasis>not</emphasis> thrown. If the unenroll operation is successful all
+                                policy data on that trust anchor is purged.</para></entry>
+                        
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                    
+                </tbody>
+                
+            </tgroup>
+            
+        </table>
+              
+    </section>
+    <section id="cas-using-commandlines-object"><title>Enrolling and Unenrolling Objects</title>
+        
+        <para>To enroll an object, the user must have cas/enroll_object permission
+            (that is, the use must have permission to perform the enroll_object action on
+            the cas service type).  The enroll operation allows the user to choose a
+            userGroup to have cas/grantAll permission on the enrolled object. The
+            name of the object and the the namespace this object belongs to
+            identifies an object in the database and should be unique across the
+            CAS database.</para>
+        
+        <screen>
+            casAdmin$ cas-enroll [<emphasis>options</emphasis>] object <emphasis>userGpName</emphasis> <emphasis>objectName</emphasis> <emphasis>namespaceNick</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            
+            <title>cas-enroll options for objects</title>
+            
+            <tgroup cols="2">
+                
+                <tbody>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>userGpName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The user group to which cas/grantAll permission should be granted on this trust anchor entity.</para>
+                            
+                         </entry>
+                        
+                    </row>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>objectName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The name of the object.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>namespaceNick</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The nickname of the namespace to which this object belongs.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                    
+                </tbody>
+                
+            </tgroup>
+            
+        </table>
+
+        <para>To unenroll an object the user must have cas/unenroll permission on
+            that object.  The object must also be unused &mdash; that is, there may not
+            be any object group in the database that this object belongs to.</para>
+        
+        <screen>
+            casAdmin$ cas-remove [<emphasis>options</emphasis>] object <emphasis>objName</emphasis> <emphasis>namespaceNick</emphasis>
+            
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            
+            <title>cas-remove options for objects</title>
+            
+            <tgroup cols="2">
+                
+                <tbody>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>objName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The name of the object to be unenrolled.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>namespaceNick</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The nickname of the namespace to which this object belongs.</para>
+                            
+                            <para>If the object specified does not exist, an error is <emphasis>not</emphasis> be
+                                thrown. If the unenroll operation is successfull all policy data on
+                                that object is purged.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                    
+                </tbody>
+                
+            </tgroup>
+            
+        </table>
+        
+    </section>
+    
+    <section id="cas-using-commandlines-serviceType"><title>Enrolling and Unenrolling Service Type</title>
+        
+        <para>To enroll a service type, the user must have cas/enroll_serviceType
+            permission (that is, the user must have permission to perform the
+            enroll_serviceType action on the cas service type).  The enroll
+            operation allows the user to choose a userGroup to have cas/grantAll
+            permission on the enrolled service type. The service type name should
+            be unique across the CAS database.</para>
+        
+        <screen>
+            casAdmin$ cas-enroll [<emphasis>options</emphasis>] serviceType <emphasis>userGpName</emphasis> <emphasis>serviceTypeName</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            
+            <title>cas-enroll options for service types</title>
+            
+            <tgroup cols="2">
+                
+                <tbody>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>userGpName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The user group to which cas/grantAll permission should be granted on this trust anchor entity.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>serviceTypeName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The service type name.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                    
+                </tbody>
+                
+            </tgroup>
+            
+        </table>
+        
+        <para>To unenroll a service type the user must have cas/unenroll permission
+            on that service type.  The service type must also be unused&mdash;that is,
+            there may not be any service type to action mapping.</para>
+        
+        <screen>
+            casAdmin$ cas-remove [<emphasis>options</emphasis>] serviceType <emphasis>serviceTypeName</emphasis>
+            
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        
+        <table>
+            
+            <title>cas-remove options for service types</title>
+            
+            <tgroup cols="2">
+                
+                <tbody>                    
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>serviceTypeName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The service type name.</para>
+                            
+                            <para>If the service type specified does not exist, an error is <emphasis>not</emphasis> be
+                                thrown. If the unenroll operation is successfull all policy data on that
+                                service type is purged.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                    
+                </tbody>
+                
+            </tgroup>
+            
+        </table>
+        
+    </section>
+    
+    <section id="cas-using-commandlines-manageServiceType"><title>Maintaining Service Types</title>
+        <para>To add an action mapping to a service type, the user must have
+            cas/create_group_entry permission on the service type.</para>
+        
+        <screen>
+            casAdmin$ cas-action [<emphasis>options</emphasis>] add <emphasis>serviceTypeName</emphasis> <emphasis>actionName</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        
+        
+        <table>
+            
+            <title>cas-action options for service types</title>
+            
+            <tgroup cols="2">
+                
+                <tbody>                    
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>serviceTypeName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The service type name.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>actionName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The action name.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                    
+                </tbody>
+                
+            </tgroup>
+            
+        </table>
+        
+        <para>To remove a service type action mapping the user must have
+            cas/delete_group_entry permission on the service type.</para>
+        
+        <screen>
+            casAdmin$ cas-action [<emphasis>options</emphasis>] remove <emphasis>serviceTypeName</emphasis> <emphasis>actionName</emphasis>
+            
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            
+            <title>cas-action options for removing service types</title>
+            
+            <tgroup cols="2">
+                
+                <tbody>                    
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>serviceTypeName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The service type name.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>actionName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The action name.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                    
+                </tbody>
+                
+            </tgroup>
+            
+        </table>
+        
+        <para>If the group member being removed does not exist, an error is
+            <emphasis>not</emphasis> thrown.</para>
+        
+    </section>
+    
+    <section id="cas-using-commandlines-maintainUserGp"><title>Maintaining User Groups</title>
+        
+        <para>To create a new user group the user must have cas/create_user_group
+            permission (that is, the user must have permission to perform the create_user_group
+            action on the cas service type). The user group name should be unique
+            across the CAS database. The create operation allows the user to
+            choose a user group to have cas/grantAll permission on the created
+            user group.  If the user group that is chosen to have cas/grantAll
+            permission is the new group created, then the user making this request
+            is added to the new group.</para>
+        
+        <screen>
+            casAdmin$ cas-group-admin [<emphasis>options</emphasis>] user create userGpName <emphasis>groupName</emphasis>
+        </screen>
+        
+        <para>
+            where :
+        </para>
+        
+        <table>
+            
+            <title>cas-group-admin options for adding a new user group</title>
+            
+            <tgroup cols="2">
+                
+                <tbody>                    
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>userGpName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The user group to which cas/grantAll permission should be
+                            granted on this trust anchor entity.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>groupName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The name of the user group being created.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                    
+                </tbody>
+                
+            </tgroup>
+            
+        </table>
+
+        
+        <para>To add to a user to a user group the user must have
+            cas/add_group_entry permission on that particular user group. Only
+            user nicknames that exist in the CAS database can be valid members.</para>
+        
+        <screen>
+            casAdmin$ cas-group-add-entry [<emphasis>options</emphasis>] user <emphasis>groupName</emphasis> <emphasis>nickname</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            
+            <title>cas-group-add-entry options for adding a user to a user group</title>
+            
+            <tgroup cols="2">
+                
+                <tbody>                    
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>groupName</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The user group name to which the member needs to be added.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    <row>
+                        
+                        <entry>
+                            
+                            <para><emphasis>nickname</emphasis></para>
+                            
+                        </entry>
+                        
+                        <entry><para>The nickname of the user to be added to this group.</para>
+                            
+                        </entry>
+                        
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                    
+                </tbody>
+                
+            </tgroup>
+            
+        </table>
+        
+        <para>To remove a user from a user group the user must have
+            cas/remove_group_entry permission on that particular user group.</para>
+        
+        <screen>
+            casAdmin$ cas-group-remove-entry [<emphasis>options</emphasis>] user <emphasis>groupName</emphasis> <emphasis>nickname</emphasis>
+            
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            <title>cas-group-remove-entry options for removing a user from a user group</title>
+            <tgroup cols="2">
+                <tbody>                    
+                    <row>
+                        <entry>
+                            <para><emphasis>groupName</emphasis></para>
+                        </entry>
+                        <entry><para>The user group name from which the member needs to be removed.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>nickname</emphasis></para>
+                        </entry>
+                        <entry><para>The nickname of the user to be removed from this group.</para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>
+        
+        <para>If the group member being removed does not exist, an error is
+            <emphasis>not</emphasis> thrown. </para>
+        
+        <para>To delete a user group, the user must have cas/delete_user_group entry
+            permission on that user group. The group must be empty and also not be
+            referenced from other entities in the database (for example, it should not
+            be a member of some object group).</para>
+        
+        <screen>
+            casAdmin$ cas-group-admin [<emphasis>options</emphasis>] user delete <emphasis>groupName</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            <title>cas-group-admin options for deleting a user group</title>
+            <tgroup cols="2">
+                <tbody>                    
+                    <row>
+                        <entry>
+                            <para><emphasis>groupName</emphasis></para>
+                        </entry>
+                        <entry><para>The name of the user group to be deleted.s to be removed.</para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>
+
+        <para>If the user group specified does not exist, an error is <emphasis>not</emphasis> thrown. If the unenroll operation is successfull all policy data on that user group is purged.</para>
+        
+    </section>
+    <section id="cas-using-commandlines-maintainObjectGp"><title>Maintaining Object Groups</title>
+        
+        <para>To create a new object group the user must have
+            cas/create_object_group permission (that is, the user must have permission to
+            perform the create_object_group action on the cas service type). The object
+            group name should be unique across the CAS database. The create
+            operation allows the user to choose a user group to have cas/grantAll
+            permission on the created object group.</para>
+        
+        <screen>
+            casAdmin$ cas-group-admin [<emphasis>options</emphasis>] object create <emphasis>userGpName</emphasis> <emphasis>groupName</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        
+        <table>
+            <title>cas-group-admin options for creating an object group</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <para><emphasis>userGpName</emphasis></para>
+                        </entry>
+                        <entry><para>The user group to which cas/grantAll permission should be
+                            granted on this trust anchor entity.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>groupName</emphasis></para>
+                        </entry>
+                        <entry><para>The user group name from which the member needs to be removed.</para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>
+        
+        <para>To add to a member (an object group can have the following CasObjects
+            as members, object, user, user group, service type, namespace or trust
+            anchor) to an object group, the user must have cas/add_group_entry
+            permission on that particular object group.</para>
+        
+        <screen>
+            casAdmin$ cas-group-add-entry [<emphasis>options</emphasis>] object <emphasis>groupName</emphasis> <emphasis>objectSpecDesc</emphasis> <emphasis>objcetSpec</emphasis>
+            
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            <title>cas-group-add-entry options for adding a member to an object group</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <para><emphasis>groupName</emphasis></para>
+                        </entry>
+                        <entry><para>The object group name to which the member needs to be added.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>objectSpecDesc</emphasis></para>
+                        </entry>
+                        <entry><para>The type of CasObject (trustAnchor (or) user (or)
+                            userGroup (or) object (or) namespace (or) service Type).</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>objectSpec</emphasis></para>
+                        </entry>
+                        <entry><para>The identifier for the CasObject the user is adding
+                            (nickname (or) nickname (or) groupName (or) 
+                            objectNamespace objectName (or) nickname (or) serviceTypeName).</para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>
+        
+        <para>To remove an object from an object group the user must have
+            cas/remove_group_entry permission on that particular object group:</para>
+        
+        <screen>
+            casAdmin$ cas-group-remove-entry [<emphasis>options</emphasis>] object <emphasis>groupName</emphasis> <emphasis>objectSpec</emphasis> <emphasis>objectSpecDesc</emphasis>
+            
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            <title>cas-group-remove-entry options for removing an object from an object group</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <para><emphasis>groupName</emphasis></para>
+                        </entry>
+                        <entry><para>The object group name from which the member needs to be removed.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>objectSpecDesc</emphasis></para>
+                        </entry>
+                        <entry><para>The type of CasObject (trustAnchor (or) user (or)
+                            userGroup (or) object (or) namespace (or) service Type).</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>objectSpec</emphasis></para>
+                        </entry>
+                        <entry><para> The identifier for the CasObject being removed
+                            (nickname (or) nickname (or) groupName (or) 
+                            objectNamespace objectName (or) nickname (or) serviceTypeName).</para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>
+        
+        <para>If the group member being removed does not exist, an error is
+            <emphasis>not</emphasis> thrown.</para>
+        
+        <para> To delete an object group the user must have cas/delete_user_group entry
+            permission on that object group. The group must be empty.</para>
+        
+        <screen>
+            casAdmin$ cas-group-admin [<emphasis>options</emphasis>] object delete <emphasis>groupName</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            <title>cas-group-admin options for deleting an object group</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <para><emphasis>groupName</emphasis></para>
+                        </entry>
+                        <entry><para>The name of the object group to be deleted.</para>
+                        </entry>
+                    </row>
+                     &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>
+        
+        <para>If the object group specified does not exist, an error is <emphasis>not</emphasis> thrown. If the unenroll operation is successfull all policy data on that user group is purged.</para>
+        
+    </section>
+    <section id="cas-using-commandlines-maintainServiceGp"><title>Maintaining Service/Action Groups</title>
+        <para>To create a new service/action group, the user must have
+            cas/create_serviceAction_group permission (that is, the user must have
+            permission to perform the create_serviceAction_group action on the cas service
+            type). The serviceAction group name should be unique across the CAS
+            database. The create operation allows the user to choose a user group
+            to have cas/grantAll permission on the created serviceAction group.</para>
+        
+        <screen>
+            casAdmin$ cas-group-admin [<emphasis>options</emphasis>] serviceAction create <emphasis>userGpName</emphasis> <emphasis>groupName</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            <title>cas-group-admin options for creating a service/action group</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <para><emphasis>userGpName</emphasis></para>
+                        </entry>
+                        <entry><para>The user group to which cas/grantAll permission should be
+                            granted on this trust anchor entity.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>groupName</emphasis></para>
+                        </entry>
+                        <entry><para>The name of the serviceAction group being created.</para>
+                        </entry>
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>
+        
+        <para>To add a service/Action to a serviceAction group the user must have
+            cas/add_group_entry permission on that particular serviceAction group
+            (that is, the user must have permission to perform add_group_entry action on
+            that service action group).</para>
+        
+        <screen>
+            casAdmin$ cas-group-add-entry [<emphasis>options</emphasis>] serviceAction <emphasis>groupName</emphasis> <emphasis>serviceTypeName</emphasis> <emphasis>actionName</emphasis>
+            
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            <title>cas-group-add-entry options for adding a service/action to a serviceAction group</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <para><emphasis>groupName</emphasis></para>
+                        </entry>
+                        <entry><para> The user group name to which the member needs to be added.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>serviceTypeName</emphasis></para>
+                        </entry>
+                        <entry><para>The service type name part of the mapping to be added to the group.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>actionName</emphasis></para>
+                        </entry>
+                        <entry><para>The action name part of the mapping to be added to the group.</para>
+                        </entry>
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>
+        
+        <para>To remove a service/Action from a serviceAction group, the user must have
+            cas/remove_group_entry permission on that particular serviceAction
+            group.</para>
+        
+        <screen>
+            casAdmin$ cas-group-remove-entry [<emphasis>options</emphasis>] serviceAction <emphasis>groupName</emphasis> <emphasis>serviceTypeName</emphasis> <emphasis>actionName</emphasis>
+            
+        </screen>
+ 
+<para>       
+        where:
+</para>
+        <table>
+            <title>cas-group-remove-entry options for removing a service/action from a serviceAction group</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <para><emphasis>groupName</emphasis></para>
+                        </entry>
+                        <entry><para> The serviceAction group name from which the service/action needs to be removed.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>serviceTypeName</emphasis></para>
+                        </entry>
+                        <entry><para>The service type name part of the mapping to be removed from the group.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>actionName</emphasis></para>
+                        </entry>
+                        <entry><para>The action name part of the mapping to be removed from the group.</para>
+                        </entry>
+                    </row>
+                    
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>        
+
+<para>        
+        If the action being removed does not exist, an error is <emphasis>not</emphasis> thrown.
+</para>
+        
+        <para>To delete a serviceAction group the user must have cas/delete_user_group
+            entry permission on that serviceAction group. The group must be empty
+            and also must not be referenced from any other entity in the
+            database. Ffor example, it should not be a member of some object group.</para>
+        
+        <screen>
+            casAdmin$ cas-group-admin [<emphasis>options</emphasis>] serviceAction delete <emphasis>groupName</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        <table>
+            <title>cas-group-admin options for deleting a serviceAction group</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <para><emphasis>groupName</emphasis></para>
+                        </entry>
+                        <entry><para> The name of the serviceAction group to be deleted.</para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>        
+        
+        <para>If the service action group specified does not exist, an error is
+            <emphasis>not</emphasis> thrown. If the unenroll operation is successfull all
+            policy data on that serviceAction group is purged.</para>
+        
+    </section>
+    <section id="cas-using-commandlines-maintainPermission"><title>Maintaining Permissions</title>
+        
+        <para>The user may grant permissions to a user group on an object or object group to perform a service action or service action group (that is, to
+            perform any action that is a member of the service action group to
+            which permission is granted), provided the user has has both:</para>
+        
+        <itemizedlist>
+            <listitem><simpara>cas/grant permission on the object or object group, and</simpara></listitem>
+            <listitem><simpara>permission to perform the service action or service action
+                group on the object or object group.</simpara></listitem>
+            
+        </itemizedlist>
+        
+        <screen>
+            casAdmin$ cas-rights-admin [<emphasis>options</emphasis>] grant <emphasis>userGroupName</emphasis>  <emphasis>objectSpecDesc</emphasis> <emphasis>objectSpec</emphasis>  <emphasis>actionSpecDesc</emphasis> <emphasis>actionSpec</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        <table>
+            <title>cas-rights-admin options for granting permissions to a user group on an object or object group</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <para><emphasis>userGroupName</emphasis></para>
+                        </entry>
+                        <entry><para> The user group to be granted permission.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>objectSpec</emphasis></para>
+                        </entry>
+                        <entry><para>The identifier for the object or object group.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>objectSpecDesc</emphasis></para>
+                        </entry>
+                        <entry><para>The type (object or objectGroup).</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>actionSpec</emphasis></para>
+                        </entry>
+                        <entry><para>The identifier for action or action group.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>actionSpecDesc</emphasis></para>
+                        </entry>
+                        <entry><para>The type (serviceAction or serviceActionGp).</para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>        
+        
+        <para>The user may revoke a policy in the CAS database provided the user has
+            cas/revoke permission on the object or object group on which the policy
+            is defined.</para>
+        
+        <screen>
+            casAdmin$ cas-rights-admin [<emphasis>options</emphasis>] revoke <emphasis>userGroupName</emphasis>  <emphasis>objectSpecDesc</emphasis> <emphasis>objectSpec</emphasis>  <emphasis>actionSpecDesc</emphasis> <emphasis>actionSpec</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        <table>
+            <title>cas-rights-admin options for revoking a policy in the CAS database</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <para><emphasis>userGroupName</emphasis></para>
+                        </entry>
+                        <entry><para>The user group to grant permission for.</para>
+                            <para>objectSpecDesc: The type of CasObject (trustAnchor (or) user (or)
+                                userGroup (or) object (or) namespace (or) serviceType
+                                (or) userGroup (or)).</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>objectSpec</emphasis></para>
+                        </entry>
+                        <entry><para>The identifier for the object or object group.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>actionSpec</emphasis></para>
+                        </entry>
+                        <entry><para>The identifier for the action or action group.</para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <para><emphasis>actionSpecDesc</emphasis></para>
+                        </entry>
+                        <entry><para>The type (serviceAction or serviceActionGp).</para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>        
+    </section>
+</section>
+<section id="cas-using-commandlines-query-clients"><title>Using CAS Query Clients</title>
+    
+    <para> The CAS Query commands do not alter the state of the database and
+        any CAS user who has cas/query permissions may use the commands to
+        retrieve data from the CAS server.</para>
+    
+    <para>The following queries can be run against the CAS server. These are
+        typically used by CAS clients (who may not be administrators).</para>
+    
+    <para>The user need cas/query permissions to perform these operations&mdash;that is, the user must have permission to query on the cas server object.</para>
+    
+    
+    <section id="cas-using-commandlines-whoami"><title>Getting a user's CAS identity</title>
+        <para>        
+            The following command returns the CAS user nick of the client:
+        </para>
+        
+        <screen>
+            casUser$ cas-whoami [<emphasis>options</emphasis>]
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            <title>cas-whoami options</title>
+            <tgroup cols="2">
+                <tbody>  
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>   
+    </section>
+    <section id="cas-using-commandlines-list"><title>Getting object list</title>
+        <para>
+            The following command returns a list of CasObjects in the database of the requested type:
+        </para>
+        
+        <screen>
+            casUser$ cas-list-object [<emphasis>options</emphasis>] type
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        <table>
+            <title>cas-list-object options</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <emphasis>type</emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                                Indicates trustAnchor (or) user (or) userGroup (or) object (or)
+                                objectGroup (or) objectGroup (or) namespace (or) serviceType (or)
+                                serviceAction (or) serviceActionGp.
+                            </para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>   
+    </section>
+    <section id="cas-using-commandlines-getObject"><title>Getting CAS object </title>
+        <para>
+            The following command returns the particular object of the said type and name:
+        </para>
+        
+        <screen>
+            casUser$ cas-get-object [<emphasis>options</emphasis>] type name
+            
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        <table>
+            <title>cas-get-object options</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <emphasis>type</emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                                Indicates trustAnchor (or) user (or) userGroup (or) object (or)
+                                objectGroup (or) objectGroup (or) namespace (or) serviceType (or)
+                                serviceAction (or) serviceActionGp.
+                            </para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <emphasis>name</emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                                Indicates nickname (or) nickname (or) objectNamesapce objectName
+                                (or) nickname (or) serviceTypeName (corresponding to the type).
+                            </para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>   
+    </section>
+    <section id="cas-using-commandlines-groupList"><title>Getting group members</title>
+        <para>The following command returns a list of group members.</para>
+        
+        <screen>
+            casUser$ cas-group-list-entries [<emphasis>options</emphasis>] type name
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        <table>
+            <title>cas-group-list-entries options</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <emphasis>type</emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                                The type of the group (user (or) object (or) serviceAction).
+                            </para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <emphasis>name</emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                                The name of the group.
+                            </para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>   
+        
+    </section>
+    <section id="cas-using-commandlines-policyList"><title>Getting policy information </title>
+        <para>
+            The following command returns all applicable policies, both policies that are implicit to
+            the CAS server and those that are external.
+        </para>
+        
+        <screen>
+            casUser$ cas-find-policies [-c <emphasis>cas-url</emphasis>] type name
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        
+        <table>
+            <title>cas-find-policies options</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <emphasis>-c</emphasis> <emphasis>cas-url</emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                                The URL of the CAS service.
+                            </para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <emphasis>type</emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                                Indicates trustAnchor (or) user (or) userGroup (or) object (or)
+                                objectGroup (or) namespace (or) service Type (or) serviceAction
+                                (or) serviceActionGroup.
+                            </para>
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>
+                            <emphasis>name</emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                                Indicates nickname (or) nickname (or) groupName (or)
+                                objectNamespace|objectName (or) groupName (or) nickname (or)
+                                serviceTypeName (or) serviceType/Action (or) groupName
+                                (corresponding to the type).
+                            </para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>   
+
+    </section>
+    <section id="cas-using-commandlines-query"><title>Query CAS Service (using OGSA AuthZ interface)</title>
+        <para>
+            The following command returns a SAML Response containg SAML Assertions with user rights for a given SAML Query. This client uses the OGSA AuthZ interface and write out the retrieved assertion to a file :
+        </para>
+        
+        <screen>
+            casUser$ query-cas-service [<emphasis>options</emphasis>] <emphasis>assertionFilename</emphasis>
+        </screen>
+        
+        <para>
+            where:
+        </para>
+        <table>
+            <title>query-cas-service options</title>
+            <tgroup cols="2">
+                <tbody>  
+                    <row>
+                        <entry>
+                            <emphasis>asertionFilename</emphasis>
+                        </entry>
+                        <entry>
+                            <para>
+                            File to write assertions to
+                            </para>
+                        </entry>
+                    </row>
+                    &WS_AA_CAS_Interface_Commandline_Common_Options_Frag;
+                </tbody>
+            </tgroup>
+        </table>   
+    </section>
+</section>

@@ -1,0 +1,220 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<title>GT4 WS AA Admin Guide</title>
+<titleabbrev>WS A&amp;A Authorization Framework Admin Guide</titleabbrev>
+
+<section id="authzframe-admin-introduction">
+
+  <title>Introduction</title>
+
+  <para>This guide contains advanced configuration information for system administrators
+
+  working with the Authorization Framework. It provides references to information
+
+  on procedures typically performed by system administrators, including installing,
+
+configuring, deploying, and testing the installation.</para>
+
+  <important>
+    <simpara> This information is in addition to the basic Globus Toolkit prerequisite, 
+      overview, installation, security configuration instructions in the <xref linkend="gtadmin"/>.  
+      Read through this guide before continuing!</simpara>  
+  </important>
+
+  <para>This component determines the authorization enforced on the server
+
+  and the client side. Admin configuration could include determining
+
+  the container/service level authorization mechanism and setting up and
+
+    managing authorization policy, e.g. entries in <glossterm>grid map file</glossterm>
+
+  and so on.</para>
+
+  <para> The <link linkend="authzframe-security-descriptor">Security Descriptors</link>
+
+document describes how to configure an authorization mechanism, as well as the
+
+configuration required for each of the  mechanisms that are distributed
+
+    with GT &shortversion;.</para>
+
+</section>
+
+<section id="authzframe-admin-installing">
+
+  <title>Building and Installing</title>
+
+  <para>This component is built and installed as a part of Java WS Core. See "Building and Installing" in the <link linkend="javawscore-admin">Java WS Core Admin Guide</link> 
+    for more information.</para>
+
+</section>
+
+<section id="authzframe-admin-configuring">
+
+  <title>Configuring </title>
+
+&WS_AA_Authz_Interface_Config_Frag;
+
+</section>
+
+<section id="authzframe-admin-deploying">
+
+  <title>Deploying</title>
+
+  <para> This component is deployed as a part of <link linkend="javawscore-admin-deploying">Java WS Core</link>.</para>
+
+</section>
+
+<section id="authzframe-admin-testing">
+
+  <title>Testing</title>
+
+  <para>To execute security tests ensure that <link linkend="javawscore-admin-testing">Ant with JUnit is configured</link>.</para>
+
+  <para>All the security tests require a valid credential. Refer to <link linkend="gtadmin-basic-security">Security section of GT Administrator guide</link> for details on acquiring credentials. </para>
+
+  <para>The security tests are included in <filename>$GLOBUS_LOCATION/lib/wsrf_test_unit.jar</filename>. This jar contains tests for both the Java WS Core component and the WS Authentication and Authorization components contained in the Java WS Core package.</para>
+
+  <para>To execute the tests, pass the above jar file to the test script as described in <xref linkend="javawscore-developer-runningtests"/>. To ensure that only security tests are run, set <option>-DsecurityTestsOnly=true</option>. </para>
+
+  <para>By default the tests require that the container and the tests use the same credentials, i.e self authorization is done on secure calls. </para>
+
+  <para>The tests allow for another configuration in which the container can be configured with <glossterm>host credentials</glossterm> and the tests can be run with any credentials.</para>
+
+
+  <itemizedlist>
+
+    <listitem>
+
+      <simpara>Configure the container to use host credentials using the security descriptor as described in the <link linkend="authzframe-secdesc-descProgram">container descriptor</link> section.</simpara>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Edit <filename>$GLOBUS_LOCATION/etc/globus_wsrf_test_unit/server-config.wsdd</filename>.
+
+      <itemizedlist>
+
+          <listitem>
+
+            <para> Comment out the configured descriptor in <emphasis>SecurityTestService</emphasis>, <emphasis>RPParamTestService</emphasis> and <emphasis>AuthzCalloutTestService</emphasis> that specifies self authorization. 
+
+<screen>&lt;!-- Does self authz by default --&gt;
+
+&lt;!-- parameter name=&quot;securityDescriptor&quot; 
+    value=&quot;@config.dir@/security-config.xml&quot;/ --&gt;
+</screen></para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Uncomment the configuration for identity authorization.
+
+<screen>&lt;!-- For use only when identity authz is used--&gt;
+
+&lt;parameter name=&quot;securityDescriptor&quot; 
+    value=&quot;@config.dir@/identity-security-config.xml&quot;/&gt;
+</screen>
+</para>
+</listitem>
+
+<listitem><para>In <filename>$GLOBUS_LOCATION/etc/globus_wsrf_test_unit/identity-security-config.xml</filename>, set the value of the property <emphasis>identity</emphasis> to the subject DN of the credentials used to run the tests.
+
+<screen>&lt;!-- set to expected identity --&gt;
+
+&lt;param:parameter name=&quot;identity&quot; 
+    value=&quot;Identity used by client&quot;/&gt;
+</screen></para>
+
+          </listitem>
+
+        </itemizedlist>
+        </para>
+    </listitem>
+    <listitem>
+    <para> Start a secure and insecure standalone container.
+    <screen>
+    $ cd $GLOBUS_LOCATION
+    $ bin/globus-start-container -nosec
+    </screen>
+
+    On another window,
+    <screen>
+    $ cd $GLOBUS_LOCATION
+    $ bin/globus-start-container
+    </screen>
+
+    </para>
+    </listitem>
+    <listitem>
+
+      <para>To run tests against external containers, secure and insecure, on localhost ports 8180 and 8181 respectively, the command would be: 
+        <screen width="120">
+ant -f share/globus_wsrf_test/runtests.xml runServer 
+       -Dtests.jar=$GLOBUS_LOCATION/lib/wsrf_test_unit.jar 
+       -DsecurityTestsOnly=true
+       -Djunit.jvmarg=-Dsecurity.test.client.authz=host 
+       -Dsecurity.test.authz.identity=&quot;container/suject/DN&quot; 
+       -Dsecurity.test.enc.cred=&quot;/server/public/key&quot;
+       -Dtest.server.url=http://127.0.0.1:8181/wsrf/services/ 
+       -Dsecure.test.server.url=https://127.0.0.1:8180/wsrf/services/ 
+</screen></para>
+    </listitem>
+    <listitem>
+      <para>For example, if the container security descriptor has credentials configured as <emphasis>/etc/grid-security/containercert.pem</emphasis> and <emphasis>/etc/grid-security/containerkey.pem</emphasis> and the DN of the credential is <emphasis>/DC=org/OU=Services/CN=-testDN/CN=some.host.edu</emphasis>, the command to run would be:
+        <screen width="120">
+ant -f share/globus_wsrf_test/runtests.xml runServer 
+       -Dtests.jar=$GLOBUS_LOCATION/lib/wsrf_test_unit.jar 
+       -DsecurityTestsOnly=true 
+       -Djunit.jvmarg=-Dsecurity.test.client.authz=host 
+       -Dtest.server.url=http://127.0.0.1:8181/wsrf/services/ 
+       -Dsecure.test.server.url=https://127.0.0.1:8180/wsrf/services/ 
+      -Dsecurity.test.authz.identity=&quot;/DC=org/OU=Services/CN=-testDN/CN=some.host.edu&quot; 
+    -Dsecurity.test.enc.cred=/etc/grid-security/containercert.pem</screen>
+</para>
+    </listitem>
+
+  </itemizedlist>
+
+</section>
+
+<section id="authzframe-admin-security-considerations">
+
+  <title>Security Considerations </title>
+
+&WS_AA_Authz_Security_Considerations_Frag;
+
+
+</section>
+
+<section id="authzframe-admin-troubleshooting">
+
+  <title>Troubleshooting</title>
+
+  <itemizedlist>
+
+    <listitem>
+
+      <para><link linkend="gtadmin-basic-security">Globus Toolkit Administrator Guide - Security Section</link></para>
+
+    </listitem>
+
+    <listitem>
+
+      <para><xref linkend="javawscore-admin-troubleshooting"/></para>
+
+    </listitem>
+
+    <listitem>
+
+      <para><xref linkend="message-admin-troubleshooting"/></para>
+
+    </listitem>
+
+  </itemizedlist>
+
+</section>
+

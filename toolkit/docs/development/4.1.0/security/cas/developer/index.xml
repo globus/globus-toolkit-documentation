@@ -1,0 +1,1283 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<title>GT &shortversion; CAS Developer&apos;s Guide</title>
+
+<titleabbrev>Developer&apos;s Guide</titleabbrev>
+
+<section id="cas-developer-introduction">
+
+  <title>Introduction</title>
+
+  <para>This document is an overview of the CAS server and its functionality. It is
+  intended to help CAS developers understand the features of the current
+  implementation and throws light on permissions, assertion generation and querying
+  capability in CAS. This document also contains information that is useful when writing clients for the CAS server.</para>
+
+  <para>The Toolkit-level documentation <xref linkend="gtmanuals"/> provide general information such as
+best practices and coding guidelines used.</para>
+
+</section>
+
+
+<section id="cas-developer-beforeyoubegin">
+  <title>Before you begin</title>
+
+  <section id="cas-developer-features">
+    
+    <title>Feature summary</title>
+    
+    &WS_AA_CAS_Feature_Summary_Frag;
+    
+  </section>
+  
+  <section id="cas-developer-platforms">
+    
+    <title>Tested platforms</title>
+    
+    &WS_AA_CAS_Platform_Summary_Frag;
+    
+  </section>
+  
+  <section id="cas-developer-compatibility">
+    
+    <title>Backward compatibility summary</title>
+    
+    &WS_AA_CAS_Compatibility_Summary_Frag;
+    
+  </section>
+  
+  <section id="cas-developer-dependencies">
+    
+    <title>Technology dependencies</title>
+    
+    &WS_AA_CAS_Dependencies_Summary_Frag;
+    
+  </section>
+  
+  <section id="cas-developer-security-considerations">
+    
+    <title>Security considerations </title>
+    
+    &WS_AA_CAS_Security_Considerations_Frag;
+    
+  </section>
+  
+  
+  </section>
+<section id="cas-developer-archdes">
+
+  <title>Architecture and design overview</title>
+
+  <para>The server  essentially has users, actions, objects and policies governing
+
+
+
+  the user&apos;s access to the objects for the purpose of  performing specific actions. To better
+
+
+
+  serve the requirements of a VO, the server allows grouping of users, actions
+
+
+
+  and objects. This also facilitates specifying policies about them.
+
+
+
+  The CAS server can be thought of as the front-end to a database that maintains
+
+
+
+  state about such community permissions. The effect of each CAS request is either
+
+
+
+  to modify this state or query it.</para>
+
+  <para>The server has two additional characteristics: </para>
+
+  <itemizedlist>
+
+    <listitem>
+
+      <simpara>Some query results are signed. Such signed results can be used for authorization at resources and other policy enforcement points that acknowledge such credentials.</simpara>
+
+    </listitem>
+
+    <listitem>
+
+      <simpara>The same database is used to maintain information to control authorization decision for the CAS server.</simpara>
+
+    </listitem>
+
+  </itemizedlist>
+
+  <para>The following topics contain related information: </para>
+
+  <itemizedlist>
+
+    <listitem>
+
+      <simpara>
+
+        <link linkend="cas-developer-dbOverview">CAS Database Overview</link>
+
+      </simpara>
+
+    </listitem>
+
+    <listitem>
+
+      <simpara>
+
+        <link linkend="cas-developer-permissions">CAS Permissions</link>
+
+      </simpara>
+
+    </listitem>
+
+    <listitem>
+
+      <simpara>
+
+        <link linkend="cas-developer-adminReq">CAS Administrative Requests</link>
+
+      </simpara>
+
+    </listitem>
+
+    <listitem>
+
+      <simpara>
+
+        <link linkend="cas-developer-queryReq">CAS Query Requests</link>
+
+      </simpara>
+
+    </listitem>
+
+  </itemizedlist>
+
+  <section id="cas-developer-dbOverview">
+
+    <title>CAS Database Overview</title>
+
+    <para>The CAS database contains a number of tables to store information about users,
+
+
+
+  resources (objects), actions and policies. This section describes each of those
+
+
+
+  tables and their contents. The tables are categorized into tables used to identify
+
+
+
+  and organize users in the database (trust_anchor, user and user_group), tables
+
+
+
+  used to describe actions (service_type, service_type_action, service_type_action_groups),
+
+
+
+  tables used to describe and organize resources or objects (object, object_namespace
+
+
+
+  and object_group) and tables used to describe policies (policy_statement).</para>
+
+    <section>
+
+      <title>Tables relating to users</title>
+
+      <para>There are two categories of people in the CAS database, trust anchors
+
+
+
+  and the users. The users may further be placed in user groups and the granularity
+
+
+
+  of operations on the CAS database with respect to users is a user group. </para>
+
+      <table>
+
+        <title>User tables</title>
+
+        <tgroup cols="2">
+
+          <tbody>
+
+            <row>
+
+              <entry>trust_anchor table </entry>
+
+              <entry>The trust_anchor table describes authorities that can generate credentials. It consists of tuples of {trust_anchor_nickname, authentication_method, authentication_data}. In general, the meaning of one of these tuples is that &quot;database entries that refer to trust_anchor_nickname apply to the authority represented by authentication_data for authentication method authentication_method&quot;. The current implementation supports the following values in these fields: an authentication_method value of &quot;x509&quot; and an authentication_data value that is the certification authority&apos;s certificate. A trust_anchor_nickname value uniquely identifies an authentication_method and authentication_data across the database. For example, {globus_ca, x509, &lt;contents of the globus CA cert&gt;} associates the name globus_ca with the Globus <glossterm>CA Certificate</glossterm>. </entry>
+
+            </row>
+
+            <row>
+
+              <entry>user table</entry>
+
+              <entry>The user table consists of {user_nickname, trust_anchor_nickname, subject_name} tuples, which map raw authentication information into the symbolic names that appear in CAS user specifications. The intent of this tuple is to associate an internal name with a user that authenticates to the CAS service. The current implementation supports a subject_name which is the X509 distinguished name of a user. A subjectDN and trust anchor nickname uniquely identify an entry in the user_table. There is a one to one mapping between a user nickname and the combination of subjectDN and trust anchor nickname. For example, the tuple {user1, globus_ca, &quot;/O=Globus/CN=User1 Name&quot;) indicates that the person who can authenticate as &quot;/O=Globus/CN=User1 Name&quot; using the authentication method of the trust anchor globus_ca has the permissions assigned to the user &quot;user1&quot; within the CAS database. </entry>
+
+            </row>
+
+            <row>
+
+              <entry>user_group table</entry>
+
+              <entry>This table maintains a list of all user groups in the CAS database.</entry>
+
+            </row>
+
+            <row>
+
+              <entry>user_group_entry table</entry>
+
+              <entry>The user_group_entry table consists of {group, user} tuples indicating that the specified user is a member of the group.</entry>
+
+            </row>
+
+          </tbody>
+
+        </tgroup>
+
+      </table>
+
+    </section>
+
+    <section>
+
+      <title>Tables to relating to actions</title>
+
+      <para>The database includes tables related to action specifications. Different services
+
+
+
+  may define actions that have similar (or identical) names with different meanings
+
+
+
+  and hence an action specification must include a service type in addition to
+
+
+
+  the name of the action. The resource servers that receive CAS policy statements
+
+
+
+  interpret the service types and actions. For example, a GridFTP server may
+
+
+
+  honor policy statements that refer to the &quot;file&quot; service type and ignore policy
+
+
+
+  statements for all other service types. In theory (because all this processing
+
+
+
+  is done by the resource servers and not the CAS server), there&apos;s no need for
+
+
+
+  the CAS server to keep track of allowable service types and actions. However,
+
+
+
+  it is done to make it easier for administrators to detect and avoid errors
+
+
+
+  while setting permissions. </para>
+
+      <para>The server also supports grouping of these service action mappings. Permissions
+
+
+
+  may be granted to the service action groups or to a single service action.
+
+
+
+  </para>
+
+      <table>
+
+        <title>Action tables</title>
+
+        <tgroup cols="2">
+
+          <tbody>
+
+            <row>
+
+              <entry> service_type table</entry>
+
+              <entry>This table lists all the service types in the database. </entry>
+
+            </row>
+
+            <row>
+
+              <entry> service_type_action table</entry>
+
+              <entry>The service_type_action table consists of {service_type, action} tuples indicating that the specified action is valid for the specified service type. For example, a {service_type, action} of {file, read} means that read is a valid action for the service type file. This mapping is represented as &quot;serviceType/action&quot; in the current implementation. </entry>
+
+            </row>
+
+            <row>
+
+              <entry> service_action_group</entry>
+
+              <entry>This table lists all the service action group names. </entry>
+
+            </row>
+
+            <row>
+
+              <entry> service_action_group_entry</entry>
+
+              <entry>This table contains the following tuple (group, serviceType/action). The tuple indicates that the serviceType/action belongs to group. </entry>
+
+            </row>
+
+          </tbody>
+
+        </tgroup>
+
+      </table>
+
+    </section>
+
+    <section>
+
+      <title>Tables related to resources/objects</title>
+
+      <para>An object specification refers to an object or group of objects. An &quot;object&quot; may
+
+
+
+itself refer to either a single physical object (e.g. a file) or a collection
+
+
+
+of objects (e.g. all files within a directory). A given object is relevant within
+
+
+
+a defined namespace and the properties of the namespace apply to the object.
+
+
+
+</para>
+
+      <table>
+
+        <title>Resource Tables</title>
+
+        <tgroup cols="2">
+
+          <tbody>
+
+            <row>
+
+              <entry>namespace_table</entry>
+
+              <entry>This table stores the following tuple (nickname, basename, comparisonAlg) indicating that objects in the namespace referred to by nickname in the CAS database are compared using the comparisonAlg and have a base URL of basename. A namespace uniquely identifies a single physical resource. For example, a namespace (ftpNS1, ftp://sample1.org/, wildcard) indicates that all object names within the realm of this namespace are to be compared using wildcard matching. Each comparison algorithm corresponds to a class in the CAS server code that implements an interface which defines routines for matching objects. The current implementation supports exact match and wildcard matching. Objects are represented as &quot;objectNamespace|objectName&quot; in the current implementation. </entry>
+
+            </row>
+
+            <row>
+
+              <entry>object table</entry>
+
+              <entry>Stores the object name and the namespace that this object is in. For example, (/mydir/*, ftpNS1) implies that this object is within the ftpNs1 namespace, described above. Since this namespace has wild card matching /mydir/foo would match this object. CAS Objects can be either implicit (that is, those that are inherent to CAS) or explicit (that is, objects on other resources about which policies may be stored in the CAS database). While implicit objects may be of many types, external objects are always represented as type &quot;object&quot;. </entry>
+
+            </row>
+
+            <row>
+
+              <entry>implicit objects</entry>
+
+              <entry>
+
+                <para>It is sometimes convenient to treat some of the entities defined within
+
+
+
+    the CAS server (such as users and groups) as objects. These implicit objects
+
+
+
+    can be added to object groups and can appear in policy statements. Such policy
+
+
+
+    statements govern access permissions to the CAS database. The types of implicit
+
+
+
+    objects are:
+
+
+
+      <itemizedlist>
+
+                    <listitem>
+
+                      <simpara>A user (a reference to an entry in the user table). This is used when granting permissions such as &quot;may unenroll this user&quot;.</simpara>
+
+                    </listitem>
+
+                    <listitem>
+
+                      <simpara>A user_group (a reference to an entry in the user_group table). This is used to grant permissions such as &quot;may add users to this group&quot;. </simpara>
+
+                    </listitem>
+
+                    <listitem>
+
+                      <simpara>A service_type (a reference to an entry in the service_type table). This is used when granting permissions such as &quot;may add actions to this service type&quot;; </simpara>
+
+                    </listitem>
+
+                    <listitem>
+
+                      <simpara>An object_group (a reference to an entry in the object_group table). This is used when granting permissions such as &quot;may add objects to this object group&quot;. </simpara>
+
+                    </listitem>
+
+                    <listitem>
+
+                      <simpara>A namespace (reference to an entry in namespace table). This is used when granting permission like &quot;may unenroll this namespace&quot;.</simpara>
+
+                    </listitem>
+
+                    <listitem>
+
+                      <simpara>A trust anchor (reference to an entry in the trust_anchor_table). This is used when granting permissions like &quot;may grant rights on this trust anchor&quot;.</simpara>
+
+                    </listitem>
+
+                    <listitem>
+
+                      <simpara>The CAS server itself. This is used when granting permissions such as &quot;may add new users to the CAS server&quot;. This is added at start up to the object_table. </simpara>
+
+                    </listitem>
+
+                  </itemizedlist>
+
+
+
+      </para>
+
+              </entry>
+
+            </row>
+
+            <row>
+
+              <entry>object_group table</entry>
+
+              <entry>This table lists the names of object groups in the database. </entry>
+
+            </row>
+
+            <row>
+
+              <entry>object_group_entry table</entry>
+
+              <entry>The object_group_entry table consists of {object_group, objectSpecification, objectSpecDesc} tuples; this tuple indicates that the specified objectSpecification of the type objectSepcDesc is a member of the specified object group. The objectSpecification is an identifier for a object of type objectSpecDesc, i.e. an object, object group, user, user group, service type, namespace or trust anchor. </entry>
+
+            </row>
+
+          </tbody>
+
+        </tgroup>
+
+      </table>
+
+    </section>
+
+    <section>
+
+      <title>Tables relating to policy statements</title>
+
+      <para>The CAS server keeps track of policy statements, which are composed of three
+parts: a user specification, which denotes a user or set of users; an action
+specification, which denotes an operation (e.g., read a file) or a group of operations; 
+and an object specification, which specifies an object or group of objects.
+</para>
+
+      <para>For example, if we were to specify a policy statement as an English sentence, &quot;User1
+
+
+
+  may read ftp://myhost.edu/myfile&quot;, then the user specification would be &quot;User1&quot;,
+
+
+
+  the action specification would be &quot;file/read&quot;, and the object specification
+
+
+
+  would be ftp://myhost.edu/myfile. In reality, the CAS server maintains this
+
+
+
+  information as entries in database tables and translates it into a policy language
+
+
+
+  when responding to a query.
+
+
+
+  </para>
+
+      <para>The policy_statement table consists of (userGroup, actionSpec, actionSpecDesc,
+
+
+
+    objectSpec, objectSpecDesc) tuples corresponding to the policy statements implied by this relationship:
+
+
+
+    </para>
+
+      <table>
+
+        <title>Policy Statement Table</title>
+
+        <tgroup cols="2">
+
+          <tbody>
+
+            <row>
+
+              <entry>userGroup</entry>
+
+              <entry>A reference to an entry in the user_group table.</entry>
+
+            </row>
+
+            <row>
+
+              <entry>actionSpec</entry>
+
+              <entry>A reference to an entry in the service_action table or service_action_group table.</entry>
+
+            </row>
+
+            <row>
+
+              <entry>actionSpecDesc</entry>
+
+              <entry>Either a &quot;serviceAction&quot; or &quot;serviceActionGroup&quot; describing the actionSpec entry. </entry>
+
+            </row>
+
+            <row>
+
+              <entry>objectSpec</entry>
+
+              <entry>A reference to an entry in the object table, object_group_entry table, user table, user_group table, service_type table, namespace table or trust_anchor table. </entry>
+
+            </row>
+
+            <row>
+
+              <entry>objectSpecDesc</entry>
+
+              <entry>Either a &quot;object&quot;, &quot;objectGroup&quot;, &quot;user&quot;, &quot;userGroup&quot;, &quot;serviceType&quot;, &quot;namespace&quot; or &quot;trustAnchor&quot; describing the objectSpec entry. </entry>
+
+            </row>
+
+          </tbody>
+
+        </tgroup>
+
+      </table>
+
+      <para>Each statement implies that users who belong to the userGroup are permitted
+
+
+
+  to perform the service/action or all service/action(s) in the serviceActionGroup
+
+
+
+  on the specified object or all objects in the said object group. </para>
+
+    </section>
+
+  </section>
+
+  <section id="cas-developer-permissions" xreflabel="CAS Permission"><title>CAS Permissions</title>
+
+    <para>A user (U) is said to have permission to perform service/action S/A on object
+
+
+
+  (O) if there is a statement in the policy_statement table that meets these
+
+
+
+  three conditions: </para>
+
+    <orderedlist>
+
+      <listitem>
+
+        <para>The user element applies: U appears in the user table and the user element
+
+
+
+    is either:
+
+
+
+  <itemizedlist>
+
+            <listitem>
+
+              <simpara>a user_group_specification referring to a user_group containing U, or</simpara>
+
+            </listitem>
+
+            <listitem>
+
+              <simpara>the community_specification.</simpara>
+
+            </listitem>
+
+          </itemizedlist>
+
+
+
+  </para>
+
+      </listitem>
+
+      <listitem>
+
+        <para>The action element applies:
+
+
+
+      <itemizedlist>
+
+            <listitem>
+
+              <simpara>the action specification refers to service_type S and the action A.</simpara>
+
+            </listitem>
+
+            <listitem>
+
+              <simpara>the action specification refers to a service_action group that has service type S and action A as a member.</simpara>
+
+            </listitem>
+
+            <listitem>
+
+              <simpara>the action specification is superuser.</simpara>
+
+            </listitem>
+
+          </itemizedlist>
+
+
+
+  </para>
+
+      </listitem>
+
+      <listitem>
+
+        <para>The object element applies: it&apos;s either:
+
+
+
+  <itemizedlist>
+
+            <listitem>
+
+              <simpara>An object that &quot;matches&quot; O - that is, the appropriate matching function (based on the namespace that the object belongs to) applied to O and the object_name yields a match, or</simpara>
+
+            </listitem>
+
+            <listitem>
+
+              <simpara>An object group that contains an object that &quot;matches&quot; O.</simpara>
+
+            </listitem>
+
+          </itemizedlist>
+
+
+
+  </para>
+
+      </listitem>
+
+    </orderedlist>
+
+  </section>
+
+  <section>
+
+    <title>CAS Requests</title>
+
+    <para>CAS requests can be broadly classified into administrative requests and query
+
+
+
+  requests. Each CAS request requires some set of permissions. These permission
+
+
+
+  are assessed by looking up the authenticated user in the user table (to get
+
+
+
+  the CAS nickname mapped to this user) and using that to check if the policy
+
+
+
+  table has a permission defined for the operation as described in the previous
+
+
+
+  section. </para>
+
+  </section>
+
+  <section id="cas-developer-adminReq"><title>CAS Administrative Requests</title>
+
+    <para>Administrative requests typically modify the database and are used to add
+
+
+
+  or remove CAS table entries.
+
+
+
+  </para>
+
+    <itemizedlist>
+
+      <listitem>
+
+        <simpara>Enroll or unenroll trust anchors </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>Enroll or unenroll users</simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>Create or delete namespaces </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>Create or delete objects </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>Create or delete service types </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>Add or remove service type/action mappings </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>Create or delete user, object or service action groups </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>Add or remove entries from any of the above </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>Define groups </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>Grant or revoke permissions </simpara>
+
+      </listitem>
+
+    </itemizedlist>
+
+    <para>The above request asserts permissions and performs the operation preserving
+
+
+
+  the database consistency. For example, a policy can be defined (or a right can
+
+
+
+  be granted) only on objects that exist in the CAS database and so on.
+
+
+
+  </para>
+
+    <para>Creation of any CAS object (like a trust anchor, namespace, object, user,
+
+
+
+  service type, user group, object group, service_action group) allows the client
+
+
+
+  to choose a user group (irrespective of whether the client belongs to the
+
+
+
+  group or not) to which all permissions on the newly created object is granted.
+
+
+
+  In the case of the operation where the user creates a new user group, if the
+
+
+
+  client chooses to grant all permissions to the newly created user group, then
+
+
+
+  the user is added to the new group.
+
+
+
+  </para>
+
+  </section>
+
+  <section id="cas-developer-queryReq"><title>CAS Query Requests</title>
+
+    <para>Query request are classified into
+
+
+
+<itemizedlist>
+
+        <listitem>
+
+          <simpara>requests that return assertions that are typically signed and can be used by the client to authorize with some resource. </simpara>
+
+        </listitem>
+
+        <listitem>
+
+          <simpara>requests that return information about the current state of the CAS database. </simpara>
+
+        </listitem>
+
+      </itemizedlist>
+
+
+
+</para>
+
+  </section>
+
+  <section id="cas-developer-assertReq"><title>Assertion requests</title>
+
+    <para>The CAS server supports requests to retrieve policy information as signed
+
+
+
+  policy assertions. These assertions can be presented at a resource by the client
+
+
+
+  for authorization purposes. A policy assertion includes a list of policy statements,
+
+
+
+  the distinguished name of the user that the permissions apply to, a validity
+
+
+
+  period (a start and end time corresponding to when the assertion is valid),
+
+
+
+  and is signed by the CAS server. Each of the requests for policy assertions
+
+
+
+  takes a lifetime argument (the desired lifetime of the policy assertion, in
+
+
+
+  seconds) and the following is done to generate them.
+
+
+
+</para>
+
+    <orderedlist>
+
+      <listitem>
+
+        <simpara>The applicable user is identified as described in <xref linkend="cas-developer-permissions" />.</simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>The applicable set of policy statements for the user are identified as described in <xref linkend="cas-developer-permissions" />.</simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>If the set is not empty, a policy assertion is created or else null is returned. </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>The assertion lifetime is calculated as follows. If the requested lifetime is 0, the server&apos;s default lifetime is used, otherwise the minimum of the requested lifetime and the server&apos;s maximum lifetime is used. </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>The list of {service/action, object} permissions, the validity time (start time is the current time, end time is the current time plus the assertion lifetime), and the applicable user&apos;s subject name is formed into a assertion. </simpara>
+
+      </listitem>
+
+      <listitem>
+
+        <simpara>The assertion is signed and returned to the requester. </simpara>
+
+      </listitem>
+
+    </orderedlist>
+
+    <para>In the current implementation  the Security Assertion Markup Language (SAML)
+
+
+
+  standard defined by <ulink url="http://www.oasis-open.org">OASIS</ulink> is used for the requests  and responses involved in obtaining a authorization assertions. <ulink url="http://www.opensaml.org">OpenSAML</ulink>, an open source implementation of
+  the SAML 1.0 specification, has been used as a utility to generate and process SAML queries and assertions.
+  </para>
+
+    <para>The methods for the requests are:
+
+
+
+</para>
+
+    <table>
+
+      <title>Request methods</title>
+
+      <tgroup cols="2">
+
+        <tbody>
+
+          <row>
+
+            <entry>getMaximalAssertion </entry>
+
+            <entry>This is a self-request that any user in the CAS database may make. The set of policy statements returned is the complete set of the user&apos;s permissions, for all services other than the CAS service. </entry>
+
+          </row>
+
+          <row>
+
+            <entry>getUserAssertion </entry>
+
+            <entry>In this case, an additional argument specifies the requested user; the set of policy statements is the complete set of that user&apos;s permissions for all services other than the CAS service. This request requires cas/query or cas/superuser permission on the cas/server object. </entry>
+
+          </row>
+
+          <row>
+
+            <entry>getAssertion </entry>
+
+            <entry>This is a self-request that any user in the CAS database may make. In this case, the list of {service/action, object} permissions is determined as follows: <simpara>For each requested permission, if there is a policy statement granting the request in the CAS database, then the requested (service/action, object) is added to the returned assertion as a decision statement.</simpara></entry>
+
+          </row>
+
+        </tbody>
+
+      </tgroup>
+
+    </table>
+
+    <para>Assertion generation is done based primarily based on the objects. This has
+
+
+
+  implications in the case of maximal assertion and user assertion generation,
+
+
+
+  where all applicable polices are returned. The service restricts polices only
+
+
+
+  based on objects and does not make a distinction on service type. For example,
+
+
+
+  if a non-implicit object has a CAS service type policy on it,  it will be
+
+
+
+  returned as a part of the assertion. This might be useful in case some other CAS
+
+
+
+  server is itself being treated as an external resource and the CAS service types are used.</para>
+
+  </section>
+
+  <section id="cas-developer-authzService"><title>OGSA-AuthZ Service Interface</title>
+  
+  <para>The CAS service also exposes a OGSA-AuthZ Service Interface that allows a client to query the server to ascertain rights. The interface allows for a signed SAML Request to be passed as parameter and pull down the rights as a SAML Response. The SAML Request allows for a query with a subject, resource and object to be passed as parameter. The server retrieves rights for the said parameters and returns SAML Authorization Assertions as part of response, if permission exists. </para>
+
+<para>This functionality allows for a pull model, where the a resource can retrieve the rights of a subject from the CAS server. This is an alternative to the  push model where the client retrieves assertion about itself and pushes it to the resource. Also, since the interface is a standard authorization service, a callout written to talk to any OGSA AuthZ compliant authorization service can be used.</para>
+
+<para>The resource would need to be configured with information about the CAS Service (like location, CAS credential DN). Following is a list of steps that would be required to retrieve assertions from the CAS server using this interface. </para>
+
+<orderedlist>
+
+<listitem><para>Construct SAML Query containing the subject requesting access, the action and resource for which access is requested.</para></listitem>
+
+<listitem><para> Construct SAML Request and sign it. </para></listitem>
+
+<listitem><para>Use CAS's OGSA AuthZ interface and retrieve SAML Response for the request</para></listitem>
+
+<listitem><para>Verify integrity of the SAML Response</para></listitem>
+
+<listitem><para>Ensure the CAS server contacted is in a list of trusted servers (based on the DN of the signing entity)</para></listitem>
+
+<listitem><para>Parse SAML Response to see if server returned an assertion with rights for access.</para></listitem>
+
+<listitem><para>If no assertion was returned, deny access. If assertion was returned, permit access.</para></listitem>
+
+</orderedlist>
+
+<note> <para>Above is just a suggested list of steps. The decision retrieved from assertion might have to be augmented with other authorization schemes prior to permitting access to a resource.</para></note>
+
+<para> A sample client <command>query-cas-service</command> shows how this interface can be used to retrieve assertions. </para>
+
+  </section>
+</section>
+
+<section id="cas-developer-pubinterfaces">
+
+  <title>Public interface</title>
+
+  <section id="cas-developer-apis"><title>Semantics and syntax of APIs</title>
+    &WS_AA_CAS_Interface_API_Frag;
+  </section>
+  <section id="cas-developer-wsdl"><title>Semantics and syntax of the WSDL</title>
+    &WS_AA_CAS_Interface_WSDL_Frag;
+  </section>
+  <section id="cas-developer-protocols"><title>Semantics and syntax of non-WSDL protocols</title>
+    &WS_AA_CAS_Interface_Protocol_Frag;
+  </section>
+  <section id="cas-developer-cmd"><title>Command-line tools</title>
+    <para>Please see the <xref linkend="cas-commandline"/>.</para>
+  </section>
+  <section id="cas-developer-guis"><title>Overview of Graphical User Interfaces</title>
+    &WS_AA_CAS_Interface_GUI_Frag;
+  </section>
+  <section id="cas-developer-domain"><title>Semantics and syntax of domain-specific interface</title>
+    &WS_AA_CAS_Interface_Domain_Frag;
+  </section>
+  <section id="cas-developer-config"><title>Configuration interface</title>
+    &WS_AA_CAS_Interface_Config_Frag;
+  </section>
+  <section id="cas-developer-env"><title>Environment variable interface</title>
+    &WS_AA_CAS_Interface_Env_Frag;
+  </section>
+
+</section>
+
+<section id="cas-developer-scenarios">
+
+  <title>Usage scenarios</title>
+
+  <para>Typically in a VO a single CAS service is run and several clients contact the service to retrieve assertions about operations on resources. These assertions  can be then presented to the resources to gain access. Users with some administrative rights can grant/revoke access to these resources. </para>
+
+  <para>The toolkit ships with clients for users to retrieve and embed assertions in proxy and another to use that proxy to run some executable. Listed below are some helper methods in the client package that
+
+maybe used for writing other clients for the CAS service. Refer to code
+
+and/or Java Docs for more information.</para>
+
+<para>For more information, see the domain section <link linkend="cas-developer-domain">here</link>.</para>
+
+</section>
+
+<section id="cas-developer-tutorials">
+
+  <title>Tutorials</title>
+
+  <para>There are no tutorials available at this time.
+
+</para>
+
+</section>
+
+
+<section id="cas-developer-debugging">
+
+  <title>Debugging</title>
+
+  <para>Log output from the CAS server is a useful tool for debugging
+
+  issues. Logging in CAS server code is based on  the <ulink url="http://jakarta.apache.org/commons/logging/">Jakarta Commons Logging</ulink> API and is described in more detail <link linkend="javawscore-developer-debugging">here</link>. As
+  described in above section, configuration files need to be edited to
+  enable logging at different levels. For example, to see all logging
+  for the CAS server, the following lines need to be added:
+    
+<screen># Server code
+log4j.category.org.globus.cas.impl.service=DEBUG 
+
+# Database access module
+log4j.category.org.globus.cas.impl.databaseAccess=DEBUG </screen></para>
+
+  <para>Debugging information  from CAS clients can be obtained by using the <replaceable>-debug</replaceable> option on the command line.</para>
+
+</section>
+
+<section id="cas-developer-troubleshooting">
+
+  <title>Troubleshooting</title>
+
+  <section>
+
+    <title>Command run using cas-wrap does not pick up CAS proxy </title>
+
+    <para>Some commands require environment variables to be passed
+
+
+
+explicitly to the command (e.g java). If running such command through
+
+
+
+cas-wrap, place the command in a script (passing in the environment
+
+
+
+variable) and execute the script through cas-wrap.</para>
+
+    <para>For example, to run <replaceable>java -DX509_USER_PROXY=$X509_USER_PROXY org.some.java.Client</replaceable>, create a script <replaceable>client-script</replaceable> with following contents:
+
+<screen>java -DX509_USER_PROXY=$X509_USER_PROXY org.some.java.Client </screen>Ensure that the script has executable permissions and run:
+
+<screen> cas-wrap -t sometag client-script </screen></para>
+
+  </section>
+
+  <section>
+
+    <title> CAS client fail with database permission error </title>
+
+    <para>CAS clients fail with database permission exception similar to:
+
+<screen>Caused by: ERROR: permission denied for relation service_type_action
+
+]; nested exception is:org.globus.cas.impl.databaseAccess.CasDBException:</screen>
+</para>
+
+    <note>
+
+      <para>This is a specific instance of an error  for the relation <emphasis>service_type_action</emphasis>. This error could be raised on any relation on the table.</para>
+
+    </note>
+
+    <para>Check that  the user configured for accessing the database has the correct permissions on the database. The configuration is found in
+<emphasis>$GLOBUS_LOCATION/etc/globus_cas_server/jndi-config.xml</emphasis>. Typically
+the same username/password that is used to create the database should be used in the above configuration file since this will prevent permission issues.</para>
+
+  </section>
+
+</section>
+
+<section id="cas-developer-relateddocs">
+
+  <title>Related Documentation</title>
+
+  <itemizedlist>
+
+    <listitem>
+
+      <simpara>
+
+        <ulink url="http://www.globus.org/alliance/publications/papers/CAS_2002_Revised.pdf">A Community Authorization Service For Group Collaboration</ulink>
+
+      </simpara>
+
+    </listitem>
+
+    <listitem>
+
+      <simpara>
+
+        <ulink url="http://www.globus.org/alliance/publications/papers/CAS-group-CHEP03.pdf">Using CAS to Manage Role-Based VO Sub-groups</ulink>
+
+      </simpara>
+
+    </listitem>
+
+    <listitem>
+
+      <simpara>
+
+        <ulink url="http://www.globus.org/alliance/publications/papers/CAS_update_CHEP_03-final.pdf">The Community Authorization Service: Status and Future </ulink>
+
+      </simpara>
+
+    </listitem>
+
+    <listitem>
+
+      <simpara>
+
+        <link linkend="cas-rn-associatedstandards">Associated Standards</link> 
+
+      </simpara>
+
+    </listitem>
+
+  </itemizedlist>
+
+</section>
+
