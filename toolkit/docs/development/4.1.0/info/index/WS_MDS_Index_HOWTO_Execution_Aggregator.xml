@@ -1,0 +1,404 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<title>GT &shortversion; Index Service: How to Write a Simple Execution Aggregator Information Provider for MDS4</title>
+<titleabbrev>Writing a Execution Aggregator Information Provider</titleabbrev>
+
+<!-- 
+<para> This howto was written by <ulink
+url="http://www.thecodefactory.org/neillm">Neill Miller</ulink> under
+the guidance of <ulink
+url="http://www-unix.mcs.anl.gov/~schopf/">Jennifer
+Schopf</ulink>.</para>
+ -->
+
+<section id="index-howto-intro"><title>Introduction</title>
+
+<para>
+This document is intended to be a starting guide to writing non
+   web-service based <glossterm baseform="information provider">information providers</glossterm> for the MDS4.  It covers the
+concepts and walks through a simple example of how to get arbitrary
+information into the MDS4 using the <xref linkend="aggregator-sources-execution"/>.  This <glossterm baseform="aggregator source">Aggregator
+Source</glossterm> is used for gathering arbitrary XML information about a
+registered resource by executing an external script.  This is mostly
+useful for scenarios where you would like to publish information into
+the MDS4 from a <emphasis>non web-service</emphasis> based information
+source.  For web-service based information sources that export known
+Resource Properties, it is much easier to use <xref linkend="aggregator-sources-query"/>.  However, that source is outside the scope
+of this document.
+</para>
+
+<para>
+This document covers writing a simple information provider that
+publishes fortune information at a regular interval into the MDS4's
+   <glossterm>Index Service</glossterm>.  This example was chosen because it is dynamic and
+simple, yet it illustrates all the fundamentals of this type of
+information provider.
+</para>
+</section>
+
+<section id="index-howto-schema"><title>Choosing (or conforming to) a Schema</title>
+
+<para>
+The first step to getting information into the MDS4 is to decide which
+information you would like to have published.  Since the data is in
+XML format, you should choose (or pick) the schema that you'd like the
+data to conform to.  This generally means coming up with element names
+and types and creating some mapping of the data you're about to
+retrieve from your non web-service based application before putting it
+in to the MDS4.  For this example, I'm going to choose this very
+   simple format for the data:</para>
+<screen>
+&lt;fortuneInformation&gt;
+   &lt;fortuneData&gt;
+      ... here is the fortune ...
+   &lt;/fortuneData&gt;
+   &lt;fortuneDateAndTime&gt;
+      ... date and time of retrieval ...
+   &lt;/fortuneDateAndTime&gt;
+   &lt;fortuneSourceURL&gt;
+      ... the URL of where the fortune was retrieved ...
+   &lt;/fortuneSourceURL&gt;
+&lt;/fortuneInformation&gt;
+</screen>
+<para>As you can see, that format is very simple.  An example output will
+look like this:</para>
+<screen>
+&lt;fortuneInformation&gt;
+   &lt;fortuneData&gt;
+     186,282 miles per second: It isn't just a good idea, it's the law!
+   &lt;/fortuneData&gt;
+   &lt;fortuneDateAndTime&gt;
+     Thu Jul 14 18:16:01 CDT 2005
+   &lt;/fortuneDateAndTime&gt;
+   &lt;fortuneSourceURL&gt;
+     http://anduin.eldar.org/cgi-bin/fortune.pl?text_format=yes
+   &lt;/fortuneSourceURL&gt;
+&lt;/fortuneInformation&gt;
+</screen>
+<para>Once you've chosen how to represent your data in XML format, you can
+start thinking about how you're going to retrieve and prepare that
+data for publication.</para>
+
+</section>
+
+<section id="index-howto-code"><title>The Code</title>
+
+<para>
+The second step to getting information into the MDS4 is to write a
+script (or program) that gathers and formats the appropriate data.
+This can be C code, shell script, perl code, etc, and it doesn't
+matter what kind of methods it uses behind the scenes, so long as it
+produces well formatted XML data.
+</para>
+
+<para>
+For example, if we wanted to publish a fortune into the Index Service
+(using the free and charitable online service located at <ulink
+url="http://anduin.eldar.org/cgi-bin/fortune.pl">http://anduin.eldar.org/cgi-bin/fortune.pl</ulink>),
+we could write a simple shell script to retrieve it and format it into
+our chosen XML schema.
+</para>
+
+<para>
+You can sample the source code for this example implementation
+here. It is written as a bash shell script due to its simplicity.
+Tested platforms include GNU/Linux only.  For this script to properly
+publish information, you must have one (or more) of the following
+programs installed on the system: <emphasis>wget</emphasis>,
+<emphasis>lynx</emphasis>, or <emphasis>fortune</emphasis>.  All of
+these programs come standard with most GNU/Linux distributions, and
+it's important to note that only one of them is required (i.e. not ALL
+are required).  [ <emphasis>NOTE: Windows users must have something
+like the <ulink url="http://www.cygwin.com/">cygwin</ulink> operating
+environment for this to work</emphasis> ]
+</para>
+
+<para>
+Download the code: <ulink url="&docpath;info/index/fortune_script.sh">fortune_script.sh</ulink>.
+</para>
+
+<para>
+This file should be saved in your
+<emphasis>$GLOBUS_LOCATION/libexec/aggrexec</emphasis> directory, although the
+reason will be explained in the next section.
+</para>
+</section>
+
+<section id="index-howto-enabling"><title>Enabling The Provider</title>
+
+<para>
+Now that we have the information provider written, the next step is to
+enable it so that we can test it.  To do this you will need to do
+three things.  First, come up with a short name (i.e. a mapping) that
+can be used to reference your provider, second, copy your provider to
+the location where it is expected to be found, and finally, register
+it to the Index Service with the parameters you'd like.
+</para>
+
+<section><title>Establish mapping of your information provider</title>
+
+<para>
+To establish the mapping of your provider, you need to edit the
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/jndi-config.xml</filename> file.
+</para>
+
+<para>
+You should see an <emphasis>executableMappings</emphasis> section that looks
+something like this:
+<screen>
+&lt;parameter&gt;
+   &lt;name&gt;executableMappings&lt;/name&gt;
+      &lt;value&gt;
+         aggr-test=aggregator-exec-test.sh,
+         pingexec=example-ping-exec
+      &lt;/value&gt;
+&lt;/parameter&gt; 
+</screen>
+</para>
+
+<para>
+To add our <emphasis>fortune_script.sh</emphasis> file, let's decide that we're call
+it the
+<emphasis>fortuneProvider</emphasis> as the mapped name.  Our entry would then look
+   like this:</para>
+<screen>
+fortuneProvider=fortune_script.sh
+</screen>
+<para>With that line added, the entire entry should look like this (note
+that an extra comma had to be added before our new entry):</para>
+<screen>
+&lt;parameter&gt;
+   &lt;name&gt;executableMappings&lt;/name&gt;
+      &lt;value&gt;
+         aggr-test=aggregator-exec-test.sh,
+         pingexec=example-ping-exec,
+         fortuneProvider=fortune_script.sh
+      &lt;/value&gt;
+&lt;/parameter&gt; 
+</screen>
+
+
+<para>
+<emphasis>NOTE</emphasis>: The reason we are required to establish this mapping in
+the first place is for security reasons.  The execution aggregator
+source references this mapping when it's registered, rather than a
+full path name to a script to avoid allowing arbitrary registrations
+to be made that can execute arbitrary code.  Requiring this mapping be
+configured before starting the globus container guarantees that the
+system administrator of the deployment has approved of the use of the
+new provider.
+</para></section>
+
+<section><title>Copy information provider to correct location</title>
+
+<para>
+To make sure your provider is in the expected place, it
+<emphasis>MUST</emphasis> be copied to the
+<emphasis>$GLOBUS_LOCATION/libexec/aggrexec</emphasis> directory.
+Notice how the full path of the script was not specified in the above
+example when making the mapping.  That's because the path of
+<emphasis>$GLOBUS_LOCATION/libexec/aggrexec</emphasis> is simply
+assumed and it will be pre-pended at run-time for you.  Make sure your
+file resides in this directory with proper executable permissions.
+</para>
+
+<para>
+Check the listing to make sure:
+<screen>
+neillm@glob ~ $ ls -al $GLOBUS_LOCATION/libexec/aggrexec/
+total 12
+drwxr-xr-x  2 neillm wheel 4096 Jul 16 14:01 .
+drwxr-xr-x  6 neillm wheel 4096 Jul  8 14:52 ..
+-rwxr-xr-x  1 neillm wheel  345 Jul  8 14:52 aggregator-exec-test.sh
+-rwxr-xr-x  1 neillm wheel 1947 Jul 16 13:52 fortune_script.sh
+</screen>
+</para>
+</section>
+
+<section><title>Configure the registration file</title>
+
+<para>
+So now that we've completed the first two steps of enabling the
+provider, we only have left to decide on the final details of how to
+make the registration to the Index Service.
+</para>
+
+<para>
+To do this, you'll need a registration file.  There are many types of
+registrations that can possibly occur, due to the flexibility of the
+<link linkend="aggregator"> Aggregator Framework </link>.  You can view several examples in the
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-aggregator-registration.xml</filename>
+file.
+</para>
+
+<para>
+For this example, we'll simply use the custom fortune registration
+   <ulink url="&docpath;info/index/fortune-provider-registration.xml">file provided</ulink> , which is
+specific to the fortune provider we've made that uses the Execution
+Aggregator source.  It's relatively simple, and the fields worth
+mentioning are shown here:
+<screen>
+&lt;defaultServiceGroupEPR&gt;
+   &lt;wsa:Address&gt;https://127.0.0.1:8443/wsrf/services/DefaultIndexService&lt;/wsa:Address&gt;
+&lt;/defaultServiceGroupEPR&gt;
+
+&lt;defaultRegistrantEPR&gt;
+   &lt;wsa:Address&gt;https://127.0.0.1:8443/wsrf/services/fortuneProvider&lt;/wsa:Address&gt;
+&lt;/defaultRegistrantEPR&gt;
+</screen>
+</para>
+
+<para>
+These fields need to be updated to match how you'll be running your
+container.  You'll need to properly address it, that is.  For example,
+if you're running without security enabled on port 8080 and have an IP
+address of www.xxx.yyy.zzz, you should substitute the
+"https://127.0.0.1:8443" base part of the address with
+"http://www.xxx.yyy.zzz:8080".
+</para>
+
+<para>
+Next, view or modify this section of the
+<filename>fortune-provider-registration.xml</filename> file:
+</para>
+
+<para>
+<screen>
+&lt;ServiceGroupRegistrationParameters
+    xmlns="http://mds.globus.org/servicegroup/client" &gt;
+
+  &lt;!-- Renew this registration every 600 seconds (10 minutes) --&gt;
+  &lt;RefreshIntervalSecs&gt;600&lt;/RefreshIntervalSecs&gt;
+  &lt;Content xsi:type="agg:AggregatorContent"
+           xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+    &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+      &lt;agg:ExecutionPollType&gt;
+
+        &lt;!-- Run our script every 300,000 milliseconds (5 minutes) --&gt;
+        &lt;agg:PollIntervalMillis&gt;300000&lt;/agg:PollIntervalMillis&gt;
+
+        &lt;!-- Specify our mapped ProbeName registered in the
+             $GLOBUS_LOCATION/etc/globus_wsrf_mds_index/jndi-config.xml
+             file --&gt;
+        &lt;agg:ProbeName&gt;fortuneProvider&lt;/agg:ProbeName&gt;
+
+      &lt;/agg:ExecutionPollType&gt;
+    &lt;/agg:AggregatorConfig&gt;
+    &lt;agg:AggregatorData/&gt;
+  &lt;/Content&gt;
+&lt;/ServiceGroupRegistrationParameters&gt;
+</screen>
+</para>
+
+<para>
+The relevant fields here that you can configure are the following:
+</para>
+
+<para>
+<emphasis>RefreshIntervalSeconds</emphasis> - the amount of that time that should
+pass before the registration is renewed for you.  600 seconds (i.e. 10
+minutes) is generally sufficient, and certainly is for this example.
+(Note: the mds-servicegroup-add utility will perform these
+registrations for you automatically at these time intervals).  This
+parameter's unit is in seconds.
+</para>
+
+<para>
+<emphasis>PollIntervalMillis</emphasis> - this is the time interval that we execute
+the specified provider.  It's important to not set this value too low,
+as there's little value in having it execute extremely frequently
+given the overhead.  For our example, we'll set it to 5 minutes
+(i.e. 300000 milliseconds).  This means, the fortune information
+published in the Index Service will be updated once every 5 minutes.
+This parameter's unit is in milliseconds.
+</para>
+
+<para>
+<emphasis>ProbeName</emphasis> - here is where the executable mapping is put to use.
+It must exactly match the (left-hand side) name you specified in the
+<emphasis>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/jndi-config.xml</emphasis>.  For this
+example, we chose this name to be <emphasis>fortuneProvider</emphasis>, and you can
+see that's what we've specified.
+</para>
+
+<para>
+   Download the example registration file, <ulink url="&docpath;info/index/fortune-provider-registration.xml">fortune-provider-registration.xml</ulink>.
+</para>
+</section>
+   <section><title>Register with Index Service: run mds-servicegroup-add</title>
+<para>
+Finally, to make the registration of our provider to the Index Service, you should run the <emphasis>mds-servicegroup-add</emphasis> program in
+a similar mannner:
+<screen>
+neillm@glob ~ $ $GLOBUS_LOCATION/bin/mds-servicegroup-add -s \
+https://127.0.0.1:8443/wsrf/services/DefaultIndexService \
+fortune-provider-registration.xml
+
+Processing configuration file...
+Processed 1 registration entries
+Successfully registered
+https://127.0.0.1:8443/wsrf/services/fortuneProvider to servicegroup at
+https://127.0.0.1:8443/wsrf/services/DefaultIndexService
+</screen>
+Note that you will have to specify the proper URI location of your
+Index Service on the command line and not the one specified above
+(unless it's the same, of course).
+</para></section>
+</section>
+
+<section id="index-howto-example"><title>An Example Query</title>
+
+<para>
+<screen>
+neillm@glob bin $ ./wsrf-query -s \
+https://127.0.0.1:8443/wsrf/services/DefaultIndexService \
+"//*[local-name()='fortuneInformation']"
+
+&lt;fortuneInformation xmlns=""&gt;
+&lt;fortuneData&gt;
+They told me you had proven it When they discovered our results About
+a month before. Their hair began to curl The proof was valid, more or
+less Instead of understanding it But rather less than more. We'd run
+the thing through PRL. He sent them word that we would try Don't tell
+a soul about all this To pass where they had failed For it must ever
+be And after we were done, to them A secret, kept from all the rest
+The new proof would be mailed. Between yourself and me. My notion was
+to start again Ignoring all they'd done We quickly turned it into code
+To see if it would run.
+&lt;/fortuneData&gt;
+&lt;fortuneDateAndTime&gt;
+Wed Jul 20 12:36:36 BST 2005
+&lt;/fortuneDateAndTime&gt;
+&lt;fortuneSourceURL&gt;
+http://anduin.eldar.org/cgi-bin/fortune.pl?text_format=yes
+&lt;/fortuneSourceURL&gt;
+&lt;/fortuneInformation&gt;
+</screen>
+</para>
+
+<para>
+This segment of the query output represents the fortune data we've
+just written and configured for use.  As you can see the
+<emphasis>fortuneInformation</emphasis> block was properly published into the Index Service since it's now been properly configured and registered!
+</para>
+</section>
+
+<section id="index-howto-screenshots"><title>Screenshots</title>
+
+<para>
+Finally, some screenshots have been provided to further illustrate the
+usefulness of such an information provider once integrated into the
+   MDS. The following pictures are screenshots captured of <glossterm>WebMDS</glossterm> on a
+GNU/Linux system running the MDS locally. Each snapshot shows off
+slightly different viewings of the data in the same application
+browser. Enjoy!
+</para>
+
+<para>
+<emphasis>[ TODO: Insert Screenshots here :-) ]</emphasis>
+</para>
+</section>
+
+<section id="index-howto-contact"><title>Contact the author</title>
+<para>Contact the author at <ulink url="mailto:neillm@mcs.anl.gov">neillm@mcs.anl.gov</ulink>.</para>
+</section>

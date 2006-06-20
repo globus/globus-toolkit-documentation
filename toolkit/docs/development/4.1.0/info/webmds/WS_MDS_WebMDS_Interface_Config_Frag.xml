@@ -1,0 +1,249 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<section><title>Configuration overview</title>
+<para>
+WebMDS can be configured to get information from any of various sources
+and to filter it through any XSL transform.  WebMDS uses configuration files
+to specify the location of (and to name) sources of information and xsl
+and web form arguments to select among these configured information sources
+and xsl transforms.</para>
+<para>
+By default, WebMDS comes configured to report information about
+an index server using transaction-level security on the default port
+(8443) on the local system.  If you are running the Globus Toolkit in
+this default configuration, then you can use WebMDS to 
+  query your local <glossterm>Index Service</glossterm> without any configuration changes.
+</para>
+<para>
+If you wish to monitor a different index server, 
+you will need
+to edit the file 
+<computeroutput>$GLOBUS_LOCATION/lib/webmds/conf/indexinfo</computeroutput> to change
+the URL in the line:
+<screen>
+    &lt;value&gt;https://127.0.0.1:8443/wsrf/services/DefaultIndexService&lt;/value&gt;
+</screen>
+to match the URL of your default index service.
+Changes to WebMDS configuration files take effect the next time that
+Tomcat is restarted.
+</para>
+<para>For other configuration changes (e.g., monitoring different kinds of
+services), see the detailed configuration information below.
+</para>
+</section>
+
+<section><title>Syntax of the interface</title>
+<para>Each configuration file in <computeroutput>$GLOBUS_LOCATION/lib/webmds/conf</computeroutput>
+defines a source of XML, which can be
+used in an HTML form to specify sources of information and XSL transforms.
+The distribution
+contains some standard configuration files in this directory, including:
+</para><para>
+<table><title>Pre-configured information sources</title>
+<tgroup cols="2"><tbody>
+<row>
+<entry><computeroutput>indexinfo</computeroutput></entry>
+<entry>all resource properties from an index server running with transaction-level
+security on port 8443 on the local host</entry>
+</row>
+<row>
+<entry><computeroutput>indexinfo_nosec</computeroutput></entry>
+<entry>all resource properties from an index server running with no
+security on port 8080 on the local host</entry>
+</row>
+<row>
+<entry><computeroutput>openEndedQuery</computeroutput></entry>
+<entry>all resource properties from a user-specified grid service</entry>
+</row>
+<row>
+<entry><computeroutput>openEndedRP</computeroutput></entry>
+<entry>a user-specified resource
+property from a user-specified grid service</entry>
+</row>
+<row>
+<entry><computeroutput>servicegroupxsl</computeroutput></entry>
+<entry>an xsl transform that presents summary information about a service group</entry>
+</row>
+<row>
+<entry><computeroutput>sgedetail</computeroutput></entry>
+<entry>an xsl transform that presents detailed information about a service group entry</entry>
+</row>
+</tbody></tgroup>
+</table>
+</para><para>
+Each configuration file defines a <computeroutput>WebmdsConfig</computeroutput> object.
+A <computeroutput>WebmdsConfig</computeroutput> object consists of:
+<itemizedlist>
+<listitem><simpara>A <computeroutput>description</computeroutput>:  a textual description of the XML source
+being defined.</simpara></listitem>
+<listitem><simpara>A <computeroutput>className</computeroutput>: the name of the Java class that will be
+used to acquire the XML data.</simpara></listitem>
+<listitem><simpara>Zero or more <computeroutput>parameter</computeroutput> objects, each of which consists of
+the <computeroutput>name</computeroutput> of some parameter recognized by the Java class
+specified by <computeroutput>className</computeroutput>, and the string <computeroutput>value</computeroutput>
+of that parameter.</simpara></listitem>
+</itemizedlist>
+For example, this is
+<computeroutput>$GLOBUS_LOCATION/lib/webmds/conf/servicegroupxsl</computeroutput>, which defines
+the <computeroutput>servicegroupxsl</computeroutput> XML source:
+<screen>
+    &lt;WebmdsConfig&gt;
+      &lt;description&gt;
+         XSL file to show service group summary information
+      &lt;/description&gt;
+      &lt;className&gt;org.globus.mds.webmds.xmlSources.file.FileXmlSource&lt;/className&gt;
+      &lt;parameter&gt;
+        &lt;name&gt;file&lt;/name&gt;
+        &lt;value&gt;xslfiles/servicegrouptable.xsl&lt;/value&gt;
+      &lt;/parameter&gt;
+    &lt;/WebmdsConfig&gt;
+</screen>
+This file tells WebMDS to use the
+<computeroutput>org.globus.mds.webmds.xmlSources.file.FileXmlSource</computeroutput>
+Java class (a class which reads XML from a local file) to collect XML data
+and to pass a <computeroutput>file</computeroutput> parameter (which that Java class interprets
+as the name of the file to open, relative to the WebMDS base directory).
+</para><para>
+Tomcat must be restarted (or one of the more advanced Tomcat administrative
+mechanisms must be used) for changes to these configuration files to take
+effect.</para>
+</section>
+
+<section><title>XML Sources included with WebMDS</title>
+
+<section><title>FileXMLSource</title>
+<para>
+The class <computeroutput>org.globus.mds.webmds.xmlSources.file.FileXmlSource</computeroutput>
+reads XML from a file, and recognizes a single parameter:
+<table><title>Configuration parameters used with FileXMLSource</title>
+<tgroup cols="2"><tbody>
+<row>
+<entry><computeroutput>file</computeroutput></entry>
+<entry>The name of the file to read.  Relative path names are interpreted
+relative to the WebMDS base directory
+(<computeroutput>$GLOBUS_LOCATION/lib/webmds</computeroutput>).
+</entry>
+</row>
+</tbody></tgroup>
+</table>
+</para></section>
+
+<section><title>NodeXMLSource</title>
+<para>This XML source class uses a WebmdsNodeSource object to fetch an XML document
+and return it in a form that is usable by WebMDS.  It recognizes the
+following options:
+</para><table><title>Configuration parameters used with NodeXMLSource</title>
+<tgroup cols="2"><tbody>
+<row>
+<entry><computeroutput>class</computeroutput></entry>
+<entry>The name of a class that implements the WebmdsNodeSource interface.
+An instance of this class will be used to get an XML document.</entry>
+</row>
+<row>
+<entry><emphasis>parameters</emphasis></entry>
+<entry>Additional parameters are passed to an instance of the class
+specified by the <computeroutput>class</computeroutput> argument.
+</entry>
+</row>
+</tbody></tgroup>
+</table>
+</section>
+
+<section><title>Classes That Implement WebmdsNodeSource</title>
+<para>The following classes implement the <computeroutput>NodeXMLSource</computeroutput> interfaces
+and can be used in conjunction with <computeroutput>NodeXMLSource</computeroutput></para>
+</section>
+
+<section><title>ResourcePropertyQueryNodeSource</title>
+<para>
+This class performs a resource property query to get all the resource
+properties for some web service.  It recognizes the following configuration
+parameters:
+</para>
+
+<table><title>Configuration parameters used with ResourcePropertyQueryNodeSource</title>
+<tgroup cols="2"><tbody>
+<row>
+<entry><computeroutput>endpoint</computeroutput></entry>
+<entry>The endpoint name to be used in a resource property query.</entry>
+</row>
+<row>
+<entry><computeroutput>endpointKeyName</computeroutput>
+and <computeroutput>endpointKeyValue</computeroutput></entry>
+<entry>An optional key/value pair to use as reference properties for the
+endpoint specified with the
+<computeroutput>endpoint</computeroutput>
+parameter.</entry>
+</row>
+<row>
+<entry><computeroutput>allowUserEndpoints</computeroutput></entry>
+<entry>If <computeroutput>true</computeroutput>, values for
+<computeroutput>xmlSource.sourceName.param.endpoint</computeroutput>,
+<computeroutput>xmlSource.sourceName.param.endpointKeyName</computeroutput>, and
+<computeroutput>xmlSource.sourceName.param.endpointKeyValue</computeroutput> 
+specified in the request will override the configured endpoint value.</entry>
+</row>
+<row>
+<entry><computeroutput>endpointFile</computeroutput></entry>
+<entry>The name of a file from which the endpoint information (in XML) will
+be read.  This configuration parameter can never be overridden by
+request arguments.</entry>
+</row>
+</tbody></tgroup>
+</table>
+
+</section>
+<section><title>ResourcePropertyNodeSource</title>
+<para>This class queries a web service for a single resource property.  It
+recognizes the following parameters:
+</para><table><title>Configuration parameters used with ResourcePropertyNodeSource</title>
+<tgroup cols="2"><tbody>
+<row>
+<entry><computeroutput>endpoint</computeroutput></entry>
+<entry>The endpoint name to be used in a resource property query.</entry>
+</row>
+<row>
+<entry><computeroutput>endpointKeyName</computeroutput>
+and <computeroutput>endpointKeyValue</computeroutput></entry>
+<entry>An optional key/value pair to use as reference properties for the
+endpoint specified with the
+<computeroutput>endpoint</computeroutput>
+parameter.</entry>
+</row>
+<row>
+<entry><computeroutput>allowUserEndpoints</computeroutput></entry>
+<entry>If <computeroutput>true</computeroutput>, values for
+<computeroutput>xmlSource.sourceName.param.endpoint</computeroutput>,
+<computeroutput>xmlSource.sourceName.param.endpointKeyName</computeroutput>, and
+<computeroutput>xmlSource.sourceName.param.endpointKeyValue</computeroutput> 
+specified in the request will override the configured endpoint value.</entry>
+</row>
+<row>
+<entry> <computeroutput>endpointFile</computeroutput></entry>
+<entry>The name of a file from which the endpoint information (in XML) will
+be read.  This configuration parameter can never be overridden by
+request arguments.</entry>
+</row>
+<row><entry> <computeroutput>rpNamespace</computeroutput></entry>
+<entry>The namespace part of the QName of the resource property to be
+queried for.</entry>
+</row>
+<row>
+<entry><computeroutput>rpName</computeroutput></entry>
+<entry>The local name part of the QName of the resource property to be
+queried for.</entry>
+</row>
+<row>
+<entry>
+<computeroutput>allowUserResourceProperties</computeroutput>
+</entry>
+<entry>If <computeroutput>true</computeroutput>, values of
+<computeroutput>xmlSource.sourceName.param.rpNamespace</computeroutput> and
+<computeroutput>xmlSource.sourceName.param.rpNames</computeroutput>
+specified in the request will override the configured resource
+property namespace and name.</entry>
+</row>
+</tbody></tgroup>
+</table>
+</section>
+</section>
+

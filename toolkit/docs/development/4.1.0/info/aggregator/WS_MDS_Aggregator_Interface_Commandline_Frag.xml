@@ -1,0 +1,209 @@
+<refentry id="mds-servicegroup-add">
+<refmeta>
+<refentrytitle>mds-servicegroup-add</refentrytitle>
+ <manvolnum>1</manvolnum>
+ </refmeta>
+ <refnamediv>
+ <refname>mds-servicegroup-add</refname>
+ <refpurpose>Registering grid resources to aggregating MDS services such as the Index and Trigger services</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv><cmdsynopsis>
+ <command>mds-servicegroup-add</command>
+ </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1><title>Tool description</title>
+ <para><command>mds-servicegroup-add</command> creates a set of registrations to a
+     WS-ServiceGroup and periodically renews those registrations. It is intended primarily for registering grid resources to aggregating MDS services such as the Index and Trigger services.</para>
+
+     <para>The tool can be deployed at the aggregating service, at resource services, or at any other location. </para>         
+     <para>This allows registrations to be configured by the administrator of the aggregating service, or by
+         the administrator of resources, by a third party, or by some combination of those.</para>
+              
+     <para>Registrations are defined in an XML configuration file, which is documented here: <xref linkend="mds-servicegroup-add-registering" />.</para>
+     <para>For an example using an Index Service, see <xref linkend="mds-servicegroup-add-simple-usage" />.</para>
+     <para>And remember to note the section on <xref linkend="mds-servicegroup-add-limitations" />.</para>
+ </refsect1>
+ 
+ <refsect1><title>Command syntax</title>
+ <para>The basic syntax for <command>mds-servicegroup-add</command> is: 
+ <screen>mds-servicegroup-add [options] <emphasis>config.xml</emphasis></screen>
+ where:</para>
+ 
+ <informaltable>
+ <tgroup cols="2"><tbody>
+     <row>
+     <entry>-s http(s)://host:port/service-group-address</entry>
+         <entry>A URL to the service group against which the mds-servicegroup-add request will be executed. This command line argument is an optional argument, 
+             it is only necessary that this URL argument be specified in the case that there are no suitable target service group EPRs present 
+             in the <link linkend="mds-servicegroup-add-registering">configuration file</link>. 
+             Any end point references found in the configuration file will automatically override the EPR specified by this argument on the command-line. 
+             If this argument is not specified and no suitable service group EPR is present in the configuration file, 
+             the target EPR defaults to the DefaultIndexService on the local host using the default TLS port of 8443.</entry>
+     </row>
+    
+     <row>
+         <entry>-o outputFile</entry>
+         <entry><para>If this argument is specified, <command>mds-servicegroup-add</command> 
+         will write the EPRs of all successfully created service group entries from the target resource to this file. 
+         This file can then be used as input to the <command>mds-set-multiple-termination-time</command> command.</para>
+         </entry>
+     </row>
+    
+     <row>
+         <entry>-q seconds</entry>
+         <entry><para>By default, <command>mds-servicegroup-add</command> will continue to run, refreshing the lifetimes
+         for the service group entry resources it creates.  Use this option to cause <command>mds-servicegroup-add</command> 
+         to terminate itself after the specified number of seconds has elapsed.  This can be helpful when using long-lifetime
+         registrations or when updating entry lifetimes via a different mechanism.</para>
+         </entry>
+     </row>
+
+     <row>
+         <entry>-a</entry>
+         <entry><para>By default, <command>mds-servicegroup-add</command> will attempt to
+             make an authenticated connection to each service group. This option
+             is used to specify anonymous connections (and to prevent
+             <command>mds-servicegroup-add</command> from failing if you don't have a
+             valid Grid credential).</para>
+         </entry>
+     </row>
+                    
+    <row>
+     <entry>-z auth_type</entry>
+     <entry><para>Specify an authorization type: </para>
+         <variablelist>
+             <varlistentry>
+                 <term><constant>self</constant></term>
+                 <listitem><para>Fail if the server's identity is different from the user's identity. </para></listitem>
+             </varlistentry>
+             <varlistentry>
+                 <term><constant>host</constant></term>
+                 <listitem><para>Fail if the server does not have a valid server certificate.</para></listitem>
+             </varlistentry>
+             <varlistentry>
+                 <term><constant>none</constant></term>
+                 <listitem><para>Continue regardless of the server's identity.</para></listitem>
+             </varlistentry>
+          </variablelist>
+     
+     </entry>
+    </row>
+    
+     <row>
+         <entry>config.xml</entry>
+         <entry><para> Path to the registration configuration file (see <xref linkend="mds-servicegroup-add-registering" />).</para>
+             <para>The Globus Toolkit distribution includes an example configuration file: 
+                 <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-aggregator-registration.xml</filename>.</para>
+     </entry>
+ </row>
+ </tbody></tgroup>
+ </informaltable>
+ 
+     <para>The <link linkend="javawscore-common-options">common java client options</link> are also supported.</para>
+ </refsect1>
+    
+    <refsect1><title>Registering a resource manually</title>
+    <refsect2><title>Prerequisites</title>
+        <para>You need the following before you register a resource with an Index Service:</para>
+        
+        <note><simpara>With GT 4.0.1, the CAS, RFT and WS GRAM services are automatically registered with the default Index Service.</simpara></note>
+        
+       <itemizedlist>
+           <listitem><simpara>Have a working Index Service, as documented in the <link linkend="index-admin">
+               Index Service System Administrator's Guide</link>.</simpara></listitem>
+           <listitem><simpara>Know the EPR to the resource.</simpara></listitem>
+           <listitem><simpara>Know the EPR to the Index Service. This can be seen in the container output at startup of the container on the index host, and will look something like this:
+               <filename>https://myhost:8443/wsrf/services/DefaultIndexService</filename></simpara></listitem>
+       </itemizedlist>
+        
+    </refsect2>
+    
+    <refsect2 id="mds-servicegroup-add-registering" xreflabel="Registering with mds-servicegroup-add"><title>Registering with mds-servicegroup-add</title>
+        
+         &aggregator_sources_general_config;
+        
+      
+    </refsect2>
+    </refsect1>
+    <refsect1 id="mds-servicegroup-add-simple-usage" xreflabel="Simple usage for the Index Service"><title>Simple usage for the Index Service </title>
+        <para>The simplest way to register resources to an index is to:</para>
+            
+          <orderedlist>  
+          <listitem><simpara>Edit the example configuration file (<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-aggregator-registration.xml</filename>), replacing the EPRs in that file with the EPRs for your resources</simpara></listitem>
+          <listitem><simpara>Run <command>mds-servicegroup-add</command> to perform the registrations specified in that file.</simpara></listitem>
+          </orderedlist>
+        
+        <para>For example, to register to the DefaultIndexService with a modified <filename>example-aggregator-registration.xml</filename> file, you
+            could run a command similar to the following:</para>
+        <screen>
+            $GLOBUS_LOCATION/bin/mds-servicegroup-add -s \
+            https://127.0.0.1:8443/wsrf/services/DefaultIndexService \
+            $GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-aggregator-registration.xml
+        </screen>
+        </refsect1>
+    
+    
+    <refsect1 id="mds-servicegroup-add-limitations" xreflabel="Limitations"><title>Limitations</title>
+        <para>It may be necessary for the tool to continue to run in order for the registrations that it maintains to be kept alive, as registrations
+            will otherwise time out.</para>
+    </refsect1>
+</refentry>
+    
+<refentry id="mds-set-multiple-termination-time">
+<refmeta>
+<refentrytitle>mds-set-multiple-termination-time</refentrytitle>
+ <manvolnum>1</manvolnum>
+ </refmeta>
+ <refnamediv>
+ <refname>mds-set-multiple-termination-time</refname>
+ <refpurpose>Administering the termination time of grid resources created by aggregating MDS services such as the Index and Trigger services</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv><cmdsynopsis>
+ <command>mds-set-multiple-termination-time</command>
+ </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1><title>Tool description</title>
+ <para><command>mds-set-multiple-termination-time</command> sets the termination time of multiple service group entries. It is intended primarily for working with groups of service group entry resources created by aggregating MDS services such as the Index and Trigger services.</para>
+
+     <para>The tool can be deployed at the aggregating service, at resource services, or at any other location. </para>    
+     <para>This allows the lifetime of registrations to be configured by the administrator of the aggregating service, or by
+         the administrator of resources, by a third party, or by some combination of those.</para>
+ </refsect1>
+ 
+ <refsect1><title>Command syntax</title>
+ <para>The basic syntax for <command>mds-set-multiple-termination-time</command> is: 
+ <screen>mds-set-multiple-termination-time [options]</screen>
+ where:</para>   
+ <informaltable>
+ <tgroup cols="2"><tbody>   
+     <row>
+         <entry>-i inputFile</entry>
+         <entry><para>file containing an XML array of Endpoint References,
+          such as one output by the <command>mds-servicegroup-add</command> 
+          command when used with the -o option.
+         </para>
+         </entry>
+     </row>
+    
+     <row>
+         <entry>-w delay</entry>
+         <entry><para>integer wait delay in seconds that will be added to the current 
+         time at the remote resource to generate the resource termination time.  If not 
+         specified the termination time by defaults is set to the current time at the remote resource.</para>
+         </entry>
+     </row>
+
+     <row>
+         <entry>-n date string</entry>
+         <entry><para>ISO-8601 formatted date string representing an exact date and time, e.g. 2016-06-28T01:06:430Z</para>
+         <para>If not specified the termination time by default is set to the current time at the remote resource.</para>
+         </entry>
+     </row>
+       
+ </tbody></tgroup>
+ </informaltable>
+ 
+ <para>The <link linkend="javawscore-common-options">common java client options</link> are also supported.</para>
+ </refsect1>    
+    
+ </refentry>    
