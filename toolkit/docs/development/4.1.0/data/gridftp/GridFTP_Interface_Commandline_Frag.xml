@@ -1,0 +1,469 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<refentry id="globus-url-copy">
+<refmeta>
+<refentrytitle>globus-url-copy</refentrytitle>
+ <manvolnum>1</manvolnum>
+</refmeta>
+<refnamediv>
+<refname>globus-url-copy</refname>
+    <refpurpose>Multi-protocol data movement</refpurpose>
+</refnamediv>
+<refsynopsisdiv><cmdsynopsis>
+<command>globus-url-copy</command>
+</cmdsynopsis>
+</refsynopsisdiv>
+<refsect1><title>Tool description</title>
+  <indexterm><primary>commandline tool</primary><secondary>globus-url-copy</secondary></indexterm>
+  <indexterm><primary>globus-url-copy</primary></indexterm>
+  <para><command>globus-url-copy</command> is a scriptable command line tool that can do multi-protocol data movement.  
+  It supports gsiftp:// (GridFTP), ftp://, http://, https://, and file:/// protocol specifiers in the URL.  
+  For GridFTP, globus-url-copy supports all implemented functionality.  Versions from GT 3.2 and later support file globbing and directory moves.</para>
+</refsect1>
+
+<refsect1><title>Before you begin</title>
+<important><simpara>YOU MUST HAVE A CERTIFICATE TO USE globus-url-copy!</simpara></important>
+<table><title>Prerequisites to using globus-url-copy</title>
+<tgroup cols="2"><tbody>
+  <row>
+    <entry>1</entry>
+    <entry><para>First, as with all things Grid, you <emphasis>must</emphasis> have
+        a valid proxy certificate to run globus-url-copy. </para>
+        <para>If you do not have a certificate, you must obtain one. </para>
+      <para>If you are doing this for testing in your own environment, the <link linkend="gtadmin-simpleca">SimpleCA</link> 
+        provided with the Globus Toolkit should suffice. </para>
+        <para>If not, you must contact the Virtual Organization (VO) with which
+          you are associated to see from whom you should request a certificate. </para>
+        <para>One common source is the DOE Science Grid CA, although you must confirm
+          whether or not the resources you wish to access will accept their certificates. </para>
+        <para>Instructions for proper installation of the certificate should be
+          provided from the source of the certificate. </para></entry>
+  </row>
+  <row>
+    <entry>2</entry>
+    <entry><para>Now that you have a certificate, you must generate a
+        temporary proxy. Do this by running: </para>
+        <command>grid-proxy-init </command>
+      <para>Further documentation for grid-proxy-init can be found <link linkend="grid-proxy-init ">here</link>.</para></entry>
+  </row>
+  <row>
+    <entry>3</entry>
+    <entry>You are now ready to use <command>globus-url-copy</command>! See the following
+      sections for syntax and command line options. </entry>
+  </row>
+</tbody></tgroup>
+</table>
+</refsect1>
+
+
+<refsect1><title>Command syntax</title>
+<para>The basic syntax for <command>globus-url-copy</command> is: 
+<screen>globus-url-copy [optional command line switches] Source_URL Destination_URL </screen>
+where:</para>
+
+<informaltable>
+<tgroup cols="2"><tbody>
+  <row>
+    <entry>[optional command line switches]</entry>
+    <entry>See <link linkend="commandlineoptions">Command line options</link> below for a list of available options. </entry>
+  </row>
+  <row>
+    <entry><para>&lt;sourceURL&gt;</para></entry>
+    <entry><para>Specifies the original URL of the file(s) to be copied. </para>
+        <para>If this is a directory, all files within that directory will be copied. </para></entry>
+  </row>
+  <row>
+    <entry><para>&lt;destURL&gt;</para></entry>
+    <entry><para> Specifies the URL where you want to copy the files.</para>
+        <para>If you want to copy multiple files, this must be a directory. </para></entry>
+  </row>
+</tbody></tgroup>
+</informaltable>
+
+<para><note><simpara>Any url specifying a directory must end with <command>/</command>.</simpara></note></para>
+
+
+<refsect2 id="urlprefixes"><title>URL prefixes</title>
+<para>As of GT 3.2, we support the following URL prefixes:</para>
+<itemizedlist>
+  <listitem><simpara><command>file://</command> (on a local machine only)</simpara></listitem>
+  <listitem><simpara><command>ftp://</command></simpara></listitem>
+  <listitem><simpara> <command>gsiftp://</command></simpara></listitem>
+  <listitem><simpara><command>http://</command></simpara></listitem>
+  <listitem><simpara><command>https://</command></simpara></listitem>
+</itemizedlist>
+<para>By default, <command>globus-url-copy</command> expects the same kind of host
+  certificates that <command>globusrun</command> expects from gatekeepers. </para>
+<para> <note><simpara>We do <emphasis>not</emphasis> provide an interactive client
+  similar to the generic FTP client provided with Linux. See the "Interactive Clients" section below for information on an interactive client developed by NCSA/NMI/TeraGrid.</simpara></note></para>
+</refsect2>
+
+<refsect2 id="urlformats"><title>URL formats</title>
+<para>URLs can be any valid URL as defined by RFC 1738 that have a <link linkend="urlprefixes">protocol</link> we
+  support. In general, they have the following format:
+<command>protocol://[host]:[port]/path</command>.</para>
+<para> <note><simpara>If the path ends with a trailing / (i.e. <filename>/path/to/directory/</filename>) it will be considered to be a directory 
+			and all files in that directory will be moved.  If you want a recursive directory move, you need to add the <link  linkend="utilityoptions"> -r / -recurse</link>
+    switch described below.</simpara></note></para>
+<table><title>URL formats</title>
+<tgroup cols="2"><tbody>
+  <row>
+    <entry>gsiftp://myhost.mydomain.com:2812/data/foo.dat</entry>
+    <entry>Fully specified.</entry>
+  </row>
+  <row>
+    <entry>http://myhost.mydomain.com/mywebpage/default.html</entry>
+    <entry>Port not specified so uses protocol default, 80 in this case.</entry>
+  </row>
+  <row>
+    <entry>file:///foo.dat</entry>
+    <entry>Host not specified so it uses your local host, port not specified as
+      before.</entry>
+  </row>
+  <row>
+    <entry>file:/foo.dat</entry>
+    <entry>This is also valid but is not recommended because, while many servers (including ours) accept this format, it is <emphasis>not</emphasis> RFC conformant and is not recommended.</entry>
+  </row>
+</tbody></tgroup>
+</table>
+  
+  
+<important>  <para>For GridFTP (gsiftp://) and FTP (ftp://), it is legal to specify a user name and 
+  password in the the URL as follows:</para>
+  
+<screen> gsiftp://<replaceable>myname</replaceable>:[<replaceable>mypassword</replaceable>]@<replaceable>myhost.mydomain.com/foo.dat</replaceable></screen>
+  
+<para>If you are using GSI security, then you may specify the username (but you may <emphasis>not</emphasis> include the : or the 
+  password) and the grid-mapfile will be searched to see if that is a valid account mapping for 
+  your distinguished name (DN).  If it is found, the <glossterm>server</glossterm> will setuid to that account. If not, it will 
+  fail.  It will NOT fail back to your default account.</para>
+  
+<para>If you are using anonymous FTP, the username <emphasis>must</emphasis> be one of the usernames listed as a 
+  valid anonymous name and the password can be anything.</para>
+  
+<para>If you are using password authentication, you must specify both your username and password.  
+  THIS IS HIGHLY DISCOURAGED, AS YOU ARE SENDING YOUR PASSWORD IN THE 
+  CLEAR ON THE NETWORK.  This is worse than no security; it is a false illusion of security.</para></important>
+  
+
+</refsect2>
+</refsect1>
+
+<refsect1 id="commandlineoptions"><title>Command line options</title>
+
+<refsect2 id="informationaloptions"><title>Informational Options</title>
+
+  <table><title>Informational Options</title>
+    <tgroup cols="2"><tbody>
+  <row>
+    <entry><para>-help | -usage </para></entry>
+    <entry><para>Prints help.</para></entry>
+  </row>
+  <row>
+    <entry>-version </entry>
+    <entry><para>Prints the version of this program.</para></entry>
+  </row>
+  <row>
+    <entry>-versions </entry>
+    <entry><para>Prints the versions of all modules that this program
+        uses. </para></entry>
+  </row>
+  <row>
+    <entry>-q | -quiet </entry>
+    <entry><para> Suppresses all output for successful operation.</para></entry>
+  </row>
+  <row>
+    <entry>-vb | -verbose </entry>
+    <entry><para> During the transfer, displays:
+        <itemizedlist>
+          <listitem><simpara> number of bytes transferred,
+          </simpara></listitem>
+          <listitem><simpara> performance since the last update (currently every 5 seconds), and
+          </simpara></listitem>
+          <listitem><simpara> average performance for the whole transfer. </simpara></listitem>
+      </itemizedlist></para></entry>
+  </row>
+  <row>
+    <entry>-dbg | -debugftp </entry>
+    <entry><para> Debugs FTP connections and prints the entire control
+        channel protocol exchange to STDERR. </para>
+        <para>Very useful for debugging. Please provide this any time you
+          are requesting assistance with a globus-url-copy problem. </para></entry>
+  </row>
+</tbody></tgroup>
+</table>
+</refsect2>
+<refsect2 id="utilityoptions"><title>Utility Ease of Use Options</title>
+  <table><title>Utility Ease of Use Options </title>
+<tgroup cols="2"><tbody>    
+  <row>
+    <entry>-a | -ascii </entry>
+    <entry><para> Converts the file to/from ASCII format to/from local
+        file format.</para></entry>
+  </row>
+  <row>
+    <entry>-b | -binary</entry>
+    <entry><para> Does not apply any conversion to the files. This option
+        is turned on by default.</para></entry>
+  </row>
+  <row>
+    <entry>-f &lt;filename&gt;</entry>
+    <entry><para> Reads a list of URL pairs from a filename. </para>
+        <para>Each line should contain:</para>
+        <screen>&lt;sourceURL&gt; &lt;destURL&gt; </screen>
+        <para> Enclose URLs with spaces in double quotes ("). Blank lines and lines
+          beginning with # will be ignored. </para></entry>
+  </row>
+  <row>
+    <entry>-r | -recurse</entry>
+    <entry><para> Copies files in subdirectories </para>
+<note><para>If you specify a URL directory and do not add this option, only the files in the stated directory will be moved.</para></note>
+    </entry>
+  </row>
+  <row>
+    <entry>-notpt | -no-third-party-transfers</entry>
+    <entry><para> Turns third-party transfers off (on by default). </para>
+        <para>Site firewall and/or software configuration may prevent a connection
+          between the two servers (a <glossterm baseform="third party transfers">third party transfer</glossterm>). If this is
+          the case, globus-url-copy will "relay" the data. It will do a
+          GET from the source and a PUT to the destination. </para>
+        <para>This obviously causes a performance penalty but will allow you to
+          complete a transfer you otherwise could not do. </para></entry>
+  </row>
+ </tbody></tgroup>
+</table>
+</refsect2>
+<refsect2 id="reliability"><title>Reliability Options</title>
+  <table><title>Reliability Options</title>
+<tgroup cols="2"><tbody> 
+  <row>
+    <entry>-rst | -restart </entry>
+    <entry><para> Restarts failed FTP operations. </para></entry>
+  </row>
+  <row>
+    <entry>-rst-retries &lt;retries&gt;</entry>
+    <entry><para> Specifies the maximum number of times to retry the operation
+        before giving up on the transfer. </para>
+        <para>Use 0 for infinite. </para>
+        <para>The default value is 5. </para></entry>
+  </row>
+  <row>
+    <entry>-rst-interval &lt;seconds&gt;</entry>
+    <entry><para> Specifies the interval in seconds to wait after a failure
+        before retrying the transfer. </para>
+        <para>Use 0 for an exponential backoff. </para>
+        <para>The default value is 0. </para></entry>
+  </row>
+  <row>
+    <entry>-rst-timeout &lt;seconds&gt;</entry>
+    <entry><para> Specifies the maximum time after a failure to keep retrying. </para>
+        <para>Use 0 for no timeout. </para>
+        <para>The default value is 0. </para></entry>
+  </row>
+  </tbody></tgroup>
+</table>
+</refsect2>
+
+<refsect2 id="performanceoptions"><title>Performance Options </title>
+  <table><title>Performance Options </title>
+<tgroup cols="2"><tbody>  
+<row>
+    <entry>-tcp-bs &lt;size&gt; | -tcp-buffer-size &lt;size&gt;</entry>
+    <entry><para> Specifies the size (in bytes) of the TCP buffer to be
+        used by the underlying ftp data channels. </para>
+        <para>This is critical to good performance over the WAN.  </para>
+      <para><link linkend="tcpbuffervalue">How do I pick a value?</link>
+        </para>
+    </entry>
+  </row>
+  <row>
+    <entry>-p &lt;<glossterm>parallelism</glossterm>&gt; | -parallel &lt;parallelism&gt;</entry>
+    <entry><para> Specifies the number of parallel data connections that
+        should be used. </para>
+        <para>This is one of the most commonly used options. </para>
+      <para><link linkend="parallelismvalue">How do I pick a value?</link>
+      </para>
+    </entry>
+  </row>
+  <row>
+    <entry>-bs &lt;block size&gt; | -block-size &lt;block size&gt;</entry>
+    <entry><para> Specifies the size (in bytes) of the buffer to be used
+        by the underlying transfer methods.</para></entry>
+  </row>
+  </tbody></tgroup>
+</table>
+</refsect2>
+
+<refsect2 id="securityoptions"><title>Security Related Options</title>
+  <table><title>Security Related Options</title>
+<tgroup cols="2"><tbody>
+  <row>
+    <entry>-s &lt;subject&gt; | -subject &lt;subject&gt;</entry>
+    <entry><para> Specifies a subject to match with both the source and
+      destination servers. </para>
+<note><para>Used when the server does not have access to the host certificate (usually when you are running the server as a user).</para></note>
+    </entry>
+  </row>
+  <row>
+    <entry>-ss &lt;subject&gt; | -source-subject &lt;subject&gt;</entry>
+    <entry><para> Specifies a subject to match with the source server.</para>
+      <note><para>Used when the server does not have access to the host certificate (usually when you are running the server as a user).</para></note></entry>
+  </row>
+  <row>
+    <entry>-ds &lt;subject&gt; | -dest-subject &lt;subject&gt;</entry>
+    <entry><para> Specifies a subject to match with the destination server.</para>
+      <para><note><simpara>Used when the server does not have access to the host certificate (usually when you are running the server as a user).</simpara></note></para></entry>
+  </row>
+  <row>
+    <entry>-nodcau | -no-data-channel-authentication</entry>
+    <entry><para> Turns off data channel authentication for FTP transfers
+        (the default is to authenticate the data channel). </para>
+        <para>We do <emphasis>not</emphasis> recommend this option, as it is a security
+          risk. </para></entry>
+  </row>
+  <row>
+    <entry>-dcsafe | -data-channel-safe</entry>
+    <entry><para> Sets data channel protection mode to SAFE. </para>
+        <para>Otherwise known as <emphasis>integrity</emphasis> or <emphasis>checksumming</emphasis>. </para>
+        <para>Guarantees that the data channel has not been altered, though a malicious
+          party may have observed the data. </para>
+        <para>Rarely used as there is a substantial performance penalty. </para></entry>
+  </row>
+  <row>
+    <entry>-dcpriv | -data-channel-private</entry>
+    <entry><para> Sets data channel protection mode to PRIVATE. </para>
+        <para>The data channel is encrypted and checksummed. </para>
+        <para>Guarantees that the data channel has not been altered and, if observed,
+          it won't be understandable. </para>
+        <para>VERY rarely used due to the VERY substantial performance penalty. </para></entry>
+  </row>
+</tbody></tgroup>
+</table>
+</refsect2>
+<refsect2 id="notes"><title>Notes about globus-url-copy </title>
+<itemizedlist>
+  <listitem><simpara> A <command>globus-url-copy</command> invocation using the <command>gsiftp</command> protocol with no options (using all the defaults) will do a binary, stream mode (which implies no parallelism) transfer with the host default TCP buffer size, an encrypted and checksummed control channel, and an authenticated data channel. 
+  </simpara></listitem>
+  <listitem><simpara> GridFTP (as well as normal FTP) defines multiple wire protocols, or MODES,
+    for the data channel. </simpara>
+        
+    <simpara>Most normal FTP servers only implement <glossterm baseform="stream mode (MODE S)">stream mode</glossterm>, i.e. the bytes
+    flow in order over a single TCP connection. GridFTP defaults to this
+    mode so that it is compatible with normal FTP servers.</simpara> 
+        
+    <simpara>However, GridFTP has another MODE, called Extended Block Mode, or <glossterm baseform="extended block mode (MODE E)">MODE
+    E</glossterm>. This mode sends the data over the data channel in blocks. Each
+    block consists of 8 bits of flags, a 64 bit integer indicating the offset
+    from the start of the transfer, and a 64 bit integer indicating the length
+    of the block in bytes, followed by a payload of length bytes. Because
+    the offset and length are provided, out of order arrival is acceptable, i.e. the 10th block could arrive before the 9th because you know explicitly where
+    it belongs. This allows us to use multiple TCP channels. If you
+    use the -p | -parallelism option, globus-url-copy automatically puts the
+      servers into MODE E.</simpara>
+        
+      <simpara> <emphasis>Note:</emphasis> Putting <command>-p 1</command> is not the same as no <command>-p</command> at
+        all. Both will use a single stream, but the default will use stream
+        mode and <command>-p 1</command> will use MODE E. 
+  </simpara></listitem>
+    <listitem><simpara><emphasis>If you run a GridFTP server by hand</emphasis>, you will need to
+    explicitly specify the subject name to expect. You can use the <command>-ss</command> flag
+    to set the sourceURL subject, and <command>-ds</command> to set the destURL subject. If
+    you use <command>-s</command> alone, it will set both to be the same. You
+    can see an example of this usage under the Verification section of this guide. <emphasis>Please
+    note: </emphasis> This is an <emphasis>unusual</emphasis> use of the client. Most times you only need to specify both URLs. </simpara></listitem>
+</itemizedlist>
+  <para>FIXME: the glossary mentions a <glossterm baseform="improved extended block mode (MODE X)">MODE X</glossterm> but it does not seemed to be mentioned in GridFTP documentation</para>
+</refsect2>
+  
+  <refsect2 id="choosingvalues">
+  <title>How do I choose a value?</title>
+    
+   <refsect3 id="tcpbuffervalue"> <title>How do I choose a value for the TCP buffer size (-tcp) option?</title>
+   
+     <para>The value you should pick for the TCP buffer size (-tcp-bs) depends on how fast you want to go (your bandwidth) and how far you are moving the data 
+     (as measured by the Round Trip Time (RTT) or the time it takes a packet to get to the destination and back. </para> 
+     
+    <para> To calculate the value for -tcp-bs, use the following formula (this assumes that Mega means 1000^2 rather than 1024^2, which is typical for bandwidth):</para>
+     
+     <para>-tcp-bs = bandwidth in Megabits per second (Mbs)  * RTT in milliseconds (ms)  * 1000 / 8</para>
+     
+     <para>As an example, if you are using fast ethernet (100 Mbs) and the RTT was 50 ms it would be:</para>
+     
+    <para> -tcp-bs = 100 * 50 * 1000 / 8 = 625,000 bytes.</para>
+     
+     <para>So, how do you come up with values for bandwidth and RTT?  To determine RTT, use either ping or traceroute.  They both list RTT values.</para>
+     
+     <para><note><simpara>You must be on one end of the transfer and ping the other end.  This means that if you are doing a <link linkend="gridftp-user-thirdpartytransfers">third party transfer</link> you have to run the ping or traceroute between the two server hosts, not from your client.</simpara></note></para>
+     
+     <para>The bandwidth is a little trickier.  Any point in the network can be the bottleneck, so you either need to talk with your network engineers to find out what the bottleneck link is or just assume that your host is the bottleneck and use the speed of your network interface card (NIC).</para>
+     
+     <note><simpara>The value you pick for -tcp-bs limits the top speed you can achieve.  You will NOT get bandwidth any higher than what you used in the calculation (assuming the RTT is actually what you specified; it varies a little with network conditions). So, if for some reason you want to limit the bandwidth you get, you can do that by judicious choice of -tcp-bs values.</simpara></note>
+     
+     <para>So where does this formula come from? Because it uses the bandwidth and the RTT (also known as the latency or delay) it is called the <emphasis>bandwidth delay product</emphasis>.
+     The very simple explanation is this: TCP is a reliable protocol.  It must save a copy of everything it sends out over the network until the other end acknowledges that it has 
+     been received.</para>  
+     
+     <para>As a simple example, if I can put one byte per second onto the network, and it takes 10 seconds for that byte to get there, and 10 seconds for the 
+     acknowledgment to get back (RTT = 20 seconds), then I would need at least 20 bytes of storage.  Then, hopefully, by the time I am ready to send byte 21, 
+     I have received an acknowledgement for byte 1 and I can free that space in my buffer.  If you want a more detailed explanation, try the following links on TCP tuning:</para>
+     
+     <itemizedlist>
+       <listitem><simpara><ulink url="http://www.psc.edu/networking/perf_tune.html">http://www.psc.edu/networking/perf_tune.html</ulink></simpara></listitem>
+       <listitem><simpara><ulink url="http://www-didc.lbl.gov/TCP-tuning/">http://www-didc.lbl.gov/TCP-tuning/</ulink></simpara></listitem>
+       <listitem><simpara><ulink url="http://www.ncne.nlanr.net/research/tcp/">http://www.ncne.nlanr.net/research/tcp/</ulink></simpara></listitem>
+     </itemizedlist>
+   </refsect3>
+    
+<refsect3 id="parallelismvalue">    
+<title>  How do I choose a value for the parallelism (-p) option?</title>
+<para>For most instances, using 4 streams is a very good rule of thumb.  Unfortunately, there is not a good formula for 
+  picking an exact answer.  The shape of the graph shown here is very characteristic.  </para>
+  
+  <figure id="parallelism_chart"><title>Effect of Parallel Streams in GridFTP</title>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="data/gridftp/parallelism_chart.gif" format="GIF" align="center"/>
+      </imageobject>
+    </mediaobject>
+  </figure>
+  
+<para>You get a strong, nearly linear, increase in bandwidth, then a sharp knee, after which additional streams have very little impact.  
+  Where this knee is depends on many things, but it is generally between 2 and 10 streams.  Higher bandwidth, longer round trip times, and 
+    more congestion in the network (which you usually can only guess at based on how applications are behaving) will move 
+    the knee higher (more streams needed). </para> 
+  
+<para>  In practice, between 4 and 8 streams are usually sufficient.  If things look really bad, 
+    try 16 and see how much difference that makes over 8.  However, anything above 16, other than for academic interest, is 
+    basically wasting resources.</para>
+    </refsect3>
+  </refsect2>
+</refsect1>
+
+<refsect1><title>Limitations</title>
+<para>There are no limitations for <command>globus-url-copy</command> in GT &shortversion;. </para>
+</refsect1>
+
+<refsect1 id="interactiveclients"><title>Interactive clients for GridFTP </title>
+<para>The Globus Project does <emphasis>not</emphasis> provide an interactive client
+  for GridFTP. Any normal FTP client will work with a GridFTP server, but
+  it cannot take advantage of the advanced features of GridFTP. The interactive
+  clients listed below take advantage of the advanced features of GridFTP.</para>
+<para> There is no endorsement implied by their presence here. We make no
+  assertion as to the quality or appropriateness of these tools, we simply provide
+  this for your convenience. We will <emphasis>not</emphasis> answer questions,
+  accept bugs, or in any way shape or form be responsible for these tools, although
+  they should have mechanisms of their own for such things. </para>
+  <para><emphasis><indexterm type="howto-data"><primary>interactive
+    clients</primary><secondary>UberFTP</secondary></indexterm></emphasis> was developed at the NCSA under the auspices of NMI
+  and TeraGrid. It is available through NMI (also a convenient place to get
+  Globus and other tools), or directly from NCSA:</para>
+<itemizedlist>
+  <listitem><simpara>NMI Download: <ulink url="http://nsf-middleware.org/">http://nsf-middleware.org/ </ulink></simpara></listitem>
+  <listitem><simpara> NCSA Uberftp only download: <ulink url="http://dims.ncsa.uiuc.edu/set/uberftp/download/index.html">http://dims.ncsa.uiuc.edu/set/uberftp/download/index.html </ulink></simpara></listitem>
+  <listitem><simpara> UberFTP User's Guide: <ulink url="http://teragrid.ncsa.uiuc.edu/Doc/Data/uberftp.html">http://teragrid.ncsa.uiuc.edu/Doc/Data/uberftp.html </ulink></simpara></listitem>
+</itemizedlist>
+</refsect1>
+</refentry>
+
+
+

@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<para>If you are having problems using the GridFTP <glossterm>server</glossterm>, try the steps listed below.  
+    If you have an error, try checking the server logs if you have access to them.  By default, the 
+    server logs to stderr, unless it is running from inetd, or its execution mode is detached, 
+    in which case logging is disabled by default. </para>
+    
+    <para> The command line options -d , -log-level, -L and -logdir can affect where logs will be written, 
+        as can the configuration file options log_single and log_unique.  See the <link linkend="gridftp-pi-config">Configuration information in the Public Interfaces Guide</link>
+        for more information on these and other configuration options.</para>
+<section >
+            <title>Establish control channel connection</title>
+            <para>Verify that you can establish a control channel connection and that the server has started successfully by telnetting to the port on which the server is running: </para>
+            <screen>% telnet localhost 2811
+                Trying 127.0.0.1...
+                Connected to localhost.
+                Escape character is '^]'.
+                220 GridFTP Server mldev.mcs.anl.gov 2.0 (gcc32dbg, 1113865414-1) ready.</screen>
+            <para>If you see anything other than a 220 banner such as the one above, the server has not started correctly.</para>
+            
+            
+            <para>Verify that there are no configuration files being unexpectedly loaded from /etc/grid-security/gridftp.conf or $GLOBUS_LOCATION/etc/gridftp.conf.  If those files exist, and you did not intend for them to be used, rename them to .save, or specify -c none on the command line and try again.</para>
+            <para>If you can log into the machine where the server is, try running the server from the command line with only the -s option: </para>
+            <screen>$GLOBUS_LOCATION/sbin/globus-gridftp-server -s</screen>
+            <para>The server will print the port it is listening on: </para>
+            <screen>Server listening at gridftp.mcs.anl.gov:57764</screen>
+            <para>Now try and telnet to that port.  If you still do not get the banner listed above, something is preventing the socket connection.  Check firewalls, tcp-wrapper, etc.</para>
+            <para>If you now get a correct banner, add -p 2811 (you will have to disable (x)inetd on port 2811 if you are using them or you will get port already in use):</para>
+            <screen>$GLOBUS_LOCATION/sbin/globus-gridftp-server -s -p 2811</screen>
+            <para>Now telnet to port 2811.  If this does not work, something is blocking port 2811. Check firewalls, tcp-wrapper, etc.</para>
+            <para>If this works correctly then re-enable your normal server, but remove all options but -i, -s, or -S.</para>
+            <para>Now telnet to port 2811.  If this does not work, something is wrong with your service configuration. Check /etc/services and (x)inetd config, have (x)inetd restarted, etc.</para>
+            <para>If this works, begin adding options back one at a time, verifying that you can telnet to the server after each option is added.  Continue this till you find the problem or get all the options you want. </para>
+            <para>At this point, you can establish a control connection.  Now try running globus-url-copy.</para>
+        </section>
+	<section >
+            <title>Try running globus-url-copy</title>
+            <para>Once you've verified that you can establish a control connection, try to make a transfer using globus-url-copy.</para>
+            
+            
+            
+	    <para>If you are doing a <glossterm>client</glossterm>/server transfer (one of your URLs has <filename>file:</filename> in it) then try:</para>
+            <screen>globus-url-copy -vb -dbg gsiftp://host.server,running.on/dev/zero file:///dev/null</screen>
+            <para>This will run until you control-c the transfer.  If that works, reverse the direction:</para>
+            <screen>globus-url-copy -vb -dbg file:///dev/zero gsiftp://host.server.running.on/dev/null</screen>
+            <para>Again, this will run until you control-c the transfer.</para>
+            
+            
+            
+	    <para>If you are doing a <glossterm baseform="third party transfers">third party transfer</glossterm>, run this command:</para>
+            <screen>globus-url-copy -vb -dbg gsiftp://host.server1.on/dev/zero gsiftp://host.server2.on/dev/null</screen>
+            <para>Again, this will run until you control-c the transfer.</para>
+            <para>If the above transfers work, try your transfer again.  If it fails, you likely have some sort of file permissions problem, typo in a file name, etc.</para>
+        </section>
+	<section >
+            <title>If your server starts...</title>
+            <para>If the server has started correctly, and your problem is with a security failure or gridmap lookup failure, 
+                verify that you have security configured properly here.</para>
+            <para>If the server is running and your client successfully authenticates but has a problem at some other 
+                time during the session, please ask for help on discuss@globus.org.  When you send mail or submit bugs, 
+                please always include as much of the following information as possible:</para>
+            <itemizedlist>
+		    <listitem><simpara>Specs on all hosts involved (OS, processor, RAM, etc).</simpara></listitem>
+		    <listitem><simpara>globus-url-copy -version</simpara></listitem>
+		    <listitem><simpara>globus-url-copy -versions </simpara></listitem>
+		    <listitem><simpara>Output from the telnet test above.</simpara></listitem>
+		    <listitem><simpara>The actual command line you ran with -dbg added.  Don't worry if the output gets long.</simpara></listitem>
+		    <listitem><simpara>Check that you are getting a FQDN and /etc/hosts that is sane.</simpara></listitem>
+		    <listitem><simpara>The server configuration and setup (/etc/services entries, (x)inetd configs, etc.).</simpara></listitem>
+		    <listitem><simpara>  Any relevant lines from the server logs (not the entire log please).</simpara></listitem></itemizedlist>
+        </section>
