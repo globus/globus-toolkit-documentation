@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<section id="rft-usage-scenario-2">
+        <title>Deleting a set of files and directories using GridFTP </title>
+<para>RFT can also be used to delete a set of files and directories using GridFTP server. The following steps depict how to:
+</para><para>
+<itemizedlist>
+<listitem><para>Contact the Delegation Factory Service and get an EPR for the Delegation Resource that contains your delegated credential. 
+<screen><computeroutput>
+ public static EndpointReferenceType
+        delegateCredential(String host, String port) throws Exception {
+        ClientSecurityDescriptor desc = new ClientSecurityDescriptor();
+        // Credential to sign with, assuming default credential
+        GlobusCredential credential = GlobusCredential.getDefaultCredential();
+        desc.setGSITransport(Constants.GSI_TRANSPORT)
+        Util.registerTransport();
+        desc.setAuthz('host');
+
+        String factoryUrl = PROTOCOL + "://" + host + ":"
+                        + port + SERVICE_URL_ROOT
+                        + DelegationConstants.FACTORY_PATH;
+
+        // lifetime in seconds
+        int lifetime = TERM_TIME * 60;
+
+        // Get the public key to delegate on.
+        EndpointReferenceType delegEpr = AddressingUtils
+                .createEndpointReference(factoryUrl, null);
+        X509Certificate[] certsToDelegateOn = DelegationUtil
+                .getCertificateChainRP(delegEpr, desc);
+        X509Certificate certToSign = certsToDelegateOn[0];
+        return DelegationUtil.delegate(factoryUrl,
+                    credential, certToSign, lifetime, false,
+                    desc);
+    }
+    </computeroutput></screen>
+    </para></listitem>
+    <listitem><para> Now construct a DeleteRequestType object:
+    <screen><computeroutput>
+    DeleteType[] deleteArray = new DeleteType[1];
+    deleteArray[0] = new DeleteType();
+    deleteArray[0].setFile("gsiftp://foo/bar");
+    DeleteOptionsType deleteOptions = new DeleteOptionsType();
+    deleteOptions.setSubjectName("SUBJECT-NAME");
+    DeleteRequestType request = new DeleteRequestType();
+    request.setDeleteOptions(deleteOptions);
+    request.setDeletion(deleteArray);
+    request.setTransferCredentialEndpoint(delegateCredential(host,port));
+    </computeroutput></screen>
+    </para></listitem>
+    <listitem><para> Now contact the RFT factory and create an RFT resource:
+    <screen><computeroutput>
+      public static EndpointReferenceType createRFT(String rftFactoryAddress,
+            BaseRequestType request) 
+    throws Exception {
+        endpoint = new URL(rftFactoryAddress);
+        factoryPort = rftFactoryLocator
+                .getReliableFileTransferFactoryPortTypePort(endpoint);
+        CreateReliableFileTransferInputType input =
+            new CreateReliableFileTransferInputType();
+        //input.setTransferJob(transferType);
+        if(request instanceof TransferRequestType) {
+            input.setTransferRequest((TransferRequestType)request);
+        } else {
+            input.setDeleteRequest((DeleteRequestType)request);
+        }
+        Calendar termTime = Calendar.getInstance();
+        termTime.add(Calendar.HOUR, 1);
+        input.setInitialTerminationTime(termTime);
+        setSecurity((Stub)factoryPort);
+        CreateReliableFileTransferOutputType response = factoryPort
+                .createReliableFileTransfer(input);
+
+        return response.getReliableTransferEPR();
+    }
+</computeroutput></screen> </para></listitem>
+<listitem><para>Now contact the RFT service Implementation and call start to actually start the transfer:
+<screen><computeroutput>
+ReliableFileTransferPortType rft = rftLocator
+                .getReliableFileTransferPortTypePort(rftepr);
+        setSecurity((Stub)rft);
+
+        //For secure notifications
+        subscribe(rft);
+        System.out.println("Subscribed for overall status");
+        //End subscription code
+        Calendar termTime = Calendar.getInstance();
+        termTime.add(Calendar.MINUTE, TERM_TIME);
+        SetTerminationTime reqTermTime = new SetTerminationTime();
+        reqTermTime.setRequestedTerminationTime(termTime);
+        System.out.println("Termination time to set: " + TERM_TIME
+                + " minutes");
+        SetTerminationTimeResponse termRes = rft
+                .setTerminationTime(reqTermTime);
+        StartOutputType startresp = rft.start(new Start());
+</computeroutput></screen>
+</para></listitem>
+</itemizedlist>
+</para>
+</section>

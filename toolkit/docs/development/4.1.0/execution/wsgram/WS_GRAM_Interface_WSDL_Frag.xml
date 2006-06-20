@@ -1,0 +1,188 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<section><title>Protocol overview</title>
+<para> WS-GRAM allows for remote execution and management of programs
+through the creation of a managed job. The management of the job is
+taken care of primarily by core toolkit functionality
+(WS-ResourceLifetime and WS-BaseN implementations).  Please see <xref 
+linkend="javawscore"/> on notifications and resource lifetime (destruction)
+for more information.</para>
+
+
+<section><title>Managed Job Factory Service (MJFS)</title>
+<para>  A single MJFS is used to create all jobs for all users. For each local
+  resource manager, a dedicated Managed Job Factory Resource (MJFR)
+  enables the MJFS to publish information about the characteristics of the
+  compute resource, for example:</para>
+<itemizedlist>
+  <listitem><simpara>host information</simpara></listitem>
+  <listitem><simpara>GridFTP URL (for file staging and streaming)</simpara></listitem>
+  <listitem><simpara>compute cluster size and configuration, and so on... </simpara></listitem>
+</itemizedlist>
+<para>
+In addition, there is a special MJFR which is used for creating MMJRs.
+</para>
+</section>
+
+<section><title>Managed Executable Job Service (MEJS)</title>
+  <para>  A single <glossterm baseform="Managed Executable Job Service">MEJS</glossterm> is used to manage all executable jobs for all users.
+  Each Managed Executable Job Resource (MEJR) enables the MEJS to publish
+  information about the individual job the MEJR represents. This information
+  can be accessed by querying the MEJS for the resource properties of
+  a given MEJR, such as the:</para>
+<itemizedlist>
+  <listitem><simpara>  current job state</simpara></listitem>
+  <listitem><simpara>  stdout location</simpara></listitem>
+  <listitem><simpara>  stderr location</simpara></listitem>
+  <listitem><simpara>  exit code, and so on. </simpara></listitem>
+</itemizedlist>
+
+</section>
+
+
+  <section><title>Managed Multi Job Service (MMJS)</title>
+<para>  A single MMJS is used to manage all multi-jobs for all users.
+  Each Managed Multi-Job Resource (MMJR) enables the MMJS to publish
+  information about the individual multi-job the MMJR represents. This
+  information can be accessed by querying the MMJS for the resource properties
+  of a given MMJR, such as the:</para>
+<itemizedlist>
+  <listitem><simpara>current overall job state</simpara></listitem>
+  <listitem><simpara>list of sub-job EPRs</simpara></listitem>
+  <!--
+  <listitem><simpara>stdout location</simpara></listitem>
+  <listitem><simpara>stderr location</simpara></listitem>
+  -->
+</itemizedlist>
+
+</section>
+</section>
+
+<section><title>Operations</title>
+
+<para>There are just two operations defined in the GRAM port types (not counting
+the Rendezvous port type which is used for MPI job synchronization):
+"createManagedJob" in the Managed Job Factory port type, and "release" in the
+Managed Job port type. All other operations (such as canceling/killing the job
+and querying for resource properties) are provided by the underlying WSRF
+implementation of the toolkit.</para>
+
+
+
+
+<section><title>ManagedJobFactoryPortType</title>
+
+<itemizedlist>
+  <listitem><simpara><computeroutput>createManagedJob</computeroutput>:  This operation creates either a
+    MEJR or MMJR, subscribes the client for notifications if requested, and replies
+    with one or two endpoint references (EPRs). The input of this operation consists
+    of a <glossterm>job description</glossterm>, an optional initial termination time for the job resource,
+    and an optional state notification subscription request.</simpara></listitem>
+</itemizedlist>
+<blockquote>
+  <para>The first EPR:
+  </para>
+  <itemizedlist>
+    <listitem><simpara>is qualified with the identifier to the newly created MEJR or MMJR</simpara></listitem>
+    <listitem><simpara>points to either the MEJS or MMJS.</simpara></listitem>
+  </itemizedlist>
+  <para>The second EPR:
+  </para>
+  <itemizedlist>
+    <listitem><simpara>is only present if a notification subscription was requested</simpara></listitem>
+    <listitem><simpara>is qualified with the identifier to the newly created subscription
+              resource</simpara></listitem>
+    <listitem><simpara>points to the subscription manager service.</simpara></listitem>
+  </itemizedlist>
+  <para>Using the optional subscription request provides an efficient means of subscribing to the newly created MEJR or MMJR without additional round-trip messages. Clients who subscribe afterwards must check the current status of the job, since the inherent race-condition means some state-changes may have occurred prior to the separate subscription request. In any event, there is a slight risk of lost notifications due to the lack of reliability guarantees in the notification delivery mechanism from WS-BaseNotification.</para>
+</blockquote>
+<para>The ManagedJobFactoryPortType also has all the operations and
+  publishes all the resource properties (via the MJFR) defined in the
+  following <ulink
+  url="http://www.ibm.com/developerworks/library/ws-resource/ws-resourceproperties.pdf">WS-ResourceProperties</ulink> port types:</para> 
+<itemizedlist> 
+    <listitem><simpara><computeroutput>GetResourceProperty</computeroutput></simpara></listitem>
+    <listitem><simpara><computeroutput>GetMultipleResourceProperties</computeroutput></simpara></listitem>
+    <listitem><simpara><computeroutput>QueryResourceProperties</computeroutput></simpara></listitem> 
+</itemizedlist>
+</section>
+<section><title>ManagedJobPortType</title>
+
+<itemizedlist>
+  <listitem><simpara><computeroutput>release: </computeroutput>This operation takes no parameters and returns nothing.
+    Its purpose is to release a hold placed on a state through the use of the "holdState" field
+    in the job description. See the <ulink url="&docpath;execution/wsgram/schemas/gram_job_description.html">domain-specific
+    WS GRAM component documentation</ulink> for more information on the "holdState" field.</simpara></listitem>
+</itemizedlist>
+<para>The ManagedJobPortType also has all the operations
+  and publishes all the resource properties (via the MJFR)
+defined in the following port types:</para>
+<blockquote>
+  <para><emphasis><ulink url="http://www.ibm.com/developerworks/library/ws-resource/ws-resourceproperties.pdf">WS-ResourceProperties</ulink> port types:
+  </emphasis></para>
+  <itemizedlist>
+    <listitem><simpara><computeroutput> GetResourceProperty</computeroutput></simpara></listitem>
+    <listitem><simpara><computeroutput>GetMultipleResourceProperties</computeroutput></simpara></listitem>
+    <listitem><simpara><computeroutput> QueryResourceProperties</computeroutput></simpara></listitem>
+  </itemizedlist>
+  <para><emphasis> <ulink url="http://www.ibm.com/developerworks/library/ws-resource/ws-resourcelifetime.pdf">WS-ResourceLifetime</ulink> port types:
+  </emphasis></para>
+  <itemizedlist>
+    <listitem><simpara><computeroutput> ScheduledResourceTermination</computeroutput></simpara></listitem>
+    <listitem><simpara><computeroutput> ImmediateResourceTermination</computeroutput></simpara></listitem>
+  </itemizedlist>
+  <para><emphasis> <ulink url="ftp://www6.software.ibm.com/software/developer/library/ws-notification/WS-BaseN.pdf">WS-BaseNotification</ulink> port type:
+  </emphasis></para>
+  <itemizedlist>
+    <listitem><simpara><computeroutput> NotificationProducer</computeroutput></simpara></listitem>
+  </itemizedlist>
+</blockquote>
+</section>
+<section><title>Managed Executable Job Port Type</title>
+<para>
+  This port type does not define any new operations.  See "Resources Properties" under <xref linkend="wsgram-developer-wsdl"/>.
+</para></section>
+
+
+<section><title>Managed Multi-Job Port Type</title>
+<para>
+This port type does not define any new operations.  See "Resources properties" below. </para>
+</section>
+</section>
+
+
+<section><!-- no ids in frags used more than once:  id="wsgram-Interface_WSDL_Frag-rp" --><title>Resource properties</title>
+&WS_GRAM_Resource_Properties_Summary_Frag;
+
+</section>
+
+
+<section><!-- no ids in frags used more than once:  id="wsgram-Interface_WSDL_Frag-wsdlandschema"  --><title>WSDL and Schema Definition</title>
+<para>WSDL links:</para>
+<itemizedlist>
+  <listitem><simpara><ulink url="http://viewcvs.globus.org/viewcvs.cgi/ws-gram/common/schema/gram/managed_job_factory_port_type.wsdl?rev=1.5&amp;only_with_tag=globus_4_0_0&amp;content-type=text/vnd.viewcvs-markup">ManagedJobFactoryPortType</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="http://viewcvs.globus.org/viewcvs.cgi/ws-gram/common/schema/gram/managed_job_port_type.wsdl?rev=1.6&amp;only_with_tag=globus_4_0_0&amp;content-type=text/vnd.viewcvs-markup">ManagedJobPortType</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="http://viewcvs.globus.org/viewcvs.cgi/ws-gram/common/schema/gram/managed_executable_job_port_type.wsdl?rev=1.4&amp;only_with_tag=globus_4_0_0&amp;content-type=text/vnd.viewcvs-markup">ManagedExecutableJobPortType</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="http://viewcvs.globus.org/viewcvs.cgi/ws-gram/common/schema/gram/managed_multi_job_port_type.wsdl?rev=1.3&amp;only_with_tag=globus_4_0_0&amp;content-type=text/vnd.viewcvs-markup">ManagedMulti-JobPortType</ulink></simpara></listitem>
+</itemizedlist>
+  
+  <para>Schema links:</para> 
+  <itemizedlist>
+    <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/cas_types.html">CAS Types</ulink></simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/gram_fs_map.html">File System Mapping Config Schema</ulink></simpara></listitem>
+    <listitem><para>GLUE Schema
+      <itemizedlist> 
+        <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/batchproviders.html">Batch Providers</ulink></simpara></listitem>
+        <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/glue_ce.html">Compute Element</ulink></simpara></listitem>
+        <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/metadata.html">Metadata</ulink></simpara></listitem></itemizedlist>
+    </para>
+    </listitem>
+    <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/gram_job_description.html">Job Description Schema</ulink></simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/mj_faults.html">Managed Job Faults Schema</ulink></simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/mj_types.html">Managed Job Types Schema</ulink></simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/rft_types.html">RFT Types Schema</ulink></simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/ws_addressing.html">WS Addressing Schema</ulink></simpara></listitem>
+    <listitem><simpara><ulink url="&docpath;execution/wsgram/schemas/ws_base_faults.html">WS Base Faults Schema</ulink></simpara></listitem></itemizedlist>
+  
+  
+</section>

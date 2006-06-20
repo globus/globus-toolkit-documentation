@@ -1,0 +1,164 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+
+<section> <!-- no ids if frag used more than once id="rft-config_overview"--><title>Configuration overview</title>
+<para>RFT has the following prerequisites: </para>
+<itemizedlist>
+  <listitem><simpara><xref linkend="javawscore"/> - This is built and installed in a <xref linkend="gtadmin"/>.</simpara></listitem>
+  <listitem><simpara>A host certificate (see <xref linkend="gtadmin"/>).</simpara></listitem>
+  <listitem><simpara><xref linkend="gridftp"/> - GridFTP performs the actual file transfer and is built and installed in
+    a <xref linkend="gtadmin" />.</simpara></listitem>
+  <listitem><simpara>PostgreSQL - PostgreSQL is used to store the state of the transfer to allow
+    for restart after failures. The interface to PostgreSQL is JDBC, so any DBMS that supports JDBC can be used, although no others have been tested. For instructions on configuring the PostgreSQL database for RFT, see below. <!-- not if this frag appears more than once! xref linkend="rft-postgresql"/ -->. </simpara></listitem>
+</itemizedlist>
+</section>
+
+<section> <!-- no ids if frag used more than once id="rft-config_settings" --> <title>Syntax of the interface</title>
+<para>The security of the service can be configured by modifying the <link linkend="authzframe-security-descriptor">security descriptor</link>. It allows for configuring the credentials that will be used by the service, type of authentication and authorization that needs to be enforced. By default, the following security configuration is installed:</para>
+<itemizedlist>
+  <listitem><simpara>Credentials set for use by the container are used. If they arenot specified, default credentials are used. </simpara></listitem>
+  <listitem><simpara>GSI Secure conversation authentication is enforced for all methods.</simpara></listitem>
+</itemizedlist>
+<para><emphasis>Note</emphasis>: Changing the required authentication and authorization method will require suitable changes to the clients that contact this service. </para>
+  <para>To alter the security descriptor configuration, refer to <link linkend="authzframe-security-descriptor">security descriptor</link>. The file to be altered is <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_rft/security-config.xml</computeroutput>.</para>
+</section>
+
+<section> <!-- no ids if frag used more than once id="rft-postgresql" --><title>Required configuration: configuring the PostgreSQL
+  database</title>
+  <para>PostgreSQL (version 7.1 or greater) needs to be installed and configured for
+    RFT to work. You can either use the packages which came with your operating
+    system (RPMs, DEBs, ...) or build from source. We used
+    PostgreSQL version 7.3.2 for our testing and the following instructions are
+    good for the same. </para>
+  
+  <orderedlist>
+    <listitem><para>Install PostgreSQL. Instructions on how to install/configure
+      PostgreSQL can be found <ulink
+        url="http://www.postgresql.org/docs/manuals/">here</ulink>.</para></listitem>
+    <listitem><para>Configure the postmaster daemon
+      so that it accepts TCP connections. This can be done by adding the "-o -i" switch
+      to the postmaster script (This is either the init.d script found in /etc/init.d/postgresql or /var/lib/, depending on how you installed PostgreSQL). Follow the instructions <ulink url="http://www.postgresql.org/docs/7.4/static/postmaster-start.html">here</ulink> to start the postmaster with the -i option.</para></listitem> 
+    <listitem><para> You will now need to create a PostgreSQL user that will connect to 
+      the database. This is usually the account under which the container is 
+      running. You can create a PostgreSQL user by running the following command:
+      <computeroutput>su postgres; createuser globus</computeroutput>. If you get the following error:
+      <computeroutput>
+        psql: could not connect to server: No such file or directory
+        Is the server running locally and accepting
+        connections on Unix domain socket "/tmp/.s.PGSQL.5432"?
+      </computeroutput>
+      this generally  means that either your postmaster is not started with the -i option or you didn't restart the postmaster after the above mentioned step.</para></listitem>
+    
+    <listitem><para> Now you need to set security on the database you are about to create. You can do it by following the steps below: </para>
+      <para>
+        <computeroutput>sudo vi /var/lib/pgsql/data/pg_hba.conf </computeroutput> and append the following line to the file:
+      </para>
+      <para>
+        <computeroutput>
+          host rftDatabase "username" "host-ip" 255.255.255.255 md5
+        </computeroutput>
+        Note: use crypt instead of md5 if you are using PostgreSQL 7.3 or earlier.
+      </para>
+      
+      <para><computeroutput> sudo /etc/init.d/postgresql restart </computeroutput>
+      </para></listitem>
+    <listitem><para>To create the database that is used for RFT run (as user globus):
+      <computeroutput>createdb rftDatabase</computeroutput>.</para></listitem>
+    <listitem><para>To populate the RFT database with the appropriate schemas run: <computeroutput>psql -d rftDatabase -f $GLOBUS_LOCATION/share/globus_wsrf_rft/rft_schema.sql</computeroutput>. Now that you have created a database to store RFT's state, the following steps configure RFT to find the database:
+    </para></listitem>
+    <listitem><para>Open <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_rft/jndi-config.xml</computeroutput>.</para></listitem>
+    <listitem><para>Find the <computeroutput>dbConfiguration</computeroutput> section under the <computeroutput>ReliableFileTransferService &lt;service&gt;</computeroutput> section. </para></listitem>
+    <listitem><para>Change the <computeroutput>connectionString</computeroutput> to point to the machine on which
+      you installed PostgreSQL and to the name of the database you used in step 2. 
+      If you installed PostgreSQL on the same machine as your Globus install, the
+      default should work fine for you.</para></listitem>
+    <listitem><para>Change the <computeroutput>userName</computeroutput> to the name of the user who owns/created
+      the database and do the same for the password (it also depends on how you configured your database).</para></listitem>
+    <listitem><para>Don't worry about the other parameters in the section. The defaults should
+      work fine for now.</para></listitem>
+    <listitem><para>Edit the configuration section under <computeroutput>ReliableFileTransferService</computeroutput>. There are two values that can be edited in this section:</para></listitem>
+    <listitem><para><itemizedlist>
+      <listitem><para><computeroutput>backOff</computeroutput>: Time in seconds you want RFT to backoff before a failed transfer is retried by RFT. The default should work fine for now.</para></listitem>
+      <listitem><para><computeroutput>maxActiveAllowed</computeroutput>: This is the number of transfers the container can do at given point. The default should be fine for now.</para></listitem>
+    </itemizedlist></para></listitem>
+  </orderedlist>
+</section>
+
+<section> <!-- no ids if frag used more than once id="rft-autoregistration"--> <title>RFT auto-registration with default WS MDS Index Service</title>
+  <para>With a default GT &shortversion; installation, the RFT service is automatically registered with the default <link linkend="info">WS MDS Index Service</link> running in the same container for monitoring 
+  and discovery purposes.</para>
+  
+  <!-- doesn't seem like this note is necessary anymore?
+  <note><simpara> If you are using GT 4.0.0, we strongly recommend upgrading to 4.0.1 to take advantage of this capability. </simpara></note>
+<para>   However, if must use GT 4.0.0, or if this registration was turned off and you want to turn it back on, this is how it is configured:</para>
+  -->
+<para>There is a jndi resource defined in <filename>$GLOBUS_LOCATION/etc/globus_wsrf_rft/jndi-config.xml</filename> as follows :</para>
+ <screen> 
+  &lt;resource name="mdsConfiguration" 
+   
+    type="org.globus.wsrf.impl.servicegroup.client.MDSConfiguration"&gt;
+     &lt;resourceParams&gt;
+       &lt;parameter&gt; 
+         &lt;name&gt;reg&lt;/name&gt;
+         &lt;value&gt;true&lt;/value&gt;
+       &lt;/parameter&gt;
+       &lt;parameter&gt; 
+         &lt;name&gt;factory&lt;/name&gt;
+         &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+       &lt;/parameter&gt;
+     &lt;/resourceParams&gt;
+   &lt;/resource&gt;
+  </screen>
+  
+  <para>To configure the automatic registration of RFT to the default WS MDS Index Service, change the value of the parameter 
+    <computeroutput>&lt;reg&gt;</computeroutput> as follows:</para>
+  <itemizedlist>
+  <listitem><simpara><computeroutput>true</computeroutput> turns on auto-registration; this is the default in GT &shortversion;.</simpara></listitem>
+  <listitem><simpara><computeroutput>false</computeroutput> turns off auto-registration.</simpara></listitem>
+  </itemizedlist>
+  
+  <section><title>Configuring resource properties</title>
+    <para>By default, the following resource properties (from the RFT Factory Resource) are sent to the default Index Service:</para>
+    &RFT_Resource_Properties_RFT_Factory_Resource;
+    
+   <para> You can configure which resource properties are sent in RFT's registration.xml file, <filename>$GLOBUS_LOCATION/etc/globus_wsrf_rft/registration.xml</filename>.  
+     The following is the relevant section of the file:</para>
+    
+    <screen>
+      &lt;Content xsi:type="agg:AggregatorContent"
+        xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+        
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+              
+        &lt;agg:GetMultipleResourcePropertiesPollType
+         xmlns:rft="http://www.globus.org/namespaces/2004/10/rft"&gt;
+        &lt;!-- Specifies that the index should refresh information
+            every 60000 milliseconds (once per minute) --&gt;
+          &lt;agg:PollIntervalMillis>60000&lt;/agg:PollIntervalMillis&gt;
+                            
+          &lt;!-- specifies that all Resource Properties should be
+              collected from the RFT factory --&gt;
+                            
+          &lt;agg:ResourcePropertyNames&gt;rft:TotalNumberOfBytesTransferred&lt;/agg:ResourcePropertyNames&gt;
+          &lt;agg:ResourcePropertyNames&gt;rft:TotalNumberOfActiveTransfers&lt;/agg:ResourcePropertyNames&gt;
+          &lt;agg:ResourcePropertyNames&gt;rft:RFTFactoryStartTime&lt;/agg:ResourcePropertyNames&gt;
+          &lt;agg:ResourcePropertyNames&gt;rft:ActiveResourceInstances&lt;/agg:ResourcePropertyNames&gt;
+                            
+          &lt;agg:ResourcePropertyNames&gt;rft:TotalNumberOfTransfers&lt;/agg:ResourcePropertyNames&gt;
+                      
+        &lt;/agg:GetMultipleResourcePropertiesPollType&gt;
+      &lt;/agg:AggregatorConfig&gt; 
+      &lt;agg:AggregatorData/&gt;
+      &lt;/Content&gt;
+      </screen>
+
+  </section>
+</section>
+
+<section> <!-- no ids if frag used more than once id="rft-registering-remotely"--><title>Registering RFT manually with default WS MDS Index Service</title>
+  <para>If a third party needs to register an RFT service manually, see <link linkend="mds-servicegroup-add-registering">Registering with mds-servicegroup-add</link> in the WS MDS Aggregator Framework documentation.</para>
+</section>  
+  
+
+
+

@@ -1,0 +1,665 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<section><!-- Frags used more than once cannot have ids id="wsgram-admin-configuring-typical"--> <title>Typical Configuration</title>
+    
+    <section> <!-- Frags used more than once cannot have ids id="wsgram-admin-configsudo"--><title>Configuring sudo</title>
+        <para>When the credentials of the service account and the job submitter are different
+            (multi user mode), then GRAM will prepend a call to sudo to the local adapter
+            callout command. <emphasis>Important:</emphasis> If sudo is not configured properly, the command
+            and thus job will fail.</para>
+        <para>
+            As <emphasis>root</emphasis>, here are the two lines to add to the
+            /etc/sudoers file for each GLOBUS_LOCATION installation, where
+            /opt/globus/GT&version; should be replaced with the GLOBUS LOCATION for your
+            installation:
+            <screen># Globus GRAM entries
+                globus  ALL=(username1,username2) 
+                NOPASSWD: /opt/globus/GT&version;/libexec/globus-gridmap-and-execute 
+                -g /etc/grid-security/grid-mapfile
+                /opt/globus/GT&version;/libexec/globus-job-manager-script.pl *
+                globus  ALL=(username1,username2) 
+                NOPASSWD: /opt/globus/GT&version;/libexec/globus-gridmap-and-execute 
+                -g /etc/grid-security/grid-mapfile
+                /opt/globus/GT&version;/libexec/globus-gram-local-proxy-tool *
+            </screen>
+            
+        </para>
+        <para>
+            The <computeroutput>globus-gridmap-and-execute</computeroutput> program is
+            used to ensure that GRAM only runs programs under accounts that are in the
+            grid-mapfile.  In the sudo configuration, it is the first program called.
+            It looks up the account in the grid-mapfile and then runs the requested 
+            command.  It is redundant if sudo is properly locked down.  This tool 
+            could be replaced with your own authorization program.
+        </para>
+    </section>
+    <!-- Configuring sudo -->
+    
+    <section> <!-- Frags used more than once cannot have ids: id="wsgram-admin-configuringscheduleradapters"--><title>Configuring Scheduler Adapters</title>
+        <para>
+            The WS GRAM scheduler adapters included in the release tarball
+            are: <glossterm baseform="Portable Batch System">PBS</glossterm>, <glossterm>Condor</glossterm> and <glossterm>LSF</glossterm>. To install, follow these steps (shown for pbs):
+            
+            <screen>    % cd $GLOBUS_LOCATION\gt&version;-all-source-installer
+                
+                % make gt4-gram-pbs
+                
+                % make install
+                
+            </screen>
+        </para>
+        <para>
+            Using PBS as the example, make sure the scheduler commands are in your
+            path (qsub, qstat, pbsnodes).
+        </para>
+        <para> For PBS, another setup step is required to configure the remote shell for
+            rsh access: 
+            
+            <screen>
+                
+                % cd $GLOBUS_LOCATION/setup/globus
+                
+                % ./setup-globus-job-manager-pbs --remote-shell=rsh
+                
+            </screen>
+        </para>
+        <para>
+            The last thing is to define the <!-- no ids allowed <link linkend="wsgram-Interface_Config_Frag-filesysmap"--> GRAM 
+                and GridFTP file system mapping for PBS (see the below).  A default
+            mapping in this file is created to allow simple jobs to run.  However, the
+            actual file system mappings for your compute resource should be entered to
+            ensure:
+            <itemizedlist>
+                <listitem><para>files staging is performed correctly
+                </para>
+                </listitem>
+                <listitem><para>
+                    jobs with erroneous file path directives are rejected</para>
+                </listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            Done! You have added the PBS scheduler adapters to your GT installation.
+        </para>
+        <para>
+            Note for future GT builds with scheduler adapters: scheduler adapters can
+            be enabled by adding --enable-wsgram-pbs to the configure line when
+            building the entire toolkit.
+            <screen>
+                % configure --prefix=$GLOBUS_LOCATION --enable-wsgram-pbs ...
+                % make
+                % make install
+            </screen>
+        </para>
+    </section>
+    <!-- enabling scheduler adapters -->
+    
+</section>
+<!-- Typical Configuration -->
+
+<section> <!-- Frags used more than once cannot have ids id="wsgram-admin-configuring-nondefault"--><title>Non-default Configuration</title>
+    
+    <section> <!-- Frags used more than once cannot have ids id="wsgram-admin-userproxy"--><title>Non-default Credentials</title>
+        <para>
+            To run the container using just a user proxy, instead of host creds,
+            edit the
+            <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml</computeroutput>
+            file, and either comment out the credentials section...
+            <screen>
+                &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+                &lt;securityConfig xmlns="http://www.globus.org"&gt;
+                &lt;!--
+                &lt;credential&gt;
+                &lt;key-file value="/etc/grid-security/containerkey.pem"/&gt;
+                &lt;cert-file value="/etc/grid-security/containercert.pem"/&gt;
+                &lt;credential&gt;
+                --&gt;
+                &lt;gridmap value="/etc/grid-security/grid-mapfile"/&gt;
+                &lt;securityConfig&gt;
+            </screen>
+            or replace the credentials section with a proxy file location...
+            <screen>
+                &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+                &lt;securityConfig xmlns="http://www.globus.org"&gt;
+                &lt;proxy-file value="&lt;PATH TO PROXY FILE&gt;"/&gt;
+                &lt;gridmap value="/etc/grid-security/grid-mapfile"/&gt;
+                &lt;securityConfig&gt;
+            </screen>
+            Running in personal mode (user proxy), another GRAM configuration setting
+            is required. For GRAM to authorize the RFT service when performing
+            staging functions, it needs to know the subject DN for verification. Here are
+            the steps:
+            <screen>
+                % cd $GLOBUS_LOCATION/setup/globus
+                % ./setup-gram-service-common --staging-subject=
+                "/DC=org/DC=doegrids/OU=People/CN=Stuart Martin 564720"
+            </screen>
+            You can get your subject DN by running this command:
+            <screen>
+                % grid-cert-info -subject
+            </screen>
+        </para>
+    </section>
+    <!-- Non-default Credentials -->
+    
+    <section><!-- no ids in frags used more than once:  id="wsgram-admin-nondefaultgridftp" --><title>Non-default GridFTP server </title>
+        <para>
+            By default, the GridFTP server is assumed to run as root on localhost:2811.
+            If this is not true for your site then change it by editing the GridFTP host
+            and/or port in the <!-- no ids allowed in frags used more than once <link linkend="wsgram-Interface_Config_Frag-filesysmap"--> GRAM and GridFTP file system mapping config file: <computeroutput>$GLOBUS_LOCATION/etc/gram-service/globus_gram_fs_map_config.xml</computeroutput>.
+        </para>
+        
+    </section>
+    <!-- Non-default GridFTP server -->
+    
+    <section> <!-- Frags used more than once cannot have ids id="wsgram-admin-nondefaultcontainerport"--><title>Non-default container port</title>
+        <para>
+            By default, the globus services will assume 8443 is the port the Globus
+            container is using.  However the container can be run under a non-standard
+            port, for example:
+            <screen>
+                % globus-start-container -p 4321
+            </screen>
+        </para>
+    </section>
+    <!-- Non-default container port -->
+    
+    <section> <!-- Frags used more than once cannot have ids id="wsgram-admin-nondefaultgridmap"--><title>Non-default gridmap</title>
+        <para>
+            If you wish to specify a non-standard gridmap file in a multi-user
+            installation, two basic configurations need to be changed:</para>
+        
+        <itemizedlist>
+            <listitem><para>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml
+                <itemizedlist><listitem><simpara>As specified in the <link linkend="authzframe-secdesc-other-defaultGridMap">gridmap config</link> instructions, add a &lt;gridmap value="..."/&gt;
+                    element to the file appropriately.</simpara></listitem>
+                </itemizedlist>
+            </para></listitem>
+            
+            <listitem><para>/etc/sudoers
+                <itemizedlist>
+                    <listitem><para>Change the file path after all -g options<screen>-g /path/to/grid-mapfile</screen>.
+                    </para></listitem>
+                </itemizedlist>
+            </para></listitem>
+        </itemizedlist>
+        
+        <para>
+            Example:
+            
+            <emphasis>global_security_descriptor.xml</emphasis>
+            <screen>
+                ...
+                
+                &lt;gridmap value="/opt/grid-mapfile"/&gt;
+                
+                ...
+            </screen>
+            <emphasis>sudoers</emphasis>
+            <screen>
+                ...
+                
+                # Globus GRAM entries
+                globus  ALL=(username1,username2) 
+                NOPASSWD: /opt/globus/GT&version;/libexec/globus-gridmap-and-execute 
+                -g /opt/grid-mapfile
+                /opt/globus/GT&version;/libexec/globus-job-manager-script.pl *
+                globus  ALL=(username1,username2) 
+                NOPASSWD: /opt/globus/GT&version;/libexec/globus-gridmap-and-execute 
+                -g /opt/grid-mapfile
+                /opt/globus/GT&version;/libexec/globus-gram-local-proxy-tool *
+                
+                ...
+            </screen>
+        </para>
+    </section>
+    <!-- Non-default gridmap file -->
+    
+    <section><!-- no ids in frags used more than once:  id="wsgram-admin-nondefaultrft"  --><title>Non-default RFT deployment</title>
+        <para>
+            RFT is used by GRAM to stage files in and out of the job execution environment.
+            In the default configuration, RFT is hosted in the same container as GRAM and
+            is assumed to have the same service path and standard service names. This need
+            not be the case.  For example, the most likely alternative scenario is that RFT
+            would be hosted seperately in a container on a different machine.  In any case,
+            both the RFT and the Delegation Service endpoints need to be adjustable to allow
+            this flexibility.  The following options can be passed to the
+            <emphasis>setup-gram-service-common</emphasis> script to affect these settings:
+        </para>
+        <screen>
+            --staging-protocol=&lt;protocol&gt;
+            --staging-host=&lt;host&gt;
+            --staging-port=&lt;port&gt;
+            --staging-service-path=&lt;RFT and Delegation factory service path&gt;
+            --staging-factory-name=&lt;RFT factory service name&gt;
+            --staging-delegation-factory-name=&lt;name of Delegation factory service used by RFT&gt;
+        </screen>
+        <simpara>for example</simpara>
+        <screen>
+            % setup-gram-service-common \
+            --staging-protocol=http
+            --staging-host=somemachine.fakedomain.net
+            --staging-port=8444
+            --staging-service-path=/tomcat/services/
+            --staging-factory-name=MyReliableFileTransferFactoryService
+            --staging-delegation-factory-name=MyDelegationFactoryServiceForRFT
+        </screen>
+        <simpara>will internally cause the GRAM service code to construct the following
+            EPR addresses:</simpara>
+        <screen>
+            http://somemachine.fakedomain.net:8444/tomcat/services/MyReliableFileTransferFactoryService
+            
+            http://somemachine.fakedomain.net:8444/tomcat/services/MyDelegationFactoryServiceForRFT
+        </screen>
+    </section> 
+    <!-- Non-default RFT deployment -->
+    
+</section>
+<!-- Non-default Configuration -->
+
+<section> <!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-configfilelocation"--><title>Locating configuration files</title>
+<para>
+All the GRAM service configuration files are located in subdirectories of 
+the <computeroutput>$GLOBUS_LOCATION/etc</computeroutput> directory. The names of the GRAM 
+configuration directories all start with <computeroutput>gram-service</computeroutput>.
+For instance, with a default GRAM installation, the command line:
+<screen>
+% ls etc | grep gram-service
+</screen>
+
+gives the following output:
+
+<screen>
+gram-service
+gram-service-Fork
+gram-service-Multi
+</screen>
+</para>
+</section>
+
+<section> <!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-serverconfig"--><title>Web service deployment configuration</title>
+<para>
+The file <computeroutput>$GLOBUS_LOCATION/etc/gram-service/server-config.wsdd</computeroutput>
+contains information necessary to deploy and instantiate the GRAM
+services in the Globus container.
+</para><para>
+Three GRAM services are deployed:</para>
+<itemizedlist>
+<listitem><simpara>ManagedExecutableJobService: service invoked when querying or
+managing an <emphasis>executable job</emphasis> </simpara></listitem>
+
+<listitem><simpara>ManagedMultiJobService: service invoked when querying or managing
+    a <glossterm>multijob</glossterm> </simpara></listitem>
+
+<listitem><simpara>ManagedJobFactoryService: service invoked when submitting a job
+</simpara></listitem>
+
+</itemizedlist>
+<para>
+Each service deployment information contains the name of the Java
+service implementation class, the path to the WSDL service file, the
+name of the operation providers that the service reuses for its
+implementation of WSDL-defined operations, etc. More information about
+the service deployment configuration information can be found in <xref linkend="javawscore-pi-config"/>.
+</para>
+</section>
+
+<section><!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-jndiconfig"--><title>JNDI application configuration</title>
+<para>
+The configuration of WSRF resources and application-level service
+configuration not related to service deployment is contained in <ulink
+url="http://java.sun.com/products/jndi/">JNDI</ulink> files.  The
+JNDI-based GRAM configuration is of two kinds:
+</para>
+
+<section> <!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-commonfactoryconfig"--><title>Common job factory configuration</title>
+<para>
+The file <computeroutput>$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml</computeroutput> contains 
+configuration information that is common to every local resource manager.
+</para><para>
+More precisely, the configuration data it contains pertains to the implementation 
+of the GRAM WSRF resources (factory resources and job resources), 
+as well as initial values of WSRF resource properties that are always 
+published by any Managed Job Factory WSRF resource. 
+</para><para>
+The data is categorized by service, because according to WSRF, 
+in spite of the service/resource separation of concern, a given service 
+will use only one XML Schema type of resource. In practice it is therefore clearer
+to categorize the configuration resource implementation by service, 
+even if theoretically speaking a given resource implementation could be 
+used by several services. For more information, refer to the <link linkend="javawscore">Java WS Core documentation</link>.
+ </para><para>
+Here is the decomposition, in JNDI objects, of the common configuration 
+data, categorized by service. Each XYZHome object contains the same 
+Globus Core-defined information for the implementation of the WSRF resource, 
+such as the Java implementation class for the resource (<computeroutput>resourceClass</computeroutput> datum), 
+the Java class for the resource key (<computeroutput>resourceKeyType</computeroutput> datum), etc. 
+</para>
+<itemizedlist>
+<listitem><para>ManagedExecutableJobService
+   <itemizedlist>
+     <listitem><simpara>ManagedExecutableJobHome: configuration of the implementation of resources for the service.</simpara></listitem>
+   </itemizedlist>
+</para></listitem>
+
+<listitem><para>ManagedMultiJobService
+   <itemizedlist>
+     <listitem><simpara>ManagedMultiJobHome: configuration of the implementation of resources for the service</simpara></listitem>
+   </itemizedlist>
+</para></listitem>
+
+<listitem><para>ManagedJobFactoryService
+   <itemizedlist>
+   <listitem><simpara>FactoryServiceConfiguration: this encapsulates configuration information 
+       used by the factory service. Currently this identifies the service to associate 
+       to a newly created job resource in order to create an endpoint reference and 
+       return it.
+   </simpara></listitem>
+   
+   <listitem><simpara>ManagedJobFactoryHome: implementation of resources for the service
+      resourceClass</simpara></listitem>
+      
+   <listitem><simpara>FactoryHomeConfiguration: this contains GRAM application-level configuration data 
+       i.e. values for resource properties common to all factory resources. For instance, 
+       the path to the Globus installation, host information such as CPU type, manufacturer, 
+       operating system name and version, etc.</simpara></listitem>
+   </itemizedlist>
+</para></listitem>
+ 
+</itemizedlist>     
+
+</section>
+
+<section> <!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-managerconfig"--><title>Local resource manager configuration</title>
+
+<para>When a SOAP call is made to a GRAM factory service in order to submit a job, 
+the call is actually made to a GRAM service-resource pair, where the 
+factory resource represents the local resource manager to be used to execute the job.</para>
+<para>
+There is one directory <computeroutput>gram-service-&lt;manager&gt;/</computeroutput> 
+for each local resource manager supported by the GRAM installation. 
+</para>
+<para>For instance, let's assume the command line:
+<screen>
+% ls etc | grep gram-service-
+</screen>
+
+gives the following output:
+
+<screen>
+gram-service-Fork
+gram-service-LSF
+gram-service-Multi
+</screen>
+</para>
+    <para>In this example, the Multi, Fork and <glossterm>LSF</glossterm> job factory resources have been 
+installed. <computeroutput>Multi</computeroutput> is a special kind of local resource manager 
+        which enables the GRAM services to support <link linkend="wsgram-user-specifyingmultijob">multijobs</link>.</para>
+
+
+<para>The JNDI configuration file located under each manager directory 
+contains configuration information for the GRAM support of the given 
+local resource manager, such as the name that GRAM uses to designate 
+the given resource manager. This is referred to as the <emphasis>GRAM name</emphasis> 
+of the local resource manager.</para><para>
+For instance, <computeroutput>$GLOBUS_LOCATION/etc/gram-service-Fork/jndi-config.xml</computeroutput> 
+contains the following XML element structure:</para>
+<screen>
+    &lt;service name="ManagedJobFactoryService"&gt;
+        &lt;!-- LRM configuration:  Fork --&gt;
+        &lt;resource
+            name="ForkResourceConfiguration"
+            type="org.globus.exec.service.factory.FactoryResourceConfiguration"&gt;
+            &lt;resourceParams&gt;
+                [...]
+                &lt;parameter&gt;
+                    &lt;name&gt;
+                        <emphasis>localResourceManagerName</emphasis>
+                    &lt;/name&gt;
+                    &lt;value&gt;
+                        <emphasis>Fork</emphasis>
+                    &lt;/value&gt;
+                &lt;/parameter&gt;           
+                &lt;!-- Site-specific scratchDir
+Default: ${GLOBUS_USER_HOME}/.globus/scratch
+                &lt;parameter&gt;
+                    &lt;name&gt;
+                        <emphasis>scratchDirectory</emphasis>
+                    &lt;/name&gt;
+                    &lt;value&gt;
+                        <emphasis>${GLOBUS_USER_HOME}.globus/scratch</emphasis>
+                    &lt;/value&gt;
+                &lt;/parameter&gt;           
+                --&gt;
+            &lt;/resourceParams&gt;
+        &lt;/resource&gt;        
+    &lt;/service&gt;
+</screen>
+<para>In the example above, the name of the local resource manager is
+<computeroutput>Fork</computeroutput>.  This value can be used with the GRAM
+command line client in order to specify which factory resource to use when
+submitting a job.  Similarly, it is used to create an endpoint reference to the
+chosen factory WS-Resource when using the GRAM client API. </para>
+<para>In the example above, the <emphasis>scratchDirectory</emphasis> is set to
+<computeroutput>${GLOBUS_USER_HOME}/.globus/scratch</computeroutput>.  This is
+the default setting. It can be configured to point to an alternate file system
+path that is common to the compute cluster and is typically less reliable (auto
+purging), while offering a greater amount of disk space (thus "scratch").
+</para>
+</section>
+</section>
+
+<section><!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-securitydesc"--><title>Security descriptor</title>
+<para>
+The file <computeroutput>$GLOBUS_LOCATION/etc/gram-service/managed-job-factory-security-config.xml</computeroutput> contains the Core security configuration for the GRAM <computeroutput>ManagedJobFactory</computeroutput> service:
+<itemizedlist>
+   <listitem><para>default security information for all remote invocations, such as:
+       <itemizedlist>
+	  <listitem><simpara>the authorization method, based on a Gridmap file (in order to resolve user credentials to local user names) </simpara></listitem>
+	  <listitem><simpara>limited proxy credentials will be rejected</simpara></listitem>
+       </itemizedlist></para></listitem>
+   <listitem><simpara>security information for the <computeroutput>createManagedJob</computeroutput> operation</simpara></listitem>   
+</itemizedlist>
+
+The file <computeroutput>$GLOBUS_LOCATION/etc/gram-service/managed-job-security-config.xml</computeroutput> contains the Core security configuration for the GRAM job resources:
+<itemizedlist>
+    <listitem><simpara>The default is to only allow the identity that called the createManagedJob operation to access the resource.
+    </simpara></listitem>
+</itemizedlist>
+</para>
+
+<para>
+Note: GRAM does not override the container security credentials defined in <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml</computeroutput>.  These are the credentials used to authenticate all service requests.
+</para>
+</section>
+
+<section> <!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-filesysmap"--><title>GRAM and GridFTP file system mapping</title>
+<para>The file <computeroutput>$GLOBUS_LOCATION/etc/gram-service/globus_gram_fs_map_config.xml</computeroutput> 
+contains information to associate local resource managers with GridFTP servers.  GRAM uses the GridFTP server (via RFT) to perform all file staging directives.
+Since the GridFTP server and the Globus service container can be run on separate hosts, a mapping is needed between the common file system paths of these 2 hosts.
+This enables the GRAM services to resolve file:/// staging directives to the local GridFTP URLs.
+</para><para>
+
+Below is the default Fork entry.  Mapping a jobPath of / to ftpPath of / will allow any file staging directive to be attempted.</para>
+<screen>
+    &lt;map&gt;
+        &lt;scheduler&gt;Fork&lt;/scheduler&gt;
+        &lt;ftpServer&gt;
+           &lt;protocol&gt;gsiftp&lt;/protocol&gt;
+           &lt;host&gt;myhost.org&lt;/host&gt;
+           &lt;port&gt;2811&lt;/port&gt;
+        &lt;/ftpServer&gt;
+        &lt;mapping&gt;
+           &lt;jobPath&gt;/&lt;/jobPath&gt;
+           &lt;ftpPath&gt;/&lt;/ftpPath&gt;
+        &lt;/mapping&gt;
+    &lt;/map&gt;
+</screen>
+<para>
+    For a <glossterm>scheduler</glossterm>, where jobs will typically run on a compute node, a default entry is not provided.  This means staging directives will fail until a mapping is entered.
+    Here is an example of a compute cluster with <glossterm baseform="Portable Batch System">PBS</glossterm> installed that has 2 common mount points between the front end host and the GridFTP server host.
+</para>
+<screen>
+    &lt;map&gt;
+        &lt;scheduler&gt;PBS&lt;/scheduler&gt;
+        &lt;ftpServer&gt;
+           &lt;protocol&gt;gsiftp&lt;/protocol&gt;
+           &lt;host&gt;myhost.org&lt;/host&gt;
+           &lt;port&gt;2811&lt;/port&gt;
+        &lt;/ftpServer&gt;
+        &lt;mapping&gt;
+           &lt;jobPath&gt;/pvfs/mount1/users&lt;/jobPath&gt;
+           &lt;ftpPath&gt;/pvfs/mount2/users&lt;/ftpPath&gt;
+        &lt;/mapping&gt;
+        &lt;mapping&gt;
+           &lt;jobPath&gt;/pvfs/jobhome&lt;/jobPath&gt;
+           &lt;ftpPath&gt;/pvfs/ftphome&lt;/ftpPath&gt;
+        &lt;/mapping&gt;
+    &lt;/map&gt;
+</screen>
+<para>
+    The file system mapping schema doc is <ulink url="&docpath;execution/wsgram/schemas/gram_fs_map.html">here</ulink>.
+</para>
+</section>
+
+<section> <!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Fragscheduler_specific_config"--><title>Scheduler-Specific Configuration Files</title>
+<para>In addition to the service configuration described above, there are
+scheduler-specific configuration files for the Scheduler Event Generator
+modules. These files consist of name=value pairs separated by newlines.
+These files are:
+</para>
+
+<table><title>Scheduler-Specific Configuration Files</title>
+<tgroup cols="2"><tbody>
+
+  <row><entry>$GLOBUS_LOCATION/etc/globus-fork.conf</entry>
+      <entry><para>Configuration for the Fork <glossterm baseform="Scheduler Event Generator">SEG</glossterm> module implementation. The attributes
+      names for this file are:
+<variablelist><varlistentry><term>log_path</term><listitem><simpara>
+      Path to the SEG Fork log (used by the globus-fork-starter and
+      the SEG). The value of this should be the path to a world-writable file.
+      The default value for this created by the Fork setup package is 
+      $GLOBUS_LOCATION/var/globus-fork.log. This file must be readable by the
+      account that the SEG is running as.</simpara></listitem></varlistentry>
+</variablelist>
+</para></entry></row>
+
+  <row><entry>$GLOBUS_LOCATION/etc/globus-condor.conf</entry>
+      <entry><para>Configuration for the <glossterm>Condor</glossterm> SEG module implementation. The attributes
+      names for this file are:
+<variablelist><varlistentry><term>log_path</term><listitem><simpara>Path to the SEG Condor log (used by the
+      Globus::GRAM::JobManager::condor perl module and Condor
+      SEG module. The value of this should be the path to a world-readable and
+      world-writable file.  The default value for this created by the Fork
+      setup package is $GLOBUS_LOCATION/var/globus-condor.log</simpara></listitem></varlistentry>
+</variablelist>
+  </para></entry>
+</row>
+
+  <row><entry>$GLOBUS_LOCATION/etc/globus-pbs.conf</entry>
+  <entry><para>Configuration for the PBS SEG module implementation. The attributes
+      names for this file are:
+<variablelist><varlistentry><term>log_path</term><listitem><simpara>
+      Path to the SEG PBS logs (used by the
+      Globus::GRAM::JobManager::pbs perl module and PBS
+      SEG module. The value of this should be the path to the directory
+      containing the server logs generated by PBS. For the SEG to operate,
+      these files must have file permissions such that the files may be read
+      by the user the SEG is running as.
+      </simpara></listitem></varlistentry>
+</variablelist>
+  </para></entry>
+</row>
+
+  <row><entry>$GLOBUS_LOCATION/etc/globus-lsf.conf</entry>
+  <entry><para>Configuration for the PBS SEG module implementation. The attributes
+      names for this file are:
+<variablelist><varlistentry><term>log_path</term><listitem><simpara>
+Path to the SEG LSF log directory. This is used by the LSF
+      SEG module. The value of this should be the path to the directory
+      containing the server logs generated by LSF. For the SEG to operate,
+      these files must have file permissions such that the files may be read
+      by the user the SEG is running as.
+      </simpara></listitem></varlistentry>
+</variablelist>
+  </para></entry>
+</row>
+</tbody></tgroup>
+</table>
+</section>
+
+<section> <!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-autoregistration"--><title>WS GRAM auto-registration with default WS MDS Index Service</title>
+    <para>With a default GT &shortversion; installation, the WS GRAM service is automatically registered with the default <link linkend="index">WS MDS Index Service</link> running in the same container for monitoring 
+        and discovery purposes.</para>
+    
+    <para>   This is how auto-registration is configured:</para>
+    
+    <para>There is a jndi resource defined in <filename>$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml</filename> as follows :</para>
+    <screen> 
+        &lt;resource name="mdsConfiguration" 
+        
+        type="org.globus.wsrf.impl.servicegroup.client.MDSConfiguration"&gt;
+        &lt;resourceParams&gt;
+        &lt;parameter&gt; 
+        &lt;name&gt;reg&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+        &lt;/parameter&gt;
+        &lt;parameter&gt; 
+        &lt;name&gt;factory&lt;/name&gt;
+        &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+        &lt;/parameter&gt;
+        &lt;/resourceParams&gt;
+        &lt;/resource&gt;
+    </screen>
+    
+    <para>To configure the automatic registration of WS GRAM to the default WS MDS Index Service, change the value of the parameter 
+        <computeroutput>&lt;reg&gt;</computeroutput> as follows:</para>
+    <itemizedlist>
+        <listitem><simpara><computeroutput>true</computeroutput> turns on auto-registration; this is the default in GT &shortversion;.</simpara></listitem>
+        <listitem><simpara><computeroutput>false</computeroutput> turns off auto-registration.</simpara></listitem>
+    </itemizedlist>
+    
+    <section><title>Configuring resource properties</title>
+        <para>By default, the <computeroutput>GLUECE: </computeroutput> resource property (which contains GLUE data) is sent to the default Index Service:</para>
+        
+        <para> You can configure which resource properties are sent in WS GRAM's registration.xml file, <filename>$GLOBUS_LOCATION/etc/gram-service/registration.xml</filename>.  
+            The following is the relevant section of the file (as it is set by default):</para>
+        
+        <screen>
+            &lt;Content xsi:type="agg:AggregatorContent"
+            xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+            
+            &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+            
+            &lt;agg:GetResourcePropertyPollType
+                xmlns:glue="http://mds.globus.org/glue/ce/1.1"&gt;
+            &lt;!-- Specifies that the index should refresh information
+            every 60000 milliseconds (once per minute) --&gt;
+            &lt;agg:PollIntervalMillis>60000&lt;/agg:PollIntervalMillis&gt;
+            
+            &lt;!-- specifies the resource property that should be
+            aggregated, which in this case is the GLUE cluster
+            and scheduler information RP --&gt;
+            
+            &lt;agg:ResourcePropertyName&gt;glue:GLUECE&lt;/agg:ResourcePropertyName&gt;
+            
+            &lt;/agg:GetResourcePropertyPollType&gt;
+            &lt;/agg:AggregatorConfig&gt; 
+            &lt;agg:AggregatorData/&gt;
+            &lt;/Content&gt;
+        </screen>
+
+    </section>
+
+</section>
+    <section> <!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-registering-remotely"--><title>Registering WS GRAM manually with default WS MDS Index Service</title>
+        <para>If a third party needs to register an WS GRAM service manually, see <link linkend="mds-servicegroup-add-registering">Registering with mds-servicegroup-add</link>
+            in the WS MDS Aggregator Framework documentation.</para>
+    </section>  
+
+
+  
+  
+
+
+

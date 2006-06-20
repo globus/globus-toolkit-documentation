@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<section><!-- no ids if file is used more than once:  id="rft-admin-installing" --><title>Building and Installing</title>
+<para>RFT is built and installed as part
+  of a default <link linkend="gtadmin">GT &shortversion; installation</link>. No extra installation steps
+  are required for this component.</para>
+  
+<para>The following are specialized instructions for advanced
+  developers who want to deploy latest code from CVS:</para>
+<orderedlist><title>Build RFT from CVS:</title>
+      <listitem><para>Configure your CVSROOT to point to the globus CVS location.</para></listitem>
+      <listitem><para>Run:</para>
+          <screen>cvs co ws-transfer</screen></listitem>
+      <listitem><para>Run:</para>
+          <screen>cd ws-transfer/reliable</screen></listitem>
+      <listitem><para>Set GLOBUS_LOCATION to point to your globus installation.</para></listitem>
+      <listitem><para>Run:</para>
+          <screen>ant deploy </screen></listitem>
+</orderedlist>
+</section>
+
+<section  id="rft-admin-configuring" xreflabel="Configuring RFT"><title>Configuring </title>
+&RFT_Interface_Config_Frag;
+
+</section>
+
+<section><!-- no ids if file is used more than once:   id="rft-admin-mysql"--><title>Using MySQL</title>
+  
+  <para> RFT in &shortversion; works with MySQL database. A MySQL schema file is provided at $GLOBUS_LOCATION/share/globus_wsrf_rft/rft_schema_mysql.sql. 
+    You will need to download MySQL drivers (MySQL connector/J 3.1 and not 3.0) from <ulink url="http://dev.mysql.com/downloads/connector/j/3.1.html">here</ulink> 
+    and copy the driver jar to $GLOBUS_LOCATION/lib.You will also need to make following changes :</para>
+  
+<orderedlist>
+<listitem><para>
+Create a RFT Database and populate it with mysql schema.</para>
+<screen>mysqladmin -h hostname create rftDatabse -p
+
+mysql -h hostname -D rftDatabase
+
+source share/globus_wsrf_rft/rft_schema_mysql.sql
+
+</screen>
+<para> <emphasis>Note: If you are using older ( earlier than 4.1 ) versions of mysql you will need to use $GLOBUS_LOCATION/share/globus_wsrf_rft/rft_schema_mysql_pre4.0.sql 
+  schema to make RFT work. See <ulink url="http://bugzilla.globus.org/globus/show_bug.cgi?id=3633">Bug 3633</ulink> for more details.</emphasis></para>
+</listitem>
+<listitem>
+<para> Edit $GLOBUS_LOCATION/etc/globus_wsrf_rft/jndi-config.xml and change values of connectionString to jdbc:mysql:///rftDatabase from 
+  jdbc:postgresql://host/rftDatabase and driverName to com.mysql.jdbc.Driver from org.postgresql.Driver and userName and password to whatever 
+  was set during creation of users for mysql.</para>
+</listitem>
+</orderedlist>
+</section>
+
+<section><!-- no ids if file is used more than once: id="rft-admin-deploying"--><title>Deploying</title>
+<para>RFT is deployed as part of a <link linkend="gtadmin">standard toolkit installation</link>.</para>
+
+  <section><!-- no ids if file is used more than once: id="rft-admin-deploying-tomcat"--><title>Deploying into Tomcat</title>
+  <para> RFT has been tested to work without any additional setup when deployed into Tomcat. Please follow these 
+    <link linkend="javawscore-admin-tomcat-deploying">basic instructions</link> to deploy GT4 services into Tomcat. 
+    Note: you need to configure the GT4 install with the needed RFT configuration (like database configuration, etc) before you deploy into Tomcat.</para>
+</section>
+</section>
+
+<section id="rft-admin-testing"><title>Testing</title>
+<orderedlist><title>RFT Testing</title>
+      <listitem>
+      <para>Set <computeroutput> $GLOBUS_LOCATION </computeroutput> to point to your Globus install.</para>
+      </listitem>
+      <listitem>
+      <para>Start a gridftp server on the machine you are running the
+tests on the default port. This can be done by running: </para>
+      <screen>$GLOBUS_LOCATION/sbin/globus-gridftp-server -p 2811 &amp;</screen>
+      </listitem>
+      <listitem><para>Start the container with RFT deployed in it.</para></listitem>
+      <listitem>
+      <para>Edit $GLOBUS_LOCATION/share/globus_wsrf_rft_test/test.properties. Put in appropriate values for properties like authzValue (self or host), 
+        HOST (host ip of container), PORT (port on which the container is listening), sourceHost and destinationsHost (hostnames of gridftp servers). 
+        The default values will work fine if you are running the tests with a standard stand-alone container started with user credentials 
+        (self authorization is done in this case). If the container is started using host credentials, change authzVal to host. If the gridftp servers you are 
+        using for your testing are started as user, you need to supply subject names of the users in sourceSubject and destinationSubject for authorization 
+        with gridftp servers. If both the source and destination servers are started as one user, you can just fill in the user's subject in the subject field of test.properties. 
+        <emphasis>If you are getting Authentication/Authorization Failures because of mismatched subject names then your authzVal and authType 
+          (uses transport security by default) need to be changed, depending on how you start the container. If you started the container with the -nosec option then 
+          you need to change authType to GSI_MESSAGE, PROTOCOL to http and PORT to 8080. </emphasis> </para>
+      </listitem>
+      <listitem>
+      <para>The *.xfr files in  $GLOBUS_LOCATION/share/globus_wsrf_rft_test/ are the transfer files that will be used in the tests. Again, the default values work fine 
+        if you followed the instructions so far.</para>
+      </listitem>
+    <listitem>
+    <para>Run the following command, which will run all the RFT unit tests:</para>
+    <screen>ant -Dtests.jar=$GLOBUS_LOCATION/lib/globus_wsrf_rft_test.jar -f share/globus_wsrf_rft_test/runtests.xml</screen>
+    </listitem>
+    <listitem>
+    <para>Run the following command to generate the test reports in html form:</para>
+    <screen> ant -f  share/globus_wsrf_rft_test/runtests.xml generateTestReport</screen>
+    </listitem>
+</orderedlist>
+</section>
+
+
+<section id="rft-admin-security_considerations"><title>Security Considerations </title>
+&RFT_Security_Considerations_Frag;
+</section>
+
+<section id="rft-admin-troubleshooting"><title>Troubleshooting</title>
+<section><title>PostgreSQL not configured</title>
+  <para><emphasis>Problem:</emphasis> If RFT is not configured properly to talk to a PostgreSQL
+  database, you will see this message displayed on the console when you start
+the container:</para>
+<screen>"Error creating RFT Home: Failed to connect to database ... 
+Until this is corrected all RFT request will fail and all GRAM jobs that require staging will fail". </screen>
+<para><emphasis>Solution:</emphasis> The usual cause is that Postmaster is not accepting TCP connections, which means that you must restart 
+  Postmaster with the -i option (see <xref linkend="rft-admin-configuring"/>).</para>
+</section>
+  
+  <section><title>More verbose error messages</title>
+  <para><emphasis>Problem:</emphasis> Make RFT print more verbose error messages</para>
+<para><emphasis>Solution:</emphasis> Edit $GLOBUS_LOCATION/container-log4j.properties 
+and add the following line to it: 
+<computeroutput>log4j.category.org.globus.transfer=DEBUG</computeroutput>. For more verbosity add
+<computeroutput>log4j.category.org.globus.ftp=DEBUG</computeroutput>, which will print out Gridftp
+messages too.
+</para></section>
+    &RFT_Recovery_Frag;
+
+
+</section>
+
+<section id="rft-admin-usage"><title>Usage statistics collection by the Globus Alliance </title>
+&RFT_Usage_Statistics_Frag;
+</section>
+
+
+

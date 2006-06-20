@@ -1,0 +1,244 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<title>GT &shortversion; WS GRAM: Developer's Guide</title>
+<titleabbrev>Developer's Guide</titleabbrev> 
+
+<section id="wsgram-developer-introduction"><title>Introduction</title>
+<para>
+This guide is intended to help a developer create compatible WS GRAM clients
+and alternate service implementations.
+</para>
+<para>The key concepts for the GRAM component have not changed. Its purpose
+  is still to provide the mechanisms to execute remote applications for a
+  user. Given an <glossterm baseform="Resource Specification Language">RSL (Resource Specification Language)</glossterm> job description,
+  GRAM submits the job to a scheduling system such as <glossterm baseform="Portable Batch System">PBS</glossterm> or <glossterm>Condor</glossterm>, or
+  to a simple fork-based way of spawning processes,
+  and monitors it until completion. More details can be found here:</para>
+<para><ulink url="http://www.globus.org/toolkit/docs/3.2/gram/key">http://www.globus.org/toolkit/docs/3.2/gram/key</ulink></para>
+
+</section>
+
+
+<section id="wsgram-developer-beforeyoubegin">
+  <title>Before you begin</title>
+  <section id="wsgram-developer-features"><title>Feature summary</title>
+    &WS_GRAM_Feature_Summary_Frag;
+  </section>
+  
+  <section id="wsgram-developer-platforms"><title>Tested platforms</title>
+    &WS_GRAM_Platform_Summary_Frag;
+  </section>
+  
+  <section id="wsgram-developer-compatibility"><title>Backward compatibility summary</title>
+    &WS_GRAM_Compatibility_Summary_Frag;
+  </section>
+  
+  <section id="wsgram-developer-dependencies"><title>Technology dependencies</title>
+    &WS_GRAM_Dependencies_Summary_Frag;
+  </section>
+  
+  <section id="wsgram-developer-security_considerations"><title>Security considerations </title>
+    &WS_GRAM_Security_Considerations_Frag;
+  </section>
+  
+  </section>
+
+<section id="wsgram-developer-archdes"><title>Architecture and design overview</title>
+
+  <para>  The GRAM services in GT &shortversion; are WSRF compliant. One of the key
+  concepts in the <ulink url="http://www.globus.org/wsrf/">WSRF</ulink> specification
+  is the decoupling of a  service with the public &quot;state&quot; of the service
+  in the interface via the <ulink url="http://www.globus.org/wsrf/faq.php#wsrf12">implied
+    resource pattern</ulink>.
+    Following this concept, the data of GT &shortversion; GRAM jobs is published
+  as part of WSRF resources, while there is only one service
+  to start jobs or query and monitor their state. This is different from the
+   <ulink url="http://www.gridforum.org/ogsi-wg/drafts/draft-ggf-ogsi-gridservice-04_2002-10-04.pdf">OGSI</ulink> model
+   of GT3 where each job was represented as a separate service. There is still
+   a job factory service that can be called in order to create job instances
+   (represented as WSRF resources). Each scheduling system that GRAM is interfaced
+   with is represented as a separate factory resource. By making a call to the
+   factory service while associating the call to  the appropriate factory resource,
+   the job submitting actor can create  a job resource mapping to a job in the
+   chosen scheduling system.</para>
+
+<section id="wsgram-developer-archdes-states">
+<title>Job States</title>
+
+<section id="wsgram-developer-archdes-states-overview">
+<title>Overview</title>
+<para>
+  The <glossterm baseform="Managed Executable Job Service">Managed Executable Job Service (MEJS)</glossterm> relies on a state machine to handle state
+transitions. There are two sets of states: external and internal.  The external
+states are those that the user gets in notifications and can be queried as a
+resource property. The internal states are those that are strictly used by the
+state machine to step through all the necessary internal tasks that need to be
+performed for a particular job.
+</para>
+
+<para>
+  The Managed Multi Job Service does not rely on a state machine, but instead
+makes judgements after receiving notifications from the sub-jobs about which
+  external state it should be in.  The external states for the <glossterm baseform="Managed Multi Job Service">MMJS</glossterm> are identical
+to the ones used by the MEJS.
+</para>
+</section>
+
+<section id="wsgram-developer-archdes-states-listing">
+<title>External and Internal States of the Managed Job Services</title>
+
+<section id="wsgram-developer-archdes-states-external">
+<title>External States of the Managed Job Services</title>
+<itemizedlist>
+<listitem><simpara>Unsubmitted</simpara></listitem>
+<listitem><simpara>StageIn</simpara></listitem>
+<listitem><simpara>Pending</simpara></listitem>
+<listitem><simpara>Active</simpara></listitem>
+<listitem><simpara>Suspended</simpara></listitem>
+<listitem><simpara>StageOut</simpara></listitem>
+<listitem><simpara>CleanUp</simpara></listitem>
+<listitem><simpara>Done</simpara></listitem>
+<listitem><simpara>Failed</simpara></listitem>
+</itemizedlist>
+</section>
+
+<section id="wsgram-developer-archdes-states-internal">
+<title>Internal States of the Managed Executable Job Service</title>
+<itemizedlist>
+<listitem><simpara>None</simpara></listitem>
+<listitem><simpara>Restart</simpara></listitem>
+<listitem><simpara>Start</simpara></listitem>
+<listitem><simpara>StageIn</simpara></listitem>
+<listitem><simpara>StageInResponse</simpara></listitem>
+<listitem><simpara>Submit</simpara></listitem>
+<listitem><simpara>OpenStdout</simpara></listitem>
+<listitem><simpara>OpenStderr</simpara></listitem>
+<listitem><simpara>WaitingForStateChanges</simpara></listitem>
+<listitem><simpara>MergeStdout</simpara></listitem>
+<listitem><simpara>StageOut</simpara></listitem>
+<listitem><simpara>StageOutResponse</simpara></listitem>
+<listitem><simpara>UserCancel</simpara></listitem>
+<listitem><simpara>UserCancelResponse</simpara></listitem>
+<listitem><simpara>SystemCancel</simpara></listitem>
+<listitem><simpara>CleanUp</simpara></listitem>
+<listitem><simpara>FileCleanUp</simpara></listitem>
+<listitem><simpara>FileCleanUpResponse</simpara></listitem>
+<listitem><simpara>CacheCleanUp</simpara></listitem>
+<listitem><simpara>CacheCleanUpResponse</simpara></listitem>
+<listitem><simpara>ScratchCleanUp</simpara></listitem>
+<listitem><simpara>ScratchCleanUpResponse</simpara></listitem>
+<listitem><simpara>Suspend</simpara></listitem>
+<listitem><simpara>Resume</simpara></listitem>
+<listitem><simpara>Done</simpara></listitem>
+<listitem><simpara>FailureFileCleanUp</simpara></listitem>
+<listitem><simpara>FailureFileCleanUpResponse</simpara></listitem>
+<listitem><simpara>FailureCacheCleanUp</simpara></listitem>
+<listitem><simpara>FailureCacheCleanUpResponse</simpara></listitem>
+<listitem><simpara>FailureScratchCleanUp</simpara></listitem>
+<listitem><simpara>FailureScratchCleanUpResponse</simpara></listitem>
+<listitem><simpara>Failed</simpara></listitem>
+<listitem><simpara>UnsubmittedHold</simpara></listitem>
+<listitem><simpara>StageInHold</simpara></listitem>
+<listitem><simpara>PendingHold</simpara></listitem>
+<listitem><simpara>ActiveHold</simpara></listitem>
+<listitem><simpara>SuspendedHold</simpara></listitem>
+<listitem><simpara>StageOutHold</simpara></listitem>
+<listitem><simpara>CleanUpHold</simpara></listitem>
+<listitem><simpara>DoneHold</simpara></listitem>
+<listitem><simpara>FailedHold</simpara></listitem>
+</itemizedlist>
+</section>
+
+</section>
+
+<section id="wsgram-developer-archdes-statediag">
+<title>Managed Executable Job Service Internal State</title>
+<para>
+Here is a diagram illustrating the internal state transitions of the
+Managed Executable Job Service and how the external states are triggered
+  within this progression:
+</para>
+  
+  <figure id="MEJS_internal_state_transitions"><title>Managed Executable Job Service Internal State Transition Diagram</title>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="execution/wsgram/developer/MEJS_internal_state_transitions-Resized.jpg" format="JPEG" align="center"/>
+      </imageobject>
+    </mediaobject>
+  </figure>
+  
+</section>
+
+</section>
+
+</section>
+
+
+<section id="wsgram-developer-pubinterfaces"><title>Public interface</title>
+
+  <section id="wsgram-developer-apis"><title>Semantics and syntax of APIs</title>
+    &WS_GRAM_Interface_API_Frag;
+  </section>
+  
+  <section id="wsgram-developer-wsdl" xreflabel="Semantics and syntax of the WSDL"><title>Semantics and syntax of the WSDL</title>
+    &WS_GRAM_Interface_WSDL_Frag;
+  </section>
+  
+  <section id="wsgram-developer-protocols"><title>Semantics and syntax of non-WSDL protocols</title>
+    &WS_GRAM_Interface_Protocol_Frag;
+  </section>
+  
+  <section id="wsgram-developer-cmd"><title>Command-line tools</title>
+    <para>Please see the <xref linkend="wsgram-commandline"/>.</para>
+  </section>
+  
+  <section id="wsgram-developer-guis"><title>Graphical User Interface</title>
+    &WS_GRAM_Interface_GUI_Frag;
+  </section>
+  
+  <section id="wsgram-developer-domain"><title>Semantics and syntax of domain-specific interface data</title>
+    &WS_GRAM_Interface_Domain_Frag;
+  </section>
+  
+  <section id="wsgram-developer-config"><title>Configuration interface</title>
+    &WS_GRAM_Interface_Config_Frag; <!-- don't pull this in -refer to admin guide -->
+  </section>
+  
+  <section id="wsgram-developer-env"><title>Environment variable interface</title>
+    &WS_GRAM_Interface_Env_Frag;
+  </section>
+
+</section>
+
+
+<section id="wsgram-developer-scenarios"><title>Usage scenarios</title>
+&WS_GRAM_Scenarios_Frag;
+
+</section>
+
+<section id="wsgram-developer-tutorials"><title>Tutorials</title>
+<para>The following tutorials are available for WS GRAM developers:</para>
+<itemizedlist>
+  <listitem><simpara><ulink url="&docpath;execution/wsgram/developer/scheduler-tutorial.html">WS-GRAM Scheduler Interface Tutorial</ulink> </simpara></listitem>
+</itemizedlist>
+</section>
+
+
+<section id="wsgram-developer-debugging"><title>Debugging</title>
+&WS_GRAM_Debugging_Frag;
+</section>
+
+<section id="wsgram-developer-troubleshooting"><title>Troubleshooting</title>
+&WS_GRAM_Troubleshooting_Frag;
+</section>
+
+<section id="wsgram-developer-relateddocs"><title>Related Documentation</title>
+<para>No related documentation links have been determined at this time.</para>
+</section>
+
+<section id="wsgram-developer-internal-components"><title>Internal Components</title>
+  <para><ulink url="&docpath;execution/wsgram/developer/internal-components.html">Internal Components</ulink></para></section>
+
+
+
+
+
