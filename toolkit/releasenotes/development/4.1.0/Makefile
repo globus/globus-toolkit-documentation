@@ -1,13 +1,17 @@
 export UMASK=002
-export XML_CATALOG_FILES=../../docs/development/4.1.0/catalog
+export XML_CATALOG_FILES=../../../docs/development/4.1.0/catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 
-all: lint html
+all: html
 
 html:
 	xsltproc \
-	../../docs/development/4.1.0/custom_html.xsl \
+	--stringparam chunk.section.depth 0 \
+	--stringparam html.cellspacing "0" \
+	--stringparam suppress.navigation 1 \
+	--stringparam  chapter.autolabel 0 \
+	../../../docs/4.0/admin/docbook/chunk.xsl \
 	$(FILENAME)
 
 debian-sarge:
