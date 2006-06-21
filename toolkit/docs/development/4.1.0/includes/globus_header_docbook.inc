@@ -58,7 +58,7 @@ globus_out_of_date(); ?>
 		<div id="leftbg">
 		 <h2 class="smalltitle">Software Links</h2>
            <dl class="leftColumn">
-		   		<dt><a href="/toolkit/docs/development/4.2-drafts/Usage_Stats.html">Usage Statistics</a></dt>
+		   		<dt><a href="/toolkit/docs/development/4.1.0/Usage_Stats.html">Usage Statistics</a></dt>
 				<dt><a href="/toolkit/releasenotes/">Release Notes</a></dt>
 				<dt><a href="/toolkit/versioning.html">Versioning</a></dt>
 				<dt><a href="/toolkit/downloads/">Downloads</a></dt>
@@ -69,78 +69,78 @@ globus_out_of_date(); ?>
 			
 		<h2 class="smalltitle">Getting Started</h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/gtadmin-platform.html">Platform Notes</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-migrating-gt2.html">Migrating from GT2</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-migrating-gt3.html">Migrating from GT3</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/doc_overview.html">Doc Structure</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/key/">A Globus Primer</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/admin/docbook/quickstart.html">Quickstart</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/admin/docbook/">Installing GT</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/admin/docbook/gtadmin-platform.html">Platform Notes</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/toolkit-migrating-gt2.html">Migrating from GT2</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/toolkit-migrating-gt3.html">Migrating from GT3</a></dt>
 			</dl>
 			
 		<h2 class="smalltitle">Reference</h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/releaseManuals.pdf">PDF version</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-bestpractices.html">Best Practices</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/releaseManuals.pdf">PDF version</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/toolkit-bestpractices.html">Best Practices</a></dt>
 				<dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
 				<dt><a href="/api/">API docs</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-public-interface">Public Interfaces</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-rp.html">Resource Properties</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-samples.html">Samples</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/si01.html">Index</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/toolkit-public-interface">Public Interfaces</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/toolkit-rp.html">Resource Properties</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/toolkit-samples.html">Samples</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/glossary.html">Glossary</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/si01.html">Index</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/perf_overview.html">Performance Studies</a></dt>
 			</dl>
 		
 		<h2 class="smalltitle">Common Runtime</h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/common/javawscore/">Java WS Core</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/common/cwscore/">C WS Core</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/common/pythonwscore/">Python WS Core</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/common/xio/">XIO</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/common/javacog/">CoG jglobus</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/common/pyglobus/">pyGlobus</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/common/javawscore/">Java WS Core</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/common/cwscore/">C WS Core</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/common/pythonwscore/">Python WS Core</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/common/xio/">XIO</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/common/javacog/">CoG jglobus</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/common/pyglobus/">pyGlobus</a></dt>
 			</dl>
 			
 		<h2 class="smalltitle">Security</h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/prewsaa/">Pre-WS A&amp;A</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/message/">Message-level</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/authzframe/">Authz Framework</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/cas/">CAS</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/delegation/">Delegation Service</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/myproxy/">MyProxy</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/openssh/">GSI-OpenSSH</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/simpleca/">SimpleCA</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/security/prewsaa/">Pre-WS A&amp;A</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/security/message/">Message-level</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/security/authzframe/">Authz Framework</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/security/cas/">CAS</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/security/delegation/">Delegation Service</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/security/myproxy/">MyProxy</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/security/openssh/">GSI-OpenSSH</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/security/simpleca/">SimpleCA</a></dt>
 			</dl>
 		
 		<h2 class="smalltitle">Data Mgt</h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/data/rft/">RFT</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/data/gridftp/">GridFTP</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/data/rls/">RLS</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/data/wsrls/">WS RLS</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/data/ogsadai/">OGSA-DAI</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/data/datarep/">DRS</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/data/rft/">RFT</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/data/gridftp/">GridFTP</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/data/rls/">RLS</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/data/wsrls/">WS RLS</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/data/ogsadai/">OGSA-DAI</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/data/datarep/">DRS</a></dt>
 			</dl>
 		
 		<h2 class="smalltitle">Information Svcs</h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">WS MDS Aggregator</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/index/">WS MDS Index</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/trigger/">WS MDS Trigger</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/webmds/">WS MDS WebMDS</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/usefulrp/">WS MDS UsefulRP</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/prewsmds/">Pre-WS MDS (legacy)</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/info/aggregator/">WS MDS Aggregator</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/info/index/">WS MDS Index</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/info/trigger/">WS MDS Trigger</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/info/webmds/">WS MDS WebMDS</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/info/usefulrp/">WS MDS UsefulRP</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/info/prewsmds/">Pre-WS MDS (legacy)</a></dt>
 			</dl>
 			
 		<h2 class="smalltitle">Execution Mgt</h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/wsgram/">WS GRAM</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gtcp/">GTCP</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/csf/">CSF</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/wms/">WMS</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/prewsgram/">Pre-WS GRAM (legacy)</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/execution/wsgram/">WS GRAM</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/execution/gtcp/">GTCP</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/execution/csf/">CSF</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/execution/wms/">WMS</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/execution/prewsgram/">Pre-WS GRAM (legacy)</a></dt>
 			</dl>
 	</div>
 </td>
