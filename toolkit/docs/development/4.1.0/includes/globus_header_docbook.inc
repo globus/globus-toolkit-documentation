@@ -59,7 +59,7 @@ globus_out_of_date(); ?>
 		 <h2 class="smalltitle">Software Links</h2>
            <dl class="leftColumn">
 		   		<dt><a href="/toolkit/docs/development/4.1.0/Usage_Stats.html">Usage Statistics</a></dt>
-				<dt><a href="/toolkit/releasenotes/">Release Notes</a></dt>
+				<dt><a href="/toolkit/releasenotes/development/4.1.0/">Release Notes</a></dt>
 				<dt><a href="/toolkit/versioning.html">Versioning</a></dt>
 				<dt><a href="/toolkit/downloads/">Downloads</a></dt>
 				<dt><a href="/toolkit/advisories.html">Advisories</a></dt>
