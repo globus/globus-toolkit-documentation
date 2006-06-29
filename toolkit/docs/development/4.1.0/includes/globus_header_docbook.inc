@@ -96,10 +96,8 @@ globus_out_of_date(); ?>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.1.0/common/javawscore/">Java WS Core</a></dt>
 				<dt><a href="/toolkit/docs/development/4.1.0/common/cwscore/">C WS Core</a></dt>
-				<dt><a href="/toolkit/docs/development/4.1.0/common/pythonwscore/">Python WS Core</a></dt>
 				<dt><a href="/toolkit/docs/development/4.1.0/common/xio/">XIO</a></dt>
 				<dt><a href="/toolkit/docs/development/4.1.0/common/javacog/">CoG jglobus</a></dt>
-				<dt><a href="/toolkit/docs/development/4.1.0/common/pyglobus/">pyGlobus</a></dt>
 			</dl>
 			
 		<h2 class="smalltitle">Security</h2>
@@ -131,16 +129,13 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.1.0/info/trigger/">WS MDS Trigger</a></dt>
 				<dt><a href="/toolkit/docs/development/4.1.0/info/webmds/">WS MDS WebMDS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.1.0/info/usefulrp/">WS MDS UsefulRP</a></dt>
-				<dt><a href="/toolkit/docs/development/4.1.0/info/prewsmds/">Pre-WS MDS (legacy)</a></dt>
 			</dl>
 			
 		<h2 class="smalltitle">Execution Mgt</h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.1.0/execution/wsgram/">WS GRAM</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/execution/prewsgram/">Pre-WS GRAM</a></dt>
 				<dt><a href="/toolkit/docs/development/4.1.0/execution/gtcp/">GTCP</a></dt>
-				<dt><a href="/toolkit/docs/development/4.1.0/execution/csf/">CSF</a></dt>
-				<dt><a href="/toolkit/docs/development/4.1.0/execution/wms/">WMS</a></dt>
-				<dt><a href="/toolkit/docs/development/4.1.0/execution/prewsgram/">Pre-WS GRAM (legacy)</a></dt>
 			</dl>
 	</div>
 </td>
