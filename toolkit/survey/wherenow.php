@@ -7,12 +7,6 @@
     {
         print "<p>ScOAP Instructions:<br><a href=/scoap>http://www-unix.globus.org/scoap/</a></p>\n";
     }
-    else if ( preg_match( "/4.1.0/", $link ) )
-    {
-        print "<p>[ <a href=../releasenotes/development/4.1.0/>4.1.0 Release Notes</a> ]<br>\n";
-		print "<p>[ <a href=../docs/development/4.1.0/>GT 4.1.0 Manuals</a> ]<br>\n";
-    }
-
     else if ( preg_match( "/3.9.5/", $link ) )
     {
         print "<p>[ <a href=../docs/development/3.9.5>Globus 3.9.5 Documents</a> ]<br>\n";
