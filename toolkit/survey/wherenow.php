@@ -36,6 +36,10 @@
         print "<p>[ <a href=../releasenotes/3.2.1/>3.2.1 Release Notes</a> ]<br>\n";
         print "<p>[ <a href=../docs/3.2/>Globus Toolkit 3.2.1 Documents</a> ]<br>\n";
     }
+    else if ( preg_match( "/4.1.0/", $link ) )
+    {
+        print "<p>[ <a href=../docs/development/4.1.0>Globus 4.1.0 Documents</a> ]</p>\n";
+    }
     else
     {
         print "<p>[ <a href=../releasenotes/4.0.2/>4.0.2 Release Notes</a> ]<br>\n";
