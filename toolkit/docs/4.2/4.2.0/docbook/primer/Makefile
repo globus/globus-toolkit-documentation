@@ -12,8 +12,10 @@ all: html
 	$(FILENAME)
         
 pdf:
-	docbook2pdf -l /usr/share/sgml/docbook/dsssl-stylesheets/dtds/decls/xml.dcl \
-          ${FILENAME}
+	~bacon/XEP/xep \
+	-xml $(FILENAME) \
+	-xsl ../../custom_fo.xsl \
+	-out primer.pdf
 man:
 	docbook2x-man function.xml && docbook2x-man command.xml
 lint:
