@@ -1,0 +1,196 @@
+<title>GT 4.0 DRS (Tech Preview): System Administrator's Guide</title>
+<titleabbrev>System Administrator's Guide</titleabbrev>
+
+<section id="s-datarep-admin-introduction"><title>Introduction</title>
+<para>This guide contains advanced configuration information for system administrators
+  working with the Data Replication Service (DRS). It provides references to information on procedures
+  typically performed by system administrators, including installing, configuring,
+ deploying, and testing the installation.</para>
+ <important>
+  <simpara> This information is in addition to the basic Globus Toolkit prerequisite, 
+   overview, installation, security configuration instructions in the <ulink url="../../admin/docbook/">GT 4.0 System Administrator's Guide</ulink>.  
+   Read through this guide before continuing!</simpara>  
+ </important>
+</section>
+
+
+<section id="s-datarep-admin-installing"><title>Building and installing</title>
+<para>DRS is not installed as part of the standard install. To install the DRS, first install the Globus Toolkit
+ by following the basic installation instructions as referenced above. Following the basic installation, issue
+ a <emphasis>make gt4-replicator postinstall</emphasis> command from the directory that was used to build the toolkit. The
+ following commands will install the DRS.</para>
+<screen>
+ ./configure --prefix=/path/to/install
+ make
+ make gt4-replicator postinstall
+</screen>
+<para><emphasis>Note:</emphasis> The DRS depends on the Globus RLS. In order for the &quot;make&quot; command above to build
+ and install the RLS, you must follow the basic installation instructions for GT 4.0 as noted previously. 
+ Installation of the RLS requires that the <emphasis>GLOBUS_IODBC_PATH</emphasis> environment variable be properly set <emphasis>before</emphasis> 
+ issuing the &quot;make&quot; command. Not setting this environment variable before installation is a common
+ mistake encountered by users.</para>
+</section>
+
+
+<section id="s-datarep-admin-configuring"><title>Configuring </title>
+<para>This information is in addition to the basic configuration instructions in the 
+ <ulink url="http://www.globus.org/toolkit/docs/4.0/admin/docbook/">GT4.0 System Administrator's Guide</ulink>. Aside from the basic configuration of GT 4.0, please review the following instructions for:</para>
+
+<section id="s-datarep-admin-dbconfig"><title>Database Configuration</title>
+<para>The setup and configuration of the DRS depends on the installation of a relational database server. At present, 
+these instructions will work with the PostgreSQL database server. The developers of DRS used the PostgreSQL 7.4.6 
+release when testing this service. <emphasis>Note:</emphasis> You must start PostgreSQL with the <emphasis>-i</emphasis> option to enable TCP/IP 
+communication, which is required by DRS.</para>
+<para>After installing and starting the database server, you will need to add a user account and create a database for DRS.
+The following commands may be used to configure PostgreSQL. (<emphasis>Note:</emphasis> you may select your own user account rather than using the example <emphasis>dbuser</emphasis>, but you must reflect that change consistently throughout the configuration of the service.)</para>
+<para>1. Add user account:</para>
+<screen>
+ <emphasis>createuser -d -A -P</emphasis>
+ Enter name of user to add: <emphasis>dbuser</emphasis>
+ Enter password for new user:
+ Enter it again:
+ CREATE USER
+</screen>
+<para>2. Create database:</para>
+<screen>
+ <emphasis>createdb -O dbuser -W -U dbuser replicator</emphasis>
+ Password:
+ CREATE DATABASE
+</screen>
+<para>3. Create database schema:</para>
+<screen>
+ <emphasis>psql -W -U dbuser -d replicator -f \
+  $GLOBUS_LOCATION/share/globus_wsrf_replicator/replicator_psql.sql</emphasis>
+ Password:
+ CREATE SEQUENCE
+ CREATE SEQUENCE
+ psql:/globus/install/share/globus_wsrf_replicator/replicator_psql.sql:22: 
+ NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index 
+ "t_replicator_pkey" for table "t_replicator"
+ CREATE TABLE
+ psql:/globus/install/share/globus_wsrf_replicator/replicator_psql.sql:35: 
+ NOTICE:  CREATE TABLE / PRIMARY KEY will create implicit index 
+ "t_replication_pkey" for table "t_replication"
+ CREATE TABLE
+ CREATE TABLE
+ CREATE TABLE
+</screen>
+<para>4. Verify database setup:</para>
+<screen>
+ <emphasis>psql -W -U dbuser -d replicator</emphasis>
+ Password:
+ Welcome to psql 7.4.6, the PostgreSQL interactive terminal.
+ 
+ Type:  \copyright for distribution terms
+        \h for help with SQL commands
+        \? for help on internal slash commands
+        \g or terminate with semicolon to execute query
+        \q to quit
+	
+ replicator=&gt; <emphasis>\dt</emphasis>
+            List of relations
+  Schema |     Name      | Type  |    Owner
+ --------+---------------+-------+-------------
+  public | t_credential  | table | dbuser
+  public | t_replication | table | dbuser
+  public | t_replicator  | table | dbuser
+  public | t_source      | table | dbuser
+ (4 rows)
+ 
+ replicator=&gt; <emphasis>\di</emphasis>
+                          List of relations
+  Schema |        Name        | Type  |    Owner    |     Table
+ --------+--------------------+-------+-------------+---------------
+  public | t_replication_pkey | index | dbuser      | t_replication
+  public | t_replicator_pkey  | index | dbuser      | t_replicator
+ (2 rows)
+
+ replicator=&gt; <emphasis>\ds</emphasis>
+                   List of relations
+  Schema |       Name        |   Type   |    Owner
+ --------+-------------------+----------+-------------
+  public | t_replication_seq | sequence | dbuser
+  public | t_replicator_seq  | sequence | dbuser
+ (2 rows)
+
+ replicator=&gt; <emphasis>\d t_replicator</emphasis>
+                             Table "public.t_replicator"
+    Column   |       Type       |                     Modifiers
+ ------------+------------------+-----------------------------------------------
+  id         | integer          | not null default nextval('t_replicator_seq'...
+  status     | integer          | default 0
+  created    | double precision | not null
+  started    | double precision | default 0
+  terminated | double precision | default 0
+  terminate  | double precision | default 0
+  subject    | text             |
+  username   | text             |
+  total      | integer          | default 0
+  finished   | integer          | default 0
+  failed     | integer          | default 0
+  cancelled  | integer          | default 0
+  fault      | text             |
+ Indexes:
+     "t_replicator_pkey" primary key, btree (id)
+
+ replicator=&gt; <emphasis>\q</emphasis>
+</screen>
+</section>
+
+<section id="s-datarep-admin-jndiconfig"><title>JNDI Configuration</title>
+<para>In addition to database setup, the DRS requires certain JNDI settings to be properly configured. The
+installed JNDI configuration file may be found at <emphasis>$GLOBUS_LOCATION/etc/globus_wsrf_replicator/jndi-config.xml</emphasis>. 
+To view the default configuration file (shipped with the GT 4.0 release) from the Globus CVS repository 
+<ulink url="http://viewcvs.globus.org/viewcvs.cgi/ws-replica/replicator/service/java/source/deploy-jndi-config.xml?rev=1.3&amp;content-type=text/vnd.viewcvs-markup">click here</ulink>.</para>
+<para>The settings are structured as name-value pairs. For example:</para>
+<screen>
+ &lt;parameter&gt;
+ &nbsp;&nbsp;&lt;name&gt;<emphasis>rliUrl</emphasis>&lt;/name&gt;
+ &nbsp;&nbsp;&lt;value&gt;<emphasis>rls://127.0.0.1:39281</emphasis>&lt;/value&gt;
+ &lt;/parameter&gt;
+</screen>
+<para>The following settings must be properly configured:</para>
+<itemizedlist>
+  <listitem><simpara><emphasis>rliUrl</emphasis>: the connection URL for your installation of RLS running as a RLI service.</simpara></listitem>
+  <listitem><simpara><emphasis>lrcUrl</emphasis>: the connection URL for your installation of RLS running as a LRC service.</simpara></listitem>
+  <listitem><simpara><emphasis>rftUrl</emphasis>: the connection URL for your installation of the RFT ReliableFileTransferFactoryService.</simpara></listitem>
+  <listitem><simpara><emphasis>maxTransferWait</emphasis>: the maximum number of seconds that the Replicator resource will wait for its RFT file transfers to complete. <emphasis>Note:</emphasis> the default value of <emphasis>600</emphasis>, or 10 minutes, will be insufficient for large replication activities.</simpara></listitem>
+  <listitem><simpara><emphasis>proxyfileChangePermsCmd</emphasis>: the platform-dependent command to change file permissions to user-only read-write permissions.</simpara></listitem>
+  <listitem><simpara><emphasis>proxyfileDir</emphasis>: the directory that you would like the DRS to temporarily store user proxies. No setting is necessary. This value may be empty.</simpara></listitem>
+  <listitem><simpara><emphasis>driverClassName</emphasis>: the JDBC database driver class name. This class must be reachable by the service via the container's classpath. The default value of <emphasis>org.postgresql.Driver</emphasis> works with PostgreSQL and comes installed with the standard installation of GT 4.0.</simpara></listitem>
+  <listitem><simpara><emphasis>url</emphasis>: the connection URL for your installation and configuration of the database server for use with DRS.</simpara></listitem>
+  <listitem><simpara><emphasis>username</emphasis>: the user associated with your database setup.</simpara></listitem>
+  <listitem><simpara><emphasis>password</emphasis>: the password associated with your database user account.</simpara></listitem>
+</itemizedlist>
+
+</section>
+</section>
+
+<section id="s-datarep-admin-deploying"><title>Deploying</title>
+<para>No further information is necessary.</para>
+</section>
+
+<section id="s-datarep-admin-testing"><title>Testing</title>
+<para>This service does not provide a set of tests yet.</para>
+</section>
+
+<section id="s-datarep-admin-security_considerations"><title>Security considerations</title>
+&DataRep_Security_Considerations_Frag;
+</section>
+
+<section id="s-datarep-admin-troubleshooting"><title>Troubleshooting</title>
+<para>Generating verbose log output is a critical aid in troubleshooting of the DRS and is useful 
+when communicating problems to Globus support lists. To increase logging detail, add the following 
+line to the <computeroutput>$GLOBUS_LOCATION/container-log4j.properties</computeroutput> file.</para>
+<screen>
+ ...
+ log4j.category.org.globus.replica=DEBUG
+ ...
+</screen>
+<!-- TODO Add troubleshooting help for problems related to:
+  1) database setup
+  2) security security
+  3) RLS
+  4) RFT
+-->
+</section>
