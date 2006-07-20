@@ -3,7 +3,7 @@ export XML_CATALOG_FILES=catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 
-all: lint html
+all: lint html docbook/primer/index.html
 
 html:
 	xsltproc \
@@ -28,7 +28,7 @@ debian-sarge:
 mac:
 	xsltproc --stringparam chunk.section.depth 0 \
 	--stringparam chapter.autolabel 0 \
-	/usr/share/xml/xsl/docbook-xsl/html/chunk.xsl \
+	/sw/share/xml/xsl/docbook-xsl/html/chunk.xsl \
 	$(FILENAME)
 	
 lint:
@@ -38,3 +38,7 @@ lint:
 	--noent \
 	index.xml
 
+docbook/primer/index.html: docbook/primer/index.xml
+	cd docbook/primer && make
+
+docbook/primer/index.xml:
