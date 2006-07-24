@@ -652,14 +652,110 @@ Path to the SEG LSF log directory. This is used by the LSF
     </section>
 
 </section>
-    <section> <!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-registering-remotely"--><title>Registering WS GRAM manually with default WS MDS Index Service</title>
+
+<section> <!-- Frags used more than once cannot have ids id="wsgram-Interface_Config_Frag-registering-remotely"--><title>Registering WS GRAM manually with default WS MDS Index Service</title>
         <para>If a third party needs to register an WS GRAM service manually, see <link linkend="mds-servicegroup-add-registering">Registering with mds-servicegroup-add</link>
             in the WS MDS Aggregator Framework documentation.</para>
-    </section>  
+</section>  
 
+<section> <!--id="wsgram-admin-extensions-customizing" -->
+<title>Customizing Extensions Support</title>
+<para>
+Two Perl modules will have to be edited to customize extensions support. The
+first is <computeroutput>ExtensionsHandler.pm</computeroutput>. This is where
+the WS-GRAM job description XML of the
+<computeroutput>extensions</computeroutput> element is parsed and entries are
+added or appended to the Perl job description hash. The second module that needs
+to be edited is the particular resource manager adapter module that will use any
+new hash entries to either alter it's behavior or create additional parameters
+in the resource manager job description.
+</para>
 
-  
-  
+    <section><!-- id="wsgram-admin-extensions-customizing-handler" -->
+    <title>Customizing ExtensionsHandler.pm</title>
+    <para>
+    NOTE: if you are using one of the generic constructs described in the
+    <xref linkend="wsgram-user-extensions-constructs"/>
+    section of the WS-GRAM User's Guide, skip to the subsection titled
+    Customizing the Adapter Module.
+    </para>
 
+    <para>
+    For starters, this module logs various things to the log file specified in
+    the <computeroutput>logfile</computeroutput> extension element. If you place
+    this element at the start of the extensions you are creating support for,
+    then you can look at the specified log file to get some idea of what the
+    handler is doing.  You can add new logging lines by using the
+    <computeroutput>$self->log()</computeroutput> function.  This simply takes a
+    string that gets appended to the log file with a prefix of
+    "<computeroutput>&lt;date string&gt; EXTENSIONS HANDLER:</computeroutput>".
+    </para>
 
+    <para>
+    There are three main subroutines that are used to handle parsing events and
+    process them accordingly:
+    <computeroutput>Char(), StartTag(),</computeroutput> and
+    <computeroutput>EndTag()</computeroutput>.
+    More handlers can be specified for other specific events when creating the
+    <computeroutput>XML::Parser</computeroutput> instance in
+    <computeroutput>new()</computeroutput> (for details, see the
+    <xref linkend="wsgram-rn-techdependencies"/> section of the WS-GRAM Release
+    Notes for a link to the XML::Parser documentation). Descriptions of what the
+    three main subroutines do currently are layed out bellow. Modify the
+    subroutines as neccesary to achieve your goal.
+    </para>
+
+    <para>
+    <computeroutput>Char()</computeroutput> doesn't do anything but collect
+    CDATA found between the current element start and end tags. You can access
+    the CDATA for the current element by using
+    <computeroutput>$self->{CDATA}</computeroutput>.
+    </para>
+
+    <para>
+    <computeroutput>StartTag()</computeroutput> is responsible for collecting
+    the attributes associated with the element. It also increments the counter
+    which keeps track of the number of child elements under the current
+    extension element, and pushes the current element name onto the
+    <computeroutput>@scope</computeroutput> queue for later use.
+    </para>
+
+    <para>
+    <computeroutput>EndTag()</computeroutput> is used for taking the CDATA
+    collected by Char() and creating new Perl job description hash entries. This
+    is most likely where you will need to do most of your work when adding
+    support for new extension elements. Two useful variables are
+    <computeroutput>$currentScope</computeroutput> and
+    <computeroutput>$parentScope</computeroutput>.  These indicate the current
+    element that is being parsed and the parent of the element being parsed
+    respectively. This is useful for establishing a context from which to work
+    from. The <computeroutput>@scope</computeroutput> queue is poped at the end
+    of this subroutine.
+    </para>
+    </section>
+
+    <section><!-- id="wsgram-admin-extensions-customizing-adapter" -->
+    <title>Customizing the Adapter Module</title>
+    <para>
+    Each adapter and each extension's purpose is different, so there aren't any
+    specific instructions for modifying the resource manager/scheduler adapter
+    module. It is suggested that you spend some time trying to understand what
+    the adapter does and how before making your changes.
+    </para>
+    <para>
+    Any new hash entries you created in
+    <computeroutput>ExtensionsHandler.pm</computeroutput> (see the "Customizing
+    ExtensionsHandler.pm" section above) can be accessed by calling
+    <computeroutput>$description->entryname()</computeroutput> from the adapter
+    module, where 'entryname' is the name of the entry that was added.
+    </para>
+    <para>
+    See the <xref linkend="wsgram-user-extensions-constructs"/>
+    section of the WS-GRAM User's Guide for details on generic constructs that
+    are already supported in ExtensionsHandler.pm. This is often an easier route
+    to implmenting your extensions than creating a custom construct.
+    </para>
+    </section>
+
+</section>
 
