@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<para>
+This section describes using the CAS server to manage policy for web services. The sample service used here is the Counter Service distributed as a part of Java WS Core component. The CAS server needs to be bootstrapped with information about a super user and the sample assumes that the super user is the client. The methods on Counter Service that need to be protected needs to be added as actions and the EPR of the created counter resource needs to be added as an object.
+</para>
+
+<orderedlist>
+
+<listitem><simpara>
+Configure the CAS service as described in <link linkend="cas-admin-configuring">here</link>
+</simpara></listitem>
+
+<listitem><para>
+Bootstrap the CAS service as described in <link linkend="cas-admin-bootstrapingDb">here</link>. Ensure that the <emphasis>user-subject</emphasis> in the bootstrap properties file to be the DN of the client. For example, following is a sample bootstrap properties file
+
+<screen>
+ta-name=ta
+ta-authMethod=X509
+ta-authData=/C=US/O=Globus/CN=Default CA
+user-name=su
+user-subject=/C=US/O=Globus Alliance/OU=User/CN=101497d3dcd.3dcd5aef
+userGroupname=superUserGroup
+</screen>
+</para></listitem>
+
+<listitem><para>
+Start up container with -nosec option.
+<screen>bin/globus-start-contianer -nosec</screen>
+</para></listitem>
+
+<listitem><para>
+In another shell, set the CAS_SERVER_URL environment variable to point to the CAS service.
+<screen>set CAS_SERVER_URL=http://localhost:8080/wsrf/services/CASService</screen>
+</para></listitem>
+
+<listitem><para>
+Also set the CAS_SERVER_IDENTITY environment variable to point to the identity of the CAS service..
+<screen>set CAS_SERVER_IDENTITY=&quot;/C=US/O=Globus Alliance/OU=User/CN=101497d3dcd.3dcd5aef&quot;</screen>
+</para></listitem>
+
+<listitem><para> Create a user group (testUGp) to give permission to access counter service.
+<screen>bin/cas-group-admin.bat -m msg user create superUserGroup testUGp</screen>
+</para></listitem>
+
+
+<listitem><para> Add super user to the <emphasis>testUGp</emphasis>. The nick name for super user would have been specified in the bootstrap properties file. In this sample it is <emphasis>su</emphasis>.
+
+<screen>bin\cas-group-add-entry.bat -m msg user testUGp su</screen>
+</para></listitem>
+
+<listitem><para> Add web service operation as a service type.
+<screen>bin\cas-enroll.bat -m msg serviceType testUGp &quot;http://www.gridforum.org/namespaces/2003/06/ogsa-authorization/saml/action/operation&quot;</screen>
+</para></listitem>
+
+<listitem><para> Add &quot;add&quot; (an operation on counter service) as an action of the above service type.
+<screen>bin\cas-action.bat -m msg add &quot;http://www.gridforum.org/namespaces/2003/06/ogsa-authorization/saml/action/operation&quot; add</screen>
+</para></listitem>
+
+<listitem><para> Add &quot;destroy&quot; (an operation on counter service) as an action of the above service type.
+<screen>bin\cas-action.bat -m msg add &quot;http://www.gridforum.org/namespaces/2003/06/ogsa-authorization/saml/action/operation&quot; destroy</screen>
+</para></listitem>
+
+<listitem><para> Create a new counter resource using the counter client and use the -b option to get the string representation of EPR.
+<screen>bin\counter-create.bat -s http://localhost:8080/wsrf/services/SecureCounterService -m msg -z none -b eprAsString > epr</screen>
+</para></listitem>
+
+<listitem><para> Enroll the counter resource as an object. The object name will be the string representation of the EPR from previous step. Since we don't want any basename for this resource, use <emphasis>casDefautlNS</emphasis> as the namespace.
+<screen>bin\cas-enroll.bat -m msg object testUGp &quot;http://192.168.1.101:8080/wsrf/services/SecureCounterService?zpCAOdk0t4MfUmJY2GlpjeOC1Mw=&quot; casDefaultNS</screen>
+</para></listitem>
+
+<listitem><para> Grant rights for <emphasis>testUGp</emphasis> to be able to add to the counter resource.
+<screen>bin\cas-rights-admin.bat -m msg grant testUGp object casDefaultNS &quot;http://192.168.1.101:8080/wsrf/services/SecureCounterService?zpCAOdk0t4MfUmJY2GlpjeOC1Mw=&quot; serviceAction &quot;http://www.gridforum.org/namespaces/2003/06/ogsa-authorization/saml/action/operation&quot; add</screen>
+</para></listitem>
+
+<listitem><para> Attempt adding to the counter resource.
+<screen>bin\counter-add.bat -e epr -m msg 10 -z none</screen>
+</para></listitem>
+
+<listitem><para> Attempt destroying the resource. You will see an authorization exception.
+<screen>bin\wsrf-destroy.bat -m msg -z one -e epr</screen>
+</para></listitem>
+</orderedlist>
