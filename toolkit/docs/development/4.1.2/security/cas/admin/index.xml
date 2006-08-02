@@ -88,45 +88,20 @@ The subject name in these credentials is expected by CAS clients by default.</pa
 
       <title>Installing the database </title>
 
-      <para>While any database with a JDBC driver and support for a reasonable set of SQL may be used, PostgreSQL has been used for development
-
-and testing. The driver for the same  is included in the distribution. If a
-
-different database is used, the corresponding driver should be added to $GLOBUS_LOCATION/lib.
-
+      <para>While any database with a JDBC driver and support for a reasonable set of SQL may be used, Derby has been used for development and testing. The driver for the same  is included in the distribution. A default Derby database is created for CAS during installation and the CAS server uses the database in the embedded mode. One set of CAS tests also use the database in the embedded mode and another set uses in the network mode. 
 </para>
 
-      <para>Brief instructions on how to install a database (specifically
-
-  PostgreSQL) can be found <ulink url="http://www.globus.org/toolkit/3.0/ogsa/docs/admin/installation.html">here</ulink>.
-
-  For more detailed instructions, please refer to documentation for the database you are installing.
-
-  </para>
-
+<note> <para>Any JDBC compliant database might be used as backend. If a different database is used, the corresponding driver should be added to $GLOBUS_LOCATION/lib. </para></note>
     </section>
 
     <section id="cas-admin-createDb">
 
       <title>Creating the CAS database </title>
 
-      <para>The schema  for the database that needs to be created for CAS can be found
+      <para> By default a Derby database is created during deploy time at <code>$GLOBUS_LOCATION/var</code>. But schema for using PostGres or MySQL as backend is provided at <filename> $GLOBUS_LOCATION/etc/globus_cas_service/casDbSchema/cas_pgsql_database_schema.sql</filename> or <filename> $GLOBUS_LOCATION/etc/globus_cas_service/casDbSchema/cas_mysql_database_schema.sql</filename>. Please refer to PostGres or MySQL documentation for steps involved in creating the database. </para>
 
-  at <filename> $GLOBUS_LOCATION/etc/globus_cas_service/casDbSchema/cas_pgsql_database_schema.sql</filename></para>
+      <note> <para>This documentation assumes the database name to be <code>casDatabase</code></para></note>
 
-      <para>To create a database, for example <emphasis>casDatabase</emphasis>, on a PostgreSQL installation
-
-  on a local machine run the following commands:</para>
-
-      <screen>casadmin$ createdb casDatabase  
-
-casadmin$ psql -U casadmin -d casDatabase -f  \
-
-$GLOBUS_LOCATION/etc/globus_cas_service/casDbSchema/cas_pgsql_database_schema.sql</screen>
-
-      <para>You will see a list of notices on the screen. Unless any of them say &quot;ERROR&quot;,
-
-  these are just informational output.</para>
 
     </section>
 
@@ -234,8 +209,7 @@ dbPassword=<replaceable>Password for the above username</replaceable></screen>
 
       <para>Sample bootstrap command:</para>
 
-      <para>To bootstrap the CAS database with both implicit and user data the following command can be used. Prior to running the command, the following files need to be created with appropriate values filled in.
-
+      <para>To bootstrap the CAS database with both implicit and user data the following command can be used. Prior to running the command, the following files need to be created with appropriate values filled in. The values shown here are for default Derby database set up. If using any other database configuration, please fill in or uncomment corresponding values as appropriate.
 </para>
 
       <itemizedlist>
@@ -244,33 +218,38 @@ dbPassword=<replaceable>Password for the above username</replaceable></screen>
 
           <para><filename>$GLOBUS_LOCATION/share/globus_cas_service/casDbProperties</filename>
 
-<screen>dbDriver=org.postgresql.Driver
-
-dbConnectionURL=jdbc:postgresql://127.0.0.1/casDatabase
-
-dbUsername=tester
-
+<screen>
+# Database driver to use
+dbDriver=org.apache.derby.jdbc.EmbeddedDriver
+# Connection URL to database
+dbConnectionURL=jdbc:derby:casDatabase
+# Database user name
+dbUsername=casAdmin
+# Database password
 dbPassword=foobar</screen>
-
 </para>
 
         </listitem>
 
         <listitem>
 
-          <para><filename>$GLOBUS_LOCATION/share/globus_cas_service/bootstrapProperties</filename>
+          <para><filename>$GLOBUS_LOCATION/share/globus_cas_service/bootstrapProperties</filename>. Copy the template file <filename>$GLOBUS_LOCATION/share/globus_cas_service/bootstrapTemplate</filename> as <filename>$GLOBUS_LOCATION/share/globus_cas_service/bootstrapProperties</filename> and fill in the values as described below. Refer <filename>$GLOBUS_LOCATION/share/globus_cas_service/bootstrapSample</filename> for a sample.
 
-<screen>ta-name=defaultTrustAnchor
-
+<screen>
+# This file is used to populate the backend CAS database with a super user.
+# Nick name for trust anchor for super user
+ta-name=defaultTrustAnchor
+# Trust Anchor authentication method, typically X509 Certificates
 ta-authMethod=X509
-
+# Trust Anchor authentication data, typically X509 DN
 ta-authData=/C=US/O=Globus/CN=Default CA
-
+# Super user nickname
 user-name=superUser
-
-user-subject=/O=Grid/O=Globus/OU=something/CN=someone
-
-userGroupname=superUserGroup</screen></para>
+# Super user subject name, typically DN
+user-subject=/O=Grid/O=Globus/OU=something/CN=suUser
+# Super user group name
+userGroupname=superUserGroup
+</screen></para>
 
         </listitem>
 
@@ -308,13 +287,7 @@ casadmin$ bin/cas-server-bootstrap \
 
 <section id="cas-admin-testing"> <title>Testing</title>
 
-  <para>CAS has two sets of tests, one for the back end database access module and
-
-  another set to test the service itself. To install both tests, install the
-
-  CAS test package (<emphasis>gt4-cas-delegation-test-3.9-src_bundle.tar.gz</emphasis>) using
-
-  GPT. <emphasis>FILLME: instructions </emphasis> into <emphasis>GLOBUS_LOCATION</emphasis>.</para>
+  <para>CAS has two sets of tests, one for the back end database access module and another set to test the service itself. To install both tests, install the CAS test package (<emphasis>gt4-cas-delegation-test-$version;-src_bundle.tar.gz</emphasis>) using GPT. <emphasis>FILLME: instructions </emphasis> into <emphasis>GLOBUS_LOCATION</emphasis>.</para>
 
   <para><emphasis> Assumptions: </emphasis></para>
 
@@ -322,7 +295,7 @@ casadmin$ bin/cas-server-bootstrap \
 
     <listitem>
 
-      <simpara>A back end database has been set up and configured.</simpara>
+      <simpara>A back end database has been set up and configured. By default Derby is set up and configured.</simpara>
 
     </listitem>
 
@@ -346,19 +319,7 @@ casadmin$ bin/cas-server-bootstrap \
 
           <listitem>
 
-            <simpara>The database username is <emphasis>tester</emphasis>.</simpara>
-
-          </listitem>
-
-          <listitem>
-
-            <simpara>The database name is <emphasis>casDatabase</emphasis>.</simpara>
-
-          </listitem>
-
-          <listitem>
-
-            <simpara>The database is on host <emphasis>foo.bar.edu</emphasis> and the default port.</simpara>
+            <simpara>The default Derby database configuration is used, i.e database name is <emphasis>casDatabase</emphasis> and user is <emphasis>casAdmin</emphasis></simpara>
 
           </listitem>
 
@@ -371,7 +332,6 @@ casadmin$ bin/cas-server-bootstrap \
   </itemizedlist>
 
   <section>
-
     <title> Testing the back end database module </title>
 
     <para>
@@ -388,9 +348,7 @@ casadmin$ bin/cas-server-bootstrap \
 
   <listitem id="cas-admin-testDbConfig">
 
-          <para>Populate the file <filename>etc/globus_cas_unit_test/casTestProperties</filename> with
-
-    the following database configuration information:
+          <para>Populate the file <filename>etc/globus_cas_unit_test/casTestProperties</filename> with the database configuration information shown in the following table. 
 
         <table>
 
@@ -442,13 +400,29 @@ casadmin$ bin/cas-server-bootstrap \
 
   </para>
 
+  <para>If default Derby configuration is required, 
+  <orderedlist>
+  <listitem>
+  <para>Uncomment the lines in <filename>etc/globus_cas_unit_test/casTestProperties</filename> following the comment <emphasis># Uncomment below for Derby Embedded Driver.</emphasis>. 
+  </para>
+  </listitem>
+  <listitem>
+  <para> Edit <emphasis>dbConnectionURL</emphasis> to replace <emphasis>GLOBUS_LOCATION</emphasis> with path to your installation. For example, if your GLOBUS_LOCATION is /temp/globus, then the property should look like <emphasis>dbConnectionURL=jdbc:derby:/temp/globus/var/casDatabase</emphasis></para>
+  </listitem>
+  <listitem><para>Comment out all other occurances of these properties</para>
+  </listitem>
+  </orderedlist>
+  </para>
+
         </listitem>
 
         <listitem>
 
           <para>The database needs to be empty for these tests to work and will be deleted by this target. Run:
 
-      <screen>ant -f share/globus_cas_unit_test/cas-test-build.xml testDatabase </screen></para>
+      <screen>
+      set GLOBUS_LOCATION=C:\globus
+      ant -f share/globus_cas_unit_test/cas-test-build.xml testDatabase </screen></para>
 
         </listitem>
 
@@ -474,6 +448,7 @@ casadmin$ bin/cas-server-bootstrap \
 
     <title> Testing the CAS service module </title>
 
+
     <para>These tests can be set up so as to be able to test multiple user scenarios
 
   or  they can be configured to run as just a single identity. The first set of
@@ -484,9 +459,29 @@ casadmin$ bin/cas-server-bootstrap \
 
   the setup worked.</para>
 
-    <para>All the configuration information for the test needs to be configured in  the <filename>etc/globus_cas_unit_test/casTestProperties</filename> file.
+  <para>As with the previous any database backend can be used for testing. If the default Derby database is used, it needs to be configured in network mode since these tests require that both the tested CAS server and the tests use the database. Two files need to be modified for configuring these tests and they are described below.</para>
 
-      The database section of the properties file needs to be configured as described <link linkend="cas-admin-testDbConfig">here</link>. In addition the following properties need to be configured  to run the tests:</para>
+<orderedlist>
+
+<listitem><para>The <filename>etc/globus_cas_unit_test/casTestProperties</filename> needs to be configured with appropriate database information and service information.</para>
+
+
+<para> The database information is configured similar to previous test, but for the default Derby installation, the network driver needs to be used.</para>
+
+<orderedlist>
+<listitem>
+  <para>Uncomment the lines in <filename>etc/globus_cas_unit_test/casTestProperties</filename> following the comment <emphasis># Uncomment below for Derby Network Driver.</emphasis>. 
+  </para>
+  </listitem>
+  <listitem>
+  <para> Edit <emphasis>dbConnectionURL</emphasis> to replace <emphasis>GLOBUS_LOCATION</emphasis> with path to your installation. For example, if your GLOBUS_LOCATION is /temp/globus, then the property should look like <emphasis>dbConnectionURL=jdbc:derby:/temp/globus/var/casDatabase</emphasis></para>
+  </listitem>
+  <listitem><para>Comment out all other occurances of these properties.</para>
+  </listitem>
+</orderedlist>
+
+<para> Now edit the server specific information as shown below:</para>
+
 
     <table id="cas-admin-testPropertiesConfig" xreflabel="CAS Test Properties">
 
@@ -557,6 +552,11 @@ casadmin$ bin/cas-server-bootstrap \
       </tgroup>
 
     </table>
+</listitem>
+
+<listitem> <para> FILLME: jndi-config.xml</para></listitem>
+</orderedlist>
+
 
     <para> Steps for testing:</para>
 
@@ -634,7 +634,7 @@ casadmin$ bin/cas-server-bootstrap \
 
       <listitem>
 
-        <para>The database needs to be empty for these tests to work and this target deletes all entries in database. Then run the following:
+        <para>Now run the following:
 
       <screen>casadmin$ ant -f share/globus_cas_unit_test/cas-test-build.xml user2TestService</screen></para>
 
@@ -647,12 +647,8 @@ casadmin$ bin/cas-server-bootstrap \
       </listitem>
 
       <listitem>
-
-        <para>After these tests, the CAS database needs to be reset. The following
-
-      command will delete all entries from the database:
-
-        <screen>casadmin$ psql -U casadmin -d casDatabase -f GLOBUS_LOCATION/share/cas/database_delete.sql</screen>
+        <para>After these tests, the CAS database needs to be reset and all entries need to be deleted.
+        <screen>ant -f share/globus_cas_unit_test/cas-test-build.xml testDatabase</screen>
 
   </para>
 
