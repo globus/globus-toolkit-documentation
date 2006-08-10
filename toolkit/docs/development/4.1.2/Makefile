@@ -9,7 +9,7 @@ html:
 	xsltproc \
 	custom_html.xsl \
 	$(FILENAME)
-	chgrp -R cvsusers * || true
+	find . -name \*.html | xargs chgrp cvsusers
 
 pdf:
 	~bacon/XEP/xep \
