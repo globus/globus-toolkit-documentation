@@ -7,9 +7,9 @@ all: lint html docbook/primer/index.html
 
 html:
 	xsltproc \
-	chgrp -R cvsusers \
 	custom_html.xsl \
 	$(FILENAME)
+	chgrp -R cvsusers
 
 pdf:
 	~bacon/XEP/xep \
