@@ -9,7 +9,7 @@ html:
 	xsltproc \
 	custom_html.xsl \
 	$(FILENAME)
-	chgrp -R cvsusers
+	chgrp -R cvsusers *
 
 pdf:
 	~bacon/XEP/xep \
