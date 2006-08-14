@@ -36,7 +36,7 @@ $software = "<a href='http://www.citi.umich.edu/projects/kerb_pki/'>KX.509 and K
 $developer = "<a href='http://www.citi.umich.edu/'>Center for Information Technology Integration</a>,<br />The University of Michigan";
 $distros = "<a href='http://collab.nsf-middleware.org/Lists/NMIR7/AllItems.aspx'>NMI-R7</a><br />
             <a href='http://www.citi.umich.edu/projects/kerb_pki/'>Download from University of Michigan</a>";
-$contact = "<a href='mailto:information@citi.umich.edu'>information@citi.umich.edu</a>";
+$contact = "";
 
 // use the function below once problem is discovered, remove the two lines above
 app_info($software, $developer, $distros, $contact);
