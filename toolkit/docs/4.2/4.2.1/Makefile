@@ -5,6 +5,14 @@ FILENAME= index.xml
 
 all: lint html docbook/primer/index.html
 
+cygwin-html:
+	xsltproc --stringparam chunk.section.depth 0 \
+           --stringparam suppress.navigation 1 \
+	   --stringparam  chapter.autolabel 0 \
+	   --stringparam  section.autolabel 1 \
+            c:/cygwin/usr/share/docbook-xsl/html/chunk.xsl \
+           ${FILENAME}
+
 html:
 	xsltproc \
 	custom_html.xsl \
