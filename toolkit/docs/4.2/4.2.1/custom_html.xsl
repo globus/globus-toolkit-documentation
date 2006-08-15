@@ -3,7 +3,7 @@
                 version="1.0">
                 
                 <!-- Which DocBook standard xsl file should we use as the default? -->
-                <xsl:import href="c:/cygwin/usr/share/docbook-xsl/html/chunk.xsl"/>
+                <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/html/chunk.xsl"/>
                 
                 <!-- testing: if you want to generate your own html without installing stylesheets, substitute the following url
                 for the import href above:
