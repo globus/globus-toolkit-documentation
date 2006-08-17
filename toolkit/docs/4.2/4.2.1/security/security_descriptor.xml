@@ -332,7 +332,7 @@ linkend="security-secdesc-schema"/>.</para></note>
           <simpara>Container credentials </simpara>
         </listitem>
         <listitem>
-          <simpara>Default credentials. This uses the underlying security library to acquire the credentials. It will typically result in finding the <glossterm>proxy certificate</glossterm> of the user that is running the container.</simpara>
+          <simpara>Default credentials. If credentials are not configured using any of the above methods, then underlying CoG JGlobus library is used. This will attempt to load the  <glossterm>proxy certificate</glossterm> of the user that is running the container as described in <xref linkend="javacog-admin-configuring-proxy"/>.</simpara>
         </listitem>
       </orderedlist> 
 </para>
@@ -555,21 +555,22 @@ linkend="security-secdesc-schema"/>.</para></note>
 
     <screen>
 &lt;containerSecurityConfig xmlns=&quot;http://www.globus.org/security/descriptor/container&quot; 
-xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-xsi:schemaLocation=&quot;http://www.globus.org/security/descriptor 
-name_value_type.xsd&quot;
-xmlns:param=&quot;http://www.globus.org/security/descriptor&quot;&gt;
-&lt;authzChain&gt;
-&lt;pdps&gt;
-   &lt;interceptor name=&quot;gridmapAuthz:org.globus.wsrf.impl.security.GridMapAuthorization&quot;&gt;
+  xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+  xsi:schemaLocation=&quot;http://www.globus.org/security/descriptor 
+  name_value_type.xsd&quot;
+  xmlns:param=&quot;http://www.globus.org/security/descriptor&quot;&gt;
+   &lt;authzChain&gt;
+     &lt;pdps&gt;
+       &lt;interceptor name=&quot;gridmapAuthz:org.globus.wsrf.impl.security.GridMapAuthorization&quot;&gt;
                     &lt;parameter&gt;
                         &lt;param:nameValueParam&gt;
                             &lt;param:parameter name=&quot;gridmap-file&quot;
                                             value=&quot;/home/user1/grid-mapfile&quot;/&gt;
                         &lt;/param:nameValueParam&gt;
                     &lt;/parameter&gt;
-		&lt;/interceptor&gt;
+           &lt;/interceptor&gt;
 	&lt;/pdps&gt;
+    &lt;/authzChain&gt;
 &lt;/containerSecurityConfig&gt;
     
     </screen>
@@ -892,7 +893,10 @@ public class FooPDP implements PDP
        &lt;trusted-certificates value=&quot;/home/user1/trustedCerts /home/user1/newCerts&quot;/&gt;
    ...
 &lt;/containerSecurityConfig&gt;</screen>
-</section> <!-- replay-timer-interval -->
+
+<para> If this configuration is not set, the underlying CoG JGlobus library is used to pick up trusted certificates. The library attempts to load  the certificates as described in <xref linkend="javacog-admin-configuring-trusted-certs"/>.
+</para>
+</section> <!-- trsuted-certificates -->
 
 </section> <!-- container only configuration -->
 
@@ -1182,9 +1186,42 @@ public class FooPDP implements PDP
   <title>Client Security Descriptor Configuration </title>
 
   <section id="security-secdesc-client-cred">
+
   <title>Configuring credentials </title>
-  <para> Client side credentials are configured similar to server side credentials as described in <xref linkend="security-secdesc-configCred"/>. The outer element and schema for client security descriptor as described in <xref linkend="security-secdesc-schema"/> should be used. </para>
-  </section>
+
+    <para>The client can be configured with credentials using the
+    descriptor. The credentials can be set using either: a) the path
+    to a proxy file, or b) the path to a certificate and key file. The
+    credentials can be configured by adding one of the following
+    blocks to the client security descriptor. </para>
+
+    <para>Example for option (a):
+
+<screen>&lt;clientSecurityConfig xmlns=&quot;http://www.globus.org/descriptor/clent&quot;&gt;
+   ...
+   &lt;proxy-file value=&quot;proxyFile&quot;/&gt;
+   ...
+&lt;/clientSecurityConfig&gt;</screen>
+
+</para>
+
+    <para>Example for option (b):
+
+    <screen>&lt;clientSecurityConfig 
+            xmlns=&quot;http://www.globus.org/security/descriptor/client&quot;&gt;
+   ...
+   &lt;credential&gt;
+       &lt;key-file value=&quot;keyFile&quot;/&gt;
+       &lt;cert-file value=&quot;certFile&quot;/&gt;
+   &lt;/credential&gt;
+   ...
+&lt;/clientSecurityConfig&gt;</screen>
+
+</para>
+
+<para>If credentials are not configured using any of the above methods, then underlying CoG JGlobus library is used. This will attempt to load the  <glossterm>proxy certificate</glossterm> of the user that is running the container as described in <xref linkend="javacog-admin-configuring-proxy"/>.</para>
+
+  </section> <!-- configuring credentials -->
 
   <section id="security-secdesc-client-authz">
   <title>Configuring authorization mechanism </title>
@@ -1257,7 +1294,7 @@ The following sample configures self authorization:
     </row>
     <row>
       <entry><constant>&lt;delegation value=&quot;</constant><emphasis>type of delegation</emphasis><constant>&quot;&gt;</constant></entry>
-      <entry>Determines the type of delegation to be done. The value can be set to <constant>full</constant> or <constant>limited</constant>. If the <emphasis>delegation</emphasis> element is not used, no delegation is done.</entry>
+      <entry>Determines the type of delegation to be done. The value can be set to <constant>full</constant> or <constant>limited</constant>. If the <emphasis>delegation</emphasis> element is not used, no delegation is done. If delegation is enabled, some form of client authorization is required.</entry>
     </row>
     <row>
       <entry><constant>&lt;context-lifetime&gt;</constant></entry>
@@ -1386,6 +1423,10 @@ The following sample sets GSI Secure Transport with privacy and anonymous:
   <section id="security-secdesc-client-trustedCerts">
   <title>Configuring trusted credentials </title>
   <para> Client side trusted credentials are configured similar to container security descriptor as described in <xref linkend="security-secdesc-container-trusted"/>. The outer element and schema for client security descriptor as described in <xref linkend="security-secdesc-schema"/> should be used. </para>
+
+<para> If this configuration is not set, the underlying CoG JGlobus library is used to pick up trusted certificates. The library attempts to load  the certificates as described in <xref linkend="javacog-admin-configuring-trusted-certs"/>.
+</para>
+
   </section> <!-- trusted certificates -->
 
 
@@ -1566,26 +1607,27 @@ desc.setAuthzChain(authzChain, config, &quot;Name of Chain&quot;, &quot;Some id&
 <screen>
 
 &lt;containerSecurityConfig xmlns=&quot;http://www.globus.org/security/descriptor/container&quot; 
-  xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-  xsi:schemaLocation=&quot;http://www.globus.org/security/descriptor 
-  name_value_type.xsd&quot;
-  xmlns:param=&quot;http://www.globus.org/security/descriptor&quot;&gt;
+   xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+   xsi:schemaLocation=&quot;http://www.globus.org/security/descriptor 
+   name_value_type.xsd&quot;
+   xmlns:param=&quot;http://www.globus.org/security/descriptor&quot;&gt;
 
-&lt;defaultAuthzParam&gt;
-   &lt;interceptor name=&quot;gridmapAuthz:org.globus.wsrf.impl.security.GridMapAuthorization&quot;&gt;
+   &lt;defaultAuthzParam&gt;
+     &lt;interceptor name=&quot;gridmapAuthz:org.globus.wsrf.impl.security.GridMapAuthorization&quot;&gt;
                     &lt;parameter&gt;
                         &lt;param:nameValueParam&gt;
                             &lt;param:parameter name=&quot;gridmap-file&quot;
                                             value=&quot;/etc/grid-security/grid-mapfile&quot;/&gt;
                         &lt;/param:nameValueParam&gt;
                     &lt;/parameter&gt;
-		&lt;/interceptor&gt;
+      &lt;/interceptor&gt;
+   &lt;/defaultAuthzParam&gt;
 &lt;/containerSecurityConfig&gt;
 
 </screen>
 </para>
 
-<para>If the grid map file is updated at runtime, it will be updated.</para>
+<para>If the grid map file is updated at runtime, it will be reloaded.</para>
 
 </section> <!-- default grid map file -->
 

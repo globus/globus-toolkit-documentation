@@ -7,6 +7,7 @@
     descriptor object, which in turn is propagated to client side
     security handlers by making it available as a stub object
     property. Here are examples for the two approaches:</para>
+
   <itemizedlist>
     <listitem>
       <para>Setting property on the stub:
@@ -23,9 +24,13 @@ CounterPortType port =
   ((Stub)port)._setProperty(Constants.AUTHORIZATION, SelfAuthorization.getInstance());</emphasis></programlisting>
 </para>
     </listitem>
+
     <listitem>
       <para>Setting properties  using a client descriptor:
-      <screen><emphasis>// Client security descriptor file String CLIENT_DESC = &quot;org/globus/wsrf/samples/counter/client/client-security-config.xml&quot;; </emphasis>// Create endpoint reference
+      <screen>
+// Client security descriptor file 
+String CLIENT_DESC = &quot;org/globus/wsrf/samples/counter/client/client-security-config.xml&quot;; 
+// Create endpoint reference
 EndpointReferenceType endpoint = new EndpointReferenceType();
 // Set address of service
 String counterAddr = 
@@ -36,7 +41,8 @@ CounterPortType port =
 <emphasis>//Set descriptor on Stub ((Stub)port)._setProperty(Constants.CLIENT_DESCRIPTOR_FILE, CLIENT_DESC);</emphasis></screen></para>
     </listitem>
   </itemizedlist>
-  <para>The descriptor file is defined by the following <ulink url="&docpath;security/authzframe/client_security_descriptor.xsd">Client Security Descriptor Schema</ulink>.</para>
+
+  <para>The descriptor file is described in detail in <xref linkend="security-secdesc-introduction"/>. </para>
 
 <note><para> If the client needs to use transport security, the following API must be used to register the Axis transport handler for &quot;https&quot;:
 <screen>
@@ -57,25 +63,94 @@ static {
         <colspec colname="c2"/>
         <colspec colname="c3"/>
         <tbody>
+
           <row>
-          <entry> Task </entry>
-          <entry> Stub Configuration </entry>
-          <entry> Descriptor Configuration </entry>
+          <entry><emphasis role="strong">Task</emphasis></entry>
+          <entry><emphasis role="strong"> Stub Configuration </emphasis></entry>
+          <entry><emphasis role="strong"> Descriptor Configuration </emphasis> </entry>
           </row>
+
           <row>
-            <entry>Enable WS-Security username/password authentication. 
+            <entry >Allows for configuration of credentials for authentication.</entry>
+            <entry>
+              <para>Property: </para>
+              <screen>org.globus.axis.gsi.GSIConstants.GSI_CREDENTIALS</screen>
+              <para>Value equals the Instance of <constant>org.ietf.jgss.GSSCredential</constant>.</para>
             </entry>
             <entry>
-              <para>Properties: </para>
-              <screen>org.globus.wsrf.security.Constants.USERNAME</screen>
-              <para>Value equals the username.</para>
-              <screen>org.globus.wsrf.security.Constants.PASSWORD</screen>
-              <para>Value equals the password.</para>
-            </entry>
-            <entry><para>Refer <xref linkend="security-secdesc-client-userName"/></para></entry>
+              <para><xref linkend="security-secdesc-client-cred"/>
+              </para>
+             </entry>
           </row>
+
           <row>
-            <entry>Enable GSI Transport with specified message protection level.</entry>
+           <entry> Allows for configuring client side authorization. </entry>
+           <entry>
+           <para> Property:</para>
+              <screen>org.globus.wsrf.security.Constants.AUTHORIZATION</screen>
+              <para>Value equals the Instance of
+              <constant>org.globus.wsrf.security.authorization.Authorization</constant></para>
+              <para>If GSI Secure Transport or GSI Secure Conversation is used the value should be an instance of <constant>org.globus.gsi.gssapi.auth.Authorization</constant>. But this translation is done automatically by the toolkit.
+              </para>
+           </entry>
+           <entry>
+           Refer to <xref linkend="security-secdesc-client-authz"/>
+           </entry>
+          </row>
+
+          <row>
+            <entry>Enable GSI Secure Conversation with specified message protection level.</entry>
+            <entry>
+              <para>Property: </para>
+              <screen>org.globus.wsrf.security.Constants.GSI_SEC_CONV</screen>
+              <para>Values equal one of
+          the following:     </para>
+              <itemizedlist>
+                <listitem>
+                  <simpara>Constants.ENCRYPTION</simpara>
+                </listitem>
+                <listitem>
+                  <simpara>Constants.SIGNATURE</simpara>
+                </listitem>
+              </itemizedlist>
+              <para>Furthermore, you can set the SOAP Actor of the GSI signed/encrypted
+          SOAP message by using the <constant>gssActor</constant> property. We recommend
+          that you <emphasis>not</emphasis> do this unless you <emphasis>really</emphasis> know
+          what you are doing.</para>
+            </entry>
+            <entry><para>
+              Refer <xref linkend="security-secdesc-client-secConv"/>.
+            </para></entry>
+          </row>
+
+          <row>
+            <entry>Sets the GSI delegation mode. <emphasis> Used for GSI Secure Conversation only.</emphasis> If limited or full delegation is chosen, then some form of client side authorization needs to be done (i.e client side authorization cannot be set to none).</entry>
+            <entry>
+              <para>Property: </para>
+              <screen>org.globus.axis.gsi.GSIConstants.GSI_MODE </screen>
+              <para>Value equals one of following:        </para>
+              <orderedlist>
+                <listitem>
+                  <simpara><constant>GSIConstants.GSI_MODE_NO_DELEG</constant>: No delegation is performed.</simpara>
+                </listitem>
+                <listitem>
+                  <simpara><constant>GSIConstants.GSI_MODE_LIMITED_DELEG</constant>: Limited delegation is performed</simpara>
+                </listitem>
+                <listitem>
+                  <simpara><constant>GSIConstants.GSI_MODE_FULL_DELEG</constant>: Full delegation is performed.</simpara>
+                </listitem>
+              </orderedlist>
+            </entry>
+            <entry>
+              <para> Refer <xref linkend="security-secdesc-client-secConv"/></para>
+            </entry>
+          </row>
+
+
+          <row>
+            <entry>
+            Enables GSI Secure Transport with some protection level.
+            </entry>
             <entry>
               <para>Property: </para>
               <screen>org.globus.gsi.GSIConstants.GSI_TRANSPORT</screen>
@@ -97,6 +172,27 @@ static {
               Refer <xref linkend="security-secdesc-client-secTransport"/>
             </para></entry>
           </row>
+
+          <row>
+            <entry>Enables anonymous authentication. <emphasis> This option only applies to GSI Secure Conversation and GSI Transport.</emphasis></entry>
+            <entry>
+              <para>Property: </para>
+              <screen>org.globus.wsrf.security.Constants.GSI_ANONYMOUS </screen>
+              <para>Value equals one of following:</para>
+              <orderedlist>
+                <listitem>
+                  <simpara> Boolean.FALSE: Anonymous authentication is disabled.</simpara>
+                </listitem>
+                <listitem>
+                  <simpara> Boolean.TRUE: Anonymous authentication is enabled.</simpara>
+                </listitem>
+              </orderedlist>
+            </entry>
+            <entry>
+              <para>Refer <xref linkend="security-secdesc-client-secConv"/> abd <xref linkend="security-secdesc-client-secTransport"/> </para>
+            </entry>
+          </row>
+
           <row>
             <entry>Enable GSI Secure Message with specified message protection level.</entry>
             <entry>
@@ -123,100 +219,42 @@ static {
               Refer <xref linkend="security-secdesc-client-secMsg"/>.
             </para></entry>
           </row>
+
           <row>
-            <entry>Enable GSI Secure Conversation with specified message protection level.</entry>
+          <entry>Enable WS-Security username/password authentication</entry>
             <entry>
-              <para>Property: </para>
-              <screen>org.globus.wsrf.security.Constants.GSI_SEC_CONV</screen>
-              <para>Values equal one of
-          the following:     </para>
-              <itemizedlist>
-                <listitem>
-                  <simpara>Constants.ENCRYPTION</simpara>
-                </listitem>
-                <listitem>
-                  <simpara>Constants.SIGNATURE</simpara>
-                </listitem>
-              </itemizedlist>
-              <para>Furthermore, you can set the SOAP Actor of the GSI signed/encrypted
-          SOAP message by using the <constant>gssActor</constant> property. We recommend
-          that you <emphasis>not</emphasis> do this unless you <emphasis>really</emphasis> know
-          what you are doing.</para>
+              <para>Properties: </para>
+              <screen>org.globus.wsrf.security.Constants.USERNAME</screen>
+              <para>Value equals the username.</para>
+              <screen>org.globus.wsrf.security.Constants.PASSWORD</screen>
+              <para>Value equals the password.</para>
             </entry>
-            <entry><para>
-              Refer <xref linkend="security-secdesc-client-secConv"/>.
-            </para></entry>
+            <entry><para>Refer <xref linkend="security-secdesc-client-userName"/></para></entry>
           </row>
-          <row>
-            <entry >Allows for configuration of credentials for authentication. If not specified, the default user proxy is used. Please see the <ulink url="http://www.globus.org/cog/distribution/1.1/compatibility.html">Security Library Compatibility Document</ulink> for some hints on loading and managing different GSI credentials.</entry>
-            <entry>
-              <para>Property: </para>
-              <screen>org.globus.axis.gsi.GSIConstants.GSI_CREDENTIALS</screen>
-              <para>Value equals the Instance of <constant>org.ietf.jgss.GSSCredential</constant>.
-        </para>
-            </entry>
-            <entry>
-              <para><xref linkend="security-secdesc-client-cred"/>
-</para></entry>
-          </row>
-          <row>
-            <entry>Sets the GSI delegation mode. <emphasis> Used for GSI Secure Conversation only.</emphasis> If limited or full delegation is chosen, then some form of client side authorization needs to be done (i.e client side authorization cannot be set to none).</entry>
-            <entry>
-              <para>Property: </para>
-              <screen>org.globus.axis.gsi.GSIConstants.GSI_MODE </screen>
-              <para>Value equals one of following:        </para>
-              <orderedlist>
-                <listitem>
-                  <simpara><constant>GSIConstants.GSI_MODE_NO_DELEG</constant>: No delegation is performed.</simpara>
-                </listitem>
-                <listitem>
-                  <simpara><constant>GSIConstants.GSI_MODE_LIMITED_DELEG</constant>: Limited delegation is performed</simpara>
-                </listitem>
-                <listitem>
-                  <simpara><constant>GSIConstants.GSI_MODE_FULL_DELEG</constant>: Full delegation is performed.</simpara>
-                </listitem>
-              </orderedlist>
-            </entry>
-            <entry>
-              <para> Refer <xref linkend="security-secdesc-client-secConv"/></para>
-            </entry>
-          </row>
-          <row>
-            <entry>Enables anonymous authentication. <emphasis> This option only applies to GSI Secure Conversation and GSI Transport.</emphasis></entry>
-            <entry>
-              <para>Property: </para>
-              <screen>org.globus.wsrf.security.Constants.GSI_ANONYMOUS </screen>
-              <para>Value equals one of following:</para>
-              <orderedlist>
-                <listitem>
-                  <simpara> Boolean.FALSE: Anonymous authentication is disabled.</simpara>
-                </listitem>
-                <listitem>
-                  <simpara> Boolean.TRUE: Anonymous authentication is enabled.</simpara>
-                </listitem>
-              </orderedlist>
-            </entry>
-            <entry>
-              <para>Refer <xref linkend="security-secdesc-client-secConv"/></para>
-            </entry>
-          </row>
+
+
           <row>
             <entry>Sets the credential that is used to encrypt the message (typically, the recipient&apos;s <glossterm>public key</glossterm>).<emphasis> Used for GSI Secure Message only.</emphasis></entry>
             <entry>
               <para>Property: </para>
-              <screen>org.globus.wsrf.impl.security.authentication.Constants.PEER_SUBJECT        </screen>
+              <screen>org.globus.wsrf.impl.security.authentication
+                          .Constants.PEER_SUBJECT        </screen>
               <para>Value equals the instance of <constant>javax.security.auth.Subject</constant>.
         </para>
               <para> The credential object needs to be wrapped in <constant>org.globus.wsrf.impl.security.authentication.encryption</constant> and
           added to the set of public credentials of the <constant>Subject</constant> object.</para>
               <para> For example, if <constant>publicKeyFilename</constant> was the file that had
           the recipient&apos;s public key:</para>
+
               <screen>Subject subject = new Subject();
-X509Certificate serverCert = CertUtil.loadCertificate(publicKeyFilename);
-EncryptionCredentials encryptionCreds = new EncryptionCredentials(
-          new X509Certificate[] { serverCert });
+X509Certificate serverCert = 
+    CertUtil.loadCertificate(publicKeyFilename);
+EncryptionCredentials encryptionCreds = 
+    new EncryptionCredentials(
+        new X509Certificate[] { serverCert });
 subject.getPublicCredentials().add(encryptionCreds);
-stub._setProperty(Constants.PEER_SUBJECT, subject);</screen>
+stub._setProperty(Constants.PEER_SUBJECT, subject);
+              </screen>
             </entry>
             <entry>
               <para>
@@ -224,6 +262,19 @@ stub._setProperty(Constants.PEER_SUBJECT, subject);</screen>
               </para>
             </entry>
           </row>
+          
+          <row>
+           <entry> Sets the trusted certificates location.</entry>
+           <entry>
+              <para>Property: </para>
+              <screen>org.globus.wsrf.security.TRUSTED_CERTIFICATES</screen>
+               <para> Value should be a comma separated list of directories and file neams </para>
+           </entry>
+           <entry>
+           Refer <xref linkend="security-secdesc-client-trustedCerts"/>
+           </entry>
+          </row>
+
         </tbody>
       </tgroup>
     </table>
