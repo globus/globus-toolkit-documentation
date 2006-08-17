@@ -1,4 +1,4 @@
-<?PHp
+<?php
 
 $title = "The Globus Alliance";
 $section = "section-1";
@@ -8,7 +8,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 ?>
 
         <div id="coverimage">
-             <?php include( $SITE_PATHS["SERV_ALLIANCE"]."impact/ag-fusion.inc" ); ?>
+             <?php include( $SITE_PATHS["SERV_ALLIANCE"]."impact/birthday.inc" ); ?>
         </div>
 
         <div id="main">
