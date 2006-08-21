@@ -1,0 +1,1013 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<title>GT &shortversion;: Performance Benchmark Infomation Provider Reference</title>
+<titleabbrev>Reference Guide</titleabbrev>
+
+<section id="perf-bench-overview" xreflabel="Overview of the Performance Benchmark Info Provider"><title>Overview</title> 
+    &WS_MDS_Perf_Bench_Overview_Brief_Frag;
+    
+    <para>REQUIRED: indicate which module this provider is implemented with (usefulrp or aggregator) and add link.</para>
+</section>
+
+<section id="perf-bench-prereq" xreflabel="Prerequisites of the Performance Benchmark Info Provider"><title>Prerequisites</title> 
+    <orderedlist>
+    <listitem><para>A cluster that has a shared file system between the login (or job submission) nodes and the backend (compute) nodes. For example, all backend (compute) nodes must be able to find a common file on some (arbitrary) mount point such as /nfs/shared/foo. As long as the program and output file can be run and written, respectively, there should be no trouble using this software.</para></listitem>
+    
+        <listitem><para>A working GT4 installation with a configured WS-GRAM installation so that jobs can be submitted (via PBS, or Condor). A single running container is required for this information provider, and the job is submitted to this container.</para>
+    
+   <para> To satisfy this requirement, you should be able to have a container running on the login node and be able to run a command such as the following on the command line without error:</para>
+    
+    <screen>$GLOBUS_LOCATION/bin/globusrun-ws -submit -Ft PBS -F \
+    https://MYHOST:MYPORT/wsrf/services/ManagedJobFactoryService \
+    -c /bin/true</screen>
+    
+   <para> The output should look similar to this:</para>
+    
+<screen>    ---------------
+    Submitting job...Done.
+    Job ID: uuid:7790abec-e5d9-11da-b93a-0014221d2259
+    Termination time: 05/18/2006 19:15 GMT
+    Current job state: Pending
+    Current job state: Active
+    Current job state: CleanUp
+    Current job state: Done
+    Destroying job...Done.
+    ---------------</screen>
+    
+    <para>If this does not work without error on your system (where PBS should have been substituted for the scheduler installed on your system), please consult your system administrator or the WS-GRAM documentation located at:
+    
+        <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/execution/wsgram/user-index.html">http://www-unix.globus.org/toolkit/docs/4.0/execution/wsgram/user-index.html</ulink></para></listitem>
+    
+   <listitem><para> 3) A working and configured MPI installation on the backend nodes.</para></listitem>
+    
+    <listitem><para>4) An installation of the following programs that are accessible (i.e. can be run) from the backend (compute) nodes:</para>
+    
+        <para>MPPTEST: <ulink url="http://www-unix.mcs.anl.gov/mpi/mpptest/">http://www-unix.mcs.anl.gov/mpi/mpptest/</ulink></para>
+    
+    <para>MPIBENCH: 
+        <ulink url="http://icl.cs.utk.edu/projects/llcbench/mpbench.html">http://icl.cs.utk.edu/projects/llcbench/mpbench.html</ulink></para>
+        
+     <para>LLCBENCH: 
+         <ulink url="http://icl.cs.utk.edu/projects/llcbench/index.html">http://icl.cs.utk.edu/projects/llcbench/index.html</ulink></para>
+    
+    <para>STREAM:
+        <ulink url="http://www.cs.virginia.edu/stream/">http://www.cs.virginia.edu/stream/</ulink></para>
+    </listitem>
+    </orderedlist>
+    
+</section>
+
+<section id="perf-bench-config" xreflabel="Configuring the Performance Benchmark Info Provider"><title>Configuring</title>
+    <para>The following configuration is required for this information provider:</para>
+    <orderedlist>
+        <listitem><para>You must have the $GLOBUS_LOCATION and $MPI_LOCATION environment variables set. The GLOBUS_LOCATION must point to the root of a valid GT4 installation (such as /nfs/software/globus-4.0.2). Similarly, the MPI_LOCATION variable must point to the root of a valid MPI installation (such as /nfs/software/mpich-1.2.7). If you're unsure how to set these environment variables, check with your site administrator. Common ways to do this are like this:</para>
+            
+            <screen> [ bash users, try this ]
+                
+                bash # export GLOBUS_LOCATION=/nfs/software/globus-4.0.2
+                bash # export MPI_LOCATION=/nfs/software/mpich-1.2.7
+                
+                [ tcsh users, try this ]
+                
+                tcsh $ setenv GLOBUS_LOCATION /nfs/software/globus-4.0.2
+                tcsh $ setenv GLOBUS_LOCATION /nfs/software/mpich-1.2.7</screen>
+        </listitem>
+        
+        <listitem><para>The first major step is to make sure that your GT4 installation is a recent enough version and is compatible with this Information Provider. If you're running GT 4.0.2, you will need to update your installation with the May 5 WS-MDS RPProvider patch located at:</para>
+            
+            <para><ulink url="http://www.globus.org/toolkit/downloads/development/">http://www.globus.org/toolkit/downloads/development/</ulink></para>
+            
+            <para>Install this patch by setting your GLOBUS_LOCATION to the appropriate directory and then running the following commands:</para>
+            
+            <screen>$GLOBUS_LOCATION/sbin/gpt-build -update gt4.0.2-wsmds-update-1.0-src_bundle.tar.gz
+                $GLOBUS_LOCATION/sbin/gpt-postinstall -force</screen>
+        </listitem>
+        <listitem><para>When this step is complete, you should now have a file located at $GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/gluece-rpprovider-sample-config.xml. Copy this file to $GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml.</para></listitem>
+        <listitem>    
+            <para>Edit your $GLOBUS_LOCATION/etc/globus_wsrf_mds_index/server-config.wsdd file.</para>
+            
+            <para>Locate the DefaultIndexService section at the very bottom and replace it with the following:</para>
+            
+            <screen>&lt;service name="DefaultIndexService" provider="Handler" 
+                use="literal" style="document"&gt;
+                &lt;parameter name="providers" 
+                value="org.globus.wsrf.impl.servicegroup.ServiceGroupRegistrationProvider 
+                org.globus.mds.usefulrp.rpprovider.ResourcePropertyProviderCollection
+                GetRPProvider
+                GetMRPProvider 
+                QueryRPProvider
+                DestroyProvider 
+                SetTerminationTimeProvider 
+                SubscribeProvider 
+                GetCurrentMessageProvider"/&gt;
+                
+                &lt;parameter name="handlerClass"
+                value="org.globus.axis.providers.RPCProvider"/&gt;
+                &lt;parameter name="scope" value="Application"/&gt; 
+                &lt;parameter name="allowedMethods" value="*"/&gt;
+                &lt;parameter name="rpProviderConfigFile"
+                value="/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml"/&gt;
+                &lt;parameter name="className" 
+                value="org.globus.mds.index.impl.DefaultIndexService"/&gt;
+                &lt;wsdlFile&gt;share/schema/mds/index/index_service.wsdl&lt;/wsdlFile&gt;
+                &lt;/service&gt;</screen>
+        </listitem>
+        
+        <listitem><para>Download the <ulink url="&docpath;info/providers/perf_benchmark/exec_wrapper">exec_wrapper script</ulink> and the <ulink url="&docpath;info/providers/perf_benchmark/perf_benchmark">perf_benchmark script</ulink> to a location on your cluster that is accessible to the login node as well as the backend (compute) nodes. While the perf_benchmark is only run on the login node, the exec_wrapper must be accessible because it will be run on each of the backend nodes.</para>
+            
+            <para>    After placing these files in a suitable shared location, please make sure that they are executable by issuing the following shell command:</para>
+            
+            <screen>chmod a+x exec_wrapper perf_benchmark</screen>
+        </listitem>
+        <listitem><para>Finally, the rest of the configuration will be a matter of editing your <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml</filename> file. Assuming that the Cluster Monitoring and Scheduling data is already properly configured (which is outside the scope of this document), we need to make some edits. </para></listitem>
+    </orderedlist>
+    
+    <section id="perf-bench-config-helloworld"  xreflabel="Configuring the Hello World Test"><title>Configuring the Information Provider to Run the HELLO WORLD performance test</title>
+        
+        <para>The following block of XML is the configuration that is needed to enable the "Hello, World!" test in the Index Service. 
+            It uses the RPProvider framework to create a Resource Property (RP) called PerfBM-HelloWorld that will contain the hello world information 
+            upon successful execution. </para>
+        
+        <note><para>Note that this configuration block must be added to the <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml</filename> file.</para></note>
+        
+        
+        <screen>&lt;ns1:resourcePropertyName xsi:type="xsd:QName"
+            xmlns:perfbm="http://perfbm-testing"&gt;perfbm:PerfBM-HelloWorld&lt;/ns1:resourcePropertyName&gt;
+            &lt;ns1:resourcePropertyImpl
+            xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.SingleValueResourcePropertyProvider&lt;/ns1:resourcePropertyImpl&gt;
+            &lt;ns1:resourcePropertyElementProducers
+            xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+            &lt;ns1:className xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;org.globus.mds.usefulrp.rpprovider.producers.ExternalProcessElementProducer&lt;/ns1:className&gt;
+            
+            &lt;!-- *** SPECIFY THE SCRIPT TO RUN HERE *** --&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/ABSOLUTE/PATH/TO/perf_benchmark&lt;/ns1:arguments&gt;
+            
+            &lt;!-- *** BEGIN SCRIPT ARGUMENTS *** --&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;SCHEDULER&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;https://MYHOST:MYPORT/wsrf/services/ManagedJobFactoryService&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;4&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/tmp&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/ABSOLUTE/PATH/TO/exec_wrapper&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;hello_world&lt;/ns1:arguments&gt;
+            
+            &lt;!-- *** END ARGUMENTS *** --&gt;
+            
+            &lt;ns1:period xsi:type="xsd:int"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;60000&lt;/ns1:period&gt;
+            &lt;/ns1:resourcePropertyElementProducers&gt;</screen>
+        
+        
+        <para> In the above, you must edit all of the argument lines.</para>
+        
+        <informaltable frame="all">
+            <tgroup cols="2">
+                <tbody>
+                    <row>
+                        <entry>1st argument</entry>
+                        <entry>Specifies the absolute path location to the perf_benchmark script. It should be something like<filename> /nfs/home/user/perf_benchmark</filename>. 
+                            Don't forget that this script must have executable permissions to run properly.</entry>
+                    </row>
+                    <row>
+                        <entry>2nd argument</entry>
+                        <entry>Specifies the scheduler to use. The only acceptable values here are Fork, PBS, and Condor. 
+                            In theory the scheduler can be any scheduler that can be passed to WS-GRAM's globusrun-ws program.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry> 3rd argument</entry>
+                        <entry>Specifies the MJFS to which the job submission should be made. This must specify the MJFS to which the job submission should be made. 
+                            This must be specificallyy a properly configured and running container. a properly configured and running container.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>4th argument</entry>
+                        <entry>Specifies the number of backend (compute) nodes that should be involved in the test that is to be run. 
+                            For example, the value of 4 will run the job on 4 nodes and aggregate the results of the 4 hosts.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>5th argument</entry>
+                        <entry>Specify a valid temporary directory that the login node has file creation/removal and write access in. 
+                            Some temporary files are used during the execution of this information provider and a directory must be specified where it can do this.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>6th argument</entry>
+                        <entry>Specifies the absolute path to the exec_wrapper program. It must be an absolute path and should be something like <filename>/nfs/home/user/exec_wrapper</filename>. 
+                            <important><para>Do not forget that this script must have executable permissions to run properly.</para></important></entry>
+                    </row>
+                    
+                    <row>
+                        <entry>7th argument</entry>
+                        <entry>Specifies the test type that should be run. For this "Hello, World!" test, the value MUST be hello_world (as shown).</entry>
+                    </row>
+                    
+                </tbody>
+            </tgroup>
+        </informaltable>
+        
+        
+        <para>When this configuration block is placed properly within the configArray in the <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml</filename> file, 
+            the container can be restarted and when queried with a query such as this:</para>
+        
+        <screen>        wsrf-query -s                                           \
+            https://MYHOST:MYPORT/wsrf/services/DefaultIndexService \
+            "//*[local-name()='PerfBM-HelloWorld']"</screen>
+        
+        <para>You should see output that resembles the following:</para>
+        
+        
+        <screen>&lt;ns1:PerfBM-HelloWorld xmlns:ns1="http://perfbm-testing"
+            xmlns:exw="http://perfbm.provider/2006/execWrapper"
+            xmlns:pbo="http://perfbm.provider/2006/pbOutput"&gt;
+            
+            &lt;pbo:perfBenchmarkOutputData&gt;
+            
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-18&lt;/exw:hostname&gt;
+            &lt;exw:programCommandLine&gt;/bin/echo Hello, World!&lt;/exw:programCommandLine&gt;
+            &lt;exw:startDate&gt;Fri May 12 12:44:32 PDT 2006&lt;/exw:startDate&gt;
+            &lt;exw:endDate&gt;Fri May 12 12:44:32 PDT 2006&lt;/exw:endDate&gt;
+            &lt;exw:testProgramOutput&gt;
+            Hello, World!
+            &lt;/exw:testProgramOutput&gt;
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-19&lt;/exw:hostname&gt;
+            &lt;exw:programCommandLine&gt;/bin/echo Hello, World!&lt;/exw:programCommandLine&gt;
+            &lt;exw:startDate&gt;Fri May 12 12:44:32 PDT 2006&lt;/exw:startDate&gt;
+            &lt;exw:endDate&gt;Fri May 12 12:44:32 PDT 2006&lt;/exw:endDate&gt;
+            &lt;exw:testProgramOutput&gt;
+            Hello, World!
+            &lt;/exw:testProgramOutput&gt;
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-94&lt;/exw:hostname&gt;
+            &lt;exw:programCommandLine&gt;/bin/echo Hello, World!&lt;/exw:programCommandLine&gt;
+            &lt;exw:startDate&gt;Fri May 12 12:44:32 PDT 2006&lt;/exw:startDate&gt;
+            &lt;exw:endDate&gt;Fri May 12 12:44:32 PDT 2006&lt;/exw:endDate&gt;
+            &lt;exw:testProgramOutput&gt;
+            Hello, World!
+            &lt;/exw:testProgramOutput&gt;
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-93&lt;/exw:hostname&gt;
+            &lt;exw:programCommandLine&gt;/bin/echo Hello, World!&lt;/exw:programCommandLine&gt;
+            &lt;exw:startDate&gt;Fri May 12 12:44:32 PDT 2006&lt;/exw:startDate&gt;
+            &lt;exw:endDate&gt;Fri May 12 12:44:32 PDT 2006&lt;/exw:endDate&gt;
+            &lt;exw:testProgramOutput&gt;
+            Hello, World!
+            &lt;/exw:testProgramOutput&gt;
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            &lt;pbo:perfBenchmarkErrors&gt;
+            &lt;/pbo:perfBenchmarkErrors&gt;
+            
+            &lt;/pbo:perfBenchmarkOutputData&gt;
+            
+            &lt;/ns1:PerfBM-HelloWorld&gt;</screen>
+        
+    </section>
+    
+    <section id="perf-bench-config-streamperform"  xreflabel="Configuring the Stream Performance Test"><title>Configuring the Information Provider to Run the STREAM performance test</title>
+        
+        <para>The following block of XML is the configuration that is needed to enable the Stream test in the Index Service. 
+            It uses the RPProvider framework to create a Resource Property (RP) called PerfBM-Stream that will contain the stream output information upon successful execution. </para>
+        
+        <note><para>Note that this configuration block must be added to the <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml</filename> file.</para></note>
+        
+        
+        <screen>&lt;ns1:resourcePropertyName xsi:type="xsd:QName"
+            xmlns:perfbm="http://perfbm-testing"&gt;perfbm:PerfBM-Stream&lt;/ns1:resourcePropertyName&gt;
+            &lt;ns1:resourcePropertyImpl
+            xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.SingleValueResourcePropertyProvider&lt;/ns1:resourcePropertyImpl&gt;
+            &lt;ns1:resourcePropertyElementProducers
+            xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+            &lt;ns1:className xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;org.globus.mds.usefulrp.rpprovider.producers.ExternalProcessElementProducer&lt;/ns1:className&gt;
+            
+            &lt;!-- *** SPECIFY THE SCRIPT TO RUN HERE *** --&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/ABSOLUTE/PATH/TO/perf_benchmark&lt;/ns1:arguments&gt;
+            
+            &lt;!-- *** BEGIN SCRIPT ARGUMENTS *** --&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;SCHEDULER&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;https://MYHOST:MYPORT/wsrf/services/ManagedJobFactoryService&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;4&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/tmp&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/ABSOLUTE/PATH/TO/exec_wrapper&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;stream&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/ABSOLUTE/PATH/TO/stream&lt;/ns1:arguments&gt;
+            
+            &lt;!-- *** END ARGUMENTS *** --&gt;
+            
+            &lt;ns1:period xsi:type="xsd:int"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;60000&lt;/ns1:period&gt;
+            &lt;/ns1:resourcePropertyElementProducers&gt;</screen>
+        
+        
+        <para> In the above, you must edit all of the argument lines.</para>
+        
+        <informaltable frame="all" id="stream-perf-arguments">
+            <tgroup cols="2">
+                <tbody>
+                    <row>
+                        <entry>1st argument</entry>
+                        <entry>Specifies the absolute path location to the perf_benchmark script. It should be something like /nfs/home/user/perf_benchmark. 
+                            <important><para>Don't forget that this script must have executable permissions to run properly.</para></important></entry>
+                    </row>
+                    <row>
+                        <entry>2nd argument</entry>
+                        <entry>Specifies the scheduler to use. The only acceptable values here are Fork, PBS, and Condor. 
+                            In theory the scheduler can be any scheduler that can be passed to WS-GRAM's globusrun-ws program.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry> 3rd argument</entry>
+                        <entry>Specifies the MJFS to which the job submission should be made. This must specify the MJFS to which the job submission should be made. 
+                            This must be specify a properly configured and running container.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>4th argument</entry>
+                        <entry>Specifies the number of backend (compute) nodes that should be involved in the test that is to be run. 
+                            For example, the value of 4 will run the job on 4 nodes and aggregate the results of the 4 hosts.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>5th argument</entry>
+                        <entry>Specify a valid temporary directory that the login node has file creation/removal and write access in. 
+                            Some temporary files are used during the execution of this information provider and a directory must be specified where it can do this.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>6th argument</entry>
+                        <entry>Specifies the absolute path to the exec_wrapper program. It must be an absolute path and should be something like <filename>/nfs/home/user/exec_wrapper</filename>. 
+                            <important><para>Do not forget that this script must have executable permissions to run properly.</para></important></entry>
+                    </row>
+                    
+                    <row>
+                        <entry>7th argument</entry>
+                        <entry>Specifies the test type that should be run. For this Stream test, the value MUST be stream (as shown).</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>8th argument</entry>
+                        <entry>Specifies the absolute path location to the stream binary. It should be something like <filename>/nfs/home/user/stream</filename>.</entry>
+                    </row>                    
+                </tbody>
+            </tgroup>
+        </informaltable>
+        
+        <para> When this configuration block is placed properly within the configArray in the <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml</filename> file, 
+            the container can be restarted and when queried with a query such as this:</para>
+        
+        <screen>        wsrf-query -s                                           \
+            https://MYHOST:MYPORT/wsrf/services/DefaultIndexService \
+            "//*[local-name()='PerfBM-Stream']"</screen>
+        
+        <para>You should see output that resembles the following:</para>
+        
+        
+        <screen>&lt;ns1:PerfBM-Stream xmlns:ns1="http://perfbm-testing"
+            xmlns:exw="http://perfbm.provider/2006/execWrapper"
+            xmlns:pbo="http://perfbm.provider/2006/pbOutput"&gt;
+            &lt;pbo:perfBenchmarkOutputData&gt;
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-5&lt;/exw:hostname&gt;
+            
+            &lt;exw:programCommandLine&gt;/nfs/home/mdsdev/neillm/stream/stream_d&lt;/exw:programCommandLine&gt;
+            
+            &lt;exw:startDate&gt;Mon May 15 10:03:39 PDT 2006&lt;/exw:startDate&gt;
+            
+            &lt;exw:endDate&gt;Mon May 15 10:04:13 PDT 2006&lt;/exw:endDate&gt;
+            
+            &lt;exw:testProgramOutput&gt;
+            -------------------------------------------------------------
+            This system uses 8 bytes per DOUBLE PRECISION word.
+            -------------------------------------------------------------
+            Array size = 20005000, Offset = 0
+            Total memory required = 457.9 MB.
+            Each test is run 10 times, but only
+            the *best* time for each is used.
+            -------------------------------------------------------------
+            Your clock granularity/precision appears to be 10000 microseconds.
+            Each test below will take on the order of 579999 microseconds.
+            (= 57 clock ticks)
+            Increase the size of the arrays if this shows that
+            you are not getting at least 20 clock ticks per test.
+            -------------------------------------------------------------
+            WARNING -- The above is only a rough guideline.
+            For best results, please be sure you know the
+            precision of your system timer.
+            -------------------------------------------------------------
+            Function      Rate (MB/s)   RMS time     Min time     Max time
+            Copy:         444.5556       0.7240       0.7200       0.7300
+            Scale:        450.8169       0.7180       0.7100       0.7200
+            Add:          558.2791       0.8650       0.8600       0.8700
+            Triad:        551.8621       0.8791       0.8700       0.9100
+            &lt;/exw:testProgramOutput&gt;
+            
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-4&lt;/exw:hostname&gt;
+            
+            &lt;exw:programCommandLine&gt;/nfs/home/mdsdev/neillm/stream/stream_d&lt;/exw:programCommandLine&gt;
+            
+            &lt;exw:startDate&gt;Mon May 15 10:03:39 PDT 2006&lt;/exw:startDate&gt;
+            
+            &lt;exw:endDate&gt;Mon May 15 10:04:14 PDT 2006&lt;/exw:endDate&gt;
+            
+            &lt;exw:testProgramOutput&gt;
+            -------------------------------------------------------------
+            This system uses 8 bytes per DOUBLE PRECISION word.
+            -------------------------------------------------------------
+            Array size = 20005000, Offset = 0
+            Total memory required = 457.9 MB.
+            Each test is run 10 times, but only
+            the *best* time for each is used.
+            -------------------------------------------------------------
+            Your clock granularity/precision appears to be 10000 microseconds.
+            Each test below will take on the order of 589999 microseconds.
+            (= 58 clock ticks)
+            Increase the size of the arrays if this shows that
+            you are not getting at least 20 clock ticks per test.
+            -------------------------------------------------------------
+            WARNING -- The above is only a rough guideline.
+            For best results, please be sure you know the
+            precision of your system timer.
+            -------------------------------------------------------------
+            Function      Rate (MB/s)   RMS time     Min time     Max time
+            Copy:         438.4658       0.7370       0.7300       0.7400
+            Scale:        438.4658       0.7300       0.7300       0.7300
+            Add:          551.8621       0.8710       0.8700       0.8800
+            Triad:        545.5909       0.8810       0.8800       0.8900
+            &lt;/exw:testProgramOutput&gt;
+            
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-2&lt;/exw:hostname&gt;
+            
+            &lt;exw:programCommandLine&gt;/nfs/home/mdsdev/neillm/stream/stream_d&lt;/exw:programCommandLine&gt;
+            
+            &lt;exw:startDate&gt;Mon May 15 10:03:39 PDT 2006&lt;/exw:startDate&gt;
+            
+            &lt;exw:endDate&gt;Mon May 15 10:04:14 PDT 2006&lt;/exw:endDate&gt;
+            
+            &lt;exw:testProgramOutput&gt;
+            -------------------------------------------------------------
+            This system uses 8 bytes per DOUBLE PRECISION word.
+            -------------------------------------------------------------
+            Array size = 20005000, Offset = 0
+            Total memory required = 457.9 MB.
+            Each test is run 10 times, but only
+            the *best* time for each is used.
+            -------------------------------------------------------------
+            Your clock granularity/precision appears to be 10000 microseconds.
+            Each test below will take on the order of 589999 microseconds.
+            (= 58 clock ticks)
+            Increase the size of the arrays if this shows that
+            you are not getting at least 20 clock ticks per test.
+            -------------------------------------------------------------
+            WARNING -- The above is only a rough guideline.
+            For best results, please be sure you know the
+            precision of your system timer.
+            -------------------------------------------------------------
+            Function      Rate (MB/s)   RMS time     Min time     Max time
+            Copy:         432.5405       0.7440       0.7400       0.7500
+            Scale:        438.4658       0.7360       0.7300       0.7400
+            Add:          545.5909       0.8860       0.8800       0.8900
+            Triad:        539.4607       0.8960       0.8900       0.9000
+            &lt;/exw:testProgramOutput&gt;
+            
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-3&lt;/exw:hostname&gt;
+            
+            &lt;exw:programCommandLine&gt;/nfs/home/mdsdev/neillm/stream/stream_d&lt;/exw:programCommandLine&gt;
+            
+            &lt;exw:startDate&gt;Mon May 15 10:03:39 PDT 2006&lt;/exw:startDate&gt;
+            
+            &lt;exw:endDate&gt;Mon May 15 10:04:14 PDT 2006&lt;/exw:endDate&gt;
+            
+            &lt;exw:testProgramOutput&gt;
+            -------------------------------------------------------------
+            This system uses 8 bytes per DOUBLE PRECISION word.
+            -------------------------------------------------------------
+            Array size = 20005000, Offset = 0
+            Total memory required = 457.9 MB.
+            Each test is run 10 times, but only
+            the *best* time for each is used.
+            -------------------------------------------------------------
+            Your clock granularity/precision appears to be 10000 microseconds.
+            Each test below will take on the order of 589999 microseconds.
+            (= 58 clock ticks)
+            Increase the size of the arrays if this shows that
+            you are not getting at least 20 clock ticks per test.
+            -------------------------------------------------------------
+            WARNING -- The above is only a rough guideline.
+            For best results, please be sure you know the
+            precision of your system timer.
+            -------------------------------------------------------------
+            Function      Rate (MB/s)   RMS time     Min time     Max time
+            Copy:         432.5405       0.7440       0.7400       0.7500
+            Scale:        438.4658       0.7360       0.7300       0.7400
+            Add:          545.5909       0.8870       0.8800       0.8900
+            Triad:        539.4607       0.8980       0.8900       0.9000
+            &lt;/exw:testProgramOutput&gt;
+            
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            
+            &lt;pbo:perfBenchmarkErrors&gt;
+            &lt;/pbo:perfBenchmarkErrors&gt;
+            
+            &lt;/pbo:perfBenchmarkOutputData&gt;
+            &lt;/ns1:PerfBM-Stream&gt;</screen>
+        
+        
+    </section>
+    
+    <section id="perf-bench-config-mpptestperform"  xreflabel="Configuring the MPPTEST Performance Test"><title>Configuring the Information Provider to Run the MPPTEST performance test</title>
+        
+        <para>The following block of XML is the configuration that is needed to enable the MPPTest test in the Index Service. 
+            It uses the RPProvider framework to create a Resource Property (RP) called PerfBM-MPPTest that will contain the mpptest output information upon successful execution. </para>
+        
+        <note><para>Note that this configuration block must be added to the $GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml file. </para></note>
+        
+        <note><para>Also please note that this test cannot run without a properly set MPI_LOCATION environment variable.</para></note>
+        
+        
+        <screen>&lt;ns1:resourcePropertyName xsi:type="xsd:QName"
+            xmlns:perfbm="http://perfbm-testing"&gt;perfbm:PerfBM-MPPTest&lt;/ns1:resourcePropertyName&gt;
+            &lt;ns1:resourcePropertyImpl
+            xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.SingleValueResourcePropertyProvider&lt;/ns1:resourcePropertyImpl&gt;
+            &lt;ns1:resourcePropertyElementProducers
+            xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+            &lt;ns1:className xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;org.globus.mds.usefulrp.rpprovider.producers.ExternalProcessElementProducer&lt;/ns1:className&gt;
+            
+            &lt;!-- *** SPECIFY THE SCRIPT TO RUN HERE *** --&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/ABSOLUTE/PATH/TO/perf_benchmark&lt;/ns1:arguments&gt;
+            
+            &lt;!-- *** BEGIN SCRIPT ARGUMENTS *** --&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;SCHEDULER&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;https://MYHOST:MYPORT/wsrf/services/ManagedJobFactoryService&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;4&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/tmp&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/ABSOLUTE/PATH/TO/exec_wrapper&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;mpptest&lt;/ns1:arguments&gt;
+            
+            &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/ABSOLUTE/PATH/TO/mpptest&lt;/ns1:arguments&gt;
+            
+            &lt;!-- *** END ARGUMENTS *** --&gt;
+            
+            &lt;ns1:period xsi:type="xsd:int"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;60000&lt;/ns1:period&gt;
+            &lt;/ns1:resourcePropertyElementProducers&gt;</screen>
+        
+        
+        <para>In the above, you must edit all of the argument lines.</para>
+        
+        <informaltable frame="all" id="stream-perf-arguments">
+            <tgroup cols="2">
+                <tbody>
+                    <row>
+                        <entry>1st argument</entry>
+                        <entry>Specifies the absolute path location to the perf_benchmark script. It should be something like /nfs/home/user/perf_benchmark. 
+                            <important><para>Don't forget that this script must have executable permissions to run properly.</para></important></entry>
+                    </row>
+                    <row>
+                        <entry>2nd argument</entry>
+                        <entry>Specifies the scheduler to use. The only acceptable values here are Fork, PBS, and Condor. 
+                            In theory the scheduler can be any scheduler that can be passed to WS-GRAM's globusrun-ws program.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry> 3rd argument</entry>
+                        <entry>Specifies the MJFS to which the job submission should be made. This must be specify a properly configured and running container..</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>4th argument</entry>
+                        <entry>Specifies the number of backend (compute) nodes that should be involved in the test that is to be run. 
+                            For example, the value of 4 will run the job on 4 nodes and aggregate the results of the 4 hosts.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>5th argument</entry>
+                        <entry>Specify a valid temporary directory that the login node has file creation/removal and write access in. 
+                            Some temporary files are used during the execution of this information provider and a directory must be specified where it can do this.</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>6th argument</entry>
+                        <entry>Specifies the absolute path to the exec_wrapper program. It must be an absolute path and should be something like <filename>/nfs/home/user/exec_wrapper</filename>. 
+                            <important><para>Do not forget that this script must have executable permissions to run properly.</para></important></entry>
+                    </row>
+                    
+                    <row>
+                        <entry>7th argument</entry>
+                        <entry>Specifies the test type that should be run. For this MPPTest test, the value MUST be mpptest (as shown).</entry>
+                    </row>
+                    
+                    <row>
+                        <entry>8th argument</entry>
+                        <entry>Specifies the absolute path location to the stream binary. It should be something like <filename>/nfs/home/user/mpptest</filename>.</entry>
+                    </row>                    
+                </tbody>
+            </tgroup>
+        </informaltable>
+        
+        <para>        When this configuration block is placed properly within the configArray in the $GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml file, 
+            the container can be restarted and when queried with a query such as this:</para>
+        
+        <screen>        wsrf-query -s                                           \
+            https://MYHOST:MYPORT/wsrf/services/DefaultIndexService \
+            "//*[local-name()='PerfBM-MPPTest']"</screen>
+        
+        <para>You should see output that resembles the following:</para>
+        
+        
+        <screen>&lt;ns1:PerfBM-MPPTest xmlns:ns1="http://perfbm-testing"
+            xmlns:exw="http://perfbm.provider/2006/execWrapper"
+            xmlns:pbo="http://perfbm.provider/2006/pbOutput"&gt;
+            &lt;pbo:perfBenchmarkOutputData&gt;
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-2&lt;/exw:hostname&gt;
+            
+            &lt;exw:programCommandLine&gt;/nfs/software/mpich/1.2.7/bin/mpirun -np 4
+            /nfs/home/mdsdev/neillm/bin/mpptest&lt;/exw:programCommandLine&gt;
+            
+            &lt;exw:startDate&gt;Wed May 17 11:52:35 PDT 2006&lt;/exw:startDate&gt;
+            
+            &lt;exw:endDate&gt;Wed May 17 11:52:52 PDT 2006&lt;/exw:endDate&gt;
+            
+            &lt;exw:testProgramOutput&gt;
+            set default
+            set font variable
+            set curve window y 0.15 0.90
+            set order d d d x y d
+            title left 'time (us)', bottom 'Size (bytes)',
+            top 'Comm Perf for MPI (skynet-2.isi.edu)',
+            'type = blocking'
+            
+            #p0     p1      dist    len     ave time (us)   rate
+            0       3       3       0       70.340000       0.00
+            0       3       3       32      72.750000       439.863e+3
+            0       3       3       64      106.750000      599.532e+3
+            0       3       3       96      123.070000      780.044e+3
+            0       3       3       128     124.070000      1.032e+6
+            0       3       3       160     124.170000      1.289e+6
+            0       3       3       192     124.270000      1.545e+6
+            0       3       3       224     124.300000      1.802e+6
+            0       3       3       256     124.490000      2.056e+6
+            0       3       3       288     124.510000      2.313e+6
+            0       3       3       320     124.450000      2.571e+6
+            0       3       3       352     124.750000      2.822e+6
+            0       3       3       384     124.810000      3.077e+6
+            0       3       3       416     125.150000      3.324e+6
+            0       3       3       448     125.390000      3.573e+6
+            0       3       3       480     126.970000      3.780e+6
+            0       3       3       512     128.340000      3.989e+6
+            0       3       3       544     133.480000      4.076e+6
+            0       3       3       576     136.000000      4.235e+6
+            0       3       3       608     137.880000      4.410e+6
+            0       3       3       640     163.280000      3.920e+6
+            0       3       3       672     185.420000      3.624e+6
+            0       3       3       704     186.560000      3.774e+6
+            0       3       3       736     186.730000      3.942e+6
+            0       3       3       768     186.740000      4.113e+6
+            0       3       3       800     186.690000      4.285e+6
+            0       3       3       832     186.820000      4.453e+6
+            0       3       3       864     186.900000      4.623e+6
+            0       3       3       896     187.000000      4.791e+6
+            0       3       3       928     187.110000      4.960e+6
+            0       3       3       960     187.200000      5.128e+6
+            0       3       3       992     187.250000      5.298e+6
+            0       3       3       1024    187.230000      5.469e+6
+            plot square
+            join
+            wait
+            new page
+            &lt;/exw:testProgramOutput&gt;
+            
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-3&lt;/exw:hostname&gt;
+            
+            &lt;exw:programCommandLine&gt;/nfs/software/mpich/1.2.7/bin/mpirun -np 4
+            /nfs/home/mdsdev/neillm/bin/mpptest&lt;/exw:programCommandLine&gt;
+            
+            &lt;exw:startDate&gt;Wed May 17 11:52:35 PDT 2006&lt;/exw:startDate&gt;
+            
+            &lt;exw:endDate&gt;Wed May 17 11:52:52 PDT 2006&lt;/exw:endDate&gt;
+            
+            &lt;exw:testProgramOutput&gt;
+            set default
+            set font variable
+            set curve window y 0.15 0.90
+            set order d d d x y d
+            title left 'time (us)', bottom 'Size (bytes)',
+            top 'Comm Perf for MPI (skynet-3.isi.edu)',
+            'type = blocking'
+            
+            #p0     p1      dist    len     ave time (us)   rate
+            0       3       3       0       94.780000       0.00
+            0       3       3       32      96.070000       333.090e+3
+            0       3       3       64      106.750000      599.532e+3
+            0       3       3       96      124.140000      773.320e+3
+            0       3       3       128     124.200000      1.031e+6
+            0       3       3       160     124.180000      1.288e+6
+            0       3       3       192     124.220000      1.546e+6
+            0       3       3       224     124.260000      1.803e+6
+            0       3       3       256     124.440000      2.057e+6
+            0       3       3       288     124.510000      2.313e+6
+            0       3       3       320     124.540000      2.569e+6
+            0       3       3       352     124.580000      2.825e+6
+            0       3       3       384     124.660000      3.080e+6
+            0       3       3       416     125.700000      3.309e+6
+            0       3       3       448     125.610000      3.567e+6
+            0       3       3       480     128.180000      3.745e+6
+            0       3       3       512     131.910000      3.881e+6
+            0       3       3       544     139.550000      3.898e+6
+            0       3       3       576     150.530000      3.826e+6
+            0       3       3       608     152.130000      3.997e+6
+            0       3       3       640     163.000000      3.926e+6
+            0       3       3       672     185.490000      3.623e+6
+            0       3       3       704     186.480000      3.775e+6
+            0       3       3       736     186.630000      3.944e+6
+            0       3       3       768     186.660000      4.114e+6
+            0       3       3       800     186.710000      4.285e+6
+            0       3       3       832     186.770000      4.455e+6
+            0       3       3       864     186.930000      4.622e+6
+            0       3       3       896     187.020000      4.791e+6
+            0       3       3       928     187.040000      4.962e+6
+            0       3       3       960     188.210000      5.101e+6
+            0       3       3       992     187.980000      5.277e+6
+            0       3       3       1024    187.180000      5.471e+6
+            plot square
+            join
+            wait
+            new page
+            &lt;/exw:testProgramOutput&gt;
+            
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-4&lt;/exw:hostname&gt;
+            
+            &lt;exw:programCommandLine&gt;/nfs/software/mpich/1.2.7/bin/mpirun -np 4
+            /nfs/home/mdsdev/neillm/bin/mpptest&lt;/exw:programCommandLine&gt;
+            
+            &lt;exw:startDate&gt;Wed May 17 11:52:35 PDT 2006&lt;/exw:startDate&gt;
+            
+            &lt;exw:endDate&gt;Wed May 17 11:52:52 PDT 2006&lt;/exw:endDate&gt;
+            
+            &lt;exw:testProgramOutput&gt;
+            set default
+            set font variable
+            set curve window y 0.15 0.90
+            set order d d d x y d
+            title left 'time (us)', bottom 'Size (bytes)',
+            top 'Comm Perf for MPI (skynet-4.isi.edu)',
+            'type = blocking'
+            
+            #p0     p1      dist    len     ave time (us)   rate
+            0       3       3       0       77.630000       0.00
+            0       3       3       32      95.880000       333.751e+3
+            0       3       3       64      105.720000      605.373e+3
+            0       3       3       96      121.670000      789.019e+3
+            0       3       3       128     124.090000      1.032e+6
+            0       3       3       160     124.240000      1.288e+6
+            0       3       3       192     124.280000      1.545e+6
+            0       3       3       224     124.250000      1.803e+6
+            0       3       3       256     124.510000      2.056e+6
+            0       3       3       288     124.490000      2.313e+6
+            0       3       3       320     124.710000      2.566e+6
+            0       3       3       352     124.540000      2.826e+6
+            0       3       3       384     124.820000      3.076e+6
+            0       3       3       416     124.840000      3.332e+6
+            0       3       3       448     125.370000      3.573e+6
+            0       3       3       480     126.530000      3.794e+6
+            0       3       3       512     129.260000      3.961e+6
+            0       3       3       544     136.720000      3.979e+6
+            0       3       3       576     150.300000      3.832e+6
+            0       3       3       608     151.210000      4.021e+6
+            0       3       3       640     160.530000      3.987e+6
+            0       3       3       672     186.560000      3.602e+6
+            0       3       3       704     186.530000      3.774e+6
+            0       3       3       736     186.680000      3.943e+6
+            0       3       3       768     186.740000      4.113e+6
+            0       3       3       800     186.880000      4.281e+6
+            0       3       3       832     187.010000      4.449e+6
+            0       3       3       864     187.180000      4.616e+6
+            0       3       3       896     187.000000      4.791e+6
+            0       3       3       928     187.190000      4.958e+6
+            0       3       3       960     187.210000      5.128e+6
+            0       3       3       992     187.200000      5.299e+6
+            0       3       3       1024    187.200000      5.470e+6
+            plot square
+            join
+            wait
+            new page
+            &lt;/exw:testProgramOutput&gt;
+            
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            
+            &lt;exw:hostBenchmarkOutput&gt;
+            &lt;exw:hostname&gt;skynet-5&lt;/exw:hostname&gt;
+            
+            &lt;exw:programCommandLine&gt;/nfs/software/mpich/1.2.7/bin/mpirun -np 4
+            /nfs/home/mdsdev/neillm/bin/mpptest&lt;/exw:programCommandLine&gt;
+            
+            &lt;exw:startDate&gt;Wed May 17 11:52:35 PDT 2006&lt;/exw:startDate&gt;
+            
+            &lt;exw:endDate&gt;Wed May 17 11:52:52 PDT 2006&lt;/exw:endDate&gt;
+            
+            &lt;exw:testProgramOutput&gt;
+            set default
+            set font variable
+            set curve window y 0.15 0.90
+            set order d d d x y d
+            title left 'time (us)', bottom 'Size (bytes)',
+            top 'Comm Perf for MPI (skynet-5.isi.edu)',
+            'type = blocking'
+            
+            #p0     p1      dist    len     ave time (us)   rate
+            0       3       3       0       93.560000       0.00
+            0       3       3       32      94.490000       338.660e+3
+            0       3       3       64      106.770000      599.419e+3
+            0       3       3       96      124.160000      773.196e+3
+            0       3       3       128     123.250000      1.039e+6
+            0       3       3       160     124.260000      1.288e+6
+            0       3       3       192     124.250000      1.545e+6
+            0       3       3       224     124.310000      1.802e+6
+            0       3       3       256     124.410000      2.058e+6
+            0       3       3       288     124.470000      2.314e+6
+            0       3       3       320     124.520000      2.570e+6
+            0       3       3       352     124.730000      2.822e+6
+            0       3       3       384     125.580000      3.058e+6
+            0       3       3       416     125.630000      3.311e+6
+            0       3       3       448     125.200000      3.578e+6
+            0       3       3       480     127.930000      3.752e+6
+            0       3       3       512     127.280000      4.023e+6
+            0       3       3       544     129.450000      4.202e+6
+            0       3       3       576     143.250000      4.021e+6
+            0       3       3       608     155.510000      3.910e+6
+            0       3       3       640     164.380000      3.893e+6
+            0       3       3       672     185.450000      3.624e+6
+            0       3       3       704     186.550000      3.774e+6
+            0       3       3       736     186.610000      3.944e+6
+            0       3       3       768     186.680000      4.114e+6
+            0       3       3       800     186.780000      4.283e+6
+            0       3       3       832     186.770000      4.455e+6
+            0       3       3       864     186.910000      4.623e+6
+            0       3       3       896     186.990000      4.792e+6
+            0       3       3       928     187.000000      4.963e+6
+            0       3       3       960     187.100000      5.131e+6
+            0       3       3       992     187.420000      5.293e+6
+            0       3       3       1024    187.270000      5.468e+6
+            plot square
+            join
+            wait
+            new page
+            &lt;/exw:testProgramOutput&gt;
+            
+            &lt;/exw:hostBenchmarkOutput&gt;
+            
+            
+            &lt;pbo:perfBenchmarkErrors&gt;
+            &lt;/pbo:perfBenchmarkErrors&gt;
+            
+            &lt;/pbo:perfBenchmarkOutputData&gt;
+            &lt;/ns1:PerfBM-MPPTest&gt;</screen>
+        
+        
+        <section id="perf-bench-config-mpptestperform-troubleshoot" xreflabel="Troubleshooting the MPPTEST performance test">
+            <title>Troubleshooting the MPPTEST performance test</title>
+            <para>If you are seeing the following error after the container has been started, 
+                the most likely cause is that you have not properly set the MPI_LOCATION environment variable. 
+                Please set this to a suitable MPI location (such as /nfs/software/mpich-1.2.7) and restart the container.</para>
+            
+            <screen>        2006-05-17 11:46:38,371 INFO  impl.DefaultIndexService
+                [ServiceThread-12,processConfigFile:107] Reading default registration
+                configuration from file:
+                /scratch/mdsdev-neillm/gt4.0.2-plus-cvs/etc/globus_wsrf_mds_index/hierarchy.xml
+                2006-05-17 11:46:38,702 ERROR rpprovider.ResourcePropertyProviderTask
+                [Thread-16,timerExpired:159] Unhandled exception during execution of
+                org.globus.mds.usefulrp.rpprovider.producers.ExternalProcessElementProducer:
+                java.lang.Exception: Exception while parsing child process stdout into
+                valid XML document: org.xml.sax.SAXException: Fatal Error: URI=null
+                Line=-1: Premature end of file.</screen>
+        </section>
+    </section>
+    
+    <section id="perf-bench-config-mpptestlogscale-perform"  xreflabel="Configuring the MPPTEST Logscale Performance Test"><title>Configuring the Information Provider to Run the MPPTEST Logscale performance tests</title>
+        
+        <para> The configuration for this test is exactly the same as the configuration for the <link linkend="perf-bench-config-mpptestperform">MPPTest</link> above, 
+            except for the RP name and 7th argument:</para>
+        
+        <itemizedlist>
+            <listitem><para>Change the RP name from PerfBM-MPPTest to PerfBM-MPPTest-LogScale.</para></listitem>
+            <listitem><para>Change the 7th argument of the <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml</filename> file 
+                to be mpptest-logscale instead of mpptest.</para></listitem>
+        </itemizedlist>
+    </section>
+    
+    
+    <section id="perf-bench-config-mpptestbisectlogscale-perform"  xreflabel="Configuring the MPPTEST Bisect Logscale Performance Test"><title>Configuring the Information Provider to Run the MPPTEST Bisect Logscale performance tests</title>
+        
+        <para> The configuration for this test is exactly the same as the configuration for the <link linkend="perf-bench-config-mpptestperform">MPPTest</link> above, 
+            except for the RP name and 7th argument:</para>
+        
+        <itemizedlist>
+            <listitem><para>Change the RP name from PerfBM-MPPTest to PerfBM-MPPTest-BiSect-LogScale .</para></listitem>
+            <listitem><para>Change the 7th argument of the <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/rp-provider-config.xml</filename> file 
+                to be mpptest-bisect-logscale instead of mpptest.</para></listitem>
+        </itemizedlist>
+    </section>
+    
+    <section id="perf-bench-config-mpibench-llcbench-perform"  xreflabel="Configuring the MPIBENCH/LLCBENCH Performance Test"><title>Configuring the Information Provider to Run the MPIBENCH/LLCBENCH performance tests</title>    
+        
+        <para> Information on this particular test is to be available at a future date. 
+        </para>
+    </section>
+</section>
+
+<section id="perf-bench-rps" xreflabel="Resource Properties exposed by the Performance Benchmark Info Provider"><title>Resource Properties</title> 
+    <para>TODO:  the resource properties the provider creates/collects/advertises/publishes</para>
+</section>
+
+<section id="perf-bench-schema" xreflabel="Schema for the Performance Benchmark Info Provider"><title>Schema</title> 
+    <para>TODO:  link to schema files </para>
+</section>
+
+<section id="perf-bench-security" xreflabel="Security Considerations for the Performance Benchmark Info Provider"><title>Security Considerations</title> 
+    &WS_MDS_Perf_Bench_Security_Considerations_Frag;
+</section>
+
+<section id="perf-bench-testing" xreflabel="Testing the Performance Benchmark Info Provider"><title>Testing</title> 
+    <para>TODO:  add a simple test for this info provider </para>
+</section>
+
+<section id="perf-bench-troubleshooting" xreflabel="Troubleshooting the Performance Benchmark Info Provider"><title>Troubleshooting</title> 
+    <para>TODO:  describe common issues users may experience with this info provider</para>
+</section>

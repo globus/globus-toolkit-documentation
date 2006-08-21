@@ -1,0 +1,353 @@
+#!/usr/bin/perl
+#
+# Written by Neill Miller (neillm@mcs.anl.gov)
+#
+# Last modified 05/23/2006
+# [ NOTE: test types 'mp-bench' and 'petsc' are not currently supported ]
+#
+# an information provider that measures the performance of a cluster
+# by running a few different standardized programs and aggregating the
+# results for publication into the MDS4 Index Service
+#
+# Required execution arguments:
+# 1) The Job Manager (i.e. Fork (default), PBS, etc)
+# 2) The address of the MJFS (i.e. where to submit the job)
+# 3) The number of backend nodes to run the test on
+# 4) A suitable temporary directory with file creation/write access on
+#    the host where this script is run on
+# 5> The full path to the required exec_wrapper script
+#    (NOTE: exec_wrapper MUST be on the shared file system and in the
+#     system path if not specified explicitly (recommended))
+# 6) The type of test that should be run
+#    The possible options here are:
+#    'hello_world', 'mpptest-logscale' 'mp-bench' 'mpptest'
+#    'mpptest-bisect-logscale', 'stream', 'petsc'
+# 7) The absolute path to the test binary: required for all test types
+#    except 'hello_world'.  For any mpptest runs, this must be the
+#    location to the mpptest binary and NOT the mpirun binary (as that
+#    will be filled in based on the MPI_LOCATION environment variable).
+#
+# It's also required that a proper $GLOBUS_LOCATION is configured in
+# the environment where this script is run so that globusrun-ws can be
+# found.  Also, if a suitable temporary file/directory cannot be found
+# for job file creation, you MUST edit this code to make it have
+# access to one.
+#
+# If the mpptests are to be run, you must also set an MPI_LOCATION
+# environment variable so that this program can find the proper
+# location to mpirun.  NOTE that this location must be the mpi
+# location from the point of view of the compute nodes (in case it's
+# different than the launching node)
+#
+use strict;
+use File::Temp qw(tempfile tempdir);
+
+# for script debugging, set this to 1 (or 2 for verbose debugging)
+# 0 disables all debugging output
+my $debug = 0;
+
+# this is required and filled by the environment's GLOBUS_LOCATION
+my $globus_location = "";
+my $mpi_location = "";
+
+# default argument values (if not specified on the command line)
+my $job_manager = "Fork";
+my $mjfs = "https://localhost:8443/wsrf/services/ManagedJobFactoryService";
+my $node_count = 1;
+my $tmp_dir = "/tmp";
+my $exec_wrapper = "exec_wrapper";
+my $test_type = "hello_world";
+my $test_binary = "/bin/echo";
+
+my ($job_fhandle, $job_filename, $stdout_filename, $stderr_filename);
+my $running_mpptest = 0;
+
+# the program argument mapping table
+my %program_table;
+%program_table =
+    (
+     "hello_world_args", "Hello, World!",
+     "mp-bench_args", "run",
+     "mpptest-logscale_args", "-logscale",
+     "mpptest_args", "",
+     "mpptest-bisect-logscale_args", "-bisect -logscale",
+     "stream_args", "",
+     "petsc_args", "petsc"
+     );
+
+sub check_globus_location()
+{
+    $globus_location = $ENV{"GLOBUS_LOCATION"};
+
+    if ($debug gt 0)
+    {
+        print "Detected GLOBUS_LOCATION: $globus_location\n";
+    }
+    return (length($globus_location) gt 0);
+}
+
+sub check_mpi_location()
+{
+    $mpi_location = $ENV{"MPI_LOCATION"};
+
+    if ($debug gt 0)
+    {
+        print "Detected MPI_LOCATION: $mpi_location\n";
+    }
+    return (length($mpi_location) gt 0);
+}
+
+sub parse_command_line_args()
+{
+    my $arg;
+    my $i = 0;
+    my $num_args = @ARGV;
+
+    if ($debug gt 1)
+    {
+        print "Got $num_args command line args.\n";
+        foreach $arg (@ARGV)
+        {
+            print "ARGV[$i] = $arg\n";
+            $i++;
+        }
+    }
+
+    if ($num_args gt 0)
+    {
+        $job_manager = @ARGV[0];
+    }
+    if ($num_args gt 1)
+    {
+        $mjfs = @ARGV[1];
+    }
+    if ($num_args gt 2)
+    {
+        $node_count = @ARGV[2];
+    }
+    if ($num_args gt 3)
+    {
+        $tmp_dir = @ARGV[3];
+    }
+    if ($num_args gt 4)
+    {
+        $exec_wrapper = @ARGV[4];
+    }
+    if ($num_args gt 5)
+    {
+        $test_type = @ARGV[5];
+    }
+    if ($num_args gt 6)
+    {
+        $test_binary = @ARGV[6];
+    }
+
+    if (($debug ne "0") && ($debug gt 1))
+    {
+        print "**************************************\n";
+        print "Configured Job Manager: $job_manager\n";
+        print "Configured MJFS       : $mjfs\n";
+        print "Configured Node Count : $node_count\n";
+        print "Configured Tmp Dir    : $tmp_dir\n";
+        print "Configured ExecWrapper: $exec_wrapper\n";
+        print "Configured Test Type  : $test_type\n";
+        print "**************************************\n";
+    }
+    return ($num_args gt 0);
+}
+
+sub generate_job_description()
+{
+    my ($binary, $args, $stdout_fhandle, $stderr_fhandle);
+
+    ($job_fhandle, $job_filename) = tempfile(DIR => $tmp_dir);
+    ($stdout_fhandle, $stdout_filename) = tempfile(DIR => $tmp_dir);
+    ($stderr_fhandle, $stderr_filename) = tempfile(DIR => $tmp_dir);
+
+    if ($debug gt 1)
+    {
+        print "Configured for running test type: $test_type\n";
+        print "Using temporary job file: $job_filename\n";
+    }
+
+    $binary = $test_binary;
+
+    if ($test_type eq "hello_world")
+    {
+        $binary = "/bin/echo";
+        $args = $program_table{"hello_world_args"};
+    }
+    elsif ($test_type eq "stream")
+    {
+        $args = $program_table{"stream_args"};
+    }
+    elsif ($test_type eq "petsc")
+    {
+        $args = $program_table{"petsc_args"};
+    }
+    elsif ($test_type eq "mp-bench")
+    {
+        $args = $program_table{"mp-bench_args"};
+    }
+    elsif ($test_type eq "mpptest-bisect-logscale")
+    {
+        $args = $program_table{"mpptest-bisect-logscale_args"};
+        $running_mpptest = 1;
+    }
+    elsif ($test_type eq "mpptest-logscale")
+    {
+        $args = $program_table{"mpptest-logscale_args"};
+        $running_mpptest = 1;
+    }
+    elsif ($test_type eq "mpptest")
+    {
+        $args = $program_table{"mpptest_args"};
+        $running_mpptest = 1;
+    }
+    else
+    {
+        print "Invalid test type \"$test_type\" specified.\n";
+        print "Please check the documentation for which test types are valid.\n";
+
+        cleanup();
+        exit 1;
+    }
+
+    if ($running_mpptest eq 1)
+    {
+        check_mpi_location() || cleanup() &&
+            die "No MPI_LOCATION found.  Please set this!";
+    }
+
+    if ($debug gt 1)
+    {
+        print "Job to run: \"$binary $args\" on $node_count node(s)\n";
+    }
+
+    print $job_fhandle "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    print $job_fhandle "<job>\n";
+    print $job_fhandle " <executable>$exec_wrapper</executable>\n";
+    print $job_fhandle " <directory>$tmp_dir</directory>\n";
+    if ($running_mpptest gt 0)
+    {
+        print $job_fhandle " <argument>$mpi_location/bin/mpirun</argument>\n";
+        print $job_fhandle " <argument>-np</argument>\n";
+        print $job_fhandle " <argument>$node_count</argument>\n";
+        print $job_fhandle " <argument>$binary</argument>\n";
+    }
+    else
+    {
+        print $job_fhandle " <argument>$binary</argument>\n";
+    }
+    if (length($args) gt 0)
+    {
+        print $job_fhandle " <argument>$args</argument>\n";
+    }
+    print $job_fhandle " <stdin>/dev/null</stdin>\n";
+    print $job_fhandle " <stdout>$stdout_filename</stdout>\n";
+    print $job_fhandle " <stderr>$stderr_filename</stderr>\n";
+    print $job_fhandle " <count>$node_count</count>\n";
+    print $job_fhandle "</job>\n";
+
+    close($job_fhandle);
+    close($stdout_fhandle);
+    close($stderr_fhandle);
+
+    if ($debug gt 0)
+    {
+        my $content = `cat $job_filename`;
+        print "Job file contents ($job_filename):\n===========\n";
+        print $content;
+        print "===========\n";
+    }
+    return 1;
+}
+
+sub submit_job()
+{
+    my $output = "";
+    my $cmd = "$globus_location/bin/globusrun-ws -submit -Ft $job_manager -F $mjfs -f $job_filename";
+
+    if ($debug gt 0)
+    {
+        print "Job command to run: $cmd\n";
+    }
+
+    $output = `$cmd 2>&1`;
+
+    if ($debug gt 0)
+    {
+        print "$output\n";
+    }
+    return 1;
+}
+
+sub generate_xml_output()
+{
+    my (@output_array, $program_stdout, $program_stderr, $line);
+    @output_array = `cat $stdout_filename`;
+    $program_stderr = `cat $stderr_filename`;
+
+    foreach (@output_array)
+    {
+        $line = $_;
+
+        # filter out all lines that aren't acceptable in our XML
+        if ((!($line =~ /Doing node/)) && (!($line =~ "Done.")) &&
+            (!($line =~ /Submitting job/)) &&
+            (!($line =~ /Job ID: uuid/)) &&
+            (!($line =~ /Current job state/)) &&
+            (!($line =~ /Destroying job/)))
+        {
+            $program_stdout .= $line;
+        }
+        elsif ($debug gt 0)
+        {
+            print "Skipping output line: $line";
+        }
+    }
+
+    print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    print "<pbo:perfBenchmarkOutputData xmlns:pbo=\"http://perfbm.provider/2006/pbOutput\">\n";
+    print "$program_stdout";
+    print "<pbo:perfBenchmarkErrors>\n";
+    print "$program_stderr";
+    print "</pbo:perfBenchmarkErrors>\n";
+    print "</pbo:perfBenchmarkOutputData>\n";
+
+    return 1;
+}
+
+sub cleanup()
+{
+    if ($debug gt 0)
+    {
+        print "Erasing temporary files: $job_filename, ";
+        print "$stdout_filename, $stderr_filename\n";
+    }
+
+    unlink($job_filename);
+    unlink($stdout_filename);
+    unlink($stderr_filename);
+}
+
+##########################################################
+# main script entry point
+##########################################################
+
+check_globus_location() ||
+    die "No GLOBUS_LOCATION found.  Please set this!";
+
+parse_command_line_args() ||
+    die "Invalid arguments specified.  Please check docs.";
+
+generate_job_description() || cleanup() &&
+    die "Error generating job decscription!";
+
+submit_job() || cleanup() &&
+    die "*** Failed to submit job.\nMake sure Container's MJFS is running?";
+
+generate_xml_output() || cleanup() &&
+    die "Failed to generate XML output.";
+
+cleanup();

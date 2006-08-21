@@ -1,0 +1,177 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<title>GT &shortversion;: WS MDS GKrellm Infomation Provider Reference</title>
+<titleabbrev>Reference Guide</titleabbrev>
+
+<section id="gkrellm-overview" xreflabel="Overview of the GKrellm Info Provider"><title>Overview</title> 
+    &WS_MDS_GKrellm_Overview_Brief_Frag;
+    
+    <para>REQUIRED: indicate which module this provider is implemented with (usefulrp or aggregator) and add link.</para>
+   
+</section>
+
+<section id="gkrellm-prereq" xreflabel="Prerequisites of the GKrellm Info Provider"><title>Prerequisites</title> 
+    <para>TODO: list prerequisites</para>
+</section>
+
+<section id="gkrellm-config" xreflabel="Configuring the GKrellm Info Provider"><title>Configuring</title>
+    
+    <section><title>gkrellmd.xml</title>
+        <para>
+            There is one main configuration file for the gkrellm information service
+            and that is:
+            
+            <filename>
+                $GLOBUS_LOCATION/etc/globus_wsrf_mds_gkrellm/gkrellmd.xml
+            </filename></para>
+        
+        <para>This is a very simple configuration file.  To monitor a new system
+            simply add a line to the &lt;providers&gt; section that points to the IP and
+            port of the gkrellmd server that is to be monitored.  For example 
+            if you wish to monitor a host with the IP 192.168.10.150 and there
+            is a gkrellmd server running on the default port 19150 
+            the &lt;providers&gt; would look like:</para>
+        
+        <screen>
+            &lt;providers&gt;
+            &lt;contacts&gt;>192.168.10.150:19150&lt;/contact&gt;
+            &lt;/providers&gt;
+        </screen>
+        
+        <para>When the container starts up, the GKrellm Information Provider will
+            parse this file and start attempting to monitor all of the gkrellmd
+            servers pointed to in the &lt;providers&gt; section.  If it fails to
+            connect to the server it will retry at regular intervals.  To 
+            successfully acquire any information there must be a gkrellmd server
+            running on the host.</para>
+        
+        <para>All information will automatically be published in the DefaultIndexService
+            running within the same container.</para>
+        
+    </section>
+    <section><title>gkrellmd service</title>
+        
+        <para>As stated above, a gkrellmd server must be running on in order to make
+            this information provider useful.  More information on installing
+            and configuring gkrellmd can be found at:
+            <ulink url="http://www.gkrellm.net">http://www.gkrellm.net</ulink> .</para>
+        
+        <para>A few basic details are described here.  The default configuration 
+            file should be located at:
+            <filename>/etc/init.d/gkrellmd</filename>. 
+            There is a section that describes which hosts are allowed to connect to
+            the server and which are not.  If you are having trouble getting information,
+            make sure that this host where the container is running is
+            allowed access to the server.  Additionally, verify that the max clients
+            is high enough to sustain all of the hosts interested in connecting to
+            the service:</para>
+        
+        <screen>
+            max-clients 4
+            
+            # List of hosts allowed to connect.  If no hosts are specified in a
+            # gkrellmd.conf file or on the command line, all hosts will be allowed.
+            #
+            allow-host localhost
+            allow-host 127.0.0.1
+            allow-host 192.168.10.*
+        </screen>
+        
+        <para>If no allow-host lines are listed in the configuration file, the service 
+            will be available to all hosts.</para>
+        
+    </section>
+    <section><title>Example Web MDS</title>
+        
+        <para>Since the resources presented by this service are automatically put
+            into the DefaultIndexService the user can browse the information via
+            Web MDS.  Details on this can be found in <ulink url="http://www.globus.org/toolkit/docs">http://www.globus.org/toolkit/docs</ulink>.</para>
+        
+        <para>In addition to this, we provide some simple webmds configuration files.
+            These files can be found at:
+            <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_gkrellm/gkrellm.xsl</filename>.</para>
+        
+        <orderedlist>
+            <listitem><para>Copy 
+                <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_gkrellm/gkrellmxsl</filename>
+                to 
+                <filename>$GLOBUS_LOCATION/lib/webmds/conf/gkrellmxsl</filename></para></listitem>
+            
+            <listitem><para> Copy
+                <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_gkrellm/gkrellm.xsl</filename>
+                to
+                <filename>$GLOBUS_LOCATION/lib/webmds/xslfiles/gkrellm.xsl</filename></para></listitem>
+            
+            <listitem><para>Then restart the tomcat container and the information should be available
+                at: 
+                <filename>http://&lt;tomcat contact&gt;/webmds/webmds?info=indexinfo&amp;xsl=gkrellmxsl</filename></para></listitem>
+        </orderedlist>
+    </section>
+    
+</section>
+
+
+<section id="gkrellm-rps" xreflabel="Resource Properties exposed by the GKrellm Info Provider"><title>Resource Properties</title> 
+    <itemizedlist>
+        <listitem><para>Converts information provided by gkrellmd into resource
+            properties which are then published into the Index Service.</para>
+            <itemizedlist>
+                <listitem><simpara>Hostname</simpara></listitem>
+                <listitem><simpara>System description</simpara></listitem>
+                <listitem><simpara>Uptime</simpara></listitem>
+                <listitem><simpara>gkrellmd version</simpara></listitem>
+                <listitem><simpara>CPU Load information: </simpara>
+                    <itemizedlist>
+                        <listitem><simpara>user space time</simpara></listitem>
+                        <listitem><simpara>system space time</simpara></listitem>
+                        <listitem><simpara>idle time</simpara></listitem>
+                        <listitem><simpara>nice time</simpara></listitem>
+                        <listitem><simpara>approximate load</simpara></listitem>
+                    </itemizedlist>
+                </listitem>
+                <listitem><simpara>Memory Information:</simpara>
+                    <itemizedlist>
+                        <listitem><simpara>Total system memory</simpara></listitem>
+                        <listitem><simpara>Used memory</simpara></listitem>
+                        <listitem><simpara>Avaiable memory</simpara></listitem>
+                        <listitem><simpara>Memory in buffered</simpara></listitem>
+                        <listitem><simpara>Cached memory</simpara></listitem>
+                        <listitem><simpara>Shared memory</simpara></listitem>
+                        <listitem><simpara>Percentage Used</simpara></listitem>
+                    </itemizedlist>
+                </listitem>
+                <listitem><simpara>Network Information:</simpara>
+                    <itemizedlist>
+                        <listitem><simpara>Total number of bytes ever sent</simpara></listitem>
+                        <listitem><simpara>Total number of bytes ever received</simpara></listitem>
+                        <listitem><simpara>Number of bytes sent over a given interval</simpara></listitem>
+                        <listitem><simpara>Number of bytes received over a given interval</simpara></listitem>
+                    </itemizedlist>
+                </listitem>
+                <listitem><simpara>Disk Information:</simpara>
+                    <itemizedlist>
+                        <listitem><simpara>Total number of bytes ever written</simpara></listitem>
+                        <listitem><simpara>Total number of bytes ever read</simpara></listitem>
+                        <listitem><simpara>Number of bytes written over a given interval</simpara></listitem>
+                        <listitem><simpara>Number of bytes read over a given interval</simpara></listitem>
+                    </itemizedlist>
+                </listitem>
+            </itemizedlist></listitem></itemizedlist>
+</section>
+
+<section id="gkrellm-schema" xreflabel="Schema for the GKrellm Info Provider"><title>Schema</title> 
+    <para><ulink url=
+        "http://viewcvs.globus.org/viewcvs.cgi/ws-mds/gkrellm/schema/mds/gkrellm/gkrellm_port_type.wsdl?rev=HEAD&amp;only_with_tag=HEAD&amp;content-type=text/vnd.viewcvs-markup">gkrellm_port_type.wsdl
+    </ulink></para>
+</section>
+
+<section id="gkrellm-security" xreflabel="Security Considerations for the GKrellm Info Provider"><title>Security Considerations</title> 
+    &WS_MDS_GKrellm_Security_Considerations_Frag;
+</section>
+
+<section id="gkrellm-testing" xreflabel="Testing the GKrellm Info Provider"><title>Testing</title> 
+    <para>TODO:  add a simple test for this info provider </para>
+</section>
+
+<section id="gkrellm-troubleshooting" xreflabel="Troubleshooting the GKrellm Info Provider"><title>Troubleshooting</title> 
+    <para>TODO:  describe common issues users may experience with this info provider</para>
+</section>
