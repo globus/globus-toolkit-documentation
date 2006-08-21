@@ -4,7 +4,6 @@ export SGML_CATALOG_FILES
 #export XML_DEBUG_CATALOG
 FILENAME=index.xml
 
-
 # PDF needs to be generated on a machine which has Apache FOP
 # installed.
 
