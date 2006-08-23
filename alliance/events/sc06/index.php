@@ -15,7 +15,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <div id="main">
 
-<div id="solutions-sidebar" style="width: 100%; padding: 5px; margin: 5px;">
+<div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
 <p>Notice: We are currently developing this page for this year's SC. This information is in flux but please check back later for more complete information. </p>
 </div>
 
