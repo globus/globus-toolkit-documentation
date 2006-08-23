@@ -22,7 +22,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 <h1>The Globus Alliance at SC|06</h1>
-<div id="solutions-sidebar">
+<div id="solutions-sidebar" style="width: 100%; ">
 <p>Notice: We are currently developing this page for this year's SC. This information is in flux but please check back later for more complete information. </p>
 </div>
 
