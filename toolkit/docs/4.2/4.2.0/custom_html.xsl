@@ -47,14 +47,36 @@
                 <!-- how deep should each toc be? (how many levels?) -->
                 <xsl:param name="toc.max.depth">2</xsl:param>
                 
-                <!-- How deep should recursive sections appear in the TOC? -->
-                 <xsl:param name="toc.section.depth">1</xsl:param>
+                <!-- How deep should recursive sections appear in the TOC for chapters? -->
+                 <xsl:param name="toc.section.depth">4</xsl:param>
                 
                 <!-- Should the first section be chunked separately from its parent? > 0 = yes-->
                 <xsl:param name="chunk.first.sections">1</xsl:param>
                 
                 <!-- Instead of using default filenames, use ids for filenames (dbhtml directives take precedence) -->
                 <xsl:param name="use.id.as.filename">1</xsl:param>
+                
+                <!-- custom toc - book only shows chapter -->
+                <xsl:template match="preface|chapter|appendix|article" mode="toc">
+                                <xsl:param name="toc-context" select="."/>
+                                
+                                <xsl:choose>
+                                                <xsl:when test="local-name($toc-context) = 'book'">
+                                                                <xsl:call-template name="subtoc">
+                                                                                <xsl:with-param name="toc-context" select="$toc-context"/>
+                                                                                <xsl:with-param name="nodes" select="foo"/>
+                                                                </xsl:call-template>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                                <xsl:call-template name="subtoc">
+                                                                                <xsl:with-param name="toc-context" select="$toc-context"/>
+                                                                                <xsl:with-param name="nodes"
+                                                                                                select="section|sect1|glossary|bibliography|index
+                                                                                                |bridgehead[$bridgehead.in.toc != 0]"/>
+                                                                </xsl:call-template>
+                                                </xsl:otherwise>
+                                </xsl:choose>
+                </xsl:template>
                 
 
                 <!-- INDEX PARAMETERS -->
