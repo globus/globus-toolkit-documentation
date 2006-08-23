@@ -22,7 +22,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 <h1>The Globus Alliance at SC|06</h1>
-
+<div id="solutions-sidebar">
+<p>Notice: We are currently developing this page for this year's SC. This information is in flux but please check back later for more complete information. </p>
+</div>
 
 
 <p>Globus Alliance members won't be hard to find at SC06 in Tampa, November
