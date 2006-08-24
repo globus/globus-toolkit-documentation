@@ -99,7 +99,7 @@ in our information packets this year.</p>
       Workflows</a></strong></p>
 	  
 	  <p><strong><a href="JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
-
+	  <p><strong><a href="Flyer_for_GridWay_ProtoProject.pdf">Gridway - Metascheduling Technologies for the Grid</a> </strong></p>
 </div>
 
 
