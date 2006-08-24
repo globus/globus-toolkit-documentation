@@ -10,10 +10,7 @@ FILENAME=index.xml
 all: html
 
 html:
-	xsltproc --xinclude --stringparam chunk.section.depth 0 \
-	--stringparam html.cellspacing "0" \
-	--stringparam suppress.navigation 1 \
-	--stringparam  chapter.autolabel 0 \
+	xsltproc --xinclude \
 	--catalogs \
            custom_html.xsl  \
           ${FILENAME}
