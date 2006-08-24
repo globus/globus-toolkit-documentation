@@ -79,5 +79,139 @@
                 </xsl:template>
                 
 
-    
+                <!-- INDEX PARAMETERS -->
+                <!-- do you want an index?  -->
+                <xsl:param name="generate.index">1</xsl:param>
+               
+                <!-- Select indexterms based on type attribute value -->
+                <xsl:param name="index.on.type">1</xsl:param>
+                
+                <!-- GLOSSARY PARAMETERS -->
+                <!-- Display glossentry acronyms? -->
+                <xsl:param name="glossentry.show.acronym">yes</xsl:param>
+                
+                <!-- Name of the glossary collection file -->
+                <xsl:param name="glossary.collection" select="'glossary.xml'"></xsl:param>
+                
+                <!-- Generate links from glossterm to glossentry automatically? -->
+                <xsl:param name="glossterm.auto.link">1</xsl:param>
+                
+                <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms?
+                <xsl:param name="firstterm.only.link">1</xsl:param> -->
+                
+                <!-- permit wrapping of long lines of code
+                <xsl:attribute-set name="monospace.verbatim.properties" 
+                                use-attribute-sets="verbatim.properties monospace.properties">
+                                <xsl:attribute name="wrap-option">wrap</xsl:attribute>
+                </xsl:attribute-set> -->
+                
+                <!-- INCORPORATING DOCBOOK PAGES INTO WEBSITE -->
+
+                <!-- make sure there's a DOCTYPE in the html output (otherwise, some css renders strangely -->
+                <xsl:param name="chunker.output.doctype-public" select="'-//W3C//DTD HTML 4.01 Transitional//EN'"/>
+                <xsl:param name="chunker.output.doctype-system" select="'http://www.w3.org/TR/html4/loose.dtd'"/>
+                
+                <!-- add elements to the HEAD tag -->
+                <xsl:template name="user.head.content">
+                                <link href="/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
+                                <link rel="stylesheet" type="text/css" href="/toolkit/css/print.css" media="print" />
+                                <link rel="alternate" title="Globus Toolkit RSS" href="/toolkit/rss/downloadNews/downloadNews.xml" type="application/rss+xml"/>
+                                <script>
+                                                <xsl:comment>
+                                                function GlobusSubmit()
+                                                {
+                                                var f=document.GlobusSearchForm;
+                                                
+                                                f.action="http://www.google.com/custom";
+                                                if (f.elements[0].checked) {
+                                                f.q.value = f.qinit.value + " -inurl:mail_archive " ;
+                                                } else {
+                                                f.q.value = f.qinit.value + " inurl:mail_archive " ;
+                                                }
+                                                }
+                                                </xsl:comment>
+                                </script>
+                </xsl:template>
+                
+                <!-- add an attribute to the BODY tag -->
+                <xsl:template name="body.attributes">
+                                <xsl:attribute name="class">section-3</xsl:attribute>
+                </xsl:template>
+                
+                <!-- pull in 'website' with this code by modifying chunk-element-content from html/chunk-common.xsl-->
+                <xsl:template name="chunk-element-content">
+                                <xsl:param name="prev"/>
+                                <xsl:param name="next"/>
+                                <xsl:param name="nav.context"/>
+                                <xsl:param name="content">
+                                                <xsl:apply-imports/>
+                                </xsl:param>
+                                
+                                <xsl:call-template name="user.preroot"/>
+                                
+                                <html>
+                                                <xsl:call-template name="html.head">
+                                                                <xsl:with-param name="prev" select="$prev"/>
+                                                                <xsl:with-param name="next" select="$next"/>
+                                                </xsl:call-template>
+                                                
+                                                <body>
+                                                                <xsl:call-template name="body.attributes"/>
+                                                                <xsl:processing-instruction name="php">
+                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_header_docbook_releasenotes.inc");
+                                                                                ?</xsl:processing-instruction>
+                                                                
+ 
+                                                                <xsl:call-template name="user.header.navigation"/>
+                                                                
+                                                                <xsl:call-template name="header.navigation">
+                                                                                <xsl:with-param name="prev" select="$prev"/>
+                                                                                <xsl:with-param name="next" select="$next"/>
+                                                                                <xsl:with-param name="nav.context" select="$nav.context"/>
+                                                                </xsl:call-template>
+                                                                
+                                                                <xsl:call-template name="user.header.content"/>
+                                                                
+                                                                
+                                                               
+
+                                                                
+                                                                <xsl:copy-of select="$content"/>
+                                                                
+                                                                <xsl:call-template name="user.footer.content"/>
+                                                                
+                                                                <xsl:call-template name="footer.navigation">
+                                                                                <xsl:with-param name="prev" select="$prev"/>
+                                                                                <xsl:with-param name="next" select="$next"/>
+                                                                                <xsl:with-param name="nav.context" select="$nav.context"/>
+                                                                </xsl:call-template>
+                                                                
+                                                                <xsl:call-template name="user.footer.navigation"/>
+
+                                                                <xsl:processing-instruction name="php">
+                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_footer_docbook_releasenotes.inc");
+                                                                                ?</xsl:processing-instruction>
+                                                      
+                                                </body>
+                                </html>
+                </xsl:template>
+                
+                <!-- prevent h1 and h2 using clear: both - want to control in css, instead -->
+                <xsl:template name="section.heading">
+                                <xsl:param name="section" select="."/>
+                                <xsl:param name="level" select="'1'"/>
+                                <xsl:param name="title"/>
+                                <xsl:element name="h{$level+1}">
+                                                <xsl:attribute name="class">title</xsl:attribute>
+                                                <a>
+                                                                <xsl:attribute name="name">
+                                                                                <xsl:call-template name="object.id">
+                                                                                                <xsl:with-param name="object" select="$section"/>
+                                                                                </xsl:call-template>
+                                                                </xsl:attribute>
+                                                </a>
+                                                <xsl:copy-of select="$title"/>
+                                </xsl:element>
+                </xsl:template>
+
 </xsl:stylesheet>
