@@ -101,6 +101,8 @@ in our information packets this year.</p>
 <p><strong><a href="SCEC_Grid_factsheet_v5.pdf">Advancing SCEC Earthquake System
           Science Research with Gridbased High Performance Computing and Scientific
       Workflows</a></strong></p>
+	  
+	  <p><strong><a href="JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
 
 </div>
 
