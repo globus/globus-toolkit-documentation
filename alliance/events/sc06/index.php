@@ -85,10 +85,6 @@ in our information packets this year.</p>
 
 
 
-<p><strong><a href="MDS4-gw06-v1.pdf">MDS4: The GT4 Monitoring and Discovery System</a></strong></p>
-
-
-
 <p><strong><a href="RLSgw2006handout.pdf">The Globus Replica Location Service</a></strong></p>
 
 
