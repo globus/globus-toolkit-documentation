@@ -6,13 +6,10 @@ FILENAME= index.xml
 all: html
 
 html:
-	xsltproc \
-	--stringparam chunk.section.depth 0 \
-	--stringparam html.cellspacing "0" \
-	--stringparam suppress.navigation 1 \
-	--stringparam  chapter.autolabel 0 \
-	../../../docs/4.0/admin/docbook/chunk.xsl \
-	$(FILENAME)
+	xsltproc --xinclude \
+	--catalogs \
+	custom_html.xsl  \
+	${FILENAME}
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
