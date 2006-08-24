@@ -15,7 +15,7 @@ html:
 	--stringparam suppress.navigation 1 \
 	--stringparam  chapter.autolabel 0 \
 	--catalogs \
-           ../../docs/4.0/admin/docbook/chunk.xsl  \
+           custom_html.xsl  \
           ${FILENAME}
 
 newpdf:
