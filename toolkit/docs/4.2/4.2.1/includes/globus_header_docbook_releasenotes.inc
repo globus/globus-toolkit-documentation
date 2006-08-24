@@ -146,5 +146,5 @@ globus_out_of_date(); ?>
 
 <td>
 -->
-<div id="content">
+<div id="content" style="padding-left: 20px; padding-right: 20px;">
 <!-- content STARTS here -->
