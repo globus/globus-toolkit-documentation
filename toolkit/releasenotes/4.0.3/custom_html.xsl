@@ -45,7 +45,7 @@
                 <xsl:param name="section.autolabel">1</xsl:param>
                 
                 <!-- how deep should each toc be? (how many levels?) -->
-                <xsl:param name="toc.max.depth">2</xsl:param>
+                <xsl:param name="toc.max.depth">3</xsl:param>
                 
                 <!-- How deep should recursive sections appear in the TOC for chapters? -->
                  <xsl:param name="toc.section.depth">4</xsl:param>
