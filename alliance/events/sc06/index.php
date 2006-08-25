@@ -100,6 +100,10 @@ in our information packets this year.</p>
 	  
 	  <p><strong><a href="JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
 	  <p><strong><a href="Flyer_for_GridWay_ProtoProject.pdf">Gridway - Metascheduling Technologies for the Grid</a> </strong></p>
+	  
+	   <p><strong><a href="GWHandout-RFT.pdf">Reliable File Transfer</a> </strong></p>
+	   
+	   <p><strong><a href="gt-authz-gw06-v3.pdf">The Globus Toolkit Authorization Framework</a> </strong></p>
 </div>
 
 
