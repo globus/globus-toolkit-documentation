@@ -104,11 +104,11 @@ in our information packets this year.</p>
 	  
 <p><strong><a href="GWHandout-RFT.pdf">Reliable File Transfer</a> </strong></p>
 	   
-<p><strong><a href="gt-authz-gw06-v3.pdf">The Globus® Toolkit Authorization Framework</a> </strong></p>
+<p><strong><a href="gt-authz-gw06-v3.pdf">The Globus&reg; Toolkit Authorization Framework</a> </strong></p>
 
-<p><strong><a href="GW_C_WS_Core_Handout.pdf">Globus® Toolkit C Web Services Core</a> </strong></p>
+<p><strong><a href="GW_C_WS_Core_Handout.pdf">Globus&reg; Toolkit C Web Services Core</a> </strong></p>
 
-<p><strong><a href="GW_Security_Handout.pdf">Globus® Toolkit Java Security Components</a> </strong></p>
+<p><strong><a href="GW_Security_Handout.pdf">Globus&reg; Toolkit Java Security Components</a> </strong></p>
 
 </div>
 
