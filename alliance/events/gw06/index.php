@@ -77,7 +77,7 @@ in our information packets this year.</p>
 
 
 
-<p><a href="../sc06/globus_jcst_2006.pdf"><strong>Globus Toolkit Version 4: Software for Service-Oriented Systems.</strong></a>
+<p><a href="globus_jcst_2006.pdf"><strong>Globus Toolkit Version 4: Software for Service-Oriented Systems.</strong></a>
 
    I. Foster.  <em>IFIP International Conference on Network and Parallel Computing</em>, 
 
@@ -85,25 +85,31 @@ in our information packets this year.</p>
 
 
 
-<p><strong><a href="../sc06/RLSgw2006handout.pdf">The Globus Replica Location Service</a></strong></p>
+<p><strong><a href="RLSgw2006handout.pdf">The Globus Replica Location Service</a></strong></p>
 
 
 
-<p><strong><a href="../sc06/DRSgw2006handout.pdf">The Globus Data Replication Service</a></strong></p>
+<p><strong><a href="DRSgw2006handout.pdf">The Globus Data Replication Service</a></strong></p>
 
-<p><strong><a href="../sc06/GlobusWorld2006_ServMark.pdf">ServMark: A Distributed Grid
+<p><strong><a href="GlobusWorld2006_ServMark.pdf">ServMark: A Distributed Grid
       and Services Testing Framework</a></strong></p>
 
-<p><strong><a href="../sc06/SCEC_Grid_factsheet_v5.pdf">Advancing SCEC Earthquake System
+<p><strong><a href="SCEC_Grid_factsheet_v5.pdf">Advancing SCEC Earthquake System
           Science Research with Gridbased High Performance Computing and Scientific
       Workflows</a></strong></p>
 	  
-	  <p><strong><a href="../sc06/JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
-	  <p><strong><a href="../sc06/Flyer_for_GridWay_ProtoProject.pdf">Gridway - Metascheduling Technologies for the Grid</a> </strong></p>
+<p><strong><a href="JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
+
+<p><strong><a href="Flyer_for_GridWay_ProtoProject.pdf">Gridway - Metascheduling Technologies for the Grid</a> </strong></p>
 	  
-	   <p><strong><a href="../sc06/GWHandout-RFT.pdf">Reliable File Transfer</a> </strong></p>
+<p><strong><a href="GWHandout-RFT.pdf">Reliable File Transfer</a> </strong></p>
 	   
-	   <p><strong><a href="../sc06/gt-authz-gw06-v3.pdf">The Globus Toolkit Authorization Framework</a> </strong></p>
+<p><strong><a href="gt-authz-gw06-v3.pdf">The Globus® Toolkit Authorization Framework</a> </strong></p>
+
+<p><strong><a href="GW_C_WS_Core_Handout.pdf">Globus® Toolkit C Web Services Core</a> </strong></p>
+
+<p><strong><a href="GW_Security_Handout.pdf">Globus® Toolkit Java Security Components</a> </strong></p>
+
 </div>
 
 
