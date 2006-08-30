@@ -19,7 +19,7 @@ html:
            ${FILENAME}
 
 pdf:
-	~bacon/XEP/xep \
+	~bacon/XEP/xep -quiet \
 	-xml $(FILENAME) \
 	-xsl ../../custom_fo.xsl \
 	-out index.pdf
