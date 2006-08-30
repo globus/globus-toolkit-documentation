@@ -83,7 +83,7 @@ in our information packets this year.</p>
 
    Springer-Verlag LNCS 3779, pp 2-13, 2005.</p>
 
-
+<p><strong><a href="foster-DataGridTools.pdf">Data Grid Tools: Enabling Science on Big Distributed Data</a></strong></p>
 
 <p><strong><a href="RLSgw2006handout.pdf">The Globus Replica Location Service</a></strong></p>
 
