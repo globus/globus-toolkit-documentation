@@ -36,14 +36,6 @@ exposure to national and international collaborations, and the opportunity to wo
 exciting and ground-breaking projects. Visiting positions for faculty and students are 
 also possible.</p>
 
-<h2>Opportunities at Univa</h2>
-<p> We are growing the Univa team and are looking for talented individuals to join one 
-of the most exciting technology start-ups in the Midwest. We currently have exciting 
-opportunities in Engineering, Marketing, and Professional Services.  Our ideal 
-candidates are motivated, self-starters who are deadline and deliverables-driven, 
-and have a solid understanding of what it takes to develop, market and deliver 
-enterprise grade software to the Global 2000. 
-<a class="learnmore" href="http://www.univa.com/jobs.shtml">Learn more...</a></p>
 
 <h2>Research Programmers</h2>
 <p>Programmers in the Globus Alliance are the first people to implement new Grid
@@ -73,6 +65,15 @@ Argonne, for example, offers an Undergraduate Program in Computational Science.
 Graduate students can also enter the University of Chicago or University of Southern 
 California.</p>
 
+<h2>Opportunities at Univa</h2>
+<p> We are growing the Univa team and are looking for talented individuals to join one 
+of the most exciting technology start-ups in the Midwest. We currently have exciting 
+opportunities in Engineering, Marketing, and Professional Services.  Our ideal 
+candidates are motivated, self-starters who are deadline and deliverables-driven, 
+and have a solid understanding of what it takes to develop, market and deliver 
+enterprise grade software to the Global 2000. 
+<a class="learnmore" href="http://www.univa.com/about/jobs.php">Learn more...</a></p>
+
 <p>For jobs at Argonne, University of Chicago, or USC-ISI, please send email to 
 <a href="mailto:jobs@globus.org">jobs@globus.org</a>. For Univa, please send
 email to <a href="mailto:jobs@univa.com">jobs@univa.com</a>.</p>
@@ -85,12 +86,3 @@ equal opportunity employer.</small>
 
 </div>
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
-
-
-
-
-
-
-
-
-
