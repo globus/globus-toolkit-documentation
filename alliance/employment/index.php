@@ -36,6 +36,7 @@ exposure to national and international collaborations, and the opportunity to wo
 exciting and ground-breaking projects. Visiting positions for faculty and students are 
 also possible.</p>
 
+<p><b>News!</b> There are currently <a href="http://www.mcs.anl.gov/dsl/jobs/">six open positions</a> in the Chicago area team.</p>
 
 <h2>Research Programmers</h2>
 <p>Programmers in the Globus Alliance are the first people to implement new Grid
