@@ -94,7 +94,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     provides a set of OGSA capabilities based on WSRF. The
     Globus Toolkit 4.0 is an open source, community-driven software project, and it
     can be 
-    <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."downloads/4.0.0/"; ?>">downloaded</a> 
+    <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."downloads/4.0/"; ?>">downloaded</a> 
     and used under the terms of a liberal open source license.</p>
 
 
