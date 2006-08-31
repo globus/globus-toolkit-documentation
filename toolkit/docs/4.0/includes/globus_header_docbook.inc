@@ -27,7 +27,9 @@
 <table class="navbartable" width="100%">
 <tr>
 <th>
-<a href='/'>Home</a> -&gt; <a href='/toolkit/'>Toolkit</a> -&gt; <a href='/toolkit/docs/'>Docs</a> -&gt; <a href='/toolkit/docs/4.0/'>4.0</a> -&gt; <a href='/toolkit/docs/4.0/security/'>Security</a> -&gt; <a href='/toolkit/docs/4.0/security/authzframe/'>Authzframe</a> 
+	<?php 
+include_once( "/mcs/www-unix.globus.org/toolkit/breadcrumb.php" ); 
+globus_current_location(); ?>
 </th>
 
 <td>
