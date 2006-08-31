@@ -1,6 +1,6 @@
 FILENAME=index.xml
 
-all: html pdf
+all: html
 
 cygwin-html:
 	xsltproc --stringparam chunk.section.depth 0 \
@@ -11,12 +11,10 @@ cygwin-html:
            ${FILENAME}
 
 html:
-	xsltproc --stringparam chunk.section.depth 0 \
-           --stringparam suppress.navigation 1 \
-	   --stringparam  chapter.autolabel 0 \
-	   --stringparam  section.autolabel 1 \
-           ../../admin/docbook/chunk.xsl \
-           ${FILENAME}
+	xsltproc \
+	../../custom_html.xsl \
+	$(FILENAME)
+	find . -name \*.html | xargs chgrp cvsusers
 
 pdf:
 	~bacon/XEP/xep -quiet \
