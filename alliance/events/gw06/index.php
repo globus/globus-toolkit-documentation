@@ -85,11 +85,11 @@ in our information packets this year.</p>
 
 <p><strong><a href="foster-DataGridTools.pdf">Data Grid Tools: Enabling Science on Big Distributed Data</a></strong></p>
 
-<p><strong><a href="RLSgw2006handout.pdf">The Globus Replica Location Service</a></strong></p>
+<p><strong><a href="RLSgw2006handoutv2.pdf">The Globus Replica Location Service</a></strong></p>
 
 
 
-<p><strong><a href="DRSgw2006handout.pdf">The Globus Data Replication Service</a></strong></p>
+<p><strong><a href="DRSgw2006handoutv2.pdf">The Globus Data Replication Service</a></strong></p>
 
 <p><strong><a href="GlobusWorld2006_ServMark.pdf">ServMark: A Distributed Grid
       and Services Testing Framework</a></strong></p>
@@ -109,6 +109,9 @@ in our information packets this year.</p>
 <p><strong><a href="GW_C_WS_Core_Handout.pdf">Globus&reg; Toolkit C Web Services Core</a> </strong></p>
 
 <p><strong><a href="GW_Security_Handout.pdf">Globus&reg; Toolkit Java Security Components</a> </strong></p>
+
+<p><strong><a href="DATAgw2006handoutFinal.pdf">Globus&reg; Data Services</a> </strong></p>
+
 
 </div>
 
