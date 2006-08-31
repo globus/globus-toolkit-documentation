@@ -1,7 +1,7 @@
 FILENAME=index.xml
 
 #PDF image includes are slightly broken.
-all: html 
+all: html  pdf
 
 cygwin-html:
 	xsltproc --stringparam chunk.section.depth 0 \
