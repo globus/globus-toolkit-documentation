@@ -1,4 +1,4 @@
-FILENAME=index.xml           dependencies.xml
+FILENAME=index.xml
 
 all: html pdf
 
@@ -41,3 +41,10 @@ mac:
 	--stringparam chapter.autolabel 0 \
 	/usr/share/xml/xsl/docbook-xsl/html/chunk.xsl \
 	$(FILENAME)
+	
+lint:
+	xmllint \
+	--valid \
+	--noout \
+	--noent \
+	index.xml
