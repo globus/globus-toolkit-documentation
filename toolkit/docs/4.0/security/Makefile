@@ -19,7 +19,7 @@ html:
 pdf:
 	~bacon/XEP/xep -quiet \
 	-xml $(FILENAME) \
-	-xsl ../../custom_fo.xsl \
+	-xsl ../custom_fo.xsl \
 	-out index.pdf
 
 rh9:
