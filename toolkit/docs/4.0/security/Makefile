@@ -17,9 +17,10 @@ html:
 	find . -name \*.html | xargs chgrp cvsusers
 
 pdf:
-	docbook2pdf \
-           -l /usr/share/sgml/docbook/dsssl-stylesheets/dtds/decls/xml.dcl \
-           ${FILENAME}
+	~bacon/XEP/xep -quiet \
+	-xml $(FILENAME) \
+	-xsl ../../custom_fo.xsl \
+	-out index.pdf
 
 rh9:
 	xsltproc --stringparam chunk.section.depth 0 \
