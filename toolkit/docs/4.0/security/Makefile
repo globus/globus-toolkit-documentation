@@ -1,6 +1,6 @@
 FILENAME=index.xml
 
-all: html
+all: html pdf
 
 cygwin-html:
 	xsltproc --stringparam chunk.section.depth 0 \
