@@ -112,6 +112,8 @@ in our information packets this year.</p>
 
 <p><strong><a href="DATAgw2006handoutFinal.pdf">Globus&reg; Data Services</a> </strong></p>
 
+<p><strong><a href="pegasus_gw06_brochure_final.pdf">Pegasus: Planning for Execution in Grids</a> </strong></p>
+
 
 </div>
 
