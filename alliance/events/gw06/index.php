@@ -114,7 +114,8 @@ in our information packets this year.</p>
 
 <p><strong><a href="MDS4-gw06-v4.pdf">MDS4: The GT4 Monitoring and Discovery System</a> </strong></p>
 
-<p><strong>dev.globus.org and the Globus&reg; Incubator Process </strong></p>
+<p><strong><a href="devglobus_and_incubator_GW06_v4.pdf">dev.globus.org and the
+  Globus&reg; Incubator Process</a> </strong></p>
 
 
 
