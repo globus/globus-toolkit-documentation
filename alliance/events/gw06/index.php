@@ -19,11 +19,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p>Notice: We are currently developing this page for this year's SC. This information is in flux but please check back later for more complete information. </p>
 </div>
 
-<a href="http://sc06.supercomputing.org/"><img align="right" border=0 height=162 width=552 src="Grid_enterbanner.gif" alt="SC|06" \></a>
+<a href="http://www.gridworld.com/"><img align="right" border=0 height=162 width=552 src="Grid_enterbanner.gif" alt="GridWorld 2006" \></a>
 
 
 
-<h1>The Globus Alliance at Globus<span style="white-space: nowrap;"><font class="header2005">WORLD</font></span> 2006</h1>
+<h1>The Globus Alliance at GlobusWORLD 2006</h1>
 
 
 
