@@ -85,7 +85,7 @@ in our information packets this year.</p>
    Springer-Verlag LNCS 3779, pp 2-13, 2005.</p>
 
 <p><strong><a href="foster-DataGridTools.pdf">Data Grid Tools: Enabling Science on Big Distributed Data</a></strong></p>
-<p><strong>The VDS Workflow Solution Kit (coming soon) </strong></p>
+<p><strong><a href="VDS_brochure_v4.pdf">The VDS Workflow Solution Kit</a></strong></p>
 <p><strong><a href="gt-authz-gw06-v3.pdf">The Globus&reg; Toolkit Authorization
       Framework</a> </strong></p>
 <p><strong>CDIGS and the Globus Roadmap (coming soon) </strong></p>
@@ -104,8 +104,6 @@ in our information packets this year.</p>
 
 <p><strong><a href="DRSgw2006handoutv2.pdf">The Globus Data Replication Service</a></strong></p>
 
-<p><strong><a href="pegasus_gw06_brochure_final.pdf">Pegasus: Planning for Execution
-      in Grids</a> </strong></p>
 <p><strong><a href="GridFTP_Overview.pdf">The Globus&reg; Striped GridFTP Framework
   and Server</a></strong></p>
 <p><strong><a href="GW_Security_Handout.pdf">Globus&reg; Toolkit Java Security
