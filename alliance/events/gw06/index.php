@@ -13,6 +13,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 
+
 <div id="main">
 
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
@@ -30,8 +31,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p><span style="white-space: nowrap;"><font class="header2005"> GlobusWORLD 2006
       joins forces with</font><font class="headerTagLine"> IDG World Expo and
       GGF</font><font class="header2005"> at GridWorld 2006 in Washington DC,
-      September 11-17th 2006. </font></span> Our activities include [update for
-      this conference: a half-day tutorial on Sunday, two "birds of a feather" meetings
+      September 11-17th 2006. </font></span> Our activities include [<strong>update
+      for this conference: </strong>a half-day tutorial on Sunday, two "birds of a feather" meetings
   
 on Tuesday, paper presentations, and continuous exhibits and presentations at
   the Argonne 
@@ -42,7 +43,7 @@ National Laboratory booth (R1629) in the exhibiter hall].</p>
 
 
 <p>Alliance members are providing the following components of the <span style="white-space: nowrap;"><font class="header2005">GlobusWORLD
-  2006</font></span>  program. [update for this conference]:</p>
+  2006</font></span>  program. [<strong>update for this conference</strong>]:</p>
 
 
 
