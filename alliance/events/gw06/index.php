@@ -123,6 +123,7 @@ in our information packets this year.</p>
 
 <p><strong><a href="GridFTP_Overview.pdf">The Globus&reg; Striped GridFTP Framework and Server</a></strong></p>
 
+<p><strong><a href="GRAM-gw06-flyer-v5.pdf">GRAM: GT’s Job Submission Service</a></strong></p>
 
 </div>
 
