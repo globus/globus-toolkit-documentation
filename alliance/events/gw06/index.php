@@ -1,6 +1,6 @@
 <?php
 
-$title = "Globus: The Globus Alliance at SC|06";
+$title = "Globus: The Globus Alliance at GlobusWORLD 2006";
 
 $section = "section-2";
 
