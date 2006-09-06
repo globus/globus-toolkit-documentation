@@ -84,50 +84,40 @@ in our information packets this year.</p>
    Springer-Verlag LNCS 3779, pp 2-13, 2005.</p>
 
 <p><strong><a href="foster-DataGridTools.pdf">Data Grid Tools: Enabling Science on Big Distributed Data</a></strong></p>
-
+<p><strong>The VDS Workflow Solution Kit (coming soon) </strong></p>
+<p><strong><a href="gt-authz-gw06-v3.pdf">The Globus&reg; Toolkit Authorization
+      Framework</a> </strong></p>
+<p><strong>CDIGS and the Globus Roadmap (coming soon) </strong></p>
+<p><strong><a href="devglobus_and_incubator_GW06_v4.pdf">dev.globus.org and the
+      Globus&reg; Incubator Process</a> </strong></p>
+<p><strong><a href="MDS4-gw06-v4.pdf">MDS4: The GT4 Monitoring and Discovery
+      System</a> </strong></p>
+<p><strong><a href="GRAM-gw06-flyer-v5.pdf">GRAM: GT's Job Submission Service</a></strong></p>
+<p><strong><a href="JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
+<p><strong><a href="GW_C_WS_Core_Handout.pdf">Globus&reg; Toolkit C Web Services
+      Core</a> </strong></p>
+<p><strong><a href="DATAgw2006handoutFinal.pdf">Globus&reg; Data Services</a> </strong></p>
 <p><strong><a href="RLSgw2006handoutv2.pdf">The Globus Replica Location Service</a></strong></p>
 
 
 
 <p><strong><a href="DRSgw2006handoutv2.pdf">The Globus Data Replication Service</a></strong></p>
 
-<p><strong><a href="GlobusWorld2006_ServMark.pdf">ServMark: A Distributed Grid
-      and Services Testing Framework</a></strong></p>
-
+<p><strong><a href="pegasus_gw06_brochure_final.pdf">Pegasus: Planning for Execution
+      in Grids</a> </strong></p>
+<p><strong><a href="GridFTP_Overview.pdf">The Globus&reg; Striped GridFTP Framework
+  and Server</a></strong></p>
+<p><strong><a href="GW_Security_Handout.pdf">Globus&reg; Toolkit Java Security
+      Components</a> </strong></p>
+<p><strong><a href="GWHandout-RFT.pdf">Reliable File Transfer</a> </strong></p>
+<p><strong><a href="UGEDataSheet.pdf">Univa Globus&reg; Enterprise</a></strong></p>
 <p><strong><a href="SCEC_Grid_factsheet_v5.pdf">Advancing SCEC Earthquake System
-          Science Research with Gridbased High Performance Computing and Scientific
-      Workflows</a></strong></p>
-	  
-<p><strong><a href="JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
-
+      Science Research with Gridbased High Performance Computing and Scientific
+  Workflows</a></strong></p>
+<p><strong><a href="GlobusWorld2006_ServMark.pdf">ServMark: A Distributed Grid
+        and Services Testing Framework</a></strong></p>
 <p><strong><a href="Flyer_for_GridWay_ProtoProject.pdf">Gridway - Metascheduling Technologies for the Grid</a> </strong></p>
 	  
-<p><strong><a href="GWHandout-RFT.pdf">Reliable File Transfer</a> </strong></p>
-	   
-<p><strong><a href="gt-authz-gw06-v3.pdf">The Globus&reg; Toolkit Authorization Framework</a> </strong></p>
-
-<p><strong><a href="GW_C_WS_Core_Handout.pdf">Globus&reg; Toolkit C Web Services Core</a> </strong></p>
-
-<p><strong><a href="GW_Security_Handout.pdf">Globus&reg; Toolkit Java Security Components</a> </strong></p>
-
-<p><strong><a href="DATAgw2006handoutFinal.pdf">Globus&reg; Data Services</a> </strong></p>
-
-<p><strong><a href="MDS4-gw06-v4.pdf">MDS4: The GT4 Monitoring and Discovery System</a> </strong></p>
-
-<p><strong><a href="devglobus_and_incubator_GW06_v4.pdf">dev.globus.org and the
-  Globus&reg; Incubator Process</a> </strong></p>
-
-<p><strong><a href="pegasus_gw06_brochure_final.pdf">Pegasus: Planning for Execution in Grids</a> </strong></p>
-
-<p><strong><a href="UGEDataSheet.pdf">Univa Globus&reg; Enterprise</a></strong></p>
-
-<p><strong><a href="GridFTP_Overview.pdf">The Globus&reg; Striped GridFTP Framework and Server</a></strong></p>
-
-<p><strong><a href="GRAM-gw06-flyer-v5.pdf">GRAM: GT's Job Submission Service</a></strong></p>
-
 </div>
-
-
-
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
 
