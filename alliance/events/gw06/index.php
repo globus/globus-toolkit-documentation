@@ -117,11 +117,11 @@ in our information packets this year.</p>
 <p><strong><a href="devglobus_and_incubator_GW06_v4.pdf">dev.globus.org and the
   Globus&reg; Incubator Process</a> </strong></p>
 
-
-
 <p><strong><a href="pegasus_gw06_brochure_final.pdf">Pegasus: Planning for Execution in Grids</a> </strong></p>
 
-<p><strong><a href="UGEDataSheet.pdf">Univa Globus</a><a href="devglobus_and_incubator_GW06_v4.pdf">&reg;</a><a href="UGEDataSheet.pdf"> Enterprise</a> </strong></p>
+<p><strong><a href="UGEDataSheet.pdf">Univa Globus&reg; Enterprise</a></strong></p>
+
+<p><strong><a href="GridFTP_Overview.pdf">The Globus&reg; Striped GridFTP Framework and Server</a></strong></p>
 
 
 </div>
