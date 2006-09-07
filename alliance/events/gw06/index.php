@@ -85,6 +85,7 @@ in our information packets this year.</p>
    Springer-Verlag LNCS 3779, pp 2-13, 2005.</p>
 
 <p><strong><a href="foster-DataGridTools.pdf">Data Grid Tools: Enabling Science on Big Distributed Data</a></strong></p>
+<p><strong><a href="DATAgw2006handoutFinal.pdf">Globus&reg; Data Services</a> </strong></p>
 <p><strong><a href="VDS_brochure_v4.pdf">The VDS Workflow Solution Kit</a></strong></p>
 <p><strong><a href="gt-authz-gw06-v3.pdf">The Globus&reg; Toolkit Authorization
       Framework</a> </strong></p>
@@ -98,7 +99,6 @@ in our information packets this year.</p>
 <p><strong><a href="JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
 <p><strong><a href="GW_C_WS_Core_Handout.pdf">Globus&reg; Toolkit C Web Services
       Core</a> </strong></p>
-<p><strong><a href="DATAgw2006handoutFinal.pdf">Globus&reg; Data Services</a> </strong></p>
 <p><strong><a href="RLSgw2006handoutv2.pdf">The Globus Replica Location Service</a></strong></p>
 
 
