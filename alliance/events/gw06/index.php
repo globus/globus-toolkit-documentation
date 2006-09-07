@@ -17,7 +17,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <div id="main">
 
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
-<p>Notice: We are currently developing this page for this year's SC. This information is in flux but please check back later for more complete information. </p>
+<p>Notice: We are currently developing this page for this year's GlobusWorld.
+  This information is in flux but please check back later for more complete information. </p>
 </div>
 
 <a href="http://www.gridworld.com/"><img align="right" border=0 height=162 width=552 src="Grid_enterbanner.gif" alt="GridWorld 2006" \></a>
