@@ -88,7 +88,8 @@ in our information packets this year.</p>
 <p><strong><a href="VDS_brochure_v4.pdf">The VDS Workflow Solution Kit</a></strong></p>
 <p><strong><a href="gt-authz-gw06-v3.pdf">The Globus&reg; Toolkit Authorization
       Framework</a> </strong></p>
-<p><strong>CDIGS and the Globus Roadmap (coming soon) </strong></p>
+<p><strong><a href="CDIGS-GW-handout-final.pdf">CDIGS</a></strong></p>
+<p><strong><a href="roadProcessOverviewPic2.pdf">Globus Roadmap</a></strong></p>
 <p><strong><a href="devglobus_and_incubator_GW06_v4.pdf">dev.globus.org and the
       Globus&reg; Incubator Process</a> </strong></p>
 <p><strong><a href="MDS4-gw06-v4.pdf">MDS4: The GT4 Monitoring and Discovery
