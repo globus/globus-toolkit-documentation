@@ -15,10 +15,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 <div id="main">
-
+<!-- 
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
 <p>&nbsp; </p>
-</div>
+</div> -->
 
 <a href="http://www.gridworld.com/"><img align="right" border=0 height=162 width=552 src="Grid_enterbanner.gif" alt="GridWorld 2006" \></a>
 
@@ -31,8 +31,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p> GlobusWORLD 2006
       joins forces with IDG World Expo and
       GGF at GridWorld 2006 in Washington DC,
-  September 11-17th 2006.</p>
-<h2>Information</h2>
+  September 11-17th 2006. The GlobusWORLD program will offer a wide variety of sessions, mini-symposiums, panel discussions, and tutorials.</p>
+  
+<h2 style="clear:both; ">Information</h2>
 
 
 
