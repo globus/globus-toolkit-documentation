@@ -123,7 +123,7 @@ function globus_print_headlines(
             fwrite($fp, "<span class=\"newsdate\">" .
                    globus_news_timestamp_to_readable($timestamp) .
                    "</span>" .
-                   " <b>$headline</b>" .
+                   " <strong>$headline</strong>" .
                    " <a href=\"$news_page_url#$id\">Learn more...</a><br>\n");
         }
 
@@ -191,7 +191,7 @@ function globus_print_news($name, $where, $limit)
             fwrite($fp, "\n<h2><span class=\"panel\"><a name=\"$id\"></a>" .
                         globus_news_timestamp_to_readable($timestamp) .
                         "</span>" .
-                        " <b>$headline</b></h2>\n" .
+                        " <strong>$headline</strong></h2>\n" .
                         "<p>\n$body\n</p>\n");
         }
 
