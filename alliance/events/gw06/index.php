@@ -15,12 +15,12 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 <div id="main">
-
+<!--
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
 <p>Notice: We are currently developing this page for this year's GlobusWorld.
   This information is in flux but please check back later for more complete information. </p>
 </div>
-
+-->
 <a href="http://www.gridworld.com/"><img align="right" border=0 height=162 width=552 src="Grid_enterbanner.gif" alt="GridWorld 2006" \></a>
 
 
@@ -32,40 +32,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p><span style="white-space: nowrap;"><font class="header2005"> GlobusWORLD 2006
       joins forces with</font><font class="headerTagLine"> IDG World Expo and
       GGF</font><font class="header2005"> at GridWorld 2006 in Washington DC,
-      September 11-17th 2006. </font></span> Our activities include [<strong>update
-      for this conference: </strong>a half-day tutorial on Sunday, two "birds of a feather" meetings
-  
-on Tuesday, paper presentations, and continuous exhibits and presentations at
-  the Argonne 
-  
-National Laboratory booth (R1629) in the exhibiter hall].</p>
-<h2>Events</h2>
-
-
-
-<p>Alliance members are providing the following components of the <span style="white-space: nowrap;"><font class="header2005">GlobusWORLD
-  2006</font></span>  program. [<strong>update for this conference</strong>]:</p>
-
-
-
-<ul>
-
-<li>Exhibits and presentations at the Argonne National Laboratory Booth (R1629)</li>
-
-<li>Birds of a Feather - The Globus Toolkit v4: Status and Experiences</li>
-
-<li>Birds of a Feather - Grid Applications and Performance</li>
-
-<li>Paper - The Globus Striped GridFTP Framework and Server</li>
-
-<li>Paper - DI-GRUBER: A Distributed Approach for Grid Resource Brokering</li>
-
-<li>Tutorial S14 - The Globus Toolkit in e-Science: Examples and Lessons</li>
-
-</ul>
-
-
-
+  September 11-17th 2006.</font></span></p>
 <h2>Information</h2>
 
 
