@@ -15,12 +15,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 <div id="main">
-<!--
+
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
-<p>Notice: We are currently developing this page for this year's GlobusWorld.
-  This information is in flux but please check back later for more complete information. </p>
+<p>&nbsp; </p>
 </div>
--->
+
 <a href="http://www.gridworld.com/"><img align="right" border=0 height=162 width=552 src="Grid_enterbanner.gif" alt="GridWorld 2006" \></a>
 
 
@@ -29,16 +28,16 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 
-<p><span style="white-space: nowrap;"><font class="header2005"> GlobusWORLD 2006
-      joins forces with</font><font class="headerTagLine"> IDG World Expo and
-      GGF</font><font class="header2005"> at GridWorld 2006 in Washington DC,
-  September 11-17th 2006.</font></span></p>
+<p> GlobusWORLD 2006
+      joins forces with IDG World Expo and
+      GGF at GridWorld 2006 in Washington DC,
+  September 11-17th 2006.</p>
 <h2>Information</h2>
 
 
 
-<p>We are distributing information to <span style="white-space: nowrap;"><font class="header2005">GlobusWORLD
-      2006</font></span> attendees from our
+<p>We are distributing information to GlobusWORLD
+      2006 attendees from our
 
 base in the Argonne National Laboratory booth. The following materials are included
 
