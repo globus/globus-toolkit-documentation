@@ -131,6 +131,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/trigger/">WS MDS Trigger</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/webmds/">WS MDS WebMDS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/usefulrp/">WS MDS UsefulRP</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/providers/">WS MDS Info Providers</a></dt>
 			</dl>
 			
 		<h2 class="smalltitle">Execution Mgt</h2>
