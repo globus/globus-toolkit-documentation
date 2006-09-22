@@ -10,6 +10,8 @@ Once you have edited the files and are ready to submit to the Globus Toolkit, fo
 
 * Component = Information Services
 
+* Severity = Enhancement
+
 * Summary = include the phrase 'new information provider' followed by its name. For example: 'new information provider: performance benchmark'
 
 * Description = include any information or special instructions for this information provider.
