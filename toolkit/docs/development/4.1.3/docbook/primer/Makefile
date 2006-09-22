@@ -4,7 +4,7 @@ FILENAME=index.xml
 # PDF needs to be generated on a machine which has Apache FOP
 # installed.
 
-all: html
+all: html pdf
  
  html:
 	xsltproc \
