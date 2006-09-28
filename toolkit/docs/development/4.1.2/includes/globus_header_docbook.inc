@@ -63,7 +63,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/versioning.html">Versioning</a></dt>
 				<dt><a href="/toolkit/downloads/">Downloads</a></dt>
 				<dt><a href="/toolkit/advisories.html">Advisories</a></dt>
-				<dt><a href="/toolkit/legal/">Licenses</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/licenses/">Licenses</a></dt>
 				<dt><a href="http://dev.globus.org/wiki/How_to_contribute">CVS &amp; Dev Tools</a></dt>
 			</dl>
 			
