@@ -3,7 +3,7 @@
      <p>Scientists in the 
         <a href="http://www.earthsystemgrid.org/">Earth System Grid (ESG)</a> 
         are producing, archiving, and providing access to climate data that
-        informs research on global climate change. This image displays data from
+        advances our understanding of global climate change. This image displays data from
         ESG and shows sea ice extent (white/gray), sea ice motion, sea surface 
         temperatures (colors), and atmospheric sea level pressure (contours). 
         ESG uses Globus software for 
