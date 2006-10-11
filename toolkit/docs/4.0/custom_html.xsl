@@ -91,12 +91,12 @@
                 <!-- Display glossentry acronyms? -->
                 <xsl:param name="glossentry.show.acronym">yes</xsl:param>
                 
-                <!-- Name of the glossary collection file -->
+                <!-- Name of the glossary collection file
                 <xsl:param name="glossary.collection" select="'glossary.xml'"></xsl:param>
-                
-                <!-- Generate links from glossterm to glossentry automatically? -->
+                -->
+                <!-- Generate links from glossterm to glossentry automatically?
                 <xsl:param name="glossterm.auto.link">1</xsl:param>
-                
+                -->
                 <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms?
                 <xsl:param name="firstterm.only.link">1</xsl:param> -->
                 
@@ -164,7 +164,7 @@
                                                                 
  
                                                                 <xsl:call-template name="user.header.navigation"/>
-                                                                <!-- 
+                                                                <!-- toggles whether header.navigation shows                                                              
                                                                 <xsl:call-template name="header.navigation">
                                                                                 <xsl:with-param name="prev" select="$prev"/>
                                                                                 <xsl:with-param name="next" select="$next"/>
