@@ -1,0 +1,226 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<para>
+This section describes using the CAS server as a PDP local to the container  to manage authorization policy for web services. Unlike the previous section the authorization service interface of CAS is not used. But a PDP, <constant>org.globus.cas.impl.LocalCasPdP</constant>, distributed with the CAS server code base is used to contact a co-hosted CAS server for authorization decisions. This PDP uses Java calls on the CAS resource to obtain policy information and returns a decision of PERMIT or DENY.
+</para>
+
+<para> For a service to use this feature, the authorization configuration at service/resoruce level should be the LocalCasPdp. To grant access to users, the users need to be added to the CAS database. This can be done either during bootstrap or during runtime. The resource owner can then facilitate fine grained, per operation authorization by storing appropriate permissions on the local CAS server.</para>
+
+<para> Following is a list of steps that highlights how the CasLocalPdp can be sued:
+
+<itemizedlist>
+<listitem>
+The test service used to as a part of this distribution to test this feature is used as the example service. The service consists of three methods, with following characteristics.
+
+      <table>
+
+        <title>Operation Details</title>
+
+        <tgroup cols="5">
+
+          <tbody>
+
+            <row>
+
+              <entry>Name</entry>
+
+              <entry>Purpose</entry>
+
+              <entry>Authentication Required</entry>
+
+              <entry>Authorization Required</entry>
+
+              <entry>Invocation on service/resource</entry>
+            </row>
+
+            <row>
+              <entry>create</entry>
+
+              <entry>Create a new resource and return EPR. Initialize with integer value and an array of CAS user nickname allowed to access new resource.</entry>
+
+              <entry>Yes, any scheme</entry>
+
+              <entry>None</entry>
+
+              <entry>Service</entry>
+            </row>
+
+
+            <row>
+              <entry>getValue</entry>
+
+              <entry>Return current value of resource</entry>
+
+              <entry>No</entry>
+
+              <entry>No</entry>
+
+              <entry>Resource</entry>
+            </row>
+
+            <row>
+              <entry>add</entry>
+
+              <entry>Integer value as parameter to add to current value</entry>
+
+              <entry>Yes, any scheme</entry>
+
+              <entry>LocalCasPdp</entry>
+
+              <entry>Resource</entry>
+            </row>
+
+
+          </tbody>
+
+        </tgroup>
+
+      </table>
+</listitem>
+
+<listitem>
+<para> To configure the test service to use enforce authentication for create method, a security descriptor as shown below can be configured.
+</para>
+<para>
+<screen>
+&lt;serviceSecurityConfig xmlns="http://www.globus.org/security/descriptor/service"&gt;
+     &lt;auth-method&gt;
+      &lt;GSISecureConversation/&gt;
+      &lt;GSISecureMessage/&gt;
+      &lt;GSISecureTransport/&gt;
+     &lt;/auth-method&gt;
+     &lt;authzChain&gt;
+         &lt;pdps&gt;
+             &lt;interceptor name="none"/&gt;
+         &lt;/pdps&gt;
+     &lt;/authzChain&gt;
+&lt;/serviceSecurityConfig&gt;
+</screen>
+</para>
+
+</listitem>
+
+<listitem>
+<para>
+To configure the test resource to enforce authentication and use LocalCasPdp for authorization, a security descriptor file can be writen and loaded into the resource object as shown below</para>
+<para>
+<screen>
+    &lt;serviceSecurityConfig xmlns="http://www.globus.org/security/descriptor/service"&gt;
+     &lt;auth-method&gt;
+      &lt;GSISecureConversation/&gt;
+      &lt;GSISecureMessage/&gt;
+      &lt;GSISecureTransport/&gt;
+     &lt;/auth-method&gt;
+     &lt;methodAuthentication&gt;
+        &lt;method name="getValue"&gt;
+            &lt;auth-method&gt;
+                &lt;none/&gt;
+            &lt;/auth-method&gt;
+        &lt;/method&gt;
+     &lt;/methodAuthentication&gt;
+     &lt;authzChain&gt;
+         &lt;pdps&gt;
+             &lt;interceptor name="pdp:org.globus.cas.impl.LocalCasPdp"/&gt;
+         &lt;/pdps&gt;
+     &lt;/authzChain&gt;
+&lt;/serviceSecurityConfig&gt;
+</screen>
+</para>
+
+<para> Sample Resource code, where <constant>resoruceSecDesc</constant> is the path to the above file.
+
+<screen>
+public class TestResource implements SecureResource, ResourceIdentifier {
+
+    ResourceSecurityDescriptor desc;
+
+    public TestResource(int val, String resourceSecDesc) throws Exception {
+        this.key = new Integer(hashCode());
+        this.value = val;
+        this.desc = new ResourceSecurityDescriptor(resourceSecDesc);
+    }
+
+    public ResourceSecurityDescriptor getSecurityDescriptor() {
+
+        return this.desc;
+    }
+}
+</screen>
+</para>
+
+</listitem>
+
+<listitem>
+<para> The owner of the service should exist in the CAS database with the same DN used to run the service. Also, a user group to add all new CAS objects created is required. For the purpose of this sample, we assume that &quot;testUser&quot; exists on the server and a user group &quot;testUserGroup&quot;. Refer to <xref linkend="cas-admin-bootstrapingDb"/> for details on how to bootstrap the CAS server.
+</para>
+</listitem>
+
+
+<listitem>
+<para> A Service Action group with all operations in the service should be added to the CAS service. This needs to be done only once and can be done in the resoruce home. This example shows how a new group &quot;testActionGp&quot; can be added.
+
+<screen>
+        String casUrl = &quot;local://host:port/wsrf/services/CASService&quot;;
+        Util util = new Util(casUrl);
+        System.out.println("Creating service action group");
+        util.createServiceActionGroup(&quot;testUserGroup&quot;, &quot;testActionGp&quot;);
+</screen>
+
+Note that local invocations can be used, since the CAS server is expected to be cohosted.
+</para>
+</listitem>
+
+<listitem>
+<para> All operation on the service should be added to the service/action group.<screen>
+        util.addOperation(new String[] { "getValue", "add"},
+                          &quot;testActionGp&quot;);
+</screen>
+</para>
+</listitem>
+
+<listitem>
+<para> A User group per resource created can be added to the CAS server. This example uses the resource key as part of the group name.
+<screen>
+        String newUserGroupName = "objGp-" + key.toString();
+        util.createUserGroup(userGroup, newUserGroupName);
+</screen>
+</para>
+</listitem>
+
+<listitem>
+<para> The EPR of resource should be added as a CAS object. The EPR should be converted to string representation and added with default namespace.
+<screen>
+        String eprAsString = EPRUtil.getEPRAsString(epr);
+        // The user group on which all rights are granted for thsi object can 
+        // be the new user group created in previous step.
+        util.addResourceObject(eprAsString, &quot;testUserGroup&quot;);
+</screen>
+</para>
+</listitem>
+
+<listitem>
+<para> With all CAS objects bootstrapped, permission for the new user group to perform actions in new service/action group on resource should be added to CAS server. Now any new user who needs to be allowed access just needs to be added to CAS server and then added to user group for the said resource.
+<screen>
+        // set permission for new user group, resource EPR and then new action
+        // group.
+        util.grantPermission(newUserGroupName, eprAsString,
+                             actionGroupName);
+</screen>
+</para>
+</listitem>
+
+<listitem>
+<para> On a create operation, when the list of authorized users is passed as parameter, the user should be added to the newly created user group.
+<screen>
+            util.addUserToGroup(newUserGroupName, &quot;authorizedUserNick&quot;);
+</screen>
+</para>
+</listitem>
+
+
+<listitem>
+<para> With the above set up, a <constant>create</constant> call can be made by anyone, provided some authentication is used. <constant>getValue</constant> can be invoked insecurely also. <constant>add</constant> will require that the CAS server have policy about the user.
+</para>
+</listitem>
+</itemizedlist>
+</para>
