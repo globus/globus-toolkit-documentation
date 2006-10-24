@@ -34,11 +34,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 
-<p>You may also join any of the lists by visiting our <b>
-
-
-
-<a href="subscriptions.php">Subscription Center</a></b>.</p>
+<p>For more information about our mailing lists, click <a href="http://dev.globus.org/wiki/Mailing_Lists">here</a>.</p>
 
 
 
