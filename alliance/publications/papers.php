@@ -112,15 +112,16 @@ submitting bibliographic citations</a>.</b></p>
 
         Software for Service-Oriented Systems</a></strong>. I. Foster. 
 
-        <em>IFIP International Conference on Network and Parallel Computing</em>, 
+        <em>IFIP International Conference on Network and Parallel Computing</em>,
 
-        Springer-Verlag LNCS 3779, pp 2-13, 2005.<br>
+        Springer-Verlag LNCS 3779, pp 2-13, 2006.<br>
 
-        This paper is an excellent introduction to the Globus Toolkit 4.0 and its use.<br>
+        This paper is an excellent introduction to the Globus Toolkit 4.0 and
+        its use. (updated for 2006) <br>
 
         [<a href="#gt4overview">Citation</a>, 
 
-         <a href="papers/IFIP-2005.pdf">PDF</a>]</font></p>
+  <a href="papers/IFIP-2006.pdf">PDF</a>]</font></p>
 
 
 
