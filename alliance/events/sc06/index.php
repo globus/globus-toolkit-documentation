@@ -27,15 +27,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 
-<p>Globus Alliance members won't be hard to find at SC06 in Tampa, November
-  11-17, 2006.
+<p>Globus Alliance members [won't be hard to find - FIXME: replace this wording
+  from last year] at SC06 in Tampa, November 11-17, 2006.
 
-Our activities include a half-day tutorial on Sunday, two "birds of a feather" meetings
-
-on Tuesday, paper presentations, and continuous exhibits and presentations at
-the Argonne 
-
-National Laboratory booth (R1629) in the exhibiter hall.</p>
+Our activities include [FIXME].</p>
 
 
 
@@ -49,17 +44,7 @@ National Laboratory booth (R1629) in the exhibiter hall.</p>
 
 <ul>
 
-<li>Exhibits and presentations at the Argonne National Laboratory Booth (R1629)</li>
-
-<li>Birds of a Feather - The Globus Toolkit v4: Status and Experiences</li>
-
-<li>Birds of a Feather - Grid Applications and Performance</li>
-
-<li>Paper - The Globus Striped GridFTP Framework and Server</li>
-
-<li>Paper - DI-GRUBER: A Distributed Approach for Grid Resource Brokering</li>
-
-<li>Tutorial S14 - The Globus Toolkit in e-Science: Examples and Lessons</li>
+<li>[FIXME] </li>
 
 </ul>
 
@@ -77,33 +62,48 @@ in our information packets this year.</p>
 
 
 
-<p><a href="globus_jcst_2006.pdf"><strong>Globus Toolkit Version 4: Software for Service-Oriented Systems.</strong></a>
+<div id="main">
+  <p><a href="globus_jcst_2006.pdf"><strong>Globus Toolkit Version 4: Software
+        for Service-Oriented Systems.</strong></a> I. Foster. <em>IFIP International
+        Conference on Network and Parallel Computing</em>, Springer-Verlag LNCS
+        3779, pp 2-13, 2005.</p>
+  <p><strong><a href="foster-DataGridTools.pdf">Data Grid Tools: Enabling Science
+        on Big Distributed Data</a></strong></p>
+  <p><strong><a href="DATAsc2006handoutFinal.pdf">Globus&reg; Data Services</a> </strong></p>
+  <p><strong><a href="VDS_brochure_v4.pdf">The VDS Workflow Solution Kit</a></strong></p>
+  <p><strong><a href="gt-authz-sc06-v3.pdf">The Globus&reg; Toolkit Authorization
+        Framework</a> </strong></p>
+  <p><strong><a href="CDIGS-SC-handout-final.pdf">Community Driven Improvement
+        of Globus Software (CDIGS)</a></strong></p>
+  <p><strong><a href="roadProcessOverviewPic2.pdf">Globus&reg; Roadmap</a></strong></p>
+  <p><strong><a href="devglobus_and_incubator_SC06_v4.pdf">dev.globus.org and
+        the Globus&reg; Incubator Process</a> </strong></p>
+  <p><strong><a href="MDS4-sc06-v4.pdf">MDS4: The GT4 Monitoring and Discovery
+        System</a> </strong></p>
+  <p><strong><a href="GRAM-sc06-flyer-v5.pdf">GRAM: GT's Job Submission Service</a></strong></p>
+  <p><strong><a href="JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
+  <p><strong><a href="SC_C_WS_Core_Handout.pdf">Globus&reg; Toolkit C Web Services
+        Core</a> </strong></p>
+  <p><strong><a href="RLSsc2006handoutv2.pdf">The Globus Replica Location Service</a></strong></p>
+  <p><strong><a href="DRSsc2006handoutv2.pdf">The Globus Data Replication Service</a></strong></p>
+  <p><strong><a href="GridFTP_Overview.pdf">The Globus&reg; Striped GridFTP Framework
+        and Server</a></strong></p>
+  <p><strong><a href="SC_Security_Handout.pdf">Globus&reg; Toolkit Java Security
+        Components</a> </strong></p>
+  <p><strong><a href="SCHandout-RFT.pdf">Reliable File Transfer</a> </strong></p>
+  <p><strong><a href="UGEDataSheet.pdf">Univa Globus&reg; Enterprise</a></strong></p>
+  <p><strong><a href="SCEC_Grid_factsheet_v5.pdf">Advancing SCEC Earthquake System
+        Science Research with Gridbased High Performance Computing and Scientific
+        Workflows</a></strong></p>
+  <p><strong><a href="SC2006_ServMark.pdf">ServMark: A Distributed Grid
+        and Services Testing Framework</a></strong></p>
+  <p><strong><a href="Flyer_for_GridWay_ProtoProject.pdf">Gridway - Metascheduling
+        Technologies for the Grid</a> </strong></p>
+</div>
+<p>&nbsp;</p>
 
-   I. Foster.  <em>IFIP International Conference on Network and Parallel Computing</em>, 
-
-   Springer-Verlag LNCS 3779, pp 2-13, 2005.</p>
 
 
-
-<p><strong><a href="RLSgw2006handout.pdf">The Globus Replica Location Service</a></strong></p>
-
-
-
-<p><strong><a href="DRSgw2006handout.pdf">The Globus Data Replication Service</a></strong></p>
-
-<p><strong><a href="GlobusWorld2006_ServMark.pdf">ServMark: A Distributed Grid
-      and Services Testing Framework</a></strong></p>
-
-<p><strong><a href="SCEC_Grid_factsheet_v5.pdf">Advancing SCEC Earthquake System
-          Science Research with Gridbased High Performance Computing and Scientific
-      Workflows</a></strong></p>
-	  
-	  <p><strong><a href="JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
-	  <p><strong><a href="Flyer_for_GridWay_ProtoProject.pdf">Gridway - Metascheduling Technologies for the Grid</a> </strong></p>
-	  
-	   <p><strong><a href="GWHandout-RFT.pdf">Reliable File Transfer</a> </strong></p>
-	   
-	   <p><strong><a href="gt-authz-gw06-v3.pdf">The Globus Toolkit Authorization Framework</a> </strong></p>
 </div>
 
 
