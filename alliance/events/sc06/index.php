@@ -84,8 +84,8 @@ in our information packets this year.</p>
   <p><strong><a href="JWSCoreHandout.pdf">GT4 Java WS Core</a></strong></p>
   <p><strong><a href="SC_C_WS_Core_Handout.pdf">Globus&reg; Toolkit C Web Services
         Core</a> </strong></p>
-  <p><strong><a href="RLSsc2006handoutv2.pdf">The Globus Replica Location Service</a></strong></p>
-  <p><strong><a href="DRSsc2006handoutv2.pdf">The Globus Data Replication Service</a></strong></p>
+  <p><strong><a href="RLSsc2006handout.pdf">The Globus Replica Location Service</a></strong></p>
+  <p><strong><a href="DRSsc2006handout.pdf">The Globus Data Replication Service</a></strong></p>
   <p><strong><a href="GridFTP_Overview.pdf">The Globus&reg; Striped GridFTP Framework
         and Server</a></strong></p>
   <p><strong><a href="SC_Security_Handout.pdf">Globus&reg; Toolkit Java Security
