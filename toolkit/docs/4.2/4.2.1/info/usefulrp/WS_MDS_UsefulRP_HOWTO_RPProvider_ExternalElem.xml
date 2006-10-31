@@ -1,0 +1,294 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<title>GT &shortversion; Index Service: How to Write an External
+Element producer using the RPProvider Framework in MDS4</title>
+<titleabbrev>Writing an External Element Information Provider</titleabbrev>
+
+<!-- 
+<para> This howto was written by <ulink
+url="http://www.thecodefactory.org/neillm">Neill Miller</ulink> under
+the guidance of <ulink
+url="http://www-unix.mcs.anl.gov/~schopf/">Jennifer
+Schopf</ulink>.</para>
+ -->
+
+<section id="usefulrp-howto-extelement-intro"><title>Introduction</title>
+
+<para>
+This document is intended to be a starting guide to writing non
+web-service based <glossterm baseform="information provider">information providers</glossterm> for
+the MDS4 using the RPProvider Framework.  It covers the concepts and
+walks through a simple example of how to get arbitrary information
+into the MDS4 using the External Element producer.  This External
+Element producer is part of the RPProvider Framework and is used for
+gathering arbitrary XML information about a resource by executing an
+external script.  This is mostly useful for scenarios where you would
+like to publish information into the MDS4 from a <emphasis>non
+web-service</emphasis> based information source.  For web-service
+based information sources that export known Resource Properties, it is
+much easier to use <xref linkend="aggregator-sources-query"/>.
+However, that source is outside the scope of this document.
+</para>
+
+<para>
+This document covers writing a simple information provider that
+publishes fortune information at a regular interval into the MDS4's
+<glossterm>Index Service</glossterm>.  This
+example was chosen because it is dynamic and simple, yet it
+illustrates all the fundamentals of this type of information provider.
+</para>
+
+<para>
+It should be noted that this document is very similar to the document
+describing how to write an execution aggregator provider of the same
+fortune example.  However, there are many differences using the newer
+RPProvider framework, and this document covers them.
+</para>
+
+</section>
+
+<section id="usefulrp-howto-extelement-schema"><title>Choosing (or conforming to) a Schema</title>
+
+<para>
+The first step to getting information into the MDS4 is to decide which
+information you would like to have published.  Since the data is in
+XML format, you should choose (or pick) the schema that you'd like the
+data to conform to.  This generally means coming up with element names
+and types and creating some mapping of the data you're about to
+retrieve from your non web-service based application before putting it
+in to the MDS4.  For this example, I'm going to choose this very
+simple format for the data:</para>
+<screen>
+&lt;fortuneInformation&gt;
+   &lt;fortuneData&gt;
+      ... here is the fortune ...
+   &lt;/fortuneData&gt;
+   &lt;fortuneDateAndTime&gt;
+      ... date and time of retrieval ...
+   &lt;/fortuneDateAndTime&gt;
+   &lt;fortuneSourceURL&gt;
+      ... the URL of where the fortune was retrieved ...
+   &lt;/fortuneSourceURL&gt;
+&lt;/fortuneInformation&gt;
+</screen>
+<para>As you can see, that format is very simple.  An example output will
+look like this:</para>
+<screen>
+&lt;fortuneInformation&gt;
+   &lt;fortuneData&gt;
+     186,282 miles per second: It isn't just a good idea, it's the law!
+   &lt;/fortuneData&gt;
+   &lt;fortuneDateAndTime&gt;
+     Thu Jul 14 18:16:01 CDT 2005
+   &lt;/fortuneDateAndTime&gt;
+   &lt;fortuneSourceURL&gt;
+     http://anduin.eldar.org/cgi-bin/fortune.pl?text_format=yes
+   &lt;/fortuneSourceURL&gt;
+&lt;/fortuneInformation&gt;
+</screen>
+   <para>Once you've chosen how to represent your data in XML format, you can
+start thinking about how you're going to retrieve and prepare that
+data for publication.
+</para>
+</section>
+
+<section id="usefulrp-howto-extelement--code"><title>The Code</title>
+
+<para>
+The second step to getting information into the MDS4 is to write a
+script (or program) that gathers and formats the appropriate data.
+This can be C code, shell script, perl code, etc, and it doesn't
+matter what kind of methods it uses behind the scenes, so long as it
+produces well formatted XML data.
+</para>
+
+<para>
+For example, if we wanted to publish a fortune into the Index Service
+(using the free and charitable online service located at <ulink
+url="http://anduin.eldar.org/cgi-bin/fortune.pl">http://anduin.eldar.org/cgi-bin/fortune.pl</ulink>),
+we could write a simple shell script to retrieve it and format it into
+our chosen XML schema.
+</para>
+
+<para>
+You can sample the source code for this example implementation
+here. It is written as a bash shell script due to its simplicity.
+Tested platforms include GNU/Linux only.  For this script to properly
+publish information, you must have one (or more) of the following
+programs installed on the system: <emphasis>wget</emphasis>,
+<emphasis>lynx</emphasis>, or <emphasis>fortune</emphasis>.  All of
+these programs come standard with most GNU/Linux distributions, and
+it's important to note that only one of them is required (i.e. not ALL
+are required).  [ <emphasis>NOTE: Windows users must have something
+like the <ulink url="http://www.cygwin.com/">cygwin</ulink> operating
+environment for this to work</emphasis> ]
+</para>
+
+<para>
+Download the code: <ulink url="fortune_script.sh">fortune_script.sh</ulink>.
+</para>
+
+<para>
+This file should be saved in your
+<emphasis>$GLOBUS_LOCATION/libexec</emphasis> directory, although if
+you feel more comfortable placing it somewhere else on your file
+system, it's ok to do so.
+</para>
+</section>
+
+<section id="usefulrp-howto-extelement--enabling"><title>Enabling The Provider</title>
+
+<para>
+Now that we have the information provider written, the next step is to
+enable it so that we can test it.  To do this you will need to do a
+few things.  First, enable the RPProvider framework (if it's not
+already).  Second, enable the Fortune Provider that we've just
+written, and finally restart your container to view the new
+information.
+</para>
+
+<section><title>Enable the RPProvider framework</title>
+
+<para>
+It's possible that your Globus Toolkit installation already has the
+RPProvider framework enabled.  This section shows you how to verify if
+it is, and what to do if it is not.  To do this, you will need to edit the
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/server-config.wsdd</filename> file.
+</para>
+
+<para>
+You should see an <emphasis>DefaultIndexService Handler</emphasis> section that looks
+something like this:
+<screen>
+&lt;service name="DefaultIndexService" provider="Handler"
+     use="literal" style="document"&gt;
+     &lt;parameter name="providers"
+                value="org.globus.wsrf.impl.servicegroup.ServiceGroupRegistrationProvider
+                       org.globus.mds.usefulrp.rpprovider.ResourcePropertyProviderCollection
+                       GetRPProvider
+                       GetMRPProvider
+                       QueryRPProvider
+                       DestroyProvider
+                       SetTerminationTimeProvider
+                       SubscribeProvider
+                       GetCurrentMessageProvider"/&gt;
+
+     &lt;parameter name="handlerClass"
+         value="org.globus.axis.providers.RPCProvider"/&gt;
+     &lt;parameter name="scope" value="Application"/&gt;
+     &lt;parameter name="allowedMethods" value="*"/&gt;
+     &lt;parameter name="rpProviderConfigFile"
+         value="/etc/globus_wsrf_mds_index/rp-provider-config.xml"/&gt;
+     &lt;parameter name="className"
+         value="org.globus.mds.index.impl.DefaultIndexService"/&gt;
+     &lt;wsdlFile&gt;share/schema/mds/index/index_service.wsdl&lt;/wsdlFile&gt;
+&lt;/service&gt;
+</screen>
+</para>
+
+<para>
+If the DefaultIndexService <emphasis>Handler</emphasis> section
+doesn't look like this, cut and paste the above and replace the
+existing Handler section for the DefaultIndexService.  The two key
+distinctions are in the <emphasis>providers</emphasis> value section that has the line
+<emphasis>org.globus.mds.usefulrp.rpprovider.ResourcePropertyProviderCollection</emphasis>
+and the <emphasis>rpProviderConfigFile</emphasis> value.  This latter
+value can be anything you want (relative to the system's
+<filename>$GLOBUS_LOCATION</filename>), but this document assumes the
+value that's specified above.
+</para></section>
+
+<section><title>Enable the Fortune Provider</title>
+
+<para>
+This step involves editing the
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/rp-provider-config.xml</filename>
+file that was specified in the above step.  It can be a different
+file, but you will have to adjust the value in the above step to
+change it here.  For now, we're assuming that it's left as the
+default.  If this file doesn't already exist, feel free to copy the
+sample file located at
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/gluece-rpprovider-sample-config.xml</filename>
+to
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/rp-provider-config.xml</filename>
+and start editing from there.
+</para>
+
+<para>
+To enable the fortune provider, you will need to add a config block
+that looks like this:
+
+<screen>
+&lt;ns1:resourcePropertyName xsi:type="xsd:QName"
+xmlns:mds="http://my.ns.domain/fortuneProvider"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;mds:FortuneRP&lt;/ns1:resourcePropertyName&gt;
+  &lt;ns1:resourcePropertyImpl xsi:type="xsd:string"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;org.globus.mds.usefulrp.rpprovider.SingleValieResourcePropertyProvider&lt;/ns1:resourcePropertyImpl&gt;
+&lt;ns1:resourcePropertyElementProducers
+xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+&lt;ns1:className xsi:type="xsd:string"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;org.globus.mds.usefulrp.rpprovider.producers.ExternalProcessElementProducer&lt;/ns1:className&gt;
+&lt;ns1:arguments xsi:type="xsd:string"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/MY/GLOBUS/LOCATION/libexec/fortune_script.sh&lt;/ns1:arguments&gt;
+&lt;ns1:arguments xsi:type="xsd:string"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;dummyArgument&lt;/ns1:arguments&gt;
+&lt;ns1:period xsi:type="xsd:int"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;300000&lt;/ns1:period&gt;
+&lt;/ns1:resourcePropertyElementProducers&gt;
+</screen>
+</para>
+
+<para>
+As you can see, there are a number of configurable parameters there
+such as the location of the fortune provider script, as well as the
+period at which it will be executed.  Feel free to edit those as
+necessary.
+</para>
+
+<para>
+At this point, the fortune provider has been enabled for use with the
+RPProvider framework!  As you can see, this framework simplifies much
+of the work of details of getting information into the IndexService.
+Simply restart the container and make sure there are no errors.  If
+errors are reported, please check over all of the above steps and make
+sure that they were completed successfully.  It's very easy to make
+unexpected typos!
+</para>
+</section>
+</section>
+
+<section id="usefulrp-howto-extelement-example"><title>An Example Query</title>
+
+<para>
+<screen>
+neillm@glob bin $ ./wsrf-query -s \
+https://127.0.0.1:8443/wsrf/services/DefaultIndexService \
+"//*[local-name()='fortuneInformation']"
+
+&lt;fortuneInformation xmlns=""&gt;
+&lt;fortuneData&gt;
+You will remember, Watson, how the dreadful business of the Abernetty
+family was first brought to my notice by the depth which the parsley
+had sunk into the butter upon a hot day. -- Sherlock Holmes
+&lt;/fortuneData&gt;
+&lt;fortuneDateAndTime&gt;
+Tue Oct 27 12:07:16 PST 2006
+&lt;/fortuneDateAndTime&gt;
+&lt;fortuneSourceURL&gt;
+http://anduin.eldar.org/cgi-bin/fortune.pl?text_format=yes
+&lt;/fortuneSourceURL&gt;
+&lt;/fortuneInformation&gt;
+</screen>
+</para>
+
+<para>
+This segment of the query output represents the fortune data we've
+just written and configured for use.  As you can see the
+<emphasis>fortuneInformation</emphasis> block was properly published into the Index
+Service since it's now been properly configured!
+</para>
+</section>
+
+<section id="usefulrp-howto-extelement--contact"><title>Contact the author</title>
+<para>Contact the author at <ulink url="mailto:neillm@mcs.anl.gov">neillm@mcs.anl.gov</ulink>.</para>
+</section>
