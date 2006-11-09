@@ -81,8 +81,7 @@ in our information packets this year.</p>
 </ul>
 <p><strong>Execution management and Monitoring</strong></p>
 <ul>
-  <li> <strong>GRAM: GT's Job Submission Service</strong> (still
-    waiting on this)</li>
+  <li> <strong><a href="GRAM.pdf">GRAM: GT's Job Submission Service</a></strong></li>
   <li> <strong><a href="MDS4.pdf">MDS4: The GT4 Monitoring and Discovery
       System </a></strong></li>
   <li> <strong><a href="VDS.pdf">The VDS Workflow Solution Kit</a></strong></li>
