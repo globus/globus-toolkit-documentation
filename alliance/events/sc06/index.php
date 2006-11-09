@@ -34,12 +34,30 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
   November 11-17, 2006</strong>.
 
 Our activities include [FIXME].</p>
-
-
+<h2>Workshops</h2>
+<p> <strong>November 12-13:</strong> <a href="http://www.cogkit.org/GCE06/"><strong>Second
+      International Grid Computing Environments and Portals Workshop 06</strong></a> </p>
+<blockquote>
+  <p>Chair:	Gregor von Laszewski <br>
+    Salon G<br>
+    Day 1: Sunday, 12-Nov-06, 8 am - 5 pm<br>
+    Day 2: 
+    Monday, 13-Nov-06,
+    8 am - 3 pm</p>
+</blockquote>
+<p> <strong>November 17:
+    <a href="http://workspace.globus.org/vtdc06">Workshop on Virtualization
+    Technologies in Distributed Computing</a></strong> </p>
+<blockquote>
+  <p>General Chair: Jose
+        Fortes <br>
+        Room 17<br>
+        Friday, 17-Nov-06, 8 am - 5 pm
+        <br>
+  </p>
+</blockquote>
 
 <h2>Information</h2>
-
-
 
 <p>We are distributing information to SC|06 attendees from our
 
