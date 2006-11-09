@@ -71,6 +71,7 @@ globus_out_of_date(); ?>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/globus_is_modular.html">Globus Is Modular!</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/gtadmin-platform.html">Platform Notes</a></dt>
