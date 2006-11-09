@@ -72,8 +72,7 @@ in our information packets this year.</p>
                   Springer-Verlag LNCS 3779, pp 2-13, 2005.</li>
           <li> <a href="dev_globus-incubator.pdf"><strong>dev.globus.org
           and the Globus&reg; Incubator Process</strong></a> </li>
-          <li> <strong>Globus&reg; Roadmap (still
-    waiting on this)</strong></li>
+          <li> <strong><a href="roadProcess.pdf">Globus&reg; Roadmap</a></strong></li>
           <li> <strong><a href="CDIGS.pdf">Community Driven
           Improvement of Globus Software (CDIGS)</a></strong></li>
           <li><strong><a href="cedps.pdf">CEDS</a></strong></li>
