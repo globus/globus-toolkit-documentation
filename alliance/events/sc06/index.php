@@ -14,6 +14,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 
+
 <div id="main">
 
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
@@ -29,7 +30,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 <p>Globus Alliance members [won't be hard to find - FIXME: replace this wording
-  from last year] at SC06 in Tampa, November 11-17, 2006.
+  from last year] at <a href="http://sc06.supercomputing.org/"><strong>SC|06</strong></a> in <strong>Tampa,
+  November 11-17, 2006</strong>.
 
 Our activities include [FIXME].</p>
 
@@ -39,7 +41,7 @@ Our activities include [FIXME].</p>
 
 
 
-<p>We are distributing information to <a href="http://sc06.supercomputing.org/">SC|06</a> attendees from our
+<p>We are distributing information to SC|06 attendees from our
 
 base in the Argonne National Laboratory booth. The following materials are included
 
