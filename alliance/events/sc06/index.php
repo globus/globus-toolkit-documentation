@@ -20,7 +20,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p>Notice: We are currently developing this page for this year's SC. This information is in flux but please check back later for more complete information. </p>
 </div>
 
-<a href="http://sc06.supercomputing.org/"><img align="right" border=0 height=78 width=150 src="logo_sc06.gif" alt="SC|06" \></a>
+<a href="http://sc06.supercomputing.org/"><img align="right" border="0" height="88" width="160" src="logo_sc06.gif" alt="SC|06" \></a>
 
 
 
@@ -35,34 +35,17 @@ Our activities include [FIXME].</p>
 
 
 
-<h2>Events</h2>
-
-
-
-<p>Alliance members are providing the following components of the SC|06 program.</p>
-
-
-
-<ul>
-
-<li>[FIXME] </li>
-
-</ul>
-
-
-
 <h2>Information</h2>
 
 
 
-<p>We are distributing information to SC|06 attendees from our
+<p>We are distributing information to <a href="http://sc06.supercomputing.org/">SC|06</a> attendees from our
 
 base in the Argonne National Laboratory booth. The following materials are included
 
 in our information packets this year.</p>
 
-<div id="main">
-  <p><a href="#"><strong>Schedule</strong></a></p>
+  <p><a href="schedule.pdf"><strong>Schedule</strong></a></p>
 		
         <p><strong>Overview</strong></p>
         <ul>
@@ -86,11 +69,11 @@ in our information packets this year.</p>
         </ul>
 <p><strong>Data Management</strong></p>
 <ul>
-  <li><strong>Globus&reg; Data Services </strong></li>
+  <li><strong><a href="Data.pdf">Globus&reg; Data Services</a> </strong></li>
   <li> <strong><a href="GridFTP.pdf">GridFTP</a></strong></li>
   <li> <strong><a href="rft.pdf">Reliable File Transfer (RFT) </a> </strong></li>
-  <li> <strong>Replica Location Service (RLS) </strong></li>
-  <li> <strong>Data Replication Service (DRS) </strong></li>
+  <li> <strong><a href="RLSsc2006handout.pdf">Replica Location Service (RLS)</a> </strong></li>
+  <li> <strong><a href="DRSsc2006handout.pdf">Data Replication Service (DRS) </a></strong></li>
   <li> <strong><a href="foster-DataGridTools.pdf">Data Grid Tools: Enabling Science
       on Big Distributed Data</a></strong></li>
 </ul>
@@ -102,7 +85,7 @@ in our information packets this year.</p>
       System </a></strong></li>
   <li> <strong><a href="VDS.pdf">The VDS Workflow Solution Kit</a></strong></li>
 </ul>
-</div>
+
 </div>
 
 
