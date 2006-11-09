@@ -265,8 +265,10 @@ credentials. Credential renewal follows the same steps as the initial delegation
 </section>
 
 <section id="delegation-developer-scenarios">
+  <title>Developer Usage Scenarios</title>
 
-  <title>Usage scenarios</title>
+  <section id="delegation-developer-scenarios-java">
+  <title>Java Usage Scenarios</title>
   <para>The <constant>org.globus.delegation.DelegationUtil</constant> provides an API
     that allows users to get the certificate chain resource property exposed by the Delegation Factory Service, delegate to a service, and to refresh and register listeners.</para>
 
@@ -375,6 +377,142 @@ credentials. Credential renewal follows the same steps as the initial delegation
         permitted.</para>
 </section>
   </section>
+
+</section>
+
+    <section id="delegation-developer-scenarios-c">
+        <title>C Usage Scenarios</title>
+        <para>
+          The <interface>globus_c_delegation_client_util</interface> package
+          provides functions to create new delegation resources and refresh the
+          credential owned by an existing delegation resource.
+        </para>
+
+        <section>
+            <title>Module Activation</title>
+
+            <para>
+                Activate the
+                <constant>GLOBUS_DELEGATION_CLIENT_UTIL_MODULE</constant>
+                before calling any functions in the
+                <interface>globus_c_delegation_client_util</interface> API.
+
+            </para>
+
+            <para>
+                This fragment demonstrates activating the module. If successful,
+                <varname>rc</varname> will be set to 0.
+
+                <programlisting><![CDATA[#include "globus_delegation_client_util.h"
+
+
+    int                                 rc;
+
+    rc = globus_module_activate(GLOBUS_DELEGATION_CLIENT_UTIL_MODULE);]]></programlisting>
+            </para>
+        </section>
+
+        <section>
+            <title>Create a Handle</title>
+
+            <para>
+                A <type>globus_delegation_client_util_handle_t</type> structure
+                manages the state needed to process the delegation or refresh
+                operations. A process may create multiple
+                <type>globus_delegation_client_util_handle_t</type> structures,
+                but each may be processing only one delegation or refresh
+                operation at a time.
+            </para>
+
+            <para>
+                The function
+                <function>globus_delegation_client_util_handle_init</function>
+                creates a new handle. This fragment demonstrates creating a 
+                new handle with default parameters.
+
+                <programlisting><![CDATA[    globus_delegation_client_util_handle_t   handle;
+    globus_soap_message_attr_t               message_attr = NULL;
+    globus_handler_chain_t                   handler_chain = NULL;
+    const globus_gsi_cred_handle_t           user_cred = NULL;
+    globus_delegation_client_util_attr_t     attr = NULL;
+    globus_result_t                          result;
+
+    /* Initialize attributes, user_cred, handler chain if needed */
+
+    result = globus_delegation_client_util_handle_init(
+        &handle,
+        attr,
+        handler_chain,
+        user_cred,
+        attr)]]></programlisting>
+              </para>
+        </section>
+
+        <section>
+            <title>Delegating a credential</title>
+
+            <para>
+                The <interface>globus_c_delegation_client_util</interface> API
+                provides four different functions for delegating credentials.
+                They differ in two facets. One is whether the function is
+                blocking or nonblocking; the other is whether the function 
+                contacts a resource based on a service URL or a complete
+                endpoint reference. Nonblocking functions have names which end
+                with <emphasis>_register</emphasis> and are passed a callback
+                function pointer which will be called when the delegation
+                completes. Functions which use Endpoint References have
+                <emphasis>_epr</emphasis> in their names.
+            </para>
+
+            <para>
+                This fragment demonstrates delegating a credential using the
+                blocking interface taking a service URL. If successfull, result
+                will equal <constant>GLOBUS_SUCCESS</constant> and
+                <varname>delegated_epr</varname> will point to the endpoint
+                reference naming the delegated credential.
+
+                <programlisting><![CDATA[globus_result_t                     result;
+    wsa_EndpointReferenceType *         delegated_epr = NULL;
+
+    result = globus_delegation_client_util_delegate(
+                handle,
+                "http://my.virtual.org:8443/wsrf/services/DelegationFactoryService",
+                GLOBUS_FALSE,
+                &delegated_epr);
+]]></programlisting>
+            </para>
+
+        </section>
+
+        <section>
+            <title>Refreshing a credential</title>
+
+            <para>
+                The <interface>globus_c_delegation_client_util</interface> API
+                provides four different functions for refreshing credentials.
+                They differ in two facets. One is whether the function is
+                blocking or nonblocking; the other is whether the function 
+                contacts a resource based on a service URL or a complete
+                endpoint reference. Nonblocking functions have names which end
+                with <emphasis>_register</emphasis> and are passed a callback
+                function pointer which will be called when the delegation
+                completes. Functions which use Endpoint References have
+                <emphasis>_epr</emphasis> in their names.
+            </para>
+
+            <para>
+                This fragment demonstrates refreshing a credential using the
+                blocking interface taking an endpoint reference. If
+                successfull, result will equal
+                <constant>GLOBUS_SUCCESS</constant>.
+
+                <programlisting><![CDATA[    result = globus_delegation_client_util_refresh_epr(
+        handle,
+        delegated_epr,
+        GLOBUS_FALSE);]]></programlisting>
+            </para>
+        </section>
+    </section>
 
 </section>
 
