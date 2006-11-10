@@ -16,6 +16,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 
+
 <div id="main">
 <!-- 
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
@@ -30,10 +31,11 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 
-<p>Meet and talk with Globus Alliance members at <a href="http://sc06.supercomputing.org/"><strong>SC|06</strong></a> in Tampa, November 13-17,
-  2006. Our activities include two workshops and continuous exhibits and presentations
-  at the Argonne National Laboratory booth (R1925) in the exhibitor hall. We
-  look forward to meeting you there!</p>
+<p>Meet and talk with Globus Alliance members at <a href="http://sc06.supercomputing.org/"><strong>SC|06</strong></a> in
+  Tampa, November 13-17, 2006 at the Tampa Convention Center. Our activities
+  include two workshops and continuous exhibits and presentations at the <strong>Argonne
+  National Laboratory booth (R1925)</strong> in the Exhibitor Hall. We look forward
+  to meeting you there!</p>
 <h2>Workshops</h2>
 <p> <strong>November 12-13:</strong> <a href="http://www.cogkit.org/GCE06/"><strong>Second
       International Grid Computing Environments and Portals Workshop 06</strong></a> </p>
