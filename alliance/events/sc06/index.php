@@ -15,12 +15,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 
-<div id="main">
 
+<div id="main">
+<!-- 
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
 <p>Notice: We are currently developing this page for this year's SC. This information is in flux but please check back later for more complete information. </p>
 </div>
-
+-->
 <a href="http://sc06.supercomputing.org/"><img align="right" border="0" height="88" width="160" src="logo_sc06.gif" alt="SC|06" \></a>
 
 
@@ -29,11 +30,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 
-<p>Globus Alliance members [won't be hard to find - FIXME: replace this wording
-  from last year] at <a href="http://sc06.supercomputing.org/"><strong>SC|06</strong></a> in <strong>Tampa,
-  November 11-17, 2006</strong>.
-
-Our activities include [FIXME].</p>
+<p>Meet and talk with Globus Alliance members at <a href="http://sc06.supercomputing.org/"><strong>SC|06</strong></a> in Tampa, November 13-17,
+  2006. Our activities include two workshops and continuous exhibits and presentations
+  at the Argonne National Laboratory booth (R1925) in the exhibitor hall. We
+  look forward to meeting you there!</p>
 <h2>Workshops</h2>
 <p> <strong>November 12-13:</strong> <a href="http://www.cogkit.org/GCE06/"><strong>Second
       International Grid Computing Environments and Portals Workshop 06</strong></a> </p>
