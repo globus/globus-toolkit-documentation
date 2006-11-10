@@ -39,7 +39,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
   </tr>
 </table>
 
-<h2>Workshops</h2>
+<h2 style="margin-top: 0; padding-top: 0; ">Workshops</h2>
 <p> <strong>November 12-13:</strong> <a href="http://www.cogkit.org/GCE06/"><strong>Second
       International Grid Computing Environments and Portals Workshop 06</strong></a> </p>
 <blockquote>
