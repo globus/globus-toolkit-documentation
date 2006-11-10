@@ -23,22 +23,20 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p>Notice: We are currently developing this page for this year's SC. This information is in flux but please check back later for more complete information. </p>
 </div>
 -->
-<a href="http://sc06.supercomputing.org/"><img align="right" border="0" height="88" width="160" src="logo_sc06.gif" alt="SC|06" \></a>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><h1>The Globus Alliance at SC|06</h1>
+      <p>Learn about Globus and grid computing, plus meet with Globus Alliance
+        members, at <a href="http://sc06.supercomputing.org/"><strong>SC|06</strong></a> in
+        Tampa, November 13-17, 2006. </p>
+      <p>Our activities include two workshops and continuous exhibits and presentations
+        at the <strong>Argonne National Laboratory booth (R1925)</strong> in
+        the Exhibit Hall of the Tampa Convention Center. </p>
+      <p>We look forward to meeting you there!</p></td>
+    <td valign="top"><a href="http://sc06.supercomputing.org/"><img align="right" border="0" height="88" width="160" src="logo_sc06.gif" alt="SC|06" \></a></td>
+  </tr>
+</table>
 
-
-
-<h1>The Globus Alliance at SC|06</h1>
-
-
-
-<p>Learn about Globus and grid computing, plus
-  meet with Globus Alliance members, at <a href="http://sc06.supercomputing.org/"><strong>SC|06</strong></a> in
-  Tampa, November 13-17, 2006. </p>
-<p>Our activities
-    include two workshops and continuous exhibits and presentations at the <strong>Argonne
-    National Laboratory booth (R1925)</strong> in the Exhibit Hall of the Tampa
-    Convention Center. </p>
-<p>We look forward to meeting you there!</p>
 <h2>Workshops</h2>
 <p> <strong>November 12-13:</strong> <a href="http://www.cogkit.org/GCE06/"><strong>Second
       International Grid Computing Environments and Portals Workshop 06</strong></a> </p>
