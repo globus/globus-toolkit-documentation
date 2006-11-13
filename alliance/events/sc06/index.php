@@ -72,7 +72,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p><strong><a href="http://sc06.supercomputing.org/schedule/event_detail.php?evid=5099">Workshop on Virtualization
   Technologies in Distributed Computing</a></strong> </p>
 <blockquote>
-  <p>        Chair: Kate Keahey
+  <p>        General Chair: Jose Fortes<br>
+    Program Chair:
+    Kate Keahey
         <br>
         Location: 17<br>
         Date: Friday, 17-Nov-06<br>
