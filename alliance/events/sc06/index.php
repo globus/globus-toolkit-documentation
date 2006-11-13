@@ -190,7 +190,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <h2><a name="handouts"></a>Handouts</h2>
 <p>We are distributing information to SC|06 attendees from our
 
-base in the Argonne National Laboratory booth. The following materials are included
+base in the Argonne National Laboratory booth <strong>(R1925)</strong>. The following
+materials are included
 
 in our information packets this year.</p>
 
