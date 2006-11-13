@@ -37,8 +37,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       <p>Learn about Globus and grid computing, plus meet with Globus Alliance
         members, at <a href="http://sc06.supercomputing.org/"><strong>SC|06</strong></a> in
         Tampa, November 13-17, 2006. </p>
-      <p>Our activities include various grid computing events   (see
-        below) as well as continuous exhibits and presentations at the <strong>Argonne
+      <p>We will be involved in  various grid computing
+        events (see below) as well as continuous exhibits and presentations at
+        the <strong>Argonne
         National Laboratory booth (R1925)</strong> in
         the Exhibit Hall of the Tampa Convention Center. </p>
       <p><strong>We also offer most of our handouts in PDF format (see <a href="#handouts">Handouts</a>). </strong></p>
@@ -59,7 +60,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     Time: 
     8 am - 3 pm</p>
 </blockquote>
-<p><a href="http://www.cogkit.org/GCE06/"><strong>Second
+<p><a href="http://sc06.supercomputing.org/schedule/event_detail.php?evid=5203"><strong>Second
         International Grid Computing Environments and Portals Workshop 06</strong></a> </p>
 <blockquote>
   <p>Chair:	Gregor von Laszewski <br>
