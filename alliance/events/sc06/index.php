@@ -81,9 +81,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <h2><a name="talks"></a>Talks (Booth <strong>R1925</strong>)</h2>
 <p><strong>Monday, November 13 </strong></p>
 <blockquote>
-  <p>  7:00 <em>Challenges of Managing Large Scale
-      Workflows in Distributed Environments</em>, Ewa Deelman <br>
-      7:30 <em>Earth System Grid</em>,
+  <p>      7:30 <em>Earth System Grid</em>,
     Ann Chervenak <br>
     8:00 <em>How
       to Contribute to Globus</em>, Jennifer Schopf <br>
@@ -124,9 +122,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       3:30 <em>Grid Workflow Tools</em>,
       Mike Wilde <br>
       4:00 <em>A Sneak Peak at What's New in GridFTP</em>, Raj Kettimuthu <br>
-      4:30 <em>Challenges
-      of Managing Large Scale Workflows in Distributed Environments</em>, Ewa Deelman
-      <br>
       5:00 <em>Virtual Workspace Appliances</em>, Tim Freeman and Kate Keahey </p>
 </blockquote>
 <p><strong>Thursday, November 16 </strong></p>
