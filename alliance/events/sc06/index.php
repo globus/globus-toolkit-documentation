@@ -10,6 +10,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 ?>
 
+
 <div id="main">
 <!-- 
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
@@ -129,6 +130,14 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p><strong>OGSA-HPCP/BES demo, Peter Lane:</strong></p>
 <blockquote>
   <p>Wed, 15-Nov, 2:00 at Argonne National Laboratory booth (R1925)</p>
+  </blockquote>
+<p><strong>Virtual Workspace Appliances</strong></p>
+<blockquote>
+  <p> At Argonne National Laboratory booth (R1925)<br>
+    Tue, 14-Nov, 3:30<br>
+    Wed, 15-Nov, 5:00
+    <br>
+    Thu, 16-Nov, 10:30</p>
 </blockquote>
 <h2><a name="tutorial"></a>Tutorial</h2>
 <p><a href="http://sc06.supercomputing.org/schedule/event_detail.php?evid=5065"><strong>Introduction
