@@ -1,3 +1,4 @@
+
 <div id="headerlinks">
 <br />
 <a href="http://www.globus.org/faq.php">FAQ</a><br />
@@ -47,14 +48,12 @@ maxlength="200" value="" />
   </table>
 
 </div>
-
+<div id="container">
 	<?php 
 include_once( "/mcs/www-unix.globus.org/include/outofdate.php" ); 
 globus_out_of_date(); ?>
 
-<table width="100%"  border="0" cellspacing="0" cellpadding="0">
-	<tr>
-		<td width="130px" class="leftColumn">
+
 		<div id="leftbg">
 		 <h2 class="smalltitle">Software Links</h2>
            <dl class="leftColumn">
@@ -144,8 +143,6 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/prewsgram/">Pre-WS GRAM (legacy)</a></dt>
 			</dl>
 	</div>
-</td>
 
-<td>
-<div id="content">
+<div id="docbookContent">
 <!-- content STARTS here -->
