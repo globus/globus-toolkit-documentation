@@ -71,7 +71,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     Monday, 13-Nov-06,
     8 am - 3 pm</p>
 </blockquote>
-<p><strong><a href="http://sc06.supercomputing.org/schedule/event_detail.php?evid=5099">Workshop on Virtualization
+<p><strong><a href="http://workspace.globus.org/vtdc06/">Workshop on Virtualization
   Technologies in Distributed Computing</a></strong> </p>
 <blockquote>
   <p>        General Chair: Jose Fortes<br>
