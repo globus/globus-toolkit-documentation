@@ -10,48 +10,25 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 ?>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <div id="main">
 <!-- 
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
 <p>Notice: We are currently developing this page for this year's SC. This information is in flux but please check back later for more complete information. </p>
 </div>
 -->
-<table width="100%"  border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td width="75%"><h1>The Globus Alliance at SC|06</h1>
-      <p>Learn about Globus and grid computing, plus meet with Globus Alliance
-        members, at <a href="http://sc06.supercomputing.org/"><strong>SC|06</strong></a> in
-        Tampa, November 13-17, 2006. </p>
-      <p>We will be involved in  various grid computing
-        events (see below) as well as continuous exhibits and presentations at
-        the <strong>Argonne
-        National Laboratory booth (R1925)</strong> in
-        the Exhibit Hall of the Tampa Convention Center. </p>
-      <p><strong>We also offer most of our handouts in PDF format (see <a href="#handouts">Handouts</a>). </strong></p>
-      <p>We look forward to meeting you there!</p></td>
-    <td width="19%" valign="top"><a href="http://sc06.supercomputing.org/"><br/>
-	<img align="center" border="0" height="88" width="160" src="logo_sc06.gif" alt="SC|06" \></a></td>
-	<td width="6%">&nbsp;</td>
-  </tr>
-</table>
+<a href="http://sc06.supercomputing.org/"><img align="right" border="0" height="88" width="160" src="logo_sc06.gif" alt="SC|06" \></a>
 
-<h2 style="padding-top: 0; "><a name="workshops"></a>Workshops</h2>
+<h1>The Globus Alliance at SC|06</h1>
+<p>Learn about Globus and grid computing, plus meet with Globus Alliance members,
+  at <a href="http://sc06.supercomputing.org/"><strong>SC|06</strong></a> in
+  Tampa, November 13-17, 2006. </p>
+<p>We will be involved in various grid computing events (see below) as well as
+  continuous exhibits and presentations at the <strong>Argonne National Laboratory
+  booth (R1925)</strong> in the Exhibit Hall of the Tampa Convention Center. </p>
+<p><strong>We also offer most of our handouts in PDF format (see <a href="#handouts">Handouts</a>). </strong></p>
+<p>We look forward to meeting you there!</p>
+
+<h2><a name="workshops"></a>Workshops</h2>
 <p><b class="white"><a href="http://sc06.supercomputing.org/schedule/event_detail.php?evid=5108">TeraGrid
       Institute Workshop</a></b> </p>
 <blockquote>
