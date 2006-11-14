@@ -25,6 +25,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 
 
+
 <div id="main">
 <!-- 
 <div id="solutions-sidebar" style="	width: 75%; color: #333333; font-size: 10px; line-height: 130%;	text-align: center;	margin: 10px auto; padding: 5px;">
@@ -239,6 +240,8 @@ in our information packets this year.</p>
       Performance Computing and Scientific Workflows</strong></a></li>
   <li> <a href="SC2006_ServMark.pdf"><strong>ServMark: A Distributed Grid and Services Testing Framework</strong></a></li>
   <li> <a href="Flyer_for_GridWay_ProtoProject.pdf"><strong>Gridway - Metascheduling Technologies for the Grid</strong></a></li>
+  <li><a href="AstroPortal_2-page-handout_v2.pdf"><strong>AstroPortal - Harnessing Grid Resources to Enable the Dynamic Analysis
+    of Large Astronomy Datasets</strong></a> </li>
 </ul>
 </div>
 
