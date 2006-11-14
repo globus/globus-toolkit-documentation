@@ -148,9 +148,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         Grid Resources to Enable the Dynamic Analysis of Large Astronomy Datasets</strong></a> (Ioan
         Raicu, Ian Foster, Alex Szalay)</li>
   <li><a href="http://sc06.supercomputing.org/schedule/event_detail.php?evid=5261"><strong>To
-      Bid or Not To Bid: A Hybrid Market-Based Resource Allocation Framework</strong></a> (Ioan
-      Raicu, Ian Foster, Alex Szalay, <span class="event_info_sm">Elizeu Santos-Neto,
-      Kate Keahey</span>)</li>
+      Bid or Not To Bid: A Hybrid Market-Based Resource Allocation Framework</strong></a> (<span class="event_info_sm">Elizeu
+      Santos-Neto and Kate Keahey</span>)</li>
   <li><a href="http://sc06.supercomputing.org/schedule/event_detail.php?evid=5242"><strong>Designing
       a Collaborative Cyberinfrastructure for Event-driven Coastal Modeling</strong></a> (Philip
       Bogden, Gabrielle Allen, Gerry Creager, Sara Graves, Rick Luettich, Lavanya
