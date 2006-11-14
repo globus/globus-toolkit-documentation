@@ -1,9 +1,10 @@
         	<!-- content ENDS here -->
 			</div>
 			<p>&nbsp;</p>
-		</div>
-      <!--ending div of container-->
+
     <div class="clearing">&nbsp;</div>
+			<!-- container ENDS here-->
+		</div>
 <div id="footer">
   <hr class="first"/>
 
