@@ -104,6 +104,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       3:30 <em>Grid Workflow Tools</em>,
       Mike Wilde <br>
       4:00 <em>A Sneak Peak at What's New in GridFTP</em>, Raj Kettimuthu <br>
+      4:30 <em>Using Globus Tools for Medical Data</em>, Riddhi Shah      <br>
       5:00 <em>Virtual Workspace Appliances</em>, Tim Freeman and Kate Keahey </p>
 </blockquote>
 <p><strong>Thursday, November 16 </strong></p>
