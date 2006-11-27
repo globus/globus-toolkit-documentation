@@ -1,0 +1,77 @@
+<?php
+
+$title = "Modifying the Globus Toolkit Source Code";
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?>
+
+  <h1 class="first"><?php echo $title; ?></h1>
+  <p>The following instructions are designed to help you make changes
+to the Globus Toolkit source code.  These changes might be for personal
+use, or may be designed for contribution back to the toolkit.</p>
+  <p>First, let's assume you have identified a file you want to change.
+The first step is figuring out where the source code for that file is
+stored in the installer.</p>
+  <p>Let's say you want to modify <code>bin/globus-url-copy</code>.  First,
+install the toolkit.  Then run:
+<pre>
+$ $GLOBUS_LOCATION/sbin/gpt-query -file bin/globus-url-copy<br>
+/bin/globus-url-copy is owned by globus_gass_copy-gcc32-pgm
+</pre>
+</p>
+<p>We have learned two pieces of information - the file we want to modify
+is in a package called "globus_gass_copy", and it is built using the
+gcc32 flavor.  With this information, we can proceed to find the source
+code in the installer and rebuild the package.
+</p>
+
+<h2>Option 1 - Working from a source installer</h2>
+<p>In the installer directory we can find out where the globus_gass_copy
+package is located:
+<pre>
+$ grep -A1 globus_gass_copy: Makefile
+globus_gass_copy: gpt globus_core globus_common globus_io globus_gass_transfer globus_ftp_control globus_ftp_client
+        ${GPT_LOCATION}/sbin/gpt-build  ${BUILD_OPTS} -srcdir=source-trees/gass/copy/source ${FLAVOR}
+</pre>
+</p>
+<p>The "-A1" option is specific to GNU grep - it prints two lines, both the matching line and one line following.  If you do not have GNU grep, you might be able to run "<code>awk '/globus_gass_copy:/ {print; getline; print;}' &lt; Makefile</code>" instead.</p>
+<p>We have learned that the source code for globus_gass_copy is stored in the directory source-trees/gass/copy/source in the directory tree.  Additionally, if it were important, we also have the list of packages that globus_gass_copy depends on.
+</p>
+<h3>Modifying the code in an installer</h3>
+<p>Now we can edit the file <code>source-trees/gass/copy/source/globus_url_copy.c</code> and make any changes we want.  When we are done patching the file, we can rebuild the package with the following commands from the <strong>top level
+</strong> of the installer:
+<pre>
+$ ./configure --prefix=$GLOBUS_LOCATION --with-buildopts="-force" --with-flavor=gcc32
+checking build system type... ...
+...
+config.status: creating Makefile
+
+$ make globus_gass_copy-only
+... gpt-build -force -srcdir=source-trees/gass/copy/source gcc32
+gpt-build ====&gt; Changing to /Users/bacon/gt4.1.0-all-source-installer/BUILD/globus_core-4.26/
+gpt-build ====&gt; BUILDING FLAVOR gcc32
+gpt-build ====&gt; Changing to /Users/bacon/gt4.1.0-all-source-installer/BUILD
+gpt-build ====&gt; REMOVING empty package globus_core-gcc32-pgm_static
+gpt-build ====&gt; REMOVING empty package globus_core-noflavor-doc
+gpt-build ====&gt; CHECKING BUILD DEPENDENCIES FOR globus_gass_copy
+gpt-build ====&gt; Changing to /Users/bacon/gt4.1.0-all-source-installer/source-trees/gass/copy/source
+gpt-build ====&gt; BUILDING FLAVOR gcc32
+...
+</pre>
+</p>
+<p>If the flavor you found ended in "pthr", only enter the prefix of the flavor into the <code>--with-flavor</code> option.  For instance, if the package had been installed in a "vendorcc64dbgpthr" flavor, you would specify <code>--with-flavor=vendorcc64dbg</code>.  Then you would build "package_name-thr-only" to get the threaded package built.
+</p>
+<h2>Option 2 - Reading the source code online</h2>
+<p>
+If you're just interested in the file and its history, you can find the
+source code along with revision history at <a href=http://viewcvs.globus.org/viewcvs.cgi/gass/copy/source/globus_url_copy.c>http://viewcvs.globus.org/viewcvs.cgi/gass/copy/source/globus_url_copy.c</a>.  In other words, just remove the "source-trees" from the installer subdirectory location and append it to <code>http://viewcvs.globus.org/viewcvs.cgi</code>.  The web page will let you pick a particular CVS branch or tag to get a specific version of the file.  See <a href="how_we_use_cvs.html">How we use CVS</a> for more information about how we use branches and tags.
+</p>
+<h2>Option 3 - Working directly from CVS</h2>
+<p>
+Ipso facto, sic transit gloria mundi.
+</p>
+
+<h2>Submitting modification</h2>
+<p>If you make a change that you think should be part of the Toolkit,
+you may submit it back in a <a href=http://bugzilla.globus.org/bugzilla>Bugzilla</a> bug.  Make sure you have followed the <a href=coding_guidelines.html>Coding Guidelines</a> if you 
+
+<?php include("/mcs/www-unix.globus.org/include/globus_footer.inc"); ?>
