@@ -98,7 +98,7 @@ submitting bibliographic citations</a>.</b></p>
 
       <li><a href="#Applications">Applications</a></li>
 
-      <li><font size="2"><a href="#Other Globus-Related Research">Other Globus-related research</a></li>
+      <li><a href="#Other Globus-Related Research">Other Globus-related research</a></li>
 
     </ol>
 
@@ -422,12 +422,17 @@ submitting bibliographic citations</a>.</b></p>
       <h2><a name="Data Grid Components">Data Grid Components (GridFTP, DAI, Replica,
 
       Virtual Data System, etc.)</a></h2>
+	  
+	  <p><font size="2"><strong><a name="foam">Automating Climate Science: Large Ensemble Simulations on the TeraGrid with the GriPhyN Virtual Data System</a></strong>.&nbsp;
 
+    V. Nefedova, R. Jacob, I. Foster, Z. Liu, Y. Liu, E. Deelman, G Mehta, M. Su, K. Vahi. 
 
+    <em>Presented at the eScience Conference in Amsterdam</em>, December, 2006<br>
 
-    
+    [<a href="#foam">Citation</a>, 
 
-    <p><font size="2"><strong><a name="chervenakGrid2005">Wide Area Data Replication 
+    <a href="papers/Foam-submit.pdf">PDF</a>]</font></p>
+      <p><font size="2"><strong><a name="chervenakGrid2005">Wide Area Data Replication 
 
        for Scientific Collaborations</a></strong>.
 
@@ -2309,12 +2314,16 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
     
 
 	<h2><a name="Applications">Applications</a></h2>
+	      <p><font size="2"><strong><a name="foam">Automating Climate Science: Large Ensemble Simulations on the TeraGrid with the GriPhyN Virtual Data System</a></strong>.&nbsp;
 
-      
+    V. Nefedova, R. Jacob, I. Foster, Z. Liu, Y. Liu, E. Deelman, G Mehta, M. Su, K. Vahi. 
 
-      
+    <em>Presented at the eScience Conference in Amsterdam</em>, December, 2006<br>
 
-      <p><font SIZE="2"><a name="esgProcIEEE2005"><b>The Earth System Grid: Supporting the Next 
+    [<a href="#foam">Citation</a>, 
+
+    <a href="papers/Foam-submit.pdf">PDF</a>]</font></p>
+	<p><font SIZE="2"><a name="esgProcIEEE2005"><b>The Earth System Grid: Supporting the Next 
 
          Generation of Climate Modeling Research</b>.</a> 
 
