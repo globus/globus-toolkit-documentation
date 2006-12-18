@@ -27,9 +27,7 @@
 <table class="navbartable" width="100%">
 <tr>
 <th>
-	<?php 
-include_once( "/mcs/www-unix.globus.org/toolkit/breadcrumb.php" ); 
-globus_current_location(); ?>
+
 </th>
 
 <td>
