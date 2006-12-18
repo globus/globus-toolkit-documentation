@@ -114,9 +114,9 @@
                 
                 <!-- add elements to the HEAD tag -->
                 <xsl:template name="user.head.content">
-                                <link href="/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
-                                <link rel="stylesheet" type="text/css" href="/toolkit/css/print.css" media="print" />
-                                <link rel="alternate" title="Globus Toolkit RSS" href="/toolkit/rss/downloadNews/downloadNews.xml" type="application/rss+xml"/>
+                                <link href="http://www.globus.org//toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
+                                <link rel="stylesheet" type="text/css" href="http://www.globus.org//toolkit/css/print.css" media="print" />
+                                <link rel="alternate" title="Globus Toolkit RSS" href="http://www.globus.org//toolkit/rss/downloadNews/downloadNews.xml" type="application/rss+xml"/>
                                 <script>
                                                 <xsl:comment>
                                                 function GlobusSubmit()
