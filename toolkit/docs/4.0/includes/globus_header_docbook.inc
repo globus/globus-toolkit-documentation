@@ -28,7 +28,7 @@
 <tr>
 <th>
 	<?php 
-include_once( "http://www.globus.org/toolkit/breadcrumb.php" ); 
+include_once( "/mcs/www-unix.globus.org/toolkit/breadcrumb.php" ); 
 globus_current_location(); ?>
 </th>
 
