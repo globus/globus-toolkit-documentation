@@ -20,7 +20,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <p>&nbsp; </p>
 </div> -->
 
-<a href="http://www.gridworld.com/"><img align="right" border=0 height=162 width=552 src="Grid_enterbanner.gif" alt="GridWorld 2006" \></a>
+<a href="http://www.gridworld.com/"><img align="right" border=0 height=162 width=552 src="Grid_enterbanner.gif" alt="GridWorld 2006" /></a>
 
 
 
