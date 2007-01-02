@@ -83,7 +83,7 @@ globus_out_of_date(); ?>
 			<dt><a href="/toolkit/docs/development/4.1.0/toolkit-bestpractices.html">Best Practices</a></dt>
 				<dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
 				<dt><a href="/api/">API docs</a></dt>
-				<dt><a href="/toolkit/docs/development/4.1.0/toolkit-public-interface">Public Interfaces</a></dt>
+				<dt><a href="/toolkit/docs/development/4.1.0/toolkit-public-interface.html">Public Interfaces</a></dt>
 				<dt><a href="/toolkit/docs/development/4.1.0/toolkit-rp.html">Resource Properties</a></dt>
 				<dt><a href="/toolkit/docs/development/4.1.0/toolkit-samples.html">Samples</a></dt>
 				<dt><a href="/toolkit/docs/development/4.1.0/glossary.html">Glossary</a></dt>
