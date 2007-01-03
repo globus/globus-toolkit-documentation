@@ -49,11 +49,47 @@ scoped as the name suggests.</para>
     <para>The authorization engine is invoked as part of a handler chain, immediately after authentication of the invocation (<function>java:org.globus.wsrf.impl.security.authorization.AuthorizationHandler</function>). If no  security mechanism is used for an operation,  authorization is not done for that operation.  The toolkit contains a set of PDPs that implement some authorization schemes or callout to some authorization services.  Custom PDPs and PIPs can be written and plugged in as a part of the chain.</para>
     <para>Any PDP has to implement the interface <function>org.globus.wsrf.security.authorization.PDP</function> and contain the logic to return a permit or deny based on information such as the subject DN, the service being accessed and the operation being performed. To manage configuration information, each PDP can be bootstrapped with an object implementing the <function>org.globus.wsrf.security.authorization.ChainConfig</function> interface. The interface has get and set methods which can be used to retrieve and set scoped parameters for the PDP. </para>
     <para>PIPs have to implement the interface <function>org.globus.wsrf.security.authorization.PIP</function> with the functionality to collect attributes from the invocation context that are relevant to making the authorization decision.</para>
-    <para>A chain of PDPs and PIPs, with relevant configuration information, can be configured at resource, service or container level. If no chain is specified at resource level, service level is used; if nothing is specified at service level, the container level configuration is used. The engine evaluates each PDP and PIP in the order specified and a deny-override mechanism is used to render a decision. If one PDP returns a deny, the decision rendered is deny.</para>
+
 
 <!-- FIXME: Write about attributed based authz, finish up document -->
     <para>A draft design document can be found at <ulink url="http://www-unix.mcs.anl.gov/~ranantha/authzFrameworkVer7.doc">GT Authorization Framework</ulink></para>
+    <section>
+     <title> Authorization Policy Configuration </title>
+
+    <para>A chain of PDPs and PIPs, with relevant configuration information, can be configured at resource, service or container level. Additionally an administrative poloiy can be configured at the container level. The following describes the precedence in which configured policy is used: </para>
+
+<para>
+<orderedlist>
+<listitem> <para>If container level administrative policy is specified, it is evaluated. 
+  <orderedlist>
+    <listitem> <para> If (1) returns a deny, the request is denied. </para></listitem>
+    <listitem> <para>If (1) returns a permit, step (2) is done.</para></listitem>
+  </orderedlist>
+  </para></listitem>
+  <listitem> <para>If resource level policy is specified, it is evaluated.
+  <orderedlist>
+    <listitem> <para> If (2) returns a deny, the request is denied. </para></listitem>
+    <listitem> <para>If (2) returns a permit, the request is permitted.</para></listitem>
+  </orderedlist>
+  </para></listitem>
+  <listitem><para> If (2) is not specified and service level policy is specified, it is evaluated.
+  <orderedlist>
+    <listitem> <para> If (3) returns a deny, the request is denied. </para></listitem>
+    <listitem> <para>If (3) returns a permit, the request is permitted.</para></listitem>
+  </orderedlist>
+  </para></listitem>
+  <listitem><para> If (3) is not specified and container level policy configuration is specified, it is evalauted.
+    <orderedlist>
+    <listitem> <para> If (4) returns a deny, the request is denied. </para></listitem>
+    <listitem> <para>If (4) returns a permit, the request is permitted.</para></listitem>
+  </orderedlist>
+ </para></listitem>
+ </orderedlist>
+</para>
+  
+    </section>
   </section>
+
   <section>
     <title>Client-side authorization</title>
     <para>Client side authorization is done as a part of the authentication handler. GSI Secure Message authentication does client-side authorization only after the operation is completed. The other two authentication schemes supported, GSI Secure Conversation and GSI Transport, authorize the server prior to the operation. The toolkit supports self, gridmap, host and identity authorization on the client side. The authorization to be used is set programmatically on the Stub and the handler enforces it.</para>
