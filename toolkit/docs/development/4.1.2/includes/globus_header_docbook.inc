@@ -88,7 +88,6 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-rp.html">Resource Properties</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-samples.html">Samples</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/si01.html">Index</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
 			</dl>
 		
