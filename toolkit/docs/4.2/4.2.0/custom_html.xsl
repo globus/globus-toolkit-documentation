@@ -19,12 +19,12 @@
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
                 <xsl:param name="admon.graphics">1</xsl:param>
                 
-                <!-- Set path to admonition graphics  -->
+                <!-- Set path to admonition graphics
                 <xsl:param name="admon.graphics.path">/docbook-images/</xsl:param>
-               
+                -->
                 
-                <!-- Set path to docbook graphics (testing)
-                                <xsl:param name="admon.graphics.path">file:///Z:/testing/alliance/docbook-images/</xsl:param> -->
+                <!-- Set path to docbook graphics (testing) -->
+                                <xsl:param name="admon.graphics.path">file:///Z:/testing/alliance/docbook-images/</xsl:param>
                 
                 <!-- Again, if 1 above, what is the filename extension for admon graphics? -->
                 <xsl:param name="admon.graphics.extension" select="'.gif'"/>
@@ -112,9 +112,27 @@
                 <xsl:param name="chunker.output.doctype-system" select="'http://www.w3.org/TR/html4/loose.dtd'"/>
                 
                 <!-- add elements to the HEAD tag -->
+                <xsl:template name="conditionalComment">
+                                <xsl:param name="qualifier" select="'IE 7'"/>
+                                <xsl:param name="contentRTF" select="''" />
+                                <xsl:comment>[if <xsl:value-of select="$qualifier"/>]<![CDATA[>]]>
+                                                <xsl:copy-of select="$contentRTF" />
+                                                <![CDATA[<![endif]]]></xsl:comment>
+                </xsl:template>
+                
                 <xsl:template name="user.head.content">
                                 <link href="/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
                                 <link rel="stylesheet" type="text/css" href="/toolkit/css/print.css" media="print" />
+
+                                <xsl:comment> calling in special style sheet if detected browser is IE 7 </xsl:comment>
+
+                                <xsl:call-template name="conditionalComment">
+                                                <xsl:with-param name="qualifier" select="'IE 7'"/>
+                                                <xsl:with-param name="contentRTF">
+                                                                &lt;link rel="stylesheet" type="text/css" href="/toolkit/css/ie7.css" /&gt;
+                                                </xsl:with-param>
+                                </xsl:call-template>                                
+
                                 <link rel="alternate" title="Globus Toolkit RSS" href="/toolkit/rss/downloadNews/downloadNews.xml" type="application/rss+xml"/>
                                 <script>
                                                 <xsl:comment>
