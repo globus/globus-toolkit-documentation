@@ -1,0 +1,468 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<title>GT &shortversion;: Nagios Information Provider Reference</title>
+<titleabbrev>Reference Guide</titleabbrev>
+
+<section id="nagios-overview" xreflabel="Overview of the Nagios Info Provider"><title>Overview</title> 
+    &WS_MDS_Nagios_Info_Overview_Brief_Frag;
+    
+    <para>
+    The Nagios MDS4 Information Provider gets its information directly
+    from the Nagios v. 2.x status.dat file. (Support remains for the v
+    1.3 status.log file in the form of the alternate script
+    globus-mds-cluster-nagios1.3) It includes some custom plugins that
+    return the data in a format that the information provider can use.
+    </para>
+</section>
+
+<section id="nagios-prereq" xreflabel="Prerequisites of the Nagios Info Provider"><title>Prerequisites</title> 
+    
+    <!-- Add prerequisites - this will be output as a numbered list. -->
+    <orderedlist>
+    <listitem><para>A working Perl installation</para></listitem>
+    <listitem><para>A working Nagios installation</para></listitem>
+    </orderedlist>
+    
+</section>
+
+<section id="nagios-config" xreflabel="Configuring the Nagios Info Provider"><title>Configuring</title>
+
+    <para>The following configuration is required for this information provider</para>
+
+    <!-- Add configuration instructions - this will be output as a numbered list. -->
+    <orderedlist>
+        <listitem>
+        <para>Initial setup for Nagios MDS4 Information Provider:</para>
+        <para>
+        The NagiosMDS4 Information Provider requires access to the
+        status file of a Nagios installation that has been set up to
+        provide the necessary information. Thus, if the MDS4
+        deployment is not on the same machine as the Nagios
+        deployment, the Nagios status.dat file will have to be
+        exported in some manner to the machine with the MDS4
+        deployment. This could be accomplished via NFS or rysnc, or a
+        method of your choice.
+
+        The location of the status.dat file on the MDS4 deployment
+        machine must be edited at the top of
+        $GLOBUS_LOCATION/libexec/globus-mds-cluster-nagios.
+        </para></listitem>
+
+        <listitem>
+        <para>Nagios Side Setup:</para>
+        <para>
+        The Nagios services.cfg will need service stanzas for each
+        host for each of the MDS plugins. The service_description
+        fields by default are MDS_OS, MDS_FS, MDS_PROC and MDS_MEM. If
+        there already exist tests that output the information needed,
+        in the format needed, these values can be edited at the top of
+        the globus-mds-cluster-nagios file.
+
+        An example service stanza:
+<screen>
+define service{
+        use                             generic-service
+
+        host_name                       tg-c001.uc.teragrid.org
+        service_description             check MDS_OS
+        is_volatile                     0
+        check_period                    24x7
+        max_check_attempts              3
+        normal_check_interval           3
+        retry_check_interval            5
+        contact_groups                  teragrid-admins, nagios-mail
+        notification_interval           0
+        notification_period             24x7
+        notification_options            w,u,c,r
+        check_command                   check_nrpe
+        }
+</screen>
+        There are several methods for Nagios to get information from
+        remote hosts. NRPE, NSCA and SNMP are three of them. The
+        Nagios MDS4 Information provider does not care how the
+        information is obtained, as long as there is a correct service
+        in services.cfg for each of the four types for each host.
+
+        There are sample plugins for the data discovery found in
+        $GLOBUS_LOCATION/share/nagios-plugins/ check_os.mds,
+        check_fs.mds, check_proc.mds and check_mem.mds. These are
+        extremely simple shell script script plugins--their important
+        feature over other similar nagios plugins is that they output
+        real information on stdout that is then used by the
+        information provider.
+        </para></listitem>
+
+        <listitem>
+        <para>The Sample Nagios MDS Information Provider Plugins:</para>
+        <para>
+        The plugins included in the Nagios MDS Information provider
+        package (check_os.mds, check_fs.mds, check_proc.mds, and
+        check_mem.mds found in $GLOBUS_LOCATION/share/nagios-plugins/
+        ). These, or functionally equivalent plugins will need to be
+        installed on each host. As included in the Nagios MDS4
+        Information Provider package, these plugins expect a symlink
+        to whatami to be present in their installed directory. They
+        can be edited to point to the actual install of whatami.
+
+        The major difference between these plugins and other similar
+        plugins that may already exist in your Nagios installation is
+        that they provide specific information used by the Nagios MDS4
+        Information provider. This information is written to standard
+        output when the plugin returns success. Thus, any plugin that
+        returns the same information in the same format could be used
+        instead.
+<screen>
+Plugin Information:
+
+MDS_OS
+Takes no arguments, and prints the name of the operating system as
+determined by whatami -r
+
+MDS_FS
+Takes an argument of the mount point of the filesystem to be checked.
+Prints, in whitespace delimited columns, the name of the device 
+associated with the mount point, the number of 1024-blocks on disk,
+the number of blocks used, the number of blocks available, the percent
+capacity, and the mount point.  In other words, the output of df -Pk
+for that mount point.
+
+MDS_PROC
+Expects the number of CPUs for the host to be passed in as its first
+argument.  If this number does not match the number found in
+/proc/cpuinfo, the script will return with an error.  If it does
+match,
+the script will print to standard out, the number of CPUs, the 
+architecture (as determined by whatami -m) and the clock speed.
+
+MDS_MEM
+Takes no arguments, and outputs the total physical memory for your
+machine (as determined by free -m).
+</screen>
+        </para></listitem>
+
+        <listitem>
+        <para>MDS Side Setup:</para>
+        <para>
+         Unfortunately, the mds-gluerp-configure does not produce a
+         configuration file for a nagios information
+         provider. However, you can run mds-gluerp-configure as for
+         ganglia below, and in the
+         resourcePropertyElementProducerConfig section, replace the
+         ClassName and arguments elements with the following (edited
+         to have your actual path to globus location).
+
+<screen>
+&lt;ns1:resourcePropertyElementProducers xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+&lt;ns1:className xsi:type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+org.globus.mds.usefulrp.rpprovider.producers.ExternalProcessElementProducer&lt;/ns1:className&gt;
+&lt;ns1:arguments xsi:type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+/PATH/TO/GLOBUS/LOCATION/HERE/libexec/globus-mds-cluster-nagios
+&lt;/s1:arguments&gt;
+</screen>
+        <para>
+        Ganglia can be configured as follows though it's only used
+        here as a reference.  Be sure to edit it as mentioned above
+        for a working Nagios installation.
+<screen>
+On resources running Ganglia:
+
+   1. Change working dir to $GL/etc/gram-service-PBS (or -LSF, or
+   -Condor, depending what you installed)
+   2. Run "mds-gluerp-configure pbs ganglia"
+
+      If you're not using PBS, look for
+      $GLOBUS_LOCATION/globus-scheduler-provider-*. Use the value that
+      appears there. You should see the following output:
+
+      Successfuly wrote configuration output file to:
+      gluerp-config.xml
+
+   3. If Ganglia is running on the same (local) host as the container,
+   and on the default port, then you can stop here. Otherwise, you
+   will need to edit the gluerp-config.xml file to change the host
+   and/or port. Open the file and look for the following lines:
+
+&lt;ns1:className xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.glue.GangliaElementProducer
+  &lt;/ns1:className&gt;
+  &lt;ns1:arguments xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xsi:type="xsd:string"&gt;localhost&lt;/ns1:arguments&gt;
+    &lt;ns1:arguments xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xsi:type="xsd:string"&gt;8649&lt;/ns1:arguments&gt; 
+</screen>
+
+      The last two "ns1:arguments" lines are the host and port
+      parameters, respectively. Change them to match your Ganglia
+      installation host and port.
+        </para>
+
+        </para></listitem>
+
+
+        <listitem>
+        <para>Configure cluster/sub-cluster provider:</para>
+        <para>
+        Many of the Teragrid clusters are divided into sub-clusters
+        based on some kind of characteristic, like processor speed,
+        available memory, etc. This information will be aggregated and
+        made visible to users on the basis of your site's cluster
+        configuration file.
+
+        Copy
+        $GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/cluster-sample-config.xml
+        to
+        $GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/cluster_config.xml
+        and edit it.
+
+        This file is what organizes all of the site specific hosts
+        returned into SubClusters. These SubClusters are groupings of
+        hosts that share enough to be logically grouped in some
+        manner. The groupings are arbitrary and you can have as many
+        SubClusters as desired. Please consult the sample file to see
+        an example of how each site needs to configure their cluster
+        configurations.
+        </para></listitem>
+
+
+        <listitem>
+        <para>Configure resource manager provider:</para>
+        <para>
+
+        Please make the following edits to
+        $GL/etc/globus_wsrf_mds_usefulrp/scheduler-info.xml:
+
+<screen>
+        1. Set LRMSType to "PBS-Torque", "PBS-OpenPBS", "PBS-PBSPro",
+           "SGE", "Condor", "LoadLeveler", or "LSF"
+        2. Set LRMSVersion to the correct version
+        3. Set HostName to the URL of your GRAM service (like
+           "https://tg-grid1.uc.teragrid.org:8443/wsrf/services/ManagedExecutableJobService")
+        4. Set GatekeeperPort to the port running a GT4.0.1 gatekeeper
+           [will be the alternate number until the service goes live]
+        5. Set TotalCPUs to the number of CPUs in your cluster
+</screen>
+
+       If you do this, you will need to add a transformation in the
+       SchedulerInfoElementProducer section of the gluerp-config.xml
+       file. That section is line 15-26, and the addition should be
+       added after the GLUESchedulerElementTransform element. The
+       transformation has the syntax:
+
+<screen>
+&lt;ns1:transformArguments xsi:type="xsd:string"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/PATH/TO/GL/etc/globus_wsrf_mds_usefulrp/scheduler-info.xml&lt;/ns1:transformArguments&gt;
+</screen>
+
+       Here is an example of scheduler-info.xml files, though they
+       contain fake version data - it's just to show what they look
+       like syntactically:
+
+<screen>
+&lt;!-- NCSA example: useful for overriding the Info fields only --&gt;
+
+&lt;ce:ComputingElementType xmlns:ce="http://mds.globus.org/glue/ce/1.1"&gt;
+
+ &lt;ce:Info ce:LRMSType="Fake-PBS" ce:LRMSVersion="FakeVersion"
+       ce:GRAMVersion="4.0.1"
+       ce:HostName="http://tg-login1.ncsa.teragrid.org:8888/wsrf/services/ManagedJobFactoryService"
+       ce:GatekeeperPort="2119" ce:TotalCPUs="12800" /&gt;
+
+&lt;/ce:ComputingElementType&gt;
+</screen>
+
+       And here's an example gluerp-config.xml files that have the
+       scheduler-info.xml transformation in the
+       GLUESchedulerElementTransform:
+
+       * NCSA example
+<screen>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+
+&lt;!-- NCSA example: Configuration file for the MDS GLUECE resource property provider --&gt;
+&lt;!-- --&gt;
+
+&lt;ns1:ResourcePropertyProviderConfigArray
+xmlns:ns1="http://mds.globus.org/rpprovider/2005/08"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:type="ns1:ResourcePropertyProviderConfigArray"&gt;
+
+  &lt;ns1:configArray xsi:type="ns1:resourcePropertyProviderConfig"&gt;
+
+    &lt;ns1:resourcePropertyName
+    xmlns:mds="http://mds.globus.org/glue/ce/1.1"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:QName"&gt;mds:GLUECE&lt;/ns1:resourcePropertyName&gt;
+
+    &lt;ns1:resourcePropertyImpl
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.GLUEResourceProperty&lt;/ns1:resourcePropertyImpl&gt;
+
+    &lt;ns1:resourcePropertyElementProducers
+    xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+
+      &lt;ns1:className xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.producers.SchedulerInfoElementProducer&lt;/ns1:className&gt;
+
+      &lt;ns1:arguments xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xsi:type="xsd:string"&gt;libexec/globus-scheduler-provider-pbs&lt;/ns1:arguments&gt;
+
+      &lt;ns1:transformClass xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.transforms.GLUESchedulerElementTransform&lt;/ns1:transformClass&gt;
+
+&lt;ns1:transformArguments xsi:type="xsd:string"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/scratch/cbacon/INSTALL/etc/globus_wsrf_mds_usefulrp/scheduler-info.xml&lt;/ns1:transformArguments&gt;
+
+      &lt;ns1:period xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:int"&gt;300&lt;/ns1:period&gt;
+
+    &lt;/ns1:resourcePropertyElementProducers&gt;
+
+    &lt;ns1:resourcePropertyElementProducers xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+
+      &lt;ns1:className xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.producers.URLElementProducer&lt;/ns1:className&gt;
+
+      &lt;ns1:arguments xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xsi:type="xsd:string"&gt;http://tg-clumon.ncsa.teragrid.org/glue.php&lt;/ns1:arguments&gt;
+
+      &lt;ns1:transformClass xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.transforms.GLUEComputeElementTransform&lt;/ns1:transformClass&gt;
+
+      &lt;ns1:transformArguments xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xsi:type="xsd:string"&gt;./etc/globus_wsrf_mds_usefulrp/cluster_config.xml&lt;/ns1:transformArguments&gt;
+
+&lt;ns1:transformArguments xsi:type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;.ncsa.teragrid.org&lt;/ns1:transformArguments&gt;
+      &lt;ns1:period xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:int"&gt;300&lt;/ns1:period&gt;
+    &lt;/ns1:resourcePropertyElementProducers&gt;
+  &lt;/ns1:configArray&gt;
+&lt;/ns1:ResourcePropertyProviderConfigArray&gt;
+</screen>
+       </para></listitem>
+
+    </orderedlist>
+    
+</section>
+
+<section id="nagios-rps" xreflabel="Resource Properties exposed by the Nagios Info Provider"><title>Resource Properties</title> 
+    
+    <!-- list resource properties the provider creates/collects/advertises/publishes. This will be output as a bulleted list.  -->
+    
+        <itemizedlist>
+            <listitem><para>The data gathered is published as part of the GLUECE RP</para></listitem>
+        </itemizedlist>
+    
+    <section id="nagios-rps-namespace-uri"><title>Namespace URI</title>
+        
+        <para>
+        The GLUE namespace is: "http://mds.globus.org/glue/ce/1.1"
+        The CE namespace is: "http://mds.globus.org/glue/ce/1.1"
+        The XML namespace is: "http://www.w3.org/2001/XMLSchema"
+        </para>
+        
+    </section>
+    
+</section>
+
+<section id="nagios-schema" xreflabel="Schema for the Nagios Info Provider"><title>Schema</title> 
+    
+    <!-- list urls to schema files  This will be output as a bulleted list. -->
+    
+    <itemizedlist>
+        <listitem><para>$GLOBUS_LOCATION/share/schema/mds/usefulrp/ce.xsd</para></listitem>
+    </itemizedlist>
+    
+</section>
+
+<section id="nagios-security" xreflabel="Security Considerations for the Nagios Info Provider"><title>Security Considerations</title> 
+    
+    <!-- DO NOT EDIT the following line. -->
+    
+    &WS_MDS_Nagios_Info_Security_Considerations_Frag;
+    
+</section>
+
+<section id="nagios-testing" xreflabel="Testing the Nagios Info Provider"><title>Testing</title> 
+    
+    <!-- add a simple test for this info provider. paste text in between para tags. -->
+    
+    <para>N/A</para>
+    
+</section>
+
+<section id="nagios-troubleshooting" xreflabel="Troubleshooting the Nagios Info Provider"><title>Troubleshooting</title> 
+    
+    <!-- describe common issues users may experience with this info provider. paste text in between para tags. -->
+    
+    <para>
+
+    It should be noted that the
+     $GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/cluster_config.xml
+     file is _required_ with the above configuration and at a minimum,
+     ALL host names MUST appear once (and only once) in the
+     cluster-configuration file. If a host is retrieved from the
+     Cluster information provider (whether it's CluMon, Ganglia,
+     Nagios, etc) and it is not located in the cluster-configuration,
+     an error will occur and the cluster information will not appear
+     in the MDS4 Index. The error looks like:
+<screen>
+2006-04-27 15:30:30,289 ERROR transforms.GLUEXMLOrganizer 
+[Thread-13,reorganizeGLUEDocument:826] Fatal error! 
+Unmapped hostname "lear.rcac.purdue.edu" in GLUE input data.
+</screen>
+
+    The cfg:Name in this file should correspond to the hostname as it
+    will be reported by the monitoring system. For instance, if clumon
+    refers to "tg-c001", the cfg:UniqueID will be "tg-c001". However,
+    this Name should be unique across the Teragrid. For this purpose
+    we can specify a string to append to the hostnames to get the
+    unique names in the gluerp-config.xml file.
+
+    Here are two example cluster-config.xml files. The NCSA example is
+    organized into subclusters based on various host machine
+    characteristics. The Purdue example is not. I generated the purdue
+    file by running a "for f in `seq -w 0 512`" loop to output the
+    hostnames. They could be sorted into subclusters by an admin who
+    knew how the machines were distributed.
+
+<screen>
+http://software.teragrid.org/docs/ctss3/globus/4.0.1-r3/examples.mds/cluster_config.xml.ncsa
+
+http://software.teragrid.org/docs/ctss3/globus/4.0.1-r3/examples.mds/cluster_config.xml.purdue
+</screen>
+
+    For your "Cluster" Name and UniqueID, please use the output of
+    "tgwhereami|cut -f. -f1-2". For your "SubCluster"s please use the
+    value for your Cluster with appended subcluster information.
+
+    For example:
+
+     For Cluster Name, UniqueID "dtf.ncsa" SubCluster could be
+    "dtf.ncsa-fastio", or "dtf.ncsa-<whatever>"
+
+    If you need to add a suffix to the hostnames, add the following
+    entry below the GLUEComputeElementTransform element in the
+    gluerp-config.xml file (around line 45 in the file):
+
+<screen>
+&lt;ns1:transformArguments xsi:type="xsd:string"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;.ncsa.teragrid.org&lt;/ns1:transformArguments&gt;
+</screen>
+
+    Note also that if the transformArgument is used to modify host
+    names (i.e. transforming "tg-c001" into
+    "tg-c001.ncsa.teragrid.org"), it is *required* that the cluster
+    configuration file contain the post-transformed hostnames rather
+    than the original hostname. (i.e. "tg-c001.ncsa.teragrid.org")
+
+    Here are two example gluerp-config.xml files. The NCSA example has
+    the suffix transformation because their Clumon install does not
+    report the ".ncsa.teragrid.org" suffix on the hostnames. The
+    Purdue example does not have a suffix transformation, because
+    their Ganglia server reports on the FQDN of the host.
+
+<screen>
+http://software.teragrid.org/docs/ctss3/globus/4.0.1-r3/examples.mds/gluerp-config.xml.ncsa
+
+http://software.teragrid.org/docs/ctss3/globus/4.0.1-r3/examples.mds/gluerp-config.xml.purdue
+</screen>
+
+</para>
+
+</section>
