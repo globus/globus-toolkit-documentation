@@ -19,18 +19,18 @@
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
                 <xsl:param name="admon.graphics">1</xsl:param>
                 
-                <!-- Set path to admonition graphics
+                <!-- Set path to admonition graphics-->
                 <xsl:param name="admon.graphics.path">/docbook-images/</xsl:param>
-                -->
                 
-                <!-- Set path to docbook graphics (testing) -->
-                                <xsl:param name="admon.graphics.path">file:///Z:/testing/alliance/docbook-images/</xsl:param>
+                
+                <!-- Set path to docbook graphics (testing)
+                <xsl:param name="admon.graphics.path">file:///Z:/testing/alliance/docbook-images/</xsl:param> -->
                 
                 <!-- Again, if 1 above, what is the filename extension for admon graphics? -->
                 <xsl:param name="admon.graphics.extension" select="'.gif'"/>
                 
                 <!-- Set path to callout graphics -->
-                <xsl:param name="callout.graphics.path">/docbook-images/</xsl:param>
+                <xsl:param name="callout.graphics.path">/docbook-images/callouts/</xsl:param>
                 
                 <!-- Depth to which sections should be chunked -->
                 <xsl:param name="chunk.section.depth">0</xsl:param>
@@ -112,6 +112,7 @@
                 <xsl:param name="chunker.output.doctype-system" select="'http://www.w3.org/TR/html4/loose.dtd'"/>
                 
                 <!-- add elements to the HEAD tag -->
+                <!-- the following template is for the conditional comments for detecting certain browsers -->
                 <xsl:template name="conditionalComment">
                                 <xsl:param name="qualifier" select="'IE 7'"/>
                                 <xsl:param name="contentRTF" select="''" />
