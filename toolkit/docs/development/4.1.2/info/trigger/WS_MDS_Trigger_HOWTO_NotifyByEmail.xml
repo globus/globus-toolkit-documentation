@@ -4,94 +4,98 @@
 
   <para>In this HowTo, we will use a GT4/MDS4 Trigger as a way to monitor resource information from another GT4 service. 
     This HowTo is an extension of <link linkend="trigger-howto-monitor">this tutorial</link>, 
-    which we will refer to in this document as the <emphasis>base tutorial</emphasis>, this document, being an <emphasis>extension</emphasis>. 
-    Basically we will use everything from the base tutorial, but here we will add to the action script to enable an email notification, essentially by substituting the contents 
-    of the current document with "Step 3 - Set up the trigger action script" of the base tutorial.. So if you have not followed the <ulink url="http://www-unix.mcs.anl.gov/%7Erobertm/MDS4HowTo-UsingTriggersToMonitorInformation.html">base tutorial</ulink>, please refer to it.</para>
+    which we will refer to in this document as the <emphasis role="strong">base tutorial</emphasis>, this document, being an <emphasis>extension</emphasis>.</para>
+    
+    <para>Basically we will use everything from the base tutorial, but here we will add to the action script to enable an email notification, essentially by substituting the contents 
+      of the current document with <link linkend="trigger-howto-monitor-script">Step 3 - Set up the trigger action script</link> of the base tutorial. 
+      So if you have not followed the <link linkend="trigger-howto-monitor">base tutorial</link>, please refer to it.</para>
   
   <section id="trigger-howto-email-prereq"><title>Prerequisites</title>
     <itemizedlist>
       <listitem>
-        <para>See <ulink url="http://www-unix.mcs.anl.gov/%7Erobertm/MDS4HowTo-UsingTriggersToMonitorInformation.html">this tutorial</ulink> for all prerequisites.</para>
+        <para>See <link linkend="trigger-howto-monitor">this tutorial</link> for all prerequisites.</para>
       </listitem>
     </itemizedlist>
   </section>
   <section id="trigger-howto-email-overview"><title>Overview of the process</title>
-    <para>The following are all the steps required for setting up the Trigger Service. This document will cover Step 3 (by adding extra functionality) and Step 5. 
-      For details on the other steps, see <ulink url="http://www-unix.mcs.anl.gov/%7Erobertm/MDS4HowTo-UsingTriggersToMonitorInformation.html">this tutorial</ulink>. </para>
+    <para>The following are all the steps required for setting up the Trigger Service. <emphasis role="strong">This document will cover Step 3 (by adding extra functionality) and Step 5 only.</emphasis> 
+      For details on the other steps, see <link linkend="trigger-howto-monitor">this tutorial</link>. </para>
     <orderedlist>
       <listitem>
-        <para>Set up the GT4 environment</para>
+        <simpara>Set up the GT4 environment</simpara>
       </listitem>
       <listitem>
-        <para>Write the trigger configuration file</para>
+        <simpara>Write the trigger configuration file</simpara>
       </listitem>
       <listitem>
-        <para><emphasis role="strong">Set up the trigger action script</emphasis></para>
+        <simpara><emphasis role="strong">Set up the trigger action script</emphasis></simpara>
       </listitem>
       <listitem>
-        <para>Create the trigger</para>
+        <simpara>Create the trigger</simpara>
       </listitem>
       <listitem>
-        <para>Test the trigger</para>
+        <simpara><emphasis role="strong">Test the trigger</emphasis></simpara>
       </listitem>
     </orderedlist>
   </section>
   <section id="trigger-howto-email-script"><title>Step 3 - Set up the trigger action script</title>
     <orderedlist>
       <listitem>
-        <para>Write the first trigger action script. The action script can be written in almost anything, but it <citetitle>must</citetitle> output valid XML to stdout. 
+        <para><emphasis role="strong">Write the first trigger action script.</emphasis> The action script can be written in almost anything, but it <citetitle>must</citetitle> output valid XML to stdout. 
           We will be using a Perl script to parse a bit of the trigger output and format this information, then write it to a log file.</para>
-        <para>You may copy the contents of the following Perl script. It is not necessarily the best way to write a script, but it give you an example of what is possible!</para>
-        <para>This action script will be created here: <programlisting>$GLOBUS_LOCATION/libexec/trigger/our-simple-trigger-action.pl</programlisting></para>
+        <para>You may copy the contents of the following Perl script. It is not necessarily the best way to write a script, but it will give you an example of what is possible!</para>
+        <para>This action script will be created here: </para>
+        <para><filename>$GLOBUS_LOCATION/libexec/trigger/our-simple-trigger-action.pl</filename></para>
         
-        <screen>#!/usr/bin/perl
-          
-          # CHANGE THIS to where you want to place your log file.  
-          # DO NOT use an environment variable in this example; it should be the full path.
-          $logfile = "/<emphasis role="strong">your-install-location</emphasis>/our_new_entry_detected";
-          
-          # Grab the date
-          $date = `date`; chomp($date);
-          
-          # Collect the trigger input
-          $string = &lt;STDIN&gt;;
-          
-          # Check on the log file
-          $OUTFILE = $logfile;if(!open(OUTFILE, "&gt;$logfile"))
-          {warn "Couldn't open $logfile: $!";}
-          
-          # Split the output to separate lines
-          $string =~ s/&lt;/ggg&lt;/g;
-          my @records = split("ggg",$string);
-          
-          our @newrecs;
-          
-          # Parse each line of input for signs of FreeCPUs
-          foreach $record (@records)
-          {
-          if($record =~ /FreeCPUs=\W+(\d+)\W+/) {
-          $str = "$date :: FreeCPUs: $1\n";
-          # This step adds the occurences to an array, and you
-          # can decide what you want to do with it.
-          push @newrecs, $str;
-          }
-          }
-          
-          # Output the first line of the array to the logfile.
-          print OUTFILE ($newrecs[0]);
-          `sh /<emphasis role="strong">your-install-location</emphasis>/libexec/trigger/trigger-action-send-mail.sh $logfile`;
-          
-          # NOTE, in the case that the FreeCPU occurences are not identical, 
-          #you can decide which values are more important for your purposes.
-          
-          # All trigger action scripts must output valid XML.
-          print "&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;
-          &lt;OurActionScriptOutput&gt;
-          &lt;OurDataDetected&gt;true&lt;/OurDataDetected&gt;
-          &lt;/OurActionScriptOutput&gt;";
+        <screen>
+#!/usr/bin/perl
+
+# CHANGE THIS to where you want to place your log file.  
+# DO NOT use an environment variable in this example; it should be the full path.
+$logfile = "/<emphasis role="strong">your-install-location</emphasis>/our_new_entry_detected";
+
+# Grab the date
+$date = `date`; chomp($date);
+
+# Collect the trigger input
+$string = &lt;STDIN&gt;;
+
+# Check on the log file
+$OUTFILE = $logfile;if(!open(OUTFILE, "&gt;$logfile"))
+{warn "Couldn't open $logfile: $!";}
+
+# Split the output to separate lines
+$string =~ s/&lt;/ggg&lt;/g;
+my @records = split("ggg",$string);
+
+our @newrecs;
+
+# Parse each line of input for signs of FreeCPUs
+foreach $record (@records)
+{
+if($record =~ /FreeCPUs=\W+(\d+)\W+/) {
+$str = "$date :: FreeCPUs: $1\n";
+# This step adds the occurences to an array, and you
+# can decide what you want to do with it.
+push @newrecs, $str;
+}
+}
+
+# Output the first line of the array to the logfile.
+print OUTFILE ($newrecs[0]);
+`sh /<emphasis role="strong">your-install-location</emphasis>/libexec/trigger/trigger-action-send-mail.sh $logfile`;
+
+# NOTE, in the case that the FreeCPU occurences are not identical, 
+#you can decide which values are more important for your purposes.
+
+# All trigger action scripts must output valid XML.
+print "&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;
+&lt;OurActionScriptOutput&gt;
+&lt;OurDataDetected&gt;true&lt;/OurDataDetected&gt;
+&lt;/OurActionScriptOutput&gt;";
         </screen>
         
-        <para>There are a few modifications from the action script in the original <ulink url="http://www-unix.mcs.anl.gov/%7Erobertm/MDS4HowTo-UsingTriggersToMonitorInformation.html#step3">base tutorial</ulink></para>
+        <para>There are a few modifications from the action script in the original <link linkend="trigger-howto-monitor-script">base tutorial</link>:</para>
         
         <orderedlist>
           <listitem>
@@ -103,69 +107,85 @@
         </orderedlist>
       </listitem>
       <listitem>
-        <para><citetitle>Edit the email script</citetitle>.  You can download one from here: <ulink url="http://www-unix.mcs.anl.gov/%7Eneillm/mds/trigger-action-send-mail.sh">email script</ulink>.
-          The sample below highlights some relevant sections from this script. You can put this file where you wish, we've put it with the other trigger action scripts: $GLOBUS_LOCATION/libexec/trigger/trigger-action-send-mail.sh</para>
+        <para><emphasis role="strong">Edit the email script</emphasis>.  You can download one from here: <ulink url="http://www-unix.mcs.anl.gov/%7Eneillm/mds/trigger-action-send-mail.sh">email script</ulink>.
+          The sample below highlights some relevant sections from this script. You can put this file where you wish; we've put it with the other trigger action scripts:</para> 
+        <para><filename>$GLOBUS_LOCATION/libexec/trigger/trigger-action-send-mail.sh</filename></para>
         
-        <screen>#!/bin/bash
-          
-          # USER_EMAIL="foo@foo.com"
-          USER_EMAIL="<emphasis role="strong">your-email-address</emphasis>"
-          
-          # The mailer used for sending mail. For example:
-          MAILER="<emphasis role="strong">mailx</emphasis>"
-          
-          # Customize the e-mail's subject line here
-          EMAIL_SUBJECT="*** The Configured Trigger has fired  ***"
-          
-          # send the mail
-          cat $1 | $MAILER -s "$EMAIL_SUBJECT" $USER_EMAIL
+        <screen>
+#!/bin/bash
+
+# USER_EMAIL="foo@foo.com"
+USER_EMAIL="<emphasis role="strong">your-email-address</emphasis>"
+
+# The mailer used for sending mail. For example:
+MAILER="<emphasis role="strong">mailx</emphasis>"
+
+# Customize the e-mail's subject line here
+EMAIL_SUBJECT="*** The Configured Trigger has fired  ***"
+
+# send the mail
+cat $1 | $MAILER -s "$EMAIL_SUBJECT" $USER_EMAIL
         </screen>
       
       </listitem>
       <listitem>
-        <para><citetitle>Modify the permissions</citetitle> on the action script.  Be sure the the action script and the email script are executable:</para>
+        <para><emphasis role="strong">Modify the permissions on the action script</emphasis>.  Be sure the the action script and the email script are executable:</para>
         <para><programlisting>chmod a+x $GLOBUS_LOCATION/libexec/trigger/our-simple-trigger-action.sh</programlisting></para>
         <para><programlisting>chmod a+x $GLOBUS_LOCATION/libexec/trigger/trigger-action-send-mail.sh</programlisting></para>
       </listitem>
       <listitem>
-        <para><citetitle>Edit the jndi-config.xml file</citetitle>.  Remember in our trigger configuration file, we specified the name of our action script 
-          ("our-simple-trigger") using the <programlisting>&lt;trigger:actionScript&gt;</programlisting> node.</para>
-        <para>Now we must edit the file: $GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/jndi-config.xml</para>
-        <para>Find the <programlisting>executableMappings</programlisting> section of the file, and we will add our trigger action script mapping to the file.</para>
+        <para><emphasis role="strong">Edit the jndi-config.xml file</emphasis>.  Remember in our trigger configuration file, we specified the name of our action script 
+          ("our-simple-trigger") using the <computeroutput>&lt;trigger:actionScript&gt;</computeroutput> node.</para>
+        <para>Now we must edit the file: <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/jndi-config.xml</filename></para>
+        <para>Find the <computeroutput>executableMappings</computeroutput> section of the file, and we will add our trigger action script mapping to the file.</para>
         <screen>...
-          &lt;jndiConfig&gt;
-          &lt;global&gt;
-          
-          &lt;resource name="triggerConfiguration"&gt;
-          &lt;resourceParams&gt;
-          &lt;parameter&gt;  <emphasis role="strong">&lt;-- PLEASE note that this section is commented out by default.  
-            You must uncomment it!</emphasis>
+&lt;jndiConfig&gt;
+  &lt;global&gt;
+  
+    &lt;resource name="triggerConfiguration"&gt;
+      &lt;resourceParams&gt;
+          &lt;parameter&gt;  <co  id="trigger-howto-email-test-co1"  linkends="trigger-howto-email-test-parameter1" />
           &lt;name&gt;executableMappings&lt;/name&gt;
           &lt;value&gt;test-trigger=test-trigger-action.sh, 
           glue-trigger=glue-trigger-action.sh, 
-          echo-trigger=echo-trigger-action.sh,  <emphasis role="strong">&lt;-- don't forget to add a comma here.</emphasis>
+          echo-trigger=echo-trigger-action.sh,  <co  id="trigger-howto-email-test-co2"  linkends="trigger-howto-email-test-comma1" />
           <emphasis role="strong">our-simple-trigger=our-simple-trigger-action.sh</emphasis>
-          &lt;/value&gt;
-          &lt;/parameter&gt;
-          &lt;/resourceParams&gt;
-          &lt;/resource&gt;
-          &lt;/global&gt;
-          &lt;/jndiConfig&gt;
-          ...
+      &lt;/value&gt;
+      &lt;/parameter&gt;
+      &lt;/resourceParams&gt;
+    &lt;/resource&gt;
+  &lt;/global&gt;
+&lt;/jndiConfig&gt;
+...
         </screen>
+        <calloutlist>
+          <callout arearefs="trigger-howto-email-test-co1" id="trigger-howto-email-test-parameter1">
+            <simpara>
+              PLEASE note that this section may be commented out.  You must uncomment it!
+            </simpara>
+          </callout>
+          
+          <callout arearefs="trigger-howto-email-test-co2" id="trigger-howto-email-test-comma1">
+            <simpara>
+              Don't forget to add a comma here.
+            </simpara>
+          </callout>
+        </calloutlist>
       </listitem>
     </orderedlist>
   </section>
   <section id="trigger-howto-email-test"><title>Step 5 - Test the trigger</title>
     <orderedlist>
       <listitem>
-        <para>Now that our trigger is registered, it's ready to perform actions. We set our trigger to fire about every two minutes or so to let us know how many FreeCPUs there are. 
-          We set our action script to parse and log this information to a convenient location: "$GLOBUS_LOCATION/our_new_entry_detected" Now we want to check that file to see if a new entry/log has been recorded.</para>
+        <para>Now that our trigger is registered, it's ready to perform actions. We set our trigger to fire about every two minutes or so to let us know how many FreeCPUs there are and  
+          we set our action script to parse and log this information to a convenient location: <filename>$GLOBUS_LOCATION/our_new_entry_detected</filename>. </para>
+          
+        <para>Now we want to check that file to see if a new entry/log has been recorded.</para>
       </listitem>
       <listitem>
-        <para>After a few minutes, if everything went properly, we should be able to open the file: "$GLOBUS_LOCATION/our_new_entry_detected" and see something like the following:</para>
+        <para>After a few minutes, if everything went properly, we should be able to open the file: <filename>$GLOBUS_LOCATION/our_new_entry_detected</filename> and see something like the following:</para>
         <programlisting>Fri Dec  8 15:33:34 PST 2006 :: FreeCPUs: 81 </programlisting>
-        <para>In addition, if you properly configured the email script, you should get an email to the address you specified, containing the content of this logfile in the body of the email.</para>
+        <para>In addition, if you properly configured the email script, you should get an email to the address you specified containing the content of this logfile in the body of the email.</para>
       </listitem>
     </orderedlist>
   </section>
