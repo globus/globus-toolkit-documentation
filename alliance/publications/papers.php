@@ -1208,7 +1208,14 @@ N. Paton, M.P. Atkinson, V. Dialani, D. Pearson, T. Storey, and P. Watson.
 
 
     <h2><a name="Resource Management Components">Resource Management Components (GRAM, SNAP, GARA/Qos, etc.)</a></h2>
+	
+	    <p><font size="2"><strong><a name="TG07-GRAM">GT4 GRAM: A Functionality and Performance Study</a></strong>. M. Feller, University of Chicago & Argonne National Laboratory; I. Foster, University of Chicago & Argonne National
+Laboratory; and Stuart Martin, University of Chicago & Argonne National Laboratory.<br/>
+Describes and compares the functionality and performance of the GRAM2 and GRAM4 job execution services included in Globus Toolkit version 4 (GT4).<br>
 
+       [<a href="#TG07-GRAM">Citation</a>,
+
+        <a href="papers/TG07-GRAM-comparison.pdf">PDF</a>, <a href="papers/TG07-GRAM-comparison.doc">DOC</a>]</font></p>
 
 
     <p><font size="2"><strong><a name="VM-SPJ2006">Virtual Workspaces: Achieving Quality of Service and 
