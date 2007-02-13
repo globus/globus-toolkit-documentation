@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <section id="authzframe-pdp-userNameAuthz" xreflabel="Username Authz PDP"><title>Username Authorization</title>
- 
+
  <section><title>Class name</title>
   <para><filename>org.globus.wsrf.impl.security.authorization.UsernameAuthorization</filename></para>
  </section>
@@ -13,11 +13,22 @@ used on the method call. The username and password are passed to
 javax.security.auth.callback.PasswordCallback.
 </para>
 
-
+  <para>Username authorization as part of the authorization framework for a service involves setting up a Configuration class that reads in the Login Module to be using. It is also possible to specify the login modules to be used by altering some parameters in the java.security file located at $JAVA_HOME/jre/lib/security which has been discussed under the general configuration section. Steps for username authorization using Login Modules configured via custom Configuration classes is described under the custom configuration section.</para>
  </section>
  
  <section><title>Configuration</title>
-<para> Some login module and configuration file needs to be configured (example: jre/lib/ext/jaasmod.jar and jre/lib/security/java.security). A sample configuration entry:
+
+  <para>Login modules can be setup for use by our application in two
+	different ways.  One, by adding the login module to the list
+	of login modules used by the JVM.  This method has been
+	explained under the JVM Configuration. Second, by creating a
+	custom configuration class to dynamically pick up the login
+	module.  </para>
+	 
+<section><title>JVM Configuration</title>
+<para> Some login module and configuration file needs to be configured 
+	(example: jre/lib/ext/jaasmod.jar and jre/lib/security/java.security). 
+	A sample configuration entry:
 
 <screen>
 login.configuration.provider=com.sun.security.auth.login.ConfigFile 
@@ -33,8 +44,115 @@ Login {
 </screen>
 
 </para>
- </section>
- 
+</section>
+
+<section><title>Custom Configuration</title>
+<para>A configuration class is used to setup a specified login module for executing authorization. 
+	The class details are provided to the Toolkit through the security descriptor for the service 
+	that enforces username auhorization.  In order for the username authorization handler to use 
+	a custom Login Configuration, a parameter with name "login-config" and a value containing the 
+	custom Configuration classname has to be specified along with the PDP in the security descriptor. 
+	The PDP in this case is "Username Authorization". The relevant snippet from the service security 
+	descriptor is shown below:
+
+<screen>
+    &lt;authzChain&gt;
+	&lt;pdps&gt;
+        &lt;interceptor name="prefix:org.globus.wsrf.impl.security.authorization.UsernameAuthorization"&gt;
+	  &lt;parameter&gt;
+	     &lt;param:nameValueParam&gt;
+	     &lt;param:parameter name="login-config" value="org.globus.wsrf.impl.security.authorization.LoginConfiguration"/&gt;
+	     &lt;/param:nameValueParam&gt;
+	  &lt;/parameter&gt;
+	&lt;/interceptor&gt;			
+	&lt;/pdps&gt;
+    &lt;/authzChain&gt;
+</screen>
+</para>
+	
+<note><title>Internal Details</title>
+    <para>
+		The usernameAuthorization PDP loads the Configuration specified in the parameter "login-config" and sets that as the 
+		current configuration.(These are internal details which may be disregarded safely for the purposes of writing up a 
+		custom configuration)
+		<filename>org.globus.wsrf.impl.security.authorization.UsernameAuthorization </filename>
+	
+		<screen>
+		String className = (String) this.chainConfig.getProperty(this.prefix, "login-config");
+		Class config = ClassLoaderUtils.forName(className); 
+		Object loginConfig = config.newInstance();
+		if(loginConfig instanceof Configuration ){
+		  Configuration.setConfiguration((Configuration) loginConfig);
+		}
+		</screen>
+	</para>
+</note>
+
+<para>The custom Configuration class has to be a subclass of 
+	<filename>javax.security.auth.login.Configuration</filename>. 
+	An example custom Configuration class is available in the unit tests directory at 
+	<filename>org.globus.wsrf.impl.security.authorization.LoginConfiguration</filename>. 
+	The login module that has to be used is specified using a login.config file that the 
+	configuration class uses. The configuration class loads the appropriate properties from 
+	this file. A sample entry for this file is: 
+	<screen>
+	Login {
+	   org.globus.wsrf.impl.security.authorization.UsernameLoginModule required;
+	};
+	</screen>
+</para>
+
+<para>		
+More details regarding Login Configuration files can be found 
+<ulink url="http://java.sun.com/j2se/1.4.2/docs/guide/security/jaas/JAASRefGuide.html#AppendixB">here</ulink>.
+The next section focuses on the setup and usage of login modules.
+</para> 
+</section>
+
+</section>
+
+<section><title>Login Modules</title>
+<para>The login modules can be used to handle the authorization of users. The details regarding writing login modules is beyond the scope of this document and can be found at in the <ulink url="http://java.sun.com/j2se/1.4.2/docs/guide/security/jaas/JAASLMDevGuide.html#Intro">Login Module Developers' guide</ulink></para>
+
+<para>
+The unit tests have an example of a login module <filename>org.globus.impl.security.authorization.UsernameLoginModule</filename>. The username and password to authorize the client have to be passed via the client security descriptor similar to the one listed below. If the password type is not provided then it defaults to PasswordText. In that case, the passwords are sent unencrypted over the wire.</para>
+
+<screen>
+     &lt;clientSecurityConfig xmlns="http://www.globus.org/security/descriptor/client"&gt;
+       &lt;GSISecureTransport&gt;
+      	 &lt;integrity/&gt;
+       &lt;/GSISecureTransport&gt; 
+
+       &lt;usernameType&gt;
+      	 &lt;username value="globus"/&gt;
+      	   &lt;passwordType&gt;
+              &lt;password value="unittesting"/&gt;
+              &lt;type value="http://docs.oasis open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest"/&gt;
+           &lt;/passwordType&gt;
+       &lt;/usernameType&gt; 
+
+       &lt;authz value="none"/&gt;
+
+        &lt;/clientSecurityConfig&gt;
+</screen>
+
+<para>This login module handles the authorization of usernames and passwords supplied either as Text (unencrypted  format) 
+	or as a Digest (encrypted format.) by comparing them to the username and password stored on the server in a file. 
+	The format of the parameters in the password file used by our example Login Module is illustrated in the following example.
+<filename>~/tests/unit/etc/Test-authz-pwd</filename>
+<screen>
+name=globus
+password=unittesting
+usernames=globus
+</screen>
+</para>
+<para>In summary, Login Modules can be used to implement username authorization. 
+This can be done by either changing the java environment to invoke your login module or by programmatically setting the 
+	authorization framework to use your login module.  The unit tests provide a good example of how this can be done 
+	programmatically which in most cases would prove beneficial. 
+</para>
+</section>
+
  <section><title>Decision Table</title>
   <!-- use the following as a template for mapping out the decision table for your PDP -->
   <informaltable>
