@@ -25,7 +25,7 @@
     <tr>
       <th>
 	<?php 
-include_once( "/mcs/www-unix.globus.org/toolkit/breadcrumb.php" ); 
+include_once( "../../../breadcrumb.php" ); 
 globus_current_location(); ?>
       </th>
 
@@ -50,7 +50,7 @@ maxlength="200" value="" />
 </div>
 <div id="container">
 	<?php 
-include_once( "/mcs/www-unix.globus.org/include/outofdate.php" ); 
+	include_once( "../../../../include/outofdate.php" ); 
 globus_out_of_date(); ?>
 
 
