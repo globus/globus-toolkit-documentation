@@ -122,7 +122,7 @@
                 </xsl:template>
                 
                 <xsl:template name="user.head.content">
-                                <link href="/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
+                                <link href="http://www.globus.org/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
                                 <link rel="stylesheet" type="text/css" href="/toolkit/css/print.css" media="print" />
 
                                 <xsl:comment> calling in special style sheet if detected browser is IE 7 </xsl:comment>
