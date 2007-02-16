@@ -89,17 +89,20 @@
   </listitem>
   <listitem><para> A ServiceSecurityDescriptor object can be created and initialized in the service's contructor.
 <screen>
-    public MyDummyService() throws Exception {
+    public class MyDummyService {
+       public MyDummyService() throws Exception {
 
-        ServiceSecurityDescriptor serviceDesc = 
+          ServiceSecurityDescriptor serviceDesc = 
             new ServiceSecurityDescriptor();
 
-        // set security properties on the above object using get/set methods
-        // in the API
+           // set security properties on the above object using get/set methods
+           // in the API
 
-        ServiceSecurityHelper
+           ServiceSecurityHelper
             .setSecurityDescriptor(&quot;DummyServiceName&quot;
                                    serviceDesc);
+        }
+     }
 </screen>
   </para>
 
@@ -108,14 +111,18 @@
 
   <listitem><para> A ServiceSecurityDescriptor object can be created similar to above, but initialized from a file and set in the constructor.
 <screen>
-    public MyDummyService() throws Exception {
+    public class MyDummyService {
 
-        ServiceSecurityDescriptor serviceDesc = 
-            new ServiceSecurityDescriptor(&quot;/path/to/security/file&quot;);
+        public MyDummyService() throws Exception {
 
-        ServiceSecurityHelper
-            .setSecurityDescriptor(&quot;DummyServiceName&quot;
+            ServiceSecurityDescriptor serviceDesc = 
+                new ServiceSecurityDescriptor(&quot;/path/to/security/file&quot;);
+
+            ServiceSecurityHelper
+                .setSecurityDescriptor(&quot;DummyServiceName&quot;
                                    serviceDesc);
+        }
+    }
 </screen>
   </para>
 
@@ -126,34 +133,47 @@
 
  <section id="security-secdesc-configDesc-resource">
   <title>Configuring Resource Security Descriptor</title>
+
+  <para> Secure resources must implement org.globus.wsrf.security.SecureResource interface. 
+  </para>
   <orderedlist>
-  <listitem><para> A ServiceSecurityDescriptor object can be created and initialized in the service's contructor.
+  <listitem><para> A ResourceSecurityDescriptor object can be created and initialized in the resource's constructor. The object should be returned as a part of the getSecurityDescriptor method.
 <screen>
-    public MyDummyService() throws Exception {
 
-        ServiceSecurityDescriptor serviceDesc = 
-            new ServiceSecurityDescriptor();
+    public MyDummyResource implements SecureResource {
+    
+       private ResourceSecurityDescriptor desc = null;
 
-        // set security properties on the above object using get/set methods
-        // in the API
+       public MyDummyResource() throws Exception {
 
-        ServiceSecurityHelper
-            .setSecurityDescriptor(&quot;DummyServiceName&quot;
-                                   serviceDesc);
+            this.desc = new ResourceSecurityDescriptor();
+
+          // set security properties on the above object using get/set methods
+          // in the API
+        }
+
+        public ResourceSecurityDescriptor getSecurityDescriptor() {
+            return this.desc;
+        }
+    }
 </screen>
   </para>
   </listitem>
 
-  <listitem><para> A ServiceSecurityDescriptor object can be created similar to above, but initialized from a file and set in the constructor.
+  <listitem><para> A ResourceSecurityDescriptor object can be created similar to above, but initialized from a file and set in the constructor.
 <screen>
-    public MyDummyService() throws Exception {
+    public MyDummyResource implements SecureResource {
+    
+       private ResourceSecurityDescriptor desc = null;
 
-        ServiceSecurityDescriptor serviceDesc = 
-            new ServiceSecurityDescriptor(&quot;/path/to/security/file&quot;);
+            this.desc = new ResourceSecurityDescriptor(&quot;/path/to/security/file&quot;);
+            this.desc.initialize();
+        }
 
-        ServiceSecurityHelper
-            .setSecurityDescriptor(&quot;DummyServiceName&quot;
-                                   serviceDesc);
+        public ResourceSecurityDescriptor getSecurityDescriptor() {
+            return this.desc;
+        }
+    }
 </screen>
   </para>
   </listitem>
@@ -1465,104 +1485,60 @@ The following sample sets GSI Secure Transport with privacy and anonymous:
 </section>
 <section id="security-secdesc-resDesc">
   <title>Resource security descriptors</title>
-  <para>Resource level security can be set up using a resource security
-descriptor.  A resource security descriptor overrides any service or container level
-security settings. To make a resource secure, it needs to implement
-<constant>org.globus.wsrf.impl.security.SecureResource</constant>.  This
-interface has a method that returns an instance of
-<constant>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</constant>. If
-<constant>null</constant> is returned, it is assumed that no security is set
-on the resource. </para>
-  <para>The resource security descriptor is identical to the service
-    security descriptor and exposes an API to set and get all properties
-    that are described in <xref linkend="security-secdesc-server-descFile"/>. A 
-    resource security descriptor object can also be created by reading settings from a descriptor file. The file
-    needs to be written as described in <xref linkend="security-secdesc-server-descFile"/>.</para>
+
+  <para>Resource level security can be set up using a resource security descriptor. The configuration properties and schema are identical to service security descriptor.  A resource security descriptor overrides any service or container level security settings. To make a resource secure, it needs to implement <constant>org.globus.wsrf.impl.security.SecureResource</constant>. This interface has a method that returns an instance of <constant>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</constant>. If <constant>null</constant> is returned, it is assumed that no security is set on the resource. </para>
+
+<para> A resource security descriptor object can be created by reading settings from a descriptor file. The file needs to be written as described in <xref linkend="security-secdesc-server-descFile"/>.  Refer to <xref linkend="security-secdesc-configDesc-resource"/> forinformation on configuring resource security descriptors.</para>
+
+<para>The Resource security descriptor object also exposes an API to set and get all properties that are described in <xref linkend="security-secdesc-server-descFile"/>. The descriptor can be set up programmatically using the API </para>
+
   <para><emphasis>Examples: </emphasis> 
   </para>
   <para>The following code snippet creates a resource descriptor object directly: 
   </para>
   <screen>ResourceSecurityDescriptor desc = new ResourceSecurityDescriptor();
 desc.setRejectLimitedProxy(&quot;true&quot;);</screen>
-  <para>The following code snippet creates a resource descriptor object
-  from a file: </para>
-  <screen>ResourceSecurityConfig config = new ResourceSecurityConfig(&quot;resDescFileName&quot;);
-config.init();
-ResourceSecurityDescriptor desc = config.getSecurityDescriptor();</screen>
 
-<!-- FILLME 
-  <para>There are two attributes of the security descriptor,
-  <emphasis>credentials</emphasis> and <emphasis>gridmap</emphasis>, that can
-  be specified as objects (<constant>javax.security.auth.Subject</constant> and
-  <constant>org.globus.security.gridmap.GridMap</constant>, respectively) or as paths to
-  credentials and the grid map file. Similarly, the <emphasis>service authorization chain</emphasis> object or a comma separated list of PDP
-  names can be specified. In each of these cases, if the properties are
-  configured as filenames or PDP names as the case may be, the helper API in
-  <constant>org.globus.wsrf.impl.security.descriptor.ResourceSecurityConfig</constant>
-  can be used to load the classes.  The credentials, grid map file and PDPs
-  specified in the authorization chain are loaded if the property
-  <constant>initialized</constant> in the descriptor is set to
-  <constant>false</constant>.
-  </para>
-  <para>For example, the code snippet below  creates a descriptor that has a
-    grid map file and an authorization chain. When
-    <function>config.init()</function> is called, the grid map file is loaded and an
-    instance of the service authorization chain class is created. The
-    configuration information for the service
-    authorization chain is by default picked up from the global deployment
-    descriptor. To provide for other PDP configurations it needs to be
-    set programmatically, as shown below.</para>
-  <screen>ResourceSecurityDescriptor desc = new ResourceSecurityDescriptor();
-desc.setGridMapFile(&quot;foo/bar/gridmap&quot;);
-desc.setAuthz(&quot;customAuthz:org.globus.some.customAuthz foo1:org.foo.barAuthz&quot;);
-ResourceSecurityConfig config = new ResourceSecurityConfig(desc);
-config.init();</screen>
-  <para>If the descriptor property changes, a reload can be forced by setting <constant>setInitialized</constant> to <constant>false</constant>:</para>
-  <screen>desc.setInitialized(false); 
-desc.setGridMapFile(&quot;foo/bar/newGridMap&quot;); 
-config.init();</screen>
-  <para>GridMap and Subject objects can also be set directly,
-    i.e. without configuring files to be read:</para>
-  <screen>desc.setInitialized(false);
-GridMap map = new GridMap();
-map.map(&quot;Some user DN&quot;, &quot;userid&quot;);
-desc.setGridMap(map);</screen>
-  <para id="programPDPConfig">Service Authorization can also be set directly
-    by creating an object of  type <constant>org.globus.wsrf.impl.security.authorization.ServiceAuthorizationChain</constant>.
-    The chain needs to be initialized with  one or more objects implementing the <constant>org.globus.wsrf.security.authorization.PDPConfig</constant> interface.
-    The <constant>org.globus.wsrf.impl.security.descriptor.ResourceSecurityDescriptor</constant> class
-    has an API to initialize a PDP using the PDPConfig class. The distribution
-    has a few sample classes that implement the <constant>org.globus.wsrf.security.authorization.PDPConfig</constant> interface
-    and are described below: 
-  <itemizedlist>
-      <listitem>
-        <simpara><constant>org.globus.wsrf.impl.security.authorization.ContainerPDPConfig</constant>: Obtains configuration information from the global deployment descriptor.</simpara>
-      </listitem>
-      <listitem>
-        <simpara><constant>org.globus.wsrf.impl.security.authorization.ServicePropertiesPDPConfig</constant>: Obtains configuration information from a service&apos;s deployment descriptor.</simpara>
-      </listitem>
-      <listitem>
-        <simpara><constant>org.globus.wsrf.impl.security.authorization.ResourcePDPConfig</constant>: Obtains configuration information from a hashmap stored in memory.</simpara>
-      </listitem>
-    </itemizedlist>
-</para>
-  <para>Examples:</para>
-  <para>This sample creates a authorization chain and sets it on the
-resource security descriptor:</para>
-  <screen>// Create a resource security descriptorResourceSecurityDescriptor
-ResourceSecurityDescriptor desc = new ResourceSecurityDescriptor();
-// Configure a chain of PDPsString
-String authzChain = &quot;identityAuthz custom:org.something.CustomAuthz&quot;;
-// Create configuration object that implements PDPConfig
-ResourcePDPConfig config = new ResourcePDPConfig(authzChain);
-// Set properties that are required by the PDPs on the configuration object.
-// Property used by Identity authorization: scope, property name, property value
-config.setProperty(&quot;idenAuthz&quot;, &quot;identity&quot;, &quot;O=this, OU=is expected, CN=identity&quot;);
-// Property used by CustomAuthz: scope, property name, property value
-config.setProperty(&quot;custom&quot;, &quot;someProp&quot;, &quot;foo&quot;);
-desc.setAuthzChain(authzChain, config, &quot;Name of Chain&quot;, &quot;Some id&quot;);</screen>
--->
-<para> FILLME: details on using the API </para>
+  <para>To set default gridmap.</para>
+  <screen>
+   GridMap gridmap = new GridMap();
+   // set GridMap mappings
+   desc.setDefaultGridMap(gridmap);
+  </screen>
+
+  <para> To set credentials </para>
+  <screen>
+  import javax.security.auth.Subject;
+
+  Subject subject = new Subject;
+  // set public/private credentials on subject object
+  desc.setSubject(subject);
+  </screen>
+
+  <para> To set up authorization chain </para>
+  <screen>
+  String[] pdpChain = new String[2];
+  pdpChain[0] = "prefix1:some.PDP";
+  pdpChain[1] = "prefix2:some.other.PDP";
+
+  // Similar API for PIPs and Bootstrap PIP
+  String[] pips = new String[1];
+  pips[0] = "pip1:some.PIP";
+
+  ResourcePropertiesChainConfig config = new ResourcePropertiesChainConfig();
+  config.setProperty("prefix1", "property1", value1);
+
+  AuthorizationEngine engine = 
+        AuthzUtil.getAuthzEngine("Chain name", pips, pdpChain, config);
+  desc.setAuthzEngine(engine);
+  </screen>
+
+  <para> To force initializing of resource security descriptor</para>
+  <screen>
+  desc.setInitialized(false);
+  desc.initialize();
+  </screen>
+
 </section>
 
 
