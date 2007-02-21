@@ -4,31 +4,18 @@
 
   <title>Interface introduction</title>
 
-  <para> On the server side the authorization configuration is configured using security descriptors, either programmatically or using files. Refer to <xref linkend="security-secdesc-configAuthz"/> and <xref linkend="security-secdesc-customAuthz"/> for detailed documentation.</para>
-
-  <para>On the client side the authorization configuration is set on the stub instance used for method invocation. Properties can be set directly on the stub or set using a client security descriptor. The next section discusses setting property directly on stub and writing custom authorization schemes, while <xref linkend="security-secdesc-client-authz"/> describes using clients side security descriptors to configure a distributed authorization schema. </para>
-
+  <para> Configuration on the server side is done using <xref linkend="security-secdesc-introduction"/>. Custom authorization mechanisms can be written and used as a part of the GT frameework. The next section describes the steps involved.</para>
+<para> On the client side, in addition to security descriptor, properties on the stub can be sed to configure security properties. Properties and values are described in detail in the next section.</para>
 </section>
 
 <section>
 
   <title>Syntax of the interface</title>
 
-  <section>
-  <title>Using distributed client-side authorization schemes</title>
+  <section id="authzframe-domain-clientAuthz-stub-config">
+  <title>Configuring client-side authorization on the stub</title>
 
-  <para>The following client side authorization schemes are
-  distributed as a part of the toolkit: no authorization, self
-  authorization, host authorization, hostOrSelf authorization and identity
-  authorization. </para>
-
-  <itemizedlist>
-
-      <listitem>
-  
-      <para>If setting <emphasis>properties directly on the
-      stub</emphasis>, there are two properties that maybe used, based
-      on that authentication scheme used.
+  <para> The property to use depends on the authentication scheme:
 
         <itemizedlist>
 
@@ -77,19 +64,10 @@
 
         </itemizedlist> 
        </para>
-      </listitem> 
+  </section>
 
 
-      <listitem> 
-        <para>Setting properties using the client descriptor is described in <xref linkend="security-secdesc-configDesc-client"/> and <xref linkend="security-secdesc-client-authz"/> </para>
-      </listitem>
-
-      </itemizedlist> 
-
-</section>
-
-
-<section>
+<section id="authzframe-domain-clientAuthz-custom">
 <title>Writing custom client-side authorization scheme</title>
 
 <para> Other than the distributed client authorization scheme,
@@ -269,9 +247,64 @@ authorization schemes on client side.  </para></note>
     </itemizedlist>
 </section>
 
-<section>
-<title>Default client-side authorization </title>
-    <para> If no  authorization mechanism has been specified, HostOrSelf authorization is used. In this scheme host authorization is tried first, if it fails, self authorization is attempted</para>
-</section>
+  <section id="authzFrame-domain-serverAuthz-custom">
+    <title>Writing a custom server-side authorization mechanism</title>
+
+    <para>The server side authorization framework can be configured to use a custom authorization interceptors, bootstrap PIP, PIP and PDP. Detailed information on writing custom PDPs can be found in <ulink url="&docpath;security/authzframe/gtJavaAuthzEngine.pdf">GT Java Authorization Framework</ulink>. Also, the section <xref linkend="authzframe-migrating-GT4.1"/> describes migrating from older PDP/PIP implementations.
+    </para>
+
+<para> For example, a custom PDP must implement the interface <constant>org.globus.security.authorization.PDP</constant>. </para>
+
+    <para><emphasis>Example: </emphasis> 
+  </para>
+    <screen>package org.foobar;
+
+import ....;
+
+public class FooPDP implements PDP
+{
+    private Principal authorizedIdentity;
+
+
+    public Decision canAccess(RequestEntity requestEntity,
+                              NonRequestEntity nonRequestEntity)
+        throws AuthorizationException {
+        
+        // process and return decision
+    }
+
+    public Decision canAdminister(RequestEntity requestEntity,
+                                  NonRequestEntity nonRequestEntity)
+        throws AuthorizationException {
+
+        // process and return decision
+    }
+
+}
+</screen>
+
+    <para>To use the above PDP one would configure a service security descriptor with the following authorization settings:</para>
+
+    <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
+   ...
+   &lt;authz value=&quot;foo1:org.foobar.FooPDP&quot;/&gt;
+   ...
+&lt;securityConfig/&gt;</screen>
+
+    <para>This security descriptor (identified as <filename>/.../foo-pdp-security-config.xml</filename> below) can then be used by a service. The association is created by adding a couple of parameters to the service&apos;s WSDD entry:</para>
+    <screen>...
+&lt;service name=&quot;MyDummyService&quot; 
+             provider=&quot;Handler&quot; 
+             style=&quot;document&quot;&gt;
+   ...
+   &lt;parameter name=&quot;securityDescriptor&quot; 
+                     value=&quot;/.../foo-pdp-security-config.xml&quot;/&gt;
+   &lt;parameter name=&quot;foo1-authorizedIdentity&quot; 
+                     value=&quot;/DC=org/DC=doe/OU=People/CN=John D&quot;/&gt;
+   ...
+&lt;/service&gt;</screen>
+
+    <para>Note that the parameter &lt;parameter&gt;foo1-authorizedIdentity&lt;/parameter&gt; in the above configures the identity the PDP uses  for authorizing incoming requests. The parameter name is derived by composing the prefix (&lt;parameter&gt;foo1&lt;/parameter&gt;) used when specifying the PDP in the security descriptor with the property  (&lt;parameter&gt;authorizedIdentity&lt;/parameter&gt;) used in the PDP code.</para>
+  </section>
 </section>
 
