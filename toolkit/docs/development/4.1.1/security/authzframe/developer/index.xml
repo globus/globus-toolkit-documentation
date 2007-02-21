@@ -4,7 +4,9 @@
 <section id="authzframe-developer-introduction">
   <title>Introduction</title>
   <para>The authorization framework enforces  the configured authorization
-policy on the service and client side.  The framework allows 
+policy on the service and client side.  </para>
+
+<para> On the service side, the framework allows 
 developers to configure a chain of authorization mechanisms either
 programmatically or declaratively using security descriptors. It also
 allows for plugging in new authorization schemes (in addition to using
@@ -12,6 +14,9 @@ those that are provided with the framework). Moreover, the framework
 allows for this configuration to be done at resource, service or
 container level, each taking precedence in the order specified and
 scoped as the name suggests.</para>
+
+<para> On the client side, a pluggable framework for authorization of service is provided.</para>
+
 </section>
 
 <section id="authzframe-developer-beforeyoubegin">
@@ -35,28 +40,23 @@ scoped as the name suggests.</para>
   <section id="authzframe-developer-security_considerations">
     <title>Security considerations </title>
     &WS_AA_Authz_Security_Considerations_Frag;
-    <section>
-      <title>Client side authorization</title>
-      <para>Client authorization of the server is done after the completion of the operation when GSI Secure Message authentication is used. If you require client authorization to be done beforehand, use GSI Secure Conversation or GSI Transport security.</para>
-    </section>
   </section>
 </section>
 <section id="authzframe-developer-archdes">
   <title>Architecture and design overview</title>
   <section>
     <title>Server-side authorization</title>
-    <para>The authorization framework on the server side consists of an engine that evaluates a chain of configured authorization schemes, also known as Policy Decision Points (PDPs), to determine if the client making the invocation can access the resource/service. The chain can also be configured with Policy Information Points (PIPs), which can be used to glean information that would be useful in the decision making process. </para>
-    <para>The authorization engine is invoked as part of a handler chain, immediately after authentication of the invocation (<function>java:org.globus.wsrf.impl.security.authorization.AuthorizationHandler</function>). If no  security mechanism is used for an operation,  authorization is not done for that operation.  The toolkit contains a set of PDPs that implement some authorization schemes or callout to some authorization services.  Custom PDPs and PIPs can be written and plugged in as a part of the chain.</para>
-    <para>Any PDP has to implement the interface <function>org.globus.wsrf.security.authorization.PDP</function> and contain the logic to return a permit or deny based on information such as the subject DN, the service being accessed and the operation being performed. To manage configuration information, each PDP can be bootstrapped with an object implementing the <function>org.globus.wsrf.security.authorization.ChainConfig</function> interface. The interface has get and set methods which can be used to retrieve and set scoped parameters for the PDP. </para>
-    <para>PIPs have to implement the interface <function>org.globus.wsrf.security.authorization.PIP</function> with the functionality to collect attributes from the invocation context that are relevant to making the authorization decision.</para>
-
-
-<!-- FIXME: Write about attributed based authz, finish up document -->
-    <para>A draft design document can be found at <ulink url="http://www-unix.mcs.anl.gov/~ranantha/authzFrameworkVer7.doc">GT Authorization Framework</ulink></para>
+    <para>The Java WS Authorization framework leverages the generic GT Java Authorization Framework. The framework consists of an engine that evaluates a chain of configured authorization schemes, also known as Policy Decision Points (PDPs), to determine if the client making the invocation can access the resource/service. The chain can also be configured with Policy Information Points (PIPs), which can be used to glean information that would be useful in the decision making process. </para>
+    <para>The framework enables attribute-based authorization. PIPs can be used to collect attributes about resource/operations/subjects and used in the decision making process. While the toolkit provides some implementations of PIPs/PDPs, the framework is pluggable and custom mechanisms can be written and configured.
+    </para> 
+    <para> An authorization engine consists of PIPs, PDPs and a combining algorithm. The configured authorization engine is invoked as part of a handler chain, immediately after authentication of the invocation (<function>java:org.globus.wsrf.impl.security.authorization.AuthorizationHandler</function>). If no  security mechanism is used for an operation,  authorization is not done for that operation.  </para>
+    <para> The architecture of Generic Java Authorization Engine is described in detail in this <ulink url="&docpath;security/authzframe/gtJavaAuthzEngine.pdf">document</ulink>. It also describes interfaces and writing custom PDPs/PIPs.</para>
+    <para>Any PDP has to implement the interface <function>org.globus.security.authorization.PDP</function> and contain the logic to return a permit or deny based on information such as the subject DN, the service being accessed and the operation being performed. To manage configuration information, each PDP can be bootstrapped with an object implementing the <function>org.globus.security.authorization.ChainConfig</function> interface. The interface has get and set methods which can be used to retrieve and set scoped parameters for the PDP. </para>
+    <para>PIPs have to implement the interface <function>org.globus.security.authorization.PIP</function> with the functionality to collect attributes from the invocation context that are relevant to making the authorization decision.</para>
     <section>
      <title> Authorization Policy Configuration </title>
 
-    <para>A chain of PDPs and PIPs, with relevant configuration information, can be configured at resource, service or container level. Additionally an administrative poloiy can be configured at the container level. The following describes the precedence in which configured policy is used: </para>
+    <para>A chain of PDPs and PIPs, with relevant configuration information, can be configured at resource, service or container level. These chain use Permit Override with Delegation as default combining algorithm. Additionally an administrative policy can be configured at the container level. The administrative chain uses First Applicable combining algorithm by default. Note that comining algorithms can be configured to over-ride the deafult. The following describes the precedence in which configured policy is used: </para>
 
 <para>
 <orderedlist>
@@ -86,13 +86,48 @@ scoped as the name suggests.</para>
  </para></listitem>
  </orderedlist>
 </para>
-  
-    </section>
+      </section>
+
+    <section>
+     <title> Authorization Handler Steps </title>
+
+<para>
+<orderedlist>
+
+<listitem><para>Invoke <xref linkend="authzframe-pip-ContainerPIP"/> to collect attributes inherent to the framework. The PIP creates an instance of RequestEntities class to use as parameter with PIPs. It also creates an instance of ResourceChainConfig class to push the current message context as a parameter to ContianerPIP. </para></listitem>
+
+<listitem><para>Evaluate the administrator authorization engine, if one is configured
+
+<orderedlist>
+<listitem><para>If bootstrap overwrite is configured, then only BootstrapPIPs in administrator engine is invoked. Else the <xref linkend="authzframe-pip-X509Bootstrap"/> is invoked prior to any other Bootstrap PIPs configured.</para></listitem>
+
+<listitem><para>The authorization engine is run and if a deny decision is returned, the operation is denied. If a permit decision is returned, the operation is permitted. If a not applicable or indeterminate is returned, further authorization engines are evaluated.</para></listitem>
+</orderedlist>
+
+</para></listitem>
+
+<listitem><para>Evaluate the authorization engine configured in the resource, service, container, in that order depending on which is configured
+
+<orderedlist>
+<listitem><para>If bootstrap overwrite is configured, then only BootstrapPIPs in administrator engine is invoked. Else the <xref linkend="authzframe-pip-X509Bootstrap"/> is invoked prior to any other Bootstrap PIPs configured.</para></listitem>
+
+<listitem><para>If any decision other than a Permit is returned, the operation is denied. If a permit is returned the operation is allowed.</para></listitem>
+</orderedlist>
+</para></listitem>
+
+<listitem><para>If no authorization engine was configured, then default authorization engine is created, which checks whether the caller has same credentials as service (self authorization)</para></listitem>
+
+      </orderedlist>
+       </para>
+     </section>
+      
   </section>
 
   <section>
     <title>Client-side authorization</title>
-    <para>Client side authorization is done as a part of the authentication handler. GSI Secure Message authentication does client-side authorization only after the operation is completed. The other two authentication schemes supported, GSI Secure Conversation and GSI Transport, authorize the server prior to the operation. The toolkit supports self, gridmap, host and identity authorization on the client side. The authorization to be used is set programmatically on the Stub and the handler enforces it.</para>
+    <para>Client side authorization is done as a part of the authentication handler. GSI Secure Message authentication does client-side authorization only after the operation is completed. This is done as a part of the web services client handler. The other two authentication schemes supported, GSI Secure Conversation and GSI Transport, authorize the server during the handshake, prior to the operation invocation. </para>
+    <para> The Transport Level Security protocol allows for authorization (an expected DN comparison) during the handshake. This is disabled by default in the toolkit, unless delegation of credential is requested. If no delegation is requested, the configured authorization mechanism is invoked afer the handshake is complete, prior to the operation invocation. If delegation is requested, authorization (expected DN comparison) is done during key exchange as a part of the protocol. </para>
+<para>The toolkit supports self, gridmap, host and identity authorization on the client side. The authorization to be used is set programmatically on the Stub and the handler enforces it.</para>
   </section>
 </section>
 <section id="authzframe-developer-pubinterfaces">
