@@ -1209,6 +1209,14 @@ N. Paton, M.P. Atkinson, V. Dialani, D. Pearson, T. Storey, and P. Watson.
 
     <h2><a name="Resource Management Components">Resource Management Components (GRAM, SNAP, GARA/Qos, etc.)</a></h2>
 	
+    <p><font size="2"><strong><a name="TG-GRAM-Auditing">TeraGrid's GRAM Auditing &amp; Accounting, &amp; Its Integration with the LEAD Science Gateway</a></strong>.
+	        S. Martin, P. Lane, I. Foster, and M. Christie<br/>
+Describes how auditing information is produced by Globus Toolkit services and integrated with local accounting systems for use by TeraGrid’s resource providers.<br>
+
+       [<a href="#TG-GRAM-Auditing">Citation</a>,
+
+  <a href="papers/TG_GRAM_Auditing_and_LEAD_Gateway.pdf">PDF</a>]</font></p>
+	
 	    <p><font size="2"><strong><a name="TG07-GRAM">GT4 GRAM: A Functionality
 	            and Performance Study</a></strong>.
 	        M. Feller, I. Foster, and S. Martin.<br/>
@@ -1216,7 +1224,7 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
        [<a href="#TG07-GRAM">Citation</a>,
 
-  <a href="papers/TG07-GRAM-comparison.pdf">PDF</a>, <a href="papers/TG07-GRAM-comparison.doc">DOC</a>]</font></p>
+  <a href="papers/TG07-GRAM-comparison.pdf">PDF</a>]</font></p>
 
 
     <p><font size="2"><strong><a name="VM-SPJ2006">Virtual Workspaces: Achieving Quality of Service and 
