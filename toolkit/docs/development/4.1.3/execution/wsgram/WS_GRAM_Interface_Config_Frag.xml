@@ -92,10 +92,41 @@
             </screen>
         </para>
     </section>
-    <!-- enabling scheduler adapters -->
-    
+
+    <section><title>Configuring the Persistency Database</title>
+      <para>
+        The database that stores the information about job resources is configured
+	in the JNDI container registry in 
+	<computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_gram/jndi-config.xml</computeroutput>.
+	By default Derby, which is shipped as part of the GT, is used as DMBS.
+	The necessary tables are created during installation of the GT and no
+	additional configuration must be done.
+      </para>
+      <para>
+        Aside from Derby, persistence data can also be stored in MySQL or PostgreSQL.
+        For information about how to configure MySQL or PostgreSQL, see the Non-default
+	Configuration section on this page.
+      </para>
+      <para>
+        In case the Derby database should be cleared or recreated the following can be done:
+	<orderedlist>
+          <listitem>
+	    <para>
+	      Delete the existing database: 
+	    </para>
+	    <screen>rm -rf $GLOBUS_LOCATION/var/gram/ResourceDatabase</screen>
+          </listitem>
+          <listitem>
+	    <para>
+	      Recreate the database: 
+	    </para>
+	    <screen>ant -f $GLOBUS_LOCATION/setup/globus/create-gram-database.xml</screen>
+          </listitem>
+	</orderedlist>
+      </para>
+    </section>
+
 </section>
-<!-- Typical Configuration -->
 
 <section> <!-- Frags used more than once cannot have ids id="wsgram-admin-configuring-nondefault"--><title>Non-default Configuration</title>
     
@@ -253,7 +284,142 @@
         </screen>
     </section> 
     <!-- Non-default RFT deployment -->
-    
+   
+    <section><title>Non-default Persistency Database Configuration</title>
+      <para>
+        Aside from Derby, database schemas for MySQL and PostgreSQL are provided.
+	They can be found in <computeroutput>$GLOBUS_LOCATION/share/globus_wsrf_gram/</computeroutput>.
+	After creating the database, the JNDI configuration of WS-GRAM must be adapted in
+	order to use the non-default database.
+      </para>
+      <para>
+        Note, that there's more than one configuration section for ManagedJobFactoryService
+	in the JNDI registry:
+        <itemizedlist>
+	  <listitem>
+	    <para>
+              <emphasis role="bold">ManagedJobFactoryService</emphasis>:
+	        This is the factory for jobs described in the job description language
+		defined by WS-GRAM.  
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+              <emphasis role="bold">v4_2/ManagedJobFactoryService</emphasis>:
+	      This is the factory for jobs described in JSDL
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+              <emphasis role="bold">bes/ManagedJobFactoryService</emphasis>
+	      This the not yet functional Basic Execution Service.
+	    </para>
+	  </listitem>
+	</itemizedlist>
+        The database configuration must be specified for each factory, except for
+	the BES factory which can't be used at the moment due to it's prototype status.
+        The database settings must be specified in the section for the
+	ManagedJobFactoryService and the v4_2/ManagedJobFactoryService.
+	The important parameters are driverClassName, url, username and password.
+      </para>
+      <para>
+	The following describes how to configure MySQL as DBMS. Similar settings must
+	be done if PostgreSQL is used.
+        <orderedlist>
+	  <listitem>
+            <para>
+               Create the database as root of the MySQL DMBS and grant permissions to the user
+	       globus with password "foo" assuming that the container is run as user globus:
+	    </para>
+	    <screen>[root@lappi ~]# mysql -u root -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 4 to server version: 4.1.22-standard
+
+Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
+
+mysql> create database ResourceDatabase;
+Query OK, 1 row affected (0.03 sec)
+
+mysql> GRANT all on ResourceDatabase.* to globus@localhost identified by "foo";
+Query OK, 0 rows affected (0.08 sec)
+
+mysql> quit
+Bye</screen> 
+	  </listitem>
+	  <listitem>
+            <para>
+              Create the tables as user globus:
+            </para>
+            <screen>globus@lappi ~]$ mysql -u globus ResourceDatabase -p &lt; $GLOBUS_LOCATION/share/globus_wsrf_gram/gram_schema_mysql.sql
+Enter password:
+globus@lappi ~]$</screen>
+	  </listitem>
+	  <listitem>
+            <para>
+              Adapt the sections of <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_gram/jndi-config.xml</computeroutput>
+	    </para>
+      <screen>&lt;service name="ManagedJobFactoryService"&gt;
+...
+  &lt;resource name="ResourceDatabase" type="javax.sql.DataSource"&gt;
+  ...
+    &lt;parameter&gt;
+       &lt;name&gt;driverClassName&lt;/name&gt;
+       &lt;value&gt;com.mysql.jdbc.Driver&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+       &lt;name&gt;url&lt;/name&gt;
+       &lt;value&gt;jdbc:mysql://localhost/ResourceDatabase&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+       &lt;name&gt;username&lt;/name&gt;
+       &lt;value&gt;globus&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+       &lt;name&gt;password&lt;/name&gt;
+       &lt;value&gt;foo&lt;/value&gt;
+    &lt;/parameter&gt;
+  ...
+  &lt;/resource&gt;
+&lt;/service&gt;
+
+...
+
+&lt;service name="v4_2/ManagedJobFactoryService"&gt;
+...
+  &lt;resource name="ResourceDatabase" type="javax.sql.DataSource"&gt;
+  ...
+    &lt;parameter&gt;
+       &lt;name&gt;driverClassName&lt;/name&gt;
+       &lt;value&gt;com.mysql.jdbc.Driver&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+       &lt;name&gt;url&lt;/name&gt;
+       &lt;value&gt;jdbc:mysql://localhost/ResourceDatabase&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+       &lt;name&gt;username&lt;/name&gt;
+       &lt;value&gt;globus&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+       &lt;name&gt;password&lt;/name&gt;
+       &lt;value&gt;foo&lt;/value&gt;
+    &lt;/parameter&gt;
+  ...
+  &lt;/resource&gt;
+&lt;/service&gt;</screen>
+	  </listitem>
+	  <listitem>
+            <para>
+              Make sure that the MySQL Connector/J has been copied to
+	      <computeroutput>$GLOBUS_LOCATION/lib/</computeroutput>. Otherwise
+	      the connection to the database will fail.
+	    </para>
+	  </listitem>
+	</orderedlist>
+      </para>
+    </section>
+   
 </section>
 <!-- Non-default Configuration -->
 
