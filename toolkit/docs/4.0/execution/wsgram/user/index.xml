@@ -16,27 +16,6 @@
 
 <section id="s-wsgram-user-newfunctionality"><title>New Functionality</title>
 
-<section id="s-wsgram-user-substitutionvariables"><title>Job Description Variables</title>
-<para>
-  Job description variables are special strings in a job description that are
-  replaced by the GRAM service with values that the client-side does not
-  <emphasis>a priori</emphasis> know.  Job description variables can be used
-  in any path-like string or URL specified in the job description.
-  An example of a variable is
-  <computeroutput>${GLOBUS_USER_HOME}</computeroutput>, which represents the
-  path to the HOME directory on the file system where the job is executed.
-  The set of variables is fixed in the gram service implementation.  This is 
-    different from previous implementations of <glossterm linkend="rsl">RSL</glossterm> substitutions in GT2 and GT3,
-  where a user could define a new variable for use inside a job description
-  document.  This was done to preserve the simplicity of the job description
-  XML schema (relatively to the GT3.2 RSL schema), which does not require a 
-  specialized XML parser to serialize a job description document.
-</para>
-<para>
-  Details of the RSL variables are in <ulink url="schemas/gram_job_description.html#SchemaProperties">job description doc</ulink>
-</para>
-</section>
-
 <section id="s-wsgram-user-submissionid"><title>Submission ID</title>
 <para>i
   A submission ID may be used in the GRAM protocol for reliability in the face
@@ -57,7 +36,7 @@
 <section id="s-wsgram-user-jobholdandrelease"><title>Job hold and release</title>
 <para>
 It is possible to specify in a job description that the job be 
-put on hold when it reaches a chosen state (see <ulink url="../key/WS_GRAM_Approach.html">GRAM
+put on hold when it reaches a chosen state (see <ulink url="../WS_GRAM_Approach.html">GRAM
 Approach</ulink>
 documentation for more information about the executable 
 job state machine, and see the<ulink url="schemas/mj_types.html#element_holdState"> job
@@ -96,7 +75,50 @@ native application API is available to help do the rendezvous.</para>
 </section>
 </section>
 
-
+<section>
+   <title>Changed Functionality</title>
+   <section>
+     <title>Independent resource keys</title>
+     <para>
+       <emphasis role="bold">Note</emphasis>: This change is done in GT 4.0.5
+     </para>
+     <para>  
+       WS GRAM enables the client to add a self-generated resource key to the
+       input type when submitting a new job request to the
+       ManagedJobFactoryService (MJFS). This enables the client to keep in
+       contact to the job in case the server fails after the job was created but
+       before the EndpointReference (EPR) of the newly created job was sent to
+       the client.The client is then able to create an EPR itself with the
+       self-generated job UUID and the address of the
+       ManagedExecutableJobService (MEJS) and query for the state of the job.
+     </para>
+     <para>
+       In former versions of WS GRAM the job UUID that was generated on the
+       client-side was used in WS GRAM as the resource key of the created job
+       resource. This has changed: WS GRAM now creates its own job UUID
+       even if the client provides one in the input of its call to the MJFS
+       and returns this job key inside the EPR which is returned to the client.
+       With the self-generated job key the client can still contact the MJFS.
+       The MJFS will simply use that mapping then.
+       But the client can't contact the MEJS with that self-generated job key
+       as part of an EPR in order to query for job state.
+     </para>
+     <section>
+       <title>Open Questions</title>
+       <para>
+         <itemizedlist>
+           <listitem>
+             <para>
+               I can't see that the mappings added to the
+               idempotenceIdMap are removed at any time. Should we add this in
+               the remove()-method of the MEJR?
+             </para>
+           </listitem>
+         </itemizedlist>
+       </para>    
+     </section>  
+   </section>
+</section>  
 
 <section id="s-wsgram-user-usagescenarios"><title>Usage scenarios</title>
 
@@ -383,6 +405,14 @@ Here is an example job description with file stage-in and stage-out:</para>
 
 <section id="s-wsgram-user-specifyingextensions">
 <title>Specifying and handling custom job description extensions.</title>
+
+<note><simpara>
+This feature has been added in GT 4.0.5. For versions older than 4.0.5 an update package
+is available to upgrade one's installation. See the
+<ulink url="http://www.globus.org/toolkit/downloads/development/">downloads</ulink>
+page for the latest links.
+</simpara></note>
+
 <para>
 Basic support is provided for specifying custom extensions to the job
 description. There are plans to improve the usability of this feature, but at
@@ -396,11 +426,10 @@ description as in the following basic example:
 &lt;job&gt;
     &lt;executable&gt;/home/user1/myapp&lt;/executable&gt;
     &lt;extensions&gt;
-        &lt;mySillyData&gt;
-            &lt;florgsplat&gt;on&lt;/florgsplat&gt;
-            &lt;tumblebuffel&gt;off&lt;/tumblebuffel&gt;
-            &lt;headontight&gt;no&lt;/headontight&gt;
-        &lt;/mySillyData&gt;
+        &lt;myData&gt;
+            &lt;var1&gt;hello&lt;/var1&gt;
+            &lt;var2&gt;world&lt;/var2&gt;
+        &lt;/myData&gt;
     &lt;/extensions&gt;
 &lt;/job&gt;
 </screen>
@@ -410,6 +439,12 @@ To handle this data, you will have to alter the appropriate perl scheduler
 script (i.e. fork.pm for the Fork scheduler, etc...) to parse the data returned 
 from the <computeroutput>$description->extensions()</computeroutput> sub.
 </para>
+
+<para>
+More information about job description extension support can be found in
+the <ulink url="admin-index.html#s-wsgram-admin-extensions">Admin guide</ulink>
+</para>
+
 </section>
 
 <!--
@@ -541,8 +576,307 @@ Cleaning up any delegated credentials...Done.
   
 </para>
 </section>
-</section>
 
+<section id="s-wsgram-user-softenv"><title>Specifying SoftEnv keys in the job description</title>
+
+  <para>
+     <emphasis role="strong">Note</emphasis>: This feature is only available beginning from
+     version 4.0.5 of the toolkit.
+  </para>
+   
+  <para>
+    For a short introduction to SoftEnv please have a look at the
+    <ulink url="admin-index.html#s-wsgram-admin-softenv">SoftEnv
+    section in the admin guide</ulink>.
+  </para>
+  <para>
+    If SoftEnv is enabled on the server-side, nothing must be added to a job
+    description to set up the environment which is specified in the
+    <computeroutput>.soft</computeroutput> file in the remote home directory of
+    the user before the job is submitted to the scheduler.
+    If a different software
+    environment should be used than the one specified in the remote
+    <computeroutput>.soft</computeroutput> file, the user must provide 
+    SoftEnv parameters in the extensions element of the job
+    description. The schema of the extension element for software selection
+    in the job description is as follows:
+  </para>
+  <screen>&lt;element name="softenv" type="xsd:string"&gt;</screen>
+  <para>  
+    For example, to add the SoftEnv commands "@teragrid-basic",
+    "+intel-compilers", "+atlas", and "+tgcp" to the job process's
+    environment, the user would specify the following "extensions" element
+    in the job description:
+  </para>
+  <screen>&lt;extensions&gt;
+  &lt;softenv&gt;@teragrid-basic&lt;/softenv&gt;
+  &lt;softenv&gt;+intel-compilers&lt;/softenv&gt;
+  &lt;softenv&gt;+atlas&lt;/softenv&gt;
+  &lt;softenv&gt;+tgcp&lt;/softenv&gt;
+&lt;/extensions&gt;</screen>
+  <para>
+    So far there is no way for a user to get information from the remote service
+    itself whether SoftEnv support is enabled or not. The only way to check this so
+    far is to submit a job with <computeroutput>/bin/env</computeroutput> as
+    executable and watch the results.
+  </para>
+  <para> 
+    <emphasis role="bold">Scenarios</emphasis>:
+    <orderedlist>
+      <listitem>
+        <para>
+          SoftEnv is <emphasis role="strong">disabled</emphasis> on the server-side
+          <orderedlist>
+            <listitem>
+              <para>
+                <emphasis role="strong">The user provides no SoftEnv extensions</emphasis>
+              </para>
+              <para>
+                No SoftEnv environment is configured then before job submission, even
+                if the user has a <computeroutput>.soft</computeroutput> file in his
+                remote home directory.
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="strong">The user provides valid SoftEnv extensions</emphasis>
+              </para>
+              <para>
+                If SoftEnv is not installed on the server then no environment
+                will be configured
+              </para>
+              <para>
+                If SoftEnv is installed, the environment the user specifies in the extensions
+                elements overwrites any softenv configuration the user
+                specifies in a <computeroutput>.soft</computeroutput> or a 
+                <computeroutput>.nosoft</computeroutput> file in his remote home directory.
+                The environment will be configured as specified by the user in the 
+                extension elements before job submission.
+              </para>     
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="strong">The user provides invalid SoftEnv extensions</emphasis>
+              </para>
+              <para>
+                If SoftEnv is not installed on the server then no environment
+                will be configured
+              </para>
+              <para>
+                If SoftEnv is installed, the environment the user specifies in the extensions
+                elements overwrites any softenv configuration the user
+                specifies in a <computeroutput>.soft</computeroutput> or a 
+                <computeroutput>.nosoft</computeroutput> file in his remote home directory.
+                Only the valid keys in the SoftEnv extensions elements will be configured.
+                If no valid key is in there then no environment will be configured.
+                SoftEnv warnings are logged to stdout of the job.
+              </para>
+            </listitem>
+          </orderedlist>
+          In general jobs don't fail if they have SoftEnv extensions in their
+          description and SoftEnv is disabled or even not installed on the service-side.
+          But they will fail if they rely on environments being set up before job submission.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          SoftEnv is <emphasis role="strong">enabled</emphasis> on the server-side
+          <orderedlist>
+            <listitem>
+              <para>
+                <emphasis role="strong">The user provides no SoftEnv extensions</emphasis>
+              </para>
+              <para>
+                If the user has a <computeroutput>.soft</computeroutput> file (and no
+                <computeroutput>.nosoft</computeroutput> file) in his remote home directory
+                then the environment defined in his <computeroutput>.soft</computeroutput>
+                file will be configured before job submission.
+                If there is a <computeroutput>.soft</computeroutput> file) in his remote
+                home directory no environment will be prepared.
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="strong">The user provides valid SoftEnv extensions</emphasis>
+              </para>
+              <para>
+                The specified environment overwrites any softenv configuration the user
+                specifies in a <computeroutput>.soft</computeroutput> or a 
+                <computeroutput>.nosoft</computeroutput> file in his remote home directory.
+                The environment will be configured as specified by the user in the 
+                extension elements before job submission.
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="strong">The user provides invalid SoftEnv extensions</emphasis>
+              </para>
+              <para>
+                The specified environment overwrites any softenv configuration the user
+                specifies in a <computeroutput>.soft</computeroutput> or a 
+                <computeroutput>.nosoft</computeroutput> file in his remote home directory.
+                Only the valid keys in the SoftEnv extension elements will be configured.
+                If no valid key is in there then no environment will be configured.
+                SoftEnv warnings are logged to stdout of the job.
+              </para>
+            </listitem>
+          </orderedlist>        
+        </para>
+      </listitem>
+    </orderedlist>
+  
+  </para>
+  <para>
+    <emphasis role="bold">Note</emphasis>:
+    In the current implementation it is not possible to call executables
+    directly whose paths are defined in SoftEnv without specifiying the
+    complete path to the executable.
+  </para>
+  <para>
+    <emphasis role="bold">Example</emphasis>: Let's say a database query must
+    be executed using the
+    mysql-command. If mysql is not in the default path then the direct use of
+    mysql as executable in the jobs description document will fail, even is
+    the use of SoftEnv is configured. The mysql-command must be written to a
+    script which is in the default path. Thus a job submission with the
+    following job description document will fail:
+  </para>
+  <screen>&lt;job&gt;
+  ...
+  &lt;executable&gt;mysql&lt;/executable&gt;
+  ...
+&lt;/job&gt;</screen>
+  <para>
+    But when the command is embedded inside a shell script which is
+    specified as the executable in the job description document, it will work.
+  </para>
+  <screen>#!/bin/sh
+  ...
+  mysql ...
+  ...</screen>
+  <para>
+    <emphasis role="bold">Note</emphasis>:
+    The use of invalid SoftEnv keys in the extension part of the job
+    description document does not generate errors.
+  </para>
+  
+  <!--
+  <section>
+    <title>Open Questions</title>
+    <para>
+      <itemizedlist>
+        <listitem>
+          <para>
+            What about the packages  for Condor and PBS on
+            <ulink url="http://www.globus.org/toolkit/downloads/development/">
+            http://www.globus.org/toolkit/downloads/development/</ulink>?
+          </para>
+        </listitem>
+        <listitem>   
+          <para>
+            Is the extension package globus_gram_job_manager_scripts-0.3
+            now part of a the software or must it be downloaded separately?
+          </para>
+        </listitem>
+        <listitem>
+          <para>Provide link to SoftEnv?</para>
+        </listitem>
+        <listitem>
+          <para>
+            What about the predefined softenv key in the JNDI configuration?
+            Is it already there? I can't find it in JNDI.
+            (<ulink url="http://bugzilla.mcs.anl.gov/globus/show_bug.cgi?id=4207">
+            http://bugzilla.mcs.anl.gov/globus/show_bug.cgi?id=4207</ulink>)
+          </para>
+        </listitem>
+        <listitem>
+          <para>  
+            I can't see that the mappings added to the
+            idempotenceIdMap are removed at any time. Should we add this in
+            the remove()-method of the MEJR?
+          </para>
+        </listitem>
+      </itemizedlist>
+    </para>
+   </section>
+   -->
+ </section>
+
+ <section id="s-wsgram-user-substitutionvariables">
+   <title>Specifying substitution variables in a job description</title>
+   
+   <para>
+     Job description variables are special strings in a job description that are
+     replaced by the GRAM service with values that the client-side does not
+     <emphasis>a priori</emphasis> know. Job description variables can be used
+     in any path-like string or URL specified in the job description.
+     An example of a variable is
+     <computeroutput>${GLOBUS_USER_HOME}</computeroutput>, which represents the
+     path to the HOME directory on the file system where the job is executed.
+     The set of variables is fixed in the gram service implementation.  This is 
+     different from previous implementations of <glossterm linkend="rsl">RSL</glossterm>
+     substitutions in GT2 and GT3,
+     where a user could define a new variable for use inside a job description
+     document.  This was done to preserve the simplicity of the job description
+     XML schema (relatively to the GT3.2 RSL schema), which does not require a 
+     specialized XML parser to serialize a job description document.
+   </para>
+   <para>
+     Details of the RSL variables are in
+     <ulink url="schemas/gram_job_description.html#SchemaProperties">job
+     description doc</ulink> and in the
+     <ulink url="admin-index.html#s-wsgram-admin-substitution-variables">substitution
+     variable section</ulink> of the admin guide.
+   </para>
+   
+   <section id="s-wsgram-user-substitutionvariables-changes">
+     <title>Changes in WS GRAM beginning from GT version 4.0.5</title>
+     <para>
+       Beginning from version 4.0.5 additional variables can be defined on the
+       server side for use in the job description. So far the user can't get
+       information from WS GRAM if additional variables are defined on the
+       server-side and if, what their names and values are. This information
+       must be published by the provider so far.
+     </para>
+   </section>
+  
+ </section>
+
+ <section id="s-wsgram-user-selfgeneratedkey">
+   <title>Specifying a selfgenerated resource key during job submission</title>
+   
+   <para>
+     WS GRAM enables a client to add a self-generated resource key to the input
+     type when submitting a new job request to the ManagedJobFactoryService (MJFS).
+     The client should make sure to provide a universal unique identifier (UUID) as
+     job resource key. For information about UUID's please read 
+     <ulink url="http://en.wikipedia.org/wiki/Universally_Unique_Identifier">here</ulink>.
+   </para>
+   <para>
+     Providing its own UUID enables a client to resubmit a job in case the server did
+     not respond to a prior job submission request due to e.g. network failures. If
+     the client submits a job with an already existing resource key a second time,
+     the job will not be started again because it's already running. This avoids
+     unnecessary and undesired resource usage and enables a reliable job submission.
+   </para>
+   <para>
+     Beginning from version 4.0.5 of the toolkit WS GRAM now creates its own job
+     UUID even if the client provides one in the input of its call to the MJFS and
+     returns this job UUID inside the endpoint reference (EPR) to the client.
+     The client can still contact the ManagedJobFactoryService (MJFS)
+     with the self-generated job resource key in order to resubmit a potentially not
+     'lost' and submitted job.
+     But the client can't contact the ManagedExecutableJobService (MEJS) with that
+     self-generated job key as part of an EPR in order to query for job state any
+     more. If it's unclear whether a job request has been started by the server,
+     the client has to submit the job with the same job UUID again in order to get
+     an EPR from the MJFS. With this the client then can query for job state or
+     destroy the job.
+   </para>
+
+ </section>
+
+</section>
 
 
 <section id="s-wsgram-user-commandline"><title>Command-line tools</title>
@@ -560,8 +894,4 @@ Cleaning up any delegated credentials...Done.
 <section id="s-wsgram-user-usage"><title>Usage statistics collection by the Globus Alliance</title>
 &WS_GRAM_Usage_Statistics_Frag;
 </section>
-
-
-
-
 

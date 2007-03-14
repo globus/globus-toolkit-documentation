@@ -653,14 +653,422 @@ Path to the SEG LSF log directory. This is used by the LSF
     </section>
 
 </section>
-    <section id="s-wsgram-Interface_Config_Frag-registering-remotely"><title>Registering WS GRAM manually with default WS MDS Index Service</title>
-        <para>If a third party needs to register an WS GRAM service manually, see <ulink url="http://www.globus.org/toolkit/docs/4.0/info/aggregator/re01.html#mds-servicegroup-add-registering">Registering with mds-servicegroup-add</ulink>
-            in the WS MDS Aggregator Framework documentation.</para>
+<section id="s-wsgram-Interface_Config_Frag-registering-remotely">
+    <title>Registering WS GRAM manually with default WS MDS Index Service</title>
+    <para>If a third party needs to register an WS GRAM service manually, see
+          <ulink url="http://www.globus.org/toolkit/docs/4.0/info/aggregator/re01.html#mds-servicegroup-add-registering">
+	  Registering with mds-servicegroup-add</ulink>
+          in the WS MDS Aggregator Framework documentation.
+     </para>
+</section>
+
+
+<section id="s-wsgram-admin-softenv"><title>Configuring support for SoftEnv</title>
+
+   <para>
+      <emphasis role="strong">Note</emphasis>: This feature is only available beginning from
+      version 4.0.5 of the toolkit.
+   </para>
+    
+    <section id="s-wsgram-admin-softenv-overview"><title>Overview</title>
+      <para>
+        SoftEnv is a system designed to make it easier for users to define what
+        applications they want to use, and easier for administrators to make
+        applications available to users. SoftEnv has evolved from the original
+        implementation called Soft designed at Northeastern University in 1994.
+      </para>
+      <para>
+        In some environments like TeraGrid it's desirable to make use of SoftEnv
+        before a job is submitted to leverage the use of an exactely
+        defined software environment the job will run in.
+      </para>
     </section>  
+    
+    <section id="s-wsgram-admin-softenv-configure"><title>Configuration</title>
+      <para>
+        Because this feature is very specific and may not be available on many
+        systems, support for SoftEnv is disabled by default in normal job
+        submissions. There is a parameter in the JNDI configuration of WS GRAM
+        to enable SoftEnv support in job submissions.
+      </para>
+      <para>
+        SoftEnv support must be enabled on a per-scheduler basis because the internal
+        mechanisms to support SoftEnv vary between the different types of
+        schedulers. Currently only the scheduler Fork, PBS and LSF can be configured
+        to have SoftEnv support enabled, Condor not yet. To enable this feature the
+        parameter 'enableDefaultSoftwareEnvironment' in the scheduler specific
+        JNDI configuration must be set to 'true'. For example to enable SoftEnv support
+        in the Fork scheduler, set the 'enableDefaultSoftwareEnvironment' in
+        $GLOBUS_LOCATION/etc/gram-service-Fork/jndi-config.xml to 'true'.      
+      </para>
+      <para>
+        Enabled SoftEnv support means that a users default environment will be
+        created from his <computeroutput>.soft</computeroutput> file before each
+        job submission automatically. The user doesn't need to provide extra SoftEnv
+	keys in the extensions element of a job description. This is not done if the
+	SoftEnv feature is disabled.
+      </para>
+      <para>
+        For more information and examples, please look in the 
+        <ulink url="user-index.html#s-wsgram-user-softenv">SoftEnv section of the
+        user guide</ulink>.
+      </para>
+   
+    </section>
 
+    <section id="s-wsgram-admin-softenv-dependency"><title>Dependencies</title>
+      <para>
+        For the scheduler Fork SoftEnv needs to be installed on the host the
+        container is running on. For PBS and LSF SoftEnv needs to be installed on
+        the hosts where the jobs are executed.
+      </para>
+    </section>
 
+</section>
+
+<section id="s-wsgram-admin-substitution-variables">
+
+    <title>Job Description Document Substitution Variables</title>
+    <para>
+       By default only four variables can be used in the job description document
+       which are resolved to values in the service.
+       These are
+       <itemizedlist>
+            <listitem><para>GLOBUS_USER_HOME</para></listitem>
+            <listitem><para>GLOBUS_USER_NAME</para></listitem>
+            <listitem><para>GLOBUS_SCRATCH_DIR</para></listitem>
+            <listitem><para>GLOBUS_LOCATION</para></listitem>
+       </itemizedlist>
+     </para>
+     
+     <section id="s-wsgram-admin-substitution-variables-change">
+     
+       <title>Changes in WS GRAM beginning from GT version 4.0.5</title>
+       <para>   
+         To enable communities to define their own system-wide variables and
+         enable their users to use them in their job descriptions, a new
+         generic variable/value config file was added where these variables can
+         be defined. If a job description document contains one of these variables
+         that file will be used to resolve any matching variables.
+       </para>
+       <para>
+         A new service parameter in the JNDI container registry defines the path
+         to the variable mapping file. The mapping is done for each scheduler.
+         This file is checked periodically (configurable frequency) to see if it
+         has changed. If so, it is reread and the new content replaces the old.  
+       </para>
+       <para>
+         For example for the scheduler Fork there are the following entries in
+         <computeroutput>
+            $GLOBUS_LOCATION/etc/gram-service-Fork/jndi-config.xml
+         </computeroutput>
+         which can be configured to determine the location and the refresh period
+         of the variable mapping file:
+       </para>
+     <screen>&lt;parameter&gt;
+  &lt;name&gt;
+    substitutionDefinitionsFile
+  &lt;/name&gt;
+  &lt;value&gt;
+    /root/vdt-stuff/globus/etc/gram-service-Condor/substitution definition.properties
+  &lt;/value&gt;
+&lt;/parameter&gt;
+&lt;parameter&gt;
+  &lt;name&gt;
+    substitutionDefinitionsRefreshPeriod
+  &lt;/name&gt;
+  &lt;value&gt;
+    &lt;!-- MINUTES --&gt;
+    480
+  &lt;/value&gt;
+&lt;/parameter&gt;</screen>
+       <para>
+         The use of variables in the job description document that are
+         <emphasis>not</emphasis> defined in the variable mapping file leads to
+         the following error during job submission:
+        <computeroutput>
+          'No value found for RSL substitution variable &lt;variableName&gt;'
+        </computeroutput>
+      </para>
+    </section>  
+    
+    <!--
+    <section>
+      <title>Open Questions</title>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para>
+              Why is the variable mapping file on a per-scheduler basis and not
+              the same for all schedulers?
+            </para>
+          </listitem>
+          <listitem>
+            <para>  
+              There's no way to get a list of all defined variables yet, right?
+            </para>
+          </listitem>
+        </itemizedlist>
+      </para>    
+    </section>
+    -->
+    
+</section>
+
+<section id="s-wsgram-Interface_Config_Frag-audit-logging"><title>Audit Logging</title>
+
+   <para>
+      <emphasis role="strong">Note</emphasis>: This feature is only available beginning from
+      version 4.0.5 of the toolkit.
+   </para>
+   
+   <section id="s-wsgram-Interfact_Config_Frag-audit-logging-overview"><title>Overview</title>
+   <para>
+      For an introduction and overview about audit logging look
+      <ulink url="http://www.globus.org/solutions/">here</ulink>. Audit logging in WS-GRAM is
+	  done 3 times in a job's lifecycle: When the processing starts, when the job is submitted
+	  to the local resource manager and when it's fully processed or when it fails.
+<!--	   
+      GRAM4 provides mechanisms to provide access to audit and
+      accounting information associated with jobs that are submitted to local
+      resource manager (LRM) like PBS, LSF, Condor by GRAM4.
+      GRAM is not a local resource manager but rather a protocol engine for
+      communicating with a range of different local resource managers using a
+      standard message format.
+      In some scenarios it is desirable to get an overview over the usage of the
+      underlying LRM like
+      <itemizedlist>
+         <listitem><para>What kind of jobs had been submitted via GRAM?</para></listitem>
+         <listitem><para>How long did the processing of a job take?</para></listitem>
+         <listitem><para>How many jobs had been submitted by user X?</para></listitem>
+      </itemizedlist>
+      The following three usecases give a better overview about the meaning and
+      purpose of auditing and accounting:
+      <orderedlist>
+         <listitem><para>
+           <emphasis role="bold">Group Access</emphasis>.
+           A grid resource provider allows a remoteservice (e.g.,
+           a gateway or portal) to submit jobs on behalf of multiple users. The
+           grid resource provider only obtains information about the identity of
+           the remote submitting service and thus does not know the identity of
+           the users for which the grid jobs are submitted. This group access is
+           allowed under the condition that the remote service store audit
+           information so that, if and when needed, the grid resource provider
+           can request and obtain information to track a specific job back to an
+           individual user.
+         </para></listitem>
+         <listitem><para>
+           <emphasis role="bold">Query Job Accounting</emphasis>.
+           A client that submits a job needs to be able to
+           obtain, after the job has completed, information about the resources
+           consumed by that job. In portal and gateway environments where many
+           users submit many jobs against a single allocation, this per-job
+           accounting information is needed soon after the job completes so that
+           client-side accounting can be updated. Accounting information is
+           sensitive and thus should only be released to authorized parties.
+         </para></listitem>
+         <listitem><para>
+           <emphasis role="bold">Auditing</emphasis>.
+           In a distributed multi-site environment, it can be
+           necessary to investigate various forms of suspected intrusion and
+           abuse. In such cases, we may need to access an audit trail of the
+           actions performed by a service. When accessing this audit trail, it
+           will frequently be important to be able to relate specific actions
+           to the user.
+         </para></listitem>
+      </orderedlist>
+      </para>
+      <para>
+        The audit record of each job is stored in a DBMS and contains
+      <itemizedlist>
+        <listitem><para>
+          <emphasis>job_grid_id</emphasis>:
+          String representation of the resource EPR
+        </para></listitem>
+        <listitem><para>
+          <emphasis>local_job_id</emphasis>:
+          Job/process id generated by the scheduler
+        </para></listitem>
+        <listitem><para>
+          <emphasis>subject_name</emphasis>:
+          Distinguished name (DN) of the user
+        </para></listitem>
+        <listitem><para>
+          <emphasis>username</emphasis>:
+          Local username
+        </para></listitem>
+        <listitem><para>
+          <emphasis>idempotence_id</emphasis>:
+          Job id generated on the client-side
+        </para></listitem>
+        <listitem><para>
+          <emphasis>creation_time</emphasis>:
+          Date when the job resource is created
+        </para></listitem>
+        <listitem><para>
+          <emphasis>queued_time</emphasis>:
+          Date when the job is submitted to the scheduler
+        </para></listitem>
+        <listitem><para>
+          <emphasis>stage_in_grid_id</emphasis>:
+          String representation of the stageIn-EPR (RFT)
+        </para></listitem>
+        <listitem><para>
+          <emphasis>stage_out_grid_id</emphasis>:
+          String representation of the stageOut-EPR (RFT)
+        </para></listitem>
+        <listitem><para>
+          <emphasis>clean_up_grid_id</emphasis>:
+          String representation of the cleanUp-EPR (RFT)
+        </para></listitem>
+        <listitem><para>
+          <emphasis>globus_toolkit_version</emphasis>:
+          Version of the server-side GT
+        </para></listitem>
+        <listitem><para>
+          <emphasis>resource_manager_type</emphasis>:
+          Type of the resource manager (Fork, Condor, ...)
+        </para></listitem>
+        <listitem><para>
+          <emphasis>job_description</emphasis>:
+          Complete job description document
+        </para></listitem>
+        <listitem><para>
+          <emphasis>success_flag</emphasis>:
+          Flag that shows whether the job failed or finished successfully
+        </para></listitem>
+      </itemizedlist>
+      </para>
+      <para>
+        While audit and accounting records may be generated and stored by
+        different entities in different contexts, we assume here that audit
+        records are generated by the GRAM service itself and accounting records
+        by the LRM to which the GRAM service submits jobs. Accounting records
+        could contain all information about the duration and the resource-usage
+        of a job. Audit records are stored in a database indexed by a Grid job
+        identifier (GJID), while accounting records are maintained by the LRM
+        indexed by a local job identifier (JID).
+      </para>
+      <para>
+        <emphasis role="bold">GRAM Service GJID creation</emphasis>
+      </para>
+      <para>  
+        The GRAM4 service returns an EPR that is used to control the job. The
+        EPR is an XML document and cannot effectively be used as a primary key
+        for a database table.  It needs to be converted from an EPR to an
+        acceptable GJID format.  A utility class EPRUtil.java is included GT
+        releases beginning from version 4.0.5 and can be used by both the GRAM
+        service before storing the audit record and the GRAM client before
+        getting audit information from the audit database.
+      </para>
+      <para>
+        To connect the two sets of records, both audit and accounting records,
+        we require that GRAM records theJID in each audit record that it
+        generates. It is then straightforward for  an audit service to respond
+        to requests like 'give me the charge of the job with JID x'  by first
+        selecting matching record(s) from the audit table and then using the
+        local JID(s) to join to the accounting table of the LRM to access
+        relevant accounting record(s).
+      </para>
+      <para>
+        We propose a Web Service interface for accessing audit and accounting
+        information.  OGSA-DAI is a WSRF service that can create a single
+        virtual database from two or more remote databases. 
+        In the future, other per-job information like job performance data
+        could be stored using the GJID or local JID as an index, and then made
+        available in the same virtual database.
+        The rest of this chapter focuses on how to configure GRAM4 to enable
+        Audit-Logging. A case study for TeraGrid can be read
+        <ulink url="http://www.teragridforum.org/mediawiki/index.php?title=GRAM4_Audit">
+          here</ulink>
+      </para>
+      <para>
+        OGSA-DAI is available here:
+        <ulink url="http://www.globus.org/toolkit/docs/4.0/techpreview/ogsadai/">
+        http://www.globus.org/toolkit/docs/4.0/techpreview/ogsadai/</ulink>
+      </para>
+      <para>
+        The audit record of a job is stored at the end of the processing cycle
+        of a job, either when it's completely processed or failed.
+      </para>
+      <para>
+        More information about how to use this data to get e.g. accounting
+        information of a job, how to query that audit database for information
+        via a Web Services interface etc. please go 
+        <ulink url="http://www.teragridforum.org/mediawiki/index.php?title=GRAM4_Audit">
+        here</ulink>
+-->
+	  </para>
+      
+      </section>
   
-  
+      <section>
+        <title>Configuration</title>
+        <para>
+          Add the following lines to the Log4j configuration in
+          <computeroutput>$GLOBUS_LOCATION/etc/container.log4j.properties
+          </computeroutput> to enable audit logging:
+        </para>
+        <screen># GRAM AUDIT
+log4j.category.org.globus.exec.service.exec.StateMachine.audit=DEBUG, AUDIT
+log4j.appender.AUDIT=org.globus.exec.utils.audit.AuditDatabaseAppender
+log4j.appender.AUDIT.layout=org.apache.log4j.PatternLayout
+log4j.additivity.org.globus.exec.service.exec.StateMachine.audit=false</screen>
+        <para>
+          Add or modify the database configuration where the audit records are
+          stored in <computeroutput>$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml
+          </computeroutput>:
+        </para>
+        <screen>&lt;resource name="auditDatabaseConfiguration" type="org.globus.exec.service.utils.AuditDatabaseConfiguration"&gt;
+  &lt;resourceParams&gt;
+    &lt;parameter&gt;
+      &lt;name&gt;factory&lt;/name&gt;
+      &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+      &lt;name&gt;driverClass&lt;/name&gt;
+      &lt;value&gt;&lt;driverName like com.mysql.jdbc.Driver&gt;&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+      &lt;name&gt;url&lt;/name&gt;
+      &lt;value&gt;jdbc:mysql://&lt;host&gt;[:port]/auditDatabase&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+      &lt;name&gt;user&lt;/name&gt;
+      &lt;value&gt;myUsername&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+      &lt;name&gt;password&lt;/name&gt;
+      &lt;value&gt;myPassword&lt;/value&gt;
+    &lt;/parameter&gt;
+    &lt;parameter&gt;
+      &lt;name&gt;globusVersion&lt;/name&gt;
+      &lt;value&gt;4.0.3&lt;/value&gt;
+    &lt;/parameter&gt;
+  &lt;/resourceParams&gt;
+&lt;/resource&gt;</screen>
 
+      </section>
+      
+      <section id="s-gram-admin-auditing-dependencies"><title>Dependencies</title>
+       <para>
+        <emphasis role="strong">Database</emphasis>
+       </para>
+       <para>
+        Currently database schemas for PostgreSQL and MySQL are provided to
+        create the audit database table.
+       </para>
+      </section>
+      
+</section>
 
+<!--
+<section id="s-wsgram-Interface_Config_Frag-database-persistency">
+    <title>
+       Database Persistency
+    </title>
+    <para>
 
+    </para>
+</section>    
+-->
