@@ -135,11 +135,11 @@ globus_out_of_date(); ?>
 			
 		<h2 class="smalltitle">Execution Mgt</h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/wsgram/">WS GRAM</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gram4/">GRAM4</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gtcp/">GTCP</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/csf/">CSF</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/wms/">WMS</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/prewsgram/">Pre-WS GRAM (legacy)</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gram2/">GRAM2 (legacy)</a></dt>
 			</dl>
 	</div>
 
