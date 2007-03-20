@@ -5,7 +5,7 @@
 <!-- <link rel="shortcut icon" href="/images/favicon.ico"> -->
 <!-- <link rel="icon" href="/images/favicon.ico"> -->
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<link href="css/default.css" rel="stylesheet" type="text/css" /> 
+<link href="/toolkit/css/default.css" rel="stylesheet" type="text/css" /> 
 <link rel="stylesheet" type="text/css" href="/toolkit/css/print.css" media="print" />
 <link rel="alternate" title="Globus Toolkit RSS" href="/toolkit/rss/downloadNews/downloadNews.xml" type="application/rss+xml">
 <script>
@@ -22,7 +22,7 @@ function GlobusSubmit()
 }
 </script>
 </head>
-<body>
+<body class="section-3">
 
 <div id="headerlinks">
 <br />
@@ -34,18 +34,15 @@ function GlobusSubmit()
 <div id="header"> <div align="left"> 
 <img src="images/gridftp.gif" alt="The Globus Toolkit" width="320" height="76" /></div>
 
-
 <ul id="menu">
-    <li id="nav-1"><a href="index.html">Overview</a></li>
-    <li id="nav-2"><a href="features.html">Features</a></li>
-    <li id="nav-3"><a href="advantage.html">Advantage</a></li>
-    <li id="nav-4"><a href="documentation.html">Docs</a></li>
-    <li id="nav-5"><a href="downloads.html">Downloads</a></li>
-    <li id="nav-6"><a href="links.html"> Links</a></li>
-    <li id="nav-7"><a href="faq.html">FAQ</a></li>
-    <li id="nav-8"><a href="success_stories.html">Success Stories</a></li>
+    <li id="nav-1"><a href="/">Home</a></li>
+    <li id="nav-2"><a href="/alliance/">Globus Alliance</a></li>
+    <li id="nav-3"><a href="/toolkit/">Globus Toolkit</a></li>
+    <li id="nav-4"><a href="/grid_software/">Grid Software</a></li>
+    <li id="nav-5"><a href="/solutions/">Grid Solutions</a></li>
+    <li id="nav-6"><a href="https://dev.globus.org/wiki/Welcome">dev.globus</a></li>
     <!-- end of navigation list -->
-  </ul>
+    </ul>
 
 <table class="navbartable" width="100%">
     <tr>

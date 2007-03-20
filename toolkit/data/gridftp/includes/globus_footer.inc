@@ -1,13 +1,13 @@
         	<!-- content ENDS here -->
-			<p>&nbsp;</p>
 		</div>
       <!--ending div of container-->
     </div>
     <div class="clearing">&nbsp;</div>
     <!--ending div of wrapper-->
+    <br/>
   </div>
 <div id="footer">
-  <hr class="first"/>
+
   
   <p>Comments?<br />
   For questions or feedback about this website:  <a href="mailto:webmaster@globus.org">webmaster@globus.org</a><br />
@@ -17,6 +17,7 @@ support</a> page.
   <p>Globus Project and Globus Toolkit are trademarks<br />
     held by the University of Chicago</p>
   <!--ending div of footer-->
+  <p>&nbsp;</p>
 </div>
  <script src="http://www.google-analytics.com/urchin.js"
  type="text/javascript">
