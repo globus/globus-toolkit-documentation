@@ -91,7 +91,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
 			</dl>
 		
-		<h2 class="smalltitle">Common Runtime</h2>
+		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/common/">Common Runtime</a></h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/javawscore/">Java WS Core</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/cwscore/">C WS Core</a></dt>
@@ -101,7 +101,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/pyglobus/">pyGlobus</a></dt>
 			</dl>
 			
-		<h2 class="smalltitle">Security</h2>
+			<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/security/">Security</a></h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/prewsaa/">Pre-WS A&amp;A</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/message/">Message-level</a></dt>
@@ -113,7 +113,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/simpleca/">SimpleCA</a></dt>
 			</dl>
 		
-		<h2 class="smalltitle">Data Mgt</h2>
+		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/data/">Data Mgt</a></h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/data/rft/">RFT</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/data/gridftp/">GridFTP</a></dt>
@@ -123,7 +123,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/data/datarep/">DRS</a></dt>
 			</dl>
 		
-		<h2 class="smalltitle">Information Svcs</h2>
+		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/info/">Information Svcs</a></h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">WS MDS Aggregator</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/index/">WS MDS Index</a></dt>
@@ -133,7 +133,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/providers/">WS MDS Info Providers</a></dt>
 			</dl>
 			
-		<h2 class="smalltitle">Execution Mgt</h2>
+			<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/common/">Execution Mgt</a></h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gram4/">GRAM4</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gtcp/">GTCP</a></dt>
