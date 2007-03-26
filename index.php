@@ -41,10 +41,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
           <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
           -->
 
-          <!-- ?   ***** Commented out 3/26/07 due to DB error - Lee *****
+          <?   ***** Commented out 3/26/07 due to DB error - Lee *****
              include_once("/mcs/www-unix.globus.org/include/globus_news.php");
              globus_print_alliance_news_headlines(5);
-          ?>  -->
+          ?>
 
           <p><a href="news.html">Archive of Globus Alliance news</a></p>
 
