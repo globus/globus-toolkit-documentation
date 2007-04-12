@@ -1224,7 +1224,7 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
        [<a href="#TG07-GRAM">Citation</a>,
 
-  <a href="papers/TG07-GRAM-comparison.pdf">PDF</a>]</font></p>
+  <a href="papers/TG07-GRAM-comparison-final.pdf">PDF</a>]</font></p>
 
 
     <p><font size="2"><strong><a name="VM-SPJ2006">Virtual Workspaces: Achieving Quality of Service and 
