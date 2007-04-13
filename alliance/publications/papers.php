@@ -1215,7 +1215,7 @@ Describes how auditing information is produced by Globus Toolkit services and in
 
        [<a href="#TG-GRAM-Auditing">Citation</a>,
 
-  <a href="papers/TG_GRAM_Auditing_and_LEAD_Gateway.pdf">PDF</a>]</font></p>
+  <a href="papers/TG_GRAM_auditing_and_LEAD_Gateway_final_2.pdf">PDF</a>]</font></p>
 	
 	    <p><font size="2"><strong><a name="TG07-GRAM">GT4 GRAM: A Functionality
 	            and Performance Study</a></strong>.
