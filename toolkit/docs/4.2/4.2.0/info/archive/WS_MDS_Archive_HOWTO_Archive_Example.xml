@@ -1,0 +1,238 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<title>GT &shortversion; Archive Service: How to configure the Archive
+Service to Poll information from an MDS4 Index Service</title>
+
+<titleabbrev>Configuring the Archive Service for storing an example
+RP</titleabbrev>
+
+<!-- 
+<para> This howto was written by <ulink
+url="http://www.thecodefactory.org/neillm">Neill Miller</ulink> under
+the guidance of <ulink
+url="http://www-unix.mcs.anl.gov/~schopf/">Jennifer
+Schopf</ulink>.</para>
+ -->
+
+<section id="archive-howto-intro"><title>Introduction</title>
+
+<para>
+This document is intended to help a user understand how to configure
+the Archive Service to retrieve information published as RPs from the
+MDS4 Index Service.  In the end, we'll have a running Archive Service
+that periodically pulls RP information from a running Index Service,
+which in turn stores the data to disk in a Xindice Database.  At any
+time, the information stored in the Archive Service can be queried by
+a command line too (mds-archive-query) over a specified date range.
+These actions may represent some typical use cases of the Archive
+Service.
+</para>
+
+<section><title>Configure the registration file</title>
+
+<para>
+The first step in configuring the Archive Service is to make sure that
+the information that you'd like to archive is already present in the
+Index Service.  If you have not yet configured your Information
+Providers to publish the desired information into the Index Service,
+you should read the Index Service documentation, as that is outside
+the scope of this document.  This document does cover an RP that
+should always be present in the Index Service for the sake of
+example.  Once you understand how to do what this document explains,
+you should be able to trivially change the RP to any one of your
+choosing (including custom RPs for your virtual organization).
+</para>
+
+<para>
+Given that the above has been sorted out and your Information
+Providers are configured, start the WS container.  For this example,
+no external Information Providers need to be configured.
+</para>
+
+<para>
+Knowing which RPs in the Index Service contain the desired data, the
+next step of the Archive Service configuration is to create a
+registration file.  There are many types of registrations that can
+possibly occur, due to the flexibility of the <link
+linkend="aggregator"> Aggregator Framework </link>.  You can view
+several examples in the
+<filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-aggregator-registration.xml</filename>
+file.
+</para>
+
+<para>
+For this example, we'll use a custom registration
+<ulink
+url="&docpath;info/index/example-archive-registration.xml">file</ulink>
+provided, which is specific to this example, but is easily editable
+for your own needs.  The contents of this file are shown below.  After
+downloading, open this file for viewing and editing.
+<screen>
+&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
+&lt;ServiceGroupRegistrations
+    xmlns="http://mds.globus.org/servicegroup/client"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/03/addressing"
+    xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+
+&lt;!-- *************** [1] *************** --&gt;
+  &lt;defaultServiceGroupEPR&gt;
+    &lt;wsa:Address&gt;https://localhost:8443/wsrf/services/ArchiveService&lt;/wsa:Address&gt;
+  &lt;/defaultServiceGroupEPR&gt;
+
+  &lt;ServiceGroupRegistrationParameters
+      xmlns="http://mds.globus.org/servicegroup/client"
+      xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/03/addressing"
+      xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+
+&lt;!-- *************** [2] *************** --&gt;
+    &lt;RegistrantEPR
+        xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/03/addressing"&gt;
+      &lt;wsa:Address&gt;https://localhost:8443/wsrf/services/DefaultIndexService&lt;/wsa:Address&gt;
+    &lt;/RegistrantEPR&gt;
+
+    &lt;RefreshIntervalSecs&gt;600&lt;/RefreshIntervalSecs&gt;
+    &lt;Content xsi:type="agg:AggregatorContent"
+             xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+
+
+&lt;!-- *************** [3] *************** --&gt;
+        &lt;agg:GetResourcePropertyPollType 
+             xmlns:lifetime="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd"&gt;
+          &lt;agg:PollIntervalMillis&gt;600000&lt;/agg:PollIntervalMillis&gt;
+          &lt;agg:ResourcePropertyName&gt;lifetime:CurrentTime&lt;/agg:ResourcePropertyName&gt;
+        &lt;/agg:GetResourcePropertyPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData /&gt;
+    &lt;/Content&gt;
+  &lt;/ServiceGroupRegistrationParameters&gt;
+&lt;/ServiceGroupRegistrations&gt;
+</screen>
+</para>
+
+<para>
+A few fields need to be updated in this registration file and they are
+indicated by the comment lines [1], [2], and [3].  The comment marked
+with [1] is the defaultServiceGroupEPR.  This is the service that will
+be contacted by default and in our case should be our running Archive
+Service.  Edit this URL to match the Address of the Archive Service
+running in the container.
+</para>
+
+<para>
+The comment marked by [2] is the RegistrantEPR.  This value should be
+changed to the Service from which data the desired data should be
+retrieved from.  In our example, it's the Default Index Service since
+our Archive Service will be pulling data from our Index Service.
+</para>
+
+<para>
+The comment marked by [3] is the AggregatorConfig block that specifies
+how the data should be retrieved from the RegistrantEPR Service.  In
+this example, we will be polling periodically every 10 minutes
+(which is every 600,000 milliseconds; see below) as specified in the
+PollIntervalMillis field.  Also, as you can see below that, the
+ResourcePropertyName field is specified as lifetime:CurrentTime.  Note
+that the lifetime namespace is qualified near the top if section [3]
+in the GetResourcePropertyPollType element declaration.  Modify both
+the XML namespace and the RP to suit your needs.  This example will
+use the above, since the CurrentTime RP is present in all default
+default Index Service instantiations.
+</para>
+
+<para>
+The other relevant fields in that file that you can configure are the following:
+</para>
+
+<para>
+<emphasis>RefreshIntervalSeconds</emphasis> - the amount of that time
+that should pass before the registration is renewed for you.  600
+seconds (i.e. 10 minutes) is generally sufficient, and certainly is
+for this example.  (Note: the mds-servicegroup-add utility will
+perform these registrations for you automatically at these time
+intervals).  This parameter's unit is in seconds.
+</para>
+
+<para>
+<emphasis>PollIntervalMillis</emphasis> - this is the time interval
+that we execute the specified poll action.  It's important to not set
+this value too low, as there's little value in having it execute
+extremely frequently given the overhead.  For our example, we'll set
+it to 10 minutes (i.e. 600000 milliseconds).  This means, the Archive
+Service will poll data from the Index Service once every 10 minutes.
+This parameter's unit is in milliseconds.
+</para>
+
+<para>
+If you have not done so already, download the example registration
+file, <ulink
+url="&docpath;info/index/example-archive-registration.xml">example-archive-registration.xml</ulink>.
+</para>
+
+</section>
+   <section><title>Register with the Archive Service: run mds-servicegroup-add</title>
+<para>
+Finally, to make the registration of the Index Service to the Archive
+Service, you need to run the <emphasis>mds-servicegroup-add</emphasis> program in
+a similar mannner:
+<screen>
+neillm@macglob $ $GLOBUS_LOCATION/bin/mds-servicegroup-add -s \
+https://localhost:8443/wsrf/servives/ArchiveService example archive-registration.xml                  
+Processing configuration file...
+INFO: Processed 1 registration entries
+INFO: Successfully registered
+https://localhost:8443/wsrf/services/DefaultIndexService to
+servicegroup at https://localhost:8443/wsrf/services/ArchiveService
+</screen>
+Note that you will have to specify the proper URI location of your
+Index Service on the command line and not the one specified above
+(unless it's the same, of course).
+</para></section>
+</section>
+
+<section id="archive-howto-example"><title>An Example Query (with no results)</title>
+
+<para>
+<screen>
+neillm@macglob $ ./mds-archive-query -s \
+https://localhost:8443/wsrf/services/ArchiveService -q \
+"//*[local-name()='CurrentTime']" -from 2007-04-15T013:00:00.000Z -to \
+2007-04-16T13:00:00.000Z \
+xmlns:myns="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd"               
+Querying archive...
+&lt;ns1:QueryArchiveResponse xmlns:ns1="http://mds.globus.org/archive/2006/08"/&gt;
+</screen>
+</para>
+
+<section id="archive-howto-example2"><title>An Example Query (with results)</title>
+
+<para>
+<screen>
+neillm@macglob $ ./mds-archive-query -s \
+https://localhost:8443/wsrf/services/ArchiveService -q \
+"//*[local-name()='CurrentTime']" -from 2007-04-15T013:00:00.000Z -to \
+2007-04-16T13:00:00.000Z \
+xmlns:myns="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd"               
+Querying archive...
+&lt;ns1:QueryArchiveResponse
+xmlns:ns1="http://mds.globus.org/archive/2006/08"&gt;&lt;ns1:value
+xmlns:ns1="http://www.globus.org/namespaces/2004/06/core"&gt;&lt;item
+xsi:type="xsd:anyType" xmlns=""
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;ns1:CurrentTime
+src:col="/db/archive-service/127.0.0.1.20202.ArchiveService/2007.04.15"
+src:key="18.59.49.901"
+xmlns:ns1="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd"
+xmlns:src="http://xml.apache.org/xindice/Query"&gt;2007-04-16T00:59:49.880Z&lt;/ns1:CurrentTime&gt;&lt;/item&gt;&lt;/ns1:value&gt;&lt;/ns1:QueryArchiveResponse&gt;
+</screen>
+</para>
+
+<para>
+This segment of the query output represents the data we've
+configured for use, as pulled into the Archive Service from the Index
+Service.</para>
+</section>
+
+<section id="archive-howto-contact"><title>Contact the author</title>
+<para>Contact the author at <ulink url="mailto:neillm@mcs.anl.gov">neillm@mcs.anl.gov</ulink>.</para>
+</section>
