@@ -125,12 +125,13 @@ globus_out_of_date(); ?>
 		
 		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/info/">Information Svcs</a></h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">WS MDS Aggregator</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/index/">WS MDS Index</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/trigger/">WS MDS Trigger</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/webmds/">WS MDS WebMDS</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/usefulrp/">WS MDS UsefulRP</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/providers/">WS MDS Info Providers</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">MDS Aggregator</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/archive/">MDS Archive</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/index/">MDS Index</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/trigger/">MDS Trigger</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/webmds/">MDS WebMDS</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/usefulrp/">MDS UsefulRP</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/providers/">MDS Info Providers</a></dt>
 			</dl>
 			
 			<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/common/">Execution Mgt</a></h2>
