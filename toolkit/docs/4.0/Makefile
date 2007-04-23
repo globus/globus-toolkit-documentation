@@ -23,3 +23,8 @@ mac:
 	--stringparam chapter.autolabel 0 \
 	/usr/share/xml/xsl/docbook-xsl/html/chunk.xsl \
 	$(FILENAME)
+	
+onechunk:
+	xsltproc --output release_manuals.html \
+	/usr/share/xml/docbook/stylesheet/nwalsh/html/docbook.xsl \
+	index.xml
