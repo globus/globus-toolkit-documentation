@@ -89,12 +89,12 @@ Globus Toolkit 4.0.x.</p>
 <th align="left">Example</th>
 </tr>
 <tr>
-<td>Report send time</td>
-<td>2006-04-05 13:25:35.272</td>
-</tr>
-<tr>
 <td>Local IP address</td>
 <td>128.5.198.23</td>
+</tr>
+<tr>
+<td>Report send time</td>
+<td>2006-04-05 13:25:35.272</td>
 </tr>
 <tr>
 <td>Job submission time</td>
@@ -139,6 +139,50 @@ Globus Toolkit 4.0.x.</p>
 </table>
 
 <h2>RFT</h2>
+
+<p>RFT services send a usage report whenever a file transfer request has completed. 
+(Note that an RFT request can involve many individual file transfers.)</p>
+
+<table border=0 cellspacing=4 cellpadding=0>
+<tr>
+<th align="left">Packet contents</th>
+<th align="left">Example</th>
+</tr>
+<tr>
+<td>Report send time</td>
+<td>2006-01-17 15:23:30.011</td>
+</tr>
+<tr>
+<td>Local IP address</td>
+<td>192.5.198.223</td>
+</tr>
+<tr>
+<td>RFT request type</td>
+<td>TRANSFER</td>
+</tr>
+<tr>
+<td>Number of files</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Number of bytes</td>
+<td>113753310</td>
+</tr>
+<tr>
+<td>Number of resources</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Request creation time</td>
+<td>1137533005210</td>
+</tr>
+<tr>
+<td>RFT service start time</td>
+<td>113753301001</td>
+</tr>
+</table>
+
+<h2>RLS</h2>
 
 <h2>Java WS Container</h2>
 
