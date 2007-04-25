@@ -57,8 +57,9 @@ community.</p>
 <a href="http://www.globus.org/toolkit/docs/">GT Release Manuals</a>
 starting with version 4.0.</p>
 
-<p>Add a link to a separate page giving samples of the usage reports from 
-each component</p>
+<ul>
+<li><a href="usage-report-samples.php">Sample usage reports from current Globus software</a></li>
+</ul>
 
 <h3>Administrator Choices</h3>
 
