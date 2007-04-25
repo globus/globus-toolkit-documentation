@@ -16,6 +16,7 @@ Consider joining a new discussion list called <strong>gt4-friends@globus.org</st
 <div id="footer">
     <p>Comments?<br />
   For questions or feedback about this website:  <a href="mailto:webmaster@globus.org">webmaster@globus.org</a><br />
+  For our privacy statement, see: <a href="http://www.globus.org/privacy">http://www.globus.org/privacy</a><br />
   For technical support or questions about Globus software, visit our <a href="http://www.globus.org/toolkit/support.html">technical
 support</a> page.
 </p>
