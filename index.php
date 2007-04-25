@@ -102,7 +102,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
   <hr class="first"/>
 
   <p class="panel">For questions or feedback about this website: 
-     <a href="mailto:webmaster@globus.org">webmaster@globus.org</a><br>
+     <a href="mailto:webmaster@globus.org">webmaster@globus.org</a> 
+     [<a href="<?=$SITE_PATHS["WEB_ROOT"]."privacy/"; ?>">">privacy statements</a>]<br>
    For technical support or questions about Globus software, visit our 
      <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."support.html"; ?>">technical support</a> page.</p>
 
