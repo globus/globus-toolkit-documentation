@@ -7,7 +7,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <div id="main">
  
-    <h1 class="first">Globus Community Privacy Statements</h1>
+    <h1 class="first">Privacy Statements</h1>
 
     <p>The following two privacy statements describe the Globus community's practices
        in regard to collecting and using personal information. One statement covers 
