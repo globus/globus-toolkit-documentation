@@ -16,7 +16,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
        enough to merit separate privacy statements.</p>
 
     <ul>
-    <li>Globus Online Services Privacy Statement</li>
+    <li><a href="online-services.php">Globus Online Services Privacy Statement</a></li>
     <li>Globus Software Privacy Statement</li>
     </ul>
 
