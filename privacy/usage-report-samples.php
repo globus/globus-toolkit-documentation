@@ -166,23 +166,97 @@ Globus Toolkit 4.0.x.</p>
 </tr>
 <tr>
 <td>Number of bytes</td>
-<td>113753310</td>
+<td>375113310</td>
 </tr>
 <tr>
 <td>Number of resources</td>
 <td>0</td>
 </tr>
 <tr>
-<td>Request creation time</td>
+<td>Creation time</td>
 <td>1137533005210</td>
 </tr>
 <tr>
-<td>RFT service start time</td>
-<td>113753301001</td>
+<td>Factory start time</td>
+<td>1137533010012</td>
 </tr>
 </table>
 
 <h2>RLS</h2>
+
+<p>RLS services send a usage report at server startup, shutdown, and once every 24 hours 
+while the service is running.</p>
+
+<table border=0 cellspacing=4 cellpadding=0>
+<tr>
+<th align="left">Packet contents</th>
+<th align="left">Example</th>
+</tr>
+<tr>
+<td>Report send time</td>
+<td>2005-12-18 18:01:38</td>
+</tr>
+<tr>
+<td>Local IP address</td>
+<td>192.192.5.223</td>
+</tr>
+<tr>
+<td>Local hostname</td>
+<td>rls.mydomain.org</td>
+</tr>
+<tr>
+<td>RLS version</td>
+<td>4.0</td>
+</tr>
+<tr>
+<td>RLS service uptime</td>
+<td>3267955</td>
+</tr>
+<tr>
+<td>Configured for LRC use?</td>
+<td>true</td>
+</tr>
+<tr>
+<td>Configured for RLI use?</td>
+<td>true</td>
+</tr>
+<tr>
+<td>Number of LFNs</td>
+<td>156</td>
+</tr>
+<tr>
+<td>Number of PFNs</td>
+<td>16</td>
+</tr>
+<tr>
+<td>Number of mappings</td>
+<td>16</td>
+</tr>
+<tr>
+<td>Number of RLI LFNs</td>
+<td>13437</td>
+</tr>
+<tr>
+<td>Number of RLI LRCs</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Number of RLI senders</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Number of RLI mappings</td>
+<td>20345</td>
+</tr>
+<tr>
+<td>Number of threads</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Number of connections</td>
+<td>48</td>
+</tr>
+</table>
 
 <h2>Java WS Container</h2>
 
