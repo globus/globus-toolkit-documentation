@@ -81,6 +81,63 @@ Globus Toolkit 4.0.x.</p>
 
 <h2>WS GRAM</h2>
 
+<p>WS GRAM services send a usage report whenever a job completes.</p>
+
+<table border=0 cellspacing=4 cellpadding=0>
+<tr>
+<th align="left">Packet contents</th>
+<th align="left">Example</th>
+</tr>
+<tr>
+<td>Report send time</td>
+<td>2006-04-05 13:25:35.272</td>
+</tr>
+<tr>
+<td>Local IP address</td>
+<td>128.5.198.23</td>
+</tr>
+<tr>
+<td>Job submission time</td>
+<td>2006-04-05 13:25:33.471</td>
+</tr>
+<tr>
+<td>Scheduler type</td>
+<td>LSF</td>
+</tr>
+<tr>
+<td>Job credential endpoint used?</td>
+<td>false</td>
+</tr>
+<tr>
+<td>File stagein used?</td>
+<td>true</td>
+</tr>
+<tr>
+<td>File stageout used?</td>
+<td>true</td>
+</tr>
+<tr>
+<td>File cleanup used?</td>
+<td>true</td>
+</tr>
+<tr>
+<td>Cleanup hold used?</td>
+<td>false</td>
+</tr>
+<tr>
+<td>Job type</td>
+<td>SINGLE</td>
+</tr>
+<tr>
+<td>GT2 error code</td>
+<td>0</td>
+</tr>
+<tr>
+<td>WS GRAM fault class</td>
+<td>0</td>
+</tr>
+</table>
+
 <h2>RFT</h2>
 
 <h2>Java WS Container</h2>
