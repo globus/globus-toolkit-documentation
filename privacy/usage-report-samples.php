@@ -260,7 +260,64 @@ while the service is running.</p>
 
 <h2>Java WS Container</h2>
 
+<p>Java WS containers send one usage report when they startup and another one when they shutdown.
+(Note that services hosted within the container (e.g., RFT, WS GRAM) may also send usage reports, 
+and these technically come from the container also.)</p>
+
+<table border=0 cellspacing=4 cellpadding=0>
+<tr>
+<th align="left">Packet contents</th>
+<th align="left">Example</th>
+</tr>
+<tr>
+<td>Report send time</td>
+<td>2005-07-29 12:45:24.401</td>
+</tr>
+<tr>
+<td>Local IP address</td>
+<td>98.4.4.126</td>
+</tr>
+<tr>
+<td>Container ID (random)</td>
+<td>1045289443</td>
+</tr>
+<tr>
+<td>Container type</td>
+<td>STANDALONE</td>
+</tr>
+<tr>
+<td>Event type</td>
+<td>STARTUP</td>
+</tr>
+<tr>
+<td>List of services</td>
+<td>NotificationTestService,TestServiceWrongWSDL,AuthzCalloutTestService[...]</td>
+</tr>
+<tr>
+<td>Container uptime</td>
+<td>2364225</td>
+</tr>
+</table>
+
+
 <h2>C WS Container</h2>
+
+<p>C WS containers send one usage report when they startup.</p>
+
+<table border=0 cellspacing=4 cellpadding=0>
+<tr>
+<th align="left">Packet contents</th>
+<th align="left">Example</th>
+</tr>
+<tr>
+<td>Report send time</td>
+<td>2005-07-29 12:45:24.401</td>
+</tr>
+<tr>
+<td>Local IP address</td>
+<td>123.45.67.2</td>
+</tr>
+</table>
 
 </div>
 
