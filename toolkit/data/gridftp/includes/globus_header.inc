@@ -32,7 +32,7 @@ function GlobusSubmit()
 </div>
 
 <div id="header"> <div align="left"> 
-<img src="images/gridftp.gif" alt="The Globus Toolkit" width="320" height="76" /></div>
+<img src="/toolkit/data/gridftp/images/gridftp.gif" alt="The Globus Toolkit" width="320" height="76" /></div>
 
 <ul id="menu">
     <li id="nav-1"><a href="/">Home</a></li>
