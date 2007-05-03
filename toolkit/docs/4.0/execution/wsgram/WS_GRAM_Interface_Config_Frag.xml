@@ -967,6 +967,11 @@ Path to the SEG LSF log directory. This is used by the LSF
           <emphasis>success_flag</emphasis>:
           Flag that shows whether the job failed or finished successfully
         </para></listitem>
+        <listitem><para>
+          <emphasis>finished_flag</emphasis>:
+          Flag that shows whether the job is already fully processed or
+          still in progress
+        </para></listitem>
       </itemizedlist>
       </para>
       <para>
@@ -1046,6 +1051,46 @@ log4j.appender.AUDIT=org.globus.exec.utils.audit.AuditDatabaseAppender
 log4j.appender.AUDIT.layout=org.apache.log4j.PatternLayout
 log4j.additivity.org.globus.exec.service.exec.StateMachine.audit=false</screen>
         <para>
+          Audit records are stored in a database. Currently we provide schemas for
+          MySQL (<computeroutput>$GLOBUS_LOCATION/share/gram-service/gram_audit_schema_mysql.sql
+          </computeroutput>) and Postgres (
+          <computeroutput>$GLOBUS_LOCATION/share/gram-service/gram_audit_schema_postgres-8.0.sql
+          </computeroutput>). The following describes how to set up the database for
+          audit records in MySQL:
+          <orderedlist>
+             <listitem>
+               <para>Create a database inside of MySQL</para>
+             </listitem>
+             <listitem>
+               <para>Use the schema to create the table</para>
+             </listitem>
+             <listitem>
+               <para>
+                 Grant necessary privileges to the user who is configured in the JNDI
+                 registry of WS-GRAM
+               </para>
+             </listitem>
+          </orderedlist>
+          <screen>host:~ feller$ mysql -u root -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 16
+Server version: 5.0.37 MySQL Community Server (GPL)
+
+Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
+
+mysql&gt; create database auditDatabase;
+Query OK, 1 row affected (0.09 sec)
+ 
+mysql&gt; GRANT ALL ON auditDatabase.* to globus@localhost identified by "foo";
+Query OK, 0 rows affected (0.32 sec)
+
+mysql&gt; exit
+Bye
+host:~ feller$ mysql -u globus -p auditDatabase < /opt/GT_BRANCH_02_05_2007/share/gram-service/gram_audit_schema_mysql.sql 
+Enter password: 
+host:~ feller$</screen>
+          <para>
           Add or modify the database configuration where the audit records are
           stored in <computeroutput>$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml
           </computeroutput>:
@@ -1058,7 +1103,7 @@ log4j.additivity.org.globus.exec.service.exec.StateMachine.audit=false</screen>
     &lt;/parameter&gt;
     &lt;parameter&gt;
       &lt;name&gt;driverClass&lt;/name&gt;
-      &lt;value&gt;&lt;driverName like com.mysql.jdbc.Driver&gt;&lt;/value&gt;
+      &lt;value&gt;&lt;com.mysql.jdbc.Driver&gt;&lt;/value&gt;
     &lt;/parameter&gt;
     &lt;parameter&gt;
       &lt;name&gt;url&lt;/name&gt;
@@ -1066,11 +1111,11 @@ log4j.additivity.org.globus.exec.service.exec.StateMachine.audit=false</screen>
     &lt;/parameter&gt;
     &lt;parameter&gt;
       &lt;name&gt;user&lt;/name&gt;
-      &lt;value&gt;myUsername&lt;/value&gt;
+      &lt;value&gt;globus&lt;/value&gt;
     &lt;/parameter&gt;
     &lt;parameter&gt;
       &lt;name&gt;password&lt;/name&gt;
-      &lt;value&gt;myPassword&lt;/value&gt;
+      &lt;value&gt;foo&lt;/value&gt;
     &lt;/parameter&gt;
     &lt;parameter&gt;
       &lt;name&gt;globusVersion&lt;/name&gt;
