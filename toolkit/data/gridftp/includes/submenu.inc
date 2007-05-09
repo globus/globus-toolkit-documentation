@@ -8,6 +8,5 @@
     <li><a href="downloads.html">Downloads</a></li>
     <li><a href="links.html"> Links</a></li>
     <li><a href="faq.html">FAQ</a></li>
-    <li><a href="success_stories.html">Success Stories</a></li>
   </ul>
 </div>
