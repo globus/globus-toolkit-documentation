@@ -481,4 +481,66 @@ gsiftp   stream   tcp   nowait   root   /usr/bin/env env   \
   <para>For more information, see <link linkend="cas-howto-gridftp-overview">How to Set Up CAS to Use with GridFTP</link>.</para>
 </section>
 
+<section><title>Configuring GridFTP to use UDT instead of TCP (for third party transfers)</title>
+  
+<para>GridFTP can use the alternative UDT protocol between servers, but not yet between client and server.</para>
 
+<para><emphasis>Prerequisites:</emphasis></para>
+ <orderedlist> 
+   <listitem><para>Begin with a threaded build of the Globus GridFTP server. Refer to <link linkend="gridftp-admin-installing-threaded">section 2.7</link> for
+information on how to build a threaded flavor of the GridFTP server. </para>
+  <note><para>This requires that GridFTP be built from the source installer.</para></note></listitem>
+<listitem><para>Currently GridFTP requires the reference implementation of UDT. This is available at
+  <ulink url="http://sourceforge.net/projects/udt">http://sourceforge.net/projects/udt</ulink>, and must be downloaded and installed prior to continuing.</para></listitem>
+ </orderedlist>
+  
+<para><emphasis>Steps:</emphasis></para>
+<orderedlist>  
+<listitem><para>Starting with the un-tar'd source bundle, go to <filename>gt&version;-all-source-installer/source-trees/xio/drivers/udt-ref/</filename> and execute the following two commands:</para>
+
+<screen>globus$ ./configure --with-flavor=gcc32dbgpthr (or whatever your threaded flavor is)
+--with-udt-path=&lt;path to your installed udt location&gt;
+  
+globus$ make install</screen>
+</listitem>  
+<listitem><para>Start the globus-gridftp-server with the <option>--protocol_stack udt_ref,gsi</option> option. 
+  For separate control and backend data nodes, this option is required
+  on the backend data nodes only.</para></listitem></orderedlist>
+  
+<note><para>Currently UDT can only be used for third-party transfers. </para></note>
+  
+  <para>Make sure both GridFTP (source &amp; destination) servers have been configured for using the UDT protocol by following the instructions above.</para>
+</section> 
+ 
+ <section><title>Configuring GridFTP-over-SSH</title>
+  <para>GridFTP traditionally uses GSI for establishing secure connections as a very strong, robust, and flexible means of securing messages.
+  In some situations however it is preferable to use the existing SSH security mechanism.</para>
+   
+  <para>GridFTP-over-SSH leverages the fact that an SSH client can remotely execute programs by forming a secure connection with SSHD. In this case:</para>
+   
+  <itemizedlist> 
+    <listitem><para>All of the standard IO from the remote program is routed back to the client.</para></listitem> 
+   <listitem><para>The client (globus-url-copy) acts as an SSH client and remotely executes a Globus GridFTP server. </para></listitem>
+   <listitem><para>All IO is sent to and from the client by way of UNIX pipes.</para></listitem>
+  </itemizedlist>
+  
+  <para>Client support scripts for GridFTP-over-SSH are automatically created when you run <command>make install</command> as part of step 2 above.</para>
+   
+  <para>On the server side (where you intend the client to remotely execute a server), the following command must be run as <emphasis role="strong">root</emphasis> in order to enable this 
+  machine to accept SSHFTP connections.  The following command will create the file <filename>/etc/grid-security/sshftp</filename>:</para>
+  
+  <screen>$GLOBUS_LOCATION/setup/globus/setup-globus-gridftp-sshftp -server</screen>
+  
+  <para>If root access is not available, the option <option>-nonroot</option> may be added to enable 
+  connections as the current user only.  The following alternative command will create the file <filename>$HOME/.globus/sshftp</filename>:</para>
+  
+  <screen>$GLOBUS_LOCATION/setup/globus/setup-globus-gridftp-sshftp -server -nonroot</screen>
+  
+  <para>In order to use GridFTP-over-SSH, the user must provide urls that begin with <filename>sshftp://</filename> as arguments. For example:</para>
+  <screen>globus-url-copy sshftp://&lt;host&gt;:&lt;port&gt;/&lt;path_to_file&gt; file:/&lt;path_to_file&gt;</screen>
+    
+    <para>where <computeroutput>&lt;port&gt;</computeroutput> is the port in which sshd listens on the host 
+      referred to by <computeroutput>&lt;host&gt;</computeroutput> (the default value is 22).</para>
+        
+        <note><para>GridFTP-over-SSH does not support either third party transfers or data channel security.</para></note>
+ </section>       
