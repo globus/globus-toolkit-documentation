@@ -44,6 +44,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 <p>Search mailing list: <select name="restrict">
 <option value="" selected>Select A List</option>
+<option value="" ></option>
 <option value="" >INDIVIDUAL LISTS</option>
   <option value="/mail_archive/announce/">announce@globus.org</option>
   <option value="/mail_archive/cog-news/">cog-news@globus.org</option>
@@ -57,102 +58,123 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
   <option value="/mail_archive/python-discuss/">python-discuss@globus.org</option>
   <option value="/mail_archive/security-announce/">security-announce@globus.org</option>
   <option value="/mail_archive/usage-stats/">usage-stats@globus.org</option>
+  <option value="" ></option>
   <option value="" >LISTS BY PROJECTS</option>
+  <option value="" ></option>
   <option value="" >==CAS Lists==</option>
   <option value="/mail_archive/cas-announce/">cas-announce@globus.org</option>
   <option value="/mail_archive/cas-commit/">cas-commit@globus.org</option>
   <option value="/mail_archive/cas-dev/">cas-dev@globus.org</option>
   <option value="/mail_archive/cas-user/">cas-user@globus.org</option>
+  <option value="" ></option>
   <option value="" >==C Core Utilities ==</option>
   <option value="/mail_archive/ccutil-announce/">ccutil-announce@globus.org</option>
   <option value="/mail_archive/ccutil-commit/">ccutil-commit@globus.org</option>
   <option value="/mail_archive/ccutil-dev/">ccutil-dev@globus.org</option>
   <option value="/mail_archive/ccutil-user/">ccutil-user@globus.org</option>
+  <option value="" ></option>
   <option value="" >==C Security==</option>
   <option value="/mail_archive/csec-announce/">csec-announce@globus.org</option>
   <option value="/mail_archive/csec-commit/">csec-commit@globus.org</option>
   <option value="/mail_archive/csec-dev/">csec-dev@globus.org</option>
   <option value="/mail_archive/csec-user/">csec-user@globus.org</option>
+  <option value="" ></option>
   <option value="" >==C WS Core==</option>
   <option value="/mail_archive/cwscore-announce/">cwscore-announce@globus.org</option>
   <option value="/mail_archive/cwscore-commit/">cwscore-commit@globus.org</option>
   <option value="/mail_archive/cwscore-dev/">cwscore-dev@globus.org</option>  
   <option value="/mail_archive/cwscore-user/">cwscore-user@globus.org</option>
+  <option value="" ></option>
   <option value="" >==Dynamic Accounts==</option>
   <option value="/mail_archive/da-announce/">da-announce@globus.org</option>
   <option value="/mail_archive/da-commit/">da-commit@globus.org</option>
   <option value="/mail_archive/da-dev/">da-dev@globus.org</option>
   <option value="/mail_archive/da-user/">da-user@globus.org</option>
+  <option value="" ></option>
   <option value="" >==Delegation Service==</option>
   <option value="/mail_archive/deleg-announce/">deleg-announce@globus.org</option>
   <option value="/mail_archive/deleg-commit/">deleg-commit@globus.org</option>
   <option value="/mail_archive/deleg-dev/">deleg-dev@globus.org</option>
   <option value="/mail_archive/deleg-user/">deleg-user@globus.org</option>
+  <option value="" ></option>
   <option value="" >==DRS==</option>
   <option value="/mail_archive/drs-announce/">drs-announce@globus.org</option>
   <option value="/mail_archive/drs-commit/">drs-commit@globus.org</option>
   <option value="/mail_archive/drs-dev/">drs-dev@globus.org</option>
   <option value="/mail_archive/drs-user/">drs-user@globus.org</option>
+  <option value="" ></option>
   <option value="" >==GRAM==</option>
   <option value="/mail_archive/gram-announce/">gram-announce@globus.org</option>
   <option value="/mail_archive/gram-commit/">gram-commit@globus.org</option>
   <option value="/mail_archive/gram-dev/">gram-dev@globus.org</option>
   <option value="/mail_archive/gram-user/">gram-user@globus.org</option>  
+  <option value="" ></option>
   <option value="" >==GridFTP==</option>
   <option value="/mail_archive/gridftp-announce/">gridftp-announce@globus.org</option>
   <option value="/mail_archive/gridftp-commit/">gridftp-commit@globus.org</option>
   <option value="/mail_archive/gridftp-dev/">gridftp-dev@globus.org</option>
   <option value="/mail_archive/gridftp-user/">gridftp-user@globus.org</option>  
+  <option value="" ></option>
   <option value="" >==Globus Toolkit==</option>
   <option value="/mail_archive/gt-announce/">gt-announce@globus.org</option>
   <option value="/mail_archive/gt-commit/">gt-commit@globus.org</option>
   <option value="/mail_archive/gt-dev/">gt-dev@globus.org</option>
   <option value="/mail_archive/gt-user/">gt-user@globus.org</option>
+  <option value="" ></option>
   <option value="" >==Globus Toolkit Release Manuals==</option>
   <option value="/mail_archive/gtmanuals-announce/">gtmanuals-announce@globus.org</option>
   <option value="/mail_archive/gtmanuals-commit/">gtmanuals-commit@globus.org</option>
   <option value="/mail_archive/gtmanuals-dev/">gtmanuals-dev@globus.org</option>
   <option value="/mail_archive/gtmanuals-user/">gtmanuals-user@globus.org</option>  
+  <option value="" ></option>
   <option value="" >==Gridway==</option>
   <option value="/mail_archive/gridway-announce/">gridway-announce@globus.org</option>
   <option value="/mail_archive/gridway-commit/">gridway-commit@globus.org</option>
   <option value="/mail_archive/gridway-dev/">gridway-dev@globus.org</option>
   <option value="/mail_archive/gridway-user/">gridway-user@globus.org</option>  
+  <option value="" ></option>
   <option value="" >==JGlobus==</option>
   <option value="/mail_archive/jglobus-announce/">jglobus-announce@globus.org</option>
   <option value="/mail_archive/jglobus-commit/">jglobus-commit@globus.org</option>
   <option value="/mail_archive/jglobus-dev/">jglobus-dev@globus.org</option>
   <option value="/mail_archive/jglobus-user/">jglobus-user@globus.org</option>  
+  <option value="" ></option>
   <option value="" >==Java WS Core==</option>
   <option value="/mail_archive/jwscore-announce/">jwscore-announce@globus.org</option>
   <option value="/mail_archive/jwscore-commit/">jwscore-commit@globus.org</option>
   <option value="/mail_archive/jwscore-dev/">jwscore-dev@globus.org</option>
   <option value="/mail_archive/jwscore-user/">jwscore-user@globus.org</option>  
+  <option value="" ></option>
   <option value="" >==MDS==</option>
   <option value="/mail_archive/mds-announce/">mds-announce@globus.org</option>
   <option value="/mail_archive/mds-commit/">mds-commit@globus.org</option>
   <option value="/mail_archive/mds-dev/">mds-dev@globus.org</option>
   <option value="/mail_archive/mds-user/">mds-user@globus.org</option>  
+  <option value="" ></option>
   <option value="" >==RFT==</option>
   <option value="/mail_archive/rft-announce/">rft-announce@globus.org</option>
   <option value="/mail_archive/rft-commit/">rft-commit@globus.org</option>
   <option value="/mail_archive/rft-dev/">rft-dev@globus.org</option>
   <option value="/mail_archive/rft-user/">rft-user@globus.org</option>  
+  <option value="" ></option>
   <option value="" >==RLS==</option>
   <option value="/mail_archive/rls-announce/">rls-announce@globus.org</option>
   <option value="/mail_archive/rls-commit/">rls-commit@globus.org</option>
   <option value="/mail_archive/rls-dev/">rls-dev@globus.org</option>
   <option value="/mail_archive/rls-user/">rls-user@globus.org</option>  
+  <option value="" ></option>
   <option value="" >==Virtual Workspace==</option>
   <option value="/mail_archive/workspace-announce/">workspace-announce@globus.org</option>
   <option value="/mail_archive/workspace-commit/">workspace-commit@globus.org</option>
   <option value="/mail_archive/workspace-dev/">workspace-dev@globus.org</option>
   <option value="/mail_archive/workspace-user/">workspace-user@globus.org</option>  
+  <option value="" ></option>
   <option value="" >==WS Schema==</option>
   <option value="/mail_archive/wsschema-announce/">wsschema-announce@globus.org</option>
   <option value="/mail_archive/wsschema-commit/">wsschema-commit@globus.org</option>
   <option value="/mail_archive/wsschema-dev/">wsschema-dev@globus.org</option>
   <option value="/mail_archive/wsschema-user/">wsschema-user@globus.org</option> 
+  <option value="" ></option>
   <option value="" >==XIO==</option>
   <option value="/mail_archive/xio-announce/">xio-announce@globus.org</option>
   <option value="/mail_archive/xio-commit/">xio-commit@globus.org</option>
