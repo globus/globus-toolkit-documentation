@@ -7,9 +7,9 @@
     {
         print "<p>ScOAP Instructions:<br><a href=/scoap>http://www-unix.globus.org/scoap/</a></p>\n";
     }
-    else if ( preg_match( "/3.9.5/", $link ) )
+    else if ( preg_match( "/3.9.(\d)/", $link, $matches ) )
     {
-        print "<p>[ <a href=../docs/development/3.9.5>Globus 3.9.5 Documents</a> ]<br>\n";
+        print "<p>[ <a href=../docs/development/3.9.$matches[1]>Globus 3.9.$matches[1] Documents</a> ]<br>\n";
     }
     else if ( preg_match( "/3.9.4/", $link ) )
     {
@@ -36,9 +36,9 @@
         print "<p>[ <a href=../releasenotes/3.2.1/>3.2.1 Release Notes</a> ]<br>\n";
         print "<p>[ <a href=../docs/3.2/>Globus Toolkit 3.2.1 Documents</a> ]<br>\n";
     }
-    else if ( preg_match( "/4.1.0/", $link ) )
+    else if ( preg_match( "/4.1.(\d)/", $link, $matches ) )
     {
-        print "<p>[ <a href=../docs/development/4.1.0>Globus 4.1.0 Documents</a> ]</p>\n";
+        print "<p>[ <a href=../docs/development/4.1.$matches[1]>Globus 4.1.$matches[1] Documents</a> ]</p>\n";
     }
     else
     {
