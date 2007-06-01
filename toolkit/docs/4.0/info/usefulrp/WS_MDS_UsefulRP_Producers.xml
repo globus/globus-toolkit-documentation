@@ -1,0 +1,154 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<section><title>The Current RPProviders</title>
+
+<para>The first major structural change is that an RPProvider package was created within the UsefulRP package. 
+    The intent of this new package was to provide some basic and flexible ways to insert arbitrary data into the Index service 
+    that are exposed as RPs. In particular, this package has a set of 'producers' that are used to get data into the Index service. 
+    For the first draft of the changes, we now have the following producers:</para>
+
+    <orderedlist>
+        <listitem><para><emphasis>External Process Element Producer</emphasis> - this producer executes any arbitrary command or script that emits XML 
+            and it will be published as an RP.</para></listitem>
+        
+        <listitem><para><emphasis>File Element Producer</emphasis> - this producer publishes the contents of a file on local disk to the Index service as an RP.</para></listitem>
+        
+        <listitem><para><emphasis>JVM Info Element Producer</emphasis> - this producer is a useful testing mechanism that emits information about the host JVM as an RP.</para></listitem>
+        
+        <listitem><para><emphasis>Scheduler Info Element Producer</emphasis> - this producer executes the scheduler (batch) provider script for GRAM. 
+            This is a replacement for the inflexible code that previously executed the scheduler provider script.</para></listitem>
+        
+        <listitem><para><emphasis>URL Element Producer</emphasis> - this producer retrieves data from a configurable web based site and publishes the retrieved data 
+            into the Index as an RP.</para></listitem>
+    </orderedlist>
+    
+    <para>The above producers allow flexibility regarding what data can be published in the Index service,  how to publish that data done and exposing data as RPs from a 
+        variety of sources.</para>
+
+</section>
+
+<section><title>External Process Element Producer</title>
+    <para>TODO: make a similar section for each producer</para>
+    
+    <para>To use the External Process Element Producer, add an entry in the following form to your 
+        <filename>$GLOBUS_LOCATION//etc/globus_wsrf_mds_index/rp-provider-config.xml</filename> file.</para>
+<screen>    
+    &lt;ns1:resourcePropertyName xsi:type="xsd:QName"
+        xmlns:mds="http://mds.globus.org/glue/ce/1.1"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;mds:MyTestRP&lt;/ns1:resourcePropertyName&gt;
+    &lt;ns1:resourcePropertyImpl xsi:type="xsd:string"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;org.globus.mds.usefulrp.rpprovider.SingleValueResourcePropertyProvider&lt;/ns1:resourcePropertyImpl&gt;
+    &lt;ns1:resourcePropertyElementProducers xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+        &lt;ns1:className xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;org.globus.mds.usefulrp.rpprovider.producers.ExternalProcessElementProducer&lt;/ns1:className&gt;
+        &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/PATH/TO/MY/PROGRAM&lt;/ns1:arguments&gt;
+        &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;DUMMY-ARGUMENT&lt;/ns1:arguments&gt;
+        &lt;ns1:transformClass xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;org.globus.mds.usefulrp.rpprovider.transforms.MyCustomTransformClass&lt;/ns1:transformClass&gt;
+        &lt;ns1:transformArguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;transformDummyArgument&lt;/ns1:transformArguments&gt;
+        &lt;ns1:period xsi:type="xsd:int" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;300000&lt;/ns1:period&gt;
+    &lt;/ns1:resourcePropertyElementProducers&gt;
+</screen>    
+    
+    <variablelist><title>Configuration settings for the External Process Element Producer</title>
+        
+        <varlistentry><term><filename>resourcePropertyName</filename></term>
+            <listitem>
+                <para>
+                    Specifies the name of the <glossterm baseform="resource properties">RP</glossterm> that you'd like the data to be accessed by.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+        <varlistentry><term><filename>resourcePropertyImpl</filename></term>
+            <listitem>
+                <para>
+                    Describes how the RP will be handled. The SingleValueResourcePropertyProvider is suitable for most uses.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+        <varlistentry><term><filename>resourcePropertyElementProducers</filename></term>
+            <listitem>
+                <para>
+                    This element is required and wraps the following elements. For this type of RPProvider, the className must be specified as 
+                    org.globus.mds.usefulrp.rpprovider.producers.ExternalProcessElementProducer.
+                </para>
+            </listitem>
+        </varlistentry>
+
+    </variablelist>
+    
+    <variablelist><title>Configuration settings for resourcePropertyElementProducers</title>
+        <varlistentry><term>first argument</term>
+            <listitem>
+                <para>
+                    The first arguments element is the name of the script or program that you'd like to have executed. This script or program is expected to generate 
+                    XML data that will be included in the Index.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+        <varlistentry><term>second argument</term>
+            <listitem>
+                <para>
+                    The second arguments element is an arbitrary piece of data that will be provided to the process specified in the first argument as a (command line) argument.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+        <varlistentry><term><filename>transformClass</filename></term>
+            <listitem>
+                <para>
+                    This element is optional (and may be excluded), but is provided in the case that you would like a post processing transform to occur on the output of the data 
+                    generated by the process.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+        <varlistentry><term><filename>transformArguments</filename></term>
+            <listitem>
+                <para>
+                    If the transformClass element was specified, the transformArguments element may be specified, which will be provided to the transformClass as a (command line like) argument.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+        <varlistentry><term><filename>element</filename></term>
+            <listitem>
+                <para>
+                    The period element is required and specifies the interval at which to re-execute this external process and update the information it generates in the Index service. 
+                </para>
+            </listitem>
+        </varlistentry>
+        
+    </variablelist>
+    
+</section>
+
+<section><title>File Element Producer</title>
+    
+    <para>To use the File Element Producer, add an entry in the following form to your <filename>$GLOBUS_LOCATION//etc/globus_wsrf_mds_index/rp-provider-config.xml</filename> file.</para>
+    <screen>
+    &lt;ns1:resourcePropertyName xsi:type="xsd:QName"
+        xmlns:frp="http://my.ns.domain/file"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;frp:MyFileRP&lt;/ns1:resourcePropertyName&gt;
+    &lt;ns1:resourcePropertyImpl xsi:type="xsd:string"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;org.globus.mds.usefulrp.rpprovider.SingleValueResourcePropertyProvider&lt;/ns1:resourcePropertyImpl&gt;
+    &lt;ns1:resourcePropertyElementProducers
+        xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+        &lt;ns1:className xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;org.globus.mds.usefulrp.rpprovider.producers.FileElementProducer&lt;/ns1:className&gt;
+        &lt;ns1:arguments xsi:type="xsd:string"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;/PATH/TO/MY/XML/FILE&lt;/ns1:arguments&gt;
+        &lt;ns1:transformClass xsi:type="xsd:string" xsi:nil="true"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"/&gt;
+        &lt;ns1:period xsi:type="xsd:int"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;60&lt;/ns1:period&gt;
+    &lt;/ns1:resourcePropertyElementProducers&gt;
+    </screen>
+    
+    </section>
