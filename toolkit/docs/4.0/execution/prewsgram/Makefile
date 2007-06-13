@@ -1,3 +1,4 @@
+export UMASK=002
 FILENAME=index.xml
 
 all: html pdf
@@ -6,6 +7,7 @@ html:
 	xsltproc \
 	../../custom_html.xsl \
 	$(FILENAME)
+	find . -name \*.html | xargs chgrp cvsusers
 
 pdf:
 	~bacon/XEP/xep -quiet \
