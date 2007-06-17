@@ -361,149 +361,120 @@ to servicegroup at https://127.0.0.1:8443/wsrf/services/TriggerRegistrationServi
       </listitem>
       <listitem>
         <para><emphasis role="strong">Create Trigger:</emphasis></para> 
-        <para>Now that we have created a trigger registration, and we have a service that will be monitored, we're ready to create the actual trigger that will be evaluating any incoming data and executing the action script that we've created.</para>
+        <para>Now that we have created a trigger registration, and we have a service that will be monitored, we're ready to create the actual trigger whose parameters will indicate what information we will be evaluating against any incoming data.  It will also specify and execute the action script that we've created.  All trigger creation and management is performed via clients.</para>
+	<para>In this HowTo, we will be using the command-line clients that are provided with your installation.  (There is also a web interface, but setting that up will be discussed in an upcoming HowTo.  The web interface is easier to use and more visually appealing than the command-line clients!)</para>
         <orderedlist>
           <listitem>
-            <para>Create a new index configuration file (very simplistic):</para>
-          <screen>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/our-test-index-registration.xml</screen>
-            <para>You can just copy these file contents for now, editing your hostname.</para>
-            <screen>
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;ServiceGroupRegistrations
-  xmlns="http://mds.globus.org/servicegroup/client"
-  xmlns:sgc="http://mds.globus.org/servicegroup/client"
-  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/03/addressing"
-  xmlns:agg="http://mds.globus.org/aggregator/types"
-  xmlns:gram="http://www.globus.org/namespaces/2004/10/gram/job"&gt;
-  &lt;sgc:defaultServiceGroupEPR&gt;
-    &lt;wsa:Address&gt;http://127.0.0.1:8444/wsrf/services/DefaultIndexService&lt;/wsa:Address&gt;
-  &lt;/sgc:defaultServiceGroupEPR&gt;
-  
-  &lt;sgc:defaultRegistrantEPR&gt;
-    &lt;wsa:Address&gt;http://127.0.0.1:8444/wsrf/services/ManagedJobFactoryService&lt;/wsa:Address&gt;
-    &lt;wsa:ReferenceProperties&gt;&lt;gram:ResourceID&gt;Fork&lt;/gram:ResourceID&gt;&lt;/wsa:ReferenceProperties&gt;
-  &lt;/sgc:defaultRegistrantEPR&gt;
-  
-  &lt;sgc:ServiceGroupRegistrationParameters&gt;
-    &lt;sgc:RefreshIntervalSecs&gt;1440&lt;/sgc:RefreshIntervalSecs&gt;
-    &lt;sgc:Content xsi:type="agg:AggregatorContent" xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
-      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
-        &lt;agg:GetResourcePropertyPollType
-          xmlns:glue="http://mds.globus.org/glue/ce/1.1" &gt;
-          &lt;agg:PollIntervalMillis&gt;120000&lt;/agg:PollIntervalMillis&gt;
-          &lt;agg:ResourcePropertyName&gt;glue:GLUECE&lt;/agg:ResourcePropertyName&gt;
-        &lt;/agg:GetResourcePropertyPollType&gt;
-      &lt;/agg:AggregatorConfig&gt;
-      &lt;agg:AggregatorData/&gt;
-    &lt;/sgc:Content&gt;
-  &lt;/sgc:ServiceGroupRegistrationParameters&gt;
-&lt;/ServiceGroupRegistrations&gt;
-            </screen>
+	    <para>We must configure the [command-line] clients according to your individual setup: 
+	    <screen>$GLOBUS_LCATION/etc/globus_wsrf_mds_trigger/client-config-settings</screen>
+            <para>This file should already be included in your install. It basically looks like this:</para>
+	    <screen>
+DefaultServiceAddress: http://127.0.0.1:8444/wsrf/services/
+
+
+/* PLEASE CHOOSE ONLY **ONE** OF THE FOLLOWING PARAMETERS      */
+/*                                                             */
+/* GLTempFileLocation means that the location is under the     */
+/* $GLOBUS_LOCATION path, so if you indicate :                 */
+/*    GLTempFileLocation: /etc/whatever/                       */
+/* this would map to:                                          */
+/*    $GLOBUS_LOCATION/etc/whatever/                           */
+/*                                                             */
+/* Be sure that the                                            */
+/*    $GLOBUS_LOCATION/etc/whatever/ directory exists!         */
+/*                                                             */
+/*                                                             */
+/* If you use the TempFileLocation parameter, this will map    */
+/* directly to that location on the filesystem.                */
+/*                                                             */
+/* Using both may lead to unpredictable behavior.              */
+
+
+GLTempFileLocation: /etc/globus_wsrf_mds_trigger/.temporary_epr_files
+#TempFileLocation: /work/z_test/
+</screen>
+
+            <para>The most important item to edit is the first line.  Be sure that the host service address corresponds to your deployed container.  When you start the container a list of service addresses will indicate what you should be using for this parameter.  We can leave the TempFileLocation parameter as it is.</para>
           </listitem>
           <listitem>
-            <para>Register this config file with the Default Index Service:</para>
-            <screen>$GLOBUS_LOCATION/bin/mds-servicegroup-add  -s http://127.0.0.1:8444/wsrf/services/DefaultIndexService $GLOBUS_LOCATION/etc/globus_wsrf_mds_index/our-test-index-registration.xml</screen>
-            <important><para>Be sure the above command is on one line.</para></important>
+            <para>Now we create the trigger</para>
+            <screen>$GLOBUS_LOCATION/bin/mds-trigger-create  -s http://127.0.0.1:8444/wsrf/services/DefaultIndexService default</screen>
+            <important><para>When you create a trigger, an EPR is created and stored in a temporary file (the location of these files is specified in the client configuration with the TempFileLocation parameter).  <computeroutput>default</computeroutput> means that the temporary EPR file will be located in the directory you specified in the client configuration.  We recommend that you keep all of your EPR files in the same place!</para>
+	    <para>The EPR file that is created is important since this is the only way to access your trigger.  If you stop the container, the EPR files created during that container session become invalid, and can be removed permanently.  When you restart the container, you will create new EPR files using this same client.</para></important>
+	    <para>The client should produce output similar to the following:</para>
+	    <screen>
+
+   MDS4 Trigger Creation Client
+   ----------------------------
+
+** Output Filename: YOUR-GLOBUS-LOCATION/etc/globus_wsrf_mds_trigger/.temporary_epr_files/epr_20070617_142542.xml
+**     Service URL: http://127.0.0.1:8444/wsrf/services/DefaultIndexService
+
+--> Trigger has been created.
+--> Endpoint reference written to file: YOUR-GLOBUS-LOCATION/etc/globus_wsrf_mds_trigger/.temporary_epr_files/epr_20070617_142542.xml
+</screen>
           </listitem>
           <listitem>
-            <para>Test the registration by typing the following command:</para>
-            <screen>$GLOBUS_LOCATION/bin/wsrf-query -s http://127.0.0.1:8444/wsrf/services/DefaultIndexService 'count(//*[local-name()="Entry"])'</screen>
-            <important><para>Be sure the above command is on one line.</para></important>
+            <para>Test the trigger creation by typing the following command:</para>
+            <screen>mds-trigger-view</screen>
+	    <para>This command should produce output similar to the following:</para>
+	    <screen>
+   MDS4 Trigger View Client
+   ------------------------
+
+Monitored Services (Trigger Registrations)
+
+1) /wsrf/services/DefaultIndexService
+
+Trigger Name: Default Trigger Name
+EPR File Location: YOUR-GLOBUS-LOCATION/etc/globus_wsrf_mds_trigger/.temporary_epr_files/epr_20070617_142542.xml
+Matching Rule: count(//*[local-name()='Entry'])<1
+Status: DISABLED
+
+</screen>
+            <para>This output tells us that there is one trigger registration (with the DefaultIndexService) and that the trigger we have just created is called "Default Trigger Name", we see where the EPR file is located, we see a matching rule (which is an XPath query against the monitored service, or the DefaultIndexService), and we see that the trigger is DISABLED.  This means that the trigger will not fire, nor will it try to evaluate any data.  This is an inactive trigger.</para>
           </listitem>
           <listitem>
-            <para>If you previously issued this command above (during the trigger file configation), and it said <emphasis role="strong">3</emphasis>, it should now result in <emphasis role="strong">4</emphasis>. 
-              Basically we've added a new entry to the Default Index Service. Because of this, our trigger should fire (if everything is properly set).</para>
-          </listitem>
-          <listitem>
-            <para>After a few minutes, the trigger will have fired and executed the action script we wrote.  To verify this, type:</para>
-            <screen>cat $GLOBUS_LOCATION/our_new_entry_detected</screen>
-            <para>You should see some output like the following:</para>
-            <screen>OUR LOG: New Index Service Entry: Fri Mar  9 09:32:32 CST 2007
-OUR LOG: New Index Service Entry: Fri Mar  9 09:34:32 CST 2007
-OUR LOG: New Index Service Entry: Fri Mar  9 09:36:32 CST 2007
-OUR LOG: New Index Service Entry: Fri Mar  9 09:38:32 CST 2007
-            </screen>
-          </listitem>
-        </orderedlist>
-      </listitem>
-      <listitem>
-        <para><emphasis role="strong">Test Trigger:</emphasis></para> 
-        <para>Now that our trigger is registered, it's ready to perform actions. We set our trigger to fire when it detected a new entry in the Default Index Service. 
-          As it stands, since there are no new entries, the trigger will not fire. So let's add an entry to the Index Service so that we can be sure that our trigger is working properly.</para>
-        <orderedlist>
-          <listitem>
-            <para>Create a new index configuration file (very simplistic):</para>
-          <screen>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/our-test-index-registration.xml</screen>
-            <para>You can just copy these file contents for now, editing your hostname.</para>
-            <screen>
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;ServiceGroupRegistrations
-  xmlns="http://mds.globus.org/servicegroup/client"
-  xmlns:sgc="http://mds.globus.org/servicegroup/client"
-  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/03/addressing"
-  xmlns:agg="http://mds.globus.org/aggregator/types"
-  xmlns:gram="http://www.globus.org/namespaces/2004/10/gram/job"&gt;
-  &lt;sgc:defaultServiceGroupEPR&gt;
-    &lt;wsa:Address&gt;http://127.0.0.1:8444/wsrf/services/DefaultIndexService&lt;/wsa:Address&gt;
-  &lt;/sgc:defaultServiceGroupEPR&gt;
-  
-  &lt;sgc:defaultRegistrantEPR&gt;
-    &lt;wsa:Address&gt;http://127.0.0.1:8444/wsrf/services/ManagedJobFactoryService&lt;/wsa:Address&gt;
-    &lt;wsa:ReferenceProperties&gt;&lt;gram:ResourceID&gt;Fork&lt;/gram:ResourceID&gt;&lt;/wsa:ReferenceProperties&gt;
-  &lt;/sgc:defaultRegistrantEPR&gt;
-  
-  &lt;sgc:ServiceGroupRegistrationParameters&gt;
-    &lt;sgc:RefreshIntervalSecs&gt;1440&lt;/sgc:RefreshIntervalSecs&gt;
-    &lt;sgc:Content xsi:type="agg:AggregatorContent" xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
-      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
-        &lt;agg:GetResourcePropertyPollType
-          xmlns:glue="http://mds.globus.org/glue/ce/1.1" &gt;
-          &lt;agg:PollIntervalMillis&gt;120000&lt;/agg:PollIntervalMillis&gt;
-          &lt;agg:ResourcePropertyName&gt;glue:GLUECE&lt;/agg:ResourcePropertyName&gt;
-        &lt;/agg:GetResourcePropertyPollType&gt;
-      &lt;/agg:AggregatorConfig&gt;
-      &lt;agg:AggregatorData/&gt;
-    &lt;/sgc:Content&gt;
-  &lt;/sgc:ServiceGroupRegistrationParameters&gt;
-&lt;/ServiceGroupRegistrations&gt;
-            </screen>
-          </listitem>
-          <listitem>
-            <para>Register this config file with the Default Index Service:</para>
-            <screen>$GLOBUS_LOCATION/bin/mds-servicegroup-add  -s http://127.0.0.1:8444/wsrf/services/DefaultIndexService $GLOBUS_LOCATION/etc/globus_wsrf_mds_index/our-test-index-registration.xml</screen>
-            <important><para>Be sure the above command is on one line.</para></important>
-          </listitem>
-          <listitem>
-            <para>Test the registration by typing the following command:</para>
-            <screen>$GLOBUS_LOCATION/bin/wsrf-query -s http://127.0.0.1:8444/wsrf/services/DefaultIndexService 'count(//*[local-name()="Entry"])'</screen>
-            <important><para>Be sure the above command is on one line.</para></important>
-          </listitem>
-          <listitem>
-            <para>If you previously issued this command above (during the trigger file configation), and it said <emphasis role="strong">3</emphasis>, it should now result in <emphasis role="strong">4</emphasis>. 
-              Basically we've added a new entry to the Default Index Service. Because of this, our trigger should fire (if everything is properly set).</para>
-          </listitem>
-          <listitem>
-            <para>After a few minutes, the trigger will have fired and executed the action script we wrote.  To verify this, type:</para>
-            <screen>cat $GLOBUS_LOCATION/our_new_entry_detected</screen>
-            <para>You should see some output like the following:</para>
-            <screen>OUR LOG: New Index Service Entry: Fri Mar  9 09:32:32 CST 2007
-OUR LOG: New Index Service Entry: Fri Mar  9 09:34:32 CST 2007
-OUR LOG: New Index Service Entry: Fri Mar  9 09:36:32 CST 2007
-OUR LOG: New Index Service Entry: Fri Mar  9 09:38:32 CST 2007
-            </screen>
+            <para>In order to make things happen you must enable the trigger.  This is done with the <computeroutput>mds-trigger-edit</computeroutput> command.</para>
+	    <screen>mds-trigger-edit -e YOUR-GLOBUS-LOCATION/etc/globus_wsrf_mds_trigger/.temporary_epr_files/epr_20070617_142542.xml TriggerName="NewName"</screen>
+	    <para>This will output something similar to:</para>
+	    <screen>
+   MDS4 Trigger Edit Client
+   ------------------------
+
+Note: currently, only one parameter may be edited at a time.
+** EPR Filename: YOUR-GLOBUS-LOCATION/etc/globus_wsrf_mds_trigger/.temporary_epr_files/epr_20070617_143014.xml
+** Edit Query: TriggerName=NewName
+
+Trigger Parameter: TriggerName
+Trigger Parameter Value: NewName
+
+Setting TriggerName to NewName...
+Done.
+</screen>
+             <para>Changing the name of the trigger is completely up to you.  It's not really important except if you're managing tons of triggers.  But let's enable this trigger.  By enabling/activating the trigger, we turn it "on", meaning that it will take the Matching Rule and evaluate this against incoming aggregaor data from our monitored service (the Default Index Service).</para>
+	     <screen>mds-trigger-edit -e YOUR-GLOBUS-LOCATION/etc/globus_wsrf_mds_trigger/.temporary_epr_files/epr_20070617_142542.xml TriggerStatus="enabled"</screen>
+	     <para>When this trigger is "enabled", we now have an active trigger that is actively evaluating data.  You may notice this in the service container screen.  But our trigger will not fire since the Matching Rule evaluates to false.  There is more than one entry in the Default Index Service, so when we use our Matching Rule, a false evaluation will not allow the trigger to fire.  So let's change our Matching Rule so that the trigger will evaluate to "true", thus firing the trigger.
+	     <screen>mds-trigger-edit -e YOUR-GLOBUS-LOCATION/etc/globus_wsrf_mds_trigger/.temporary_epr_files/epr_20070617_142542.xml MatchingRule="count(//*[local-name()='Entry'])>1"</screen>
+              <para>Now after a minute or so, you will notice that the trigger has fired successfully.  You can verify this by checking the contents of the log file we created in our action script from above:
+	      <screen>more trigger_service_base_action_log</screen>
+	      <para>This should look similar to the following</para>
+	      <screen>
+Trigger Service Entry: Sun Jun 17 14:45:26 CDT 2007
+Trigger Service Entry: Sun Jun 17 14:45:56 CDT 2007
+Trigger Service Entry: Sun Jun 17 14:46:26 CDT 2007
+Trigger Service Entry: Sun Jun 17 14:46:56 CDT 2007
+              </screen>
+	      <para>There is a 30 second interval that we specified in our aggregator configuration file above.  This should probably be lengthened eventually so that you don't have the triggers going off so often.</para>
+</screen>
           </listitem>
         </orderedlist>
       </listitem>
     </orderedlist>
   </section>
   <section id="trigger-howto-basic-congrats"><title>Congratulations!</title>  
-    <para>You have now successfully setup, configured, registered, and tested a trigger created from scratch!</para>
-  <para><emphasis role="strong">Next Steps:</emphasis> Check out the documentation and create more triggers to perform actions
-    more relevant to your own objectives. Experiment with the XPath queries to expand the possibilities of what you can use them for. 
-    If you have questions, feel free to contact us!</para>
+    <para>You have now successfully setup, configured, registered, created, edited and tested a trigger from scratch!</para>
+  <para><emphasis role="strong">Next Steps:</emphasis> Check out the documentation and create more triggers to perform actions more relevant to your own objectives. Experiment with the XPath queries to expand the possibilities of what you can use them for. If you have questions, feel free to contact us!</para>
+  <para>Please keep in mind that this is in a highly developmental stage, so there may be errors, or unpredictable behavior.  Feel free to let us know what works, what doesn't, and your general experiences with the trigger service.</para>
   </section>
       
