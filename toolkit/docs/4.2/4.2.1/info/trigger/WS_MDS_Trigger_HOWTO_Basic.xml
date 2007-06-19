@@ -37,14 +37,14 @@
       framework); but once that data is collected, we can configure a <emphasis role="strong">trigger</emphasis> to perform an action based on that data.</para> 
       <para>Once the conditions are prepared, and the collected data is evaluated, the data will be compared to the conditions and, if there's a match, the trigger will set an action to occur.</para>
     <para>Learning to use triggers involves understanding what you are doing conceptually and knowing how to configure everything properly. Below we'll go through an example trigger configuration file and discuss some steps that should occur in an example setup. Generally when setting up a trigger you should follow the steps outlined in this tutorial.</para>
-      <para>First let's explain what we are doing. We're going to set up a trigger to monitor the Default Index Service, and to tell us when a new entry is added to the Default Index Service. When a new entry is added, our trigger will execute a script that will create a [log] file in our $GLOBUS_LOCATION directory [and every two minutes that the new entry is still registered, we'll add a notification to this log file].  This is not necessarily a practical example of how you would use a trigger, but it's simple enough to give you a basic idea of how to set one up. So let's get started!</para>
+      <para>First let's explain what we are doing. We're going to set up a trigger to monitor the Default Index Service, and we'll use it to act as a function of how many Entries are in the Default Index Service.  Based on the number of entries, we can set the trigger to execute an action. When we want an action to occur, our trigger will execute a script that will create a [log] file in our $GLOBUS_LOCATION directory [and every 30 seconds that the new entry is still registered, we'll add a notification to this log file].  This is not necessarily a practical example of how you would use a trigger, but it's simple enough to give you a basic idea of how to set one up. So let's get started!</para>
   </section>
   <section id="trigger-howto-basic-tut"><title>Trigger Tutorial</title>
-    <para><emphasis>This tutorial requires a working GT 4.1.3 or higher recent CVS install, or a patched GT 4.1.2 installation.<!-- We will be using a patched GT 4.1.2 install in this example--></emphasis>.</para>
+    <para><emphasis>This tutorial requires a working GT 4.1.3 or higher recent CVS install, or a patched GT 4.1.2 installation.<!-- We will be using a patched GT 4.1.2 install in this example--></emphasis></para>
     <orderedlist>
       <listitem>
-        <para><emphasis role="strong">Trigger Registration:</emphasis></para> 
-         <para>The first thing we do is to setup a trigger registration.  What this means is that the trigger service will be connected to an aggregator source.  The registration tells the trigger service which aggregator source (or, monitored service) it should pay attention to.  We can monitor many services at once, but in this example we will be monitoring the Default Index Service.  Our trigger registration will specify that we want to be monitoring the Default Index Service.  To do this we will specify a Member EPR in an aggregator configuration file. For this example, we will quickly walk through a new aggregator configuration; this will allow us to register the trigger (The trigger is actually registered once we use the <computeroutput>mds-servicegroup-add</computeroutput> command; see below).</para> 
+        <para><emphasis role="strong">Trigger Registration Configuration:</emphasis></para> 
+         <para>The first thing we do is to configure a trigger registration.  What this means is that the trigger service will be connected to an aggregator source.  The registration tells the trigger service which aggregator source (or, monitored service) it should pay attention to.  We can monitor many services at once, but in this example we will be monitoring the Default Index Service.  Our trigger registration will specify that we want to be monitoring the Default Index Service.  To do this we will specify a Member EPR (or Registrant EPR) in an aggregator configuration file. For this example, we will quickly walk through a new aggregator configuration; this will allow us to register the trigger (The trigger is actually registered once we use the <computeroutput>mds-servicegroup-add</computeroutput> command; see below).</para> 
         <para>Let's create the configuration file in the following location (this file is provided with new installs):
         <programlisting>$GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/trigger-registration-example.xml</programlisting></para>
         <para>The <link linkend="trigger-howto-basic-configfile">entire config file</link> is located further below. The following table breaks it down:</para>
@@ -227,7 +227,7 @@
   ...
                   </literallayout>
                   <para>Set this to how often you'll be polling the information provider for data and refreshing the current information: <emphasis role="strong">30000</emphasis>.</para>
-                  <para>"30000" means that you'll be checking the information provider every 30 seconds.  This is not typical!  We are only using such a short polling interval so that you can quickly visualize whether or not you've successfully set up this trigger!</para>
+                  <para>"30000" means that you'll be checking the information provider every 30 seconds.  <emphasis role="strong">This is not typical!</emphasis>  We are only using such a short polling interval so that you can quickly visualize whether or not you've successfully set up this trigger!</para>
                   <para>The xmlns:wssg attribute should all be in one line.</para>
                 </entry>
               </row>
@@ -250,9 +250,9 @@
   &lt;/Content&gt;
   ...
                   </literallayout>
-                  <para>Set this to the name of the resource property that the data is accessed by: <emphasis role="strong">wssg:Entry</emphasis>. <emphasis>wssg:Entry</emphasis> is one of the few resource properties available in the current implementation (this will likely change in future versions)</para>
+                  <para>Set this to the name of the resource property that the data is accessed by: <emphasis role="strong">wssg:Entry</emphasis>. <!--<emphasis>wssg:Entry</emphasis> is one of the few resource properties available in the current implementation (this will likely change in future versions)--></para>
                   <para>[The format is <emphasis>rp_namespace:rp_localname</emphasis>]</para>
-                  <para>You can view some active ResourcePropertyNames as you poll the DefaultIndexService. For this example, this parameter is mostly irrelevant.</para>
+<!--                  <para>You can view some active ResourcePropertyNames as you poll the DefaultIndexService. For this example, this parameter is mostly irrelevant.</para>-->
                 </entry>
               </row>
             </tbody>
@@ -302,9 +302,9 @@
         
         -->
         
-        <para>You could simply copy these file contents and change the "127.0.0.1" to your hostname. Great! Now that we've got the configuration file set up, we need to register it with the Trigger Registration Service, so that the Trigger Service knows what to look out for.</para>
+        <para>You could simply copy these file contents and change the "127.0.0.1" to your hostname. Great! Now that we've got the configuration file set up, we need to register it with the Trigger Registration Service, so that the Trigger Service knows what to look out for.  We'll do this later below.</para>
       </listitem>
-      <listitem><para><emphasis role="strong">Trigger Action Script Configuration</emphasis>: Now that we have the trigger configuration file set to execute an action whenever our conditions are met, we need to determine what those actions are. We do this by setting up a Trigger Action Script.</para>
+      <listitem><para><emphasis role="strong">Trigger Action Script Configuration</emphasis>: We have the trigger set to execute an action whenever our conditions are met, but we need to determine what those actions will be.  What do we want the trigger to do if it's going to fire?  We do this by setting up a Trigger Action Script.</para>
 
         <orderedlist>
           <listitem>
@@ -331,9 +331,8 @@ EOF
           </listitem>
         </orderedlist>
       </listitem>
-      <listitem><para><emphasis role="strong">Registration:</emphasis></para>
-        <para>The registration step is necessary to connect the information source with the Trigger Registration Service (an aggregator service). 
-        This step provides access to the information source data so that the trigger can then make this information available and act on it accordingly.</para>
+      <listitem><para><emphasis role="strong">Start the container:</emphasis></para>
+        
         <para><emphasis>--&gt; Now start the container:</emphasis> (Note: the <computeroutput>-p</computeroutput> option allows you to specify a port.  We have been using 8444 in this example.  We will also specify <computeroutput>-nosec</computeroutput> until security for triggers has been adequately tested.)</para> 
           <screen>$GLOBUS_LOCATION/bin/globus-start-container -p 8444 -nosec</screen> 
           <para>You may also need to set up your environment variables, and/or generate a new proxy certificate: </para>
@@ -346,17 +345,17 @@ EOF
         <para>On our setup we get: <emphasis role="strong">3</emphasis>.</para>
       </listitem>
       <listitem><para><emphasis role="strong">Create Trigger Registration:</emphasis></para> 
-        <para>Once the configurations have been properly set, it's easy to register them with the Trigger Registration Service.</para> 
-            <para>We will create the trigger registration by running <emphasis role="strong"><link linkend="mds-servicegroup-add">mds-servicegroup-add</link></emphasis> to perform the registrations specified in the configuration file.</para> 
-        <para>This tool takes an XML configuration file listing registrations, and causes those registrations to be made.</para>
+        <para>The registration step is necessary to connect the information source with the Trigger Registration Service (an aggregator service). We configured this above.  This step provides access to the information source data so that the trigger can then make this information available and act on it accordingly.</para>
+	<para>Once the configurations have been properly set, it's easy to register them with the Trigger Registration Service.</para> 
+            <para>We will create the trigger registration by running <emphasis role="strong"><link linkend="mds-servicegroup-add">mds-servicegroup-add</link></emphasis> to perform the registrations specified in the configuration file (that we configured above).</para>
             <para>Run the following command:</para> 
               <screen>$GLOBUS_LOCATION/bin/mds-servicegroup-add $GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/trigger-registration-example.xml</screen> 
               <important><para>Be sure the above command is on one line.</para></important>
             <para>If everything went well, you should get something like:</para>
             <screen>Processing configuration file...
 INFO: Processed 1 registration entries
-INFO: Successfully registered https://127.0.0.1:8443/wsrf/services/DefaultIndexService \
-to servicegroup at https://127.0.0.1:8443/wsrf/services/TriggerRegistrationService
+INFO: Successfully registered http://127.0.0.1:8444/wsrf/services/DefaultIndexService \
+to servicegroup at http://127.0.0.1:8444/wsrf/services/TriggerRegistrationService
             </screen>
       </listitem>
       <listitem>
@@ -394,12 +393,12 @@ GLTempFileLocation: /etc/globus_wsrf_mds_trigger/.temporary_epr_files
 #TempFileLocation: /work/z_test/
 </screen>
 
-            <para>The most important item to edit is the first line.  Be sure that the host service address corresponds to your deployed container.  When you start the container a list of service addresses will indicate what you should be using for this parameter.  We can leave the TempFileLocation parameter as it is.</para>
+            <para>The most important item to edit is the first line.  Be sure that the host service address corresponds to your deployed container.  When you start the container a list of service addresses will indicate what you should be using for this parameter.  We can leave the TempFileLocation/GLTempFileLocation parameter as it is.</para>
           </listitem>
           <listitem>
             <para>Now we create the trigger</para>
             <screen>$GLOBUS_LOCATION/bin/mds-trigger-create  -s http://127.0.0.1:8444/wsrf/services/DefaultIndexService default</screen>
-            <important><para>When you create a trigger, an EPR is created and stored in a temporary file (the location of these files is specified in the client configuration with the TempFileLocation parameter).  <computeroutput>default</computeroutput> means that the temporary EPR file will be located in the directory you specified in the client configuration.  We recommend that you keep all of your EPR files in the same place!</para>
+            <important><para>When you create a trigger, an EPR is created and stored in a temporary file (the location of these files is specified in the client configuration with the TempFileLocation/GLTempFileLocation parameter).  <computeroutput>default</computeroutput> means that the temporary EPR file will be located in the directory you specify with this parameter.  We recommend that you keep all of your EPR files in the same place!</para>
 	    <para>The EPR file that is created is important since this is the only way to access your trigger.  If you stop the container, the EPR files created during that container session become invalid, and can be removed permanently.  When you restart the container, you will create new EPR files using this same client.</para></important>
 	    <para>The client should produce output similar to the following:</para>
 	    <screen>
@@ -432,7 +431,7 @@ Matching Rule: count(//*[local-name()='Entry'])&lt;1
 Status: DISABLED
 
 </screen>
-            <para>This output tells us that there is one trigger registration (with the DefaultIndexService) and that the trigger we have just created is called "Default Trigger Name", we see where the EPR file is located, we see a matching rule (which is an XPath query against the monitored service, or the DefaultIndexService), and we see that the trigger is DISABLED.  This means that the trigger will not fire, nor will it try to evaluate any data.  This is an inactive trigger.</para>
+            <para>This output tells us that there is one trigger registration (with the DefaultIndexService) and that the trigger we have just created is called "Default Trigger Name", we see where the EPR file is located (and we will use this file to edit trigger data; see below), we see a Matching Rule (which is an XPath query against the monitored service, or the DefaultIndexService), and we see that the trigger is DISABLED.  This means that the trigger will not fire, nor will it try to evaluate any data.  Basically, this is an inactive trigger.</para>
           </listitem>
           <listitem>
             <para>In order to make things happen you must enable the trigger.  This is done with the <computeroutput>mds-trigger-edit</computeroutput> command.</para>
@@ -452,10 +451,17 @@ Trigger Parameter Value: NewName
 Setting TriggerName to NewName...
 Done.
 </screen>
-             <para>Changing the name of the trigger is completely up to you.  It's not really important except if you're managing tons of triggers.  But let's enable this trigger.  By enabling/activating the trigger, we turn it "on", meaning that it will take the Matching Rule and evaluate this against incoming aggregaor data from our monitored service (the Default Index Service).</para>
+             <para>Changing the name of the trigger is completely up to you.  It's not really important except if you're managing tons of triggers.  But let's enable this trigger.  By enabling/activating the trigger, we turn it "on", meaning that it will take the Matching Rule and evaluate this against incoming aggregator data from our monitored service (the Default Index Service).</para>
 	     <screen>mds-trigger-edit -e YOUR-GLOBUS-LOCATION/etc/globus_wsrf_mds_trigger/.temporary_epr_files/epr_20070617_142542.xml TriggerStatus="enabled"</screen>
 	     <para>When this trigger is "enabled", we now have an active trigger that is actively evaluating data.  You may notice this in the service container screen.  But our trigger will not fire since the Matching Rule evaluates to false.  There is more than one entry in the Default Index Service, so when we use our Matching Rule, a false evaluation will not allow the trigger to fire.  So let's change our Matching Rule so that the trigger will evaluate to "true", thus firing the trigger.</para>
 	     <screen>mds-trigger-edit -e YOUR-GLOBUS-LOCATION/etc/globus_wsrf_mds_trigger/.temporary_epr_files/epr_20070617_142542.xml MatchingRule="count(//*[local-name()='Entry'])&gt;1"</screen>
+	      <para>Typing <computeroutput>mds-trigger-view</computeroutput> will basically summarize what we've done:</para>
+	      <screen>Trigger Name: NewName
+EPR File Location: YOUR-GLOBUS-LOCATION/etc/globus_wsrf_mds_trigger/.temporary_epr_files/epr_20070617_143014.xml
+Matching Rule: count(//*[local-name()='Entry'])&gt;1
+Status: ENABLED
+
+</screen>
               <para>Now after a minute or so, you will notice that the trigger has fired successfully.  You can verify this by checking the contents of the log file we created in our action script from above:</para>
 	      <screen>more trigger_service_base_action_log</screen>
 	      <para>This should look similar to the following</para>
