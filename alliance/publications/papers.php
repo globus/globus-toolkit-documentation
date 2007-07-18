@@ -2098,9 +2098,10 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
     
 
-    <p><font size="2"><strong><a name="moba00">Grid-based Asynchronous Migration of Execution Context in Java Virtual Machines</a></strong>. G. von Laszewski, K Shudo, Y. Muraoka. In A. Bode, T. Ludwig, W. Karl, and R. Wismuller, editors, <i>Proceedings of EuroPar 2000</i>, 
+    <p><font size="2"><strong><a name="moba00">Grid-based Asynchronous Migration of Execution Context in Java Virtual Machines</a></strong>. 
+    G. von Laszewski, K Shudo, Y. Muraoka. In A. Bode, T. Ludwig, W. Karl, and R. Wismuller, editors, <i>Proceedings of EuroPar 2000</i>, 
 
-    volume 1900 of <i>Lecture Notes in Computer Science, pages 2234, Munich, Germany, 29 August - 1 
+    volume 1900 of Lecture Notes in Computer Science, pages 2234, Munich, Germany, 29 August - 1 
 
     September 2000. Springer.<br>
 
@@ -2856,7 +2857,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 	
 	[<a href="#survey">Citation</a>,
 	
-	<a href="papers/survey.pdf">PDF</a>]</font></p>
+	<a href="papers/Survey.pdf">PDF</a>]</font></p>
 	
 	<p><font size="2"><strong><a name="RSS">Restricted Slow-Start for TCP</a></strong>. 
 	William Allcock, Sanjay Hegde and Rajkumar Kettimuthu.  
