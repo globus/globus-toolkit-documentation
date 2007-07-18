@@ -422,6 +422,40 @@ submitting bibliographic citations</a>.</b></p>
       <h2><a name="Data Grid Components">Data Grid Components (GridFTP, DAI, Replica,
 
       Virtual Data System, etc.)</a></h2>
+      
+      <p><font size="2"><strong><a name="pipelining">GridFTP Pipelining</a></strong>. 
+      
+      John Bresnahan, Michael Link, Rajkumar Kettimuthu, Dan Fraser and Ian Foster. 
+      
+      <em>Proceedings of the 2007 TeraGrid Conference</em>, June, 2007<br>
+      
+      [<a href="#pipelining">Citation</a>, 
+      
+      <a href="papers/Pipelining.pdf">PDF</a>]</font></p>
+      
+      
+      <p><font size="2"><strong><a name="gridftp_infocom07">Harnessing Multicore Processors for High Speed Secure Transfer</a></strong>. 
+      
+      John Bresnahan, Rajkumar Kettimuthu, Michael Link and Ian Foster. 
+      
+      <em>Proceedings of the 26th IEEE Infocom's High-Speed Networks Workshop</em>, May, 2007<br>
+      
+      [<a href="#gridftp_infocom07">Citation</a>, 
+      
+      <a href="papers/gridftp_infocom07.pdf">PDF</a>]</font></p>
+
+      
+      <p><font size="2"><strong><a name="GridCopy">GridCopy: Moving Data Fast on the Grid</a></strong>. 
+      
+      Rajkumar Kettimuthu, William Allcock, Lee Liming, John-Paul Navarro and Ian Foster. 
+      
+      <em>Proceedings of the Fourth High Performance Grid Computing Workshop to be held in conjunction with International Parallel and Distributed Processing Symposium (IPDPS 2007)</em>, March, 2007<br>
+      
+      [<a href="#GridCopy">Citation</a>, 
+      
+      <a href="papers/GridCopy.pdf">PDF</a>]</font></p>
+      
+     
 	  
 	  <p><font size="2"><strong><a name="foam">Automating Climate Science: Large Ensemble Simulations on the TeraGrid with the GriPhyN Virtual Data System</a></strong>.&nbsp;
 
@@ -432,6 +466,7 @@ submitting bibliographic citations</a>.</b></p>
     [<a href="#foam">Citation</a>, 
 
     <a href="papers/Foam-submit.pdf">PDF</a>]</font></p>
+    
       <p><font size="2"><strong><a name="chervenakGrid2005">Wide Area Data Replication 
 
        for Scientific Collaborations</a></strong>.
@@ -2804,8 +2839,43 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
 
 	<h2><a name="Other Globus-Related Research">Other Globus-Related Research</a></h2>
-
-
+	
+	<p><font size="2"><strong><a name="LEGS">LEGS: A WSRF Service to Estimate Latency Between Arbitrary Hosts on the Internet</a></strong>. 
+	R. Vijayprasanth, R. Kavithaa and Rajkumar Kettimuthu.  
+	
+	<em>Proceedings of the 2007 International Conference on Parallel and Distributed Processing Techniques and Applications (PDPTA 2007)</em>, June 2007<br>
+	
+	[<a href="#LEGS">Citation</a>,
+	
+	<a href="papers/LEGS.pdf">PDF</a>]</font></p>
+	
+	<p><font size="2"><strong><a name="survey">Survey of Protocols and Mechanisms for Enhanced Transport over Long Fat Pipes</a></strong>. 
+	Eric He, Rajkumar Kettimuthu, Sanjay Hegde, Yunhong Gu, Michael Welzl, Pascale Primet, Jason Leigh and Chaoyue Xiong.  
+	
+	<em>Global Grid Forum White paper, Data Transport Research Group</em>, 2003/2004<br>
+	
+	[<a href="#survey">Citation</a>,
+	
+	<a href="papers/survey.pdf">PDF</a>]</font></p>
+	
+	<p><font size="2"><strong><a name="RSS">Restricted Slow-Start for TCP</a></strong>. 
+	William Allcock, Sanjay Hegde and Rajkumar Kettimuthu.  
+	
+	<em>The 2005 IEEE International Conference on Cluster Computing 2005</em>, September 2005<br>
+	
+	[<a href="#RSS">Citation</a>,
+	
+	<a href="papers/RSS.pdf">PDF</a>]</font></p>
+	
+	<p><font size="2"><strong><a name="sc2002">Appropriateness of Transport Mechanisms in Data Grid Middleware</a></strong>. 
+	Rajkumar Kettimuthu, Sanjay Hegde, William E. Allcock and John Bresnahan.  
+	
+	<em>15th Annual SuperComputing Conference (SC 2002)</em>, November 2002<br>
+	
+	[<a href="#sc2002">Citation</a>,
+	
+	<a href="papers/sc2002.ppt">PPT</a>]</font></p>
+	
 
         <p><font size="2"><strong><a name="UKglobus">Report of the UK Globus Week 
 
