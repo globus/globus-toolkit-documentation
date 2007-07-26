@@ -65,6 +65,7 @@ forms of scientific communication.
 Argonne, for example, offers an Undergraduate Program in Computational Science. 
 Graduate students can also enter the University of Chicago or University of Southern 
 California.</p>
+<p>Click <a href="http://dev.globus.org/wiki/Project_Ideas">here</a> for project ideas.</p>
 
 <h2>Opportunities at Univa</h2>
 <p> We are growing the Univa team and are looking for talented individuals to join one 
