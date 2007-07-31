@@ -31,37 +31,90 @@
     
     <!-- Add configuration instructions - this will be output as a numbered list. -->
     
-    <orderedlist>
-        <listitem><para>
-        This section describes configuring for use in GRAM.
+    <para>The following configuration is required to use this information provider</para>
+        
+     <para>
+     The system administrator first enables a given service or service
+     resource to use the
+     org.globus.mds.usefulrp.rpprovider.ResourcePropertyProviderCollection
+     operation provider by adding the fully qualified Java class name
+     to the provider's parameter value in the service descriptor of a
+     service or resource's <file>server-config.wsdd</file> file.
 
-        The scheduler does not need to be configured, as GRAM already knows
-        the scheduler bundle to use through other means.
+     Also, the administrator must add a new parameter named
+     rpProviderConfigFile and for its corresponding value, specify an
+     OS-native file path to a valid ResourcePropertyProviderConfig
+     configuration file. The ResourcePropertyProviderConfig file
+     contains all required information for generating one or more
+     Resource Properties for the hosting service or resource.  An
+     example is below:
+     </para>
+     <screen>
+  &lt;service name="DefaultIndexService"   provider="Handler"
+     use="literal" style="document"&gt;
+    &lt;parameter name="providers"
+               value="org.globus.mds.usefulrp.rpprovider.ResourcePropertyProviderCollection
+               org.globus.wsrf.impl.servicegroup.ServiceGroupRegistrationProvider
+               GetRPProvider
+               GetMRPProvider 
+               QueryRPProvider
+               DestroyProvider 
+               SetTerminationTimeProvider 
+               SubscribeProvider 
+               GetCurrentMessageProvider"/&gt;
+    &lt;parameter name="rpProviderConfigFile"
+               value="/etc/globus_wsrf_mds_usefulrp/gluece-rpprovider-sample-config.xml"/&gt;
+    &lt;parameter name="scope" value="Application"/&gt; 
+    &lt;parameter name="allowedMethods" value="*"/&gt;
+    &lt;parameter name="handlerClass" value="org.globus.axis.providers.RPCProvider"/&gt;
+    &lt;parameter name="className" value="org.globus.mds.index.impl.DefaultIndexService"/&gt;
+    &lt;wsdlFile&gt;share/schema/mds/index/index_service.wsdl&lt;/wsdlFile&gt;
+  &lt;/service&gt;
+     </screen>
 
-        GT4.0 comes with providers which collect data from two cluster
-        monitoring systems:
+     <para>
+     The configuration file format for the
+     ResourcePropertyProviderCollection operation provider is simply
+     the XML-serialized form of the ResourcePropertyProviderConfig
+     stub object, as defined in the schema file rpprovider.xsd.
 
-        * Ganglia
-        * Hawkeye
-
-        These are configured in
-        <screen>
-        $GLOBUS_LOCATION/etc/globus_wsrf_mds_usefulrp/gluerp.xml
-        </screen>
-        To collect data from Ganglia, set the defaultProvider option in this
-        file to:
-        <screen>
-        &lt;defaultProvider&gt;java org.globus.mds.usefulrp.glue.GangliaElementProducer&lt;/defaultProvider&gt;
-        </screen>
-        If no cluster monitoring in this file is available, set the
-        defaultProvider as follows: (this is the way the toolkit comes as
-        installed)
-        <screen>
-        &lt;defaultProvider&gt;none&lt;/defaultProvider&gt; 
-        </screen>
-
-        </para></listitem>
-    </orderedlist>
+     Below is a sample configuration file which configures the GLUE
+     Resource Property provider with element producers using Ganglia
+     to provide cluster information and PBS for scheduler
+     information. This sample configures the provider to generate
+     cluster information using Ganglia on the localhost with the
+     default Ganglia port, and configures PBS as the scheduler
+     information provider. The period of execution is set to 300
+     seconds for each element producer, but may be configured
+     separately if desired. This configuration mirrors a common
+     information provider setup in the GT4 GRAM ManagedJobExecutable
+     service. Using the RPProvider Framework, it is possible to
+     generate this information in other services as well.
+     </para>
+     <screen>
+      &lt;ns1:ResourcePropertyProviderConfigArray 
+       xsi:type="ns1:ResourcePropertyProviderConfigArray" 
+       xmlns:ns1="http://mds.globus.org/rpprovider/2005/08"  
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+      &lt;ns1:resourcePropertyProviderConfiguration xsi:type="ns1:resourcePropertyProviderConfig"&gt;
+      &lt;ns1:resourcePropertyName xsi:type="xsd:QName" xmlns:mds="http://mds.globus.org/glue/ce/1.1"&gt;mds:GLUECE&lt;/ns1:resourcePropertyName&gt;
+      &lt;ns1:resourcePropertyImpl xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.GLUEResourceProperty&lt;/ns1:resourcePropertyImpl&gt;
+      &lt;ns1:resourcePropertyElementProducers xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+        &lt;ns1:className xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.glue.GangliaElementProducer&lt;/ns1:className&gt;
+        &lt;ns1:arguments xsi:type="xsd:string"&gt;localhost&lt;/ns1:arguments&gt;
+        &lt;ns1:arguments xsi:type="xsd:string"&gt;8649&lt;/ns1:arguments&gt;
+        &lt;ns1:period   xsi:type="xsd:int"&gt;300&lt;/ns1:period&gt;
+        &lt;ns1:transformClass xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.transforms.GLUEComputeElementTransform&lt;/ns1:transformClass&gt;
+      &lt;/ns1:resourcePropertyElementProducers&gt;
+      &lt;ns1:resourcePropertyElementProducers xsi:type="ns1:resourcePropertyElementProducerConfig"&gt;
+        &lt;ns1:className xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.producers.SchedulerInfoElementProducer&lt;/ns1:className&gt;
+        &lt;ns1:arguments xsi:type="xsd:string"&gt;libexec/globus-scheduler-provider-pbs&lt;/ns1:arguments&gt;
+        &lt;ns1:transformClass xsi:type="xsd:string"&gt;org.globus.mds.usefulrp.rpprovider.transforms.GLUESchedulerElementTransform&lt;/ns1:transformClass&gt;
+        &lt;ns1:period xsi:type="xsd:int"&gt;300&lt;/ns1:period&gt;
+      &lt;/ns1:resourcePropertyElementProducers&gt;
+      &lt;/ns1:resourcePropertyProviderConfiguration&gt;
+      &lt;/ns1:ResourcePropertyProviderConfigArray&gt;
+     </screen>
     
 </section>
 
@@ -107,7 +160,9 @@
     
     <!-- add a simple test for this info provider. paste text in between para tags. -->
     
-    <para>N/A</para>
+    <para>Once gmond is running and your configuration is complete,
+    restart the container and the information should appear when
+    querying the Index Service using wsrf-query.</para>
     
 </section>
 
@@ -116,9 +171,10 @@
     <!-- describe common issues users may experience with this info provider. paste text in between para tags. -->
     
     <para>
-    Be sure that the gluerp.xml file is configured properly exactly as
-    shown above.  Simply having too much whitespace between the tags
-    can cause errors.
+    Be sure that the server-config.wsdd and the RPProvider
+    configuration files are configured properly exactly as shown
+    above.  Simply having too much whitespace between the tags can
+    cause errors.
     </para>
 
 </section>
