@@ -8,7 +8,7 @@
 <div id="footer">
   <hr class="first"/>
   <?php 
-  include_once( "/mcs/www-unix.globus.org/toolkit/feedback.php" ); 
+  include_once( "/www/www-unix.globus.org/toolkit/feedback.php" ); 
   ?>
   <p>Comments about the website?? <a href="mailto:webmaster@globus.org">webmaster@globus.org</a><br/>
   For our privacy statement, see: <a href="http://www.globus.org/privacy">http://www.globus.org/privacy</a></p>
