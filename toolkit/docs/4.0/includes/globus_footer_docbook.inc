@@ -9,7 +9,9 @@
   </div>
 <div id="footer">
   <hr class="first"/>
-
+  <?php 
+  include_once( "/www/www-unix.globus.org/toolkit/feedback.php" ); 
+  ?>
   <p>Comments?<br />
   For questions or feedback about this website:  <a href="mailto:webmaster@globus.org">webmaster@globus.org</a><br />
   For technical support or questions about Globus software, visit our <a href="http://www.globus.org/toolkit/support.html">technical
