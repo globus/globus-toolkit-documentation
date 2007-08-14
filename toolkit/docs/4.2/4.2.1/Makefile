@@ -3,7 +3,7 @@ export XML_CATALOG_FILES=catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 
-all: lint html docbook/primer/index.html
+#all: lint html docbook/primer/index.html
 
 html:
 	xsltproc \
