@@ -51,9 +51,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
   <option value="/mail_archive/cog-news/">cog-news@globus.org</option>
   <option value="/mail_archive/contrib-discuss/">contrib-discuss@globus.org (no mail since March 2004)</option>
   <option value="/mail_archive/cray/">cray@globus.org (no mail since 2003)</option>
-  <option value="/mail_archive/developer-discuss/">developer-discuss@globus.org (deprecated?, still in use)</option>
-  <option value="/mail_archive/discuss/">discuss@globus.org (deprecated?, still in use)</option>
-  <option value="/mail_archive/gt4-friends/">gt4-friends@globus.org (still in use)</option>
+  <option value="/mail_archive/developer-discuss/">developer-discuss@globus.org (deprecated)</option>
+  <option value="/mail_archive/discuss/">discuss@globus.org (deprecated)</option>
+  <option value="/mail_archive/gt4-friends/">gt4-friends@globus.org (deprecated)</option>
   <option value="/mail_archive/java/">java@globus.org</option>
   <option value="/mail_archive/mpi/">mpi@globus.org</option>
   <option value="/mail_archive/python-discuss/">python-discuss@globus.org</option>
