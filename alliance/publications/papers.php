@@ -2373,9 +2373,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 	
 	<em>Health Grid  </em>, 2007<br>
 	
-	[<a href="#SwiftForSocialSciences">Citation</a>, 
-	
-	<a href="papers/HealthGrid-2007-VDL2Bric.submitted-revised.pdf>PDF</a>]</font></p>
+	[<a href="#SwiftForSocialSciences">Citation</a>, <a href="papers/HealthGrid-2007-VDL2Bric.submitted-revised.pdf">PDF</a>]</font></p>
 	
 	<p><font size="2"><strong><a name="VDL2Bric">Accelerating solution of a moral hazard problem with Swift</a></strong>.&nbsp;
 	
@@ -2385,7 +2383,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 	
 	[<a href="#SwiftForSocialSciences">Citation</a>, 
 	
-	<a href="papers/SwiftForSocialSciences-2007.pdf>PDF</a>]</font></p>
+	<a href="papers/SwiftForSocialSciences-2007.pdf">PDF</a>]</font></p>
 
 	
 	
