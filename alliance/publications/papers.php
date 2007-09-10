@@ -2366,6 +2366,29 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
     
 
 	<h2><a name="Applications">Applications</a></h2>
+	
+	<p><font size="2"><strong><a name="VDL2Bric">Accelerating Medical Research using the Swift Workflow System</a></strong>.&nbsp;
+	
+	Stef-Praun, T., Clifford, B., Foster, I., Hasson, U., Hategan, M., Small, S., Wilde, M and Zhao,Y. 
+	
+	<em>Health Grid  </em>, 2007<br>
+	
+	[<a href="#SwiftForSocialSciences">Citation</a>, 
+	
+	<a href="papers/HealthGrid-2007-VDL2Bric.submitted-revised.pdf>PDF</a>]</font></p>
+	
+	<p><font size="2"><strong><a name="VDL2Bric">Accelerating solution of a moral hazard problem with Swift</a></strong>.&nbsp;
+	
+	Stef-Praun, T., Madeira, G., Foster, I., and Townsend, R. 
+	
+	<em>e-Social Science</em>, 2007<br>
+	
+	[<a href="#SwiftForSocialSciences">Citation</a>, 
+	
+	<a href="papers/SwiftForSocialSciences-2007.pdf>PDF</a>]</font></p>
+
+	
+	
 	      <p><font size="2"><strong><a name="foam">Automating Climate Science: Large Ensemble Simulations on the TeraGrid with the GriPhyN Virtual Data System</a></strong>.&nbsp;
 
     V. Nefedova, R. Jacob, I. Foster, Z. Liu, Y. Liu, E. Deelman, G Mehta, M. Su, K. Vahi. 
@@ -2375,6 +2398,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
     [<a href="#foam">Citation</a>, 
 
     <a href="papers/Foam-submit.pdf">PDF</a>]</font></p>
+    
 	<p><font SIZE="2"><a name="esgProcIEEE2005"><b>The Earth System Grid: Supporting the Next 
 
          Generation of Climate Modeling Research</b>.</a> 
