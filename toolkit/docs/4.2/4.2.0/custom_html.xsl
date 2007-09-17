@@ -48,7 +48,7 @@
                 <xsl:param name="toc.max.depth">2</xsl:param>
                 
                 <!-- How deep should recursive sections appear in the TOC for chapters? -->
-                 <xsl:param name="toc.section.depth">4</xsl:param>
+                 <xsl:param name="toc.section.depth">1</xsl:param>
                 
                 <!-- Should the first section be chunked separately from its parent? > 0 = yes-->
                 <xsl:param name="chunk.first.sections">1</xsl:param>
@@ -57,7 +57,7 @@
                 <xsl:param name="use.id.as.filename">1</xsl:param>
                 
                 <!-- custom toc - book only shows chapter -->
-                <xsl:template match="preface|chapter|appendix|article" mode="toc">
+                <xsl:template match="preface|chapter|reference|appendix|article" mode="toc">
                                 <xsl:param name="toc-context" select="."/>
                                 
                                 <xsl:choose>
@@ -78,6 +78,27 @@
                                 </xsl:choose>
                 </xsl:template>
                 
+                <!-- control TOCs -->
+                <xsl:param name="generate.toc">
+                                appendix  toc,title
+                                article/appendix  nop
+                                article   toc,title
+                                book      toc,title
+                                chapter   toc,title
+                                part      toc,title
+                                preface   toc,title
+                                qandadiv  toc
+                                qandaset  toc
+                                reference toc,title
+                                sect1     toc
+                                sect2     toc
+                                sect3     toc
+                                sect4     toc
+                                sect5     toc
+                                section   toc
+                                set       toc,title
+                </xsl:param>
+                
 
                 <!-- INDEX PARAMETERS -->
                 <!-- do you want an index?  -->
@@ -91,7 +112,7 @@
                 <xsl:param name="glossentry.show.acronym">yes</xsl:param>
                 
                 <!-- Name of the glossary collection file -->
-                <xsl:param name="glossary.collection" select="'glossary.xml'"></xsl:param>
+                <xsl:param name="glossary.collection" select="'http://root/glossary.xml'"></xsl:param>
                 
                 <!-- Generate links from glossterm to glossentry automatically? -->
                 <xsl:param name="glossterm.auto.link">1</xsl:param>
