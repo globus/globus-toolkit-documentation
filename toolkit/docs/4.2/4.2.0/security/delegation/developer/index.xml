@@ -1,8 +1,18 @@
 <?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
+[
+
+<!ENTITY % myents SYSTEM "../../../entities">
+
+%myents;
+
+]>
+<book  id="delegationDeveloper">
 <title>GT4 Delegation Service Developer&apos;s Guide</title>
 <titleabbrev>Developer&apos;s Guide</titleabbrev>
 
-<section id="delegation-developer-introduction">
+<chapter id="delegation-developer-introduction">
 
   <title>Introduction</title>
 
@@ -16,56 +26,308 @@ component provides  a utility API that can be used for developing
 
 client side code to generate a  credential, delegate it and refresh it.</para>
 
-</section>
+</chapter>
 
 
-<section id="delegation-developer-beforeyoubegin">
+<chapter id="delegation-developer-beforeyoubegin">
   <title>Before you begin</title>
 
   
   <section id="delegation-developer-features">
     
     <title>Feature summary</title>
-    
-    &WS_AA_Delegation_Service_Feature_Summary_Frag;
-    
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Feature_Summary_Frag.xml" xpointer="xpointer(/section/*)"/>
   </section>
   
   <section id="delegation-developer-platforms">
     
     <title>Tested platforms</title>
-    
-    &WS_AA_Delegation_Service_Platform_Summary_Frag;
-    
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Platform_Summary_Frag.xml" xpointer="xpointer(/section/*)"/>
   </section>
   
   <section id="delegation-developer-compatibility">
     
     <title>Backward compatibility summary</title>
-    
-    &WS_AA_Delegation_Service_Compatibility_Summary_Frag;
-    
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Compatibility_Summary_Frag.xml" xpointer="xpointer(/section/*)"/>
   </section>
   
   <section id="delegation-developer-dependencies">
     
     <title>Technology dependencies</title>
-    
-    &WS_AA_Delegation_Service_Dependencies_Summary_Frag;
-    
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Dependencies_Summary_Frag.xml" xpointer="xpointer(/section/*)"/>
   </section>
   
   <section id="delegation-developer-security_considerations">
     
     <title>Security considerations </title>
-    
-    &WS_AA_Delegation_Service_Security_Considerations_Frag;
-    
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Security_Considerations_Frag.xml" xpointer="xpointer(/section/*)"/>
   </section>
+</chapter>
+  <chapter id="delegation-developer-scenarios">
+    <title>Developer Usage Scenarios</title>
+    
+    <section id="delegation-developer-scenarios-java">
+      <title>Java Usage Scenarios</title>
+      <para>The <constant>org.globus.delegation.DelegationUtil</constant> provides an API
+        that allows users to get the certificate chain resource property exposed by the Delegation Factory Service, delegate to a service, and to refresh and register listeners.</para>
+      
+      <section>
+        
+        <title> Client-side scenario </title>
+        
+        <section id="delegation-developer-getCertChain"><title>Getting a certificate chain of delegation factory service</title>
+          <para>Prior to delegating, the client needs to get information about the public key of the Delegation Factory Service.</para>
+          
+          <para><screen>static X509Certificate[] getCertificateChainRP(String delegationUrl)</screen></para>
+          <para>This takes  an endpoint URL to a Delegation Factory Service and queries
+            the <type>CertificateChain</type> resource property. The chain of
+            certificates is returned as an array of
+            <type>X509Certificate</type>. The client needs to delegate on the
+            first certificate in the returned chain.</para>
+        </section>
+        
+        <section id="delegation-developer-delegateCred"><title>Delegating the credential</title>
+          <para>Once the delegation client has the public key of the Delegation Factory Service, it needs to create a delegated credential using that public key and 
+            then invoke the remote interface on the factory to delegate the credential. A utility API to do all of the above is described in <olink targetdoc="delegationPI" targetptr="delegation-pi-apis"/>. </para>
+          
+          <screen>public static EndpointReferenceType delegate(String delegationServiceUrl,
+            GlobusCredential issuingCred,
+            X509Certificate certificate,
+            int lifetime,
+            boolean fullDelegation,
+            ClientSecurityDescriptor desc)</screen>
+          <para>This utility method is used to create the security token to
+            delegate using the <parameter>issuingCred</parameter> and <parameter>certificate</parameter>
+            parameters. The lifetime and type of the delegated credential created
+            is determined by the <parameter>lifetime</parameter> and <parameter>fullDelegation</parameter>
+            parameters. The security token (delegated credential) thus created is
+            then stored  by the Delegation Factory Service specified by the
+            <parameter>delegationServiceUrl</parameter>. The client security descriptor determines
+            the authentication mechanism, protection and authorization  settings to
+            use.</para>
+          <para>The Endpoint Reference that is returned points to the delegated credential
+            and can be used by co-hosted services (services in the same hosting
+            environment) to retrieve the delegated credential.</para>
+          
+        </section>
+        
+        <section id="delegation-developer-credLiftime">
+          <title>Delegated Credential Lifetime</title>
+          
+          <para> The lifetime of the delegated credential is set to be the lifetime of the WSRF resource created for the credential. This value is exposed as a resource property, <constant>TerminationTime</constant>, described in the WS-Lifetime specification.</para>
+          
+          <para> The command line client <ulink url="http://www.globus.org/toolkit/docs/development/4.2-drafts/common/javawscore/wsrf-get-property.html">wsrf-get-property</ulink> with the termnation time resource property QName <constant>{http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd}TerminationTime</constant> can be used to get the value for a given delegated credential.
+          </para>
+          
+          <para> To obtain the termination time programmatically, the method <constant>GetResourceProperty</constant> with the above mentioned QName can be used.
+          </para>
+        </section>
+        
+        <section id="delegation-developer-refreshCred"><title>Refreshing the delegated credential</title>
+          <para>The user may need to refresh the delegated credential. The onus is on the user to do this prior to expiration of the delegated credential. If the user does not refresh 
+            the credential, the expired credential will be garbage collected and the Endpoint Reference cannot be reused. </para>
+          
+          <screen>public static void refresh(GlobusCredential issuingCred,
+            X509Certificate certToSign,
+            int lifetime,
+            boolean fullDelegation,
+            ClientSecurityDescriptor desc,
+            EndpointReferenceType epr)</screen>
+          <para>This method can be used to refresh a delegated credential that is
+            referred to by  the EPR <parameter>epr</parameter>. A new delegated credential is created using the 
+            <parameter>issuingCred</parameter>, <parameter>certToSign</parameter>, <parameter>lifetime</parameter> and
+            <parameter>fullDelegation</parameter> parameters. The client security descriptor determines
+            the authentication mechanism, protection and authorization type to
+            use.</para>
+          
+        </section>
+        
+      </section>
+      
+      <section>
+        
+        <title> Service-side scenario </title>
+        <section><title>Registering a listener</title>
+          
+          <para>This section describes the usage scenario where a service is provided with a delegated credential EPR and needs to access the credential. Typically, as a part of an 
+            application the delegated credential EPR is sent to the service and and it is assumed that the delegation service is co-hosted (that is, it runs in the same hosting environment).</para>
+          
+          <para>The service needs to create a listener object that implements the <constant>org.globus.delegation.DelegationRefreshListener</constant> interface and register the listener with 
+            the Delegation Service.   Upon registering the listener,  the Delegation Service checks  that the delegator identity matches either the identity  passed in the subject object or the identity 
+            contained in the peer subject  associated with the current message context. Once the listener has been authorized the delegated credential is made available to the listener. 
+          </para>
+          
+          <screen>static void
+            registerDelegationListener(EndpointReferenceType epr,
+            DelegationRefreshListener listener,
+            Subject subject)</screen>
+          <para>This method registers the listener <parameter>listener</parameter> with the
+            delegation resource referenced by <parameter>epr</parameter>. The operation is
+            permitted only if the  identity in the subject object matches that of the user who delegated the credential.</para>
+          
+          <screen>static void
+            registerDelegationListener(EndpointReferenceType epr,
+            DelegationRefreshListener listener)</screen>
+          <para>This  method  provides the same functionality as the previous one,  except that the
+            subject object is picked up from the property
+            <constant>org.globus.wsrf.security.Constants.PEER_SUBJECT</constant> in the
+            current message context. If the identity of the  user who 
+            delegated the credential matches that  of the subject object referred to by the property, then the operation is
+            permitted.</para>
+        </section>
+      </section>
+      
+    </section>
+    
+    <section id="delegation-developer-scenarios-c">
+      <title>C Usage Scenarios</title>
+      <para>
+        The <interface>globus_c_delegation_client_util</interface> package
+        provides functions to create new delegation resources and refresh the
+        credential owned by an existing delegation resource.
+      </para>
+      
+      <section>
+        <title>Module Activation</title>
+        
+        <para>
+          Activate the
+          <constant>GLOBUS_DELEGATION_CLIENT_UTIL_MODULE</constant>
+          before calling any functions in the
+          <interface>globus_c_delegation_client_util</interface> API.
+          
+        </para>
+        
+        <para>
+          This fragment demonstrates activating the module. If successful,
+          <varname>rc</varname> will be set to 0.
+          
+          <programlisting><![CDATA[#include "globus_delegation_client_util.h"
+            
+            
+            int                                 rc;
+            
+            rc = globus_module_activate(GLOBUS_DELEGATION_CLIENT_UTIL_MODULE);]]></programlisting>
+        </para>
+      </section>
+      
+      <section>
+        <title>Create a Handle</title>
+        
+        <para>
+          A <type>globus_delegation_client_util_handle_t</type> structure
+          manages the state needed to process the delegation or refresh
+          operations. A process may create multiple
+          <type>globus_delegation_client_util_handle_t</type> structures,
+          but each may be processing only one delegation or refresh
+          operation at a time.
+        </para>
+        
+        <para>
+          The function
+          <function>globus_delegation_client_util_handle_init</function>
+          creates a new handle. This fragment demonstrates creating a 
+          new handle with default parameters.
+          
+          <programlisting><![CDATA[    globus_delegation_client_util_handle_t   handle;
+            globus_soap_message_attr_t               message_attr = NULL;
+            globus_handler_chain_t                   handler_chain = NULL;
+            const globus_gsi_cred_handle_t           user_cred = NULL;
+            globus_delegation_client_util_attr_t     attr = NULL;
+            globus_result_t                          result;
+            
+            /* Initialize attributes, user_cred, handler chain if needed */
+            
+            result = globus_delegation_client_util_handle_init(
+            &handle,
+            attr,
+            handler_chain,
+            user_cred,
+            attr)]]></programlisting>
+        </para>
+      </section>
+      
+      <section>
+        <title>Delegating a credential</title>
+        
+        <para>
+          The <interface>globus_c_delegation_client_util</interface> API
+          provides four different functions for delegating credentials.
+          They differ in two facets. One is whether the function is
+          blocking or nonblocking; the other is whether the function 
+          contacts a resource based on a service URL or a complete
+          endpoint reference. Nonblocking functions have names which end
+          with <emphasis>_register</emphasis> and are passed a callback
+          function pointer which will be called when the delegation
+          completes. Functions which use Endpoint References have
+          <emphasis>_epr</emphasis> in their names.
+        </para>
+        
+        <para>
+          This fragment demonstrates delegating a credential using the
+          blocking interface taking a service URL. If successfull, result
+          will equal <constant>GLOBUS_SUCCESS</constant> and
+          <varname>delegated_epr</varname> will point to the endpoint
+          reference naming the delegated credential.
+          
+          <programlisting><![CDATA[globus_result_t                     result;
+            wsa_EndpointReferenceType *         delegated_epr = NULL;
+            
+            result = globus_delegation_client_util_delegate(
+            handle,
+            "http://my.virtual.org:8443/wsrf/services/DelegationFactoryService",
+            GLOBUS_FALSE,
+            &delegated_epr);
+            ]]></programlisting>
+        </para>
+        
+      </section>
+      
+      <section>
+        <title>Refreshing a credential</title>
+        
+        <para>
+          The <interface>globus_c_delegation_client_util</interface> API
+          provides four different functions for refreshing credentials.
+          They differ in two facets. One is whether the function is
+          blocking or nonblocking; the other is whether the function 
+          contacts a resource based on a service URL or a complete
+          endpoint reference. Nonblocking functions have names which end
+          with <emphasis>_register</emphasis> and are passed a callback
+          function pointer which will be called when the delegation
+          completes. Functions which use Endpoint References have
+          <emphasis>_epr</emphasis> in their names.
+        </para>
+        
+        <para>
+          This fragment demonstrates refreshing a credential using the
+          blocking interface taking an endpoint reference. If
+          successfull, result will equal
+          <constant>GLOBUS_SUCCESS</constant>.
+          
+          <programlisting><![CDATA[    result = globus_delegation_client_util_refresh_epr(
+            handle,
+            delegated_epr,
+            GLOBUS_FALSE);]]></programlisting>
+        </para>
+      </section>
+    </section>
+    
+  </chapter>
   
-  
-  </section>
-<section id="delegation-developer-archdes">
+  <chapter id="delegation-developer-tutorials">
+    
+    <title>Tutorials</title>
+    
+    <para>There are no tutorials available at this time.</para>
+    
+  </chapter>
+<chapter id="delegation-developer-archdes">
 
   <title>Architecture and design overview</title>
 
@@ -126,7 +388,7 @@ credentials. Credential renewal follows the same steps as the initial delegation
       <figure id="DelegationServiceCreate"><title>Delegation Service Creation</title> 
         <mediaobject>
           <imageobject>
-            <imagedata fileref="security/delegation/developer/DelegationServiceCreate.gif" format="GIF" align="center"/>
+            <imagedata fileref="DelegationServiceCreate.gif" format="GIF" align="center"/>
           </imageobject> 
         </mediaobject>
       </figure> 
@@ -190,7 +452,7 @@ credentials. Credential renewal follows the same steps as the initial delegation
       <figure id="DelegationServiceRefresh"><title>Delegation Service Refresh</title>
         <mediaobject>
           <imageobject>
-            <imagedata fileref="security/delegation/developer/DelegationServiceRefresh.gif" format="GIF" align="center"/>
+            <imagedata fileref="DelegationServiceRefresh.gif" format="GIF" align="center"/>
           </imageobject>
         </mediaobject>
       </figure>
@@ -231,306 +493,55 @@ credentials. Credential renewal follows the same steps as the initial delegation
 
   </section>
 
-</section>
+</chapter>
 
-<section id="delegation-developer-pubinterfaces">
+  <chapter id="delegation-developer-apis"><title>APIs</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Interface_API_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  <chapter id="delegation-developer-wsdl"><title>Services and WSDL</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Interface_WSDL_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  <!-- 
+  <chapter id="delegation-developer-protocols"><title>Semantics and syntax of non-WSDL protocols</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Interface_Protocol_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  -->
+  <reference id="delegation-developer-cmd"><title>Command-line tools</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Interface_Commandline_Frag.xml" xpointer="xpointer(/reference/*)"/>
+  </reference>
+  <!-- 
+  <chapter id="delegation-developer-guis"><title>Graphical User Interface </title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Interface_GUI_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
 
-  <title>Public interface</title>
-
-  <section id="delegation-developer-apis"><title>Semantics and syntax of APIs</title>
-    &WS_AA_Delegation_Service_Interface_API_Frag;
-  </section>
-  <section id="delegation-developer-wsdl"><title>Semantics and syntax of the WSDL</title>
-    &WS_AA_Delegation_Service_Interface_WSDL_Frag;
-  </section>
-  <section id="delegation-developer-protocols"><title>Semantics and syntax of non-WSDL protocols</title>
-    &WS_AA_Delegation_Service_Interface_Protocol_Frag;
-  </section>
-  <section id="delegation-developer-cmd"><title>Command-line tools</title>
-    <para>Please see the <xref linkend="delegation-commandline"/>.</para>
-  </section>
-  <section id="delegation-developer-guis"><title>Overview of Graphical User Interface </title>
-    &WS_AA_Delegation_Service_Interface_GUI_Frag;
-  </section>
-  <section id="delegation-developer-domain"><title>Semantics and syntax of domain-specific interface</title>
-    &WS_AA_Delegation_Service_Interface_Domain_Frag;
-  </section>
-  <section id="delegation-developer-config"><title>Configuration interface</title>
-    &WS_AA_Delegation_Service_Interface_Config_Frag;
-  </section>
-  <section id="delegation-developer-env"><title>Environment variable interface</title>
-    &WS_AA_Delegation_Service_Interface_Env_Frag;
-  </section>
-
-</section>
-
-<section id="delegation-developer-scenarios">
-  <title>Developer Usage Scenarios</title>
-
-  <section id="delegation-developer-scenarios-java">
-  <title>Java Usage Scenarios</title>
-  <para>The <constant>org.globus.delegation.DelegationUtil</constant> provides an API
-    that allows users to get the certificate chain resource property exposed by the Delegation Factory Service, delegate to a service, and to refresh and register listeners.</para>
-
-  <section>
-
-    <title> Client-side scenario </title>
-    
-    <section id="delegation-developer-getCertChain"><title>Getting a certificate chain of delegation factory service</title>
-      <para>Prior to delegating, the client needs to get information about the public key of the Delegation Factory Service.</para>
-      
-      <para><screen>static X509Certificate[] getCertificateChainRP(String delegationUrl)</screen></para>
-      <para>This takes  an endpoint URL to a Delegation Factory Service and queries
-        the <type>CertificateChain</type> resource property. The chain of
-        certificates is returned as an array of
-        <type>X509Certificate</type>. The client needs to delegate on the
-        first certificate in the returned chain.</para>
-    </section>
-    
-    <section id="delegation-developer-delegateCred"><title>Delegating the credential</title>
-      <para>Once the delegation client has the public key of the Delegation Factory Service, it needs to create a delegated credential using that public key and 
-        then invoke the remote interface on the factory to delegate the credential. A utility API to do all of the above is described in <xref linkend="delegation-pi-apis"/>. </para>
-      
-      <screen>public static EndpointReferenceType delegate(String delegationServiceUrl,
-        GlobusCredential issuingCred,
-        X509Certificate certificate,
-        int lifetime,
-        boolean fullDelegation,
-        ClientSecurityDescriptor desc)</screen>
-      <para>This utility method is used to create the security token to
-        delegate using the <parameter>issuingCred</parameter> and <parameter>certificate</parameter>
-        parameters. The lifetime and type of the delegated credential created
-        is determined by the <parameter>lifetime</parameter> and <parameter>fullDelegation</parameter>
-        parameters. The security token (delegated credential) thus created is
-        then stored  by the Delegation Factory Service specified by the
-        <parameter>delegationServiceUrl</parameter>. The client security descriptor determines
-        the authentication mechanism, protection and authorization  settings to
-        use.</para>
-      <para>The Endpoint Reference that is returned points to the delegated credential
-        and can be used by co-hosted services (services in the same hosting
-        environment) to retrieve the delegated credential.</para>
-      
-      </section>
-
-    <section id="delegation-developer-credLiftime">
-    <title>Delegated Credential Lifetime</title>
-
-   <para> The lifetime of the delegated credential is set to be the lifetime of the WSRF resource created for the credential. This value is exposed as a resource property, <constant>TerminationTime</constant>, described in the WS-Lifetime specification.</para>
-
-   <para> The command line client <ulink url="http://www.globus.org/toolkit/docs/development/4.2-drafts/common/javawscore/wsrf-get-property.html">wsrf-get-property</ulink> with the termnation time resource property QName <constant>{http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd}TerminationTime</constant> can be used to get the value for a given delegated credential.
-   </para>
-
-   <para> To obtain the termination time programmatically, the method <constant>GetResourceProperty</constant> with the above mentioned QName can be used.
-   </para>
-    </section>
-
-    <section id="delegation-developer-refreshCred"><title>Refreshing the delegated credential</title>
-        <para>The user may need to refresh the delegated credential. The onus is on the user to do this prior to expiration of the delegated credential. If the user does not refresh 
-          the credential, the expired credential will be garbage collected and the Endpoint Reference cannot be reused. </para>
-      
-      <screen>public static void refresh(GlobusCredential issuingCred,
-        X509Certificate certToSign,
-        int lifetime,
-        boolean fullDelegation,
-        ClientSecurityDescriptor desc,
-        EndpointReferenceType epr)</screen>
-      <para>This method can be used to refresh a delegated credential that is
-        referred to by  the EPR <parameter>epr</parameter>. A new delegated credential is created using the 
-        <parameter>issuingCred</parameter>, <parameter>certToSign</parameter>, <parameter>lifetime</parameter> and
-        <parameter>fullDelegation</parameter> parameters. The client security descriptor determines
-        the authentication mechanism, protection and authorization type to
-        use.</para>
-      
-        </section>
-
-  </section>
-
-  <section>
-
-    <title> Service-side scenario </title>
-    <section><title>Registering a listener</title>
-
-    <para>This section describes the usage scenario where a service is provided with a delegated credential EPR and needs to access the credential. Typically, as a part of an 
-      application the delegated credential EPR is sent to the service and and it is assumed that the delegation service is co-hosted (that is, it runs in the same hosting environment).</para>
-
-    <para>The service needs to create a listener object that implements the <constant>org.globus.delegation.DelegationRefreshListener</constant> interface and register the listener with 
-      the Delegation Service.   Upon registering the listener,  the Delegation Service checks  that the delegator identity matches either the identity  passed in the subject object or the identity 
-      contained in the peer subject  associated with the current message context. Once the listener has been authorized the delegated credential is made available to the listener. 
-     </para>
-      
-      <screen>static void
-        registerDelegationListener(EndpointReferenceType epr,
-        DelegationRefreshListener listener,
-        Subject subject)</screen>
-      <para>This method registers the listener <parameter>listener</parameter> with the
-        delegation resource referenced by <parameter>epr</parameter>. The operation is
-        permitted only if the  identity in the subject object matches that of the user who delegated the credential.</para>
-      
-      <screen>static void
-        registerDelegationListener(EndpointReferenceType epr,
-        DelegationRefreshListener listener)</screen>
-      <para>This  method  provides the same functionality as the previous one,  except that the
-        subject object is picked up from the property
-        <constant>org.globus.wsrf.security.Constants.PEER_SUBJECT</constant> in the
-        current message context. If the identity of the  user who 
-        delegated the credential matches that  of the subject object referred to by the property, then the operation is
-        permitted.</para>
-</section>
-  </section>
-
-</section>
-
-    <section id="delegation-developer-scenarios-c">
-        <title>C Usage Scenarios</title>
-        <para>
-          The <interface>globus_c_delegation_client_util</interface> package
-          provides functions to create new delegation resources and refresh the
-          credential owned by an existing delegation resource.
-        </para>
-
-        <section>
-            <title>Module Activation</title>
-
-            <para>
-                Activate the
-                <constant>GLOBUS_DELEGATION_CLIENT_UTIL_MODULE</constant>
-                before calling any functions in the
-                <interface>globus_c_delegation_client_util</interface> API.
-
-            </para>
-
-            <para>
-                This fragment demonstrates activating the module. If successful,
-                <varname>rc</varname> will be set to 0.
-
-                <programlisting><![CDATA[#include "globus_delegation_client_util.h"
+  <chapter id="delegation-developer-domain"><title>Semantics and syntax of domain-specific interface</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Interface_Domain_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  -->
+  <chapter id="delegation-developer-config"><title>Configuration interface</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Delegation_Service_Interface_Config_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  <chapter id="delegation-developer-env"><title>Environment variable interface</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../../message/WS_AA_Message_Level_Interface_Env_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
 
 
-    int                                 rc;
 
-    rc = globus_module_activate(GLOBUS_DELEGATION_CLIENT_UTIL_MODULE);]]></programlisting>
-            </para>
-        </section>
-
-        <section>
-            <title>Create a Handle</title>
-
-            <para>
-                A <type>globus_delegation_client_util_handle_t</type> structure
-                manages the state needed to process the delegation or refresh
-                operations. A process may create multiple
-                <type>globus_delegation_client_util_handle_t</type> structures,
-                but each may be processing only one delegation or refresh
-                operation at a time.
-            </para>
-
-            <para>
-                The function
-                <function>globus_delegation_client_util_handle_init</function>
-                creates a new handle. This fragment demonstrates creating a 
-                new handle with default parameters.
-
-                <programlisting><![CDATA[    globus_delegation_client_util_handle_t   handle;
-    globus_soap_message_attr_t               message_attr = NULL;
-    globus_handler_chain_t                   handler_chain = NULL;
-    const globus_gsi_cred_handle_t           user_cred = NULL;
-    globus_delegation_client_util_attr_t     attr = NULL;
-    globus_result_t                          result;
-
-    /* Initialize attributes, user_cred, handler chain if needed */
-
-    result = globus_delegation_client_util_handle_init(
-        &handle,
-        attr,
-        handler_chain,
-        user_cred,
-        attr)]]></programlisting>
-              </para>
-        </section>
-
-        <section>
-            <title>Delegating a credential</title>
-
-            <para>
-                The <interface>globus_c_delegation_client_util</interface> API
-                provides four different functions for delegating credentials.
-                They differ in two facets. One is whether the function is
-                blocking or nonblocking; the other is whether the function 
-                contacts a resource based on a service URL or a complete
-                endpoint reference. Nonblocking functions have names which end
-                with <emphasis>_register</emphasis> and are passed a callback
-                function pointer which will be called when the delegation
-                completes. Functions which use Endpoint References have
-                <emphasis>_epr</emphasis> in their names.
-            </para>
-
-            <para>
-                This fragment demonstrates delegating a credential using the
-                blocking interface taking a service URL. If successfull, result
-                will equal <constant>GLOBUS_SUCCESS</constant> and
-                <varname>delegated_epr</varname> will point to the endpoint
-                reference naming the delegated credential.
-
-                <programlisting><![CDATA[globus_result_t                     result;
-    wsa_EndpointReferenceType *         delegated_epr = NULL;
-
-    result = globus_delegation_client_util_delegate(
-                handle,
-                "http://my.virtual.org:8443/wsrf/services/DelegationFactoryService",
-                GLOBUS_FALSE,
-                &delegated_epr);
-]]></programlisting>
-            </para>
-
-        </section>
-
-        <section>
-            <title>Refreshing a credential</title>
-
-            <para>
-                The <interface>globus_c_delegation_client_util</interface> API
-                provides four different functions for refreshing credentials.
-                They differ in two facets. One is whether the function is
-                blocking or nonblocking; the other is whether the function 
-                contacts a resource based on a service URL or a complete
-                endpoint reference. Nonblocking functions have names which end
-                with <emphasis>_register</emphasis> and are passed a callback
-                function pointer which will be called when the delegation
-                completes. Functions which use Endpoint References have
-                <emphasis>_epr</emphasis> in their names.
-            </para>
-
-            <para>
-                This fragment demonstrates refreshing a credential using the
-                blocking interface taking an endpoint reference. If
-                successfull, result will equal
-                <constant>GLOBUS_SUCCESS</constant>.
-
-                <programlisting><![CDATA[    result = globus_delegation_client_util_refresh_epr(
-        handle,
-        delegated_epr,
-        GLOBUS_FALSE);]]></programlisting>
-            </para>
-        </section>
-    </section>
-
-</section>
-
-<section id="delegation-developer-tutorials">
-
-  <title>Tutorials</title>
-
-  <para>There are no tutorials available at this time.</para>
-
-</section>
-
-<section id="delegation-developer-debugging">
+<chapter id="delegation-developer-debugging">
 
   <title>Debugging</title>
 
   <para>Log output from the delegation service is a useful tool for debugging
 
-  issues. Logging in the delegation service code is based on  the <ulink url="http://jakarta.apache.org/commons/logging/">Jakarta Commons Logging</ulink> API and is described in more detail in <xref linkend="javawscore-developer-debugging"/>. As
+  issues. Logging in the delegation service code is based on  the <ulink url="http://jakarta.apache.org/commons/logging/">Jakarta Commons Logging</ulink> API and is described in more detail in <olink targetdoc="javawscoreDeveloper" targetptr="javawscore-developer-debugging"/>. As
 
   described in the above section, configuration files need to be edited to
 
@@ -548,9 +559,9 @@ log4j.category.org.globus.delegation.factory=DEBUG </screen></para>
 
   </note>
 
-</section>
+</chapter>
 
-<section id="delegation-developer-troubleshooting">
+<chapter id="delegation-developer-troubleshooting">
 
   <title>Troubleshooting</title>
 
@@ -584,13 +595,27 @@ log4j.category.org.globus.delegation.factory=DEBUG </screen></para>
 
   </section>
 
-</section>
+</chapter>
 
-<section id="delegation-developer-relateddocs">
+<chapter id="delegation-developer-relateddocs">
 
   <title>Related Documentation</title>
-
-&WS_AA_Delegation_Service_Associated_Standards_Frag;
-
-</section>
-
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../WS_AA_Delegation_Service_Associated_Standards_Frag.xml" xpointer="xpointer(/section/*)"/>
+</chapter>
+  <glossary role="auto" id="glossary-delegationDeveloper">
+    <!-- 
+    <remark>some terms not in the docs but wanted in glossary: 
+    <glossterm>scheduler</glossterm>
+    </remark>
+    -->
+    <glossdiv><title>A</title>
+      <glossentry>
+        <glossterm>Dummy term</glossterm>
+        <glossdef>
+          <para>This is a dummy entry for the automatic glossary database. Do not edit.</para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+  </glossary>
+</book>

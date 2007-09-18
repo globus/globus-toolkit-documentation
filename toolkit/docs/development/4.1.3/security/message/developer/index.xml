@@ -1,7 +1,17 @@
 <?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
+[
+
+<!ENTITY % myents SYSTEM "../../../entities">
+
+%myents;
+
+]>
+<book id="messageDeveloper">
 <title>GT4 Message &amp; Transport Level Security Developer&apos;s Guide</title>
 <titleabbrev>Developer&apos;s Guide</titleabbrev>
-<section id="message-developer-introduction"><title>Introduction</title>
+<chapter id="message-developer-introduction"><title>Introduction</title>
   <para>This component contains mainly framework level code and as such
   developing services and clients utilizing this component does in
   general involve either programmatically or declaratively driving the
@@ -12,25 +22,244 @@
   as properties on a stub object. On the declarative side it involves 
   setting up security descriptors, both client and service side, to 
   prescribe the security policy used to drive the security framework code. </para>
-</section>
-<section id="message-developer-beforeyoubegin"><title>Before you begin</title>
+</chapter>
+<chapter id="message-developer-beforeyoubegin"><title>Before you begin</title>
   <section id="message-developer-features"><title>Feature summary</title>
-&WS_AA_Message_Level_Feature_Summary_Frag;
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Feature_Summary_Frag.xml" xpointer="xpointer(/section/*)"/>
+
   </section>
   <section id="message-developer-platforms"><title>Tested platforms</title>
-&WS_AA_Message_Level_Platform_Summary_Frag;
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Platform_Summary_Frag.xml" xpointer="xpointer(/section/*)"/>
   </section>
   <section id="message-developer-compatibility"><title>Backward compatibility summary</title>
-&WS_AA_Message_Level_Compatibility_Summary_Frag;
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Compatibility_Summary_Frag.xml" xpointer="xpointer(/section/*)"/>
   </section>
   <section id="message-developer-dependencies"><title>Technology dependencies</title>
-&WS_AA_Message_Level_Dependencies_Summary_Frag;
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Dependencies_Summary_Frag.xml" xpointer="xpointer(/section/*)"/>
   </section>
   <section id="message-developer-security_considerations"><title>Security considerations </title>
-    &WS_AA_Message_Level_Security_Considerations_Frag;
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Security_Considerations_Frag.xml" xpointer="xpointer(/section/*)"/>
   </section>
-</section>
-<section id="message-developer-archdes"><title>Architecture and design overview</title>
+</chapter>
+  <chapter id="message-developer-scenarios">
+    <title>Usage scenarios</title>
+    <section id="message-developer-scenarios-delegation">
+      <title>Delegation</title>
+      <para>There are two ways a client can delegate its credential to a service: a) using Delegation Service b) using GSI Secure Conversation.</para>
+      
+      <para> Client can delegate using the <olink targetdoc="delegation">Delegation Service</olink>. This method is independent of the security scheme used and can be reused across multiple invocations of the client to multiple services (provided the service are in the same hosting envorinment as the delegation service). The olink provided has details on client side steps to delegate and service side code to get the delegated credential.</para>
+      
+      <para> GSI Secure Conversation has delegation built into the protocol. Delegation can be requested by setting the <olink targetdoc="messagePI" targetptr="message-pi-domain"><constant>GSIConstants.GSI_MODE</constant></olink> property on ther Stub or using security descriptors as described in <olink targetdoc="wsaajava" targetptr="wsaajava-secdesc-client-secConv"/>. If full or limited delegation is performed, the client credential can be obtained from the message context as follows:
+        
+        <screen>Subject subject = (Subject) msgCtx.getProperty(Constants.PEER_SUBJECT);</screen>
+      </para>
+      
+      <para> The server can be configured such that container, service or client credentials are used for the operation invoked. For the client credentials to be used, client should have delegated the credentials. Configuring this option is described in <olink targetdoc="wsaajava" targetptr="wsaajava-secdesc-configRunas"/>. Note that this is a server side configuration. If <constant>caller-identity</constant> is chosen for the <constant>run-as</constant> configuration and the client's credentials have been successfully delegated, then the delegated credentials are associated with the current thread. The credentials in this case can be obtained as follows:
+        
+        <screen>Subject subject = JaasSubject.getCurrentSubject();</screen>
+      </para>
+      
+    </section>
+    
+    <section id="message-developer-scenarios-keyInfoEPR">
+      <title> Embedding Key Information in EPRs </title>
+      <para> The toolikit provides API to embed key information in an Endpoint Reference as defined in the OGSA Basic Security Profile. The key information is embedded in the extensibility element of the EPR rather than the meta-data element as defined in the specification, since the toolkit uses older version of the WS Addressing specification.</para>
+      <para> This information would be useful to ascertain the expected identity of the service for authorizing the service or to get the public certificate of the resource to be used for encrypting the request to the service.  The optional usage element  in the emebedded key information indicates the use of the embedded keys, either for signature or encryption. </para>
+      
+      <para>The API  is in class <constant>org.globus.wsrf.impl.security.util.EPRUtil</constant>. The method to embed the certificates is called <constant>insertCertificates</constant> and the method to extract the key informationis called <constant>extractCertificates</constant>. Please refer to API documentation for details on using the methods.
+      </para>
+      
+    </section>
+    
+    <section id="message-developer-scenarios-servicePeerCredentials">
+      <title> Obtaining peer credentials  on server side </title>
+      <para> The security handlers populate a Subject object with peer information. The following code can be used to access the peer credentials. Note that message context needs to be associated with the thread.
+        <screen>
+          import org.globus.wsrf.security.SecurityManager;
+          import javax.security.auth.Subject;
+          
+          org.apache.axis.MessageContext mctx =
+          org.apache.axis.MessageContext.getCurrentContext();
+          SecurityManager manager = SecurityManager.getManager(mctx);
+          Subject subject = manager.getPeerSubject();
+        </screen>
+      </para>
+      
+      <para> The following code snippet shows how certificate chain can be extracted from the peer subject.
+        <screen>
+          java.util.Set set =
+          subject.getPublicCredentials(X509Certificate[].class);
+          Iterator iterator = set.iterator();
+          while (iterator.hasNext()) {
+          X509Certificate[] certArray = (X509Certificate[]) iterator.next();
+          System.out.println("Cert array " + certArray.length);
+          }
+        </screen>
+      </para>
+      
+      <para> To obtain the peer principal, for example, the Distinguished Name from X509 Certificate, the following code snippet can be used.
+        <screen>
+          org.apache.axis.MessageContext mctx =
+          org.apache.axis.MessageContext.getCurrentContext();
+          SecurityManager manager = SecurityManager.getManager(mctx);
+          Principal principal = manager.getCallerPrincipal();
+          String caller = manager.getCaller();
+        </screen>
+      </para>
+      <para> If credentials were delegated as described above, private credentials are also populated.
+        <screen>
+          java.util.Set set = subject.getPrivateCredentials();
+        </screen>
+      </para>
+    </section>
+    
+    <section id="message-developer-scenarios-clientPeerCredentials">
+      <title> Obtaining peer credentials from message context on client side </title>
+      <para>
+        <itemizedlist>
+          
+          <listitem>
+            
+            <para> <emphasis role="strong">GSI Secure
+              Conversation:</emphasis> With this mechanism, the peer
+              credentials can be obtained once the handshake is completed.
+              
+              <screen>
+                import org.globus.wsrf.impl.security.authentication.Constants;
+                import org.globus.wsrf.impl.security.authentication.secureconv.service.SecurityContext;
+                import org.ietf.jgss.GSSContext;
+                import org.globus.gsi.gssapi.GSSContants;
+                
+                // Get current secure context from message context 
+                SecurityContext secContext = 
+                messageContext.getProperty(Constants.CONTEXT);
+                GSSContext gssContext = secContext.getContext();
+                Vector peerCerts = 
+                gssContext.inquireByOid(GSSContants.X509_CERT_CHAIN);
+              </screen>
+            </para>
+          </listitem>
+          
+          <listitem>
+            <para> <emphasis role="strong">GSI Secure
+              Transport:</emphasis> With this mechanism, the peer
+              credentials can be obtained once the handshake is completed.
+              
+              <screen>
+                import org.ietf.jgss.GSSContext;
+                import org.globus.gsi.gssapi.GSSContants;
+                import org.globus.wsrf.impl.security.authentication.Constants;
+                
+                // Get current secure context from message context 
+                GSSContext gssContext = 
+                messageContext.getProperty(Constants.TRANSPORT_SECURITY_CONTEXT);
+                Vector peerCerts = 
+                gssContext.inquireByOid(GSSContants.X509_CERT_CHAIN);
+              </screen>
+            </para>
+          </listitem>
+          
+          <listitem>
+            <para> <emphasis role="strong">GSI Secure Message:</emphasis> With this mechanism, the peer credentials can be obtained only when the response is received. 
+              <screen>
+                import org.globus.wsrf.impl.security.authentication.Constants;
+                
+                // Get peer subject from current message context
+                Subject subject = 
+                (Subject) messageCtx.getProperty(Constants.PEER_SUBJECT);
+                Set peerCerts = 
+                subject.getPublicCredentials(X509Certificate[].class);
+              </screen>
+            </para>
+          </listitem>
+          
+        </itemizedlist>
+      </para>
+    </section>
+    
+    <section id="message-developer-scenarios-samlAssertion">
+      <title> Using SAML Authorization Assertions </title>
+      <para> SAML Authorization assertions can be used to transport authorization decision statements to the point of enforcement. Such assertions can be obtained from any entity that manages use rights. For example, Community Authorization Service, a Globus Toolikit higher level service, can be used to manage user rights and issue such assertions. On the remote side, PDPs/PIPs might be used to extact the assertion and enforce the rights. Some PDPs/PIPs with such functionality are distributed and details can be found <olink targetdoc="authzframeDeveloper" targetptr="authzframe-developer-pip"/> and <olink targetdoc="authzframeDeveloper" targetptr="authzframe-developer-pdp"/>.</para> 
+      
+      <para>The toolkit provides two mechanisms to do this: 
+        <itemizedlist>
+          
+          <listitem>
+            
+            <para><emphasis role="strong">Using proxy certificates:</emphasis> In this mechanism the SAML
+              Authorization Assertions are embedded as non-critical
+              assertions in the proxy certificate. These assertions can
+              then be extracted from the certificate, to enforce access
+              rights at the resource.</para>
+            
+            <para> A command line client
+              <constant>$GLOBUS_LOCATION/bin/globus-embed-assertion</constant>
+              implemented using
+              <constant>org.globus.wsrf.client.EmbedAssertion</constant>
+              can be used to embed a SAML Assertion stored in a file into
+              a credential.</para>
+            
+          </listitem>
+          
+          <listitem>
+            
+            <para><emphasis role="strong">Using SOAP Header:</emphasis> The SAML Assertion can also be
+              embedded in the SOAP Header. The toolkit uses the
+              WS-Security SAML Token Profile to embed the
+              assertion.</para>
+            
+            <para> <olink targetptr="message-interface-domain-syntax"/>
+              describes configuration required to embded an assertion into
+              the message header. At the remote end, the security handlers
+              detect the presence of the SAML Assertion in the header and
+              store it as string in the Message Context property
+              <constant>Constants.SAML_ASSERTION_STR</constant> </para>
+            
+          </listitem>
+          
+        </itemizedlist>
+      </para>
+    </section>
+    
+    <section id="message-developer-scenarios-multipleMsgProtectionScheme">
+      <title> Using Multiple Message Protection Schemes </title>
+      
+      <para> Multiple message protection schemes can be used in a
+        single invocation, although it is worth noting that this
+        will cause a performance penalty </para>
+      
+      <para>For example, both Secure Transport and
+        Secure Conversation can be done on the same invocation by using the
+        following</para>
+      
+      <screen>
+        stub._setProperty(Constants.GSI_SEC_CONV, Constants.INTEGRITY);
+        stub._setProperty(Constants.GSI_TRANSPORT, Constants.PRIVACY);
+      </screen>
+      
+      <note>
+        <para>
+          These two mechanisms share a single property for
+          authorization. There is a bug open to provide independent
+          support: <ulink
+            url="http://bugzilla.mcs.anl.gov/globus/show_bug.cgi?id=4350">Bug
+            4350</ulink> </para> </note>
+      
+      <para> Similarly Secure Message can be used in tandem with
+        other message protection mechanisms.  </para> 
+    </section>
+  </chapter>
+  
+  <chapter id="message-developer-tutorials">
+    <title>Tutorials</title>
+    <para>There are no tutorials available at this time.</para>
+  </chapter>
+<chapter id="message-developer-archdes"><title>Architecture and design overview</title>
   <section><title>Transport Security</title>
     <para>The toolkit by default is deployed with our implementation of transport security, which is based on HTTP over SSL, also known as HTTPS, with modifications to path validation to enable X.509 <glossterm baseform="proxy certificate">Proxy Certificate</glossterm> support. In contrast to the GT3 version of the toolkit, the default transport security enabled in the toolkit does not support delegation of proxy certificates as part of the security handshake. </para>
     <para>However the underlying security libraries and handlers required for secure transport with delegation, also known as HTTPG, is still supported and shipped as a part of the CoG library. The GT4 Java WS code base and configuration can be modified to use the HTTPG protocol is required.
@@ -97,260 +326,72 @@
       <para>The client side inbound handler (the WS-Security client handler) deals with verifying and decrypting any signed and/or encrypted incoming messages. In the case of GSI Secure Message operation it will also authorize the remote side in a similar fashion to the outbound secure conversation service handler.</para>
     </section>
   </section>
-</section>
-<section id="message-developer-pubinterfaces">
-  <title>Public interfaces</title>
-  <section id="message-developer-apis"><title>Semantics and syntax of APIs</title>
-    &WS_AA_Message_Level_Interface_API_Frag;
-  </section>
-  <section id="message-developer-wsdl"><title>Semantics and syntax of the WSDL</title>
-    &WS_AA_Message_Level_Interface_WSDL_Frag;
-  </section>
-  <section id="message-developer-protocols"><title>Semantics and syntax of  non-WSDL protocols</title>
-    &WS_AA_Message_Level_Interface_Protocol_Frag;
-  </section>
-  <section id="message-developer-protocol"><title>Framework-level Protocols</title>
-    &WS_AA_Message_Level_Interface_Protocol_Frag;
-  </section>
-  <section id="message-developer-cmd"><title>Command-line tools</title>
-    &WS_AA_Message_Level_Interface_Commandline_Frag;
-  </section>
-  <section id="message-developer-guis"><title>Overview of Graphical User Interfaces</title>
-    &WS_AA_Message_Level_Interface_GUI_Frag;
-  </section>
-  <section id="message-developer-domain"><title>Semantics and syntax of domain-specific interface</title>
-    &WS_AA_Message_Level_Interface_Domain_Frag;
-  </section>
-  <section id="message-developer-config"><title>Configuration interface</title>
-    &WS_AA_Message_Level_Interface_Config_Frag;
-  </section>
-  <section id="message-developer-env"><title>Environment variable interface</title>
-    &WS_AA_Message_Level_Interface_Env_Frag;
-  </section>
-</section>
+</chapter>
 
-<section id="message-developer-scenarios">
-  <title>Usage scenarios</title>
-  <section id="message-developer-scenarios-delegation">
-  <title>Delegation</title>
-  <para>There are two ways a client can delegate its credential to a service: a) using Delegation Service b) using GSI Secure Conversation.</para>
+  <chapter id="message-developer-apis"><title>APIs</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Interface_API_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  <chapter id="message-developer-wsdl"><title>Services and WSDL</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Interface_WSDL_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  <chapter id="message-developer-protocol"><title>Framework-level Protocols</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Interface_Protocol_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  <!-- 
+  <reference id="message-developer-cmd"><title>Command-line tools</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Interface_Commandline_Frag.xml" xpointer="xpointer(/reference/*)"/>
+  </reference>
 
-<para> Client can delegate using the <link linkend="delegation">Delegation Service</link>. This method is independent of the security scheme used and can be reused across multiple invocations of the client to multiple services (provided the service are in the same hosting envorinment as the delegation service). The link provided has details on client side steps to delegate and service side code to get the delegated credential.</para>
+  <chapter id="message-developer-guis"><title>Graphical User Interfaces</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Interface_GUI_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  -->
+  <chapter id="message-developer-domain"><title>Domain-specific interface</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Interface_Domain_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  <chapter id="message-developer-config"><title>Configuration interface</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Interface_Config_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
+  <chapter id="message-developer-env"><title>Environment variable interface</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../WS_AA_Message_Level_Interface_Env_Frag.xml" xpointer="xpointer(/section/*)"/>
+  </chapter>
 
-    <para> GSI Secure Conversation has delegation built into the protocol. Delegation can be requested by setting the <link linkend="message-pi-domain"><constant>GSIConstants.GSI_MODE</constant></link> property on ther Stub or using security descriptors as described in <xref linkend="security-secdesc-client-secConv"/>. If full or limited delegation is performed, the client credential can be obtained from the message context as follows:
 
-<screen>Subject subject = (Subject) msgCtx.getProperty(Constants.PEER_SUBJECT);</screen>
-</para>
 
-    <para> The server can be configured such that container, service or client credentials are used for the operation invoked. For the client credentials to be used, client should have delegated the credentials. Configuring this option is described in <xref linkend="security-secdesc-configRunas"/>. Note that this is a server side configuration. If <constant>caller-identity</constant> is chosen for the <constant>run-as</constant> configuration and the client's credentials have been successfully delegated, then the delegated credentials are associated with the current thread. The credentials in this case can be obtained as follows:
-
-<screen>Subject subject = JaasSubject.getCurrentSubject();</screen>
-</para>
-
-  </section>
-  
-  <section id="message-developer-scenarios-keyInfoEPR">
-	  <title> Embedding Key Information in EPRs </title>
-	  <para> The toolikit provides API to embed key information in an Endpoint Reference as defined in the OGSA Basic Security Profile. The key information is embedded in the extensibility element of the EPR rather than the meta-data element as defined in the specification, since the toolkit uses older version of the WS Addressing specification.</para>
-	  <para> This information would be useful to ascertain the expected identity of the service for authorizing the service or to get the public certificate of the resource to be used for encrypting the request to the service.  The optional usage element  in the emebedded key information indicates the use of the embedded keys, either for signature or encryption. </para>
-	  
-	  <para>The API  is in class <constant>org.globus.wsrf.impl.security.util.EPRUtil</constant>. The method to embed the certificates is called <constant>insertCertificates</constant> and the method to extract the key informationis called <constant>extractCertificates</constant>. Please refer to API documentation for details on using the methods.
-	   </para>
-	  
-  </section>
-
-  <section id="message-developer-scenarios-servicePeerCredentials">
-            <title> Obtaining peer credentials  on server side </title>
-            <para> The security handlers populate a Subject object with peer information. The following code can be used to access the peer credentials. Note that message context needs to be associated with the thread.
-            <screen>
-       import org.globus.wsrf.security.SecurityManager;
-       import javax.security.auth.Subject;
-
-        org.apache.axis.MessageContext mctx =
-            org.apache.axis.MessageContext.getCurrentContext();
-        SecurityManager manager = SecurityManager.getManager(mctx);
-        Subject subject = manager.getPeerSubject();
-            </screen>
-            </para>
-
-            <para> The following code snippet shows how certificate chain can be extracted from the peer subject.
-            <screen>
-        java.util.Set set =
-             subject.getPublicCredentials(X509Certificate[].class);
-        Iterator iterator = set.iterator();
-        while (iterator.hasNext()) {
-            X509Certificate[] certArray = (X509Certificate[]) iterator.next();
-            System.out.println("Cert array " + certArray.length);
-        }
-         </screen>
-          </para>
-
-          <para> To obtain the peer principal, for example, the Distinguished Name from X509 Certificate, the following code snippet can be used.
-          <screen>
-        org.apache.axis.MessageContext mctx =
-            org.apache.axis.MessageContext.getCurrentContext();
-        SecurityManager manager = SecurityManager.getManager(mctx);
-        Principal principal = manager.getCallerPrincipal();
-        String caller = manager.getCaller();
-          </screen>
-          </para>
-          <para> If credentials were delegated as described above, private credentials are also populated.
-          <screen>
-          java.util.Set set = subject.getPrivateCredentials();
-          </screen>
-          </para>
-  </section>
-
-  <section id="message-developer-scenarios-clientPeerCredentials">
-          <title> Obtaining peer credentials from message context on client side </title>
-          <para>
-          <itemizedlist>
-
-          <listitem>
-
-          <para> <emphasis role="strong">GSI Secure
-          Conversation:</emphasis> With this mechanism, the peer
-          credentials can be obtained once the handshake is completed.
-
-          <screen>
-          import org.globus.wsrf.impl.security.authentication.Constants;
-          import org.globus.wsrf.impl.security.authentication.secureconv.service.SecurityContext;
-          import org.ietf.jgss.GSSContext;
-          import org.globus.gsi.gssapi.GSSContants;
-
-          // Get current secure context from message context 
-          SecurityContext secContext = 
-                 messageContext.getProperty(Constants.CONTEXT);
-          GSSContext gssContext = secContext.getContext();
-          Vector peerCerts = 
-                 gssContext.inquireByOid(GSSContants.X509_CERT_CHAIN);
-          </screen>
-          </para>
-          </listitem>
-
-          <listitem>
-          <para> <emphasis role="strong">GSI Secure
-          Transport:</emphasis> With this mechanism, the peer
-          credentials can be obtained once the handshake is completed.
-
-          <screen>
-          import org.ietf.jgss.GSSContext;
-          import org.globus.gsi.gssapi.GSSContants;
-          import org.globus.wsrf.impl.security.authentication.Constants;
-
-          // Get current secure context from message context 
-          GSSContext gssContext = 
-                 messageContext.getProperty(Constants.TRANSPORT_SECURITY_CONTEXT);
-          Vector peerCerts = 
-                 gssContext.inquireByOid(GSSContants.X509_CERT_CHAIN);
-          </screen>
-          </para>
-          </listitem>
-
-          <listitem>
-          <para> <emphasis role="strong">GSI Secure Message:</emphasis> With this mechanism, the peer credentials can be obtained only when the response is received. 
-          <screen>
-          import org.globus.wsrf.impl.security.authentication.Constants;
-
-          // Get peer subject from current message context
-          Subject subject = 
-              (Subject) messageCtx.getProperty(Constants.PEER_SUBJECT);
-          Set peerCerts = 
-              subject.getPublicCredentials(X509Certificate[].class);
-          </screen>
-          </para>
-          </listitem>
-
-          </itemizedlist>
-          </para>
-  </section>
-
-  <section id="message-developer-scenarios-samlAssertion">
-	  <title> Using SAML Authorization Assertions </title>
-          <para> SAML Authorization assertions can be used to transport authorization decision statements to the point of enforcement. Such assertions can be obtained from any entity that manages use rights. For example, Community Authorization Service, a Globus Toolikit higher level service, can be used to manage user rights and issue such assertions. On the remote side, PDPs/PIPs might be used to extact the assertion and enforce the rights. Some PDPs/PIPs with such functionality are distributed and details can be found <xref linkend="authzframe-pip"/> and <xref linkend="authzframe-pdp"/>.</para> 
-
-<para>The toolkit provides two mechanisms to do this: 
-          <itemizedlist>
-          
-          <listitem>
-
-          <para><emphasis role="strong">Using proxy certificates:</emphasis> In this mechanism the SAML
-          Authorization Assertions are embedded as non-critical
-          assertions in the proxy certificate. These assertions can
-          then be extracted from the certificate, to enforce access
-          rights at the resource.</para>
-
-          <para> A command line client
-          <constant>$GLOBUS_LOCATION/bin/globus-embed-assertion</constant>
-          implemented using
-          <constant>org.globus.wsrf.client.EmbedAssertion</constant>
-          can be used to embed a SAML Assertion stored in a file into
-          a credential.</para>
-
-          </listitem>
-
-          <listitem>
-
-          <para><emphasis role="strong">Using SOAP Header:</emphasis> The SAML Assertion can also be
-          embedded in the SOAP Header. The toolkit uses the
-          WS-Security SAML Token Profile to embed the
-          assertion.</para>
-
-          <para> <xref linkend="message-interface-domain-syntax"/>
-          describes configuration required to embded an assertion into
-          the message header. At the remote end, the security handlers
-          detect the presence of the SAML Assertion in the header and
-          store it as string in the Message Context property
-          <constant>Constants.SAML_ASSERTION_STR</constant> </para>
-
-          </listitem>
-
-          </itemizedlist>
-          </para>
-  </section>
-
-  <section id="message-developer-scenarios-multipleMsgProtectionScheme">
-	  <title> Using Multiple Message Protection Schemes </title>
-
-          <para> Multiple message protection schemes can be used in a
-          single invocation, although it is worth noting that this
-          will cause a performance penalty </para>
-
-          <para>For example, both Secure Transport and
-          Secure Conversation can be done on the same invocation by using the
-          following</para>
-
-          <screen>
-          stub._setProperty(Constants.GSI_SEC_CONV, Constants.INTEGRITY);
-           stub._setProperty(Constants.GSI_TRANSPORT, Constants.PRIVACY);
-          </screen>
-
-          <note>
-          <para>
-          These two mechanisms share a single property for
-          authorization. There is a bug open to provide independent
-          support: <ulink
-          url="http://bugzilla.mcs.anl.gov/globus/show_bug.cgi?id=4350">Bug
-          4350</ulink> </para> </note>
-
-          <para> Similarly Secure Message can be used in tandem with
-          other message protection mechanisms.  </para> 
-</section>
-</section>
-
-<section id="message-developer-tutorials">
-  <title>Tutorials</title>
-  <para>There are no tutorials available at this time.</para>
-</section>
-<section id="message-developer-debugging">
+<chapter id="message-developer-debugging">
   <title>Debugging</title>
   <para>There is no content available at this time. </para>
-</section>
-<section id="message-developer-troubleshooting">
+</chapter>
+<chapter id="message-developer-troubleshooting">
   <title>Troubleshooting</title>
-&Java_WS_Security_Error_Codes;
-</section>
-<section id="message-developer-relateddocs">
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../../wsaajava/Java_WS_Security_Error_Codes.xml" xpointer="xpointer(/section/*)"/>
+</chapter>
+<chapter id="message-developer-relateddocs">
   <title>Related Documentation</title>
-  <simpara>See <xref linkend="message-rn-associatedstandards"/> for a list of associated standards.</simpara>
-</section>
+  <simpara>See <olink targetdoc="messageRN" targetptr="message-rn-associatedstandards"/> for a list of associated standards.</simpara>
+</chapter>
+  <glossary role="auto" id="glossary-messageDeveloper">
+    <!-- 
+    <remark>some terms not in the docs but wanted in glossary: 
+    <glossterm>scheduler</glossterm>
+    </remark>
+    -->
+    <glossdiv><title>A</title>
+      <glossentry>
+        <glossterm>Dummy term</glossterm>
+        <glossdef>
+          <para>This is a dummy entry for the automatic glossary database. Do not edit.</para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+  </glossary>
+</book>
