@@ -1,0 +1,415 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
+[
+
+<!ENTITY % myents SYSTEM "../../../entities">
+
+%myents;
+
+]>
+<book id="aggregatorSources"><title>GT &version; MDS4 Aggregator Sources Reference</title>
+    <titleabbrev>Aggregator Sources Reference</titleabbrev>
+    <bookinfo><abstract><para>This reference describes the aggregator sources provided with the GT &shortversion;, how to register them [with what specifically?], 
+        and configure each type. </para></abstract></bookinfo>
+<chapter id="aggregator-sources-intro"><title>Introduction</title>
+
+<para><emphasis>Aggregator sources</emphasis> [glossary] collect information from or about WS-Resources and feed that information to aggregator 
+    sinks (such as the Index Service and Trigger Service). The following graphic describes the basic information flow including the three standard aggregator sources: <glossterm baseform="query aggregator source">Query Aggregator Source</glossterm>,
+    <glossterm baseform="subscription aggregator source">Subscription Aggregator Source</glossterm> and Execution Source.
+</para>
+    
+    <figure id="aggregator-sources-info_flow"><title>Graphic of Information Services Flow</title>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="info_flow.jpg" format="JPEG" align="center"/>
+            </imageobject>
+            <imageobject>
+                <imagedata fileref="info_flow.eps" format="EPS" align="center"/>
+            </imageobject>
+        </mediaobject>
+    </figure>
+</chapter>
+    
+<chapter id="aggregator-sources-types"><title>Types of Aggregator Sources in MDS4</title>
+    <para>
+        The aggregator sources supplied with the toolkit collect information using resource
+        property queries (query sources), subscription/notification (subscription sources), and execution of
+        external programs (execution sources).
+    </para>
+    
+    <para>note? query and subscription agg sources are WSRF, execution source is not - do readers need to know that?</para>
+    
+    <para>The aggregator sources supplied with the Globus Toolkit are listed in
+        the following sections.</para>
+    
+    <note><para>All aggregator sources listed in this
+        table are in the <computeroutput>org.globus.mds.aggregator.impl</computeroutput>
+        package, so for example the aggregator source listed as
+        <computeroutput>QueryAggregatorSource</computeroutput> is actually
+        <computeroutput>org.globus.mds.aggregator.impl.QueryAggregatorSource</computeroutput></para></note>
+    
+    <section>
+        <title>QueryAggregatorSource</title>
+        <para>The query source collects information from a registered resource by using WS-Resource Properties polling mechanisms:</para>
+        <itemizedlist>
+            <listitem><para><constant>GetResourcePropertyPollType</constant>; requests a single Resource Property from the remote resource.</para></listitem>
+            <listitem><para><constant>GetMultipleResourcePropertiesPollType</constant>; requests multiple Resource Properties from the remote resource.</para></listitem>
+            <listitem><para><constant>QueryResourcePropertiesPollType</constant>; requests a query be executed against the Resource Property Set of the remote
+                resource.</para></listitem>
+        </itemizedlist>
+        <para>The QueryAggregatorSource will attempt to detect when the data source EPR is local to
+            the current container instance, and if so set the connection properties to use local
+            transport.</para>
+        <para>Polls are made periodically, with both the period and target Resource Properties specified in the registration message.</para>
+    </section>
+    
+    <section>
+        <title>SubscriptionAggregatorSource</title>
+        <para>The SubscriptionAggregatorSource gathers resource property values from the registered resource using WS-Notification subscriptions. 
+        Data is delivered when property values change, rather than periodically.</para>
+        <para>The SubscriptionAggregatorSource will attempt to detect when the data source EPR is local to the current container instance, and if so 
+            set the connection properties to use local transport.</para>
+    </section>
+    
+    <section>
+        <title>ExecutionAggregatorSource</title>
+
+        <para>The execution aggregation source provides a way to aggregate
+            data (arbitrary XML information) about a registered resource using an arbitrary local
+            executable (such as an external script). The executable will be passed registration information as parameters 
+            and is expected to output the gathered data.</para>
+        
+        <para>A basic example of the use of this API is described in the [ping test example] for the aggregator execution source.</para>
+        
+        <para>The execution aggregation source will periodically execute an
+            identified executable. The identity of the executable and the
+            frequency with which it is to run are specified in the registration
+            message.</para>
+        
+        <para>Details of the interface between the execution
+            source and local executables are in <olink targetdoc="aggregatorSources" targetptr="aggregator-sources-execution"/></para>
+        </section>
+
+</chapter>
+
+<chapter id="aggregator-sources-registering"><title>Registering Aggregator Sources</title>
+    <para>The following is general configuration information necessary for all aggregator sources (including any custom ones).</para>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="aggregator_sources_general_config.xml" xpointer="xpointer(/section/*)"/>
+    <para>Further configuration information is detailed per source: 
+        <olink targetdoc="aggregatorSources" targetptr="aggregator-sources-query">QueryAggregatorSource</olink>, 
+        <olink targetdoc="aggregatorSources" targetptr="aggregator-sources-subscription">SubscriptionAggregatorSource</olink>, and 
+        <olink targetdoc="aggregatorSources" targetptr="aggregator-sources-execution">ExecutionAggregatorSource</olink>.</para>
+    <note><para>Using the ExecutionAggregatorSource also requires configuring the executable itself, 
+        which is also covered in the <olink targetdoc="aggregatorSources" targetptr="aggregator-sources-execution">ExecutionAggregatorSource</olink> section.</para></note>
+</chapter>
+
+    
+    <chapter id="aggregator-sources-query">
+        <title>Configuration file: parameters for the query aggregator source</title>
+        <para>The QueryAggregatorSource can use one of the following three configuration blocks in
+            the <constant>Content</constant> block: GetResourcePropertyPollType,
+            GetMultipleResourcePropertiesPollType and QueryResourcePropertiesPollType.</para>
+        <section id="aggregator-sources-query-config-GetResourcePropertyPollType">
+            <title> GetResourcePropertyPollType</title>
+            <para> If a <constant>GetResourcePropertyPollType</constant> block is used,
+                QueryAggregatorSource will request a single resource property. The block has this
+                form:<screen> &lt;Content xsi:type="agg:AggregatorContent"
+                    xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+                    &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+                    &lt;agg:GetResourcePropertyPollType&gt;
+                    &lt;agg:PollIntervalMillis&gt;<parameter>interval_in_ms</parameter>&lt;/agg:PollIntervalMillis&gt;
+                    &lt;agg:ResourcePropertyName&gt;<parameter>rp_namespace</parameter>:<parameter>rp_localname</parameter>&lt;/agg:ResourcePropertyName&gt;
+                    &lt;/agg:GetResourcePropertyPollType&gt;
+                    &lt;/agg:AggregatorConfig&gt; &lt;agg:AggregatorData/&gt;
+                    &lt;/Content&gt;</screen>
+            </para>
+            <para>where:</para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <constant>PollIntervalMillis</constant>
+                    </term>
+                    <listitem>
+                        <para> This parameter is the poll refresh period in milliseconds; the
+                            <constant>ResourcePropertyName</constant> parameter is the QName of
+                            the resource property to poll for.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+        <section id="aggregator-sources-query-config-GetMultipleResourcePropertiesPollType">
+            <title>GetMultipleResourcePropertiesPollType</title>
+            <para>If a <constant>GetMultipleResourcePropertiesPollType</constant> block is used,
+                <constant>QueryAggregatorSource</constant> will request one or more resource
+                properties. The block has this form:<screen> &lt;Content
+                    xmlns:agg="http://mds.globus.org/aggregator/types"
+                    xsi:type="agg:AggregatorContent"&gt; &lt;agg:AggregatorConfig
+                    xsi:type="agg:AggregatorConfig"&gt;
+                    &lt;agg:GetMultipleResourcePropertiesPollType&gt;
+                    &lt;agg:PollIntervalMillis&gt;<parameter>interval_in_ms</parameter>&lt;/agg:PollIntervalMillis&gt;
+                    &lt;agg:ResourcePropertyNames&gt;<parameter>rp1_namespace</parameter>:<parameter>rp1_localname</parameter>&lt;/agg:ResourcePropertyNames&gt;
+                    &lt;agg:ResourcePropertyNames&gt;<parameter>rp2_namespace</parameter>:<parameter>rp3_localname</parameter>&lt;/agg:ResourcePropertyNames&gt;
+                    &lt;agg:ResourcePropertyNames&gt;<parameter>rp3_namespace</parameter>:<parameter>rp3_localname</parameter>&lt;/agg:ResourcePropertyNames&gt;
+                    &lt;/agg:GetMultipleResourcePropertiesPollType&gt;
+                    &lt;/agg:AggregatorConfig&gt; &lt;agg:AggregatorData/&gt;
+                    &lt;/Content&gt;</screen>
+            </para>
+            <para>where:</para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <constant>PollIntervalMillis</constant>
+                    </term>
+                    <listitem>
+                        <para> This parameter is the poll refresh period in milliseconds; the
+                            <constant>ResourcePropertyNames</constant> parameters are the QNames
+                            of the resource properties to poll for. There is no limit on the number
+                            of <constant>ResourcePropertyNames</constant> that may be
+                            specified.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+        <section id="aggregator-sources-query-config-QueryResourcePropertiesPollType">
+            <title>QueryResourcePropertiesPollType</title>
+            <para>If a <constant>QueryResourcePropertiesPollType</constant> block is used,
+                QueryAggregatorSource will request that a query be executed against the Resource
+                Property Set of the remote resource. In the GT4 implementation of WSRF Core, the
+                only query language that is supported is XPath. The block has this form:<screen>
+                    &lt;Content xmlns:agg="http://mds.globus.org/aggregator/types"
+                    xsi:type="agg:AggregatorContent"&gt; &lt;agg:AggregatorConfig
+                    xsi:type="agg:AggregatorConfig"&gt;
+                    &lt;agg:QueryResourcePropertiesPollType&gt;
+                    &lt;agg:PollIntervalMillis&gt;<parameter>interval_in_ms</parameter>&lt;/agg:PollIntervalMillis&gt;
+                    &lt;agg:QueryExpressionDialect="<parameter>dialect</parameter>"&gt;
+                    <parameter>Query Expression</parameter> &lt;/agg:QueryExpression&gt;
+                    &lt;/agg:QueryResourcePropertiesPollType&gt;
+                    &lt;/agg:AggregatorConfig&gt; &lt;agg:AggregatorData/&gt;
+                    &lt;/Content&gt;</screen>
+            </para>
+            <para>where:</para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <constant>PollIntervalMillis</constant>
+                    </term>
+                    <listitem>
+                        <para> This parameter is the poll refresh period in milliseconds.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <constant>QueryExpression</constant>
+                    </term>
+                    <listitem>
+                        <para>An <constant>xsd:any</constant> element; the
+                            <constant>Dialect</constant> attribute specifies the dialect of the
+                            query expression.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+    </chapter>
+    
+    <chapter id="aggregator-sources-subscription">
+        <title>Configuration file: parameters for the subscription aggregator source</title>
+        <para>The configuration block for <constant>SubscriptionAggregatorSource</constant> looks like this:
+<screen>
+&lt;Content
+    xmlns:agg="http://mds.globus.org/aggregator/types"
+    xsi:type="agg:AggregatorContent"&gt;
+    &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+        &lt;agg:AggregatorSubscriptionType&gt;
+            &lt;<emphasis>TopicExpression</emphasis> Dialect="<emphasis>dialect</emphasis>"&gt;
+            <emphasis>Topic Expression</emphasis>
+            &lt;/<emphasis>TopicExpression</emphasis>&gt;
+            &lt;Precondition Dialect="<emphasis>dialect</emphasis>"&gt;
+            <emphasis>Precondition</emphasis>
+            &lt;/Precondition&gt;
+            &lt;Selector Dialect="<emphasis>dialect</emphasis>"&gt;
+            <emphasis>Selector</emphasis>
+            &lt;/Selector&gt;
+            &lt;SubscriptionPolicy&gt;
+            <emphasis>Subscription Policy</emphasis>
+            &lt;/SubscriptionPolicy&gt;
+            &lt;InitialTerminationTime&gt;<emphasis>time</emphasis>&lt;/InitialTerminationTime&gt;
+        &lt;/agg:AggregatorSubscriptionType&gt;
+    &lt;/agg:AggregatorConfig&gt;
+    &lt;agg:AggregatorData/&gt;
+&lt;/Content&gt;
+</screen>
+        </para>
+        
+        <para>where:</para>
+        <variablelist>  
+            <varlistentry>
+                <term><constant>TopicExpression</constant></term>
+                <listitem><para>This is the only required parameter; it specifies the topic expression to use in the subscription request.</para></listitem>
+            </varlistentry>
+        </variablelist>
+        
+        <para>[TODO: olink to core notification/subscription docs ].</para>
+        </chapter>
+    
+    <chapter id="aggregator-sources-execution"><title>Configuring Execution Aggregator Source</title>
+        <para>The ExecutionAggregatorSource requires more configuration than Query and Subscription. In addition to the config file parameters, you must also 
+            configure the executable itself. Troubleshooting info and an example are also provided.</para>
+        <section id="aggregator-sources-execution-config-ExecutionAggregatorSource"><title>Configuration file: parameters for the execution aggregator source</title>
+            <para>The configuration block for <constant>ExecutionAggregatorSource</constant> (inside the <constant>Content</constant> block) looks like this: </para>
+            <screen>
+                &lt;Content xsi:type="agg:AggregatorContent"
+                xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+                &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+                &lt;agg:ExecutionPollType&gt;
+                &lt;agg:PollIntervalMillis&gt;<parameter>interval_in_ms</parameter>&lt;/agg:PollIntervalMillis&gt;
+                &lt;agg:ProbeName&gt;<parameter>dummy_namespace</parameter>:<parameter>probe_name</parameter>&lt;/agg:ProbeName&gt;
+                &lt;/agg:ExecutionPollType&gt;
+                &lt;/agg:AggregatorConfig&gt;
+                &lt;agg:AggregatorData/&gt;
+                &lt;/Content&gt;
+            </screen>
+            
+            <para>where:</para>
+            <variablelist>  
+                <varlistentry>
+                    <term><constant>PollIntervalMillis</constant></term>
+                    <listitem><para> This parameter is the poll refresh period in milliseconds. </para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><constant>ProbeName</constant></term>
+                    <listitem><para> This  parameter specifies name of the probe to run.
+                        This probe is defined in the <filename>jndi-config.xml</filename> file for the
+                        service being configured (for example, the file for the MDS Index Service is <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index_jndi-config.xml</filename>).  An <constant>executableMappings</constant> parameter should be defined within this file to map probe names to executable names.  For example, this maps the probe names
+                        <constant>aggr-test</constant> and <constant>pingexec</constant> to the executables called <constant>aggregator-exec-test.sh</constant> and <constant>example-ping-exec</constant>, respectively.  All executables are presumed to be in the directory <filename>$GLOBUS_LOCATION/libexec/aggrexec</filename>.
+                        <screen>
+                            &lt;resource name="configuration"
+                            type="org.globus.mds.aggregator.impl.AggregatorConfiguration"&gt;
+                            &lt;resourceParams&gt;
+                            // ...
+                            &lt;parameter&gt;
+                            &lt;name&gt;executableMappings&lt;/name&gt;
+                            &lt;value&gt;aggr-test=aggregator-exec-test.sh, pingexec=example-ping-exec&lt;/value&gt;
+                            &lt;/parameter&gt;
+                            &lt;/resourceParams&gt;
+                            &lt;/resource&gt;
+                        </screen>
+                    </para></listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+        <section id="aggregator-sources-execution-troubleshooting"><title>Troubleshooting</title>
+            <para>
+                If you've properly configured and registered your script for
+                execution but are getting errors from the container because it cannot
+                find the specified script, there are two likely causes.  </para>
+            
+            <para>First, make sure that your script/program is executable and is located in the
+                <filename>$GLOBUS_LOCATION/libexec/aggrexec</filename> directory.
+                When it's specified in the configuration mentioned above, only specify
+                the name of the script/program, without any qualification or path.
+                For example, using the <constant>ProbeName</constant> as
+                <filename>test-script</filename> will be specifying the file
+                <filename>$GLOBUS_LOCATION/libexec/aggrexec/test-script</filename>
+                script.
+            </para>
+            <para>
+                Next, make sure that you have correctly created an
+                <constant>executableMappings</constant> definition in the appropriate
+                <filename>jndi-config.xml</filename> file.
+            </para>
+        </section>
+        <section id="aggregator-sources-execution-executable" xreflabel="Configuring the executable"><title>Configuring the executable</title>
+            <section><title>Name of executable</title>
+                <para>The executable to run will be
+                    <filename>$GLOBUS_LOCATION/libexec/aggrexec/&lt;scriptname&gt;</filename>
+                    with <filename>scriptname</filename> supplied by the <constant>ProbeName</constant> parameter in the configuration file.</para>
+            </section>
+            <section><title>Input to executable</title>
+                <para>Information about the registration will be supplied as
+                    command line parameters and on stdin.</para>
+                <para>A single command line parameter will be supplied to the
+                    executable. This will be the URL from the EPR of the registered
+                    service.</para>
+                <para>Two XML documents will be sent to stdin, in sequence: </para>
+                <orderedlist>
+                    <listitem><simpara>The first document will be the full EPR to the registered service. </simpara></listitem>
+                    <listitem><simpara>The second document will be the AggregatorConfig block from the registration message (configuration file).</simpara></listitem>
+                </orderedlist>
+            </section>
+            <section><title>Output from executable</title>
+                <para>The executable must output a well-formed XML document to stdout. This output document will be delivered into the Aggregator Framework.</para>
+            </section>
+        </section>
+        <section id="aggregator-sources-execution-example"><title>Ping test example</title>
+            <section id="aggregator-pingtest-introduction">
+                <title>Introduction</title>
+                <para>This file describes an example of using the Execution Aggregator Source API.</para>
+                <para>The example provides basic ping information about a registrant. It is intended for
+                    illustrative purposes, rather than real deployment use.</para>
+                <para>The aggregator framework is used by other services to collect information. In this
+                    example, it will be shown how to configure the index service to use the execution
+                    aggregator source.</para>
+            </section>
+            <section id="aggregator-pingtest-deploy">
+                <title>Deploying the example</title>
+                <section>
+                    <title>Install the example script in the correct location.</title>
+                    <para>The example script is installed as:
+                        <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-ping-exec</filename>.
+                        It is necessary to copy this to the directory where the execution source will look
+                        for executables, and ensure that it's executable:</para>
+                    <screen> 
+                        $ cp $GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-ping-exec \
+                        $GLOBUS_LOCATION/libexec/aggrexec/. $ chmod a+x
+                        $GLOBUS_LOCATION/libexec/aggrexec/example-ping-exec
+                    </screen>
+                </section>
+                <section>
+                    <title>Configure the index to use the execution source.</title>
+                    <para>By default, the index is configured to use a WS-Resource Properties polling
+                        mechanism. It is necessary for this example to change the index configuration to use
+                        the execution source instead.</para>
+                </section>
+                <section>
+                    <title>Register some resources.</title>
+                    <para>This can be achieved using the <olink targetdoc="aggregatorDeveloper" targetptr="mds-servicegroup-add"
+                        >mds-servicegroup-add tool</olink>.</para>
+                    <para>Rather than configuring the client to register with parameters for the Resource
+                        Property polling source, parameters for the execution source should be supplied in
+                        each registration. </para>
+                    <para>Register both resources that you know exist, and also some non-existent
+                        resources.</para>
+                </section>
+                <section>
+                    <title>Observe the results.</title>
+                    <para>Start the container hosting the index, start the mds-servicegroup-add tool, then
+                        query the contents of the index with:</para>
+                    <screen>$ wsrf-query -s http://localhost:8080/wsrf/services/DefaultIndexService '/*'</screen>
+                    <para>Each registration should be represented as an Entry resource property value in the
+                        output of wsrf-query; embedded in each entry should be an
+                        <computeroutput>$examplePingResult</computeroutput> element with the results of ping testing.</para>
+                </section>
+            </section>
+        </section>
+        </chapter>
+
+    
+    <!-- configuring custom aggregator source?-->
+    <glossary role="auto" id="glossary-aggregatorSources">
+        <!-- 
+        <remark>some terms not in the docs but wanted in glossary: 
+        <glossterm>scheduler</glossterm>
+        </remark>
+        -->
+        <glossdiv><title>A</title>
+            <glossentry>
+                <glossterm>Dummy term</glossterm>
+                <glossdef>
+                    <para>This is a dummy entry for the automatic glossary database. Do not edit.</para>
+                </glossdef>
+            </glossentry>
+        </glossdiv>
+    </glossary>
+</book>
