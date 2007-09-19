@@ -9,7 +9,7 @@ html:
 	xsltproc \
 	--xinclude \
 	--stringparam target.database.document "../../../olinkdb.xml" \
-	--stringparam current.docid "javawscoreM" \
+	--stringparam current.docid "javawscoreMig" \
 	../../../custom_html.xsl \
 	$(FILENAME)
 
