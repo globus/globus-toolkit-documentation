@@ -10,6 +10,7 @@ html:
 	--xinclude \
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "javawscore" \
+	--stringparam generate.toc "" \
 	../../custom_html.xsl \
 	$(FILENAME)
 
