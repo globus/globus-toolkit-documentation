@@ -423,6 +423,16 @@ submitting bibliographic citations</a>.</b></p>
 
       Virtual Data System, etc.)</a></h2>
       
+      <p><font size="2"><strong><a name="pipelining">Globus GridFTP: What's New in 2007 (Invited Paper)</a></strong>. 
+      
+      John Bresnahan, Michael Link, Gaurav Khanna, Zulfikar Imani, Rajkumar Kettimuthu and Ian Foster. 
+      
+      <em>Proceedings of the First International Conference on Networks for Grid Applications (GridNets 2007)</em>, Oct, 2007<br>
+      
+      [<a href="#pipelining">Citation</a>, 
+      
+      <a href="papers/Pipelining.pdf">PDF</a>]</font></p>
+      
       <p><font size="2"><strong><a name="pipelining">GridFTP Pipelining</a></strong>. 
       
       John Bresnahan, Michael Link, Rajkumar Kettimuthu, Dan Fraser and Ian Foster. 
