@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
+[
+
+<!ENTITY % myents SYSTEM "../../entities">
+
+%myents;
+
+]>
+<article id="infoSamples">
+<title> GT &shortversion; Samples for WS MDS</title>
+<titleabbrev>Samples for WS MDS</titleabbrev>
+<section id="wsmds-samples-DefaultIndexService"><title>Building VOs using the DefaultIndexService</title>
+
+<para>
+This example shows how to configure the DefaultIndexService so that it will 
+register itself to an upstream DefaultIndexService.  By chaining such upstream 
+registrations between hosts, it is possible to build a hierarchical virtual 
+organization with a complete aggregate data view at the root level.
+</para>
+  
+  <orderedlist>
+  <listitem>
+    <simpara>Change to the <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index</computeroutput> directory.</simpara>
+  </listitem>
+  <listitem>
+<simpara>    Open the file <computeroutput>hierarchy.xml</computeroutput> 
+    and add one or more upstream entries using the URL to DefaultIndexService(s) you wish to register to.  Example syntax for an upstream entry is as follows:</simpara>
+    <screen> &lt;upstream&gt;https://vo-host:8443/wsrf/services/DefaultIndexService&lt;/upstream&gt; </screen>
+    <simpara>Please note that if a secure container is targeted, make sure to set the correct service url (https protocol, right port number) in the upstream entry.</simpara>
+  <orderedlist>
+  <listitem>
+<simpara>    (This step is optional) Change the default upstream registration settings (if desired) in the <computeroutput>upstream.xml</computeroutput> file:</simpara> 
+    <screen> 
+      &lt;ServiceGroupRegistrationParameters
+      xmlns="http://mds.globus.org/servicegroup/client&gt;
+      
+      &lt;!-- Specifies that the registration will be renewed every 600
+      seconds (= 10 minutes) --&gt;
+      &lt;RefreshIntervalSecs&gt;600&lt;/RefreshIntervalSecs&gt;
+      
+      &lt;Content xsi:type="agg:AggregatorContent"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+      
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+      &lt;agg:GetResourcePropertyPollType
+      xmlns:wssg= "http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ServiceGroup-1.2-draft-01.xsd" &gt;
+      &lt;!-- Specifies that the upstream index should refresh information
+      every 10 minutes --&gt;
+      &lt;agg:PollIntervalMillis&gt;600000&lt;/agg:PollIntervalMillis&gt;
+      
+      &lt;!-- specified that the upstream index should collect the
+      Entry resource properties from this index --&gt;
+      &lt;agg:ResourcePropertyName&gt;wssg:Entry&lt;/agg:ResourcePropertyName&gt;
+      
+      &lt;/agg:GetResourcePropertyPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+      &lt;/Content&gt;
+      
+      &lt;/ServiceGroupRegistrationParameters&gt;
+    </screen>   
+    <simpara>The two settings of note here are the <computeroutput>RefreshIntervalSecs</computeroutput> 
+    and the <computeroutput>PollIntervalMillis</computeroutput> parameters. </simpara>
+    <simpara>
+      The <computeroutput>RefreshIntervalSecs</computeroutput> parameter specifies 
+      that the local DefaultIndexService will attempt to refresh the registration 
+      made to the upstream DefaultIndexService every (n) seconds.  If the upstream 
+      DefaultIndexService is a high level or root-level member of a VO hierarchy, or 
+      is intended to support a large number of registrants, it may be desirable to 
+      set the refresh interval to be a larger value so that the overall amount of 
+      registration traffic is reduced.  Note that setting the RefreshIntervalSecs 
+      to a larger value will not affect the relative "freshness" of the aggregated 
+      data from each registrant; rather, this is controlled by the 
+      <computeroutput>PollIntervalMillis</computeroutput> parameter of the 
+      GetResourcePropertyPollType element.
+    </simpara>
+    <simpara>
+      The GetResourcePropertyPollType element contained within the AggregatorConfig
+      element specifies that the upstream DefaultIndexService should poll the 
+      local DefaultIndexService "Entry" resource property every (n) milliseconds,
+      based on the value of the <computeroutput>PollIntervalMillis</computeroutput> parameter.  
+      Alter this parameter in order to control the interval upon which data from 
+      the downstream (local) DefaultIndexService is refreshed in the upstream 
+      DefaultIndexService.
+    </simpara> 
+  </listitem>
+  </orderedlist>
+  </listitem>
+  <listitem>
+    <simpara>Start the container by running:</simpara>
+    <screen> $ bin/globus-start-container</screen>
+    <simpara>
+      When the DefaultIndexService is first activated, it will read the contents 
+      of the hierarchy.xml file and attempt to make an upstream registration for 
+      each upstream entry found within that file.  The service will make each 
+      registration according to the parameters found in the <computeroutput>upstream.xml</computeroutput>
+      file.  Any errors or warnings during the registration process will be written
+      to the container log.  If successful, the "Entry" resource property of the 
+      upstream Index will contain a child element for the downstream (local) Index, 
+      and a copy of the downstream Index "Entry" resource property will be cached
+      within that element.
+    </simpara> 
+  </listitem>
+  </orderedlist>
+  
+</section>
+</article>
