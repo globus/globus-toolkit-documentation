@@ -2,8 +2,9 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
+SUBDIRS=admin developer pi qp rn user
 
-all: lint html
+all: lint html subdirs
 
 html:
 	xsltproc \
@@ -49,3 +50,8 @@ olink:
 	--stringparam  collect.xref.targets  "only"  \
 	../../custom_html.xsl \
 	$(FILENAME)
+
+subdirs:
+	for dir in $(SUBDIRS); do \
+	(cd $$dir; ${MAKE} all); \
+	done
