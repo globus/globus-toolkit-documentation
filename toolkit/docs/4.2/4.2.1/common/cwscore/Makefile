@@ -2,8 +2,9 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
+SUBDIRS=admin developer mig pi qp rn user
 
-all: lint html
+all: lint html subdirs
 
 html:
 	xsltproc \
@@ -50,26 +51,7 @@ olink:
 	../../custom_html.xsl \
 	index.xml
 	
-olinkRN:
-	xsltproc \
-	--xinclude \
-	--stringparam  collect.xref.targets  "only"  \
-	--stringparam  targets.filename  "targetRN.db" \
-	../../custom_html.xsl \
-	Java_WS_Core_Release_Notes.xml
-	
-olinkQP:
-	xsltproc \
-	--xinclude \
-	--stringparam  collect.xref.targets  "only"  \
-	--stringparam  targets.filename  "targetQP.db" \
-	../../custom_html.xsl \
-	Java_WS_Core_Quality_Profile.xml
-	
-olinkM:
-	xsltproc \
-	--xinclude \
-	--stringparam  collect.xref.targets  "only"  \
-	--stringparam  targets.filename  "targetM.db" \
-	../../custom_html.xsl \
-	Java_WS_Core_Migrating_Guide.xml
+subdirs:
+	for dir in $(SUBDIRS); do \
+	(cd $$dir; ${MAKE} all); \
+	done
