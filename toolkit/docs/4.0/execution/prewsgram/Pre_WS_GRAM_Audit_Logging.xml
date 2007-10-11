@@ -276,13 +276,14 @@
              Postgres (<filename>$GLOBUS_LOCATION/share/gram-service/gram_audit_schema_postgres-8.0.sql</filename>)
            </para></listitem>
           </itemizedlist>
+          
+          <section><title>If You Are Using MySQL</title>
           The following describes how to set up the database for audit records in MySQL:
           <orderedlist>
              <listitem><para>Create a database inside of MySQL</para></listitem>
              <listitem>
                <para>
-                 Grant necessary privileges to the user who is configured in the JNDI
-                 registry of WS-GRAM
+                 Grant necessary privileges to the account that will be used to upload the audit records in the audit.  Typically the "globus" account.
                </para>
              </listitem>
              <listitem><para>Use the schema to create the table</para></listitem>
@@ -298,50 +299,47 @@ Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
 
 mysql&gt; create database auditDatabase;
 Query OK, 1 row affected (0.09 sec)
- 
-            mysql&gt; GRANT ALL ON auditDatabase.* to globus@localhost identified by "foo";
-            Query OK, 0 rows affected (0.32 sec)
-            
-            mysql&gt; exit
-            Bye
-            host:~ feller$ mysql -u globus -p auditDatabase &lt; ${GLOBUS_LOCATION}/share/gram-service/gram_audit_schema_mysql.sql 
-            Enter password: 
-            host:~ feller$</screen>
+
+mysql&gt; GRANT ALL ON auditDatabase.* to globus@localhost identified by "foo";
+Query OK, 0 rows affected (0.32 sec)
+
+mysql&gt; exit
+Bye
+host:~ feller$ mysql -u globus -p auditDatabase &lt; ${GLOBUS_LOCATION}/share/gram-service/gram_audit_schema_mysql.sql 
+Enter password: 
+host:~ feller$
+          </screen>
         </section>
-    <section><title>Configure the Database in JNDI</title>
-      <para>
-        Add or modify the database configuration where the audit records are
-        stored in <computeroutput>$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml
-        </computeroutput>:
-      </para>
-      <screen>&lt;resource name="auditDatabaseConfiguration" type="org.globus.exec.service.utils.AuditDatabaseConfiguration"&gt;
-        &lt;resourceParams&gt;
-        &lt;parameter&gt;
-        &lt;name&gt;factory&lt;/name&gt;
-        &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
-        &lt;/parameter&gt;
-        &lt;parameter&gt;
-        &lt;name&gt;driverClass&lt;/name&gt;
-        &lt;value&gt;com.mysql.jdbc.Driver&lt;/value&gt;
-        &lt;/parameter&gt;
-        &lt;parameter&gt;
-        &lt;name&gt;url&lt;/name&gt;
-        &lt;value&gt;jdbc:mysql://&lt;host&gt;[:port]/auditDatabase&lt;/value&gt;
-        &lt;/parameter&gt;
-        &lt;parameter&gt;
-        &lt;name&gt;user&lt;/name&gt;
-        &lt;value&gt;globus&lt;/value&gt;
-        &lt;/parameter&gt;
-        &lt;parameter&gt;
-        &lt;name&gt;password&lt;/name&gt;
-        &lt;value&gt;foo&lt;/value&gt;
-        &lt;/parameter&gt;
-        &lt;parameter&gt;
-        &lt;name&gt;globusVersion&lt;/name&gt;
-        &lt;value&gt;4.0.3&lt;/value&gt;
-        &lt;/parameter&gt;
-        &lt;/resourceParams&gt;
-        &lt;/resource&gt;</screen>
+    <section><title>If You Are Using PostgreSQL</title>
+      <para>The following describes how to set up the database for audit records in PostgreSQL:</para>
+      <orderedlist>
+        <listitem><para>Create a database inside of PostgreSQL</para></listitem>
+        <listitem>
+          <para>
+            Grant necessary privileges to the account that will be used to upload the audit records in the audit.  Typically the "globus" account.
+          </para>
+        </listitem>
+        <listitem><para>Use the schema to create the table</para></listitem>
+      </orderedlist>
+      <screen>
+        # Connect as postgres admin
+        create database gt4audit\g
+        create user gt4auditload with encrypted password '&lt;password1&gt;'\g
+        create user gt4auditview with encrypted password '&lt;password2&gt;'\g
+        \c gt4audit
+        \i gram_audit_schema_postgres-8.0.sql
+        grant insert on gram_audit_table to gt4auditload\g
+        grant select on gram_audit_table to gt4auditview\g
+        \q 
+      </screen>
+      <para>You must also update <filename>pg_hba.conf</filename> to allow connections from container host (<filename>pg_hba.conf</filename> configures client authentication and is stored in the database cluster's data directory):</para>
+      <screen>
+        hostssl   gt4audit  gt4auditload   &lt;containerhostip&gt; 255.255.255.255 md5
+        host      gt4audit  gt4auditload   &lt;containerhostip&gt; 255.255.255.255 md5
+        hostssl   gt4audit  gt4auditview   &lt;containerhostip&gt; 255.255.255.255 md5
+        host      gt4audit  gt4auditview   &lt;containerhostip&gt; 255.255.255.255 md5
+      </screen>
     </section>
-    
+          
+        </section>
   </section>
