@@ -77,8 +77,7 @@ enterprise grade software to the Global 2000.
 <a class="learnmore" href="http://www.univaud.com/about/careers.php">Learn more...</a></p>
 
 <p>For jobs at Argonne, University of Chicago, or USC-ISI, please send email to 
-<a href="mailto:jobs@globus.org">jobs@globus.org</a>. For Univa, please send
-email to <a href="mailto:jobs@univaud.com">jobs@univaud.com</a>.</p>
+<a href="mailto:jobs@globus.org">jobs@globus.org</a>.</p>
 
 <p><small>Argonne National Laboratory, the University of Chicago, and the University of 
 Southern California are affirmative action/equal opportunity employers. Univa is an
