@@ -74,7 +74,7 @@ opportunities in Engineering, Marketing, and Professional Services.  Our ideal
 candidates are motivated, self-starters who are deadline and deliverables-driven, 
 and have a solid understanding of what it takes to develop, market and deliver 
 enterprise grade software to the Global 2000. 
-<a class="learnmore" href="http://www.univa.com/about/jobs.php">Learn more...</a></p>
+<a class="learnmore" href="http://www.univaud.com/about/careers.php">Learn more...</a></p>
 
 <p>For jobs at Argonne, University of Chicago, or USC-ISI, please send email to 
 <a href="mailto:jobs@globus.org">jobs@globus.org</a>. For Univa, please send
