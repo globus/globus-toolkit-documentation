@@ -28,7 +28,7 @@ current standards organization for the Grid.</p>
 <p>We are always looking for talented individuals to join us in this work!  Positions are 
 available at <a href="http://www.anl.gov/">Argonne National Laboratory</a>, the
 <a href="http://www.uchicago.edu/">University of Chicago</a>, and 
-<a href="http://www.univa.com/">Univa</a> (all three in Chicago) and at the University of 
+<a href="http://www.univaud.com/">Univa UD</a> (all three in Chicago) and at the University of 
 Southern California's 
 <a href="http://www.isi.edu/">Information Sciences Institute</a> in Los Angeles. We
 offer excellent benefits, state-of-the-art facilities, a rich intellectual environment, 
@@ -67,8 +67,8 @@ Graduate students can also enter the University of Chicago or University of Sout
 California.</p>
 <p>Click <a href="http://dev.globus.org/wiki/Project_Ideas">here</a> for project ideas.</p>
 
-<h2>Opportunities at Univa</h2>
-<p> We are growing the Univa team and are looking for talented individuals to join one 
+<h2>Opportunities at Univa UD</h2>
+<p> We are growing the Univa UD team and are looking for talented individuals to join one 
 of the most exciting technology start-ups in the Midwest. We currently have exciting 
 opportunities in Engineering, Marketing, and Professional Services.  Our ideal 
 candidates are motivated, self-starters who are deadline and deliverables-driven, 
@@ -78,7 +78,7 @@ enterprise grade software to the Global 2000.
 
 <p>For jobs at Argonne, University of Chicago, or USC-ISI, please send email to 
 <a href="mailto:jobs@globus.org">jobs@globus.org</a>. For Univa, please send
-email to <a href="mailto:jobs@univa.com">jobs@univa.com</a>.</p>
+email to <a href="mailto:jobs@univaud.com">jobs@univaud.com</a>.</p>
 
 <p><small>Argonne National Laboratory, the University of Chicago, and the University of 
 Southern California are affirmative action/equal opportunity employers. Univa is an
