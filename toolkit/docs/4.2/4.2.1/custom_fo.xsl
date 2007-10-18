@@ -15,8 +15,8 @@
                <xsl:param name="collect.xref.targets">yes</xsl:param>
                
                <!-- enable extensions -->
-               <xsl:param name="use.extensions" select="'0'"></xsl:param>
-               <xsl:param name="xep.extensions" select="0"></xsl:param>
+               <xsl:param name="use.extensions" select="'1'"></xsl:param>
+               <xsl:param name="xep.extensions" select="1"></xsl:param>
                
                <!-- turn off table column extensions (unless you use xalan or saxon - it's a java thing -->
                <xsl:param name="tablecolumns.extension" select="'0'"></xsl:param>
