@@ -22,6 +22,8 @@
                 <!-- Set path to admonition graphics  -->
                 <xsl:param name="admon.graphics.path">/docbook-images/</xsl:param>
                
+                <!-- Turn on  using different graphics for html and fo -->
+                <xsl:param name="use.role.for.mediaobject">1</xsl:param>
                 
                 <!-- Set path to docbook graphics (testing)
                                 <xsl:param name="admon.graphics.path">file:///Z:/testing/alliance/docbook-images/</xsl:param> -->
