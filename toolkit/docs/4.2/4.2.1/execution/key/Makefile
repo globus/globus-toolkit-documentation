@@ -17,6 +17,8 @@ html:
 pdf:
 	~bacon/XEP/xep \
 	-xml $(FILENAME) \
+	--stringparam target.database.document "../../olinkdb.xml" \
+	--stringparam current.docid "executionKey" \
 	-xsl ../../custom_fo.xsl \
 	-out index.pdf
 	

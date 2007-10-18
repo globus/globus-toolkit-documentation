@@ -11,6 +11,9 @@
                 <!-- which stylesheet to use? -->
                 <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl"/>
                 
+               <!-- needed for olink processing (?) -->
+               <xsl:param name="collect.xref.targets">yes</xsl:param>
+               
                <!-- enable extensions -->
                <xsl:param name="use.extensions" select="'0'"></xsl:param>
                <xsl:param name="xep.extensions" select="0"></xsl:param>
