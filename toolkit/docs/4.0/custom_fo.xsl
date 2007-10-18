@@ -12,7 +12,7 @@
                 <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl"/>
                 
                <!-- enable extensions -->
-               <xsl:param name="use.extensions" select="'0'"></xsl:param>
+               <xsl:param name="use.extensions" select="'1'"></xsl:param>
                <xsl:param name="xep.extensions" select="1"></xsl:param>
                
                <!-- turn off table column extensions (unless you use xalan or saxon - it's a java thing -->
