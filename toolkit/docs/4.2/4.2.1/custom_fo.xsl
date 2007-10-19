@@ -10,10 +10,13 @@
                 
                 <!-- which stylesheet to use? -->
                 <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl"/>
+               
+               <!-- links to olink database -->
+               <xsl:param name="target.database.document">olinkdb.xml</xsl:param>
                 
-               <!-- needed for olink processing (?)
+               <!-- needed for olink processing (?)-->
                <xsl:param name="collect.xref.targets">yes</xsl:param>
-               -->
+               
                <!-- enable extensions -->
                <xsl:param name="use.extensions" select="1'"></xsl:param>
                <xsl:param name="xep.extensions" select="1"></xsl:param>
