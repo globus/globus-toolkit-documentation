@@ -12,7 +12,7 @@
                 <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl"/>
                
                <!-- links to olink database -->
-               <xsl:param name="target.database.document">olinkdb.xml</xsl:param>
+               <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/olinkdb.xml</xsl:param>
                 
                <!-- needed for olink processing (?)-->
                <xsl:param name="collect.xref.targets">yes</xsl:param>
