@@ -13,14 +13,16 @@ html:
 	../../custom_html.xsl \
 	$(FILENAME)
 	
-	
 pdf:
-	~bacon/XEP/xep \
-	-xml $(FILENAME) \
-	--stringparam target.database.document "../../olinkdb.xml" \
+	xsltproc \
+	--xinclude \
+	-o index.fo \
 	--stringparam current.docid "executionKey" \
-	-xsl ../../custom_fo.xsl \
-	-out index.pdf
+	../../custom_fo.xsl \
+	$(FILENAME) \
+	~bacon/XEP/xep \
+	-fo index.fo \
+	-pdf executionKeyConcepts.pdf
 	
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
