@@ -19,7 +19,7 @@ pdf:
 	--xinclude \
 	-o index.fo \
 	--stringparam current.docid "javawscoreDeveloper" \
-	../../custom_fo.xsl \
+	../../../custom_fo.xsl \
 	$(FILENAME)
 
 debian-sarge:
