@@ -19,10 +19,11 @@ pdf:
 	-o index.fo \
 	--stringparam current.docid "executionKey" \
 	../../custom_fo.xsl \
-	$(FILENAME) \
-	~bacon/XEP/xep \
-	-fo index.fo \
-	-pdf executionKeyConcepts.pdf
+	$(FILENAME)
+	
+#	~bacon/XEP/xep \
+#	-fo index.fo \
+#	-pdf executionKeyConcepts.pdf
 	
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
