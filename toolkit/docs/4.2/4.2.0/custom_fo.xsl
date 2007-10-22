@@ -20,6 +20,11 @@
                <!-- needed for olink processing (?)-->
                <xsl:param name="collect.xref.targets">yes</xsl:param>
                
+               <!-- making olinks underlined in pdf output -->
+               <xsl:attribute-set name="olink.properties">
+                              <xsl:attribute name="text-decoration">underline</xsl:attribute>
+               </xsl:attribute-set>
+               
                <!-- enable extensions -->
                <xsl:param name="use.extensions" select="1"></xsl:param>
                <xsl:param name="xep.extensions" select="1"></xsl:param>
