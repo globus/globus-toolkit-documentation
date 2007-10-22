@@ -13,6 +13,9 @@
                
                <!-- links to olink database -->
                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/olinkdb_fo.xml</xsl:param>
+               
+               <!-- allow fragment identifiers in pdf? -->
+               <xsl:param name="insert.olink.pdf.frag" select="1"></xsl:param>
                 
                <!-- needed for olink processing (?)-->
                <xsl:param name="collect.xref.targets">yes</xsl:param>
