@@ -15,10 +15,12 @@ html:
 
 
 pdf:
-	~bacon/XEP/xep \
-	-xml $(FILENAME) \
-	-xsl ../../../custom_fo.xsl \
-	-out index.pdf
+	xsltproc \
+	--xinclude \
+	-o index.fo \
+	--stringparam current.docid "javawscoreDeveloper" \
+	../../custom_fo.xsl \
+	$(FILENAME)
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
