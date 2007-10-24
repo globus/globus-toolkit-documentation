@@ -9,5 +9,6 @@
   <li><a href="/toolkit/data/gridftp/downloads.html">Downloads</a></li>
   <li><a href="/toolkit/data/gridftp/links.html"> Links</a></li>
   <li><a href="/toolkit/data/gridftp/faq.html">FAQ</a></li>
+  <li><a href="/toolkit/data/gridftp/mops.html">MOPS (Preview)</a></li>
   </ul>
 </div>

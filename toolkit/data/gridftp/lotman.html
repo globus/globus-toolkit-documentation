@@ -1,0 +1,110 @@
+<?php
+
+$title = " GridFTP: Lotman Quickstart";
+
+include_once( "/mcs/www-unix.globus.org/toolkit/data/gridftp/includes/globus_header.inc" );
+
+?>
+
+<h1 class="minisite"><a href="mops.html">MOPS</a> >Lotman Quickstart</h1>
+ 
+ <p id="draft">This information is provided as a preview only and will be moved to development documentation for the next dev release (4.1.3).</p>
+ 
+<p>This is a quickstart guide to using Lotman, a program for managing storage in GridFTP. For more information, click <a href="mops.html">here</a>.</p>
+
+<ul>
+    <li><a href="#lotman-create-lot">Create a lot</a></li>
+    <li><a href="#lotman-create-users">Create users</a></li>
+    <li><a href="#lotman-run-server">Run with a GridFTP server</a></li>
+    <li><a href="#lotman-comments">Comments</a></li>
+</ul>
+
+<h2><a name="lotman-create-lot"></a>Create a lot</h2>
+
+    <p>A lot is an allotment of physical disk space to be managed by Lotman.
+    All files under a given directory will be managed according to the 
+    parameters with which the lot was created.  The program <code>lotman_init</code>
+        is used to create lots:</p>
+        
+<pre class="screen">
+lotman_init &lt;root&gt; &lt;size&gt; &lt;pending default&gt; &lt;pending max&gt; 
+            &lt;lot default&gt; &lt;lot max&gt; &lt;default quota&gt;
+            [--auto &lt;auto user quota&gt;]
+            [--glob &lt;user id&gt; &lt;user identity&gt; &lt;user quota&gt;]
+            [--thresh &lt;global[%]&gt; &lt;user quota[%]&gt; &lt;lot[%]&gt;]</pre>
+
+<p><dl>
+    <dt>root</dt>
+    <dd>The directory under which all files are managed.</dd>
+    <dt>size</dt>
+    <dd>The overall size of the lot.</dd>
+    <dt>pending default</dt>
+    <dd>The default amount of time for data to be 'outstanding'
+        (30 is a good default choice).  Under applications
+        like GridFTP, data is committed to the disk in chunks.
+        Disk space acquisition  is a two phase process.  The
+        application 'requests' an amount of space from the lot.
+        Once the application actually writes data to the disk
+        it 'commits' this data to the lot.  The pending time
+        is the amount of time between the request and the commit.</dd>
+    <dt>pending max</dt>
+    <dd>The maximum amount of time for data to be 'outstanding'
+        (60 is a good default).</dd>
+    <dt>lot default</dt>
+    <dd>The default life span of a user-created lot.</dd>
+    <dt>lot max</dt>
+    <dd>The maximum lifespan of a user-created lot.</dd>
+    <dt>default quota</dt>
+    <dd>The default size of the disk space allocated to a user.</dd>
+</dl></p>
+
+<p>Note: Before <code>lotman_init</code> can be run, the environment variable <code>LOTMAN_META</code> 
+    must be set.</p>
+    
+<p>To create a 10MB lot under the directory <code>/home/globus/LOT</code> with a 30 second 
+pending default, a 60 second max pending, 1day lot default, and a 10 day max, with
+    a default quota of 5MB, run the following:</p>
+    
+    <pre class="screen">
+% export LOTMAN_META=/home/globus/LOTMETA
+% lotman_init /home/globus/LOT 10M 30 60 1d 10d 5M        </pre>
+        
+        <h2><a name="lotman-create-users"></a>Create users</h2>
+
+        <p>In order to make use of a lot, you must create user accounts with the tool 
+        <code>lotman_user</code>.</p>
+        
+        <pre class="screen">lotman_user &lt;uid&gt; &lt;identity&gt; [&lt;quota&gt;]</pre>
+            
+<p>            <dl>
+                <dt>uid</dt>
+                <dd>A given UNIX user's uid.</dd>
+                <dt>identity</dt>
+                <dd>Given user's UNIX username.</dd>
+                <dt>quota</dt>
+                <dd>This parameter gives an opportunity to override the 
+                    default quota that was used in <code>lotman_init</code>.</dd>
+                </dl></p>
+
+<h2><a name="lotman-run-server"></a>Run with a GridFTP server</h2>
+
+<p>To use Lotman with a GridFTP server, the following environment variables
+must be set:</p>
+
+<pre class="screen">LOTMAN_GFSACL_META_DIR=&lt;path to lot meta data&gt;
+LOTMAN_GFSACL_LOT_DURATION=&lt;lot duration, 30 days is good&gt;
+LOTMAN_GFSACL_LOG_FLAGS=all,details
+LOTMAN_GFSACL_LOG_FILE=&lt;log filei path&gt;
+LOTMAN_GFSACL_PENDING_DURATION=&lt;pending time, 30 is good&gt;</pre>
+
+<p>Once set, the GridFTP server is run with an additional argument:</p>
+
+<pre class="screen">globus-gridftp-server -acl lotman</pre>
+
+<p>At this point, all data sent to the GridFTP server and written to the Lotman root directory will be managed by Lotman.</p>
+
+<h2><a name="lotman-comments"></a>Comments</h2>
+<p>It would be good if the Lotman ACL could use the same environmental variables as <code>lotman_init</code> and, further, 
+    if it could pick up defaults from the Lotman metadata directory instead of forcing the sysadmin to set them.</p>
+
+<?php include("/mcs/www-unix.globus.org/toolkit/data/gridftp/includes/globus_footer.inc"); ?>

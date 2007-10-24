@@ -1,0 +1,99 @@
+<?php
+
+$title = " GridFTP: GFork";
+
+include_once( "/mcs/www-unix.globus.org/toolkit/data/gridftp/includes/globus_header.inc" );
+
+?>
+
+<h1 class="minisite"><a href="mops.html">MOPS</a> > GFork</h1>
+ 
+ <p id="draft">This information is provided as a preview only and will be moved to development documentation for the next dev release (4.1.3).</p>
+
+<h2>Introduction</h2>
+
+<p>GFork is a user-configurable super-server daemon very similar to xinetd in that it listens on a TCP port.  
+ When clients connect to a port, it runs an 
+administrator-defined program which services that client connection, 
+just as xinetd does.</p>
+
+<p>An unfortunate drawback to xinetd is that there is no way to maintain 
+or share long-term information.  Every time a client connects, a new 
+process is created; and every time that client disconnects, the process is 
+destroyed.  All of the information regarding the specific interactions 
+with a given client is lost with these transient processes.  A further 
+disadvantage is that there is no way for these service instances to 
+share service-specific information with each other while they are 
+running.</p>
+
+<p>There are times when it is useful for a service to maintain long-term 
+service-specific state, or for a service to share state across client 
+connections.  GFork is designed to address this situation.  GFork runs a 
+long term <strong>master program</strong> (that is user-defined) and forms communication 
+links via UNIX pipes between this process and all client connection 
+child processes.  This allows long-term state to be maintained in 
+memory and allows for communication between all nodes.</p>
+
+<p>Associated with a GFork instance is a master process.  When GFork starts, 
+it runs a user-defined master program and opens up bi-directional pipes 
+to it.  The master program runs for the lifetime of the GFork daemon. 
+The master is free to do whatever it wants; it is a user-defined 
+program. Some master programs listen on alternative TCP connections to 
+have state remotely injected.  Others monitor system resources, such as 
+memory, in order to best share resources. As clients connect to the TCP 
+listener, child processes are forked which then service the client 
+connection.  Bi-directional pipes are opened up to the child processes as 
+well.  These pipes allow for communication between the master program 
+and all child processes.  The master program and the child programs have 
+their own protocol for information exchange over these links.  GFork is 
+just a framework for safely and quickly creating these links.</p>
+
+<h2>Use Cases</h2>
+
+<p>The creation of GFork was motivated by the Globus GridFTP server.  
+GridFTP can be run as a striped server where there is a frontend and 
+several backends.  The backends run in tandem to transfer files faster 
+by tying together many NICs.  The frontend is the contact point for the 
+client where transfer requests are made.  When the frontend is run out 
+of inetd, the list of possible backends must be statically configured. 
+Unfortunately, backends tend to come and go.  Sometimes backends fail, 
+and sometimes backends are added to a pool.  We needed a way to have a 
+dynamic pool of backends for use in live transfers.  To accomplish this 
+we created GFork.</p>
+
+<h2>Configuration</h2>
+
+<p>GFork uses the same file configuration as xinetd with some additional 
+options.  Here is an example GFork configuration file:</p>
+
+<pre class="screen">service gridftp2
+{
+  instances = 100
+  env += GLOBUS_LOCATION=/home/bresnaha/Dev/Globus-gfork3/GL
+  env += LD_LIBRARY_PATH=/home/bresnaha/Dev/Globus-gfork3/GL/lib
+  server = /home/bresnaha/Dev/Globus-gfork3/GL/sbin/globus-gridftp-server
+  server_args = -i -aa
+  server_args += -d ALL -l /home/bresnaha/tst.log
+  server_args += -dsi remote -repo-count 1
+  nice = 10
+  port = 5000
+  master = /home/bresnaha/Dev/Globus-gfork3/GL/libexec/gfs-gfork-master
+  master_args = -port 6065 -l /home/bresnaha/master.log -G n
+  master_args += -dn /home/bresnaha/master_gridmap
+}</pre>
+  
+  <p>All of the options in the configuration file, other than the last two, are 
+  identical to those found in xinetd.  The last two options relate to the master 
+  program.  They work in the same way that <code>server</code> and <code>server_args</code> do.</p>
+  
+  <p>A major difference between GFork configuration and xinetd is that GFork 
+  only runs one service per instance, where xinetd runs many services per instance 
+  all associated with many different ports.  GFork takes a single 
+  configuration file and handles a single service.</p>
+  
+  <p>If there is demand, GFork will be enhanced to handle many services in the 
+   way that xinetd does.</p>
+   
+   <p>For information about using the GFork plugin with the GridFTP server, click <a href="gfork_plugin.html">here</a>.</p>
+
+<?php include("/mcs/www-unix.globus.org/toolkit/data/gridftp/includes/globus_footer.inc"); ?>
