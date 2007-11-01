@@ -1,17 +1,21 @@
 export UMASK=002
 export XML_CATALOG_FILES=catalog
 #export XML_DEBUG_CATALOG= 1
-#FILENAME= index.xml
+FILENAME= index.xml
 
-#all: lint html docbook/primer/index.html
+all: lint html
 
-#html:
+html:
 	xsltproc \
+	--xinclude \
+	--stringparam target.database.document "olinkdb.xml" \
+	--stringparam current.docid "gt" \
+	--stringparam generate.toc "" \
 	custom_html.xsl \
 	$(FILENAME)
-	find . -name \*.html | xargs chgrp cvsusers
 
-#pdf:
+
+pdf:
 	~bacon/XEP/xep \
 	-xml $(FILENAME) \
 	-xsl custom_fo.xsl \
@@ -32,14 +36,18 @@ mac:
 	/sw/share/xml/xsl/docbook-xsl/html/chunk.xsl \
 	$(FILENAME)
 	
-#lint:
+lint:
 	xmllint \
-	--valid \
 	--noout \
 	--noent \
-	index.xml
+	--xinclude \
+	--postvalid \
+	$(FILENAME)
 
-#docbook/primer/index.html: docbook/primer/index.xml
-	cd docbook/primer && make
-
-docbook/primer/index.xml:
+olink:
+	xsltproc \
+	--xinclude \
+	--stringparam  collect.xref.targets  "only"  \
+	custom_html.xsl \
+	$(FILENAME)
+	
