@@ -16,7 +16,7 @@ html:
 
 pdf:
 	~bacon/XEP/xep -quiet \
-	-xml $(FILENAME) \
+	-xml index.xml \
 	-xsl ../../custom_fo.xsl \
 	-out admin.pdf
 
