@@ -7,18 +7,24 @@ GRAPHICS=--stringparam admon.graphics.path /docbook-images/ --stringparam admon.
 NUMBERING=--stringparam  section.autolabel 1 --stringparam  section.label.includes.component.label 1
 
 
-all: html
+all: html pdfAdmin pdfQ
 
 html:
 	xsltproc \
 	custom_html.xsl \
 	$(FILENAME)
 
-pdf:
+pdfAdmin:
 	~bacon/XEP/xep -quiet \
 	-xml index.xml \
 	-xsl ../../custom_fo.xsl \
 	-out admin.pdf
+	
+pdfQ:
+	~bacon/XEP/xep -quiet \
+	-xml quickstart.xml \
+	-xsl ../../custom_fo.xsl \
+	-out quickstart.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
