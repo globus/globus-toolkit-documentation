@@ -3,7 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 
-all: lint html
+all: lint html fo pdf
 
 html:
 	xsltproc \
@@ -13,12 +13,18 @@ html:
 	../../custom_html.xsl \
 	$(FILENAME)
 
-
+fo:
+	xsltproc \
+	--xinclude \
+	-o index.fo \
+	--stringparam current.docid "quickstart" \
+	../../custom_fo.xsl \
+	$(FILENAME)
+ 	
 pdf:
-	~bacon/XEP/xep \
-	-xml $(FILENAME) \
-	-xsl ../../custom_fo.xsl \
-	-out index.pdf
+ 	~bacon/XEP/xep -quiet \
+ 	-fo index.fo \
+ 	-pdf gtQuickstart.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
