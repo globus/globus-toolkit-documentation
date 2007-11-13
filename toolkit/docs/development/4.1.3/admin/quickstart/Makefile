@@ -22,9 +22,9 @@ fo:
 	$(FILENAME)
  	
 pdf:
- 	~bacon/XEP/xep -quiet \
- 	-fo index.fo \
- 	-pdf gtQuickstart.pdf
+	~bacon/XEP/xep -quiet \
+	-fo index.fo \
+	-pdf gtQuickstart.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
