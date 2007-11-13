@@ -14,12 +14,12 @@ html:
 	$(FILENAME)
 
 fo:
- 	xsltproc \
- 	--xinclude \
- 	-o index.fo \
- 	--stringparam current.docid "gtadmin" \
- 	../../custom_fo.xsl \
- 	$(FILENAME)
+	xsltproc \
+	--xinclude \
+	-o index.fo \
+	--stringparam current.docid "gtadmin" \
+	../../custom_fo.xsl \
+	$(FILENAME)
 
 pdf:
 	~bacon/XEP/xep -quiet \
