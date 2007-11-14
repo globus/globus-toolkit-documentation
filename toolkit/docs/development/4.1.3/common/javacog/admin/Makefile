@@ -14,11 +14,18 @@ html:
 	$(FILENAME)
 
 
+fo:
+	xsltproc \
+	--xinclude \
+	-o index.fo \
+	--stringparam current.docid "javacogAdmin" \
+	../../../custom_fo.xsl \
+	$(FILENAME)
+
 pdf:
-	~bacon/XEP/xep \
-	-xml $(FILENAME) \
-	-xsl ../../../custom_fo.xsl \
-	-out index.pdf
+	~bacon/XEP/xep -quiet \
+	-fo index.fo \
+	-pdf javacogAdminGuide.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

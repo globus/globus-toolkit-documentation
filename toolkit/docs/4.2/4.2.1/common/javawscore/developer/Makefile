@@ -3,7 +3,7 @@ export XML_CATALOG_FILES=../../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 
-all: lint html
+all: lint html fo pdf
 
 html:
 	xsltproc \
@@ -14,13 +14,18 @@ html:
 	$(FILENAME)
 
 
-pdf:
+fo:
 	xsltproc \
 	--xinclude \
 	-o index.fo \
 	--stringparam current.docid "javawscoreDeveloper" \
 	../../../custom_fo.xsl \
 	$(FILENAME)
+
+pdf:
+	~bacon/XEP/xep -quiet \
+	-fo index.fo \
+	-pdf javawscoreDeveloperGuide.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
