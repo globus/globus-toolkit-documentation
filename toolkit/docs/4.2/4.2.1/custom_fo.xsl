@@ -9,10 +9,10 @@
  those variables -->
                 
                 <!-- which stylesheet to use? -->
-                <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl"/>
+               <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
                
                <!-- links to olink database -->
-               <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/olinkdb_fo.xml</xsl:param>
+               <xsl:param name="target.database.document" select="'http://root/olinkdb_fo.xml'"></xsl:param>
                
                <!-- allow fragment identifiers in pdf? -->
                <xsl:param name="insert.olink.pdf.frag" select="1"></xsl:param>
@@ -113,7 +113,7 @@
                 <xsl:param name="glossentry.show.acronym">yes</xsl:param>
 
                               <!-- Name of the glossary collection file COMMON -->
-               <xsl:param name="glossary.collection">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/glossary.xml</xsl:param>
+               <xsl:param name="glossary.collection" select="'http://root/glossary.xml'"></xsl:param>
                 
                <!-- Generate links from glossterm to glossentry automatically?  COMMON-->
                 <xsl:param name="glossterm.auto.link">1</xsl:param>

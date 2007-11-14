@@ -3,12 +3,7 @@
                 version="1.0">
                 
                 <!-- Which DocBook standard xsl file should we use as the default? -->
-                <xsl:import href="/usr/share/xml/docbook/stylesheet/nwalsh/html/chunk.xsl"/>
-                
-                <!-- testing: if you want to generate your own html without installing stylesheets, substitute the following url
-                for the import href above:
-                http://docbook.sourceforge.net/release/xsl/current/html/chunk.xsl
-                -->
+                <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/html/chunk.xsl"/>
 
                 <!-- speed up the chunking process? -->
                 <xsl:param name="chunk.fast">1</xsl:param>
@@ -48,7 +43,7 @@
                 <xsl:param name="toc.max.depth">2</xsl:param>
                 
                 <!-- How deep should recursive sections appear in the TOC for chapters? -->
-                 <xsl:param name="toc.section.depth">1</xsl:param>
+                 <xsl:param name="toc.section.depth">4</xsl:param>
                 
                 <!-- Should the first section be chunked separately from its parent? > 0 = yes-->
                 <xsl:param name="chunk.first.sections">1</xsl:param>
