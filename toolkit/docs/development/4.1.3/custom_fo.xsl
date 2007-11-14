@@ -16,9 +16,6 @@
                
                <!-- allow fragment identifiers in pdf? -->
                <xsl:param name="insert.olink.pdf.frag" select="1"></xsl:param>
-                
-               <!-- needed for olink processing (?)-->
-               <xsl:param name="collect.xref.targets">yes</xsl:param>
                
                <!-- making olinks underlined in pdf output -->
                <xsl:attribute-set name="olink.properties">
