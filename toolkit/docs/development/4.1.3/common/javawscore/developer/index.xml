@@ -512,14 +512,16 @@
             <secondary>using</secondary>
           </indexterm>
           <para>The WS-RF and WS-N specifications distributed with Java WS Core use
-              <emphasis>WS-Addressing</emphasis> (the March 2004 version of the specification) for
-            addressing services and resources. Java WS Core uses the <ulink
+              <emphasis>WS-Addressing 1.0</emphasis> for
+            addressing services and resources. Java WS Core uses a modified version of  <ulink
               url="http://ws.apache.org/ws-fx/addressing/">Apache Addressing</ulink> library for
             WS-Addressing support. The API is pretty straightforward and easy to use. Most of the
             work is done in <computeroutput>AddressingHandler</computeroutput> deployed in the
             client and server configuration files. See <ulink
               url="http://ws.apache.org/ws-fx/addressing/">Apache Addressing documentation</ulink>
             for details. </para>
+            <para> Since the Apache Addressing project is being archived, the source code has been imported to Globus CVS and package name has been changed to avoid conflicts. Refer to FIXME: LINK TO TECH DEPENDENCY.
+            </para>
           <section id="javawscore-developer-call">
             <title>Using the call object directly</title>
             <indexterm type="javawscore-howto">
@@ -591,47 +593,47 @@
                 locator.getVersionPort(epr); port.getVersion();</screen>
             </para>
           </section>
-          <section id="javawscore-developer-referenceproperties">
-            <title>ReferenceProperties</title>
+          <section id="javawscore-developer-referenceparameters">
+            <title>ReferenceParameters</title>
             <indexterm type="javawscore-howto">
               <primary>programming</primary>
               <secondary>general</secondary>
-              <tertiary>using ReferenceProperties</tertiary>
+              <tertiary>using ReferenceParameters</tertiary>
             </indexterm>
             <indexterm type="javawscore">
               <primary>programming</primary>
               <secondary>general</secondary>
-              <tertiary>using ReferenceProperties</tertiary>
+              <tertiary>using ReferenceParameters</tertiary>
             </indexterm>
             <indexterm type="javawscore-howto">
-              <primary>ReferenceProperties</primary>
+              <primary>ReferenceParameters</primary>
               <secondary>using</secondary>
             </indexterm>
             <indexterm type="javawscore">
-              <primary>ReferenceProperties</primary>
+              <primary>ReferenceParameters</primary>
               <secondary>using</secondary>
             </indexterm>
             <para>In the WS-RF and WS-N specifications, the WS-Addressing
-                <computeroutput>ReferenceProperties</computeroutput> are used to carry resource
-              identity information. The resource identity can be anything as long as it serializes
-              as a XML element. The <computeroutput>ReferenceProperties</computeroutput> are
+                <computeroutput>ReferenceParameters</computeroutput> are used to carry resource
+              identity information. In previous versions of the WSRF/WSN specification, ReferenceProperties was used for the same purpose. The resource identity can be anything as long as it serializes
+              as a XML element. The <computeroutput>ReferenceParameters</computeroutput> are
               serialized as separate SOAP headers in the SOAP envelope. </para>
             <para>The Apache Addressing library only allows a DOM
               <computeroutput>Element</computeroutput> or a
-              <computeroutput>SOAPElement</computeroutput> to be a reference property. </para>
-            <para>For example, create <computeroutput>ReferencePropertiesType</computeroutput> and
+              <computeroutput>SOAPElement</computeroutput> to be a reference parameters. </para>
+            <para>For example, create <computeroutput>ReferenceParametersType</computeroutput> and
               fill it with resource key info: </para>
             <screen>// create a reference property QName keyName = new
               QName(&quot;http://axis.org&quot;, &quot;VersionKey&quot;); String
               keyValue = &quot;123&quot;; SimpleResourceKey key = new
-              SimpleResourceKey(keyName, keyValue); ReferencePropertiesType props = new
-              ReferencePropertiesType(); // convert to SOAPElement and add to the list
+              SimpleResourceKey(keyName, keyValue); ReferenceParametersType props = new
+              ReferenceParametersType(); // convert to SOAPElement and add to the list
               props.add(key.toSOAPElement()); ...</screen>
             <para>Then pass it to <computeroutput>AddressingHeaders</computeroutput>:</para>
             <screen>... Service service = new Service(); Call call = (Call) service.createCall();
               String url = &quot;http://localhost:8080/axis/services/Version&quot;;
               AddressingHeaders headers = new AddressingHeaders(); headers.setTo(new To(url));
-                <emphasis>headers.setReferenceProperties(props);</emphasis> // pass the addressing
+                <emphasis>headers.setReferenceParameters(props);</emphasis> // pass the addressing
               info to the addressing handler
               call.setProperty(Constants.ENV_ADDRESSING_REQUEST_HEADERS, headers);
               call.setTargetEndpointAddress(new URL(url)); call.setOperationName(new QName(url,
@@ -641,7 +643,7 @@
             <screen>... String url =
               &quot;http://localhost:8080/axis/services/Version&quot;; EndpointReferenceType
               epr = new EndpointReferenceType(); epr.setAddress(new Address(url));
-                <emphasis>epr.setProperties(props);</emphasis> VersionServiceAddressingLocator
+                <emphasis>epr.setParameters(props);</emphasis> VersionServiceAddressingLocator
               locator = new VersionServiceAddressingLocator(); VerionServicePortType port =
               locator.getVersionPort(epr); port.getVersion();</screen>
             <para/>
@@ -775,10 +777,25 @@
                   <computeroutput>ResourcePropertyValueChangeNotificationElementType</computeroutput>
                 type. From that type you can retrieve the real notification message which contains
                 the new and optionally the old value of the resource property. Example:</para>
-              <screen> public void deliver(List topicPath, EndpointReferenceType producer, Object
-                message) { ResourcePropertyValueChangeNotificationType changeMessage =
-                ((ResourcePropertyValueChangeNotificationElementType) message).
-                getResourcePropertyValueChangeNotification(); Integer newValue =
+              <screen> 
+import org.globus.wsrf.encoding.DeserializationException;
+import org.globus.wsrf.utils.NotificationUtil;
+import org.oasis.wsrf.properties.ResourcePropertyValueChangeNotificationType;
+...
+// Notification callback
+public void deliver(List topicPath, EndpointReferenceType producer,
+                    Object message) {
+
+    
+    ResourcePropertyValueChangeNotificationType changeMessage
+                        = null;
+    try {
+         changeMessage = NotificationUtil.getRPValueChangeNotification(message);
+   } catch (DeserializationException e) {
+        // handle exception
+   }
+
+Integer newValue =
                 (Integer)ObjectDeserializer.getFirstAsObject( changeMessage.getNewValue(),
                 Integer.class); System.out.println("New value: " + newValue); if
                 (changeMessage.getOldValue() != null) { Integer oldValue =
@@ -861,12 +878,17 @@
             <para>Example: <screen> import org.oasis.wsn.TopicExpressionType; import
                 org.oasis.wsn.Subscribe; import org.oasis.wsn.SubscribeResponse; import
                 org.globus.wsrf.WSNConstants; import org.globus.wsrf.WSRFConstants; ...
-                TopicExpressionType topicExpression = new TopicExpressionType();
-                topicExpression.setDialect(WSNConstants.SIMPLE_TOPIC_DIALECT);
-                topicExpression.setValue(WSRFConstants.TERMINATION_TIME); Subscribe request = new
-                Subscribe(); request.setUseNotify(Boolean.TRUE);
-                request.setConsumerReference(consumerEPR);
-                request.setTopicExpression(topicExpression); SubscribeResponse subResponse =
+                Subscribe request = new Subscribe();
+     request.setConsumerReference(consumerEPR);
+     TopicExpressionType topicExpression = new TopicExpressionType();
+     topicExpression.setDialect(WSNConstants.SIMPLE_TOPIC_DIALECT);
+     topicExpression.setValue(Counter.VALUE);
+     MessageElement element = 
+            (MessageElement)ObjectSerializer
+            .toSOAPElement(topicExpression, WSNConstants.TOPIC_EXPRESSION);
+     FilterType filter = new FilterType();
+     filter.set_any(new MessageElement[] { element });
+     request.setFilter(filter);
                 port.subscribe(request); ... </screen>
             </para>
           </section>
