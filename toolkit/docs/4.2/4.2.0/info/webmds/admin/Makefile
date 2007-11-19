@@ -1,9 +1,10 @@
 export UMASK=002
 export XML_CATALOG_FILES=../../../catalog
-#export XML_DEBUG_CATALOG= 1
+#export XML_DEBUG_CATALOG=1
 FILENAME= index.xml
 
 all: lint html
+pdf: fo xep
 
 html:
 	xsltproc \
@@ -13,12 +14,19 @@ html:
 	../../../custom_html.xsl \
 	$(FILENAME)
 
-
-pdf:
-	~bacon/XEP/xep \
-	-xml $(FILENAME) \
-	-xsl ../../../custom_fo.xsl \
-	-out index.pdf
+fo:
+	xsltproc \
+	--xinclude \
+	-o index.fo \
+	--stringparam target.database.document "../../../olinkdb_fo.xml" \
+	--stringparam current.docid "webmdsAdmin" \
+	../../../custom_fo.xsl \
+	$(FILENAME)
+	
+xep:
+	~bacon/XEP/xep -quiet \
+	-fo index.fo \
+	-pdf webmdsAdminGuide.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

@@ -4,6 +4,7 @@ export XML_CATALOG_FILES=../../../catalog
 FILENAME= index.xml
 
 all: lint html
+pdf: fo xep
 
 html:
 	xsltproc \
@@ -13,12 +14,19 @@ html:
 	../../../custom_html.xsl \
 	$(FILENAME)
 
-
+fo:
+	xsltproc \
+	--xinclude \
+	-o index.fo \
+	--stringparam target.database.document "../../../olinkdb_fo.xml" \
+	--stringparam current.docid "indexPI" \
+	../../../custom_fo.xsl \
+	$(FILENAME)
+	
 pdf:
-	~bacon/XEP/xep \
-	-xml $(FILENAME) \
-	-xsl ../../../custom_fo.xsl \
-	-out index.pdf
+	~bacon/XEP/xep -quiet \
+	-fo index.fo \
+	-pdf indexPublicInterfacesGuide.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

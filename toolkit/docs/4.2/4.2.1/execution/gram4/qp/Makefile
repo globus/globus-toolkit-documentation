@@ -4,6 +4,7 @@ export XML_CATALOG_FILES=../../../catalog
 FILENAME= index.xml
 
 all: lint html
+pdf: fo xep
 
 html:
 	xsltproc \
@@ -13,12 +14,18 @@ html:
 	../../../custom_html.xsl \
 	$(FILENAME)
 
-
-pdf:
-	~bacon/XEP/xep \
-	-xml $(FILENAME) \
-	-xsl ../../../custom_fo.xsl \
-	-out index.pdf
+fo:
+	xsltproc \
+	--xinclude \
+	-o index.fo \
+	--stringparam current.docid "gram4QP" \
+	../../../custom_fo.xsl \
+	$(FILENAME)
+	
+xep:
+	~bacon/XEP/xep -quiet \
+	-fo index.fo \
+	-pdf gram4QualityProfile.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
