@@ -3,7 +3,7 @@ export XML_CATALOG_FILES=../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 
-all: lint html pdf
+all: lint html
 
 html:
 	xsltproc \
@@ -12,13 +12,6 @@ html:
 	--stringparam current.docid "key" \
 	../custom_html.xsl \
 	$(FILENAME)
-
-
-pdf:
-	~bacon/XEP/xep \
-	-xml $(FILENAME) \
-	-xsl ../custom_fo.xsl \
-	-out index.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
