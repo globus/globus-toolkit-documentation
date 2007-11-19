@@ -3,7 +3,8 @@ export XML_CATALOG_FILES=../../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 
-all: lint html fo pdf
+all: lint html
+pdf: fo xep
 
 html:
 	xsltproc \
@@ -18,11 +19,12 @@ fo:
 	xsltproc \
 	--xinclude \
 	-o index.fo \
+	--stringparam target.database.document "../../../olinkdb_fo.xml" \
 	--stringparam current.docid "ccommonlibUser" \
 	../../../custom_fo.xsl \
 	$(FILENAME)
 	
-pdf:
+xep:
 	~bacon/XEP/xep -quiet \
 	-fo index.fo \
 	-pdf ccommonlibUserGuide.pdf
