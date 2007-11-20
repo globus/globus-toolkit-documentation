@@ -123,23 +123,22 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/data/datarep/">DRS</a></dt>
 			</dl>
 		
-		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/info/">Information Svcs</a></h2>
+		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/info/mds4/">MDS4</a></h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">MDS Aggregator</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/archive/">MDS Archive</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/index/">MDS Index</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/trigger/">MDS Trigger</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/webmds/">MDS WebMDS</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/usefulrp/">MDS UsefulRP</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/providers/">MDS Info Providers</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">Aggregator Svcs (Index, Trigger, Archive)</a></dt>
+
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/webmds/">WebMDS</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/usefulrp/">UsefulRP</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/providers/">Info Providers</a></dt>
 			</dl>
 			
 			<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/common/">Execution Mgt</a></h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gram4/">GRAM4</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gridway/">GridWay</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/wms/">WMS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gtcp/">GTCP</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/csf/">CSF</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/wms/">WMS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gram2/">GRAM2 (legacy)</a></dt>
 			</dl>
 	</div>

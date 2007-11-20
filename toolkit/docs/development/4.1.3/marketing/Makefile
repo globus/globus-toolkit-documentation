@@ -1,20 +1,30 @@
-FILENAME=index.xml
+export UMASK=002
+export XML_CATALOG_FILES=../catalog
+#export XML_DEBUG_CATALOG= 1
+FILENAME= index.xml
 
-all: html pdf
+all: lint html fo pdf
 
 html:
-	xsltproc --stringparam chunk.section.depth 0 \
-	--stringparam suppress.navigation 1 \
-	--stringparam  chapter.autolabel 0 \
-	--stringparam  section.autolabel 1 \
-	--stringparam toc.section.depth 0 \
-	../admin/docbook/chunk.xsl  \
-           ${FILENAME}
+	xsltproc \
+	--xinclude \
+	--stringparam target.database.document "../olinkdb.xml" \
+	--stringparam current.docid "marketing" \
+	../custom_html.xsl \
+	$(FILENAME)
 
-pdf:
-	docbook2pdf \
-           -l /usr/share/sgml/docbook/dsssl-stylesheets/dtds/decls/xml.dcl \
-           ${FILENAME}
+fo:
+	xsltproc \
+	--xinclude \
+	-o index.fo \
+	--stringparam current.docid "marketing" \
+	../custom_fo.xsl \
+	$(FILENAME)
+	
+pdf:	
+	~bacon/XEP/xep -quiet \
+	-fo index.fo \
+	-pdf gtFactSheets.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
@@ -28,11 +38,21 @@ debian-sarge:
 mac:
 	xsltproc --stringparam chunk.section.depth 0 \
 	--stringparam chapter.autolabel 0 \
-	/usr/share/xml/xsl/docbook-xsl/html/chunk.xsl \
+	/sw/share/xml/xsl/docbook-xsl/html/chunk.xsl \
+	$(FILENAME)
+	
+lint:
+	xmllint \
+	--noout \
+	--noent \
+	--xinclude \
+	--postvalid \
 	$(FILENAME)
 
-xep:
-	/homes/yusra/XEP/xep \
-	-xml $(FILENAME) \
-	-xsl ~/XEP/nwalsh/fo/docbook.xsl \
-	-out index.pdf
+olink:
+	xsltproc \
+	--xinclude \
+	--stringparam  collect.xref.targets  "only"  \
+	../custom_html.xsl \
+	$(FILENAME)
+	

@@ -11,6 +11,9 @@
                 <!-- which css stylesheet to use?
                 <xsl:param name="html.stylesheet" select="'/toolkit/css/default.css'"></xsl:param> -->
                 
+                <!-- update target database with all possible cross references (for olinks)-->
+                <xsl:param name="collect.xref.targets">yes</xsl:param>
+                
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
                 <xsl:param name="admon.graphics">1</xsl:param>
                 
