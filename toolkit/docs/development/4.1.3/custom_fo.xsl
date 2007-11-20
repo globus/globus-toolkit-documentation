@@ -27,6 +27,7 @@
                
                <!-- should output be in draft mode? -->
                <xsl:param name="draft.mode" select="'yes'"></xsl:param>
+               <xsl:param name="draft.watermark.image">/www/www-unix.globus.org/docbook-images/draft.png</xsl:param>
                
                <!-- ALIGNMENT -->
                <xsl:param name="alignment">left</xsl:param>
