@@ -15,18 +15,18 @@ html:
 	$(FILENAME)
 
 fo:
- 	xsltproc \
- 	--xinclude \
- 	-o index.fo \
- 	--stringparam target.database.document "../../../olinkdb_fo.xml" \
- 	--stringparam current.docid "xioPI" \
- 	../../../custom_fo.xsl \
- 	$(FILENAME)
- 	
+	xsltproc \
+	--xinclude \
+	-o index.fo \
+	--stringparam target.database.document "../../../olinkdb_fo.xml" \
+	--stringparam current.docid "xioPI" \
+	../../../custom_fo.xsl \
+	$(FILENAME)
+
 xep:
- 	~bacon/XEP/xep -quiet \
- 	-fo index.fo \
- 	-pdf xioPublicInterfacesGuide.pdf
+	~bacon/XEP/xep -quiet \
+	-fo index.fo \
+	-pdf xioPublicInterfacesGuide.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
