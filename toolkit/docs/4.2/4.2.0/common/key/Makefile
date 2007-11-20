@@ -24,9 +24,9 @@ fo:
 	$(FILENAME)
 	
 xep:
- 	~bacon/XEP/xep -quiet \
- 	-fo index.fo \
- 	-pdf commonRuntimeKeyConcepts.pdf
+	~bacon/XEP/xep -quiet \
+	-fo index.fo \
+	-pdf commonRuntimeKeyConcepts.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
