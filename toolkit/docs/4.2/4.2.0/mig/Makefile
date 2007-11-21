@@ -18,7 +18,7 @@ fo:
 	xsltproc \
 	--xinclude \
 	-o index.fo \
-	--stringparam target.database.document "../../olinkdb_fo.xml" \
+	--stringparam target.database.document "../olinkdb_fo.xml" \
 	--stringparam current.docid "mig" \
 	../custom_fo.xsl \
 	$(FILENAME)
