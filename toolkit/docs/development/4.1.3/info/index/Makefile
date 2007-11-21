@@ -14,19 +14,6 @@ html:
 	../../custom_html.xsl \
 	$(FILENAME)
 
-fo:
-	xsltproc \
-	--xinclude \
-	-o index.fo \
-	--stringparam current.docid "gram2SEG" \
-	../../../custom_fo.xsl \
-	$(FILENAME)
-	
-	pdf:
-	~bacon/XEP/xep -quiet \
-	-fo index.fo \
-	-pdf gram2SEG.pdf
-
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
 	--stringparam suppress.navigation 1 \

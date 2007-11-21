@@ -14,13 +14,6 @@ html:
 	../../custom_html.xsl \
 	$(FILENAME)
 
-
-pdf:
-	~bacon/XEP/xep \
-	-xml $(FILENAME) \
-	-xsl ../../custom_fo.xsl \
-	-out index.pdf
-
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
 	--stringparam suppress.navigation 1 \
