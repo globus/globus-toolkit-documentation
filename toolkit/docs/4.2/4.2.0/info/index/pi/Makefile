@@ -23,7 +23,7 @@ fo:
 	../../../custom_fo.xsl \
 	$(FILENAME)
 	
-pdf:
+xep:
 	~bacon/XEP/xep -quiet \
 	-fo index.fo \
 	-pdf indexPublicInterfacesGuide.pdf
