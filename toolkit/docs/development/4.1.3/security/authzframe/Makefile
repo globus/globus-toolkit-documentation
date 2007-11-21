@@ -2,7 +2,7 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
-SUBDIRS=admin developer mig pi qp rn
+SUBDIRS=admin developer mig pi qp rn user
 
 all: lint html subdirs
 
@@ -13,13 +13,6 @@ html:
 	--stringparam current.docid "authzframe" \
 	../../custom_html.xsl \
 	$(FILENAME)
-
-
-pdf:
-	~bacon/XEP/xep \
-	-xml $(FILENAME) \
-	-xsl ../../custom_fo.xsl \
-	-out index.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
