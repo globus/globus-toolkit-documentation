@@ -11,6 +11,7 @@ html:
 	--xinclude \
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "rls" \
+	--stringparam generate.toc "" \
 	../../custom_html.xsl \
 	$(FILENAME)
 
