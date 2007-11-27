@@ -58,7 +58,7 @@ globus_out_of_date(); ?>
 		 <h2 class="smalltitle">Software Links</h2>
            <dl class="leftColumn">
 		   		<dt><a href="/toolkit/docs/development/4.2-drafts/Usage_Stats.html">Usage Statistics</a></dt>
-				<dt><a href="/toolkit/releasenotes/">Release Notes</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/rn/release_notes.html">Release Notes</a></dt>
 				<dt><a href="/toolkit/versioning.html">Versioning</a></dt>
 				<dt><a href="/toolkit/downloads/">Downloads</a></dt>
 				<dt><a href="/toolkit/advisories.html">Advisories</a></dt>
@@ -71,24 +71,25 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/globus_is_modular.html">Globus Is Modular!</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/quickstart.html">Quickstart</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/quickstart/">Quickstart</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/gtadmin-platform.html">Platform Notes</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-migrating-gt2.html">Migrating from GT2</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-migrating-gt3.html">Migrating from GT3</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/developer/">GT Developer's Guide</a></dt>
+				<dt>GT User's Guide (coming soon)</dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/mig/migrating-gt2.html">Migrating from GT2</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/mig/migrating-gt3.html">Migrating from GT3</a></dt>
 			</dl>
 			
 		<h2 class="smalltitle">Reference</h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/releaseManuals.pdf">PDF version</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-bestpractices.html">Best Practices</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/developer/gt-bestpractices.html">Best Practices</a></dt>
 				<dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
 				<dt><a href="/api/">API docs</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-public-interface.html">Public Interfaces</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-rp.html">Resource Properties</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/toolkit-samples.html">Samples</a></dt>
+				<dt>Public Interfaces (coming soon)</dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/developer/gt-rp.html">Resource Properties</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/developer/gt-samples.html">Samples</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/perf_overview.html">Performance Studies</a></dt>
+				<dt>Performance Studies (coming soon)</dt>
 			</dl>
 		
 		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/common/">Common Runtime</a></h2>
@@ -97,13 +98,14 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/cwscore/">C WS Core</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/pythonwscore/">Python WS Core</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/xio/">XIO</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/common/javacog/">CoG jglobus</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/common/javacog/">CoG jGlobus</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/pyglobus/">pyGlobus</a></dt>
 			</dl>
 			
 			<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/security/">Security</a></h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/prewsaa/">Pre-WS A&amp;A</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/security/prewsaa/">Non-WS (General) Security</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/security/wsaajava/">WS Java Security</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/message/">Message-level</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/authzframe/">Authz Framework</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/cas/">CAS</a></dt>
@@ -111,6 +113,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/myproxy/">MyProxy</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/openssh/">GSI-OpenSSH</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/simpleca/">SimpleCA</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/security/sgas/">SGAS</a></dt>
 			</dl>
 		
 		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/data/">Data Mgt</a></h2>
@@ -123,10 +126,12 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/data/datarep/">DRS</a></dt>
 			</dl>
 		
-		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/info/mds4/">MDS4</a></h2>
+		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/info/">MDS4</a></h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">Aggregator Svcs (Index, Trigger, Archive)</a></dt>
-
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">Aggregator Framework</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/index/">Index Service</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/trigger/">Trigger Service</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/archive/">Archive Service</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/webmds/">WebMDS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/usefulrp/">UsefulRP</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/providers/">Info Providers</a></dt>
@@ -136,7 +141,6 @@ globus_out_of_date(); ?>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gram4/">GRAM4</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gridway/">GridWay</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/wms/">WMS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gtcp/">GTCP</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/csf/">CSF</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/execution/gram2/">GRAM2 (legacy)</a></dt>
