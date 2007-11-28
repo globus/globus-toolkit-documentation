@@ -91,7 +91,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
 				<dt>Performance Studies (coming soon)</dt>
 			</dl>
-		
+		<h2 class="smalltitle">Manuals</h2>
 		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/common/">Common Runtime</a></h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/javawscore/">Java WS Core</a></dt>
