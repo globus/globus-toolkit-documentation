@@ -196,7 +196,7 @@
                                                 <body>
                                                                 <xsl:call-template name="body.attributes"/>
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_header_docbook.inc");
+                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.1.3/includes/globus_header_docbook.inc");
                                                                                 ?</xsl:processing-instruction>
                                                                 
  
@@ -227,7 +227,7 @@
                                                                 <xsl:call-template name="user.footer.navigation"/>
 
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_footer_docbook.inc");
+                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.1.3/includes/globus_footer_docbook.inc");
                                                                                 ?</xsl:processing-instruction>
                                                       
                                                 </body>
