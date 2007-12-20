@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
 [
 
@@ -8,90 +8,149 @@
 %myents;
 
 ]>
-<section>
-<para>The following are points to consider relative to security:</para>
-<section ><title>Two ways to configure your <glossterm>server</glossterm></title>
-<para>We now provide two ways to configuring your server:</para>
-<itemizedlist>    
-	<listitem><simpara>The classic installation.  This is equivalent to any FTP server you would normally install.  
-    It is run as a root setuid process.  Once the user is authenticated, the process does a setuid to the 
-    appropriate non-privileged user account.</simpara></listitem>
-<listitem><para>A new split process installation.  In this configuration, the server consists of two processes:
-<itemizedlist>    
-	<listitem><simpara>The control channel (the process the external user connects to) runs as a non-privileged user (typically 
-			the globus user).  </simpara></listitem>
-    
-	<listitem><simpara> The data channel (the process that access the file system and moves the data) runs 
-    as a root setuid program as before but is only contacted by the control channel process from a local machine.  
-    This means an external user is never connected to a root running process and thus minimizes the impact of 
-    an exploit.  This does, however, require that a copy of the host cert and host key be owned by the non-privileged 
-    user.      If you use this configuration, the non-privileged user should not have write permission to executables, 
-    configuration files, etc.</simpara></listitem>
-</itemizedlist>
-</para>
-</listitem>
-</itemizedlist>
-</section>
-<section ><title>New authentication options</title>
-    <para>There are new authentication options available for the server in GT &shortversion;:</para>
-<itemizedlist>
-    <listitem><simpara>Anonymous:  The server now supports anonymous access.  In order for this to work, a configuration switch must explicitly enable it, a list of acceptable usernames must be defined, and an account under which the anonymous user should run must be defined.  If the necessary configurations are in place, and the <glossterm>client</glossterm> presents a username that is in the list of acceptable anonymous users, then the session will be accepted and the process will setuid to the anonymous user account.  We do not support chroot in this version of the server.</simpara></listitem>
+<chapter id="gridftp-security-considerations">
+    <title>Security Considerations </title>
+    <indexterm type="gridftp">
+        <primary>security considerations of GridFTP</primary>
+    </indexterm>
 
-	<listitem><simpara>Username / Password:  This is standard FTP authentication.  It uses a separate password file, used only by the GridFTP server, *NOT* the system password file.</simpara></listitem>
-</itemizedlist>
-    
-<warning><simpara>WE HIGHLY RECOMMEND YOU NOT USE THIS.  YOU WILL BE SENDING YOUR PASSWORD IN CLEAR 
-    TEXT OVER THE NETWORK.</simpara></warning>
+    <section id="gridftp-security-config">
+        <title>Two ways to configure your <glossterm>server</glossterm></title>
+        <para>We now provide two ways to configuring your server:</para>
+        <itemizedlist>
+            <listitem>
+                <simpara>The classic installation. This is equivalent to any FTP server you would
+                    normally install. It is run as a root setuid process. Once the user is
+                    authenticated, the process does a setuid to the appropriate non-privileged user
+                    account.</simpara>
+            </listitem>
+            <listitem>
+                <para>A new split process installation. In this configuration, the server consists
+                    of two processes: <itemizedlist>
+                        <listitem>
+                            <simpara>The control channel (the process the external user connects to)
+                                runs as a non-privileged user (typically the globus user).
+                            </simpara>
+                        </listitem>
 
-<para>We do, however, have some user communities who run only on internal networks for testing purposes and who do not wish to deal with obtaining GSI credentials.  If you are considering this, we would recommend that you look at Simple CA and set up your own testbed CA.  This can be done in less than an hour and then provides you full GSI security.</para>
-</section>
+                        <listitem>
+                            <simpara> The data channel (the process that access the file system and
+                                moves the data) runs as a root setuid program as before but is only
+                                contacted by the control channel process from a local machine. This
+                                means an external user is never connected to a root running process
+                                and thus minimizes the impact of an exploit. This does, however,
+                                require that a copy of the host cert and host key be owned by the
+                                non-privileged user. If you use this configuration, the
+                                non-privileged user should not have write permission to executables,
+                                configuration files, etc.</simpara>
+                        </listitem>
+                    </itemizedlist>
+                </para>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section id="gridftp-security-authentication">
+        <title>New authentication options</title>
+        <para>There are new authentication options available for the server in GT
+            &shortversion;:</para>
+        <itemizedlist>
+            <listitem>
+                <simpara>Anonymous: The server now supports anonymous access. In order for this to
+                    work, a configuration switch must explicitly enable it, a list of acceptable
+                    usernames must be defined, and an account under which the anonymous user should
+                    run must be defined. If the necessary configurations are in place, and the
+                        <glossterm>client</glossterm> presents a username that is in the list of
+                    acceptable anonymous users, then the session will be accepted and the process
+                    will setuid to the anonymous user account. We do not support chroot in this
+                    version of the server.</simpara>
+            </listitem>
 
-<section><title>Firewall requirements</title>
-    
-    <para> If the GridFTP <emphasis>server</emphasis> is behind a firewall:</para>
-    <orderedlist>
-        <listitem><para>Contact your network administrator to open up port 2811 (for GridFTP 
-            control channel connection) and a range of ports (for GridFTP data channel
-            connections) for the incoming connections. If the firewall blocks the outgoing connections, open up a range of ports for outgoing connections as well.</para></listitem>
-        <listitem><para>Set the environment variable GLOBUS_TCP_PORT_RANGE:
-            <screen>export GLOBUS_TCP_PORT_RANGE=min,max </screen>
-            where min,max specify the port range that you have opened for the incoming connections on the firewall. This restricts the 
-            listening ports of the GridFTP server to this range. Recommended range
-            is 1000 (e.g., 50000-51000) but it really depends on how much use you expect.</para></listitem>
-        <listitem><para>If you have a firewall blocking the outgoing connections and you have opened
-            a range of ports, set the environment variable GLOBUS_TCP_SOURCE_RANGE:
-            <screen>export GLOBUS_TCP_SOURCE_RANGE=min,max </screen>
-            where min,max specify the port range that you have opened for the outgoing connections on the firewall. This restricts
-            the outbound ports of the GridFTP server to this range. Recommended range
-            is twice the range used for GLOBUS_TCP_PORT_RANGE, because if parallel TCP 
-            streams are used for transfers, the listening port would remain the same for 
-            each connection but the connecting port would be different for each connection.</para></listitem>
-    </orderedlist> 
-    <note><para>If the server is behind NAT, the <computeroutput>--data-interface &lt;real ip/hostname&gt;</computeroutput> option
-        needs to be used on the server.</para></note>
-    
-    <para>If the GridFTP <emphasis>client</emphasis> is behind a firewall:</para>
-    <orderedlist>
-        <listitem><para>Contact your network administrator to open up a range of ports (for GridFTP 
-            data channel connections) for the incoming connections. If the firewall blocks 
-            the outgoing connections, open up a range of ports for outgoing connections as 
-            well.</para></listitem>
-        <listitem><para>Set the environment variable GLOBUS_TCP_PORT_RANGE
-            <screen>export GLOBUS_TCP_PORT_RANGE=min,max </screen>
-            where min,max specify the port range that you
-            have opened for the incoming connections on the firewall. This restricts the
-            listening ports of the GridFTP client to this range. Recommended range
-            is 1000 (e.g., 50000-51000) but it really depends on how much use you expect.</para></listitem>
-        <listitem><para>If you have a firewall blocking the outgoing connections and you have opened
-            a range of ports, set the environment variable GLOBUS_TCP_SOURCE_RANGE:
-            <screen>export GLOBUS_TCP_PORT_RANGE=min,max </screen>
-            where min,max specify the port range that
-            you have opened for the outgoing connections on the firewall. This restricts
-            the outbound ports of the GridFTP client to this range. Recommended range
-            is twice the range used for GLOBUS_TCP_PORT_RANGE, because if parallel TCP
-            streams are used for transfers, the listening port would remain the same for
-            each connection but the connecting port would be different for each connection.</para></listitem></orderedlist>
-    
-    <para>Additional information on Globus Toolkit Firewall Requirements is available <ulink url="http://www.globus.org/toolkit/security/firewalls/">here</ulink>.</para>
-</section>
-</section>
+            <listitem>
+                <simpara>Username / Password: This is standard FTP authentication. It uses a
+                    separate password file, used only by the GridFTP server, *NOT* the system
+                    password file.</simpara>
+            </listitem>
+        </itemizedlist>
+
+        <warning>
+            <simpara>WE HIGHLY RECOMMEND YOU NOT USE THIS. YOU WILL BE SENDING YOUR PASSWORD IN
+                CLEAR TEXT OVER THE NETWORK.</simpara>
+        </warning>
+
+        <para>We do, however, have some user communities who run only on internal networks for
+            testing purposes and who do not wish to deal with obtaining GSI credentials. If you are
+            considering this, we would recommend that you look at Simple CA and set up your own
+            testbed CA. This can be done in less than an hour and then provides you full GSI
+            security.</para>
+    </section>
+
+    <section id="gridftp-security-firewalls">
+        <title>Firewall requirements</title>
+
+        <para> If the GridFTP <emphasis>server</emphasis> is behind a firewall:</para>
+        <orderedlist>
+            <listitem>
+                <para>Contact your network administrator to open up port 2811 (for GridFTP control
+                    channel connection) and a range of ports (for GridFTP data channel connections)
+                    for the incoming connections. If the firewall blocks the outgoing connections,
+                    open up a range of ports for outgoing connections as well.</para>
+            </listitem>
+            <listitem>
+                <para>Set the environment variable GLOBUS_TCP_PORT_RANGE:
+                    <screen>export GLOBUS_TCP_PORT_RANGE=min,max </screen> where min,max specify the
+                    port range that you have opened for the incoming connections on the firewall.
+                    This restricts the listening ports of the GridFTP server to this range.
+                    Recommended range is 1000 (e.g., 50000-51000) but it really depends on how much
+                    use you expect.</para>
+            </listitem>
+            <listitem>
+                <para>If you have a firewall blocking the outgoing connections and you have opened a
+                    range of ports, set the environment variable GLOBUS_TCP_SOURCE_RANGE:
+                    <screen>export GLOBUS_TCP_SOURCE_RANGE=min,max </screen> where min,max specify
+                    the port range that you have opened for the outgoing connections on the
+                    firewall. This restricts the outbound ports of the GridFTP server to this range.
+                    Recommended range is twice the range used for GLOBUS_TCP_PORT_RANGE, because if
+                    parallel TCP streams are used for transfers, the listening port would remain the
+                    same for each connection but the connecting port would be different for each
+                    connection.</para>
+            </listitem>
+        </orderedlist>
+        <note>
+            <para>If the server is behind NAT, the <computeroutput>--data-interface &lt;real
+                    ip/hostname&gt;</computeroutput> option needs to be used on the
+            server.</para>
+        </note>
+
+        <para>If the GridFTP <emphasis>client</emphasis> is behind a firewall:</para>
+        <orderedlist>
+            <listitem>
+                <para>Contact your network administrator to open up a range of ports (for GridFTP
+                    data channel connections) for the incoming connections. If the firewall blocks
+                    the outgoing connections, open up a range of ports for outgoing connections as
+                    well.</para>
+            </listitem>
+            <listitem>
+                <para>Set the environment variable GLOBUS_TCP_PORT_RANGE
+                    <screen>export GLOBUS_TCP_PORT_RANGE=min,max </screen> where min,max specify the
+                    port range that you have opened for the incoming connections on the firewall.
+                    This restricts the listening ports of the GridFTP client to this range.
+                    Recommended range is 1000 (e.g., 50000-51000) but it really depends on how much
+                    use you expect.</para>
+            </listitem>
+            <listitem>
+                <para>If you have a firewall blocking the outgoing connections and you have opened a
+                    range of ports, set the environment variable GLOBUS_TCP_SOURCE_RANGE:
+                    <screen>export GLOBUS_TCP_PORT_RANGE=min,max </screen> where min,max specify the
+                    port range that you have opened for the outgoing connections on the firewall.
+                    This restricts the outbound ports of the GridFTP client to this range.
+                    Recommended range is twice the range used for GLOBUS_TCP_PORT_RANGE, because if
+                    parallel TCP streams are used for transfers, the listening port would remain the
+                    same for each connection but the connecting port would be different for each
+                    connection.</para>
+            </listitem>
+        </orderedlist>
+
+        <para>Additional information on Globus Toolkit Firewall Requirements is available <ulink
+                url="http://www.globus.org/toolkit/security/firewalls/">here</ulink>.</para>
+    </section>
+</chapter>
