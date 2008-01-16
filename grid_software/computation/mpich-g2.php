@@ -39,12 +39,12 @@ MPICH-G2 implements the MPI v1.1 specification.
 </p>
 
 <?
-$software = "<a href='http://www.globus.org/mpi/'>MPICH-G2</a>";
+$software = "<a href='http://www3.niu.edu/mpi/'>MPICH-G2</a>";
 $developer = "<a href='http://www.niu.edu/'>Northern Illinois University</a> and 
               <a href='http://www.mcs.anl.gov/'>Argonne National Laboratory</a>";
 $distros = "Download from the <a href='http://www-unix.mcs.anl.gov/mpi/mpich/'>MPICH website</a>";
-$contact = "<a href='mailto:mpi@globus.org'>mpi@globus.org</a><br>
-            (must be <a href='http://www.globus.org/about/subscriptions.html'>subscribed</a> before posting to the list)";
+$contact = "<a href='mailto:mpich-g@globus.org'>mpich-g@globus.org</a><br>
+            (must be <a href='http://dev.globus.org/wiki/Mailing_Lists#Subscribing_to_a_mailing_list'>subscribed</a> before posting to the list)";
 
 
 // use the function below once problem is discovered, remove the two lines above
