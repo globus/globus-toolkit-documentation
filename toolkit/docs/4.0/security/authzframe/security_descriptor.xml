@@ -450,20 +450,20 @@ The client security descriptor files need to comply with the <ulink url="client_
   <section id="s-authzframe-secdesc-configAuthz">
     <title>Configuring authorization mechanisms</title>
     <para>The container and each service can be configured with a chain of
-  authorization mechanisms (also known as Policy Decision Points (PDPs)),
-  using the <emphasis>authz</emphasis> element. Each PDP name is scoped and the
-  format is <emphasis>prefix:FQDN of the PDP</emphasis>. For example,
-  <emphasis>self:org.globus.wsrf.impl.security.authorization.SelfAuthorization</emphasis>.  The prefix is used to allow multiple instances of the same PDP to exist in the same PDP chain. The
+  authorization mechanisms (also known as Policy Decision Points (PDPs)) and attribute collection mechanisms (also known as Policy Information Points (PIPs)),
+  using the <emphasis>authz</emphasis> element. PIPs are expected to collect attributes and store them for use by PDPs in authorization process or in the invocation chain. PDPs are expected to  be enforce some authorization policy. The chain combines the decision from all the PDPs.Each PDP/PIP name is scoped and the
+  format is <emphasis>prefix:FQDN of the PDP/PIP</emphasis>. For example,
+  <emphasis>self:org.globus.wsrf.impl.security.authorization.SelfAuthorization</emphasis>.  The prefix is used to allow multiple instances of the same PDP/PIP to exist in the same authorization chain. All the PIPs in the authorization chain are invoked in the order configured, before the PDPs are invoked. The
   authorization is deemed to be a permit if each of the authorization
   mechanisms in the chain returns a permit.</para>
     <para><emphasis>Example:</emphasis></para>
     <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
    ...
-   &lt;authz value=&quot;foo1:org.foo.authzMechanism bar1:org.bar.barMechanism&quot;/&gt;
+   &lt;authz value=&quot;pdp1:org.foo.PDP1 pdp2:org.foo.PDP2 foo1:org.foo.authzMechanism bar1:org.bar.barMechanism&quot;/&gt;
    ...
 &lt;securityConfig/&gt;</screen>
-    <para>Each PDP is instantiated with some configuration information that
- can be used to get any further information that the PDP may need to make
+    <para>Each PDP/PIP is instantiated with some configuration information that
+ can be used to get any further information that the PDP/PIP may need to make
 authorization decisions. If the authorization chain is configured at the
 container level, then the parameters are picked up from the global configuration
 section of the container deployment descriptor. If the authorization chain is
@@ -693,9 +693,53 @@ authorization mechanism.</para>
   </section>
   <section id="s-authzframe-secdesc-customAuthz">
     <title>Writing a custom authorization mechanism</title>
-    <para>The authorization handler can be configured to call out to a custom authorization
-    class. The class must implement the interface <constant>org.globus.wsrf.security.PDP</constant>. </para>
-    <para><emphasis>Example: </emphasis> 
+    <para>The authorization handler can be configured to call out to a custon PIP or PDP. The custom PDP class must implement the interface <constant>org.globus.wsrf.security.PDP</constant> and the custom PIP class must implement the interface <constant>org.globus.wsrf.security.PDP</constant>. </para>
+
+
+    <para><emphasis>Example PIP: </emphasis> 
+  </para>
+    <screen>package org.foobar;
+
+import ....;
+
+public class FooPIP implements PIP
+{
+
+    public String CURRENT_TIME = "org.foobar.current.time";
+
+    public void collectAttributes(Subject peerSubject,
+			         MessageContext context,
+	                         QName operation) throws AttributeException {
+
+       // collect attributes, say attributes from certificate extension
+       // store in message context with some property.
+       // Example here stores current time.
+       messageContext.setProperty(FooPIP.CURRENT_TIME, Calendar.getInstance());
+    }
+
+    public void initialize(PDPConfig config,
+                           String name,
+                           String id)
+        throws InitializeException {
+
+        /* Read the initialization information 
+         */
+
+    }
+
+    public void close() throws CloseException {
+        this. authorizedIdentity = null;
+    }
+}</screen>
+
+    <para>To use the above PIP one would configure a service security descriptor with the following authorization settings:</para>
+    <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
+   ...
+   &lt;authz value=&quot;foo1:org.foobar.FooPIP&quot;/&gt;
+   ...
+&lt;securityConfig/&gt;</screen>
+
+    <para><emphasis>Example PDP: </emphasis> 
   </para>
     <screen>package org.foobar;
 
@@ -726,6 +770,10 @@ public class FooPDP implements PDP
                                MessageContext context,
                                QName operation)
         throws AuthorizationException {
+
+        // The parameters set by FooPIP can be accessed here.
+        Calendar currentTime = 
+            (Calendar)context.getProperty(FooPIP.CURRENT_TIME);
 
         if (peerSubject == null) {
             return false;
