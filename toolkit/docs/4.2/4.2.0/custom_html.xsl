@@ -5,6 +5,54 @@
                 <!-- Which DocBook standard xsl file should we use as the default? -->
                 <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/html/chunk.xsl"/>
 
+                <!-- shared text -->
+                <xsl:template match="replaceable[@role='entity']">
+                  <xsl:choose>
+                                   <xsl:when test=". = 'version'">4.2.0</xsl:when>
+                                  <xsl:when test=". = 'shortversion'">4.2</xsl:when>
+                                  <xsl:when test=". = 'previousversion'">4.0.6</xsl:when>
+                                 <xsl:otherwise>
+                                <xsl:message>Undefined replacement text for <xsl:value-of select="."/></xsl:message>
+                                </xsl:otherwise>
+                  </xsl:choose>
+                </xsl:template>
+                
+                <!-- 
+                <xsl:template match="replaceable">
+                  <xsl:choose>
+                    <xsl:when test="@role = 'entity'">
+                      <xsl:variable name="entity"><xsl:value-of select="."/></xsl:variable>
+                      <xsl:choose>
+                        <xsl:when test="$entity = 'version'">
+                          <xsl:text>4.2-drafts</xsl:text>
+                        </xsl:when>
+                         <xsl:when test="$entity = 'shortversion'">
+                          <xsl:text>4.2</xsl:text>
+                         </xsl:when>
+                         <xsl:when test="$entity = 'previousversion'">
+                          <xsl:text>4.0.5</xsl:text>
+                         </xsl:when>
+                         <xsl:when test="$entity = 'tag'">
+                          <xsl:text>globus_4_1_3</xsl:text>
+                         </xsl:when>
+                         <xsl:when test="$entity = 'docpath'">
+                          <xsl:text>http://www.globus.org/toolkit/docs/development/4.2-drafts/</xsl:text>
+                         </xsl:when>
+                          <xsl:when test="$entity = 'JavaWSCoreAPI'">
+                          <xsl:text>http://www-unix.mcs.anl.gov/~gawor/javawscore/HEAD/doc/javadocs/</xsl:text>
+                         </xsl:when>
+                        
+                        </xsl:choose>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:apply-imports/>
+                    </xsl:otherwise>
+                  </xsl:choose>
+                </xsl:template>
+                -->
+                
+                <!-- shared urls - something similar to above where ulink with url of x, the url changes to y-->
+                
                 <!-- speed up the chunking process? -->
                 <xsl:param name="chunk.fast">1</xsl:param>
                 
