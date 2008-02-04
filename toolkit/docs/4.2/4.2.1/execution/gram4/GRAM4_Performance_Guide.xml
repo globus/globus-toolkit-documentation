@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+<chapter id="gram4-performance-guide">
+    <title>GRAM4 Scalability and Performance Recommendations</title>
+    <para>This document includes recommendations for increasing the scalability and performance of
+        GRAM4 in a Grid.</para>
+    <section>
+        <title>Server-side Recommendations</title>
+        <orderedlist>
+            <listitem>
+                <para>GRAM4 service and/or the container can run out of memory under lower settings.
+                    For this reason, set the Max container heap size to be 1GB.</para>
+                <screen>GLOBUS_OPTIONS="-Xms256M -Xmx1024M"</screen>
+            </listitem>
+            <listitem>
+                <para>The account the container runs under, typically "globus", can run out of open
+                    file descriptors. For this reason, set the open file descriptors to 16,384.</para>
+                <para>Specific settings can vary per operating system; for a "globus" user on redhat
+                    / RHEL based distributions, add the following to <filename
+                        >/etc/security/limits.conf</filename>: </para>
+                <screen>globus          hard     nofile           16384</screen>
+            </listitem>
+            <listitem>
+                <para>The GRAM4 service stores the per job metadata used for crash/ recovery in
+                    files on disk. By default, the container account's home dir is used,
+                    specifically <filename>~/.globus/persisted/</filename>. Often this home dir is
+                    not located on a local disk, but on NFS. NFS is not needed for this purpose and
+                    can negatively effect performance. For this reason, configure the container to
+                    use a local disk.</para>
+                <screen>GLOBUS_OPTIONS="-Dorg.globus.wsrf.container.persistence.dir=/use/this/path"</screen>
+            </listitem>
+            <listitem>
+                <para>The container can run out of container threads resulting in client- side
+                    timeouts. The default is too low in GT 4.0.5 and earlier releases. We recommend
+                    these settings as part of the global configuration in <filename
+                        >$GLOBUS_LOCATION/etc/globus_wsrf_core/server-config.wsdd</filename>:</para>
+                <screen>
+&lt;globalConfiguration:
+    ...
+    &lt;parameter name="containerThreads" value="4"/&gt;
+    &lt;parameter name="containerThreadsMax" value="200"/&gt;
+    &lt;parameter name="containerThreadsHighWaterMark" value="10"/&gt;
+    ...
+&lt;/globalConfiguration&gt;
+        </screen>
+                <para>For more information, see global configurations under <olink
+                        targetdoc="javawscoreAdmin" targetptr="javawscore-configuring">Java WS
+                    Core</olink>.</para>
+            </listitem>
+            <listitem>
+                <para>To significantly improve the performance of jobs that include file staging,
+                    set the value of the parameter <parameter>enableLocalInvocations</parameter> to
+                    true in the homeConfiguration of the ManagedJobFactoryService in <filename
+                        >$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml</filename>. This however
+                    can only be done if GRAM4 and RFT, which is used for staging, are co-located in
+                    the same container:</para>
+                <screen>
+...
+    &lt;parameter&gt;
+        &lt;name&gt;
+            enableLocalInvocations
+        &lt;/name&gt;
+        &lt;value&gt;
+            true
+        &lt;/value&gt;
+    &lt;/parameter&gt;
+...
+</screen>
+            </listitem>
+        </orderedlist>
+    </section>
+    <section>
+        <title>Client-side Recommendations</title>
+        <orderedlist>
+            <listitem>
+                <para> To avoid client-side timeouts in job submissions to a GT4 server under heavy
+                    load, the default of 2 minutes can be increased. To do this with globusrun-ws
+                    add the <option>-T &lt;milliseconds&gt;</option> options to the job submission
+                    command and see <command>globusrun-ws -help</command> for further information.
+                    To do this with the Java API GramJob call the method <computeroutput
+                        >setTimeOut()</computeroutput>:</para>
+                <screen>
+...
+GramJob gramJob = new GramJob (...)
+gramJob.setTimeOut(300000); // value in milliseconds
+...
+</screen>
+            </listitem>
+            <listitem>
+                <para>If Condor-G is used as client: Make sure to use Condor version 6.9.3 or
+                    higher. In this version, the communication with the GRAM4 service has been
+                    improved by consolidating multiple web service operations into one. Also,
+                    Condor-G includes its own version of GT related Java archives. 6.9.2 and earlier
+                    contain an old version of these archives that cause occasional security errors
+                    when submitting to a 4.0.5 WS GRAM service.</para>
+            </listitem>
+        </orderedlist>
+    </section>
+</chapter>
