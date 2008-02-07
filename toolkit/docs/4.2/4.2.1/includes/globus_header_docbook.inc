@@ -100,6 +100,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/xio/">XIO</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/javacog/">CoG jGlobus</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/common/pyglobus/">pyGlobus</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/common/ccommonlib/">C Common Libs</a></dt>
 			</dl>
 			
 			<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/security/">Security</a></h2>
