@@ -7,6 +7,18 @@
  <!-- now replace all these settings with those specific for use with the fo stylesheet (for pdf output) -->
  <!-- just realized both html and fo can share many parameters - need to create common.xsl that gets imported to both so i can single source
  those variables -->
+               
+                               <!-- shared text -->
+                <xsl:template match="replaceable[@role='entity']">
+                  <xsl:choose>
+                                   <xsl:when test=". = 'version'">4.2.0</xsl:when>
+                                  <xsl:when test=". = 'shortversion'">4.2</xsl:when>
+                                  <xsl:when test=". = 'previousversion'">4.0.6</xsl:when>
+                                 <xsl:otherwise>
+                                <xsl:message>Undefined replacement text for <xsl:value-of select="."/></xsl:message>
+                                </xsl:otherwise>
+                  </xsl:choose>
+                </xsl:template>
                 
                 <!-- which stylesheet to use? -->
                <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
