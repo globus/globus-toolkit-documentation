@@ -5,7 +5,7 @@
   <chapter id="gridshib-configuring" xreflabel="Configuring GridShib">
     <title>Configuring </title>
     <para>
-      GridShib consists of a hierarchy of interceptors, a set of low-level intercepts which implement specific functions and then a set of combining interceptors which combine and orchestrate the low-level intereptors to perform common functionality. Most of the time, the <varname>GridShibPDP</varname> combined interceptor will do what you want, but it is possible to combine the low-level interceptors in unique ways to perform custom logic. Most of this configuration guide assumes you are using the <varname>GridShibPDP</varname> interceptor except where explicitly noted.
+      GridShib consists of a hierarchy of interceptors, a set of low-level intercepts which implement specific functions and then a combining interceptor,  <varname>GridShibPDP</varname>, which combines and orchestrates the low-level intereptors to the most commonly needed functionality. Most of the time, <varname>GridShibPDP</varname> will do what you want, but it is possible to combine the low-level interceptors in unique ways to provide custom logic. This configuration guide assumes you are using the <varname>GridShibPDP</varname> interceptor except where explicitly noted.
     </para>
     <section id="gridshib-configuring-server-config">
       <title>GridShib configuration options</title>
@@ -49,7 +49,7 @@
        </para>
        <para>
 	 <example>
-	   <title>Example GridShib Configuration in <filename>server-config.wsdd</filename></title>
+	   <title>Example GridShib Configuration in <filename>server-config.wsdd</filename> (XXX Update to 4.2 format)</title>
 	   <screen>
 	     <![CDATA[
 <deployment name="defaultServerConfig" ...>
@@ -151,15 +151,15 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	  </varlistentry>
 	  <varlistentry>
 	    <term>SAMLAttributePDP</term>
-	    <listitem><para>Makes an access control decision based on attributes from the user's security context. Renders either a PERMIT decision or NOT APPLICABLE decision (never DENY). <note><para>In GT4.0.x, NOT APPLICABLE equals DENY.</para></note></para></listitem>
+	    <listitem><para>Makes an access control decision based on attributes from the user's security context. Renders either a PERMIT decision or NOT APPLICABLE decision (never DENY).</para></listitem>
 	  </varlistentry>
 	  <varlistentry>
 	    <term>SAMLBlacklistPDP</term>
-	    <listitem><para>Makes an access control decision based on authentication context and attributes from the user's security context. Renders either a DENY decision or NOT APPLICABLE decision (never PERMIT). <note><para>In GT4.0.x, NOT APPLICABLE equals PERMIT.</para></note></para></listitem>
+	    <listitem><para>Makes an access control decision based on authentication context and attributes from the user's security context. Renders either a DENY decision or NOT APPLICABLE decision (never PERMIT).</para></listitem>
 	  </varlistentry>
 	  <varlistentry>
 	    <term>SAMLQueryPIP</term>
-	    <listitem><para>Queries a SAML Attribute Authority and updates the security context with the resulting attributes. </para></listitem>
+	    <listitem><para>Queries a SAML Attribute Authority and updates the security context with the resulting attributes.</para></listitem>
 	  </varlistentry>
 	  <varlistentry>
 	    <term>SAMLMapPIP</term>
@@ -169,4 +169,79 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
       </para>
     </section>
 
+    <section id="gridshib-configuring-combined-interceptors">
+      <title>The GridShibPDP Combining Interceptors</title>
+      <para>
+	The <varname>GridShibPDP</varname> combining interceptor combines and orchestrates the low-level interceptors to provide the most commonly needed functionality. This interceptor is actually a thin wrapper around the <varname>GridShibPushPullPDPImpl</varname> interceptor, which in turns uses <varname>GridShibPushPDPImpl</varname> and <varname>GridShibPullPDPImpl</varname> combining interceptors. The logic implemented by these interceptors is described below.
+      </para>
+      <para>
+	<variablelist>
+	  <varlistentry>
+	    <term>GridShibPushPDPImpl</term>
+	    <listitem><para>
+	      <orderedlist>
+		<listitem><para>Invoke SAMLAssertionPushPIPImpl</para></listitem>
+		<listitem><para>Invoke AttributeAcceptancePIPImpl</para></listitem>
+		<listitem><para>Invoke SAMLBlacklistPDPImpl short-circuiting
+		<itemizedlist>
+		  <listitem><para>If DENY, return DENY; otherwise, continue </para></listitem>
+		</itemizedlist></para></listitem>
+		<listitem><para>Invoke SAMLMapPIPImpl</para></listitem>
+		<listitem><para>Invoke GridMap short-circuiting
+		<itemizedlist>
+		  <listitem><para>If PERMIT, return PERMIT; otherwise, continue </para></listitem>
+		</itemizedlist></para></listitem>
+		<listitem><para>Invoke VOMS short-circuiting
+		<itemizedlist>
+		  <listitem><para>If PERMIT, return PERMIT; otherwise, continue </para></listitem>
+		</itemizedlist></para></listitem>
+		<listitem><para>Invoke SAMLAttributePDPImpl
+		<itemizedlist>
+		  <listitem><para>Return SAMLAttributePDPImpl decision </para></listitem>
+		</itemizedlist></para></listitem>
+	      </orderedlist>
+	    </para></listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>GridShibPullPDPImpl</term>
+	    <listitem><para>
+	      <orderedlist>
+		<listitem><para>For each identity in the security context, do the following:
+		<itemizedlist>
+		  <listitem><para>Invoke SAMLQueryPIPImpl</para></listitem>
+		  <listitem><para>Invoke AttributeAcceptancePIPImpl</para></listitem>
+		  <listitem><para>Invoke SAMLBlacklistPDPImpl short-circuiting
+		  <itemizedlist>
+		    <listitem><para>If DENY, return DENY; otherwise, continue iterating </para></listitem>
+		  </itemizedlist></para></listitem>
+		  <listitem><para>Invoke SAMLAttributePDPImpl
+		  <itemizedlist>
+		    <listitem><para>If PERMIT, break; otherwise, continue iterating </para></listitem>
+		  </itemizedlist></para></listitem>
+		</itemizedlist></para></listitem>
+		<listitem><para>Invoke SAMLMapPIPImpl</para></listitem>
+		<listitem><para>Return SAMLAttributePDPImpl decision </para></listitem>
+	      </orderedlist>
+	    </para></listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>GridShibPushPullPDPImpl</term>
+	    <listitem><para>
+	      <orderedlist>
+		<listitem><para>Invoke GridShibPushPDPImpl
+		<itemizedlist>
+		  <listitem><para>If PERMIT, return PERMIT</para></listitem>
+		  <listitem><para>If DENY, return DENY</para></listitem>
+		  <listitem><para>Otherwise, continue </para></listitem>
+		</itemizedlist></para></listitem>
+		<listitem><para>Invoke GridShibPullPDPImpl
+		<itemizedlist>
+		  <listitem><para>Return GridShibPullPDPImpl decision </para></listitem>
+		</itemizedlist></para>
+		</listitem>
+	      </orderedlist>
+	    </para></listitem>
+	  </varlistentry>
+	</variablelist>
+      </para>
   </chapter>
