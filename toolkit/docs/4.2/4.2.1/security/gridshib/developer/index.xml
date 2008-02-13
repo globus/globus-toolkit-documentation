@@ -51,7 +51,148 @@
   </chapter>
   <chapter id="gridshib-developer-archdes">
     <title>Architecture and design overview</title>
-    <para>[describe the architecture and design of this component]</para>
+    <para>GridShib consists of a higher-level combining interceptor, <varname>GridShibPDP</varname>, which orchestrates a number of lower-level intereptors.</para>
+    <section id="gridshib-low-level-interceptors">
+      <title>GridShib Low-level Interceptors</title>
+      <para>
+	The following are low-level interceptors provided by GridShib.
+      </para>
+      <para>
+	<variablelist>
+	  <varlistentry>
+	    <term>SAMLAssertionPushPIP</term>
+	    <listitem><para>This PIP <ulink url="http://dev.globus.org/wiki/SAML_in_X.509_Validation#Walking_the_Certificate_Chain">walks the certificate chain</ulink> presented by the requester, extracts any SAML assertions bound to the certificates in the chain, and updates the security context with the security information extracted from the bound assertions. </para></listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>AttributeAcceptancePIP</term>
+	    <listitem><para>Iterates over the attributes in the security context and filters those attributes that do not satisfy Attribute Acceptance Policy. </para></listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>SAMLAttributePDP</term>
+	    <listitem><para>Makes an access control decision based on attributes from the user's security context. Renders either a PERMIT decision or NOT APPLICABLE decision (never DENY).</para></listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>SAMLBlacklistPDP</term>
+	    <listitem><para>Makes an access control decision based on authentication context and attributes from the user's security context. Renders either a DENY decision or NOT APPLICABLE decision (never PERMIT).</para></listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>SAMLQueryPIP</term>
+	    <listitem><para>Queries a SAML Attribute Authority and updates the security context with the resulting attributes.</para></listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>SAMLMapPIP</term>
+	    <listitem><para>Maps attributes from the user's security context into one or more local accounts (similar to grid-mapfile but based on SAML attributes instead of DNs). Updates the security context with this mapping information. </para></listitem>
+	  </varlistentry>
+	</variablelist>
+      </para>
+    </section>
+
+
+    <section id="gridshib-internal-classnames">
+      <title>Internal Classnames</title>
+      <para>The above interceptors will be exposed to users and developers. The internal implementation classes (which are agnostic to Globus container version differences) are named similarly, adding "Impl" on the end:
+      <itemizedlist>
+	<listitem><para>SAMLAssertionPushPIPImpl</para></listitem>
+	<listitem><para>AttributeAcceptancePIPImpl</para></listitem>
+	<listitem><para>SAMLAttributePDPImpl</para></listitem>
+	<listitem><para>SAMLBlacklistPDPImpl</para></listitem>
+	<listitem><para>SAMLQueryPIPImpl</para></listitem>
+	<listitem><para>SAMLMapPIPImpl </para></listitem>
+      </itemizedlist>
+      </para>
+    </section>
+
+    <section id="gridshib-combined-interceptors">
+      <title>The GridShibPDP Combining Interceptors</title>
+      <para>
+	The <varname>GridShibPDP</varname> combining interceptor combines and orchestrates the low-level interceptors to provide the most commonly needed functionality. This interceptor is actually a thin wrapper around the <varname>GridShibPushPullPDPImpl</varname> interceptor, which in turns uses <varname>GridShibPushPDPImpl</varname> and <varname>GridShibPullPDPImpl</varname> combining interceptors. The logic implemented by these interceptors is described below.
+      </para>
+      <para>
+	<variablelist>
+	  <varlistentry>
+	    <term>GridShibPushPDPImpl</term>
+	    <listitem><para>
+	      <orderedlist>
+		<listitem><para>Invoke SAMLAssertionPushPIPImpl</para></listitem>
+		<listitem><para>Invoke AttributeAcceptancePIPImpl</para></listitem>
+		<listitem><para>Invoke SAMLBlacklistPDPImpl short-circuiting
+		<itemizedlist>
+		  <listitem><para>If DENY, return DENY; otherwise, continue </para></listitem>
+		</itemizedlist></para></listitem>
+		<listitem><para>Invoke SAMLMapPIPImpl</para></listitem>
+		<listitem><para>Invoke GridMap short-circuiting
+		<itemizedlist>
+		  <listitem><para>If PERMIT, return PERMIT; otherwise, continue </para></listitem>
+		</itemizedlist></para></listitem>
+		<listitem><para>Invoke VOMS short-circuiting
+		<itemizedlist>
+		  <listitem><para>If PERMIT, return PERMIT; otherwise, continue </para></listitem>
+		</itemizedlist></para></listitem>
+		<listitem><para>Invoke SAMLAttributePDPImpl
+		<itemizedlist>
+		  <listitem><para>Return SAMLAttributePDPImpl decision </para></listitem>
+		</itemizedlist></para></listitem>
+	      </orderedlist>
+	    </para></listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>GridShibPullPDPImpl</term>
+	    <listitem><para>
+	      <orderedlist>
+		<listitem><para>For each identity in the security context, do the following:
+		<itemizedlist>
+		  <listitem><para>Invoke SAMLQueryPIPImpl</para></listitem>
+		  <listitem><para>Invoke AttributeAcceptancePIPImpl</para></listitem>
+		  <listitem><para>Invoke SAMLBlacklistPDPImpl short-circuiting
+		  <itemizedlist>
+		    <listitem><para>If DENY, return DENY; otherwise, continue iterating </para></listitem>
+		  </itemizedlist></para></listitem>
+		  <listitem><para>Invoke SAMLAttributePDPImpl
+		  <itemizedlist>
+		    <listitem><para>If PERMIT, break; otherwise, continue iterating </para></listitem>
+		  </itemizedlist></para></listitem>
+		</itemizedlist></para></listitem>
+		<listitem><para>Invoke SAMLMapPIPImpl</para></listitem>
+		<listitem><para>Return SAMLAttributePDPImpl decision </para></listitem>
+	      </orderedlist>
+	    </para></listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>GridShibPushPullPDPImpl</term>
+	    <listitem><para>
+	      <orderedlist>
+		<listitem><para>Invoke GridShibPushPDPImpl
+		<itemizedlist>
+		  <listitem><para>If PERMIT, return PERMIT</para></listitem>
+		  <listitem><para>If DENY, return DENY</para></listitem>
+		  <listitem><para>Otherwise, continue </para></listitem>
+		</itemizedlist></para></listitem>
+		<listitem><para>Invoke GridShibPullPDPImpl
+		<itemizedlist>
+		  <listitem><para>Return GridShibPullPDPImpl decision </para></listitem>
+		</itemizedlist></para>
+		</listitem>
+	      </orderedlist>
+	    </para></listitem>
+	  </varlistentry>
+	</variablelist>
+      </para>
+    </section>
+
+    <section id="gridshib-security-context">
+      <title>Security Context</title>
+      <para>The security context consists of the following information:
+      <itemizedlist>
+	<listitem><para>an ordered list of SAML Identity objects, derived from SAMLSubject</para></listitem>
+	<listitem><para>a set of SAML AuthnContext objects, derived from SAMLAuthenticationStatement</para></listitem>
+	<listitem><para>a set of SAML Attribute objects, derived from SAMLAttributeStatement</para></listitem>
+	<listitem><para>a set of SAML AuthzDecision objects, derived from SAMLAuthorizationDecisionStatement </para></listitem>
+      </itemizedlist>
+      </para>
+      <para>
+	The Identity objects are used for IdP discovery whereas the AuthnContext objects are used strictly for access control. The Attribute objects are used for access control as well as whitelisting and blacklisting. The AuthzDecision class (not yet implemented) will allow restricted delegation of rights and may facilitate the merging of CAS and GridShib. 
+      </para>
+    </section>
   </chapter>
   <!-- the next few chapters are pulled in from the Interface frags - feel free to comment out those that are not applicable for this component -->
 
