@@ -5,8 +5,9 @@
   <chapter id="gridshib-configuring" xreflabel="Configuring GridShib">
     <title>Configuring </title>
     <para>
-      GridShib consists of a hierarchy of interceptors, a set of low-level intercepts which implement specific functions and then a combining interceptor,  <varname>GridShibPDP</varname>, which combines and orchestrates the low-level intereptors to the most commonly needed functionality. Most of the time, <varname>GridShibPDP</varname> will do what you want, but it is possible to combine the low-level interceptors in unique ways to provide custom logic. This configuration guide assumes you are using the <varname>GridShibPDP</varname> interceptor except where explicitly noted.
+      GridShib provides the <varname>GridShibPDP</varname> interceptor, and configuring GridShib involves placing this PDP into the authorization interceptor chain of the container or service you wish to protect. For details of configuring security interceptors, see the <olink targetdoc="wsaajava-secdesc">Java WS Security Descriptor Framework documentation</olink>, specifically the <olink targetdoc="wsaajava-secdesc-configAuthz">Configuring authorization mechanisms section</olink>.
     </para>
+
     <section id="gridshib-configuring-server-config">
       <title>GridShib configuration options</title>
       <para>
@@ -43,39 +44,69 @@
 		<entry>gridshibAuthzPolicyFile</entry>
 		<entry>Path to <link linkend="gridshib-configuring-authz-policy">authorization policy file</link>.</entry>
 	       </row>
+	       <row>
+		 <entry>samlMapPolicy</entry>
+		 <entry>(???)</entry>
+	       </row>
+	       <row>
+		 <entry>useVOMS</entry>
+		 <entry>(???)</entry>
+	       </row>
+	       <row>
+		 <entry>enableAttributeQuery</entry>
+		 <entry>(???)</entry>
+	       </row>
 	     </tbody>
 	   </tgroup>
 	 </table>
        </para>
        <para>
 	 <example>
-	   <title>Example GridShib Configuration in <filename>server-config.wsdd</filename> (XXX Update to 4.2 format)</title>
+	   <title>Example GridShib Container Configuration</title>
 	   <screen>
 	     <![CDATA[
-<deployment name="defaultServerConfig" ...>
-    <globalConfiguration>
-        ...
-        <parameter name="containerSecDesc"
-            value="etc/globus_wsrf_core/global_security_descriptor.xml"/>
-
-        <!-- add the following GridShib config params -->
-
-        <parameter name="global-metadataPath"
-            value="/etc/grid-security/metadata"/>
-
-        <parameter name="global-enableBlacklisting" value="true"/>
-
-        <parameter name="global-blacklistIPAddressesFile"
-            value="/etc/grid-security/blacklists/blacklist-ip-addresses.txt"/>
-
-        <parameter name="global-consultDefaultGridmap" value="false"/>
-
-        <parameter name="global-gridshibAuthzPolicyFile"
-            value="/etc/grid-security/policy/core-authz-policy.xml"/>
-        ...b
-    </globalConfiguration>
-    ...
-</deployment>
+<containerSecurityConfig xmlns="http://www.globus.org/security/descriptor/container" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="http://www.globus.org/security/descriptor 
+  name_value_type.xsd"
+  xmlns:param="http://www.globus.org/security/descriptor">
+   <authzChain>
+     <pdps>
+       <interceptor name="gridshib:org.globus.gridshib.GridShibPDP">
+                    <parameter>
+                        <param:nameValueParam>
+                            <param:parameter name="metadataPath"
+                                            value="/etc/grid-security/metadata"/>
+                        </param:nameValueParam>
+                    </parameter>
+                    <parameter>
+                        <param:nameValueParam>
+                            <param:parameter name="enableBlacklisting"
+                                            value="true"/>
+                        </param:nameValueParam>
+                    </parameter>
+                    <parameter>
+                        <param:nameValueParam>
+                            <param:parameter name="blacklistIPAddressesFile"
+                                            value="/etc/grid-security/blacklists/blacklist-ip-addresses.txt"/>
+                        </param:nameValueParam>
+                    </parameter>
+                    <parameter>
+                        <param:nameValueParam>
+                            <param:parameter name="consultDefaultGridmap"
+                                            value="false"/>
+                        </param:nameValueParam>
+                    </parameter>
+                    <parameter>
+                        <param:nameValueParam>
+                            <param:parameter name="gridshibAuthzPolicyFile"
+                                            value="/etc/grid-security/policy/core-authz-policy.xml"/>
+                        </param:nameValueParam>
+                    </parameter>
+           </interceptor>
+	</pdps>
+    </authzChain>
+</containerSecurityConfig>
 	     ]]>
 	   </screen>
 	 </example>
@@ -100,7 +131,7 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
      </section>
      <section id="gridshib-configuring-authz-policy">
        <title>The Authorization Policy File</title>
-       <para>(???)</para>
+       <para>(??? What does this do ???)</para>
        <para>
 	 <example>
 	   <title>Example Authorization Policy File</title>
@@ -133,116 +164,5 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	 </example>
        </para>
      </section>
-     
-    <section id="gridshib-configuring-low-level-interceptors">
-      <title>GridShib Low-level Interceptors</title>
-      <para>
-	The following are low-level interceptors provided by GridShib.
-      </para>
-      <para>
-	<variablelist>
-	  <varlistentry>
-	    <term>SAMLAssertionPushPIP</term>
-	    <listitem><para>This PIP <ulink url="http://dev.globus.org/wiki/SAML_in_X.509_Validation#Walking_the_Certificate_Chain">walks the certificate chain</ulink> presented by the requester, extracts any SAML assertions bound to the certificates in the chain, and updates the security context with the security information extracted from the bound assertions. </para></listitem>
-	  </varlistentry>
-	  <varlistentry>
-	    <term>AttributeAcceptancePIP</term>
-	    <listitem><para>Iterates over the attributes in the security context and filters those attributes that do not satisfy Attribute Acceptance Policy. </para></listitem>
-	  </varlistentry>
-	  <varlistentry>
-	    <term>SAMLAttributePDP</term>
-	    <listitem><para>Makes an access control decision based on attributes from the user's security context. Renders either a PERMIT decision or NOT APPLICABLE decision (never DENY).</para></listitem>
-	  </varlistentry>
-	  <varlistentry>
-	    <term>SAMLBlacklistPDP</term>
-	    <listitem><para>Makes an access control decision based on authentication context and attributes from the user's security context. Renders either a DENY decision or NOT APPLICABLE decision (never PERMIT).</para></listitem>
-	  </varlistentry>
-	  <varlistentry>
-	    <term>SAMLQueryPIP</term>
-	    <listitem><para>Queries a SAML Attribute Authority and updates the security context with the resulting attributes.</para></listitem>
-	  </varlistentry>
-	  <varlistentry>
-	    <term>SAMLMapPIP</term>
-	    <listitem><para>Maps attributes from the user's security context into one or more local accounts (similar to grid-mapfile but based on SAML attributes instead of DNs). Updates the security context with this mapping information. </para></listitem>
-	  </varlistentry>
-	</variablelist>
-      </para>
-    </section>
-
-    <section id="gridshib-configuring-combined-interceptors">
-      <title>The GridShibPDP Combining Interceptors</title>
-      <para>
-	The <varname>GridShibPDP</varname> combining interceptor combines and orchestrates the low-level interceptors to provide the most commonly needed functionality. This interceptor is actually a thin wrapper around the <varname>GridShibPushPullPDPImpl</varname> interceptor, which in turns uses <varname>GridShibPushPDPImpl</varname> and <varname>GridShibPullPDPImpl</varname> combining interceptors. The logic implemented by these interceptors is described below.
-      </para>
-      <para>
-	<variablelist>
-	  <varlistentry>
-	    <term>GridShibPushPDPImpl</term>
-	    <listitem><para>
-	      <orderedlist>
-		<listitem><para>Invoke SAMLAssertionPushPIPImpl</para></listitem>
-		<listitem><para>Invoke AttributeAcceptancePIPImpl</para></listitem>
-		<listitem><para>Invoke SAMLBlacklistPDPImpl short-circuiting
-		<itemizedlist>
-		  <listitem><para>If DENY, return DENY; otherwise, continue </para></listitem>
-		</itemizedlist></para></listitem>
-		<listitem><para>Invoke SAMLMapPIPImpl</para></listitem>
-		<listitem><para>Invoke GridMap short-circuiting
-		<itemizedlist>
-		  <listitem><para>If PERMIT, return PERMIT; otherwise, continue </para></listitem>
-		</itemizedlist></para></listitem>
-		<listitem><para>Invoke VOMS short-circuiting
-		<itemizedlist>
-		  <listitem><para>If PERMIT, return PERMIT; otherwise, continue </para></listitem>
-		</itemizedlist></para></listitem>
-		<listitem><para>Invoke SAMLAttributePDPImpl
-		<itemizedlist>
-		  <listitem><para>Return SAMLAttributePDPImpl decision </para></listitem>
-		</itemizedlist></para></listitem>
-	      </orderedlist>
-	    </para></listitem>
-	  </varlistentry>
-	  <varlistentry>
-	    <term>GridShibPullPDPImpl</term>
-	    <listitem><para>
-	      <orderedlist>
-		<listitem><para>For each identity in the security context, do the following:
-		<itemizedlist>
-		  <listitem><para>Invoke SAMLQueryPIPImpl</para></listitem>
-		  <listitem><para>Invoke AttributeAcceptancePIPImpl</para></listitem>
-		  <listitem><para>Invoke SAMLBlacklistPDPImpl short-circuiting
-		  <itemizedlist>
-		    <listitem><para>If DENY, return DENY; otherwise, continue iterating </para></listitem>
-		  </itemizedlist></para></listitem>
-		  <listitem><para>Invoke SAMLAttributePDPImpl
-		  <itemizedlist>
-		    <listitem><para>If PERMIT, break; otherwise, continue iterating </para></listitem>
-		  </itemizedlist></para></listitem>
-		</itemizedlist></para></listitem>
-		<listitem><para>Invoke SAMLMapPIPImpl</para></listitem>
-		<listitem><para>Return SAMLAttributePDPImpl decision </para></listitem>
-	      </orderedlist>
-	    </para></listitem>
-	  </varlistentry>
-	  <varlistentry>
-	    <term>GridShibPushPullPDPImpl</term>
-	    <listitem><para>
-	      <orderedlist>
-		<listitem><para>Invoke GridShibPushPDPImpl
-		<itemizedlist>
-		  <listitem><para>If PERMIT, return PERMIT</para></listitem>
-		  <listitem><para>If DENY, return DENY</para></listitem>
-		  <listitem><para>Otherwise, continue </para></listitem>
-		</itemizedlist></para></listitem>
-		<listitem><para>Invoke GridShibPullPDPImpl
-		<itemizedlist>
-		  <listitem><para>Return GridShibPullPDPImpl decision </para></listitem>
-		</itemizedlist></para>
-		</listitem>
-	      </orderedlist>
-	    </para></listitem>
-	  </varlistentry>
-	</variablelist>
-      </para>
-    </section>
+ 
   </chapter>
