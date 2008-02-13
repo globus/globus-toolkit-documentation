@@ -2,7 +2,7 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
-SUBDIRS=admin developer mig pi qp rn
+SUBDIRS=admin developer pi qp rn
 
 all: lint html subdirs
 
