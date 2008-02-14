@@ -67,17 +67,28 @@
 	       </row>
 	       <row>
 		 <entry>requireAttributeMapping</entry>
-		 <entry>XXX</entry>
+		 <entry>This triggers GridShib to require at least one username mapping for a successful authorization. It is <literal>False</literal> by default. (XXX link to Username mappings)</entry>
 		 <entry>GridShibPullPDPImpl, GridShibPushPullPDPImpl</entry>
 	       </row>
 	       <row>
 		 <entry>cacheAttributes</entry>
-		 <entry>XXX</entry>
+		 <entry>A value of <literal>true</literal> directs the PDP to cache received attributes and consult these attributes on subsequent operation invocations by the same client. <link linkend="gridshib-configuring-attribute-caching"/></entry>
 		 <entry>SAMLQueryPIPImpl, SAMLMapPIPImpl, GridShibPullPDPImpl</entry>
 	       </row>
 	       <row>
 		 <entry>defaultIDPEntityID</entry>
-		 <entry>XXX</entry>
+		 <entry>This value is used for two (related) purposes:
+		 <orderedlist>
+		   <listitem><para>
+		     It is included in the attribute query as the value of the NameQualifier attribute of the <literal>NameIdentifer</literal> element of the SAML <literal>AttributeQuery</literal> element.
+		   </para></listitem>
+		   <listitem><para>
+		     If the response returned from the Shib AA contains an assertion, the issuer attribute of the SAML <literal>Assertion</literal> element must be equal to this value in order for the assertion to be considered valid.
+		     </para></listitem>
+		 </orderedlist>
+		 XXX See the IdPproviderId configuration example.
+		 <note><para>This configuration can not be used at the same time as the metadata-dir configuration. XXX See conflict-handling-note.</para></note>
+	       </entry>
 		 <entry>SAMLQueryPIPImpl</entry>
 	       </row>
 	       <row>
@@ -223,5 +234,38 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	 </example>
        </para>
      </section>
- 
+     <section id="gridshib-configuring-attribute-caching">
+       <title>Attribute Caching</title>
+       <para>
+	 The PDP can optionally store received attributes from call to call, which allows many operations to be performed by the same client without the need for a remote callout to an attribute authority for each operation invocation (only the first).
+       </para>
+       <note><para>This feature is turned OFF by default</para></note>
+       <para>
+	 The attributes themselves are stored, not the authorization decision. If caching is enabled, the attributes are stored until the same expiration time as the SAML time conditions on the attribute assertion dictate.
+       </para>
+       <note><para>Attributes are only relevant within the scope of the PDP. For example, a PDP instance "P1" authorizing invocations on a service "S1" would not see any attributes stored by a PDP instance "P2" protecting service "S2".</para></note>
+       <para>
+	 The steps of authorization algorithm with caching can be viewed here. XXX
+       </para>
+       <para>
+	 To enable caching, set the relevant configuration parameter to "true": cacheAttr
+       </para>
+       <para>
+	 Performance
+	 <itemizedlist>
+	   <listitem><para>
+	     We compared caching performance to non-caching performance of the GridShib authorization module with a localhost IdP using around 20 invocations with each type (it was not an exhaustive or automated study).
+	   </para></listitem>
+	   <listitem><para>
+	     An authorization decision including SAML attribute exchange to the localhost IdP averaged 110ms. An authorization decision based on a cached attribute averaged 7-10ms. For reference, if a decision is based on DN only (bypassing attribute processing altogether), the average is close to 4ms.
+	   </para></listitem>
+	   <listitem><para>
+	     Statistical rigor aside, this shows that using attribute caching in subsequent operation invocations results in an order of magnitude time savings over the first operation invocation (and this comparison is not even including any additional latency in the first operation that would be incurred by using a non-localhost IdP).
+	     </para></listitem>
+	 </itemizedlist>
+       </para>
+       <para>
+	 Caveat: in a forthcoming version, when multiple Attribute Authorities in the SAML2 metadata may be queried based on an SAML authentication assertion in the caller's proxy certificate, the contacted Attribute Authority must be considered as part of the cache lookup key. We have not fully considered our strategy on combining attributes in the cache from an AA formerly used by the caller when the same caller invokes the service pointing to a new AA (probably a rare event anyhow). Policy on this will likely be configurable by the administrator. 
+       </para>
+     </section>
   </chapter>
