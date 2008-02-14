@@ -8,6 +8,9 @@
  <!-- just realized both html and fo can share many parameters - need to create common.xsl that gets imported to both so i can single source
  those variables -->
                
+                               <!-- which stylesheet to use? -->
+               <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
+               
                                <!-- shared text -->
                 <xsl:template match="replaceable[@role='entity']">
                   <xsl:choose>
@@ -20,8 +23,7 @@
                   </xsl:choose>
                 </xsl:template>
                 
-                <!-- which stylesheet to use? -->
-               <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
+
 
                <!-- allow fragment identifiers in pdf? -->
                <xsl:param name="insert.olink.pdf.frag" select="1"></xsl:param>
