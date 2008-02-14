@@ -46,5 +46,5 @@ olink:
 	
 subdirs:
 	for dir in $(SUBDIRS); do \
-	(cd $$dir; ${MAKE} all); \
+	cd $${dir}; make; if [ $$? -ne 0 ]; then exit 1; fi; cd ..; \
 	done	
