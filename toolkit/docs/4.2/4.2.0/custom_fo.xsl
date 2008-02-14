@@ -23,7 +23,7 @@
                   </xsl:choose>
                 </xsl:template>
                 
-
+<xsl:param name="collect.xref.targets">yes</xsl:param>
 
                <!-- allow fragment identifiers in pdf? -->
                <xsl:param name="insert.olink.pdf.frag" select="1"></xsl:param>
