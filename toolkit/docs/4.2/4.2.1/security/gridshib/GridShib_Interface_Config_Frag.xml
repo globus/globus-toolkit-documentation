@@ -61,25 +61,22 @@
 	      <row id="gridshibAuthzPolicyFile">
 		<entry>gridshibAuthzPolicyFile</entry>
 		<entry>Yes</entry>
-		<entry><para><itemizedlist>
-		  <listitem><para>Path to <link
+		<entry><para>Path to <link
 		  linkend="gridshib-configuring-authz-policy">authorization
 		  policy file</link>. This files contains an access
 		  control list used for attribute based
 		  authorization. If one attribute obtained from the
 		  IdP is in this file, the authorization module
 		  returns a <literal>PERMIT</literal> decision.
-		  </para></listitem>
-		  <listitem><para>If this file can not be read or
-		  found, the authorization module will throw an
-		  exception (always resulting in a DENY decision).
-		  </para></listitem>
-		  <listitem><para> See <link
-		  linkend="attr-acl-file-syntax">attribute ACL file
-		  syntax</link> and <link
+		  </para>
+		  <para>If this file can not be read or found, the
+		  authorization module will throw an exception (always
+		  resulting in a DENY decision).</para> <para>See
+		  <link linkend="attr-acl-file-syntax">attribute ACL
+		  file syntax</link> and <link
 		  linkend="attr-acl-file-semantics">attribute matching
-		  rules.</link></para></listitem>
-		  </itemizedlist></para></entry>
+		  rules.</link></para>
+		</entry>
 		<entry><para><simplelist>
 		  <member>GridShibPullPDPImpl</member>
 		  <member>SAMLAttributePDPImpl</member>
@@ -87,15 +84,28 @@
 		</simplelist></para></entry>
 	       </row>
 
-	       <row>
+	       <row id="samlMapPolicy">
 		 <entry>samlMapPolicy</entry>
-		 <entry></entry>
-		 <entry>This lists the path to a username mappings file used for attribute based authorization. If this is not configured, the SAMLMapPIP will use the file in the shibAuthzAttrFile configuration. This configuration will let you keep access policy and username mappings separate if you so desire. It also allows the SAMLMapPIP to be used on its in conjunction with other PDP implementations.
-		 * See the shibAuthzMapFile configuration example.
-		 * For more information about username mapping, see: Username mappings
-		 (???)</entry>
-		 <entry>XXX</entry>
+		 <entry>No</entry>
+		 <entry><para>This lists the path to a username
+		 mappings file used for attribute based
+		 authorization. If this is not configured, the
+		 SAMLMapPIP will use the file in the shibAuthzAttrFile
+		 configuration. This configuration will let you keep
+		 access policy and username mappings separate if you
+		 so desire. It also allows the SAMLMapPIP to be used
+		 on its in conjunction with other PDP
+		 implementations.</para>
+		 <para>See the shibAuthzMapFile
+		 configuration example.</para>
+		 <para>For more information about
+		 username mapping, see: Username mappings</para>
+		 </entry>
+		 <entry><para><simplelist>
+		   <member>SAMLMapPIP</member>
+		 </simplelist></para></entry>
 	       </row>
+
 	       <row>
 		 <entry>enableAttributeQuery</entry>
 		 <entry></entry>
@@ -504,8 +514,101 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
         
       </orderedlist>
       </para>
-      
-      
     </section>
 
+    <section id="username-mappings">
+      <title>Username mappings</title>
+      <para>
+         A list of attributes can have system accounts associated with it
+         that will allow clients bearing the attributes access to the
+         accounts, just like a grid-mapfile can map DNs to system accounts.
+      </para>
+      <para>
+         If the <constant>&lt;listOfUsernames&gt;</constant> element is
+         present, the SAMLMapPIP will add the usernames to the client's
+         information for the life of the operation invocation.
+      </para>
+      <para>
+          Example:
+          <screen>&lt;AttributePolicy
+    xmlns="http://gridshib.globus.org/namespaces/2005/08/policy"
+    xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion"&gt;
+    &lt;entry&gt;
+      &lt;listOfAttributes&gt;
+        &lt;saml:Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+                  AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+            &lt;saml:AttributeValue&gt;faculty&lt;/saml:AttributeValue&gt;
+        &lt;/saml:Attribute&gt;
+      &lt;/listOfAttributes&gt;
+      &lt;listOfUsernames&gt;
+        &lt;username&gt;manager&lt;/username&gt;
+      &lt;/listOfUsernames&gt;
+    &lt;/entry&gt;
+    &lt;entry&gt;
+      &lt;listOfAttributes&gt;
+        &lt;saml:Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+                  AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+            &lt;saml:AttributeValue&gt;member&lt;/saml:AttributeValue&gt;
+        &lt;/saml:Attribute&gt;
+      &lt;/listOfAttributes&gt;
+      &lt;listOfUsernames&gt;
+          &lt;username&gt;john&lt;/username&gt;
+          &lt;username&gt;lily&lt;/username&gt;
+      &lt;/listOfUsernames&gt;
+    &lt;/entry&gt;
+&lt;/AttributePolicy&gt;</screen>
+      </para>
+      <para>
+          <emphasis>NOTE</emphasis>: An attribute may map to multiple usernames
+          (as seen in the second example above), multiple attributes may
+          map to multiple usernames, or one attribute may map to one username
+          only (as seen in the first example above).  As with the grid-mapfile,
+          if multiple usernames are present a service such as GRAM can decide
+          for itself
+          which is appropriate (in GRAM's case, this is accomplished by the
+          client supplied &lt;localUserId&gt; RSL element present in the
+          <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/execution/wsgram/schemas/gram_job_description.html#element_job">&lt;job&gt;
+          RSL element</ulink>).
+      </para>
+      <para>
+         The username mappings are retrieved by a service using the same exact code that the
+         gridmap aware service should:
+         <screen>String[] usernames = SecurityManager.getManager().getLocalUsernames();</screen>
+         Thus, this can be used to replace the grid-mapfile's username
+         mapping aspect.
+      </para>
+      <para>
+          The SAMLMapPIP uses the ACL file set by the
+          <xref linkend="authzAttrFile"/> configuration.
+          But if the optional <xref linkend="authzMapFile"/> configuration is
+          present, it will use that instead.  Thus username mapping
+          information can be separated from authorization policy if you so
+          desire.  It also allows the SAMLMapPIP to be used on its in
+          conjunction with other PDP implementations.
+      </para>
+      <para>
+          If the optional <xref linkend="authzMap"/> configuration is present,
+          the ShibbolethPDP will require that the caller has at least
+          one username mapping in order for authorization to succeed.
+      </para>
+      <para>
+          <emphasis>NOTE</emphasis>: If using username mappings with GRAM, you
+          must make sure the sudoers policy is correct.  The typical GRAM
+          entry in the sudoers policy looks like so:
+          <screen>globus ALL=(billy) NOPASSWD: /globuslocation/libexec/globus-gridmap-and-execute -g /etc/grid-security/grid-mapfile /globuslocation/libexec/globus-job-manager-script.pl *</screen>
+
+          The call to "globus-gridmap-and-execute -g /path/to/grid-mapfile"
+          should be removed from the line (or a separate copy of the line
+          added that excludes this).  When GRAM detects that gridmap
+          authorization is not being used it omits these arguments.  Thus,
+          the original sudo policy would fail unless the arguments were
+          removed.  This is a working entry:
+          <screen>globus ALL=(billy) NOPASSWD: /globuslocation/libexec/globus-job-manager-script.pl *</screen>
+      </para>
+      <para>
+          For more information about GRAM and sudo, see the
+          <ulink url="http://www.globus.org/toolkit/docs/4.0/execution/wsgram/admin-index.html#s-wsgram-admin-configsudo">Configuring Sudo</ulink>
+          section of the GRAM documentation.
+      </para>
+    </section>
   </chapter>
