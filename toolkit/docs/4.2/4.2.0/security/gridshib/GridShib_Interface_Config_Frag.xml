@@ -108,6 +108,13 @@
 		</simplelist></para></entry>
 	      </row>
 
+	      <row>
+		<entry>gridshibAuthzMapFile</entry>
+		<entry></entry>
+		<entry>XXX Is this supposed to be samlMAPPolicy?</entry>
+		<entry>SAMLMapPIPImpl</entry>
+	      </row>
+
 	      <row id="requireAttributeMapping">
 		<entry>requireAttributeMapping</entry>
 		<entry>No</entry>
@@ -143,24 +150,15 @@
 		  </simplelist></para></entry>
 	      </row>
 
-	      <row>
-		<entry>gridshibAuthzPolicyFile</entry>
-		<entry></entry>
-		<entry>XXX</entry>
-		<entry>GridShibPullPDPImpl, SAMLAttributePDPImpl, SAMLMapPIPImpl</entry>
-	      </row>
-	      <row>
-		<entry>gridshibAuthzMapFile</entry>
-		<entry></entry>
-		<entry>XXX</entry>
-		<entry>SAMLMapPIPImpl</entry>
-	      </row>
+
+
 	      <row>
 		<entry>gridshibPDPPolicy</entry>
 		<entry></entry>
-		<entry>XXX</entry>
+		<entry>???</entry>
 		<entry>GridShibPullPDPImpl, SAMLAttributePDPImpl, SAMLMapPIPImpl</entry>
 	      </row>
+
 	      <row>
 		<entry>defaultGridmap</entry>
 		<entry></entry>
@@ -235,97 +233,151 @@
 	  </screen>
 	</example>
       </para>
+    </section>
 
-      <section id="gridshib-configuring-pull-mode">
-	<title>Configuring Pull Mode</title>
+    <section id="gridshib-configuring-pull-mode">
+      <title>Configuring Pull Mode</title>
+      <para>
+	XXX Some introductory text here. Discourage people from using
+	this.
+      </para>
+      <para>
+	In general, there are two ways to configure the query module
+	with attribute authority information to use for the query: a)
+	provide the module with specific information via the <link
+	linkend="defaultIDPEntityID">defaultIDPEntityID</link>
+	configuration (which limits you to one, hardcoded AA) or b)
+	use the <link linkend="metadataPath">metadataPath</link>
+	configuration to configure an array of AAs from SAML
+	metadata.
+      </para>
+
+      <para>
+	<informaltable>
+	  <tgroup cols="2">
+	    <thead>
+	      <row>
+		<entry>Variable</entry>
+		<entry>Required</entry>
+		<entry>Usage</entry>
+		<entry>Used by</entry>
+	      </row>
+	    </thead>
+	    <tbody>
+
+	      <row id="enableAttributeQuery">
+		<entry>enableAttributeQuery</entry>
+		<entry>No</entry>
+		<entry>This option enables attribute query or pull
+		mode. Should be <literal>true</literal> or
+		<literal>false</literal>.</entry>
+		<entry><para><simplelist>
+		  <member>SAMLQueryPIPImpl</member>
+		</simplelist></para></entry>
+	      </row>
+
+	      <row id="defaultIDPEntityID">
+		<entry>defaultIDPEntityID</entry>
+		<entry>No</entry>
+		<entry>This option is related to Pull mode and is
+		used for two (related) purposes:
+		<orderedlist>
+		  <listitem><para> It is included in the attribute
+		  query as the value of the NameQualifier attribute
+		  of the <literal>NameIdentifer</literal> element of
+		  the SAML <literal>AttributeQuery</literal> element.
+		  </para></listitem>
+		  <listitem><para> If the response returned from the
+		  Shib AA contains an assertion, the issuer attribute
+		  of the SAML <literal>Assertion</literal> element
+		  must be equal to this value in order for the
+		  assertion to be considered valid.
+		  </para></listitem>
+		</orderedlist>
+		<para>Note: This configuration can not be used at the same time as the metadata-dir configuration. XXX See conflict-handling-note.</para>>
+		</entry>
+		<entry><para><simplelist>
+		  <member>SAMLQueryPIPImpl</member>
+		</simplelist></para></entry>
+	      </row>
+	      
+	      <row id="cacheAttributes">
+		<entry>cacheAttributes</entry>
+		<entry>No</entry>
+		<entry>A value of <literal>true</literal> directs the
+		PDP to <link
+		linkend="gridshib-configuring-attribute-caching">cache
+		received attributes</link> and consult these
+		attributes on subsequent operation invocations by the
+		same client.</entry>
+		<entry><para><simplelist>
+		  <member>SAMLQueryPIPImpl</member>
+		  <member>SAMLMapPIPImpl</member>
+		  <member>GridShibPullPDPImpl</member>
+		</simplelist></para></entry>
+	      </row>
+	      
+	      <row id="respectMDAttributes">
+		<entry>respectMDAttributes</entry>
+		<entry>No</entry>
+		<entry>
+		  <para>When using metadata, this configuration
+		  indicates whether or not attributes in IdP metadata
+		  should be "respected." If they are, a query to a
+		  particular IdP will not be initiated if the
+		  authorization module determines that no attribute in
+		  authorization policy would possibly match any of the
+		  IdP's advertised attributes.</para>
+		  <para>This attribute defaults to
+		  <literal>false</literal>.</para>
+		  
+		</entry>
+		<entry><para><simplelist>
+		  <member>GridShibPullPDPImpl</member>
+		  <member>GridShibPushPullPDPImpl</member>
+		</simplelist></para></entry>
+	      </row>
+	      
+	    </tbody>
+	  </tgroup>
+	</informaltable>
+      </para>
+
+      <section id="metadata-attr-optimization">
+	<title>Metadata Attribute Optimization</title>
 	<para>
-	  XXX Some introductory text here. Discourage people from using
-	  this.
+	  SAML2 metadata
+	  <constant>&lt;AttributeAuthorityDescriptor&gt;</constant>
+	  elements can contain a list of
+	  <constant>samle:&lt;Attribute&gt;</constant> elements
+	  that advertise the set of attributes and attribute
+	  values the IdP may return.
 	</para>
 	<para>
-	  In general, there are two ways to configure the query module
-	  with attribute authority information to use for the query: a)
-	  provide the module with specific information via the <link
-	  linkend="defaultIDPEntityID">defaultIDPEntityID</link>
-	  configuration (which limits you to one, hardcoded AA) or b)
-	  use the <link linkend="metadataPath">metadataPath</link>
-	  configuration to configure an array of AAs from SAML
-	  metadata.
+	  If you wish, you can turn on an optimization (it is
+	  off by default) where this list will be respected.
+	  Respecting this list means that the PDP (the module
+	  that makes the authorization decision) will assume
+	  that these are the ONLY attributes that can be
+	  returned by a query to that attribute authority.
 	</para>
 
 	<para>
-	  <informaltable>
-	    <tgroup cols="2">
-	      <thead>
-		<row>
-		  <entry>Variable</entry>
-		  <entry>Required</entry>
-		  <entry>Usage</entry>
-		  <entry>Used by</entry>
-		</row>
-	      </thead>
-	      <tbody>
-		
-		<!-- Start options related to PULL mode -->
+	  If we assume that those are the only attributes a
+	  query to that AA <emphasis>AND</emphasis> the
+	  currently configured authorization policy does not
+	  have any of these attributes then a (possibly
+	  expensive) query does not need to be made.  In that
+	  case, a DENY will be returned immediately.
+	</para>
 
-		<row id="enableAttributeQuery">
-		  <entry>enableAttributeQuery</entry>
-		  <entry>No</entry>
-		  <entry>This option enables attribute query or pull
-		  mode. Should be <literal>true</literal> or
-		  <literal>false</literal>.</entry>
-		  <entry><para><simplelist>
-		    <member>SAMLQueryPIPImpl</member>
-		  </simplelist></para></entry>
-		</row>
-
-		<row id="defaultIDPEntityID">
-		  <entry>defaultIDPEntityID</entry>
-		  <entry>No</entry>
-		  <entry>This option is related to Pull mode and is
-		  used for two (related) purposes:
-		  <orderedlist>
-		    <listitem><para> It is included in the attribute
-		    query as the value of the NameQualifier attribute
-		    of the <literal>NameIdentifer</literal> element of
-		    the SAML <literal>AttributeQuery</literal> element.
-		    </para></listitem>
-		    <listitem><para> If the response returned from the
-		    Shib AA contains an assertion, the issuer attribute
-		    of the SAML <literal>Assertion</literal> element
-		    must be equal to this value in order for the
-		    assertion to be considered valid.
-		    </para></listitem>
-		  </orderedlist>
-		  <para>Note: This configuration can not be used at the same time as the metadata-dir configuration. XXX See conflict-handling-note.</para>>
-		  </entry>
-		  <entry><para><simplelist>
-		    <member>SAMLQueryPIPImpl</member>
-		  </simplelist></para></entry>
-		</row>
-		
-		<row id="cacheAttributes">
-		  <entry>cacheAttributes</entry>
-		  <entry>No</entry>
-		  <entry>A value of <literal>true</literal> directs the
-		  PDP to <link
-		  linkend="gridshib-configuring-attribute-caching">cache
-		  received attributes</link> and consult these
-		  attributes on subsequent operation invocations by the
-		  same client.</entry>
-		  <entry><para><simplelist>
-		    <member>SAMLQueryPIPImpl</member>
-		    <member>SAMLMapPIPImpl</member>
-		    <member>GridShibPullPDPImpl</member>
-		  </simplelist></para></entry>
-		</row>
-		
-	      </tbody>
-	    </tgroup>
-	  </informaltable>
+	<para>
+	  To enable this optimization, add the <link
+	  linkend="respect-md-attributes">respect-md-attributes</link>
+	  configuration to your service's WSDD.
 	</para>
       </section>
-     </section>
+    </section>
 
      <section id="gridshib-configuring-metadata-directory">
        <title>The Metadata Directory</title>
@@ -761,7 +813,7 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	 The DN of the issuer of the assertion must be on the list of
 	 trusted SAML authentication authorities as defined by the
 	 <link
-	 linkend="trustedSAMLAuthoritiesFile">trustedSAMLAuthoitiesFile</link>
+	 linkend="trustedSAMLAuthoritiesFile">trustedSAMLAuthoritiesFile</link>
 	 configuration. An example file follows.
        </para>
        
