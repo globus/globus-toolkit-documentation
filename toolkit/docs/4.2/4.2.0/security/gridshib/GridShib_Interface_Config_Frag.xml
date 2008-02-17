@@ -23,7 +23,7 @@
 		<entry>Variable</entry>
 		<entry>Required</entry>
 		<entry>Usage</entry>
-		<entry>Interceptor(s)</entry>
+		<entry>Used by</entry>
 	      </row>
 	    </thead>
 	    <tbody>
@@ -47,24 +47,46 @@
 		</simplelist></para></entry>
 	      </row>
 
-	      <row>
+	      <row id="blacklistIPAddressFile">
 		<entry>blacklistIPAddressFile</entry>
 		<entry>No</entry>
-		<entry>Path to file containing <link linkend="gridshib-configuring-ip-addr-blacklisting">blacklisted IP addresses</link>.</entry>
-		<entry>SAMLBlacklistPDPImpl</entry>
+		<entry>Path to file containing <link
+		linkend="gridshib-configuring-ip-addr-blacklisting">blacklisted
+		IP addresses</link>.</entry>
+		<entry><para><simplelist>
+		  <member>SAMLBlacklistPDPImpl</member>
+		</simplelist></para></entry>
 	      </row>
-	      <row>
-		<entry>consultDefaultGridmap</entry>
-		<entry></entry>
-		<entry>Setting this to <literal>true</literal> directs GridShib to use the default grid-mapfile for identity based authorization. If the caller's DN is in this file, GridShib stops processing and returns a PERMIT decision. No attributes are collected, which saves time. If the grid-mapfile can not be read or found, the authorization module will log the error and continue.</entry>
-		<entry>XXX</entry>
-	      </row>
-	      <row>
+
+	      <row id="gridshibAuthzPolicyFile">
 		<entry>gridshibAuthzPolicyFile</entry>
-		<entry></entry>
-		<entry>Path to <link linkend="gridshib-configuring-authz-policy">authorization policy file</link>.</entry>
-		<entry>GridShibPullPDPImpl, SAMLAttributePDPImpl, SAMLMapPIPImpl</entry>
+		<entry>Yes</entry>
+		<entry><para><itemizedlist>
+		  <listitem><para>Path to <link
+		  linkend="gridshib-configuring-authz-policy">authorization
+		  policy file</link>. This files contains an access
+		  control list used for attribute based
+		  authorization. If one attribute obtained from the
+		  IdP is in this file, the authorization module
+		  returns a <literal>PERMIT</literal> decision.
+		  </para></listitem>
+		  <listitem><para>If this file can not be read or
+		  found, the authorization module will throw an
+		  exception (always resulting in a DENY decision).
+		  </para></listitem>
+		  <listitem><para> See <link
+		  linkend="attr-acl-file-syntax">attribute ACL file
+		  syntax</link> and <link
+		  linkend="attr-acl-file-semantics">attribute matching
+		  rules.</link></para></listitem>
+		  </itemizedlist></para></entry>
+		<entry><para><simplelist>
+		  <member>GridShibPullPDPImpl</member>
+		  <member>SAMLAttributePDPImpl</member>
+		  <member>SAMLMapPIPImpl</member>
+		</simplelist></para></entry>
 	       </row>
+
 	       <row>
 		 <entry>samlMapPolicy</entry>
 		 <entry></entry>
@@ -294,4 +316,189 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	 Caveat: in a forthcoming version, when multiple Attribute Authorities in the SAML2 metadata may be queried based on an SAML authentication assertion in the caller's proxy certificate, the contacted Attribute Authority must be considered as part of the cache lookup key. We have not fully considered our strategy on combining attributes in the cache from an AA formerly used by the caller when the same caller invokes the service pointing to a new AA (probably a rare event anyhow). Policy on this will likely be configurable by the administrator. 
        </para>
      </section>
+
+    <section id="attr-acl-file-syntax">
+      <title>Simple attribute ACL policy syntax</title>
+
+      <para>The attribute policy must conform to the simple policy schema, found
+      here in the source tree (element: AttributePolicy):
+      <filename>interceptors/java/source/policy/compact/gridshib_policy/gridshib_policy_port_type.wsdl</filename>
+      </para>
+      <para>The form is a list of entries:
+      <screen>&lt;AttributePolicy&gt;
+  [&lt;entry&gt; 0 -&gt; unbounded ]
+     &lt;listOfAttributes&gt; 1 -&gt; unbounded
+        &lt;saml:Attribute&gt; 1 -&gt; unbounded
+     [&lt;listOfUsernames&gt; 0 -&gt; unbounded ]
+        [&lt;username&gt; 0 -&gt; unbounded ]
+  [&lt;/entry&gt;]
+&lt;/AttributePolicy&gt;</screen>
+      </para>
+      <para>The outer element <constant>&lt;AttributePolicy&gt;</constant>
+          and its entry format is in
+      a custom namespace, the attributes contained in
+          <constant>&lt;listOfAttributes&gt;</constant> are
+          SAML
+      <constant>&lt;Attribute&gt;</constant> elements.  The schemas
+      used in Shibboleth slightly alter the SAML attribute definition -- this
+      policy does NOT use attributes with that altered namespace, it uses
+      regular SAML attributes.</para>
+      
+      <para id="attr-acl-file-examples">
+        <emphasis>Examples:</emphasis>
+        <orderedlist>
+          <listitem id="attr-acl-file-example-one-attribute"><para>This example shows
+          a policy with one valid attribute, any client without this attribute
+          will be denied (unless DN based authorization is being used).
+        <screen>&lt;AttributePolicy
+    xmlns="http://gridshib.globus.org/namespaces/2005/08/policy"
+    xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion"&gt;
+    &lt;entry&gt;
+      &lt;listOfAttributes&gt;
+        &lt;saml:Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+                  AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+            &lt;saml:AttributeValue&gt;member&lt;/saml:AttributeValue&gt;
+        &lt;/saml:Attribute&gt;
+      &lt;/listOfAttributes&gt;
+    &lt;/entry&gt;
+&lt;/AttributePolicy&gt;</screen>
+	  </para></listitem>
+          
+          <listitem id="attr-acl-file-example-multi"><para>An attribute with multiple
+          values can be entered in the policy, see 
+          <link linkend="attr-acl-mutltiple-attributes">this explanation</link>
+          for how this is treated in the authorization processing.
+      <screen>&lt;AttributePolicy
+    xmlns="http://gridshib.globus.org/namespaces/2005/08/policy"
+    xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion"&gt;
+    &lt;entry&gt;
+      &lt;listOfAttributes&gt;
+        &lt;saml:Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+                  AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+            &lt;saml:AttributeValue&gt;faculty&lt;/saml:AttributeValue&gt;
+            &lt;saml:AttributeValue&gt;employee&lt;/saml:AttributeValue&gt;
+        &lt;/saml:Attribute&gt;
+      &lt;/listOfAttributes&gt;
+    &lt;/entry&gt;
+&lt;/AttributePolicy&gt;</screen>
+	  </para></listitem>
+          
+          <listitem id="attr-acl-file-example-empty-policy"><para>To signal an 
+          empty policy, you may not erase all information in the file, you must 
+          use an empty list. Otherwise, a parsing exception will be thrown --
+          while this results in a <constant>DENY</constant> decision anyhow,
+          there is a slight difference: because the parsing exception is
+          triggereds <emphasis>before</emphasis> a DN ACL check, if you have an
+          empty file you can not use DN based authorization.  If this file is
+          empty (or missing or unreadable), the authorization decisions will be
+          <constant>DENY</constant> no matter what.  Instead, use an empty list.
+          </para>
+          <para>Example:
+        <screen>&lt;AttributePolicy
+    xmlns="http://gridshib.globus.org/namespaces/2005/08/policy"
+    xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion"&gt;
+&lt;/AttributePolicy&gt;</screen>
+          </para>
+          <para>Of course, this is an odd configuration: if you want identity
+          based authorization only, gridmap authorization is
+          recommended instead.  This would only be for temporary attribute based 
+          authorization disabling.</para>
+          </listitem>
+        </orderedlist>
+      </para> <!-- end attribute file syntax example list -->
+    </section>
+
+    <section id="attr-acl-file-semantics">
+      <title>Simple attribute ACL authorization semantics</title>
+      <para>The file pointed to by the <xref linkend="authzAttrFile"/> WSDD
+      parameter contains a list of SAML attributes that direct a
+      <constant>PERMIT</constant> decision if the caller's identity has one of
+      the attributes associated with it.</para>
+      <para>For example, if we:
+        <itemizedlist>
+          <listitem><para>include <constant>eduPersonAffiliation:member</constant>
+          in this policy file (see the
+              <link linkend="attr-acl-example">example</link> in the
+          syntax section below),</para></listitem>
+          <listitem><para>and the client invokes an operation configured with
+          Shibboleth based authorization,</para></listitem>
+          <listitem><para>and the attribute query to the Shibboleth AA
+          results in an assertion with this attribute,</para></listitem>
+	</itemizedlist>
+        then the client is allowed to invoke the operation.</para>
+      <!-- TODO: include link to XACML policies -->
+      
+      <para>There are several things to note about how the attributes in the
+      ACL are matched to attributes coming over the wire from the AA:
+      <orderedlist>
+      
+        <listitem id="attr-acl-normalization">
+        
+          <simpara>The attributes returned from the Shibboleth AA are not
+          regular SAML attributes, the 
+          <constant>urn:mace:shibboleth:1.0</constant> namespace is used for the 
+          <constant>&lt;AttributeValueType&gt;</constant> element instead of the
+          normal SAML namespace 
+          <constant>urn:oasis:names:tc:SAML:1.0:assertion</constant>.
+          </simpara>
+          
+          <simpara>In the authorization module, the received attributes are
+          normalized to the SAML assertion namespace for user convenience.  The
+          policy looks nicer and the Shibboleth developers are moving towards
+          removing the Shibboleth namespace, so this ensures forward 
+          compatibility of the policy file.</simpara>
+          
+          <para>In the next example, the first attribute is equivalent to
+          the second attribute for authorization purposes:
+          <screen id="attr-acl-example">&lt;!-- xmlns="urn:oasis:names:tc:SAML:1.0:assertion" --&gt;
+
+&lt;!-- This can be in the policy: --&gt;
+
+&lt;Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+          AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+    &lt;AttributeValue&gt;member&lt;/AttributeValue&gt;
+&lt;/Attribute&gt;
+
+&lt;!-- And will match this from the request/response: --&gt;
+
+&lt;Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonPrincipalName"
+      AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"
+      xmlns:typens="urn:mace:shibboleth:1.0"&gt;
+    &lt;AttributeValue xsi:type="typens:AttributeValueType"&gt;member&lt;/AttributeValue&gt;
+&lt;/Attribute&gt;</screen>
+          </para>
+        </listitem>
+        
+        <listitem id="attr-acl-mutltiple-attributes">
+        <simpara>Multi-valued attributes in the policy do not signal that the
+        attribute from the AA must have each value, only that one must be
+        present.</simpara>
+        <simpara>Consider the 
+        <link linkend="attr-acl-file-example-multi">multi-valued policy
+        entry</link> example in the syntax section below, if an attribute from
+        the AA was <constant>eduPersonAffiliation:faculty</constant> only, the
+        authorization decision would return a <constant>PERMIT</constant>
+        decision.  A logical OR is performed: even though both
+        <constant>eduPersonAffiliation:faculty</constant> and
+        <constant>eduPersonAffiliation:employee</constant> are in the policy, a
+        <constant>eduPersonAffiliation:faculty</constant> attribute from the AA
+        is sufficient to authorize the operation</simpara>
+        <simpara>Likewise for the reverse case.  If a multi-valued attribute is
+        returned from the Shibboleth AA, only one of the values needs to match
+        an entry in the policy in order for authorization to evalute to
+        <constant>PERMIT</constant>.</simpara>
+        </listitem>
+        
+        <listitem id="attr-acl-string">
+        <simpara>Currently only <constant>xsd:string</constant> is supported
+        for the content of an <constant>&lt;AttributeValue&gt;</constant>
+        element.</simpara>        
+        </listitem>
+        
+      </orderedlist>
+      </para>
+      
+      
+    </section>
+
   </chapter>
