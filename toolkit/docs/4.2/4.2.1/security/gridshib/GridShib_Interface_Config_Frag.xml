@@ -8,53 +8,2625 @@
       GridShib provides the <varname>GridShibPDP</varname> interceptor, and configuring GridShib involves placing this PDP into the authorization interceptor chain of the container or service you wish to protect. For details of configuring security interceptors, see the <olink targetdoc="wsaajava" targetptr="wsaajava-secdesc">Java WS Security Descriptor Framework documentation</olink>, specifically the <olink targetdoc="wsaajava" targetptr="wsaajava-secdesc-configAuthz">Configuring authorization mechanisms section</olink>.
     </para>
 
+<section id="configuring-gridshib">
+  <title>Configuring</title>
+<section id="gt4-config-intro" xreflabel="GT4 Configuration">
+  <title>Configuration overview</title>
+
+  <para>GridShib for Shibboleth (IdP) configuration is covered in a separate
+      set of documents.  See the
+      <ulink url="http://gridshib.globus.org/docs/gridshib-idp/readme.html">README</ulink>
+      and the
+      <ulink url="http://gridshib.globus.org/docs/gridshib-idp/install.html">installation
+      guide</ulink>.
+  </para>
+
+    <para><emphasis>Note:</emphasis> If you have not done so, first experiment
+      with the provided echo service and client (see
+        <xref linkend="testing-gridshib"/>): it allows you to test
+      the GT/IdP SAML exchange and is set up with default demo configurations.
+      The echo service and client section walks you through typical pitfalls and
+      ensures there are no problems with your installation.  It is recommended
+      to use that first and then consult this section for exhaustive
+      documentation.
+    </para>
+  <para>
+  <!-- Manual sub-table of contents, so no special XSL rule for this
+       sub-section is needed -->
+  <emphasis>Configuration Contents:</emphasis>
+  <itemizedlist>
+    <listitem><xref linkend="gt4-config-typical"/>
+      <itemizedlist>
+        <listitem><xref linkend="gt4-config-edit-descriptor"/></listitem>
+        <listitem><xref linkend="gt4-config-edit-wsdd"/></listitem>
+        <listitem><xref linkend="gt4-config-edit-policy"/></listitem>
+        <listitem><xref linkend="gt4-config-rebootcontainer"/></listitem>
+      </itemizedlist>
+    </listitem>
+    <listitem><xref linkend="gt4-config-advanced"/>
+      <itemizedlist>
+          <listitem><xref linkend="gt4-config-caching"/></listitem>
+          <listitem><xref linkend="gt4-config-x500dn"/></listitem>
+          <listitem><xref linkend="gt4-config-metadata"/>
+          <itemizedlist>
+              <listitem><link linkend="gt4-config-metadata">Overview and configuration</link></listitem>
+              <listitem><xref linkend="using-gridshib-cert-setup"/></listitem>
+              <listitem><xref linkend="updating-metadata"/></listitem>
+              <listitem><xref linkend="metadata-attr-optimization"/></listitem>
+          </itemizedlist>
+          </listitem>
+          <listitem><xref linkend="SAML-authn-assertion-PIP"/></listitem>
+          <listitem><xref linkend="VOMS"/></listitem>
+      </itemizedlist>
+    </listitem>
+    <listitem><xref linkend="gt4-config-wsdd"/>
+      <itemizedlist>
+        <listitem><xref linkend="shib-wsdd-parameters"/></listitem>
+        <listitem><xref linkend="shib-wsdd-parameter-examples"/></listitem>
+      </itemizedlist>
+    </listitem>
+    <listitem><xref linkend="gt4-config-file-syntax"/>
+      <itemizedlist>
+        <listitem><xref linkend="authorization-algorithm"/></listitem>
+        <listitem><xref linkend="attr-validity"/></listitem>
+        <listitem><xref linkend="attr-acl-file-semantics"/></listitem>
+        <listitem><xref linkend="attr-acl-file-syntax"/></listitem>
+        <listitem><xref linkend="username-mappings"/></listitem>
+      </itemizedlist>
+    </listitem>
+  </itemizedlist>
+  
+  </para>
+</section>
+  <section id="gt4-config-typical">
+    <title>Typical Configuration</title>
+
+    <para>
+      <itemizedlist>
+        <listitem><xref linkend="gt4-config-edit-descriptor"/></listitem>
+        <listitem><xref linkend="gt4-config-edit-wsdd"/></listitem>
+        <listitem><xref linkend="gt4-config-edit-policy"/></listitem>
+        <listitem><xref linkend="gt4-config-rebootcontainer"/></listitem>
+      </itemizedlist>
+    </para>
+
+    <para><emphasis>Note:</emphasis> If you have not done so, first experiment
+      with the provided echo service and client (see
+        <xref linkend="testing-gridshib"/>): it allows you to test
+      the GT/IdP SAML exchange and is set up with default demo configurations.
+      The echo service and client section walks you through typical pitfalls and
+      ensures there are no problems with your installation.  It is recommended
+      to use that first and then consult this section for exhaustive
+      documentation.
+    </para>
+
+    <para><emphasis>Also note:</emphasis> IdP/Attribute Authority information
+        can now be set up by pointing the GridShib for GT module at a directory
+        of SAML2 metadata files to use for trust configurations and GT
+        certificate setup.  If you are in possession of SAML2 metadata from
+        one or several IdP's (or a federation), see
+        <xref linkend="gt4-config-metadata"/>.
+    </para>
+
+    <orderedlist>
+      <!-- Step #1 -->
+        
+      <listitem id ="gt4-config-edit-descriptor" xreflabel="Edit the security descriptor"> 
+        <para>Configure the appropriate
+            <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/security/authzframe/security_descriptor.html">
+          security descriptor</ulink> to use the GridShib PDP as the sole module in the authorization chain.
+          </para>
+          
+        <para>As explained in the WS A&amp;A <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/security/authzframe/security_descriptor.html">
+          security descriptor documentation</ulink>,
+          a security descriptor can be configured for the entire
+          container or a particular service.  Also explained <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/security/authzframe/security_descriptor.html#s-authzframe-secdesc-configAuthz">
+          here</ulink>, each chain is
+          configured with a scope that allows for related 
+          configurations to be associated with the chain.  A scope allows you to
+          have many instances of the authorization module with different
+          configurations, even if the configurations are in the same deployment
+          descriptor</para>
+
+        <para>
+            The authorization sections of the security descriptors for
+            GT4.0.x and GT4.1 are much different.
+            In GT4.0.x, it configures the modules to use for authorization.
+            In GT4.1+, it configures the modules to use as well as all
+            supporting configurations for each module (in GT4.0.x the supporting
+            configurations are usually in the deploy-server.wsdd).
+        </para>
+          
+        <para>For GT4.0.x installations, the security descriptor's <constant>&lt;authz&gt;</constant>
+          tag's <constant>value</constant> attribute must contain the format
+          <constant>[scope]:[classname]</constant> where
+          <constant>[classname]</constant> is 
+          <constant>org.globus.gridshib.PDP</constant> 
+          and <constant>[scope]</constant> is a random string.</para>
+          
+        <para>This example shows a counter service's security descriptor with
+          the correct authorization chain configured.  In the example, the
+          (random) value chosen for the scope is 'counter':</para>
+          <screen>&lt;securityConfig xmlns="http://www.globus.org"&gt;
+    &lt;method name="createCounter"&gt;
+        &lt;auth-method&gt;
+            &lt;GSISecureConversation/&gt;
+        &lt;/auth-method&gt;
+    &lt;/method&gt;
+    &lt;method name="destroy"&gt;
+        &lt;auth-method&gt;
+            &lt;GSISecureConversation/&gt;
+        &lt;/auth-method&gt;
+    &lt;/method&gt;
+    &lt;method name="add"&gt;
+        &lt;auth-method&gt;
+            &lt;GSISecureConversation/&gt;
+        &lt;/auth-method&gt;
+    &lt;/method&gt;
+    &lt;auth-method&gt;
+        &lt;none/&gt;
+    &lt;/auth-method&gt;
+    &lt;authz value="counter:org.globus.gridshib.PDP"/&gt;
+&lt;/securityConfig&gt;</screen>
+
+        <para>For GT4.1+ installations, the security descriptor is much larger,
+          refer to the sample GT4.1+ service security descriptor included
+          with the GridShib echo service.</para>
+      </listitem>
+        
+        <!-- Step #2 -->
+        
+      <listitem id ="gt4-config-edit-wsdd" xreflabel="Edit the deployment descriptor">
+        <para>Once a service or container security descriptor is configured
+        with an authorization chain, you must configure the chain with the
+        proper parameters by editing the service or container <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/common/javawscore/admin-index.html#id2836906">
+        WSDD</ulink> for GT4.0.x and the service or container security
+            descriptor for GT4.1+.</para>
+        <para>At minimum, you should to configure these parameters:
+          <itemizedlist>
+            <listitem><xref linkend="AAUrl"/> - The URL of attribute authority
+            (AA).</listitem>
+            <listitem><xref linkend="AAIdentity"/> - The identity of the AA's
+            certificate for https (do not include this for initial testing).
+            </listitem>
+            <listitem><xref linkend="IdPproviderId"/> - The providerId of the
+            identity provider (IdP).</listitem>
+            <listitem><xref linkend="SPproviderId"/> - The providerId of the
+            grid service.</listitem>
+            <listitem><xref linkend="authzAttrFile"/> - The attribute ACL
+            to be used for an authorization decision.
+            </listitem>
+          </itemizedlist>
+        </para>
+        <para>
+            <emphasis>Note:</emphasis> If you are using SAML2 metadata to
+            configure the authorization module, it is not necessary to
+            configure <xref linkend="AAUrl"/>, <xref linkend="AAIdentity"/>,
+            and <xref linkend="IdPproviderId"/>.  Instead, configure the
+            necessary metadata parameter, see
+            <xref linkend="gt4-config-metadata"/> for an overview as well
+            as configurations.
+        </para>
+        <para><important>For GT4.0.x deployments, the scope in the relvant WSDD
+          <constant>&lt;parameter&gt;</constant> elements'
+          <constant>name</constant> attributes must be the same as in the
+          authorization chain configuration in the security descriptor. We are
+          using 'counter' as the scope in these examples, note the use of
+          'counter:' in the example from the previous step and 'counter-' in the
+          example below.
+          </important>
+        </para>
+        <para><emphasis>Example:</emphasis></para>
+        <para>
+          <constant>$GLOBUS_LOCATION/etc/globus_wsrf_core_samples_counter/server-config.wsdd</constant>
+          is the counter service's WSDD file, here shown configured with values
+          compatible with the Shibboleth demo configuration.  These
+          <constant>&lt;parameter&gt;</constant> elements are only included in
+          the <constant>SecureCounterService</constant> section because
+          authorization is not possible on an insecure operation.
+        </para>
+        <screen>&lt;service name="SecureCounterService" provider="Handler" use="literal" style="document"&gt;
+    &lt;parameter name="allowedMethodsClass" value="com.counter.CounterPortType"/&gt;
+    &lt;parameter name="handlerClass" value="org.globus.axis.providers.RPCProvider"/&gt;
+    &lt;parameter name="className" value="org.globus.wsrf.samples.counter.CounterService"/&gt;
+    &lt;wsdlFile&gt;share/schema/core/samples/counter/counter_service.wsdl&lt;/wsdlFile&gt;
+    &lt;parameter name="scope" value="Application"/&gt;
+    &lt;parameter name="providers" value="DestroyProvider SetTerminationTimeProvider 
+                                       GetRPProvider QueryRPProvider GetMRPProvider 
+                                       SubscribeProvider GetCurrentMessageProvider"/&gt;
+    
+    &lt;parameter name="securityDescriptor" value="@config.dir@/security-config.xml"/&gt;
+    
+    &lt;!-- For the ShibbolethPDP: --&gt;
+    &lt;parameter name="counter-authzAttrFile" value="@config.dir@/attr-authz.xml"/&gt;
+    &lt;parameter name="counter-AAUrl" value="https://idp.example.org:8443/shibboleth-idp/AA"/&gt;
+    &lt;parameter name="counter-AAIdentity" value="/C=US/O=example.org/CN=idp.example.org"/&gt;
+    &lt;parameter name="counter-IdPproviderId" value="https://idp.example.org/shibboleth"/&gt;
+    &lt;parameter name="counter-SPproviderId" value="https://globus.org/gridshib"/&gt;
+&lt;/service&gt;</screen>
+
+
+          <para>
+              For GT4.1+ deployments, the same configurations are used but they
+              are configured in the security descriptor.  For examples
+              refer to the sample GT4.1+ service security descriptor included
+              with the GridShib echo service
+          </para>
+      </listitem>
+        
+      <!-- Step #3 -->
+        
+      <listitem id ="gt4-config-edit-policy" xreflabel="Create a simple authorization policy">
+        <para>Create a simple authorization policy file and include attributes
+        that  will be returned about clients in order to permit them access.
+        </para>
+        <para>Create a file at the location specified by the 
+        <xref linkend="authzAttrFile"/> parameter in the deployment descriptor.
+        If you are using the example configuration from the last step, this
+        needs to be located at:
+        <filename>$GLOBUS_LOCATION/etc/globus_wsrf_core_samples_counter/attr-authz.xml</filename>
+        </para>
+        <para>In an initial testing environment, if a Shibboleth AA is set up
+        and configured with the demo properties and your
+        client is in the gridmap file, this example will allow access:
+        <screen>&lt;AttributePolicy
+    xmlns="http://gridshib.globus.org/namespaces/2005/08/policy"
+    xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion"&gt;
+    &lt;entry&gt;
+      &lt;listOfAttributes&gt;
+        &lt;saml:Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+                  AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+            &lt;saml:AttributeValue&gt;member&lt;/saml:AttributeValue&gt;
+        &lt;/saml:Attribute&gt;
+      &lt;/listOfAttributes&gt;
+    &lt;/entry&gt;
+&lt;/AttributePolicy&gt;</screen>
+        </para>
+        <para>See <xref linkend="attr-acl-file-syntax"/> for more information
+        about the syntax of this file and 
+        <xref linkend="attr-acl-file-semantics"/> for more information about how
+        this attribute is matched to Shibboleth attributes.</para>
+      </listitem>
+        
+      <!-- Step #4 -->
+                
+      <listitem id ="gt4-config-rebootcontainer" xreflabel="Restart and invoke a protected operation">
+        <para>Restart the container.  This registers the interceptors to be used
+        with the configured service.</para>
+
+        <para>Call a protected operation.</para>
+        
+        <para>See the <xref linkend="troubleshooting-gridshib" /> for
+        <filename>$GLOBUS_LOCATION/container-log4j.properties</filename>
+        settings to add in order to see more output on the server side.</para>
+              
+        <para>If the ACL files are changed at any time, the module will reload
+        them (based on system modification time), so there is no need to restart
+        the container for that.  It is only necessary to restart if you've
+        changed the WSDD or security descriptor.</para>
+      </listitem>
+    </orderedlist>
+  </section>
+  
+  
+  <section id="gt4-config-advanced">
+    <title>Other Configurations</title>
+
+      <para>
+        <itemizedlist>
+          <listitem><xref linkend="gt4-config-caching"/></listitem>
+          <listitem><xref linkend="gt4-config-x500dn"/></listitem>
+          <listitem><xref linkend="gt4-config-metadata"/>
+          <itemizedlist>
+              <listitem><link linkend="gt4-config-metadata">Overview and configuration</link></listitem>
+              <listitem><xref linkend="using-gridshib-cert-setup"/></listitem>
+              <listitem><xref linkend="updating-metadata"/></listitem>
+              <listitem><xref linkend="metadata-attr-optimization"/></listitem>
+          </itemizedlist>
+          </listitem>
+            <listitem><xref linkend="SAML-authn-assertion-PIP"/></listitem>
+            <listitem><xref linkend="VOMS"/></listitem>
+        </itemizedlist>
+      </para>
+
+      <section id="gt4-config-caching"  xreflabel="Attribute caching">
+        <title>Attribute caching</title>
+        <para>The PDP can optionally store received attributes from call to
+        call, which allows many operations to be performed by the same client
+        without the need for a remote callout to an attribute authority for each
+        operation invocation (only the first).</para>
+        <para><emphasis>Note:</emphasis> This feature is turned OFF by default
+        </para>
+        <para>The attributes themselves are stored, not the authorization
+        decision.  If caching is enabled, the attributes are stored until the
+        same expiration time as the SAML time conditions on the attribute
+        assertion dictate.</para>
+        <para><emphasis>Note:</emphasis> Attributes are only relevant within the
+        scope of the PDP.  For example, a PDP instance "P1" authorizing
+        invocations on a service "S1" would not see any attributes stored by a
+        PDP instance "P2" protecting service "S2".
+        </para>
+        <para>The steps of authorization algorithm with caching can be viewed
+        <link linkend="authorization-algorithm">here</link>.</para>
+        <para>To enable caching, set the relevant configuration parameter to "true":
+           <xref linkend="cacheAttr"/></para>
+        <para>Performance
+          <itemizedlist>
+            <listitem>We compared caching performance to non-caching
+        performance of the GridShib authorization module with a localhost IdP
+        using around 20 invocations with each type (it was not an exhaustive or
+        automated study).</listitem>
+           <listitem>
+        An authorization decision including SAML attribute exchange to the
+        localhost IdP averaged 110ms. An authorization decision based on
+        a cached attribute averaged 7-10ms.  For reference, if a decision
+        is based on DN only (bypassing attribute processing altogether), the
+        average is close to 4ms.</listitem>
+           <listitem>Statistical rigor aside, this shows that using attribute
+        caching in subsequent operation invocations results in an order of
+        magnitude time savings over the first operation invocation
+        (and this comparison is  not even including any additional latency in
+        the first operation that would be incurred by using a non-localhost
+        IdP).</listitem>
+          </itemizedlist>
+        </para>
+        <para>Caveat: in a forthcoming version, when multiple Attribute
+            Authorities in the SAML2 metadata may be queried based on an
+            SAML authentication assertion in the caller's proxy certificate,
+            the contacted Attribute Authority must be considered as part
+            of the cache lookup key. We have not fully considered our strategy
+            on combining attributes in the cache from an AA formerly used by
+            the caller when the same caller invokes the service pointing to
+            a new AA (probably a rare event anyhow). Policy on this will
+            likely be configurable by the administrator.
+        </para>
+      </section>
+      <section id="gt4-config-x500dn"
+           xreflabel="Determining a credential's IdP identity">
+        <title>Determining a credential's IdP identity</title>
+        <para>If you have a pre-existing credential and you want to add that to
+        an IdP gridmap.txt file, the DN needs to be in a specific format.  The
+        Globus style DN is not used in the SAML attribute exchange. Instead,
+        a more standard RFC2253 compliant DN is used and that is what keys the
+        attribute lookup in the name mapping plugin at the IdP.</para>
+        <para>Installed with the GridShib authorization modules is a small
+        commandline program: <filename>rfc2253dn</filename></para>
+        <para>This program is intended for testing situations and is NOT
+        intended as a scalable solution for identity management.</para>
+        <para>Commands:
+          <screen>cd $GLOBUS_LOCATION
+source etc/globus-devel-env.sh
+grid-proxy-init
+./bin/rfc2253dn</screen>
+         Sample output, either of the RFC 2253 DNs can be used when
+         populating
+         <filename>etc/gridshib-idp/mappings/gridshib-name-mapping.txt</filename>
+         at the test IdP:
+          <screen>
+X.509 Subject DN (Globus):
+
+/O=Grid/OU=GlobusTest/OU=simpleCA-prnb/CN=Tim Freeman
+
+X.509 Subject DN (RFC 2253):
+
+CN=Tim Freeman,OU=simpleCA-prnb,OU=GlobusTest,O=Grid
+
+X.509 Subject DN (Canonical RFC 2253):
+
+cn=tim freeman,ou=simpleca-prnb,ou=globustest,o=grid</screen>
+        </para>
+    </section>
+
+    <section id="gt4-config-metadata"
+             xreflabel="Using SAML2 metadata to configure GridShib for GT">
+        <title>Using SAML2 metadata to configure GridShib for GT</title>
+
+        <itemizedlist>
+          <listitem><link linkend="metadata-overview">Overview and configuration</link></listitem>
+          <listitem><xref linkend="using-gridshib-cert-setup"/></listitem>
+          <listitem><xref linkend="updating-metadata"/></listitem>
+          <listitem><xref linkend="metadata-attr-optimization"/></listitem>
+        </itemizedlist>
+
+        <section id="metadata-overview">
+        <title>Overview and configuration</title>
+        <para>
+            As of GridShib for GT 0.4.0, the ShibbolethPIP attribute
+            requester can be configured by supplying SAML2 metadata
+            instead of explicitly configuring an IdP's URL, providerId,
+            and certificate information. An optional service WSDD
+            configuration of
+            a directory of metadata files will cause the ShibbolethPIP
+            to scan this directory for valid metadata files, configuring
+            itself with an array of Attribute Authorities that are
+            considered valid to contact. Further, we've supplied a
+            commandline utility
+            (<filename>gridshib-cert-setup</filename>) for configuring
+            your Globus installation with the proper trusted certificates
+            for the attribute query made to the IdP(s).
+        </para>
+        <para>
+            <emphasis>Note:</emphasis> In future releases of the Globus
+            toolkit, we will be able to dynamically adjust the trusted
+            certificates to use <emphasis>per exchange</emphasis> with
+            the IdP (meaning that an administrator will be able to just
+            configure the PIP with SAML2 metadata and be done).  This is
+            not technically possible now and the container's trusted
+            certificate directory needs to be updated out-of-band. The
+            commandline utility mentioned above attempts to make this step
+            as automatic as possible.
+        </para>
+        <para>
+            If the metadata configuration is given, the ShibbolethPIP
+            inspects a configured directory of metadata files at initializaton
+            time (only at initialization, restarting the container is required
+            to refresh the information).  Processing considers files with root
+            elements of <emphasis>EntityDescriptor</emphasis>
+            or <emphasis>EntitiesDescriptor</emphasis>.  Only
+            <emphasis>AttributeAuthorityDescriptor</emphasis> and
+            <emphasis>KeyAuthority</emphasis> elements are inspected.
+            For each AA found in the metadata files, an entry is created that
+            the PIP can reference.
+        </para>
+
+        <para>
+            To configure your ShibbolethPIP instance to look for and use
+            metadata, use the <xref linkend="metadata-dir"/> configuration
+            in your service's WSDD file and put metadata files in this
+            directory that contain either a
+            <emphasis>EntityDescriptor</emphasis>
+            or <emphasis>EntitiesDescriptor</emphasis> root element.
+        </para>
+
+        <para>
+            After the Echo Service is installed to your Globus installation
+            (for more information, see the
+            <link linkend="testing-gridshib">testing</link> section, in
+            particular: <xref linkend="shib-manual-tests-realAA" />), you
+            can view a sample metadata file at
+            <filename>$GLOBUS_LOCATION/etc/gridshib-gt-echo-0_5_2/idp-metadata/metadata.xml</filename>
+        </para>
+        </section>
+
+        <section id="using-gridshib-cert-setup"
+             xreflabel="Using the gridshib-cert-setup tool">
+        <title>Using the gridshib-cert-setup tool</title>
+
+        <para>
+            Trusted authority credentials are a component of metadata files,
+            but the current 4.0.x Globus Toolkit does not allow trusted
+            certificates to be configured programmatically (it will in the
+            next version).  Thus, one needs to create certificate files
+            to place in the Globus trusted certificate directory in order
+            for the SSL exchange to work correctly. We have made this as
+            automatic as possible by writing a commandline utility program
+            called <filename>gridshib-cert-setup</filename>.
+        </para>
+
+        <para>
+            After the interceptors are installed to your Globus installation,
+            <filename>$GLOBUS_LOCATION/bin/gridshib-cert-setup</filename> can
+            be invoked at any time as long as the
+            <filename>$GLOBUS_LOCATION</filename> environment variable is set.
+            It is recommended that you do not run this untested while a
+            production container is processing requests since it could affect
+            GT operation.
+        </para>
+
+        <para>
+            <emphasis>IMPORTANT:</emphasis> Run this utility with the "status"
+            subcommand (which is also the default subcommand so it is not
+            necessary to specify it).  This will provide you with information
+            about exactly what it would have done for both of the other main
+            subcommands: "install" and "remove."  It is
+            <emphasis>highly recommended</emphasis> you run this first so that
+            nothing unexpected happens.
+        </para>
+
+        <para>
+            To view a list of all options, run the help subcommand:
+
+            <screen>cd $GLOBUS_LOCATION
+./bin/gridshib-cert-setup -h</screen>
+        </para>
+        <para>
+            Output:
+<screen>Set either metadata file or metadata directory to read in the AA certificates:
+    Either file:      [-f &lt;path&gt;]
+    Or directory:     [-d &lt;directory&gt;]
+
+Pick an action:
+    Either status [-s], install [-i], or remove [-r &lt;dir&gt;]
+__
+
+Options:
+ -d,--mdDir &lt;directory&gt;      A directory with many metadata files in it
+ -f,--mdFile &lt;file&gt;          A metadata file
+ -h,--help                   Displays help
+ -i,--install                Install certificates
+ -o,--override &lt;directory&gt;   Manually set trusted certificate directory
+ -r,--remove &lt;directory&gt;     Remove certificates, moving them to specified
+                             directory
+ -s,--status                 Print status and exit (default action)
+ -z,--debug                  Enables debug mode</screen>
+
+        </para>
+
+        <para>
+            Below we will run some test commands to get a feel for the tool
+            and the metadata files you are working with.
+        </para>
+
+        <orderedlist>
+        <listitem>
+        <para>
+            With GLOBUS_LOCATION set in your environment, choose a directory
+            with metadata files in it (or use the '-f' flag for one specific
+            file) and point gridshib-cert-setup to it.  The default subcommand
+            is 'status' and this will print out information without changing
+            anything on the filesystem:
+            <screen>$GLOBUS_LOCATION/bin/gridshib-cert-setup -d $GLOBUS_LOCATION/etc/gridshib-gt-echo-0_5_2/idp-metadata/</screen>
+        </para>
+        <para>
+            Note the last two sections of the output: "Dryrun of the install
+            subcommand" and "Dryrun of the remove subcommand".  Here the tool
+            outlines what would have happened if you were to use those
+            subcommands instead of status.
+        </para>
+        </listitem>
+
+        <listitem>
+
+        <para>
+            In the examples that follow, we will create a fake trusted
+            certificate directory and also use the sample metadata file
+            supplied with the Echo Service.  This is to ensure your first
+            filesystem-modifying use of the tool does not operate on the
+            real trusted certificate directory.
+        </para>
+
+        <para>
+            Make the fake trusted certificate directory:
+            <screen>cd $GLOBUS_LOCATION
+mkdir testing</screen>
+        </para>
+        </listitem>
+
+        <listitem>
+        <para>
+            Now we use the "-o" parameter to override the normal Globus
+            trusted certificate directory.  If you run the
+            status subcommand without the "-o" parameter as we did above, you
+            will see what directory the tool will normally operate on.  Note
+            that this is
+            typically <filename>/etc/grid-security/certificates</filename>
+            which typically has restricted write permissions (i.e., you may
+            need to run as root).  But first, use a fake directory for
+            testing.  Here we run the status command.
+        </para>
+        <para>
+            <screen>./bin/gridshib-cert-setup -o testing -d etc/gridshib-gt-echo-0_5_2/idp-metadata/</screen>
+        </para>
+        </listitem>
+
+
+        <listitem>
+        <para>
+            You will see some text about what attribute authorities were found
+            in the metadata file(s) and information about what the tool would
+            have done for the install and remove subcommands.  Because we
+            just created this empty directory, the dryrun install command
+            will report every certficate in the metadata is a candidate for
+            adding to the directory (since it does not see any
+            duplicates in the directory) and the dryrun remove command will
+            report that it would not
+            remove any of the AA certificates from the directory (because
+            there are none).
+        </para>
+
+        </listitem>
+        <listitem>
+        <para>
+            Now install the certificates to our fake directory.  The actual
+            install command will install what the dryrun said it would:
+<screen>./bin/gridshib-cert-setup --install -o testing -d etc/gridshib-gt-echo-0_5_2/idp-metadata/</screen>
+        </para>
+
+        </listitem>
+        <listitem>
+
+        <para>
+            The tool will report the paths to all of the certificates it has
+            written out.  You can run standard Globus/OpenSSL commands on these
+            files now to inspect them, e.g.,
+            <screen>grid-cert-info -f testing/6e76113c.0</screen>
+        </para>
+
+        </listitem>
+        <listitem>
+
+        <para>
+            Now try the remove subcommand, which will remove any of the
+            certificates in the given metadata file(s) from the trusted
+            certificates directory and move them to a backup directory.
+        </para>
+
+        <para>
+            First, run status to make a dryrun.  Since you are using the
+            same metadata file(s) that you used to add the certs, you should
+            see the opposite situation from before: there are no certificates
+            that the tool would install and it will remove all of the matching
+            certificates in the metadata (which coincidentally will be all of
+            the certificates in the directory: since we just created this
+            testing directory, there will be no others).
+            <screen>./bin/gridshib-cert-setup -o testing -d etc/gridshib-gt-echo-0_5_2/idp-metadata/</screen>
+        </para>
+        <para>Now make the changes.  The remove subcommand requires a
+            directory argument for the backup directory (it will never just
+            delete files).  Here we make a new directory to demonstrate:
+            <screen>mkdir testing-remove
+./bin/gridshib-cert-setup --remove testing-remove -o testing -d etc/gridshib-gt-echo-0_5_2/idp-metadata/</screen>
+        </para>
+
+        </listitem>
+        <listitem>
+
+        <para>
+            That's it.  The tool output will provide you with all relevant
+            information, if it does not, use the debug option.  Now that you
+            see how it works, remove the '-o testing' and the tool will use
+            the real trusted certificates directory.
+        </para>
+
+        </listitem>
+        </orderedlist>
+        </section>
+
+        <section id="updating-metadata"
+             xreflabel="Updating metadata">
+        <title>Updating metadata</title>
+        <para>
+            If you are using metadata and receive an updated metadata file
+            from the federation: to update both the authorization module
+            and the certificates in the trusted certificate directory, take
+            the following steps:
+        </para>
+        <para>
+            In the following we assume you are dealing with just one metadata
+            file, but you could easily replace the file with a directory of
+            metadata files and the same concepts will apply.
+        </para>
+        <orderedlist>
+        <listitem>
+            <para>
+                Stop the container.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Move the <emphasis>old metadata file</emphasis> from
+                the PIP's metadata directory
+                (the one that the <xref linkend="metadata-dir"/> WSDD
+                configuration points to) to a new location, but do not
+                delete it.  We will refer to the old file as
+                <filename>old.xml</filename>.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Move the <emphasis>new metadata file</emphasis> to the
+                PIP's metadata directory
+                (the one that the <xref linkend="metadata-dir"/> WSDD
+                configuration points to) to a new location.
+                We will refer to the new file as <filename>new.xml</filename>.
+            </para>
+            <para>
+                That completes the authorization module update.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Now to update the trusted certificates we will use the remove
+                subcommand with the <emphasis>old metadata file</emphasis> to
+                remove any trusted certificates that were installed.
+            </para>
+            <para>
+                For more information about gridshib-cert-setup, see
+                <xref linkend="using-gridshib-cert-setup" />.
+            </para>
+            <para>
+                First run the status subcommand for a sanity check:
+                <screen>cd $GLOBUS_LOCATION
+./bin/gridshib-cert-setup --status -f old.xml</screen>
+            </para>
+
+            <para>Then run
+                the remove subcommand, pointing it to a backup directory
+                (in the example below called '/tmp/oldcerts'):
+                <screen>cd $GLOBUS_LOCATION
+./bin/gridshib-cert-setup --remove /tmp/oldcerts -f old.xml</screen>
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Now run the install subcommand with the
+                <emphasis>new metadata file</emphasis>:
+                <screen>cd $GLOBUS_LOCATION
+./bin/gridshib-cert-setup --install -f new.xml</screen>
+            </para>
+            <para>
+                At this point the trusted certificates will match the
+                updated metadata
+                file that you have configured the authorization module with.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Start the container.
+            </para>
+        </listitem>
+
+        </orderedlist>
+
+        </section>
+        <section id="metadata-attr-optimization"
+             xreflabel="Metadata attribute optimization">
+        <title>Metadata attribute optimization</title>
+            <para>
+                SAML2 metadata
+                <constant>&lt;AttributeAuthorityDescriptor&gt;</constant>
+                elements can contain a list of
+                <constant>samle:&lt;Attribute&gt;</constant> elements that
+                advertise the set of attributes and attribute values the
+                IdP may return.
+            </para>
+
+            <para>
+                If you wish, in your GridShib for GT deployment you can turn
+                on an optimization (it is off by default) where this list
+                will be respected.  Respecting this list means that the
+                PDP (the module that makes the authorization decision) will
+                assume that these are the ONLY attributes that can be returned
+                by a query to that attribute authority.
+            </para>
+
+            <para>
+                If we assume that those are the only attributes a query to
+                that AA <emphasis>AND</emphasis> the currently configured
+                authorization policy does not have any of these attributes
+                then a (possibly expensive) query does not need to be made.
+                In that case, a DENY will be returned immediately.
+            </para>
+
+            <para>
+                To enable this optimization, add the
+                <xref linkend="respect-md-attributes" /> configuration
+                to your service's WSDD.
+            </para>
+        </section>
+    </section>
+        <section id="SAML-authn-assertion-PIP"
+             xreflabel="SAML authentication assertion PIP">
+        <title>SAML authentication assertion PIP</title>
+        <para>
+        This feature has been supported since GridShib for GT 0.4.1.
+        </para>
+            <para>
+	    This PIP parses out SAML authentication assertion in the caller's level
+	    1 proxy or EEC and provides it to the Shibboleth PIP to determine what
+	    attribute authority to query. See <ulink
+	    url="http://dev.globus.org/wiki/IdP_discovery_based_on_embedded_SAML_authentication_assertion">IdP
+	    discovery based on embedded SAML authentication assertion</ulink>
+	    for more details.
+	    </para>
+        <para>
+            <important>
+                This approach to IdP discovery is <emphasis>DEPRECATED</emphasis>
+                and will be
+            replaced by an alternative approach in the next version of GridShib
+            for GT.  See the above wiki page for details.
+            </important>
+
+        </para>
+        <para>
+	    If the credential presented is an EEC, this PIP looks for the
+	    authentication assertion in the EEC.
+	    </para>
+	    <para>
+	    If the credential presented is a level 1 proxy, this PIP looks for 
+	    an authentication assertion in the proxy. If the proxy does not 
+	    have an assertion and it is an impersonation proxy, the PIP looks 
+	    for an authentication assertion in EEC.
+	    </para>
+	    <para>
+	    If the credential presented is a level '1+x' proxy and all the 
+	    proxies (upto level 2 proxy) in the chain are impersonation proxies,
+	    this PIP looks for an authentication assertion in the level 1 proxy.
+	    If the level 1 proxy does not have an assertion and it is an 
+	    impersonation proxy, the PIP looks for authentication assertion in 
+	    the EEC.
+	    </para>
+	    <para>	
+	    If it finds an authentication assertion, it checks whether the
+	    issuer of the assertion is same as the issuer of the certificate in
+	    which the assertion is present. i.e., if the assertion is in the level
+	    1 proxy, the issuer of the assertion must be the DN of the EEC that
+        issued the proxy. And if the assertion is in the EEC, the issuer of
+        the assertion must be the DN of the CA that issued the EEC.
+            </para>
+	    <para>
+	    The DN of the issuer of the assertion must be on the list of
+	    trusted SAML authentication authorities. See <xref
+	    linkend="trusted-authn-authorities-file"/> for details about
+      WSDD configuration (pointing the module to the file) and below 
+      for an example file:
+	    </para>
+            
+      <para id="trusted-authn-authorities-file-example">
+      <screen>/O=Grid/OU=GlobusTest/OU=someOU/CN=someCN
+/O=Grid/OU=GlobusTest/OU=anotherOU/CN=anotherCN</screen>
+    
+      Note that quotes are not necessary, just one DN per line.
+      </para>
+      <para>
+      To configure this PIP, you need to add the module's class name to your
+      service's security descriptor's authorization chain configuration.  This
+      must be configured <emphasis>before</emphasis> the ShibbolethPDP.
+      </para>
+      
+      <para>
+      For example, in a GT4.0.x deployment, the echo service's file <filename>$GLOBUS_LOCATION/etc/gridshib-gt-echo-0_5_2/echo-service-security-descriptor.xml</filename> would contain this (all one line):
+      <screen>&lt;authz
+    value="shibecho:org.globus.gridshib.SAMLAuthnPIP shibecho:org.globus.gridshib.PDP"/&gt;</screen>
+      </para>
+      
+    </section>
+
+    <section id="VOMS"
+             xreflabel="VOMS">
+        <title>Using VOMS alongside GridShib</title>
+
+        <para>
+            It is possible to direct the GridShib PDP to consult
+            an embedded VOMS certificate. The VOMS consultation will happen
+            after the optional DN check and before any decision is made based
+            on SAML/Shibboleth.  If the VOMS PDP returns ACCEPT, all
+            processing stops.  Otherwise, processing continues on with
+            SAML attribute processing (and potentially a Shibboleth query).
+        </para>
+
+        <para>
+            See the <link linkend="useVOMS">useVOMS configuration
+            explanation</link> below.
+        </para>
+
+        <para>
+            If you enable VOMS, be sure that the VOMS package is installed
+            to your Globus installation.
+
+            See the <ulink url="http://dev.globus.org/wiki/VOMS">VOMS page</ulink>
+            for installation and
+            configuration information.  GridShib was tested with the 0.2
+            version (previous version are not compatible).
+        </para>
+
+        <para>
+            Note that when using VOMS in conjunction with the GridShib PDP
+            (particularly useful for GT4.0.x installations), the
+            VOMS configurations will be included directly alongside the
+            GridShib PDP, not in a separate section.
+        </para>
+
+        <para>
+            For an example, see the GridShib echo service's WSDD file (only in
+            GT4.0.x).  The <link linkend="useVOMS">useVOMS</link> configuration
+            is set to false but if it were set to true the example VOMS
+            configurations below it would take effect (passed to the VOMS
+            module directly from the GridShib PDP).
+        </para>
+
+  </section>
+
+
+  <section id="gt4-config-wsdd">
+  <title>Configuration Parameters</title>
+  <para>
+    <itemizedlist>
+        <listitem><xref linkend="shib-wsdd-parameters"/></listitem>
+        <listitem><xref linkend="shib-wsdd-parameter-examples"/></listitem>
+    </itemizedlist>
+  </para>
+  <para>This table lists all possible Configuration parameters for controlling
+  the behavior of the GridShib authorization. The class that needs the
+  parameter is listed for developers or if you want to use one of the PIP
+  classes by itself [developer's guide does not exist yet].  Configuration
+  examples are
+  <link linkend="shib-wsdd-parameter-examples">listed separately</link>
+  below this table.</para>
+
+  <para>
+      <important>
+          In GT4.0.x deployments these are WSDD configurations.  In GT4.1+
+          deployments these are security descriptor configurations.
+      </important>
+  </para>
+
+  <table id="shib-wsdd-parameters">
+    <title>Configuration Parameters</title>
+      <tgroup cols="4">
+        <thead>
+          <row>
+            <entry>Parameter</entry>
+            <entry>Required</entry>
+            <entry>Used by</entry>
+            <entry>Explanation</entry>
+          </row>
+        </thead>
+        <tbody>
+        
+          <row id="AAHostAuthz" xreflabel="AAHostAuthz">
+            <entry>AAHostAuthz</entry>
+            <entry>No</entry>
+            <entry>PIP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>A value of "true" triggers <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/security/authzframe/security_descriptor.html#s-authzframe-secdesc-configAuthz">GT4
+                host authorization</ulink> for the attribute query. If this
+                is included, the https
+                connection to the AA will only be established with a certificate
+                CN matching "host/" plus the reverse DNS lookup name of the AA
+                IP address.</listitem>
+                <listitem>This is not a required configuration only in order to
+                ease testing, if either this or <xref linkend="AAIdentity"/> is
+                not configured, your solution will not be secure.  Also, if the 
+                <xref linkend="AAUrl"/> configuration is not
+                <constant>https</constant>, this configuration will be ignored.
+                </listitem>
+                <listitem>An <xref linkend="AAIdentity"/> configuration takes
+                precedence over this configuration if both are configured.
+                </listitem>
+                <listitem><emphasis>Note:</emphasis> if the value is not
+                &quot;true&quot; (case insensitive), this will result in an
+                initialization exception (resulting in a 
+                <constant>DENY</constant> decision no matter what).  The reason
+                being that the default is to not use authorization, and a typo
+                could result in an insecure configuration.  So for
+                non-ambiguity, either configure to be equal to true, or do not
+                add this parameter at all.
+                </listitem>
+                <listitem>See the 
+                <xref linkend="AAHostAuthz-example"/>.</listitem>
+                <listitem>This configuration is only applicable when using the
+                    <xref linkend="IdPproviderId"/> and
+                    <xref linkend="AAUrl"/> configurations
+                    (see <xref linkend="conflicting-config-note"/>).
+                </listitem>
+            </itemizedlist>
+            </entry>
+          </row>
+          
+          <row id="AAIdentity" xreflabel="AAIdentity">
+            <entry>AAIdentity</entry>
+            <entry>No</entry>
+            <entry>PIP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>This value is the certificate identity of the Shib
+                AA.  If this is included, the https connection to the AA will
+                only be authorized if the AA's certificate matches.</listitem>
+                <listitem>This is not a required configuration only in order to
+                ease testing, if either this or <xref linkend="AAHostAuthz"/> is
+                not configured, your solution will not be secure.  Also, if the
+                <xref linkend="AAUrl"/> configuration is not
+                <constant>https</constant>, this configuration will be ignored.
+                </listitem>
+                <listitem>This configuration takes precedence over a 
+                <xref linkend="AAHostAuthz"/> configuration if both are 
+                configured.</listitem>
+                <listitem>See the 
+                <xref linkend="AAIdentity-example"/>.</listitem>
+                <listitem>This configuration is only applicable when using the
+                    <xref linkend="IdPproviderId"/> and
+                    <xref linkend="AAUrl"/> configurations
+                    (see <xref linkend="conflicting-config-note"/>).
+                </listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+          
+          <row id="AAUrl" xreflabel="AAUrl">
+            <entry>AAUrl</entry>
+            <entry>Yes (*<xref linkend="conflicting-config-note"/>)</entry>
+            <entry>PIP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>This value is the network address of the Shib AA
+                to use for all attribute queries.  The only allowed
+                schemes are <constant>http</constant> and
+                <constant>https</constant>.</listitem>
+                <listitem>See the <xref linkend="AAUrl-example"/>.</listitem>
+                <listitem><emphasis>NOTE:</emphasis> This configuration can
+                    not be used at the same time as the
+                    <xref linkend="metadata-dir"/> configuration.
+                    See <xref linkend="conflicting-config-note"/>.
+                </listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+
+          <row id="authzMap" xreflabel="authzMap">
+            <entry>authzMap</entry>
+            <entry>No</entry>
+            <entry>PDP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>
+                    This triggers the PDP to require at least one username
+                mapping for a successful authorization.  It is OFF by default.
+                </listitem>
+                <listitem>
+                    See the <xref linkend="authzMap-example"/>.
+                </listitem>
+                <listitem>
+                    For more information about username mapping, see:
+                    <xref linkend="username-mappings"/>
+                </listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+ 
+          <row id="cacheAttr" xreflabel="cacheAttr">
+            <entry>cacheAttr</entry>
+            <entry>No</entry>
+            <entry>PDP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>A value of "true" directs the PDP to cache received
+                attributes and consult these attributes on subsequent operation 
+                invocations by the same client.</listitem>
+                <listitem>See the <xref linkend="gt4-config-caching"/> section.
+                </listitem>
+                <listitem>Also see the <xref linkend="cacheAttr-example"/>.
+                </listitem>
+            </itemizedlist>
+            </entry>
+          </row>    
+          
+          <row id="IdPproviderId" xreflabel="IdPproviderId">
+            <entry>IdPproviderId</entry>
+            <entry>Yes (*<xref linkend="conflicting-config-note"/>)</entry>
+            <entry>PIP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>This value is used for two (related) purposes:
+                  <orderedlist>
+                    <listitem>It is included in the attribute query as the value
+                    of the <constant>NameQualifier</constant> attribute of the
+                    <constant>&lt;NameIdentifer&gt;</constant> element of the
+                    SAML <constant>&lt;AttributeQuery&gt;</constant>.</listitem>
+                    <listitem>If the response returned from the Shib AA
+                    contains an assertion, the issuer attribute of the SAML
+                    <constant>&lt;Assertion&gt;</constant> element must be equal
+                    to this value in order for the assertion to be considered
+                    valid.
+                    </listitem>
+                  </orderedlist>
+                </listitem>
+                <listitem>See the <xref linkend="IdPproviderId-example"/>.
+                </listitem>
+                <listitem><emphasis>NOTE:</emphasis> This configuration can
+                    not be used at the same time as the
+                    <xref linkend="metadata-dir"/> configuration.
+                    See <xref linkend="conflicting-config-note"/>.</listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+
+          <row id="trusted-authn-authorities-file"
+	  xreflabel="trusted-authn-authorities-file">
+	    <entry>trusted-authn-authorities-file</entry>
+	    <entry>No</entry>
+	    <entry>PIP</entry>
+	    <entry>
+	      <itemizedlist>
+	        <listitem>This configuration is used to provide a list of DNs
+		of the trusted authentication authorities to the SAML 
+		authentication assertion PIP. If the issuer of the
+		authentication assertion in the credential is not in this list,
+		the authentication assertion will be ignored.  This must be
+        an absolute path.</listitem>
+		<listitem>See the
+		  <xref linkend="trusted-authn-authorities-file-example"/>.
+		</listitem>
+    <listitem>
+    Also see an example file <link linkend="trusted-authn-authorities-file-example">above</link>.
+    </listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+				  
+          <row id="metadata-dir" xreflabel="metadata-dir">
+            <entry>metadata-dir</entry>
+            <entry>Yes (*<xref linkend="conflicting-config-note"/>)</entry>
+            <entry>PIP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>This configuration is used to trigger the PIP to use
+                metadata file(s) for obtaining AA information instead of the
+                explicit configuration listed in this table
+                (<xref linkend="IdPproviderId"/> and
+                    <xref linkend="AAUrl"/>). </listitem>
+                <listitem>See the
+                  <xref linkend="metadata-dir-example"/>.</listitem>
+                <listitem><emphasis>NOTE:</emphasis> This configuration can
+                    not be used at the same time as the
+                    <xref linkend="IdPproviderId"/> and
+                    <xref linkend="AAUrl"/> configurations.
+                    See <xref linkend="conflicting-config-note"/>.</listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+
+          <row id="respect-md-attributes"
+               xreflabel="respect-md-attributes">
+            <entry>respect-md-attributes</entry>
+            <entry>No</entry>
+            <entry>PIP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>
+                    When using metadata, this configuration indicates whether
+                    or not attributes in IdP metadata should be "respected."
+                    If they are, a query to a particular IdP will not be
+                    initiated if the authorization module determines that
+                    no attribute in authorization policy would possibly match
+                    any of the IdP's advertised attributes.
+                </listitem>
+                <listitem>For an example, see the
+                  <xref linkend="respect-md-attributes-example"/>
+                </listitem>
+                <listitem>
+                    Also see the documentation on this optimization:
+                    <xref linkend="metadata-attr-optimization" />
+                </listitem>
+                <listitem>
+                    This configuration defaults to OFF.
+                </listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+
+          <row id="authzAttrFile" xreflabel="shibAuthzAttrFile">
+            <entry>shibAuthzAttrFile</entry>
+            <entry>Yes</entry>
+            <entry>PDP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>This lists the path to an access control list file
+                used for attribute based authorization.  If one attribute
+                obtained from the IdP is in this file, the authorization module
+                returns a <constant>PERMIT</constant> decision.</listitem>
+                <listitem>If this file can not be read or found, the
+                authorization module will throw an exception (always resulting
+                in a <constant>DENY</constant> decision).</listitem>
+                <listitem>See the <xref linkend="authzAttrFile-example"/>,
+                attribute ACL <link linkend="attr-acl-file-syntax">file
+                syntax</link> and
+                <link linkend="attr-acl-file-semantics">attribute matching
+                rules</link>.</listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+
+          <row id="consultDefaultGridmap" xreflabel="consultDefaultGridmap">
+            <entry>consultDefaultGridmap</entry>
+            <entry>No</entry>
+            <entry>PDP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>Setting this to "true" directs the PDP to use the
+                default grid-mapfile for identity based authorization.
+                    If the caller's DN is in
+                this file, the authorization module stops processing and returns
+                a <constant>PERMIT</constant> decision.  No attributes are
+                collected, which saves time.</listitem>
+                <listitem>If this file can not be read or found, the
+                authorization module will log the error and
+                continue.</listitem>
+                <listitem>Note that this is only applicable for GT4.0.x
+                deployments.  For GT4.1+ deployments you can get this same
+                behavior by configuring a gridmap authorization module ahead
+                of the GridShib modules to short-circuit the authorization
+                processing if there is a PERMIT.</listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+
+          <row id="useVOMS" xreflabel="useVOMS">
+            <entry>useVOMS</entry>
+            <entry>No</entry>
+            <entry>PDP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>Setting this to "true" directs the PDP to consult
+                an embedded VOMS certificate.  Install the GT4 VOMS modules
+                (see the current <ulink url="http://dev.globus.org/wiki/VOMS">VOMS page</ulink>) and configure
+                the VOMS parameters in your WSDD (GT4.0.x) or security
+                descriptor (GT4.1.x) alongside the GridShib configurations.
+                </listitem>
+                <listitem>The VOMS consultation will happen after the optional
+                DN check and before any decision is made based on
+                SAML/Shibboleth.  If the VOMS PDP returns ACCEPT, all
+                processing stops.  Otherwise, processing continues on with
+                SAML attribute processing (and potentially a Shibboleth query).
+                </listitem>
+                <listitem>Note that this is really only applicable for GT4.0.x
+                deployments (but will still work with GT4.1+).  For GT4.1+
+                deployments you can get this same
+                behavior by configuring a VOMS authorization module ahead
+                of the GridShib modules to short-circuit the authorization
+                processing if there is a PERMIT.</listitem>
+                  <listitem>
+                      See the "<xref linkend="VOMS"/>" section
+                        for more information
+                  </listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+
+          <row id="authzMapFile" xreflabel="shibAuthzMapFile">
+            <entry>shibAuthzMapFile</entry>
+            <entry>No</entry>
+            <entry>SAMLMapPIP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>This lists the path to a username mappings file
+                used for attribute based authorization.  If this is not
+                configured, the SAMLMapPIP will use the file in the
+                <xref linkend="authzAttrFile" /> configuration.  This
+                configuration will let you keep access policy and username
+                mappings separate if you so desire.  It also allows the
+                SAMLMapPIP to be used on its in conjunction with other
+                PDP implementations.
+                </listitem>
+                <listitem>
+                    See the <xref linkend="authzMapFile-example"/>.
+                </listitem>
+                <listitem>
+                    For more information about username mapping, see:
+                    <xref linkend="username-mappings"/>
+                </listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+          
+          <row id="SPproviderId" xreflabel="SPproviderId">
+            <entry>SPproviderId</entry>
+            <entry>Yes</entry>
+            <entry>PIP</entry>
+            <entry>
+              <itemizedlist>
+                <listitem>This value is used for the value of the 
+                  <constant>resource</constant> attribute of the SAML
+                  <constant>&lt;AttributeQuery&gt;</constant> element in the
+                  attribute query sent to the Shib AA.</listitem>
+                <listitem>See the 
+                  <xref linkend="SPproviderId-example"/>.</listitem>
+              </itemizedlist>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+   <para id="conflicting-config-note" xreflabel="note">
+       <emphasis>Footnote:</emphasis>
+       In general, there are two ways to configure the query module with
+       attribute authority information to use for the query:  a) provide the
+       module with specific information via the <xref linkend="IdPproviderId"/>
+       and <xref linkend="AAUrl"/> configurations (which limits you to one,
+       hardcoded AA) or b) use the <xref linkend="metadata-dir"/>
+       configuration to configure an array of AAs from SAML metadata.  For
+       more information about using SAML2 metadata, see:
+       <xref linkend="gt4-config-metadata"/>
+   </para>
+    
+  <!-- Typical screens aren't big enough to make including examples
+       in the above table look any good -->
+  <!--<table id="shib-wsdd-parameter-examples" xreflabel="Table: WSDD example configurations">-->
+  <table id="shib-wsdd-parameter-examples">
+    <title>WSDD Parameter Example Configurations</title>
+    <para>This table shows examples of authorization module configurations
+    in a deployment descriptor.</para>
+
+  <para>
+      <important>
+          These examples are for GT4.0.x deployments, these are WSDD
+          configurations.  In GT4.1+ deployments these configurations are
+          security descriptor configurations (but the values of each
+          configuration are the same).
+      </important>
+  </para>
+    <tgroup cols="2">
+      <thead>
+        <row>
+          <entry>Parameter</entry>
+          <entry>Example</entry>
+        </row>
+      </thead>
+      <tbody>
+        <row id="AAHostAuthz-example" xreflabel="AAHostAuthz configuration example">
+          <entry>AAHostAuthz</entry>
+          <entry><screen>&lt;parameter name="counter-AAHostAuthz" value="true"/&gt;</screen>
+          </entry>
+        </row>
+        
+        <row id="AAIdentity-example" xreflabel="AAIdentity configuration example">
+          <entry>AAIdentity</entry>
+          <entry><screen>&lt;parameter name="counter-AAIdentity" value="/C=US/O=example.org/CN=idp.example.org"/&gt;</screen>
+          </entry>
+        </row>
+        
+        <row id="AAUrl-example" xreflabel="AAUrl configuration example">
+          <entry>AAUrl</entry>
+          <entry>This example shows the default AA URL used by the
+          Shibboleth demo AA/SSL configuration.  To use this particular URL (for
+          testing only), you would need to preempt your DNS server, e.g.,
+          by editing your <constant>hosts</constant> file:
+          <screen>&lt;parameter name="counter-AAUrl" value="https://idp.example.org:8443/shibboleth-idp/AA"/&gt;</screen>
+          </entry>
+        </row>
+
+        <row id="authzMap-example" xreflabel="authzMap configuration example">
+          <entry>authzMap</entry>
+          <entry><screen>&lt;parameter name="counter-authzMap" value="true"/&gt;</screen>
+          </entry>
+        </row>
+
+        <row id="cacheAttr-example" xreflabel="cacheAttr configuration example">
+          <entry>cacheAttr</entry>
+          <entry><screen>&lt;parameter name="counter-cacheAttr" value="true"/&gt;</screen>
+          </entry>
+        </row>
+        
+        <row id="IdPproviderId-example" xreflabel="IdPproviderId configuration example">
+          <entry>IdPproviderId</entry>
+          <entry>This example shows the IdP providerId used by the
+          Shibboleth demo configuration:
+          <screen>&lt;parameter name="counter-IdPproviderId" value="https://idp.example.org/shibboleth"/&gt;</screen>
+          </entry>
+        </row>
+
+        <row id="trusted-authn-authorities-file-example"
+	xreflabel="trusted-authn-authorities-file configuration example">
+          <entry>trusted-authn-authorities-file</entry>
+          <entry>
+          <screen>&lt;parameter name="counter-trusted-authn-authorities"
+	  value="/ABSOLUTE/PATH/TO/trust_authn_authorities.txt"/&gt;</screen>
+          </entry>
+        </row>
+
+        <row id="metadata-dir-example" xreflabel="metadata-dir configuration example">
+          <entry>metadata-dir</entry>
+          <entry>A good place for this directory is your service's subdirectory
+          in <constant>$GLOBUS_LOCATION/etc</constant>; for that, the
+          <constant>@config.dir@</constant> shortcut can be used. Otherwise, a
+          relative or absolute path is required.
+          <screen>&lt;parameter name="counter-metadata-dir" value="@config.dir@/idp-metadata"/&gt;</screen>
+          </entry>
+        </row>
+
+        <row id="respect-md-attributes-example"
+             xreflabel="respect-md-attributes configuration example">
+            <entry>respect-md-attributes</entry>
+            <entry><screen>&lt;parameter name="counter-respect-md-attributes" value="true"/&gt;</screen>
+            </entry>
+        </row>
+
+        <row id="authzAttrFile-example" xreflabel="shibAuthzAttrFile configuration example">
+          <entry>shibAuthzAttrFile</entry>
+          <entry>A good place for this file is your service's subdirectory
+          in <constant>$GLOBUS_LOCATION/etc</constant>; for that, the
+          <constant>@config.dir@</constant> shortcut can be used. Otherwise, a
+          relative or absolute path is required.
+          <screen>&lt;parameter name="counter-shibAuthzAttrFile" value="@config.dir@/attr-authz.xml"/&gt;</screen>
+          </entry>
+        </row>
+
+        <row id="authzMapFile-example" xreflabel="shibAuthzMapFile configuration example">
+          <entry>shibAuthzMapFile</entry>
+          <entry>A good place for this file is your service's subdirectory
+          in <constant>$GLOBUS_LOCATION/etc</constant>; for that, the
+          <constant>@config.dir@</constant> shortcut can be used. Otherwise, a
+          relative or absolute path is required.
+          <screen>&lt;parameter name="counter-shibAuthzMapFile" value="@config.dir@/username-mappings.xml"/&gt;</screen>
+          </entry>
+        </row>
+
+        <row id="SPproviderId-example" xreflabel="SPproviderId configuration example">
+          <entry>SPproviderId</entry>
+          <entry>This example shows the SP providerId used in the
+          GridShib for Shibboleth demo configuration (you can see the demo SP
+          providerId configuration for GridShib in this file after a new
+          GridShib for Shibboleth installation:
+          <filename>$IDP_HOME/etc/gridshib-idp/gridshib-sp-metadata-unsigned.xml</filename>):
+          <screen>&lt;parameter name="counter-SPproviderId" value="https://globus.org/gridshib"/&gt;</screen>
+          </entry>
+        </row>
+        
+      </tbody>
+    </tgroup>
+  </table>
+  </section>
+  
+  <!-- Added explicit xreflabel so that it looks better in the small
+      table of contents at the beginning of the entire section -->
+  <section id="gt4-config-file-syntax">
+  <title>Policy Syntax and Authorization Semantics</title>
+    <!-- This would be good in the overview as well -->
+
+    <para>
+      <itemizedlist>
+        <listitem><xref linkend="authorization-algorithm"/></listitem>
+        <listitem><xref linkend="attr-validity"/></listitem>
+        <listitem><xref linkend="attr-acl-file-semantics"/></listitem>
+        <listitem><xref linkend="attr-acl-file-syntax"/></listitem>
+        <listitem><xref linkend="username-mappings"/></listitem>
+      </itemizedlist>
+    </para>
+    
+    <!-- Added explicit xreflabel so that it looks better in the small
+    table of contents at the beginning of the entire section -->
+    <section id="authorization-algorithm" xreflabel="Authorization algorithm overview">
+      <title>Authorization algorithm overview</title>
+      <para id="authorization-algorithm-no-cachng"><emphasis>If not
+      caching</emphasis>, the steps of the authorization module:
+        <orderedlist>
+          <listitem>If the policy files have changed, the code will reload them
+          (based on file modification time).</listitem>
+          <listitem>If this is a GT4.0.x deployment and gridmap authorization
+              is configured, the PDP first checks if the
+          caller's DN is in the ACL.  If so, it returns
+          <constant>PERMIT</constant> to the container and the PDP is done.
+          </listitem>
+          <listitem>
+              If VOMS support is configured, the PDP calls the VOMS PIP
+              and PDP.  If a PERMIT is returned, the overall decision is
+              PERMIT and the PDP is done.
+          </listitem>
+          <listitem>Call the PIP.  The PIP performs the SAML attribute query to
+          the Shibboleth AA.  If successful and valid assertions are returned,
+          parse out the attributes.</listitem>
+          <listitem>Call the SAMLMapPIP to retrieve username mappings if
+          they are present.  If (optionally) configured to do so, here require
+          at least one username mapping (this check is OFF by default).
+          </listitem>
+          <listitem>Compare the valid attributes to the attribute ACL and return
+          <constant>PERMIT</constant> or <constant>DENY</constant> accordingly,
+          as outlined in <xref linkend="attr-acl-file-semantics"/>.</listitem>
+        </orderedlist>
+      </para>
+      <para id="authorization-algorithm-caching"><emphasis>If
+      caching</emphasis>, the steps of the authorization module:
+        <orderedlist>
+          <listitem>If the policy files have changed, the code will reload them
+          (based on file modification time).</listitem>
+          <listitem>If this is a GT4.0.x deployment and gridmap authorization
+              is configured, the PDP first checks if the
+          caller's DN is in the ACL.  If so, it returns
+          <constant>PERMIT</constant> to the container and the PDP is done.
+          </listitem>
+          <listitem>
+              If VOMS support is configured, the PDP calls the VOMS PIP
+              and PDP.  If a PERMIT is returned, the overall decision is
+              PERMIT and the PDP is done.
+          </listitem>
+          <listitem>The cache flag is checked.
+          If the cache flag is set to <constant>TRUE</constant> (the default is
+          <constant>FALSE</constant>), assertions previously obtained about the
+          caller are consulted.</listitem>
+          <listitem>If there are previously obtained assertions, a validity
+          check is made on all assertions.  If <emphasis>any single
+          one</emphasis> is invalid, they are all discarded.</listitem>
+          <listitem>If they were not discarded (all are valid), use these
+          attributes instead of calling the PIP.</listitem>
+          <listitem>If calling the PIP, do it now.  If successful and valid
+          assertions come back, parse out the attributes.</listitem>
+          <listitem>Call the SAMLMapPIP as above. It will try to map whatever
+          attributes are present (whether they came from the attribute cache
+          or from a fresh query).</listitem>
+          <listitem>Compare the valid attributes to the attribute ACL and return
+          <constant>PERMIT</constant> or <constant>DENY</constant> accordingly,
+          as outlined in <xref linkend="attr-acl-file-semantics"/>.</listitem>
+        </orderedlist>
+      </para>
+      <para>
+          Missing from the steps above is the optimization that is
+          possible outlined here: <xref linkend="metadata-attr-optimization"/>
+          (that is OFF by default).
+      </para>
+    </section>
+        
+        
+    <!-- Added explicit xreflabel so that it looks better in the small
+    table of contents at the beginning of the entire section -->
+    <section id="attr-validity" xreflabel="Attribute validity">
+      <title>Attribute validity</title>
+      <para>An attribute is considered 	&quot;valid&quot; if the SAML assertion
+      the attribute was obtained from is considered &quot;accepted.&quot; If the
+      query results in a response
+      containing assertions, the assertion must be from the expected issuer and
+      for the expected audience.</para>
+      <para>Also, the time conditions of the SAML assertion are respected.  If
+      caching, the time conditions of the assertion in which the attribute was
+      delivered are stored with each attribute.  If the cache is consulted and
+      the time range does not include the current time anymore, the attribute is
+      considered invalid.</para>
+      <para>See the <xref linkend="gt4-config-caching"/> section and the
+      with-caching <link linkend="authorization-algorithm-caching">authorization
+      algorithm section</link> for details on caching.
+      </para>
+    </section>
+    
+    <!-- Added explicit xreflabel so that it looks better in the small
+    table of contents at the beginning of the entire section -->
+    <section id="attr-acl-file-semantics" xreflabel="Simple attribute ACL authorization semantics">
+      <title>Simple attribute ACL authorization semantics</title>
+      <para>The file pointed to by the <xref linkend="authzAttrFile"/> WSDD
+      parameter contains a list of SAML attributes that direct a
+      <constant>PERMIT</constant> decision if the caller's identity has one of
+      the attributes associated with it.</para>
+      <para>For example, if we:
+        <itemizedlist>
+          <listitem>include <constant>eduPersonAffiliation:member</constant>
+          in this policy file (see the
+              <link linkend="attr-acl-example">example</link> in the
+          syntax section below)</listitem>,
+          <listitem>and the client invokes an operation configured with
+          Shibboleth based authorization</listitem>,
+          <listitem>and the attribute query to the Shibboleth AA results in
+          an assertion with this attribute</listitem>,
+        </itemizedlist>
+        then the client is allowed to invoke the operation.</para>
+      <!-- TODO: include link to XACML policies -->
+      
+      <para>There are several things to note about how the attributes in the
+      ACL are matched to attributes coming over the wire from the AA:
+      <orderedlist>
+      
+        <listitem id="attr-acl-normalization">
+        
+          <simpara>The attributes returned from the Shibboleth AA are not
+          regular SAML attributes, the 
+          <constant>urn:mace:shibboleth:1.0</constant> namespace is used for the 
+          <constant>&lt;AttributeValueType&gt;</constant> element instead of the
+          normal SAML namespace 
+          <constant>urn:oasis:names:tc:SAML:1.0:assertion</constant>.
+          </simpara>
+          
+          <simpara>In the authorization module, the received attributes are
+          normalized to the SAML assertion namespace for user convenience.  The
+          policy looks nicer and the Shibboleth developers are moving towards
+          removing the Shibboleth namespace, so this ensures forward 
+          compatibility of the policy file.</simpara>
+          
+          <simpara>In the next example, the first attribute is equivalent to
+          the second attribute for authorization purposes:
+          <screen id="attr-acl-example">&lt;!-- xmlns="urn:oasis:names:tc:SAML:1.0:assertion" --&gt;
+
+&lt;!-- This can be in the policy: --&gt;
+
+&lt;Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+          AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+    &lt;AttributeValue&gt;member&lt;/AttributeValue&gt;
+&lt;/Attribute&gt;
+
+&lt;!-- And will match this from the request/response: --&gt;
+
+&lt;Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonPrincipalName"
+      AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"
+      xmlns:typens="urn:mace:shibboleth:1.0"&gt;
+    &lt;AttributeValue xsi:type="typens:AttributeValueType"&gt;member&lt;/AttributeValue&gt;
+&lt;/Attribute&gt;</screen>
+          </simpara>
+        </listitem>
+        
+        <listitem id="attr-acl-mutltiple-attributes">
+        <simpara>Multi-valued attributes in the policy do not signal that the
+        attribute from the AA must have each value, only that one must be
+        present.</simpara>
+        <simpara>Consider the 
+        <link linkend="attr-acl-file-example-multi">multi-valued policy
+        entry</link> example in the syntax section below, if an attribute from
+        the AA was <constant>eduPersonAffiliation:faculty</constant> only, the
+        authorization decision would return a <constant>PERMIT</constant>
+        decision.  A logical OR is performed: even though both
+        <constant>eduPersonAffiliation:faculty</constant> and
+        <constant>eduPersonAffiliation:employee</constant> are in the policy, a
+        <constant>eduPersonAffiliation:faculty</constant> attribute from the AA
+        is sufficient to authorize the operation</simpara>
+        <simpara>Likewise for the reverse case.  If a multi-valued attribute is
+        returned from the Shibboleth AA, only one of the values needs to match
+        an entry in the policy in order for authorization to evalute to
+        <constant>PERMIT</constant>.</simpara>
+        </listitem>
+        
+        <listitem id="attr-acl-string">
+        <simpara>Currently only <constant>xsd:string</constant> is supported
+        for the content of an <constant>&lt;AttributeValue&gt;</constant>
+        element.</simpara>        
+        </listitem>
+        
+      </orderedlist>
+      </para>
+      
+      
+    </section>
+  
+    <!-- Added explicit xreflabel so that it looks better in the small
+    table of contents at the beginning of the entire section -->
+    <section id="attr-acl-file-syntax" xreflabel="Simple attribute ACL policy syntax">
+      <title>Simple attribute ACL policy syntax</title>
+
+      <para>The attribute policy must conform to the simple policy schema, found
+      here in the source tree (element: AttributePolicy):
+      <filename>interceptors/java/source/policy/compact/gridshib_policy/gridshib_policy_port_type.wsdl</filename>
+      </para>
+      <para>The form is a list of entries:
+      <screen>&lt;AttributePolicy&gt;
+  [&lt;entry&gt; 0 -&gt; unbounded ]
+     &lt;listOfAttributes&gt; 1 -&gt; unbounded
+        &lt;saml:Attribute&gt; 1 -&gt; unbounded
+     [&lt;listOfUsernames&gt; 0 -&gt; unbounded ]
+        [&lt;username&gt; 0 -&gt; unbounded ]
+  [&lt;/entry&gt;]
+&lt;/AttributePolicy&gt;</screen>
+      </para>
+      <para>The outer element <constant>&lt;AttributePolicy&gt;</constant>
+          and its entry format is in
+      a custom namespace, the attributes contained in
+          <constant>&lt;listOfAttributes&gt;</constant> are
+          SAML
+      <constant>&lt;Attribute&gt;</constant> elements.  The schemas
+      used in Shibboleth slightly alter the SAML attribute definition -- this
+      policy does NOT use attributes with that altered namespace, it uses
+      regular SAML attributes.</para>
+      
+      <para id="attr-acl-file-examples">
+        <emphasis>Examples:</emphasis>
+        <orderedlist>
+          <listitem id="attr-acl-file-example-one-attribute">This example shows
+          a policy with one valid attribute, any client without this attribute
+          will be denied (unless DN based authorization is being used).
+        <screen>&lt;AttributePolicy
+    xmlns="http://gridshib.globus.org/namespaces/2005/08/policy"
+    xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion"&gt;
+    &lt;entry&gt;
+      &lt;listOfAttributes&gt;
+        &lt;saml:Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+                  AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+            &lt;saml:AttributeValue&gt;member&lt;/saml:AttributeValue&gt;
+        &lt;/saml:Attribute&gt;
+      &lt;/listOfAttributes&gt;
+    &lt;/entry&gt;
+&lt;/AttributePolicy&gt;</screen>
+          </listitem>
+          
+          <listitem id="attr-acl-file-example-multi">An attribute with multiple
+          values can be entered in the policy, see 
+          <link linkend="attr-acl-mutltiple-attributes">this explanation</link>
+          for how this is treated in the authorization processing.
+      <screen>&lt;AttributePolicy
+    xmlns="http://gridshib.globus.org/namespaces/2005/08/policy"
+    xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion"&gt;
+    &lt;entry&gt;
+      &lt;listOfAttributes&gt;
+        &lt;saml:Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+                  AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+            &lt;saml:AttributeValue&gt;faculty&lt;/saml:AttributeValue&gt;
+            &lt;saml:AttributeValue&gt;employee&lt;/saml:AttributeValue&gt;
+        &lt;/saml:Attribute&gt;
+      &lt;/listOfAttributes&gt;
+    &lt;/entry&gt;
+&lt;/AttributePolicy&gt;</screen>
+          </listitem>
+          
+          <listitem id="attr-acl-file-example-empty-policy"><para>To signal an 
+          empty policy, you may not erase all information in the file, you must 
+          use an empty list. Otherwise, a parsing exception will be thrown --
+          while this results in a <constant>DENY</constant> decision anyhow,
+          there is a slight difference: because the parsing exception is
+          triggereds <emphasis>before</emphasis> a DN ACL check, if you have an
+          empty file you can not use DN based authorization.  If this file is
+          empty (or missing or unreadable), the authorization decisions will be
+          <constant>DENY</constant> no matter what.  Instead, use an empty list.
+          </para>
+          <para>Example:
+        <screen>&lt;AttributePolicy
+    xmlns="http://gridshib.globus.org/namespaces/2005/08/policy"
+    xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion"&gt;
+&lt;/AttributePolicy&gt;</screen>
+          </para>
+          <para>Of course, this is an odd configuration: if you want identity
+          based authorization only, gridmap authorization is
+          recommended instead.  This would only be for temporary attribute based 
+          authorization disabling.</para>
+          </listitem>
+        </orderedlist>
+      </para> <!-- end attribute file syntax example list -->
+    </section>
+
+    <section id="username-mappings" xreflabel="Username mappings">
+      <title>Username mappings</title>
+      <para>
+         A list of attributes can have system accounts associated with it
+         that will allow clients bearing the attributes access to the
+         accounts, just like a grid-mapfile can map DNs to system accounts.
+      </para>
+      <para>
+         If the <constant>&lt;listOfUsernames&gt;</constant> element is
+         present, the SAMLMapPIP will add the usernames to the client's
+         information for the life of the operation invocation.
+      </para>
+      <para>
+          Example:
+          <screen>&lt;AttributePolicy
+    xmlns="http://gridshib.globus.org/namespaces/2005/08/policy"
+    xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion"&gt;
+    &lt;entry&gt;
+      &lt;listOfAttributes&gt;
+        &lt;saml:Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+                  AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+            &lt;saml:AttributeValue&gt;faculty&lt;/saml:AttributeValue&gt;
+        &lt;/saml:Attribute&gt;
+      &lt;/listOfAttributes&gt;
+      &lt;listOfUsernames&gt;
+        &lt;username&gt;manager&lt;/username&gt;
+      &lt;/listOfUsernames&gt;
+    &lt;/entry&gt;
+    &lt;entry&gt;
+      &lt;listOfAttributes&gt;
+        &lt;saml:Attribute AttributeName="urn:mace:dir:attribute-def:eduPersonAffiliation"
+                  AttributeNamespace="urn:mace:shibboleth:1.0:attributeNamespace:uri"&gt;
+            &lt;saml:AttributeValue&gt;member&lt;/saml:AttributeValue&gt;
+        &lt;/saml:Attribute&gt;
+      &lt;/listOfAttributes&gt;
+      &lt;listOfUsernames&gt;
+          &lt;username&gt;john&lt;/username&gt;
+          &lt;username&gt;lily&lt;/username&gt;
+      &lt;/listOfUsernames&gt;
+    &lt;/entry&gt;
+&lt;/AttributePolicy&gt;</screen>
+      </para>
+      <para>
+          <emphasis>NOTE</emphasis>: An attribute may map to multiple usernames
+          (as seen in the second example above), multiple attributes may
+          map to multiple usernames, or one attribute may map to one username
+          only (as seen in the first example above).  As with the grid-mapfile,
+          if multiple usernames are present a service such as GRAM can decide
+          for itself
+          which is appropriate (in GRAM's case, this is accomplished by the
+          client supplied &lt;localUserId&gt; RSL element present in the
+          <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/execution/wsgram/schemas/gram_job_description.html#element_job">&lt;job&gt;
+          RSL element</ulink>).
+      </para>
+      <para>
+         The username mappings are retrieved by a service using the same exact code that the
+         gridmap aware service should:
+         <screen>String[] usernames = SecurityManager.getManager().getLocalUsernames();</screen>
+         Thus, this can be used to replace the grid-mapfile's username
+         mapping aspect.
+      </para>
+      <para>
+          The SAMLMapPIP uses the ACL file set by the
+          <xref linkend="authzAttrFile"/> configuration.
+          But if the optional <xref linkend="authzMapFile"/> configuration is
+          present, it will use that instead.  Thus username mapping
+          information can be separated from authorization policy if you so
+          desire.  It also allows the SAMLMapPIP to be used on its in
+          conjunction with other PDP implementations.
+      </para>
+      <para>
+          If the optional <xref linkend="authzMap"/> configuration is present,
+          the ShibbolethPDP will require that the caller has at least
+          one username mapping in order for authorization to succeed.
+      </para>
+      <para>
+          <emphasis>NOTE</emphasis>: If using username mappings with GRAM, you
+          must make sure the sudoers policy is correct.  The typical GRAM
+          entry in the sudoers policy looks like so:
+          <screen>globus ALL=(billy) NOPASSWD: /globuslocation/libexec/globus-gridmap-and-execute -g /etc/grid-security/grid-mapfile /globuslocation/libexec/globus-job-manager-script.pl *</screen>
+
+          The call to "globus-gridmap-and-execute -g /path/to/grid-mapfile"
+          should be removed from the line (or a separate copy of the line
+          added that excludes this).  When GRAM detects that gridmap
+          authorization is not being used it omits these arguments.  Thus,
+          the original sudo policy would fail unless the arguments were
+          removed.  This is a working entry:
+          <screen>globus ALL=(billy) NOPASSWD: /globuslocation/libexec/globus-job-manager-script.pl *</screen>
+      </para>
+      <para>
+          For more information about GRAM and sudo, see the
+          <ulink url="http://www.globus.org/toolkit/docs/4.0/execution/wsgram/admin-index.html#s-wsgram-admin-configsudo">Configuring Sudo</ulink>
+          section of the GRAM documentation.
+      </para>
+    </section>
+  </section>
+  </section>
+
+      
+
+</section>
+<section id="deploying-gridshib">
+  <title>Deploying</title>
+  <para>Other than steps described in the above 
+  <link linkend="installing-gridshib">installation</link> and 
+  <link linkend="configuring-gridshib">configuration</link> guides,
+  the following are needed to deploy a GridShib enabled
+  service.</para>
+  <section id="shibCreds">
+    <title>Obtaining credentials for the GridShib service</title>
+    <para>The protected service can run with its own service
+    specific credentials. Instructions for obtaining service
+    credentials may be found 
+    <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/admin/docbook/ch05.html#id2836706">here</ulink>. If the
+    PIP is configured to contact an AA over SSL, this credential will be
+    used for the SSL handshake. If a service's security descriptor
+    does not list a credential to use, the container's will be used
+    instead.</para>
+    <para>Instructions for obtaining and configuring certificates
+    can be found 
+    <ulink url="http://www.globus.org/toolkit/docs/4.0/admin/docbook/ch06.html#s-basic-host">
+    here</ulink>. Also, see the GT4 
+    <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/security/">
+    security</ulink> section for more information.</para>
+    <para>For information on using SAML2 metadata to configure GridShib for
+          GT with AA information (including automatically configuring trusted
+          certificates), see <xref linkend="gt4-config-metadata"/>.</para>
+  </section>
+
+</section>
+<section id="testing-gridshib">
+  <title>Testing</title>
+  <para>There are two types of tests.
+    <orderedlist>
+      <listitem>
+          <simpara><xref linkend="shib-manual-tests-realAA"/></simpara>
+          <simpara>Manual tests of service level and container level
+      Shibboleth attribute based authorization with your own certificates and
+      an already setup Shibboleth attribute authority (AA) with GridShib name
+      mapping plugin. The instructions will take you through installing and
+      using the echo service and client supplied in the tests package.</simpara>
+
+      </listitem>
+      <listitem>
+          <simpara><xref linkend="shib-unit-tests"/></simpara>
+          <simpara>Automatic unit tests that can be run on any GT4 Java
+      core installation with valid certificates (it does not require a
+      Shibboleth AA; instead, a test AA is automatically deployed in the
+      container itself). Unit tests are typically for developer use.
+      </simpara>
+
+      </listitem>
+    </orderedlist>
+  </para>
+
+  <!-- Installing tests -->
+    <!-- adding explicit xreflabel to make the section's header paragraph
+         look better -->
+  <section id="shib-install-tests" xreflabel="Installing the testing packages">
+    <title>Installing the testing packages</title>
+    <para>
+        You can either install an echo service GAR file or install from the
+        source to install the unit test and/or echo packages.
+    </para>
+    <section id="shib-install-tests-binary">
+        <title>Binary installation of the echo service</title>
+        <orderedlist>
+          <listitem>
+            <para>Download the most recent echo service
+              <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/common/javawscore/developer-index.html#s-javawscore-developer-deploying">GAR</ulink>
+               file from the
+                <ulink url="http://gridshib.globus.org/download.html">download
+                page</ulink>.</para>
+          </listitem>
+          <listitem>
+            <para>Set the <constant>GLOBUS_LOCATION</constant> environment
+            variable as your environment requires (bourne shell shown):
+            <screen>export GLOBUS_LOCATION=/path/to/globus</screen></para>
+          </listitem>
+          <listitem>
+            <para>Deploy the
+                <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/common/javawscore/developer-index.html#s-javawscore-developer-deploying">GAR</ulink>
+            file:
+            <screen>cd $GLOBUS_LOCATION
+./bin/globus-deploy-gar gridshib-gt-echo-0_5_2.gar</screen>
+            Detailed instructions are available for
+            <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/common/javawscore/rn01re17.html">globus-deploy-gar</ulink>
+                and <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/common/javawscore/rn01re18.html">globus-undeploy-gar</ulink>
+            </para>
+          </listitem>
+      </orderedlist>
+    </section>
+    <section id="shib-install-tests-source">
+        <title>Source installation</title>
+        <orderedlist>
+          <listitem><para>Obtain the source tree and install the authorization
+           module with <emphasis>ant deploy</emphasis> (as outlined in
+            <xref linkend="installing-gt4-authz-source" />).</para>
+          </listitem>
+          <listitem><para>Set the <constant>GLOBUS_LOCATION</constant> environment
+            variable as your environment requires (bourne shell shown):
+            <screen>export GLOBUS_LOCATION=/path/to/globus</screen></para>
+          </listitem>
+          <listitem><para>To install the echo service, use the top level build
+          file:
+           <screen>cd gridshib-gt-source
+ant deploy-echoservice</screen>
+          </para></listitem>
+          <listitem><para>To install the unit tests, use the top level build
+          file:
+           <screen>cd gridshib-gt-source
+ant deploy-tests</screen>
+          </para></listitem>
+        </orderedlist>
+    </section>
+  </section>
+  <!-- Manual tests -->
+
+    <!--
+  <section id="shib-manual-tests">
+    <title>Manually testing a GridShib installation</title>
+    <para>
+        <xref linkend="shib-manual-tests-realAA"/>
+    </para>
+
+      This guide will take you through step by step in setting up a testing
+      environment, with instructions for setting up a demo AA and testing
+      against that or testing against a pre-existing AA. Some steps are
+      duplicated in the two sections, to maintain them as separate guides.
+      <itemizedlist>
+        <listitem><xref linkend="shib-manual-tests-demoAA"/></listitem>
+        <listitem><xref linkend="shib-manual-tests-realAA"/></listitem>
+      </itemizedlist>
+    </para> -->
+
+    <!-- adding explicit xreflabel to make the section's header paragraph
+         look better -->
+    <!--
+    <section id="shib-manual-tests-demoAA" xreflabel="Setting up a localhost, demo Shibboleth AA and testing the installation">
+      <title>Setting up a localhost, demo Shibboleth AA and testing the
+      installation</title>
+      <orderedlist>
+        <listitem>
+          <simpara>[TODO]</simpara>
+        </listitem>
+      </orderedlist>
+    </section>
+    -->
+    <!-- adding explicit xreflabel to make the section's header paragraph
+         look better -->
+    <section id="shib-manual-tests-realAA" xreflabel="Testing the installation with an existing Shibboleth AA using the EchoService">
+      <title>Testing the installation with an existing Shibboleth AA using
+      the EchoService</title>
+      <para>This guide will take you step by step through setting up a testing
+      environment for the GT GridShib authorization installation, assuming a
+      Shibboleth IdP with GridShib name mapping plugin is available.</para>
+      <para>The echo service is a grid service with one operation called "echo".
+      Authorization for this operation is configured to use the GridShib GT
+      plugin. When the echo client makes a call to this operation, a SAML
+      attribute request about the caller is made to the IdP.  The attributes
+      are returned and an authorization decision is made.  If the decision is
+      PERMIT, the client will receive back a printout about what attributes were
+      found.  If something is not working as expected, the echo client will
+      be DENIED authorization for the echo operation and not print out any
+      attributes.  If that happens, the instructions below will guide you
+      through a few troubleshooting steps.
+      </para>
+      <section id="shib-manual-tests-realAA-run"
+          xreflabel="Running the ShibEchoService client">
+          <title>Running the ShibEchoService client</title>
+      <orderedlist>
+        <listitem>
+          <para>Add your DN to the IdP namemapper plugin's gridmap.txt file.
+          This step will be handled by someone else for your test configuration,
+          or refer to the IdP GridShib name mapping plugin's documentation to
+          learn what file to edit if you have access to the Shibboleth IdP you
+          are using for this test.  The DN in that gridmap.txt file is not the
+          normal Globus style DN.  To determine exactly what to send to the
+          administrator that manages identites at the IdP you are testing with,
+          you can run the rfc2253dn program.
+          See <xref linkend="gt4-config-x500dn"/>
+          </para>
+        </listitem>
+        <listitem>
+          <para>Make sure both the authorization module and testing
+          packages are installed, see <xref linkend="shib-install-tests"/>.</para>
+        </listitem>
+        <listitem>
+          <para>The testing package installation installs a program, verify
+            it is there: <filename>$GLOBUS_LOCATION/bin/shibecho</filename>
+            </para>
+        </listitem>
+        <listitem>
+          <para>The testing package installation installs a service, after
+          booting the container, it should be listed:
+          <screen>https://127.0.0.1:8443/wsrf/services/ShibEchoService</screen>
+          </para>
+          <para>Note the exact URL that is printed, you will need it later
+          (preferably cut and paste it so that you know it is the same).</para>
+        </listitem>
+        <listitem>
+          <simpara>Once you've verified these are there, examine the
+          ShibEchoService's web services deployment descriptor (WSDD) to view
+          the default demo configurations.  The descriptor is located at
+          <filename>$GLOBUS_LOCATION/etc/gridshib-gt-echo-0_5_2/server-config.wsdd</filename>
+          </simpara>
+          <simpara>NOTE: if you are using GridShib with the Globus Toolkit 4.1
+          release or higher, these configurations will be in the security
+          descriptor, not the server-config.wsdd</simpara>
+          <para>
+              <important>
+                  Note that the trusted authentication authorities configuration must be
+                  an absolute path and this is not configured by default for you.   See <xref
+	    linkend="trusted-authn-authorities-file"/> for details.  Alternatively, you can disable
+                  the SAMLAuthnPIP in the security descriptor for your initial tests.
+              </important>
+          </para>
+          <para>Examine the "ShibEchoService" section.  Above each of the
+          relevant parameters are comments that go into detail about each
+          parameter.  Also, further information is provided in the
+          <xref linkend="gt4-config"/> section.
+          </para>
+          <simpara>At the very least you will need to think about the AAUrl
+          configuration.  If you've set up a localhost demo IdP, you will need
+          to adjust the hosts file to resolve idp.example.org to
+          127.0.0.1.  Otherwise, if you are not involved in setting up the IdP,
+          the URL will be provided to you by an administrator or federation.
+          </simpara>
+        </listitem>
+        <listitem>
+          <para>If you changed anything in the WSDD, you need to restart the
+          container.  Also, if you want to see more information server-side,
+          follow the directions
+          <link linkend="troubleshooting-gridshib">below</link> for enabling
+          DEBUG output and restart the container for the change to take effect.
+          </para>
+        </listitem>
+        <listitem>
+          <para>Now, with the container running, in another shell, make a call
+          to the ShibEchoService. Replace the URL below with the exact URL
+          output by the container when you tested for the presence of
+          ShibEchoService.
+          <screen>cd $GLOBUS_LOCATION
+source etc/globus-devel-env.sh
+grid-proxy-init
+./bin/shibecho -s https://127.0.0.1:8443/wsrf/services/ShibEchoService</screen>
+          </para>
+        </listitem>
+        <listitem>
+          <para>If everything went well, you will get a printout about what
+          attributes the authorization module connects with your DN.
+          <screen>---------
+Response:
+---------
+
+SAMLAttribute
+{
+ name='urn:mace:dir:attribute-def:eduPersonAffiliation'
+ namespace='urn:mace:shibboleth:1.0:attributeNamespace:uri'
+ value #1 ='member'
+ notBefore='2005-07-28T01:58:31Z'
+ notOnOrAfter='2005-07-28T02:28:31Z'
+}</screen>
+          If you received an authorization DENIED error (or experienced any
+          other error), see
+          <link linkend="shib-manual-tests-realAA-trouble">below</link>.
+          </para>
+        </listitem>
+      </orderedlist>
+      </section>
+
+      <section id="shib-manual-tests-realAA-trouble"
+          xreflabel="Troubleshooting the ShibEchoService client">
+          <title>Troubleshooting the ShibEchoService client</title>
+          <para>There are many possible things that could be wrong if you did
+          not get a list of attributes back from the ShibEchoService client.
+          </para>
+
+          <section id="shib-manual-tests-realAA-trouble-defectivecred"
+          xreflabel="Defective credential errors">
+          <title>Defective credential errors</title>
+            <para>You may have received this a "defective credential" error.
+            For example:</para>
+            <screen>
+Error: ; nested exception is:
+GSSException: Defective credential detected [Caused by: Proxy file
+(/tmp/x509up_u1000) not found.]</screen>
+            <para>In this case, the defective credential error is that your
+            proxy certificate is not found in the first place: you need to run
+            grid-proxy-init.
+            Documentation for grid-proxy-init can be found
+            <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/security/prewsaa/Pre_WS_AA_Interface_Commandline_Frag.html">here</ulink>
+            or run: <screen>
+cd $GLOBUS_LOCATION
+source etc/globus-devel-env.sh
+grid-proxy-init -help</screen>
+            If you do not know what a proxy certificate is, consult the GT4
+            security documentation
+            <ulink url="http://www-unix.globus.org/toolkit/docs/4.0/security/key/">key
+            concepts section</ulink>.
+            </para>
+            <para>For other types of defective credential errors, see the general
+            <link linkend="troubleshooting-gridshib">troubleshooting
+            section</link>.</para>
+          </section>
+
+          <section id="shib-manual-tests-realAA-trouble-connectrefused-client"
+                xreflabel="Connection refused, client side">
+            <title>Connection refused, client side</title>
+              <para>If the client-side reports connection refused, for example:
+              <screen>./bin/shibecho -s https://127.0.0.1:8443/wsrf/services/ShibEchoService
+Error: ; nested exception is:
+        java.net.ConnectException: Connection refused</screen>
+              </para>
+              ... then you have the wrong URL after the -s argument or the
+              container is not started.  To ensure it is the correct
+              URL, cut and paste the ShibEchoService URL from the container
+              startup message. If that does not work, it may be a DNS
+              (or hosts file) problem.
+            </section>
+
+          <section id="shib-manual-tests-realAA-trouble-authzdenied"
+                xreflabel="Authorization denied">
+            <title>Authorization denied</title>
+              <para>If you did not receive a credential or connection refused
+              error, you probably received an authorization denied error.</para>
+              <important>If you are receiving an authorization denied error,
+              there are different things that could be wrong with your
+              configuration, but all specific information is kept server-side
+              (for security reasons): the client only sees an authorization
+              denial.</important>
+              <para>The first thing to do is make sure you have DEBUG output
+              for the authorization module enabled.  See the instructions
+              <link linkend="troubleshooting-gridshib">below</link>.</para>
+          </section>
+
+          <section id="shib-manual-tests-realAA-trouble-connectrefused-server"
+                xreflabel="Connection refused, server side">
+            <title>Connection refused, server side</title>
+              <para>If the container log's ERROR output notes a connection
+              refused error:
+              <screen>
+ERROR authorization.ShibbolethPDP [ServiceThread-3,callPIP:555] error calling
+PIP: Error contacting configured attribute authority
+"https://idp.example.org:8443/shibboleth-idp/AA" [Caused by: ; nested
+exception is:         java.net.ConnectException: Connection refused]</screen>
+                  ... then the Shibboleth AA endpoint is not valid.  This could
+              be a DNS problem or it could be that the IdP is just not up.  More
+              can be determined by typical means (for example, telnet). See above
+              for the location of the ShibEchoService WSDD file which contains
+              the AAUrl setting: <xref linkend="shib-manual-tests-realAA-run"/>.
+              </para>
+            </section>
+
+            <section id="shib-manual-tests-realAA-trouble-404"
+                xreflabel="404">
+                <title>404</title>
+                <para>If the container log's ERROR output notes a 404 error:
+                <screen>error calling PIP: Error contacting configured attribute
+authority "https://idp.example.org:8443/shibboleth-idp/AA" [Caused by:
+(404)/shibboleth/AA]</screen>
+                ... then the Shibboleth AA endpoint is not valid.  This means
+                some server is running at this endpoint, but that the Shibboleth
+                IdP is not installed.  The endpoint is configured
+                in the AAUrl WSDD parameter of the echo service. See above for the
+                location of the ShibEchoService WSDD file:
+                <xref linkend="shib-manual-tests-realAA-run"/>.</para>
+          <simpara>NOTE: if you are using GridShib with the Globus Toolkit 4.1
+          release or higher, this configuration will be in the security
+          descriptor, not the server-config.wsdd</simpara>
+            </section>
+
+            <section id="shib-manual-tests-realAA-trouble-invalidid"
+                xreflabel="Invalid identity">
+            <title>Invalid identity</title>
+              <para>If the DN is not a valid identity at the IdP, the container
+              will log this INFO level message:
+              <screen>INFO  authorization.ShibbolethPIP [ServiceThread-3,collectAttributes:409]
+Received response from Attribute Authority:
+The supplied Subject was unrecognized.</screen>
+              To remedy this situation, the IdP needs to be populated with the
+              caller's DN, which can be found in the DEBUG output:
+              <screen>DEBUG authorization.ShibbolethPIP [ServiceThread-3,getX509Subject:875] x500
+subjectName: cn=timothy freeman 964650,ou=people,dc=doegrids,dc=org</screen>
+              It can also be found by running the rfc2253dn program (see
+                  <xref linkend="gt4-config-x500dn"/>).
+              </para>
+            </section>
+
+            <section id="shib-manual-tests-realAA-trouble-invalidacl"
+                    xreflabel="Invalid ACL">
+              <title>Invalid ACL</title>
+              <para>It's possible that the AA is returning an attribute about
+              the caller, but the attribute is not in the ACL.  The container's
+              DEBUG log output will show an attribute returned:
+              <screen>DEBUG authorization.ShibbolethPIP [ServiceThread-2,collectAttributes:571] found
+an attribute
+
+attribute name  = urn:mace:dir:attribute-def:eduPersonAffiliation
+attribute namespace  = urn:mace:shibboleth:1.0:attributeNamespace:uri
+
+
+DEBUG authorization.ShibbolethPIP [ServiceThread-2,collectAttributes:600]
+attribute value = member</screen>
+              ... but later will reveal that it is not in the authorization
+              policy (the attribute ACL):
+              <screen>DEBUG authorization.ShibbolethPDPUtil [ServiceThread-2,isAttributePermitted:176]
+found one caller attribute
+
+DEBUG authorization.ShibbolethPDPUtil [ServiceThread-2,isAttributePermitted:207]
+no attributes passed</screen>
+              </para>
+              <para>
+              To solve the problem, look at the attribute returned from the AA
+              and change the policy file to match.
+              </para>
+              <para>
+              <emphasis>Note:</emphasis> the attribute ACL file to edit will be
+              whatever the value of the ShibEchoService's WSDD parameter
+              "shibAuthzAttrFile" is.  By default this value resolves to
+              <filename>$GLOBUS_LOCATION/etc/gridshib-gt-echo-0_5_2/echo-service-security-descriptor.xml</filename>
+              </para>
+          <simpara>NOTE: if you are using GridShib with the Globus Toolkit 4.1
+          release or higher, this configuration will be in the security
+          descriptor, not the server-config.wsdd</simpara>
+              <para>Details on the ACL's contents can be found
+              <link linkend="attr-acl-file-semantics">here</link>.</para>
+            </section>
+      </section>
+
+    </section>
+
+  <!-- Unit tests -->
+      <!-- adding explicit xreflabel to make the section's header paragraph
+         look better -->
+  <section id="shib-unit-tests" xreflabel="Running the GridShib unit tests">
+    <title>Running the GridShib unit tests</title>
+      <para>To run the unit tests, you need to download the source tree or
+      check it out from CVS.  Both sets of instructions are available:
+      <xref linkend="installing-gt4-authz-source" />.  Using an installation of
+      the tests GAR file instead of the source tree is not supported.</para>
+      <orderedlist>
+        <listitem>
+          <para>After running 'ant deploy-tests' as outlined at
+          <xref linkend="shib-install-tests-source"/>, you need to start
+          the container at <filename>$GLOBUS_LOCATION</filename></para>
+        </listitem>
+        <listitem>
+          <para>If
+          <filename>https://localhost:8443/wsrf/services/...</filename> does not
+          correspond to the URLs advertised by the container at startup (it can
+          correspond either by extension if it gives an IP address or host
+          corresponding to localhost) you will need to override the testing URL.
+          A way to test for the correct URL is
+          to run the counter client or just try to run the tests and note any host
+          credential problems in the test ouput XML file.</para>
+          <para>If you want to override the URL, run the tests like so:
+          <screen>ant -Dtest.server.url=https://host:8443/wsrf/services/ test</screen></para>
+          <para><emphasis>Note:</emphasis> the tests will fail if you do not use https,
+          since one of the tests confirms that GridShib and transport security
+          work.</para>
+          <para><emphasis>Note:</emphasis> the URL does need to end with
+          "wsrf/services/" as in the example.  It is not supposed to be a
+          specific service endpoint, it is the "base" URL of the server.</para>
+        </listitem>
+        <listitem>
+          <para>To run the tests:
+          <screen>export GLOBUS_LOCATION=/path/to/globus
+grid-proxy-init
+cd gridshib-gt-source
+ant test</screen>
+          </para>
+        </listitem>
+        <listitem>
+            <!-- file name is split to keep rendered HTML under 1024 columns -->
+          <para>The results will print out.  To look at details of successes or
+           errors consult <filename>gridshib-gt-source/service/java/test/tests/test-reports/</filename>
+           <filename>TEST-org.globus.gridshib.gt.authorization.attributes.tests.ShibbolethTests.xml</filename>
+          </para>
+        </listitem>
+        <listitem>
+          <para>If you turn on DEBUG output on the container as outlined
+          <link linkend="troubleshooting-gridshib">below</link>, a lot of
+          information is also output via the container logging mechanism.</para>
+        </listitem>
+      </orderedlist>
+  </section>
+</section>
+
+
+<section id="security_considerations">
+  <title>Security Considerations</title>
+  &WS_AA_SHIB_Security_Considerations_Frag;
+</section>
+
+<section id="troubleshooting-gridshib">
+  <title>Troubleshooting</title>
+  <section>
+    <title>Troubleshooting GT4 GridShib related problems</title>
+    <section>
+        <title>Enabling DEBUG logging</title>
+    <para>The best way to begin troubleshooting is to enable the log4j DEBUG
+    output for the server-side GridShib libraries.</para>
+    <para>In your
+    <filename>$GLOBUS_LOCATION/container-log4j.properties</filename>, add
+    this line and then restart the container:
+    <screen>log4j.category.org.globus.gridshib=DEBUG</screen>
+    </para>
+    </section>
+
+    <section>
+        <title>
+java.lang.Exception: trusted authorities file is invalid</title>
+    <para>This error indicates you have deployed the gridshib plugin
+        successfully but did not replace "/GLOBUS_LOCATION" with the actual
+        absolute path to your GT installation.  For GT4.0.x installations,
+        this can be fixed by adding the absolute path to the
+        "trusted-authn-authorities-file" configuration of the relevant
+        service's deploy-server.wsdd file.  For GT4.1+ this can be fixed by
+        adding the absolute path to the "trusted-authn-authorities-file"
+        configuration of the relevant service's security descriptor file.
+    </para>
+        <para>
+            For exmaple, for the provided echo service, the relevant files are
+            <filename>$GLOBUS_LOCATION/etc/gridshib-gt-echo-0_5_2/server-config.wsdd</filename>
+            for GT4.0.x installations and
+            <filename>$GLOBUS_LOCATION/etc/gridshib-gt-echo-0_5_2/echo-service-security-descriptor.xml</filename>
+            for GT4.1+ installations.
+        </para>
+    </section>
+
+      <section>
+        <title>Exception in thread "main" java.lang.NoClassDefFoundError: org/apache/xerces/impl/xs/XSComplexTypeDecl</title>
+    <para>This error indicates you have undeployed the gridshib plugin from a
+        GT4.0.x installation and are now attempting to deploy it from source.
+        Running "ant deploy-oldlibs" fixes the problem.
+    </para>
+    </section>
+
+    <section>
+        <title>Failed to start container:  [Caused by: java.lang.reflect.InvocationTargetException]</title>
+        <para>
+            This error likely indicates that you are using the metadata
+            processing libraries without having updated the container with
+            the necessary dependencies for OpenSAML 1.1.  For GT4.0.x
+            installations, these jars are
+            supplied in the GridShib for GT GAR files and should
+            be installed automatically when you installed
+            <filename>gridshib-gt-[version].gar</filename>.
+        </para>
+    </section>
+
+    <section>
+        <title>For more information</title>
+        <para>
+            The <xref linkend="shib-manual-tests-realAA-trouble"/> section
+            has useful advice applicable to any service.
+        </para>
+        <para>
+            Also do not hesitate to post questions to the gridshib-beta
+            mailing list, see instructions for subscribing
+            <ulink url="http://gridshib.globus.org/support.html">here</ulink>.
+        </para>
+    </section>
+
+  </section>
+  &Credential_Troubleshooting_Frag;
+</section>
+
+<section id="gridshib-gt-changelog">
+    <title>Changelog</title>
+    <para>
+        0.5.2 introduced these changes vs. 0.5.1:
+        <itemizedlist>
+
+        <listitem>
+            Resolved GT4.0.4 compiling issue: added workaround discussed in
+            <ulink url="http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=5117">bug
+            5117</ulink> (see comment #7).
+        </listitem>
+
+        <listitem>
+            Enhanced build structure:
+            <ulink url="http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=5164">bug
+            5164</ulink> (see comment #12).
+        </listitem>
+
+        <listitem>
+            Resolved SAMLAuthnPIP issue, trusted authentication authorities
+            configuration was being lost:
+            <ulink url="http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=5177">bug
+            5177</ulink>.
+        </listitem>
+
+        <listitem>
+            Resolved SAML tools 0.1.3 compatibility issue:
+            <ulink url="http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=5181">bug
+            5181</ulink>.
+        </listitem>
+
+        </itemizedlist>
+
+    </para>
+    <para>
+        0.5.1 introduced these changes vs. 0.5.0:
+        <itemizedlist>
+
+        <listitem>
+            Added the optional ability to include VOMS authorization decisions
+            as part of the GridShib PDP's decision.  This is particularly
+            useful for GT4.0.x deployments that need to support both since
+            it provides an OR combination with SAML attribute based
+            authorization (vs. an AND combination which is all that GT4.0.x
+            security chains provide).  See the <xref linkend="VOMS" /> section.
+        </listitem>
+
+        <listitem>
+            The SAML Authentication Assertion PIP now accepts GSI2
+            impersonation proxies (it only had accepted GSI3 and GSI4 in the
+            past).
+        </listitem>
+        <listitem>
+            Any exception produced in the SAML Authentication Assertion PIP
+            (except for initialization exceptions) now does not halt the entire
+            authentication/authorization process for that operation.
+        </listitem>
+
+        </itemizedlist>
+
+    </para>
+    <para>
+        0.5 introduced these changes vs. 0.4.1:
+        <itemizedlist>
+        <listitem>
+            All of the functionality is now compatible with both GT4.0.x and
+            the new GT4.1 development release.  There were major changes in
+            the GT4.1 authorization infrastructure and the GridShib code has been
+            restructured to work for both the new and old GT authorization API by using small
+            wrappers specific to each.  When installing from source,
+            the correct wrapper is included by auto-sensing the Globus
+            installation being used.  When installing from binaries (GAR
+            files), you must use the appropriate, version specific GAR.
+        </listitem>
+        <listitem>
+            Matched xml dependency jars with GT4.1 and gt-opensaml.  When
+            installing on top of GT4.1+, there is no longer a library overwrite
+            of xalan.jar, xercesImpl.jar, and xml-apis.jar.
+        </listitem>
+        <listitem>
+            Replaced the DN access control list with gridmap authorization
+            (that will also map DNs to usernames for use by grid services
+            such as GRAM).  For 4.0.x, this behavior is activated with a new
+            configuration "consultDefaultGridmap".  For 4.1+, you can configure
+            the authorization chain to try gridmap authorization before the
+            gridshib PDP.  In both cases, as with the previous DN access
+            control functionality, a successful match will short-circuit the
+            authorization processing, bypassing attribute based authorization.
+        </listitem>
+        <listitem>
+            Resolved
+            <ulink url="http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=4582">bug 4582</ulink>,
+            the SAML authentication assertion PIP now only accepts bearer
+            confirmation method.
+        </listitem>
+        <listitem>
+            The SAML authentication assertion PIP requires the trusted
+            authorities file to be an absolute path.
+        </listitem>
+        <listitem>
+            All of the Java packages were migrated from
+            <filename>org.globus.wsrf.impl.security.authorization</filename>
+            to <filename>org.globus.gridshib.gt.authorization</filename>
+        </listitem>
+        <listitem>
+            Logging must now be configured with the
+            "log4j.category.org.globus.gridshib" prefix.  For example:
+            "log4j.category.org.globus.gridshib=INFO" and
+            "log4j.category.org.globus.gridshib=DEBUG".
+        </listitem>
+        <listitem>
+            Logging statements were enhanced throughout the code (especially
+            at the DEBUG level).
+        </listitem>
+        <listitem>
+            Resolved
+            <ulink url="http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=4681">bug 4681</ulink>,
+            the rfc2253dn utility program prints correct and more information.
+        </listitem>
+        <listitem>
+            For developers: because of the shift to gridmap authorization for
+            identity based authorization, the programmatic configuration of a
+            dynamically instantiated PDP instance (e.g., to protect a
+            particular WSRF resource instance with a particular policy) is now
+            different. Instead of configuring the DN policy via the
+            SHIB_PDP_POLICY_KEY object, use the DEFAULT_GRIDMAP key to pass
+            a GridMap object.
+        </listitem>
+
+        </itemizedlist>
+
+    </para>
+    <para>
+        0.4.1 introduced these changes vs. 0.4.0:
+        <itemizedlist>
+
+        <listitem>
+            Added the <xref linkend="SAML-authn-assertion-PIP"/> which can be
+            used with the <ulink url="http://gridshib.globus.org/download.html#authn-client">SAML
+            authentication assertion embedding tool</ulink> for IdP (and principal name) discovery.
+        </listitem>
+        
+        </itemizedlist>
+        
+    </para>
+    <para>
+        0.4.0 introduced these changes vs. 0.3.3:
+        <itemizedlist>
+
+        <listitem>
+            Enabled query PIP to use metadata for its AA configuration,
+            see <xref linkend="gt4-config-metadata"/>
+        </listitem>
+
+        <listitem>
+            Added metadata tool to translate metadata into trusted
+            certificate files (PEM), see <xref linkend="gt4-config-metadata"/>
+        </listitem>
+
+        <listitem>
+            To enable metadata parsing, we have added the metadata parsing
+            functionality found in Shibboleth 1.3c to OpenSAML 1.1 and are
+            using the resulting combination in a library named
+            <filename>globus-opensaml-1.1.jar</filename>.
+            For more information, see
+            <ulink url="http://viewcvs.globus.org/viewcvs.cgi/gridshib/common/saml/doc/README.txt">its
+            README file.</ulink>
+        </listitem>
+
+        <listitem>
+            New versions of xalan.jar, xercesImpl.jar, and xml-apis.jar are
+            needed to support <filename>globus-opensaml-1.1.jar</filename>.
+            Deploying gridshib-gt will update the current GT4.0.x jars. They
+            are backwards compatible to the libraries distributed with GT4.0.x.
+            See <link linkend="newjars-note">this paragraph</link> for more
+                information.
+        </listitem>
+
+        <listitem>
+            Resolved <ulink url="http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=3820">bug 3820</ulink>
+        </listitem>
+
+        <listitem>
+            Added new documentation section for the metadata enhancements and
+            added documentation for the SAMLMapPIP that can map attributes
+            to system accounts (see the <xref linkend="username-mappings"/>
+            section).
+        </listitem>
+
+        </itemizedlist>
+
+    </para>
+
+</section>
+
     <section id="gridshib-configuring-server-config">
       <title>GridShib Configuration Options</title>
       <para>
 	GridShib supports the following configuration options. These should appear as <varname>parameter</varname> elements for the <varname>interceptor</varname> element as shown in the following example. The Interceptor column shows what specific low-level interceptors utilize each configuration option; if you are using the high-level GridShibPDP option, you may safely ignore this column.
       </para>
+
       <para>
-	<informaltable id="gridshib-config-parameters">
-	  <tgroup cols="4">
-	    <thead>
-	      <row>
-		<entry>Parameter</entry>
-		<entry>Required</entry>
-		<entry>Used by</entry>
-		<entry>Explanation</entry>
-	      </row>
-	    </thead>
-	    <tbody>
-	      
-	      <row id="requireAttributeMapping" xreflabel="requireAttributeMapping">
-		<entry>requireAttributeMapping</entry>
-		<entry>No</entry>
-		<entry><para><simplelist>
-		  <member>GridShibPullPDPImpl</member>
-		  <member>GridShibPushPullPDPImpl</member>
-		</simplelist></para></entry>
-		<entry>
-		  <itemizedlist>
-		    <listitem><para> This triggers the PDP to require at
-		    least one username mapping for a successful
-		    authorization.  It is OFF by default.
-		    </para></listitem>
-		    <listitem><para>
-		      See the <xref linkend="requireAttributeMapping-example"/>.
-		    </para></listitem>
-		    <listitem><para>
-		      For more information about username mapping, see:
-		      <xref linkend="username-mappings"/>
-		    </para></listitem>
-		  </itemizedlist>
-		</entry>
-	      </row>
-	    </tbody>
-      </tgroup>
-    </informaltable>
-  </para>
-    
-  <para>
 	<informaltable>
 	  <tgroup cols="2">
 	    <thead>
