@@ -8,7 +8,6 @@
       GridShib provides the <varname>GridShibPDP</varname> interceptor, and configuring GridShib involves placing this PDP into the authorization interceptor chain of the container or service you wish to protect. For details of configuring security interceptors, see the <olink targetdoc="wsaajava" targetptr="wsaajava-secdesc">Java WS Security Descriptor Framework documentation</olink>, specifically the <olink targetdoc="wsaajava" targetptr="wsaajava-secdesc-configAuthz">Configuring authorization mechanisms section</olink>.
     </para>
 
-
     <section id="gridshib-configuring-server-config">
       <title>GridShib Configuration Options</title>
       <para>
@@ -143,6 +142,24 @@
 		  </simplelist></para></entry>
 	      </row>
 
+	      <row id="consultDefaultGridmap">
+		<entry>consultDefaultGridmap</entry>
+		<entry>No</entry>
+		<entry>Setting this to <literal>true</literal> directs
+		the PDP to use the default grid-mapfile for identity
+		based authorization. If the caller's DN is in this
+		file, the authorization module stops processing and
+		returns a <literal>PERMIT</literal> decision. No
+		attributes are collected, which saves time.</entry>
+		<entry>
+		  <para><simplelist>
+		    <member>BasePDP</member>
+		    <member>GridShibPushPDPImpl</member>
+		    <member>GridShibPullPDPImpl</member>
+		    </simplelist></para>
+		</entry>
+	      </row>
+
 	    </tbody>
 	  </tgroup>
 	</informaltable>
@@ -152,50 +169,50 @@
 	<example>
 	  <title>Example GridShib Container Configuration (XXX This needs to be verified)</title>
 	  <screen>
-	    <![CDATA[
-		     <containerSecurityConfig xmlns="http://www.globus.org/security/descriptor/container" 
-		     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-		     xsi:schemaLocation="http://www.globus.org/security/descriptor 
-		     name_value_type.xsd"
-		     xmlns:param="http://www.globus.org/security/descriptor">
-		     <authzChain>
-		     <pdps>
-		     <interceptor name="gridshib:org.globus.gridshib.GridShibPDP">
-		     <parameter>
-		     <param:nameValueParam>
-		     <param:parameter name="metadataPath" 
-		     value="/etc/grid-security/metadata"/>
-		     </param:nameValueParam>
-		     </parameter>
-		     <parameter>
-		     <param:nameValueParam>
-		     <param:parameter name="enableBlacklisting"
-		     value="true"/>
-		     </param:nameValueParam>
-		     </parameter>
-		     <parameter>
-		     <param:nameValueParam>
-		     <param:parameter name="blacklistIPAddressesFile"
-		     value="/etc/grid-security/blacklists/blacklist-ip-addresses.txt"/>
-		     </param:nameValueParam>
-		     </parameter>
-		     <parameter>
-		     <param:nameValueParam>
-		     <param:parameter name="consultDefaultGridmap"
-		     value="false"/>
-		     </param:nameValueParam>
-		     </parameter>
-		     <parameter>
-		     <param:nameValueParam>
-		     <param:parameter name="gridshibAuthzPolicyFile"
-		     value="/etc/grid-security/policy/core-authz-policy.xml"/>
-		     </param:nameValueParam>
-		     </parameter>
-		     </interceptor>
-		     </pdps>
-		     </authzChain>
-		     </containerSecurityConfig>
-	    ]]>
+<![CDATA[
+<containerSecurityConfig xmlns="http://www.globus.org/security/descriptor/container" 
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+			 xsi:schemaLocation="http://www.globus.org/security/descriptor 
+					     name_value_type.xsd"
+			 xmlns:param="http://www.globus.org/security/descriptor">
+  <authzChain>
+    <pdps>
+      <interceptor name="gridshib:org.globus.gridshib.GridShibPDP">
+	<parameter>
+	  <param:nameValueParam>
+	    <param:parameter name="metadataPath" 
+			     value="/etc/grid-security/metadata"/>
+	  </param:nameValueParam>
+	</parameter>
+	<parameter>
+	  <param:nameValueParam>
+	    <param:parameter name="enableBlacklisting"
+			     value="true"/>
+	  </param:nameValueParam>
+	</parameter>
+	<parameter>
+	  <param:nameValueParam>
+	    <param:parameter name="blacklistIPAddressesFile"
+			     value="/etc/grid-security/blacklists/blacklist-ip-addresses.txt"/>
+	  </param:nameValueParam>
+	</parameter>
+	<parameter>
+	  <param:nameValueParam>
+	    <param:parameter name="consultDefaultGridmap"
+			     value="false"/>
+	  </param:nameValueParam>
+	</parameter>
+	<parameter>
+	  <param:nameValueParam>
+	    <param:parameter name="gridshibAuthzPolicyFile"
+			     value="/etc/grid-security/policy/core-authz-policy.xml"/>
+	  </param:nameValueParam>
+	</parameter>
+      </interceptor>
+    </pdps>
+  </authzChain>
+</containerSecurityConfig>
+]]>
 	  </screen>
 	</example>
       </para>
@@ -208,7 +225,7 @@
 	the credentials presented by the user. It can also be
 	configured to query a SAML attribute authority (AA).
       </para>
-      <note><para>Note that this mode of operation will be deprecated and is not recommended.</para></note>
+      <note><para>Note that this mode of operation will be deprecated in the future and is not recommended.</para></note>
       <para>
 	In general, there are two ways to configure the query module
 	with attribute authority information to use for the query: a)
@@ -262,7 +279,8 @@
 		  assertion to be considered valid.
 		  </para></listitem>
 		</orderedlist>
-		<para>Note: This configuration can not be used at the same time as the metadata-dir configuration. XXX See conflict-handling-note.</para>>
+		<para>Note: This configuration can not be used at the
+		same time as the metadata-dir configuration.</para>
 		</entry>
 		<entry><para><simplelist>
 		  <member>SAMLQueryPIPImpl</member>
@@ -357,8 +375,75 @@
 	  linkend="respectMDAttributes">respectMDAttributes</link>
 	  configuration to your service's WSDD.
 	</para>
-      </section>
-    </section>
+      </section> <!-- metadata-attr-optimization -->
+
+
+     <section id="gridshib-configuring-attribute-caching">
+       <title>Attribute Caching</title>
+       <para>
+	 The PDP can optionally store received attributes from call to
+	 call, which allows many operations to be performed by the
+	 same client without the need for a remote callout to an
+	 attribute authority for each operation invocation (only the
+	 first).
+       </para>
+       <note><para>This feature is turned OFF by default</para></note>
+       <para>
+	 The attributes themselves are stored, not the authorization
+	 decision. If caching is enabled, the attributes are stored
+	 until the same expiration time as the SAML time conditions on
+	 the attribute assertion dictate.
+       </para>
+       <note><para>Attributes are only relevant within the scope of
+       the PDP. For example, a PDP instance "P1" authorizing
+       invocations on a service "S1" would not see any attributes
+       stored by a PDP instance "P2" protecting service
+       "S2".</para></note>
+       <para>
+	 The steps of authorization algorithm with caching can be
+	 viewed here. XXX
+       </para>
+       <para>
+	 To enable caching, set the relevant configuration parameter
+	 to "true": cacheAttr
+       </para>
+       <para>
+	 Performance
+	 <itemizedlist>
+	   <listitem><para> We compared caching performance to
+	   non-caching performance of the GridShib authorization
+	   module with a localhost IdP using around 20 invocations
+	   with each type (it was not an exhaustive or automated
+	   study).  </para></listitem>
+	   <listitem><para> An authorization decision including SAML
+	   attribute exchange to the localhost IdP averaged 110ms. An
+	   authorization decision based on a cached attribute averaged
+	   7-10ms. For reference, if a decision is based on DN only
+	   (bypassing attribute processing altogether), the average is
+	   close to 4ms.  </para></listitem>
+	   <listitem><para> Statistical rigor aside, this shows that
+	   using attribute caching in subsequent operation invocations
+	   results in an order of magnitude time savings over the
+	   first operation invocation (and this comparison is not even
+	   including any additional latency in the first operation
+	   that would be incurred by using a non-localhost IdP).
+	   </para></listitem>
+	 </itemizedlist>
+       </para>
+       <para>
+	 Caveat: in a forthcoming version, when multiple Attribute
+	 Authorities in the SAML2 metadata may be queried based on an
+	 SAML authentication assertion in the caller's proxy
+	 certificate, the contacted Attribute Authority must be
+	 considered as part of the cache lookup key. We have not fully
+	 considered our strategy on combining attributes in the cache
+	 from an AA formerly used by the caller when the same caller
+	 invokes the service pointing to a new AA (probably a rare
+	 event anyhow). Policy on this will likely be configurable by
+	 the administrator.
+       </para>
+     </section> <!-- gridshib-configuring-attribute-caching -->
+</section> <!-- gridshib-configuring-server-config -->
 
      <section id="gridshib-configuring-metadata-directory">
        <title>The Metadata Directory</title>
@@ -383,6 +468,7 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	 </example>
        </para>
      </section>
+
      <section id="gridshib-configuring-authz-policy">
        <title>The Authorization Policy File</title>
 
@@ -475,7 +561,7 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	     </listitem>
 	   </orderedlist>
 	 </para> <!-- end attribute file syntax example list -->
-       </section>
+       </section> <!-- gridshib-configuring-authz-policy-file-syntax -->
 
        <section id="gridshib-configuring-authz-policy-file-semantics">
 	 <title>Simple attribute ACL authorization semantics</title>
@@ -573,7 +659,8 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	   
 	 </orderedlist>
 	 </para>
-       </section>
+       </section> <!-- gridshib-configuring-authz-policy-file-semantics -->
+
        <section id="username-mappings">
 	 <title>Username mappings</title>
 	 <para>
@@ -672,7 +759,7 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	   section of the GRAM documentation.
 	 </para>
        </section>
-     </section>
+     </section> <!-- username-mappings -->
 
      <section id="gridshib-configuring-ip-addr-blacklisting">
        <title>IP Address Blacklist File</title>
@@ -690,73 +777,7 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	   </screen>
 	 </example>
        </para>
-     </section>
-
-     <section id="gridshib-configuring-attribute-caching">
-       <title>Attribute Caching</title>
-       <para>
-	 The PDP can optionally store received attributes from call to
-	 call, which allows many operations to be performed by the
-	 same client without the need for a remote callout to an
-	 attribute authority for each operation invocation (only the
-	 first).
-       </para>
-       <note><para>This feature is turned OFF by default</para></note>
-       <para>
-	 The attributes themselves are stored, not the authorization
-	 decision. If caching is enabled, the attributes are stored
-	 until the same expiration time as the SAML time conditions on
-	 the attribute assertion dictate.
-       </para>
-       <note><para>Attributes are only relevant within the scope of
-       the PDP. For example, a PDP instance "P1" authorizing
-       invocations on a service "S1" would not see any attributes
-       stored by a PDP instance "P2" protecting service
-       "S2".</para></note>
-       <para>
-	 The steps of authorization algorithm with caching can be
-	 viewed here. XXX
-       </para>
-       <para>
-	 To enable caching, set the relevant configuration parameter
-	 to "true": cacheAttr
-       </para>
-       <para>
-	 Performance
-	 <itemizedlist>
-	   <listitem><para> We compared caching performance to
-	   non-caching performance of the GridShib authorization
-	   module with a localhost IdP using around 20 invocations
-	   with each type (it was not an exhaustive or automated
-	   study).  </para></listitem>
-	   <listitem><para> An authorization decision including SAML
-	   attribute exchange to the localhost IdP averaged 110ms. An
-	   authorization decision based on a cached attribute averaged
-	   7-10ms. For reference, if a decision is based on DN only
-	   (bypassing attribute processing altogether), the average is
-	   close to 4ms.  </para></listitem>
-	   <listitem><para> Statistical rigor aside, this shows that
-	   using attribute caching in subsequent operation invocations
-	   results in an order of magnitude time savings over the
-	   first operation invocation (and this comparison is not even
-	   including any additional latency in the first operation
-	   that would be incurred by using a non-localhost IdP).
-	   </para></listitem>
-	 </itemizedlist>
-       </para>
-       <para>
-	 Caveat: in a forthcoming version, when multiple Attribute
-	 Authorities in the SAML2 metadata may be queried based on an
-	 SAML authentication assertion in the caller's proxy
-	 certificate, the contacted Attribute Authority must be
-	 considered as part of the cache lookup key. We have not fully
-	 considered our strategy on combining attributes in the cache
-	 from an AA formerly used by the caller when the same caller
-	 invokes the service pointing to a new AA (probably a rare
-	 event anyhow). Policy on this will likely be configurable by
-	 the administrator.
-       </para>
-     </section>
+     </section> <!-- gridshib-configuring-ip-addr-blacklisting -->
 
      <section id="SAML-authn-assertion-processing">
        <title>SAML Authentication Assertion Processing</title>
@@ -794,7 +815,7 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	 The DN of the issuer of the assertion must be on the list of
 	 trusted SAML authentication authorities as defined by the
 	 <link
-	 linkend="trustedSAMLAuthoritiesFile">trustedSAMLAuthoritiesFile</link>
+	     linkend="trustedSAMLAuthoritiesFile">trustedSAMLAuthoritiesFile</link>
 	 configuration. An example file follows.
        </para>
        
@@ -807,7 +828,6 @@ https://gridshib.example.org/idp "CN=AAA Testbed Community User,O=National Cente
 	 
 	 Note that quotes are not necessary, just one DN per line.
        </para>
-     </section>
+     </section> <!-- SAML-authn-assertion-processing -->
 
-     
 </chapter>
