@@ -10,7 +10,7 @@ html:
 	xsltproc \
 	--xinclude \
 	--stringparam target.database.document "../../../olinkdb.xml" \
-	--stringparam current.docid "gridshibDeveloper" \
+	--stringparam current.docid "gridshibDev" \
 	../../../custom_html.xsl \
 	$(FILENAME)
 
