@@ -24,8 +24,8 @@ main(
     CounterService_client_handle_t      client_handle;
     globus_soap_message_handle_t        soap_handle;
     int                                 fault_type;
-    createCounterType                   createCounter;
-    createCounterResponseType *         createCounterResponse = NULL;
+    counter_createCounterType           createCounter;
+    counter_createCounterResponseType * createCounterResponse = NULL;
     xsd_any *                           fault;
     xsd_QName                           element_name;
     char *                              filename;
