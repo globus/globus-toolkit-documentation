@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer pi qp rn sources
+PDFS=admin/aggregatorAdminGuide.pdf developer/aggregatorDeveloperGuide.pdf sources/aggregatorSourcesGuide.pdf ../mig/mds4MigratingGuide.pdf qp/aggregatorQualityProfile.pdf rn/aggregatorReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -13,7 +14,13 @@ html:
 	--stringparam current.docid "aggregator" \
 	--stringparam generate.toc "" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output aggregator.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
