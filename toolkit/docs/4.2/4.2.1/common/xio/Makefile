@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn
+PDFS=admin/xioAdminGuide.pdf developer/xioDeveloperGuide.pdf mig/xioMigratingGuide.pdf qp/xioQualityProfile.pdf rn/xioReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "xio" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output xio.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

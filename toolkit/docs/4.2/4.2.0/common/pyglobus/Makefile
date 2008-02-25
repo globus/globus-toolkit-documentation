@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin rn
+PDFS=admin/pyglobusAdminGuide.pdf rn/pyglobusReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "pyglobus" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output pyglobus.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
