@@ -13,6 +13,7 @@ html:
 	--stringparam current.docid "archiveQP" \
 	../../../custom_html.xsl \
 	$(FILENAME)
+	&& chgrp -R cvsusers *
 
 fo:
 	xsltproc \
