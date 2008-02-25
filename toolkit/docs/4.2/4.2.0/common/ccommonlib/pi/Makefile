@@ -12,7 +12,8 @@ html:
 	--stringparam target.database.document "../../../olinkdb.xml" \
 	--stringparam current.docid "ccommonlibPI" \
 	../../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
 
 
 fo:
