@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/rftAdminGuide.pdf  user/rftUserGuide.pdf developer/rftDeveloperGuide.pdf  mig/rftMigratingGuide.pdf qp/rftQualityProfile.pdf rn/rftReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "rft" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output rft.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

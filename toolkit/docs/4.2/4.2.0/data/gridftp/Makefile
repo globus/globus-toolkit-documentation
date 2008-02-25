@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/gridftpAdminGuide.pdf user/gridftpUserGuide.pdf developer/gridftpDeveloperGuide.pdf mig/gridftpMigratingGuide.pdf qp/gridftpQualityProfile.pdf rn/gridftpReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "gridftp" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output gridftp.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

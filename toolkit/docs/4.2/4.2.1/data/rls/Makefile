@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/rlsAdminGuide.pdf user/rlsUserGuide.pdf developer/rlsDeveloperGuide.pdf mig/rlsMigratingGuide.pdf qp/rlsQualityProfile.pdf rn/rlsReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -13,7 +14,13 @@ html:
 	--stringparam current.docid "rls" \
 	--stringparam generate.toc "" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output rls.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
