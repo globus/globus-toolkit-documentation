@@ -11,7 +11,8 @@ html:
 	--stringparam target.database.document "../olinkdb.xml" \
 	--stringparam current.docid "common" \
 	../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

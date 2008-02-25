@@ -12,7 +12,8 @@ html:
 	--stringparam target.database.document "../../../olinkdb.xml" \
 	--stringparam current.docid "gridftpRN" \
 	../../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
 
 fo:
 	xsltproc \
