@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn 
+PDFS=admin/ccommonlibAdminGuide.pdf developer/ccommonlibDevelopersGuide.pdf mig/ccommonlibMigratingGuide.pdf qp/ccommonlibQualityProfile.pdf rn/ccommonlibReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "ccommonlib" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output ccommonlib.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
