@@ -28,7 +28,7 @@ fo:
 xep:
 	~bacon/XEP/xep -quiet \
 	-fo index.fo \
-	-pdf cwscoreMIgratingGuide.pdf
+	-pdf cwscoreMigratingGuide.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
