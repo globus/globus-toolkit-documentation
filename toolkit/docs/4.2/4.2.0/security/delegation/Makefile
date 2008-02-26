@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/delegationAdminGuide.pdf user/delegationUserGuide.pdf developer/delegationDeveloperGuide.pdf mig/delegationMigratingGuide.pdf qp/delegationQualityProfile.pdf rn/delegationReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "delegation" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output delegation.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

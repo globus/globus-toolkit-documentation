@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/messageAdminGuide.pdf user/messageUserGuide.pdf developer/messageDeveloperGuide.pdf mig/messageMigratingGuide.pdf qp/messageQualityProfile.pdf rn/messageReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -13,7 +14,13 @@ html:
 	--stringparam current.docid "message" \
 	--stringparam generate.toc "" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output message.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
