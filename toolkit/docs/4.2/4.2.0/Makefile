@@ -12,7 +12,8 @@ html:
 	--stringparam current.docid "gt" \
 	--stringparam generate.toc "" \
 	custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
 
 
 pdf:
