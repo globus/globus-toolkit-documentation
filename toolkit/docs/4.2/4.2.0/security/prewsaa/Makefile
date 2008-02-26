@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/prewsaaAdminGuide.pdf user/prewsaaUserGuide.pdf developer/prewsaaDeveloperGuide.pdf mig/prewsaaMigratingGuide.pdf qp/prewsaaQualityProfile.pdf rn/prewsaaReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -13,7 +14,13 @@ html:
 	--stringparam current.docid "prewsaa" \
 	--stringparam generate.toc "" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output prewsaa.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/myproxyAdminGuide.pdf user/myproxyUserGuide.pdf developer/myproxyDeveloperGuide.pdf mig/myproxyMigratingGuide.pdf qp/myproxyQualityProfile.pdf rn/myproxyReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -13,7 +14,13 @@ html:
 	--stringparam current.docid "myproxy" \
 	--stringparam generate.toc "" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output myproxy.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
