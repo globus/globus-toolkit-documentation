@@ -11,7 +11,7 @@
                                <!-- which stylesheet to use? -->
                <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
                
-                               <!-- shared text -->
+                               <!-- shared text COMMON -->
                 <xsl:template match="replaceable[@role='entity']">
                   <xsl:choose>
                                    <xsl:when test=". = 'version'">4.2.0</xsl:when>
