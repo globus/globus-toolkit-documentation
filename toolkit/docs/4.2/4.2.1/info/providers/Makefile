@@ -12,7 +12,8 @@ html:
 	--stringparam current.docid "providers" \
 	--stringparam generate.toc "" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
