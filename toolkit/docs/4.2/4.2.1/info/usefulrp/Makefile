@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer pi qp rn
+PDFS=admin/usefulrpAdminGuide.pdf developer/usefulrpDeveloperGuide.pdf ../mig/mds4MigratingGuide.pdf qp/usefulrpQualityProfile.pdf rn/usefulrpReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "usefulrp" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output usefulrp.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

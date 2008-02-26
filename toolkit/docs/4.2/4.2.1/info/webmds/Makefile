@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer pi qp rn user
+PDFS=admin/webmdsAdminGuide.pdf user/webmdsUserGuide.pdf developer/webmdsDeveloperGuide.pdf ../mig/mds4MigratingGuide.pdf qp/webmdsQualityProfile.pdf rn/webmdsReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "webmds" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output webmds.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

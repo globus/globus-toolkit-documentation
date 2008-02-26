@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/authzframeAdminGuide.pdf user/authzframeUserGuide.pdf developer/authzframeDeveloperGuide.pdf mig/authzframeMigratingGuide.pdf qp/authzframeQualityProfile.pdf rn/authzframeReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "authzframe" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output authzframe.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/casAdminGuide.pdf user/casUserGuide.pdf developer/casDeveloperGuide.pdf mig/casMigratingGuide.pdf qp/casQualityProfile.pdf rn/casReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "cas" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output cas.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \

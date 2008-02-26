@@ -3,6 +3,7 @@ export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 SUBDIRS=admin developer pi qp rn user
+PDFS=admin/triggerAdminGuide.pdf user/triggerUserGuide.pdf developer/triggerDeveloperGuide.pdf ../mig/mds4MigratingGuide.pdf qp/triggerQualityProfile.pdf rn/triggerReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -12,7 +13,13 @@ html:
 	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "trigger" \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) \
+	&& chgrp -R cvsusers *
+
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output trigger.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
