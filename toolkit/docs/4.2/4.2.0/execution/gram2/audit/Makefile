@@ -27,7 +27,7 @@ fo:
 xep:
 	~bacon/XEP/xep -quiet \
 	-fo index.fo \
-	-pdf gram2SEG.pdf
+	-pdf gram2AuditLogging.pdf
 	
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
