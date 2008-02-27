@@ -2,6 +2,7 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
+PDFS=hawkeye/hawkeye.pdf ganglia/ganglia.pdf nagios/nagios.pdf gkrellm/gkrellm.pdf perf_bench/perf_bench.pdf gridftp_info/gridftp_info.pdf web_info/web_info.pdf cert_check/cert_check.pdf
 
 all: lint html
 
@@ -14,6 +15,11 @@ html:
 	../../custom_html.xsl \
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
+	
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output mds4Providers.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
