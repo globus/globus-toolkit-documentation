@@ -20,7 +20,7 @@ fo:
 	--xinclude \
 	-o index.fo \
 	--stringparam target.database.document "../../../olinkdb_fo.xml" \
-	--stringparam current.docid "gridshibDeveloper" \
+	--stringparam current.docid "gridshibDev" \
 	../../../custom_fo.xsl \
 	$(FILENAME)
 	
