@@ -27,7 +27,7 @@ fo:
 xep:
 	~bacon/XEP/xep -quiet \
 	-fo index.fo \
-	-pdf archiveQuality Profile.pdf
+	-pdf archiveQualityProfile.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
