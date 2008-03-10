@@ -5,314 +5,378 @@
 %xinclude;
 ]>
 <book id="gridftpAdmin">
-  <title>GT <replaceable role="entity">version</replaceable> GridFTP : System
-  Administrator's Guide</title>
-
+  <title>GT <replaceable role="entity">version</replaceable> GridFTP : System Administrator's Guide</title>
   <titleabbrev>System Administrator's Guide</titleabbrev>
-
   <bookinfo>
     <abstract>
       <title>Introduction</title>
-
-      <para>This guide contains advanced configuration information for system
-      administrators working with GridFTP. It provides references to
-      information on procedures typically performed by system administrators,
-      including installation, configuring, deploying, and testing the
-      installation. This guide should help you configure and run the GridFTP
-      <glossterm>server</glossterm> in some standard configurations.</para>
-
-      <para><important>
-          <simpara>This information is in addition to the basic Globus Toolkit
-          prerequisite, overview, installation, security configuration
-          instructions in the <olink targetdoc="gtadmin"></olink>. Read
-          through this guide before continuing!</simpara>
-        </important></para>
+      <para>This guide contains advanced configuration information for system administrators working
+        with GridFTP. It provides references to information on procedures typically performed by
+        system administrators, including installation, configuring, deploying, and testing the
+        installation. This guide should help you configure and run the GridFTP
+        <glossterm>server</glossterm> in some standard configurations.</para>
+      <para>
+        <important>
+          <simpara>This information is in addition to the basic Globus Toolkit prerequisite,
+            overview, installation, security configuration instructions in the <olink
+              targetdoc="gtadmin"/>. Read through this guide before continuing!</simpara>
+        </important>
+      </para>
     </abstract>
   </bookinfo>
-
-  <xi:include href="../GridFTP_Building.xml"
-              xmlns:xi="http://www.w3.org/2001/XInclude"></xi:include>
-
-  <xi:include href="../GridFTP_Interface_Config_Frag.xml"
-              xmlns:xi="http://www.w3.org/2001/XInclude"></xi:include>
-
-  <chapter id="gridftp-admin-deploying">
-    <title>Deploying the GridFTP Server:
-    <computeroutput>globus-gridftp-server</computeroutput></title>
-
-    <para>It is assumed that the toolkit installation was successful and that
-    Globus security is properly configured. For more information, see the
-    <olink targetdoc="gtadmin"></olink>. Also be sure to reference <olink
-    targetptr="gridftp-configuring"></olink>.</para>
-
-    <section id="gridftp-admin-daemon_mode">
-      <title>Running in daemon mode</title>
-
+  <xi:include href="../GridFTP_Building.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../GridFTP_Interface_Config_Frag.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <chapter id="gridftp-admin-config-security">
+    <title>Configuring Security for GridFTP</title>
+    <para>There are many security options in GridFTP ranging from no security to higher security via
+    GSI .</para>
+        <xi:include href="../GridFTP_Security_Considerations_Frag.xml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <section id="gridftp-admin-config-security-anonymous"><title>Anonymous mode</title>
       <indexterm type="gridftp-howto">
-        <primary>deploying</primary>
-
-        <secondary>running in daemon mode</secondary>
+        <primary>configuring GridFTP</primary>
+        <secondary>security</secondary>
+        <tertiary>anonymous mode</tertiary>
       </indexterm>
-
-      <indexterm type="gridftp">
-        <primary>deploying</primary>
-
-        <secondary>running in daemon mode</secondary>
-      </indexterm>
-
-      <para>The server should generally be run as root in daemon mode, though
-      it is possible to run it as a user (see below). When run as root you
-      will need to have a host certificate.</para>
-
-      <para>Run the server:</para>
-
-      <screen>globus-gridftp-server &lt; -s | -S &gt; &lt;args&gt;</screen>
-
-      <para>where:</para>
-
-      <variablelist termlength="100pt">
-        <varlistentry>
-          <term>-s</term>
-
-          <listitem>
-            <simpara>Runs in the foreground (this is the default
-            mode).</simpara>
-          </listitem>
-        </varlistentry>
-
-        <varlistentry>
-          <term>-S</term>
-
-          <listitem>
-            <simpara>Detaches from the terminal and runs in the
-            background.</simpara>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-
-      <para>The following additional steps may be required when running as a
-      user other than root: <itemizedlist>
-          <listitem>
-            <simpara>Create a ~/.gridmap file, containing the DNs of any
-            clients you wish to allow, mapped to the current
-            username.</simpara>
-          </listitem>
-
-          <listitem>
-            <simpara>Create a proxy with
-            <computeroutput>grid-proxy-init</computeroutput>.</simpara>
-          </listitem>
-        </itemizedlist></para>
-    </section>
-
-    <section id="gridftp-admin-inetd">
-      <title>Running under inetd or xinetd</title>
-
+      <para>Anonymous mode (using the <option>-aa</option> option) allows any user with an FTP
+        client to read and write (and delete) files that the server process can similarly access (it
+        is also a quick way to test that your server works). To minimize potential damages, use the
+          <option>-allow-from 127.0.0.1</option> option. This will limit access to clients running
+        on the same machine.</para><screen>% globus-gridftp-server -allow-from 127.0.0.1  -aa 
+Server listening at 127.0.0.1:58806</screen><note>
+        <para>If you wish to provide an anonymous service to which <emphasis>anyone</emphasis> can
+          read/write, and you are running in a secure account , you may remove the
+            <option>-allow-from</option> switch.</para>
+      </note></section>
+    <section id="gridftp-admin-config-security-userpw"><title>Username/password</title>
       <indexterm type="gridftp-howto">
-        <primary>deploying</primary>
-
-        <secondary>running under inetd or xinetd</secondary>
+        <primary>configuring GridFTP</primary>
+        <secondary>security</secondary>
+        <tertiary>username/password</tertiary>
       </indexterm>
-
-      <indexterm type="gridftp">
-        <primary>deploying</primary>
-
-        <secondary>running under inetd or xinetd</secondary>
+      <para>If you trust your network and want a minimal amount of security, you can run the
+        globus-gridftp-server with clear text passwords. This security model is the one originally
+        introduced in RFC959.</para><warning>
+        <para>We do not recommend it for long running servers open to the internet.</para>
+      </warning><section>
+        <title>Create password file</title>
+        <para>To run the server in clear text password mode, we first need to create a password file
+          dedicated to it. The format of the password file is the same as standard system password
+          files; however, it is ill-advised to use a system password file. To create an entry in a
+          GridFTP password file, run the following commands:</para>
+        <screen>% touch pwfile
+% gridftp-password.pl &gt;&gt; pwfile
+Password:</screen>
+        <para>This will ask you for a password and then create an entry in the password file for the
+          current user name and the given password. Take a look at the file created. You will notice
+          that the password you typed in is not in the file in a clear text form. We have run it
+          though a one way hash algorithm before storing it in the file.</para>
+      </section><section>
+        <title>Run the server in password mode</title>
+        <para>Simply start the server pointing it at the password file you just created.</para>
+        <screen>% globus-gridftp-server -password-file  /full/path/of/pwfile 
+Server listening at 127.0.0.1:5555</screen>
+      </section><section>
+        <title>Make a transfer</title>
+        <para>To run globus-url-copy with the password, use the following syntax:</para>
+        <screen>globus-url-copy file:///etc/group ftp://<replaceable>username</replaceable>:<replaceable>pw</replaceable>@localhost:5000/tmp/group</screen>
+      </section></section>
+    <section id="gridftp-admin-config-security-sshftp"><title>SSHFTP (GridFTP-over-SSH</title>
+      <indexterm type="gridftp-howto">
+        <primary>configuring GridFTP</primary>
+        <secondary>security</secondary>
+        <tertiary>over SSH</tertiary>
       </indexterm>
-
-      <para>The <command>-i</command> command line option enables the server
-      to be run under inetd or xinetd.</para>
-
-      <para>See <olink targetptr="gridftp-configuring"></olink> for example
-      xinetd and inetd configuration entries.</para>
-    </section>
-
-    <section id="gridftp-admin-data_nodes">
-      <title>Remote data-nodes and striped operation</title>
-
-      <para>The GridFTP server now supports separate front end (client control
-      connection) and back end (data node) processes. In addition, a single
-      front end process may connect to multiple back end data nodes.</para>
-
-      <para>When multiple back end data nodes are available, the server is
-      said to be in a striped configuration, or simply, is a striped server.
-      In this mode transfers are divided over all available data nodes, thus
-      allowing the combined bandwidth of all data nodes to be used.</para>
-
-      <para>Note: The connection between the front end and data nodes is
-      referred to as the <emphasis>ipc channel</emphasis>.</para>
-
-      <para>The ability to use inetd or daemon execution modes applies to both
-      front end servers and data nodes, and the same certificate and user
-      requirements apply.</para>
-
-      <para>To start the front end: <screen>globus-gridftp-server &lt;args&gt; -r &lt;host:port&gt;[,&lt;host:port&gt;,...]</screen>
-      To start the data-node: <screen>globus-gridftp-server -p &lt;port&gt; -dn</screen>
-      The <computeroutput>-p &lt;port&gt;</computeroutput> option used on the
-      data-node is the port that will be used for ipc connections. This is the
-      port that you will register with the front end server.</para>
-
-      <para>For example: <screen>machineB&gt; globus-gridftp-server -p 6000 -dn
-machineC&gt; globus-gridftp-server -p 7000 -dn
-machineA&gt; globus-gridftp-server -p 5000 -r machineB:6000,machineC:7000</screen>
-      The client would only connect to the front end at
-      <computeroutput>machineA:5000</computeroutput>, for example, using
-      globus-url-copy with the <option>-stripe</option> option: <screen>globus-url-copy -stripe gsiftp://machineA:5000/file file:///destination
-   <emphasis>or</emphasis>
-globus-url-copy -stripe gsiftp://machineA:5000/file gsiftp://machineX/destination</screen>
-      Where machineX may be another striped server or a standard GridFTP
-      server.</para>
-    </section>
-
-    <section id="gridftp-admin-separated">
-      <title>Separation of Processes</title>
-
-      <para>As illustrated above, the GridFTP server can be separated into
-      front end and data node processes. This is the architecture used to
-      achieve a striped server, but it can also be exploited to achieve a
-      higher level of security.</para>
-
-      <para>Running the server as root is often desirable because it allows
-      the server to fork and setuid on a child processes related to an
-      authenticated user. This allows the server to leverage the operating
-      systems file system permissions and other security devices. However, it
-      is not at all desirable to have a root running process listening on a
-      port open to the world. If an attacker were to compromise the process
-      they could obtain root level access to the machine.</para>
-
-      <para>To overcome this security risk the gridftp server can be run in a
-      front end/back end manner. The front end can be run as any user, say
-      user globus, that has very limited access to the machine. The front end
-      is the processes open to the outside world. If it is compromised an
-      attacker has only gained access to that limited account. The back end is
-      run as root, but configured to only allow connections from the front
-      end.</para>
-
-      <para>To start the front end:</para>
-
-      <screen>globus-gridftp-server -p 7000 -r localhost:7001</screen>
-
-      <para>and the back end:</para>
-
-      <screen>globus-gridftp-server -p 7001 -dn -allow-from 127.0.0.1</screen>
-    </section>
-
-    <section id="gridftp-admin-server-gfork">
-      <title>Running with GFork Master Plugin</title>
-
-      <para>GFork is a service like inetd that listens on a TCP port and runs
-      a configurable executable in a child process whenever a connection is
-      made. GFork also creates bi-directional pipes between the child
-      processes and the master service. These pipes are used for interprocess
-      communication between the child process executables and a master process
-      plugin. More information on GFork can be found <olink
-      targetptr="gridftp-admin-gfork-master">here</olink>.</para>
+      <para>This type of security introduces the sshftp control channel (frontend) protocol. This is
+        a very simple means of obtaining strong security on the control channel only (the data
+        channel is <emphasis>not</emphasis> authenticated). With this approach, you can run a
+        GridFTP transfer anywhere that you can ssh. <filename>sshftp://</filename> leverages the
+        ubiquitous ssh/sshd programs to form control channel connections much in the same way that
+        inetd forms connections.</para><section>
+        <title>Configure Client-Side <filename>sshftp://</filename></title>
+        <para>Every <computeroutput>$GLOBUS_LOCATION</computeroutput> must be configured for
+          client-side <filename>sshftp://</filename> connections. In other words, if we wish to use
+            <olink targetdoc="gridftpUser" targetptr="globus-url-copy"><command
+            >globus-url-copy</command></olink> with <filename>sshftp://</filename> URLs, we must
+          first configure the <computeroutput>$GLOBUS_LOCATION</computeroutput> that contains
+            <option>globus-url-copy</option> in the following way:</para>
+        <screen>% $GLOBUS_LOCATION/setup/globus/setup-globus-gridftp-sshftp</screen>
+      </section><section>
+        <title>Configure Server Side <filename>sshftp://</filename></title>
+        <para>Every host that wishes to run a <command>globus-gridftp-server</command> which can
+          accept <filename>sshftp://</filename> connections must run the following command as root:</para>
+        <screen>% $GLOBUS_LOCATION/setup/globus/setup-globus-gridftp-sshftp -server</screen>
+        <para>In the absence of root access, a user can configure the server to allow <filename
+            >sshftp://</filename> connections for that user only with the following command:</para>
+        <screen>% $GLOBUS_LOCATION/setup/globus/setup-globus-gridftp-sshftp -server -nonroot</screen>
+      </section><section>
+        <title>Performing <filename>sshftp://</filename> Transfers</title>
+        <para>In this case, a <command>globus-gridftp-server</command> does not need to be running.
+          The server will be started via the sshd program. Therefore, the hostname and port should
+          be that of the sshd server. Run <command>globus-url-copy</command> just as you have
+          before; simply change <filename>ftp://</filename> to <filename>sshftp://</filename>.</para>
+        <screen>% globus-url-copy -v file:/etc/group sshftp://127.0.0.1/tmp/group % globus-url-copy -list sshftp://127.0.0.1/tmp/</screen>
+      </section></section>
+    <section><title>GSIFTP</title>
+      <indexterm type="gridftp-howto">
+        <primary>configuring GridFTP</primary>
+        <secondary>security</secondary>
+        <tertiary>gsiftp</tertiary>
+      </indexterm>
+      <para>This security option is the most involved to set up, but provides the most security. It
+        requires setting up GSI security as described in <olink targetdoc="gtadmin"
+          targetptr="gtadmin-basic-security"/>. </para><para>Once GSI has been set up (host and user
+        credentials are valid, the gridmap file is updated and you've run grid-proxy-init to create
+        a proxy certificate), run the GridFTP server</para><screen>FIXME example</screen><para>Now
+        you are ready to perform a GSI-authenticated transfer:</para><screen>FIXME example?</screen></section>
+    <section>
+      <title>User permissions</title>
+      <para>FIXME discuss this in re: to file, inetd/daemon mode, map user to local account (gridmap
+        file?)</para>
     </section>
   </chapter>
-
-  <chapter id="gridftp-admin-testing">
-    <title>Testing</title>
-
+  <chapter id="gridftp-admin-advanced">
+    <title>Advanced Configuration</title>
+    <para>It is assumed that the toolkit installation was successful. For more information, see the
+        <olink targetdoc="gtadmin"/>. Also be sure to reference <olink
+        targetptr="gridftp-configuring"/> and <olink targetdoc="gridftpAdmin"
+        targetptr="globus-gridftp-server"><command>globus-gridftp-server</command></olink>.</para>
+    <section id="gridftp-admin-striped"><title>Remote data-nodes and striped operation</title>
+      <indexterm type="gridftp-howto">
+        <primary>configuring GridFTP</primary>
+        <secondary>striped servers</secondary>
+      </indexterm>
+      <para>The GridFTP server now supports separate front end (client control connection) and back
+        end (data node) processes. In addition, a single front end process may connect to multiple
+        back end data nodes.</para><para>When multiple back end data nodes are available, the server
+        is said to be in a <emphasis>striped</emphasis> configuration, or simply, is a striped
+        server. In this mode, transfers are divided over all available data nodes, thus allowing the
+        combined bandwidth of all data nodes to be used.</para><note>
+        <para>The connection between the front end and data nodes is referred to as the
+            <emphasis>IPC channel</emphasis>.</para>
+      </note><para>The ability to use inetd or daemon execution modes applies to both front end
+        servers and data nodes, and the same certificate and user requirements apply.</para><para>To
+        start the front end, run:
+        <screen>globus-gridftp-server &lt;args&gt; -r &lt;host:port&gt;[,&lt;host:port&gt;,...]</screen>
+        To start the data-node, run: <screen>globus-gridftp-server -p &lt;port&gt; -dn</screen> The
+          <computeroutput>-p &lt;port&gt;</computeroutput> option used on the data-node is the port
+        that will be used for IPC connections. This is the port that you will register with the
+        front end server.</para><para>For example:
+        <screen>machineB&gt; globus-gridftp-server -p 6000 -dn
+machineC&gt; globus-gridftp-server -p 7000 -dn
+machineA&gt; globus-gridftp-server -p 5000 -r machineB:6000,machineC:7000</screen>
+        The client would only connect to the front end at <computeroutput
+        >machineA:5000</computeroutput>, for example, using globus-url-copy with the
+        <option>-stripe</option> option:
+        <screen>globus-url-copy -stripe gsiftp://machineA:5000/file file:///destination
+   <emphasis role="strong">or</emphasis>
+globus-url-copy -stripe gsiftp://machineA:5000/file gsiftp://<replaceable>machineX</replaceable>/destination</screen>
+        Where machineX may be another striped server or a standard GridFTP server.</para></section>
+    <section id="gridftp-admin-separated"><title>Separation of Processes (Split Process)</title>
+      <indexterm type="gridftp-howto">
+        <primary>configuring GridFTP</primary>
+        <secondary>separation of processes</secondary>
+      </indexterm>
+      <indexterm type="gridftp-howto">
+        <primary>configuring GridFTP</primary>
+        <secondary>split process</secondary>
+      </indexterm>
+      <para>As illustrated above, the GridFTP server can be separated into front end and data node
+        processes. This is the architecture used to achieve a striped server, but it can also be
+        exploited to achieve a higher level of security.</para><para>Running the server as root is
+        often desirable because it allows the server to fork and setuid on a child processes related
+        to an authenticated user. This allows the server to leverage the operating systems file
+        system permissions and other security devices. However, it is not at all desirable to have a
+        root-running process listening on a port open to the world. If an attacker were to
+        compromise the process they could obtain root-level access to the machine.</para><para>To
+        overcome this security risk, the gridftp server can be run in a front end/back end manner.
+        The front end can be run as any user, say user <computeroutput>globus</computeroutput>, that
+        has very limited access to the machine. The front end is the processes open to the outside
+        world. If it is compromised, an attacker has only gained access to that limited account. The
+        back end is run as root, but configured to only allow connections from the front
+        end.</para><para>To start the front end,
+        run:</para><screen>globus-gridftp-server -p 7000 -r localhost:7001</screen><para>To start
+        the back end,
+      run:</para><screen>globus-gridftp-server -p 7001 -dn -allow-from 127.0.0.1</screen></section>
+    <section id="gridftp-admin-dsis"><title>Plugging in a Data Storage Interface (DSI)</title>
+      <indexterm type="gridftp-howto">
+        <primary>configuring GridFTP</primary>
+        <secondary>with DSI</secondary>
+      </indexterm>
+      <para>FIXME GridFTP can be used as a network interface to existing Data Storage Interfaces
+        (DSIs) using the <option>-dsi</option> option. With this option the DSI plugs into the
+        backend (compatible with striping) and is transparent to the client or remote party. <note>
+          <para>To use with fixme, the <option>-authz-level</option> option must be set to 4.</para>
+        </note> To plugin an SRB DSI, for example,
+        run:</para><screen>% globus globus-gridftp-server -dsi srb -authz-level 4</screen><para>fixme
+        - 4.0 had a page on SRB, should that be used here, too?</para></section>
+    <section id="gridftp-config-cas"><title>Configuring GridFTP to run with the Community
+        Authorization Service (CAS)</title>
+      <indexterm type="gridftp-howto">
+        <primary>configuring GridFTP</primary>
+        <secondary>run with Community Authorization Service (CAS)</secondary>
+      </indexterm>
+      <para>The <olink targetdoc="cas">Community Authorization Service (CAS)</olink> is used to
+        administer access rights to files and directories and the GridFTP server can be configured
+        to enforce those rights.</para><para>For more information, see <olink targetdoc="casAdmin"
+          targetptr="cas-howto-gridftp-overview">How to Set Up CAS to Use with
+      GridFTP</olink>.</para></section>
+    <section id="gridftp-config-udt"><title>Configuring GridFTP to use UDT instead of TCP (for third
+        party transfers)</title>
+      <indexterm type="gridftp-howto">
+        <primary>configuring GridFTP</primary>
+        <secondary>run with UDT for third party transfers</secondary>
+      </indexterm>
+      <para>GridFTP can use the alternative UDT protocol between servers, but not yet between client
+        and server.</para><section>
+        <title>Prerequisites</title>
+        <orderedlist>
+          <listitem>
+            <para>Begin with a threaded build of the Globus GridFTP server. Refer to <olink
+                targetdoc="gridftpAdmin" targetptr="gridftp-admin-installing-threaded"/> for
+              information on how to build a threaded flavor of the GridFTP server.</para>
+            <note>
+              <para>This requires that GridFTP be built from the <emphasis role="strong"
+                >source</emphasis> installer.</para>
+            </note>
+          </listitem>
+          <listitem>
+            <para>Currently GridFTP requires the reference implementation of UDT. This is available
+              at <ulink url="http://sourceforge.net/projects/udt"
+                >http://sourceforge.net/projects/udt</ulink>, and must be downloaded and installed
+              prior to continuing.</para>
+          </listitem>
+        </orderedlist>
+      </section><section>
+        <title>Steps</title>
+        <orderedlist>
+          <listitem>
+            <para>Starting with the un-tar'd source bundle, go to <filename>gt<replaceable
+                  role="entity"
+                >version</replaceable>-all-source-installer/source-trees/xio/drivers/udt-ref/</filename>
+              and execute the following two commands:</para>
+            <screen>globus$ ./configure --with-flavor=gcc32dbgpthr (or whatever your threaded flavor is)
+--with-udt-path=&lt;path to your installed udt location&gt;
+  
+globus$ make install</screen>
+          </listitem>
+          <listitem>
+            <para>Start the <command>globus-gridftp-server</command> with the
+                <option>--protocol_stack udt_ref,gsi</option> option [fixme this option isn't doccd
+              as an option under globus-gridftp-server].
+              <screen>globus-gridftp-server --protocol_stack udt_ref,gsi</screen> For separate
+              control and backend data nodes, this option is required on the backend data nodes
+              only.</para>
+          </listitem>
+        </orderedlist>
+        <note>
+          <para>Currently UDT can only be used for third-party transfers.</para>
+        </note>
+        <para>Make sure both GridFTP (source &amp; destination) servers have been configured for
+          using the UDT protocol by following the instructions above.</para>
+      </section></section>
+    <section id="gridftp-admin-server-gfork">
+      <title>Running with GFork Master Plugin</title>
+      <para>GFork is a service like inetd that listens on a TCP port and runs a configurable
+        executable in a child process whenever a connection is made. GFork also creates
+        bi-directional pipes between the child processes and the master service. These pipes are
+        used for interprocess communication between the child process executables and a master
+        process plugin. More information on GFork can be found <olink
+          targetptr="gridftp-admin-gfork-master">here</olink>.</para>
+    </section>
+    <section id="gridftp-config-multi">
+      <title>Configuring multicasting/broadcasting</title>
+      <para>To enable <olink targetdoc="gridftpUser" targetptr="gridftp-user-multicasting"
+          >multicasting</olink>, you must whitelist the <computeroutput
+        >gridftp_multicast</computeroutput> driver with the <option>-fs-whitelist
+          file,gridftp_multicast</option> option:</para>
+      <screen>globus-gridftp-server -fs-whitelist file,gridftp_multicast</screen>
+      <para>The above command whitelists both the <computeroutput>file</computeroutput> driver and
+        the <computeroutput>gridftp_multicast</computeroutput> driver. <note>
+          <para>The <computeroutput>file</computeroutput> driver is the default <olink
+              targetdoc="xio">XIO</olink> driver that handles reading and writing to file systems
+            (disks). By default, this driver is already whitelisted. However, if you use the
+              <option>-fs-whitelist</option> option, you must set <emphasis>all</emphasis> the
+            drivers you want whitelisted (and the <computeroutput>file</computeroutput> driver will
+            still be needed to allow reads and writes to disk for non-multicast users.</para>
+        </note></para>
+      <para>For information about using multicasting, click <olink targetdoc="gridftpUser"
+          targetptr="gridftp-user-multicasting">here</olink>.</para>
+    </section>
+  </chapter>
+  <chapter id="gridftp-admin-testing"><title>Testing</title>
     <indexterm type="gridftp-howto">
       <primary>testing</primary>
     </indexterm>
-
     <indexterm type="gridftp">
       <primary>testing</primary>
     </indexterm>
-
-    <para>If the globus-ftp-client-test package has been installed, our
-    standard test suite may be run to verify functionality on your platform.
-    Simply set up the globus environment, chdir to
-    <computeroutput>$GLOBUS_LOCATION/test/globus_ftp_client_test/</computeroutput>
-    and run <computeroutput>./TESTS.pl</computeroutput>.</para>
-
+    <para>If the globus-ftp-client-test package has been installed, our standard test suite may be
+      run to verify functionality on your platform. Simply set up the globus environment, chdir to
+        <computeroutput>$GLOBUS_LOCATION/test/globus_ftp_client_test/</computeroutput> and run
+        <computeroutput>./TESTS.pl</computeroutput>.</para>
     <!-- 
     <para> Please also see <olink targetptr="gridftp-cft-whatistesting">Call for Community Testing</olink>.</para>
     -->
   </chapter>
 
-  <xi:include href="../GridFTP_Security_Considerations_Frag.xml"
-              xmlns:xi="http://www.w3.org/2001/XInclude"></xi:include>
-
-  <xi:include href="../GridFTP_Troubleshooting_Frag.xml"
-              xmlns:xi="http://www.w3.org/2001/XInclude"></xi:include>
-
-  <xi:include href="../GridFTP_Usage_Statistics_Frag.xml"
-              xmlns:xi="http://www.w3.org/2001/XInclude"></xi:include>
-
+  <xi:include href="../GridFTP_Troubleshooting_Frag.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../GridFTP_Usage_Statistics_Frag.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <appendix id="gridftp-admin-command">
+    <title>GridFTP Admin Tool</title>
+    <xi:include href="../GridFTP_Interface_Commandline_Admin_Frag.xml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  </appendix>
   <appendix id="gridftp-admin-gfork-master">
     <title>Running the Globus GridFTP Server With GFork</title>
-
     <section id="gridftp-gfork-master-intro">
       <title>Introduction</title>
-
-      <para>GFork is a user-configurable super-server daemon very similar to
-      xinetd in that it listens on a TCP port. When clients connect to a port,
-      it runs an administrator-defined program which services that client
-      connection, just as xinetd does.</para>
-
-      <para>An unfortunate drawback to xinetd is that there is no way to
-      maintain or share long-term information. Every time a client connects, a
-      new process is created; and every time that client disconnects, the
-      process is destroyed. All of the information regarding the specific
-      interactions with a given client is lost with these transient processes.
-      A further disadvantage is that there is no way for these service
-      instances to share service-specific information with each other while
-      they are running.</para>
-
-      <para>There are times when it is useful for a service to maintain
-      long-term service-specific state, or for a service to share state across
-      client connections. GFork is designed to address this situation. GFork
-      runs a long term master program (that is user-defined) and forms
-      communication links via UNIX pipes between this process and all client
-      connection child processes. This allows long-term state to be maintained
-      in memory and allows for communication between all nodes.</para>
-
-      <para>Associated with a GFork instance is a master process. When GFork
-      starts, it runs a user-defined master program and opens up
-      bi-directional pipes to it. The master program runs for the lifetime of
-      the GFork daemon. The master is free to do whatever it wants; it is a
-      user-defined program. Some master programs listen on alternative TCP
-      connections to have state remotely injected. Others monitor system
-      resources, such as memory, in order to best share resources. As clients
-      connect to the TCP listener, child processes are forked which then
-      service the client connection. Bi-directional pipes are opened up to the
-      child processes as well. These pipes allow for communication between the
-      master program and all child processes. The master program and the child
-      programs have their own protocol for information exchange over these
-      links. GFork is just a framework for safely and quickly creating these
-      links.</para>
+      <para>GFork is a user-configurable super-server daemon very similar to xinetd in that it
+        listens on a TCP port. When clients connect to a port, it runs an administrator-defined
+        program which services that client connection, just as xinetd does.</para>
+      <para>An unfortunate drawback to xinetd is that there is no way to maintain or share long-term
+        information. Every time a client connects, a new process is created; and every time that
+        client disconnects, the process is destroyed. All of the information regarding the specific
+        interactions with a given client is lost with these transient processes. A further
+        disadvantage is that there is no way for these service instances to share service-specific
+        information with each other while they are running.</para>
+      <para>There are times when it is useful for a service to maintain long-term service-specific
+        state, or for a service to share state across client connections. GFork is designed to
+        address this situation. GFork runs a long term master program (that is user-defined) and
+        forms communication links via UNIX pipes between this process and all client connection
+        child processes. This allows long-term state to be maintained in memory and allows for
+        communication between all nodes.</para>
+      <para>Associated with a GFork instance is a master process. When GFork starts, it runs a
+        user-defined master program and opens up bi-directional pipes to it. The master program runs
+        for the lifetime of the GFork daemon. The master is free to do whatever it wants; it is a
+        user-defined program. Some master programs listen on alternative TCP connections to have
+        state remotely injected. Others monitor system resources, such as memory, in order to best
+        share resources. As clients connect to the TCP listener, child processes are forked which
+        then service the client connection. Bi-directional pipes are opened up to the child
+        processes as well. These pipes allow for communication between the master program and all
+        child processes. The master program and the child programs have their own protocol for
+        information exchange over these links. GFork is just a framework for safely and quickly
+        creating these links.</para>
     </section>
-
     <section id="gridftp-gfork-master-use-case">
       <title>Use Cases</title>
-
-      <para>The creation of GFork was motivated by the Globus GridFTP server.
-      GridFTP can be run as a striped server where there is a frontend and
-      several backends. The backends run in tandem to transfer files faster by
-      tying together many NICs. The frontend is the contact point for the
-      client where transfer requests are made. When the frontend is run out of
-      inetd, the list of possible backends must be statically configured.
-      Unfortunately, backends tend to come and go. Sometimes backends fail,
-      and sometimes backends are added to a pool. We needed a way to have a
-      dynamic pool of backends for use in live transfers. To accomplish this
-      we created GFork.</para>
+      <para>The creation of GFork was motivated by the Globus GridFTP server. GridFTP can be run as
+        a striped server where there is a frontend and several backends. The backends run in tandem
+        to transfer files faster by tying together many NICs. The frontend is the contact point for
+        the client where transfer requests are made. When the frontend is run out of inetd, the list
+        of possible backends must be statically configured. Unfortunately, backends tend to come and
+        go. Sometimes backends fail, and sometimes backends are added to a pool. We needed a way to
+        have a [good synopsis: dynamic pool of backends for use in live transfers]. To accomplish
+        this we created GFork.</para>
     </section>
-
     <section id="gridftp-gfork-config">
       <title>Configuration</title>
-
-      <para>A major difference between GFork configuration and xinetd is that
-      GFork only runs one service per instance, where xinetd runs many
-      services per instance all associated with many different ports. GFork
-      takes a single configuration file and handles a single service. If there
-      is demand, GFork will be enhanced to handle many services in the way
-      that xinetd does.</para>
-
-      <para>Running the globus-gridftp-server under GFork is almost identical
-      to running it under xinetd. First, you need a configuration file:</para>
-
+      <para>A major difference between GFork configuration and xinetd is that GFork only runs one
+        service per instance, where xinetd runs many services per instance all associated with many
+        different ports. GFork takes a single configuration file and handles a single service. If
+        there is demand, GFork will be enhanced to handle many services in the way that xinetd does.</para>
+      <para>Running the globus-gridftp-server under GFork is almost identical to running it under
+        xinetd. First, you need a configuration file:</para>
       <screen>service gridftp2
 {
 env += GLOBUS_LOCATION=&lt;path to GL&gt;
@@ -322,105 +386,76 @@ server_args = -i
 server_args += -d ALL -l &lt;path to GL&gt;/var/gridftp.log
 port = 5000
 }</screen>
-
-      <para>That portion is identical to xinetd. In fact, an existing xinetd
-      configuration file should work.</para>
-
-      <para>When running GridFTP out of GFork, the server should be run with a
-      master program. The master program provides enhanced functionality such
-      as dynamic backend registration for striped servers, managed system
-      memory pools and internal data monitoring for both striped and
-      non-striped servers.</para>
-
-      <para>To run with a master program, the following two lines are needed
-      in the config file.</para>
-
+      <para>That portion is identical to xinetd. In fact, an existing xinetd configuration file
+        should work.</para>
+      <para>When running GridFTP out of GFork, the server should be run with a master program. The
+        master program provides enhanced functionality such as dynamic backend registration for
+        striped servers, managed system memory pools and internal data monitoring for both striped
+        and non-striped servers.</para>
+      <para>To run with a master program, the following two lines are needed in the config file.</para>
       <screen>
 master = &lt;path to GL&gt;/libexec/gfs-gfork-master
 master_args = &lt;options&gt;</screen>
-
-      <para>These last two options relate to the master program and work in
-      the same way that <computeroutput>server</computeroutput> and
-      <computeroutput>server_args</computeroutput> do. The first line tells
-      GFork what master program to use (for the GridFTP server, we use
-      <command>gfs-gfork-master</command>). The second line provides options
-      to the master program.</para>
-
-      <para>The full list of master options are as follows (this is to date
-      only, run the program with <option>--help</option> for newer
-      options):</para>
-
+      <para>These last two options relate to the master program and work in the same way that
+          <computeroutput>server</computeroutput> and <computeroutput>server_args</computeroutput>
+        do. The first line tells GFork what master program to use (for the GridFTP server, we use
+          <command>gfs-gfork-master</command>). The second line provides options to the master
+        program.</para>
+      <para>The full list of master options are as follows (this is to date only, run the program
+        with <option>--help</option> for newer options):</para>
       <variablelist>
         <varlistentry>
           <term>-b | --reg-cs &lt;contact string&gt;</term>
-
           <listitem>
-            <para>Contact to the frontend registry. This option makes it a
-            data node.</para>
+            <para>Contact to the frontend registry. This option makes it a data node.</para>
           </listitem>
         </varlistentry>
-
         <varlistentry>
           <term>-df | --dn-file &lt;path&gt;</term>
-
           <listitem>
-            <para>Path to a file containing the list of acceptable DNs.
-            Default is system gridmap file.</para>
+            <para>Path to a file containing the list of acceptable DNs. Default is system gridmap
+              file.</para>
           </listitem>
         </varlistentry>
-
         <varlistentry>
           <term>-G | --gsi &lt;bool&gt;</term>
-
           <listitem>
             <para>Enable or disable GSI. Default is on.</para>
           </listitem>
         </varlistentry>
-
         <varlistentry>
           <term>-h | --help</term>
-
           <listitem>
             <para>Print the help message.</para>
           </listitem>
         </varlistentry>
-
         <varlistentry>
           <term>-l | --logfile &lt;path&gt;</term>
-
           <listitem>
             <para>Path to the logfile.</para>
           </listitem>
         </varlistentry>
-
         <varlistentry>
           <term>-p | --port &lt;int&gt;</term>
-
           <listitem>
             <para>Port where the server listens for connections.</para>
           </listitem>
         </varlistentry>
-
         <varlistentry>
           <term>-s | --stripe-count &lt;int&gt;</term>
-
           <listitem>
-            <para>The maximum number of stripes to give to each server. A
-            value of 0 indicates all stripes are available.</para>
+            <para>The maximum number of stripes to give to each server. A value of 0 indicates all
+              stripes are available.</para>
           </listitem>
         </varlistentry>
-
         <varlistentry>
           <term>-u | --update-interval &lt;int&gt;</term>
-
           <listitem>
             <para>Number of seconds between registration updates.</para>
           </listitem>
         </varlistentry>
       </variablelist>
-
       <para>The following is an example GFork configuration file:</para>
-
       <screen>service gridftp2
     {
     instances = 100
@@ -436,70 +471,46 @@ master_args = &lt;options&gt;</screen>
     master_args = -port 6065 -l /home/bresnaha/master.log -G n
     master_args += -dn /home/bresnaha/master_gridmap
     }</screen>
-
       <para>Once you have a configuration file, run GFork with:</para>
-
       <screen>% gfork -c &lt;path to config file&gt;</screen>
     </section>
-
     <section id="gridftp-gfork-striped">
       <title>GFork and Striped Servers</title>
-
-      <para>As mentioned in <olink
-      targetptr="gridftp-admin-data_nodes"></olink>, GridFTP offers a powerful
-      enhancement called striped servers. In this mode a GridFTP server is set
-      up with a single frontend and one or more backends. All of the backends
-      work in concert to transfer a single file and thereby achieve high
-      throughput rates. Here we describe how to configure one frontend and
-      multiple backends for use as a striped server with GFork.</para>
-
+      <para>As mentioned in <olink targetptr="gridftp-admin-striped"/>, GridFTP offers a powerful
+        enhancement called striped servers. In this mode a GridFTP server is set up with a single
+        frontend and one or more backends. All of the backends work in concert to transfer a single
+        file and thereby achieve high throughput rates. Here we describe how to configure one
+        frontend and multiple backends for use as a striped server with GFork.</para>
       <section id="gridftp-gfork-striped-frontend">
         <title>Frontend Configuration</title>
-
-        <para>The frontend server described here is run using dynamic
-        backends. We need additional options for both the GridFTP server and
-        the master program. The following lines are added to the config
-        file:</para>
-
+        <para>The frontend server described here is run using dynamic backends. We need additional
+          options for both the GridFTP server and the master program. The following lines are added
+          to the config file:</para>
         <screen>server_args += -dsi remote 
 master_args = -port 8588
 master_args += -df &lt;path to gridmap file&gt;</screen>
-
-        <para>The first line is an additional argument to the GridFTP server.
-        It tells the server that it will be operating in split mode (separate
-        frontend and backend processes) and that it will be using the
-        frontend. (Specifically it tells the server to use the 'remote'
-        DSI).</para>
-
-        <para>The second line tells the master program on which port it should
-        listen for backend registrations. Backend services can then connect to
-        this port to notify the frontend of their existence. By default, a
-        registration is good for 10 minutes, but a backend is free to refresh
-        its registration. In this way, a frontend is provided with the list of
-        possible backends (stripes) which may be used for a transfer.</para>
-
-        <para>The third line provides the master program with a list of
-        authorized DNs. Each line in the file must contain a GSI DN
-        (certificate subject). In order to register, the backend must
-        authenticate and provide its DN. The provided DN is checked against
-        this file. In other words, the file is a list of DNs that may register
-        with the frontend. If the master program is not given a
-        <option>-df</option> option and is given the <option>-G</option>
-        option, then there is no registration security at all.</para>
+        <para>The first line is an additional argument to the GridFTP server. It tells the server
+          that it will be operating in split mode (separate frontend and backend processes) and that
+          it will be using the frontend. (Specifically it tells the server to use the 'remote' DSI).</para>
+        <para>The second line tells the master program on which port it should listen for backend
+          registrations. Backend services can then connect to this port to notify the frontend of
+          their existence. By default, a registration is good for 10 minutes, but a backend is free
+          to refresh its registration. In this way, a frontend is provided with the list of possible
+          backends (stripes) which may be used for a transfer.</para>
+        <para>The third line provides the master program with a list of authorized DNs. Each line in
+          the file must contain a GSI DN (certificate subject). In order to register, the backend
+          must authenticate and provide its DN. The provided DN is checked against this file. In
+          other words, the file is a list of DNs that may register with the frontend. If the master
+          program is not given a <option>-df</option> option and is given the <option>-G</option>
+          option, then there is no registration security at all.</para>
       </section>
-
       <section id="gridftp-gfork-striped-backend">
         <title>Backend Configuration</title>
-
-        <para>Any striped server setup can have more than one backend service.
-        Furthermore, any one computer can run multiple backends. The following
-        explains how to set up a backend server. These steps should be
-        repeated for each needed backend instance.</para>
-
-        <para>A backend server may also be run with GFork, it just needs
-        different options for both the GridFTP server and the master program.
-        A sample backend config file is shown here:</para>
-
+        <para>Any striped server setup can have more than one backend service. Furthermore, any one
+          computer can run multiple backends. The following explains how to set up a backend server.
+          These steps should be repeated for each needed backend instance.</para>
+        <para>A backend server may also be run with GFork, it just needs different options for both
+          the GridFTP server and the master program. A sample backend config file is shown here:</para>
         <screen>service gridftp2
 {
 env += GLOBUS_LOCATION=&lt;path to GL&gt;
@@ -511,92 +522,58 @@ server_args += -dn
 master = &lt;path to GL&gt;/libexec/gfs-gfork-master
 master_args = -b localhost:8588
 }</screen>
-
         <para>Notable additions to this file are:</para>
-
         <screen>server_args += -dn
 master_args = -b localhost:8588</screen>
-
-        <para>The first line tells the GridFTP server that it will be a 'data
-        node', which is another name for a backend.</para>
-
-        <para>The second line tells the master program two things, first that
-        it will be a master of a data node, and second what the frontend's
-        registration contact point is. Note that in our example we have a
-        hostname of 'localhost' and a port of '8588'. 8588 is (and must be)
-        the same port that was provided to the frontend's master program in
-        the previous step.</para>
-
-        <para>Once the configuration file is complete, run GFork again as
-        follows:</para>
-
+        <para>The first line tells the GridFTP server that it will be a 'data node', which is
+          another name for a backend.</para>
+        <para>The second line tells the master program two things, first that it will be a master of
+          a data node, and second what the frontend's registration contact point is. Note that in
+          our example we have a hostname of 'localhost' and a port of '8588'. 8588 is (and must be)
+          the same port that was provided to the frontend's master program in the previous step.</para>
+        <para>Once the configuration file is complete, run GFork again as follows:</para>
         <screen>% gfork -c &lt;conf file&gt;</screen>
-
-        <para>This will start up the data node and the master program will
-        register itself to the frontend and refresh its registration every 5
-        minutes (default setting).</para>
+        <para>This will start up the data node and the master program will register itself to the
+          frontend and refresh its registration every 5 minutes (default setting).</para>
       </section>
     </section>
-
     <section id="gridftp-gfork-memory-mgt">
       <title>GFork with Memory Management</title>
-
-      <para>Another feature of the GridFTP GFork plugin is memory usage
-      limiting. Under extreme client loads, it is possible that GridFTP
-      servers require more memory than the system has available. Due to a
-      common kernel memory allocation scheme known as optimistic provisioning,
-      this situation can lead to a full consumption of memory resources and
-      thus trigger the out of memory handler. The OOM handler will kill
-      processes in a difficult-to-predict way in order to free up memory. This
-      will leave the system in an unpredicatable and unstable state;
-      obviously, this is a situation that we want to avoid.</para>
-
-      <para>To control this situation, the GridFTP GFork plugin has a memory
-      limiting option. This will attempt to limit memory usage to a given
-      value or to the maximum amount of RAM in the system. Most of the memory
-      is given to the first few connections, but when the plugin detects that
-      it is overloaded, each session is limited to half the available
-      memory.</para>
-
-      <para>To enable this feature, one of two options must be passed to the
-      master program via the <option>master_args</option> in the config
-      file:</para>
-
+      <para>Another feature of the GridFTP GFork plugin is memory usage limiting. Under extreme
+        client loads, it is possible that GridFTP servers require more memory than the system has
+        available. Due to a common kernel memory allocation scheme known as optimistic provisioning,
+        this situation can lead to a full consumption of memory resources and thus trigger the out
+        of memory handler. The OOM handler will kill processes in a difficult-to-predict way in
+        order to free up memory. This will leave the system in an unpredicatable and unstable state;
+        obviously, this is a situation that we want to avoid.</para>
+      <para>To control this situation, the GridFTP GFork plugin has a memory limiting option. This
+        will attempt to limit memory usage to a given value or to the maximum amount of RAM in the
+        system. Most of the memory is given to the first few connections, but when the plugin
+        detects that it is overloaded, each session is limited to half the available memory.</para>
+      <para>To enable this feature, one of two options must be passed to the master program via the
+          <option>master_args</option> in the config file:</para>
       <variablelist>
         <varlistentry>
           <term>-m</term>
-
           <listitem>
-            <simpara>Limits memory consumption to amount of RAM in the
-            system.</simpara>
+            <simpara>Limits memory consumption to amount of RAM in the system.</simpara>
           </listitem>
         </varlistentry>
-
         <varlistentry>
           <term>-M &lt;formated int&gt;</term>
-
           <listitem>
             <simpara>Limits memory to the given value.</simpara>
           </listitem>
         </varlistentry>
       </variablelist>
-
-      <para>Another important option should be provided in the GFork config
-      file: <option>instance</option>. When a client connects to GFork, a
-      GridFTP server instance is executed. This instance requires a certain
-      amount of RAM. If connections are coming in too fast, this can act as a
-      DOS attack. Limiting the number of allowed simultaneous connections will
-      help the memory management algorithm do its job. This limit is set
-      with:</para>
-
+      <para>Another important option should be provided in the GFork config file:
+        <option>instance</option>. When a client connects to GFork, a GridFTP server instance is
+        executed. This instance requires a certain amount of RAM. If connections are coming in too
+        fast, this can act as a DOS attack. Limiting the number of allowed simultaneous connections
+        will help the memory management algorithm do its job. This limit is set with:</para>
       <screen>instance = &lt;int&gt;</screen>
-
-      <para>We recommend a value of 100 or |RAM|/2M, whichever is
-      smaller.</para>
-
-      <para>The following is an example of a GFork configuration file with
-      memory limiting enabled:</para>
-
+      <para>We recommend a value of 100 or |RAM|/2M, whichever is smaller.</para>
+      <para>The following is an example of a GFork configuration file with memory limiting enabled:</para>
       <screen>service gridftp2
 {
 instance = 100  
@@ -610,22 +587,2222 @@ master_args = -M 512M
 }</screen>
     </section>
   </appendix>
-
   <glossary id="glossary-gridftpAdmin" role="auto">
-    <remark>some terms not in the docs but wanted in glossary:
-    <glossterm>scheduler</glossterm></remark>
-
+    <remark>some terms not in the docs but wanted in glossary: <glossterm>scheduler</glossterm>
+      <glossterm>client/server transfer</glossterm></remark>
     <glossdiv>
       <title>A</title>
-
       <glossentry>
         <glossterm>Dummy term</glossterm>
-
         <glossdef>
-          <para>This is a dummy entry for the automatic glossary database. Do
-          not edit.</para>
-        </glossdef>
-      </glossentry>
-    </glossdiv>
-  </glossary>
+          <para>This is a dummy entry for the automatic glossary database. Do not edit.</para>
+        </glossdef></glossentry>
+    </glossdiv></glossary>
+  <!-- moved to admin/index.xml under security config
+<section id="gridftp-config-ssh"><title>Configuring GridFTP-over-SSH</title>
+    <indexterm type="gridftp-howto">
+      <primary>configuring GridFTP</primary>
+      <secondary>over SSH</secondary>
+    </indexterm>
+    <para>GridFTP traditionally uses GSI for establishing secure connections as a very strong,
+      robust, and flexible means of securing messages. In some situations, however, it is preferable
+      to use the existing SSH security mechanism.</para><para>GridFTP-over-SSH leverages the fact
+      that an SSH client can remotely execute programs by forming a secure connection with SSHD. In
+      this case:</para>
+  <orderedlist>
+      <listitem>
+        <para>All of the standard IO from the remote program is routed back to the client.</para>
+      </listitem>
+      <listitem>
+        <para>The client (<olink targetdoc="gridftpUser" targetptr="globus-url-copy"
+          >globus-url-copy</olink>) acts as an SSH client and remotely executes a Globus GridFTP
+          server.</para>
+      </listitem>
+      <listitem>
+        <para>All IO is sent to and from the client by way of UNIX pipes.</para>
+      </listitem>
+      </orderedlist>
+      <para>Client support scripts for GridFTP-over-SSH are automatically created when
+      you run <command>make install</command> as part of step 2 above. [fixme ??]</para>
+  <para>On the
+      server side (where you intend the client to remotely execute a server), the following command
+      must be run as <emphasis role="strong">root</emphasis> in order to enable this machine to
+      accept SSHFTP connections. The following command will create the file <filename
+        >/etc/grid-security/sshftp</filename>:</para><screen>$GLOBUS_LOCATION/setup/globus/setup-globus-gridftp-sshftp -server</screen><para>If
+      root access is not available, the option <option>-nonroot</option> may be added to enable
+      connections as the current user only. The following alternative command will create the file
+        <filename
+      >$HOME/.globus/sshftp</filename>:</para><screen>$GLOBUS_LOCATION/setup/globus/setup-globus-gridftp-sshftp -server -nonroot</screen><para>In
+      order to use GridFTP-over-SSH, the user must provide urls that begin with <filename
+      >sshftp://</filename> as arguments. For
+      example:</para><screen>globus-url-copy sshftp://&lt;host&gt;:&lt;port&gt;/&lt;path_to_file&gt; file:/&lt;path_to_file&gt;</screen><para>where
+        <computeroutput>&lt;port&gt;</computeroutput> is the port in which sshd listens on the host
+      referred to by <computeroutput>&lt;host&gt;</computeroutput> (the default value is 22).</para><note>
+      <para>GridFTP-over-SSH does not support either third party transfers or data channel
+      security.</para>
+      </note>
+</section>
+  -->
+  <!--  
+  <section id="gridftp-config_options">
+    <title>GridFTP server configuration options</title>
+
+    [generated by globus-gridftp-server -help -docbook]
+
+    <para>The table below lists config file options, associated command line options (if available)
+      and descriptions. Note that any boolean option can be negated on the command line by preceding
+      the specified option with '-no-' or '-n'. example: -no-cas or -nf.</para>
+
+    <itemizedlist>
+  <listitem><simpara><ulink url="#gftpclass0">Informational Options</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="#gftpclass5">Modes of Operation</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="#gftpclass14">Authentication, Authorization, and Security Options</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="#gftpclass28">Logging Options</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="#gftpclass37">Single and Striped Remote Data Node Options</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="#gftpclass45">Disk Options</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="#gftpclass48">Network Options</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="#gftpclass55">Timeouts</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="#gftpclass60">User Messages</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="#gftpclass66">Module Options</ulink></simpara></listitem>
+  <listitem><simpara><ulink url="#gftpclass69">Other</ulink></simpara></listitem>
+</itemizedlist>
+
+    <section id="gridftp-config_options-info">
+      <title>Informational Options</title>
+
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>help &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-h</option>
+          </term>
+          <term>
+            <option>-help</option>
+          </term>
+          <listitem>
+            <para>Show usage information and exit.</para>
+
+            <para>Default value: FALSE</para>
+
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            <option>version &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-v</option>
+          </term>
+          <term>
+            <option>-version</option>
+          </term>
+
+          <listitem>
+            <para>Show version information for the server and exit.</para>
+
+            <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            <option>versions &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-V</option>
+          </term>
+          <term>
+            <option>-versions</option>
+          </term>
+
+          <listitem>
+            <para>Show version information for <emphasis role="strong">all</emphasis> loaded globus libraries and exit.</para>
+
+            <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    
+    <section id="gridftp-config_options-modes">
+      <title>Modes of Operation</title>
+      
+            <variablelist>
+        <varlistentry>
+          <term>
+            <option>inetd &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-i</option>
+          </term>
+          <term>
+            <option>-inetd</option>
+          </term>
+          <listitem>
+            <para>Run under an inetd service.</para>
+
+            <para>Default value: FALSE</para>
+
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            <option>daemon &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-s</option>
+          </term>
+          <term>
+            <option>-daemon</option>
+          </term>
+          <listitem>
+                <para>Run as a daemon. All connections will fork off a new process and setuid if
+                  allowed.</para>
+                <para>Default value: TRUE</para>
+
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            <option>detach &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-S</option>
+          </term>
+          <term>
+            <option>-detach</option>
+          </term>
+          <listitem>
+                <para>Run as a background daemon detached from any controlling terminals.</para>
+                <para>Default value: FALSE</para>
+
+          </listitem>
+        </varlistentry>
+              
+                      <varlistentry>
+          <term>
+            <option>exec &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-exec &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>For statically compiled or non-GLOBUS_LOCATION standard binary locations,
+                  specify the full path of the server binary here. Only needed when run in daemon
+                  mode.</para>
+                <para>Default value: not set</para>
+          </listitem>
+                      </varlistentry>
+              
+       <varlistentry>
+          <term>
+            <option>chdir &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-chdir</option>
+          </term>
+          <listitem>
+                <para>Change directory when the server starts. This will change directory to the dir
+                  specified by the chdir_to option.</para>
+                <para>Default value: TRUE</para>
+          </listitem>
+       </varlistentry>
+              
+      <varlistentry>
+          <term>
+            <option>chdir_to &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-chdir-to &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Directory to chdir to after starting. Will use / if not set.</para>
+                <para>Default value: not set</para>
+          </listitem>
+      </varlistentry>
+              
+        <varlistentry>
+          <term>
+            <option>fork &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-f</option>
+          </term>
+          <term>
+            <option>-fork</option>
+          </term>
+          <listitem>
+                <para>Server will fork for each new connection. Disabling this option is only
+                  recommended when debugging. Note that non-forked servers running as 'root' will
+                  only accept a single connection and then exit.</para>
+                <para>Default value: TRUE</para>
+          </listitem>
+        </varlistentry>
+              
+                      <varlistentry>
+          <term>
+            <option>single &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-1</option>
+          </term>
+          <term>
+            <option>-single</option>
+          </term>
+          <listitem>
+                <para>Exit after a single connection.</para>
+                <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+      
+    </section>
+    
+    <section id="gridftp-config_options-security">
+      <title>Authentication, Authorization, and Security Options</title>
+      
+      <variablelist>
+        
+      <varlistentry>
+          <term>
+            <option>auth_level &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-auth-level &lt;number&gt;</option>
+          </term>
+
+          <listitem>
+                <para>
+                  <itemizedlist>
+                    <listitem><simpara>0 = Disables all authorization checks.</simpara></listitem>
+                    <listitem><simpara>1 = Authorize identity only.</simpara></listitem>
+                    <listitem><simpara>2 =  Authorize all file/resource accesses.</simpara></listitem>
+                  </itemizedlist>
+                  </para>
+                  <para>If not set, the GridFTP Server uses level 2 for front ends and level 1 for data nodes.</para>
+                <para>Default value: not set</para>
+          </listitem>
+      </varlistentry>
+        
+              <varlistentry>
+          <term>
+            <option>allow_from &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-allow-from &lt;string&gt;</option>
+          </term>
+
+          <listitem>
+             <para>Only allow connections from these source ip addresses. Specify a comma
+                  separated list of ip address fragments. A match is any ip address that starts with
+                  the specified fragment. Example: '192.168.1.' will match and allow a connection
+                  from 192.168.1.45. Note that if this option is used, any address not specifically
+                  allowed will be denied.</para>
+                <para>Default value: not set</para>
+          </listitem>
+              </varlistentry>
+        
+                      <varlistentry>
+          <term>
+            <option>deny_from &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-deny-from &lt;string&gt;</option>
+          </term>
+
+          <listitem>
+                <para>Deny connections from these source IP addresses. Specify a comma-separated
+                  list of IP address fragments. A match is any IP address that starts with the
+                  specified fragment. Example: '192.168.2.' will match and deny a connection from
+                  192.168.2.45.</para>
+                <para>Default value: not set</para>
+          </listitem>
+                      </varlistentry>
+        
+                              <varlistentry>
+          <term>
+            <option>cas &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-cas</option>
+          </term>
+
+          <listitem>
+                <para>Enable CAS authorization. [fixme - link to CAS doc?]</para>
+                <para>Default value: TRUE</para>
+          </listitem>
+                              </varlistentry>
+        
+                                      <varlistentry>
+          <term>
+            <option>secure_ipc &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-si</option>
+          </term>
+<term>
+            <option>-secure-ipc</option>
+          </term>
+          <listitem>
+                                <para>Use GSI security on the ipc channel.</para>
+                <para>Default value: TRUE</para>
+          </listitem>
+                                      </varlistentry>
+        
+      <varlistentry>
+          <term>
+            <option>secure_ipc &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-si</option>
+          </term>
+          <term>
+            <option>-secure-ipc</option>
+          </term>
+          <listitem>
+                <para>Use GSI security on the ipc channel.</para>
+                <para>Default value: TRUE</para>
+          </listitem>
+      </varlistentry>
+        
+       <varlistentry>
+          <term>
+            <option>ipc_auth_mode &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-ia &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-ipc-auth-mode &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Set GSI authorization mode for the ipc connection. Options are one of the following: 
+                  <itemizedlist>
+                    <listitem><simpara>none</simpara></listitem>
+                    <listitem><simpara>host</simpara></listitem>
+                    <listitem><simpara>self</simpara></listitem>
+                    <listitem><simpara>subject:[subject]</simpara></listitem>
+                  </itemizedlist>
+                  </para>
+                <para>Default value: host</para>
+          </listitem>
+       </varlistentry>
+        
+      <varlistentry>
+          <term>
+            <option>allow_anonymous &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-aa</option>
+          </term>
+          <term>
+            <option>-allow-anonymous</option>
+          </term>
+          <listitem>
+                <para>Allow cleartext anonymous access. If server is running as root, anonymous_user
+                  must also be set. Disables IPC security.</para>
+                <para>Default value: FALSE</para>
+          </listitem>
+      </varlistentry>
+        
+              <varlistentry>
+          <term>
+            <option>anonymous_names_allowed &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-anonymous-names-allowed &lt;string&gt;</option>
+          </term>
+          <listitem>
+                 <para>Comma-separated list of names to treat as anonymous users when allowing
+                  anonymous access. If not set, the default names of 'anonymous' and 'ftp' will be
+                  allowed. Use '*' to allow any username.</para>
+                <para>Default value: not set</para>
+          </listitem>
+              </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>anonymous_user &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-anonymous-user &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>User to setuid to for an anonymous connection. Only applies when running as
+                  root.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>anonymous_group &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-anonymous-group &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Group to setgid to for an anonymous connection. If not set the default group
+                  of anonymous_user will be used.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>pw_file &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-password-file &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Enable cleartext access and authenticate users against this <filename>/etc/passwd</filename>
+                  formatted file.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>connections_max &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-connections-max &lt;number&gt;</option>
+          </term>
+          <listitem>
+                <para>Maximum concurrent connections allowed. Only applies when running in daemon
+                  mode [fixme link]. Unlimited if not set.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>connections_disabled &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-connections-disabled</option>
+          </term>
+          <listitem>
+                <para>Disable all new connections. Does not affect ongoing connections. This would
+                  have to be set in the configuration file and then the server issued a SIGHUP in
+                  order to reload the config.</para>
+                <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      
+    </section>
+    
+    <section id="gridftp-config_options-logging">
+      <title>Logging Options</title>
+      
+      <variablelist>
+        
+        <varlistentry>
+          <term>
+            <option>log_level &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-d &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-log-level &lt;string&gt;</option>
+          </term>
+
+          <listitem>
+                <para>Log level. A comma separated list of levels from: 'ERROR, WARN, INFO, DUMP,
+                  ALL'. Example: error,warn,info. You may also specify a numeric level of 1-255 [fixme what do the levels map to?].</para>
+                <para>Default value: ERROR</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>log_module &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-log-module &lt;string&gt;</option>
+          </term>
+
+          <listitem>
+                <para>[fixme - edit following for better readability] Indicates globus_logging module that will be loaded. If not set, the default 'stdio'
+                  module will be used and the logfile options apply. Built-in modules are 'stdio'
+                  and 'syslog'. Log module options may be set by specifying
+                  module:opt1=val1:opt2=val2. Available options for the built-in modules are
+                  'interval' and 'buffer', for buffer flush interval and buffer size, respectively.
+                  The default options are a 64k buffer size and a 5 second flush interval. A 0
+                  second flush interval will disable periodic flushing, and the buffer will only
+                  flush when it is full. A value of 0 for buffer will disable buffering and all
+                  messages will be written immediately. Example: -log-module
+                  stdio:buffer=4096:interval=10</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>log_single &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-l &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-logfile &lt;string&gt;</option>
+          </term>
+
+          <listitem>
+                <para>[fixme] Path of a single file to log all activity to. If neither this option nor
+                  log_unique is set, logs will be written to stderr unless the execution mode is
+                  detached or inetd, in which case logging will be disabled.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>log_unique &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-L &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-logdir &lt;string&gt;</option>
+          </term>
+
+          <listitem>
+                <para>Partial path to which 'gridftp.(pid).log' will be appended to construct the
+                  log filename. Example: -L /var/log/gridftp/ will create a separate log
+                  (/var/log/gridftp/gridftp.xxxx.log) for each process (which is normally each new
+                    <glossterm>client</glossterm> session). If neither this option nor log_single is
+                  set, logs will be written to stderr unless the execution mode is detached or
+                  inetd, in which case logging will be disabled.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>log_transfer &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-Z &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-log-transfer &lt;string&gt;</option>
+          </term>
+
+          <listitem>
+                <para>Log NetLogger-style info for each transfer into this file.</para>
+                <para>Default value: not set</para>
+                <para> Example: DATE=20050520163008.306532 HOST=localhost PROG=globus-gridftp-server
+                  NL.EVNT=FTP_INFO START=20050520163008.305913 USER=ftp FILE=/etc/group BUFFER=0
+                  BLOCK=262144 NBYTES=542 VOLUME=/ STREAMS=1 STRIPES=1 DEST=[127.0.0.1] TYPE=RETR
+                  CODE=226 </para>
+                <para>Time format is YYYYMMDDHHMMSS.UUUUUU (microsecs).</para>
+                <para><itemizedlist>
+                  <listitem><simpara>DATE: time the transfer completed.</simpara></listitem>
+                <listitem><simpara>START: time the transfer started.</simpara></listitem>
+                <listitem><simpara>HOST: hostname of the server.</simpara></listitem>
+                <listitem><simpara>USER: username on the host that transfered the file.</simpara></listitem>
+                <listitem><simpara>BUFFER: tcp buffer size (if 0 system defaults were used).</simpara></listitem>
+                <listitem><simpara>BLOCK: the size of the data block read from the disk and posted to the
+                  network.</simpara></listitem>
+                <listitem><simpara>NBYTES: the total number of bytes transfered.</simpara></listitem>
+               <listitem> <simpara>VOLUME: the disk partition where the transfer file is stored.</simpara></listitem>
+                <listitem><simpara>STREAMS: the number of parallel TCP streams used in the transfer.</simpara></listitem>
+                <listitem><simpara>STRIPES: the number of stripes used on this end of the transfer.</simpara></listitem>
+                <listitem><simpara>DEST: the destination host.</simpara></listitem>
+                <listitem><simpara>TYPE: the transfer type, RETR is a send and STOR is a receive (ftp 959
+                  commands).</simpara></listitem>
+                <listitem><simpara>CODE: the FTP rfc959 completion code of the transfer. 226 indicates success,
+                  5xx or 4xx are failure codes.</simpara></listitem></itemizedlist></para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>log_filemode &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-log-filemode &lt;string&gt;</option>
+          </term>
+
+          <listitem>
+                <para>File access permissions of log files. Should be an octal number such as 0644
+                  (the leading 0 is required).</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>disable_usage_stats &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-disable-usage-stats</option>
+          </term>
+
+          <listitem>
+                <para>Disable transmission of per-transfer usage statistics. See the <ulink
+                    url="../../../Usage_Stats.html">Usage Statistics</ulink> section in the online
+                  documentation for more information.</para>
+                <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>usage_stats_target &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-usage-stats-target &lt;string&gt;</option>
+          </term>
+
+          <listitem>
+                <para>Comma separated list of contact strings for usage statistics listeners. The
+                  format of &lt;string&gt; is <computeroutput>host:port</computeroutput>.</para>
+                <para>Default value: <computeroutput>usage-stats.globus.org:4810</computeroutput></para>
+                <para>
+                  <emphasis role="strong">Example:</emphasis>
+                </para>
+                <screen>-usage-stats-target usage-stats.globus.org:4810,usage-stats.uc.teragrid.org:5920</screen>
+                <para>In this example, the usage statistics will be transmitted to the default
+                  Globus target (<computeroutput>usage-stats.globus.org:4810</computeroutput>) and
+                  another target
+                  (<computeroutput>usage-stats.uc.teragrid.org:5920</computeroutput>).</para>
+          </listitem>
+        </varlistentry>
+        
+      </variablelist>
+      
+      
+    </section>
+    
+    <section id="gridftp-config_options-remotedata">
+      <title>Single and Striped Remote Data Node Options</title>
+      
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>remote_nodes &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-r &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-remote-nodes &lt;string&gt;</option>
+          </term>
+
+          <listitem>
+                <para>Comma separated list of remote node contact strings.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>data_node &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-dn</option>
+          </term>
+          <term>
+            <option>-data-node</option>
+          </term>
+
+          <listitem>
+                <para>This server is a back end data node.</para>
+                <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>stripe_blocksize &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-sbs &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-stripe-blocksize &lt;number&gt;</option>
+          </term>
+
+          <listitem>
+                <para>Size in bytes of sequential data that each stripe will transfer.</para>
+                <para>Default value: 1048576</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>stripe_layout &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-sl &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-stripe-layout &lt;number&gt;</option>
+          </term>
+
+          <listitem>
+                <para>Stripe layout. 1 = Partitioned, 2 = Blocked.</para>
+                <para>Default value: 2</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>stripe_blocksize_locked &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-stripe-blocksize-locked;</option>
+          </term>
+
+          <listitem>
+                <para>Do not allow client to override stripe blocksize with the OPTS RETR command.</para>
+                <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>stripe_layout_locked &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-stripe-layout-locked</option>
+          </term>
+
+          <listitem>
+                <para>Do not allow client to override stripe layout with the OPTS RETR command.</para>
+                <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+           
+    </section>
+    
+    <section id="gridftp-config_options-disk">
+      <title>Disk Options</title>
+      
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>blocksize &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-bs &lt;number&gt;</option>
+          </term>
+          
+          <term>
+            <option>-blocksize &lt;number&gt;</option>
+          </term>          
+
+          <listitem>
+                <para>Size in bytes of data blocks to read from disk before posting to the network.</para>
+                <para>Default value: 262144</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>sync_writes &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-sync-writes</option>
+          </term>
+
+          <listitem>
+                <para>Flush disk writes before sending a restart marker. This attempts to ensure
+                  that the range specified in the restart marker has actually been committed to
+                  disk. This option will probably impact performance and may result in different
+                  behavior on different storage systems. See the man page for sync() for more
+                  information.</para>
+                <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+    
+    <section id="gridftp-config_options-network">
+      <title>Network Options</title>
+      
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>port &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-p &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-port &lt;number&gt;</option>
+          </term>
+          <listitem>
+                <para>Port on which a front end will listen for client control channel connections
+                  or on which a data node will listen for connections from a front end. If not set a
+                  random port will be chosen and printed via the logging mechanism.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>control_interface &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-control-interface &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Hostname or IP address of the interface to listen for control connections on.
+                  If not set will listen on all interfaces.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>data_interface &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-data-interface &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Hostname or IP address of the interface to use for data connections. If not
+                  set will use the current control interface.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>ipc_interface &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-ipc-interface &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Hostname or IP address of the interface to use for ipc connections. If not set
+                  will listen on all interfaces.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>hostname &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-hostname &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Effectively sets the above control_interface, data_interface and ipc_interface
+                  options.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>ipc_port &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-ipc-port &lt;number&gt;</option>
+          </term>
+          <listitem>
+                <para>Port on which the front end will listen for data node connections.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+      </variablelist>
+      
+      
+    </section>
+    
+    <section id="gridftp-config_options-timeouts">
+      <title>Timeouts</title>
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>control_preauth_timeout &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-control-preauth-timeout &lt;number&gt;</option>
+          </term>
+          <listitem>
+                <para>Time in seconds to allow a client to remain connected to the control channel
+                  without activity before authenticating.</para>
+                <para>Default value: 30</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>control_idle_timeout &lt;number&gt;;</option>
+          </term>
+          <term>
+            <option>-control-idle-timeout &lt;number&gt;</option>
+          </term>
+          <listitem>
+                <para>Time in seconds to allow a client to remain connected to the control channel
+                  without activity.</para>
+                <para>Default value: 600</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>ipc_idle_timeout &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-ipc-idle-timeout &lt;number&gt;</option>
+          </term>
+          <listitem>
+                <para>Idle time in seconds before an unused ipc connection will close.</para>
+                <para>Default value: 600</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>ipc_connect_timeout &lt;number&gt;</option>
+          </term>
+          <term>
+            <option>-ipc-connect-timeout &lt;number&gt;</option>
+          </term>
+          <listitem>
+                <para>Time in seconds before cancelling an attempted ipc connection.</para>
+                <para>Default value: 60</para>
+          </listitem>
+        </varlistentry>
+        
+      </variablelist>
+      
+    </section>
+    
+    <section id="gridftp-config_options-user-msg">
+      <title>User Messages</title>
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>banner &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-banner &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Message to display to the client before authentication.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>banner_file &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-banner-file &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>File to read banner message from.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>banner_terse &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-banner-terse</option>
+          </term>
+          <listitem>
+                <para>When this is set, the minimum allowed banner message will be displayed to
+                  unauthenticated clients.</para>
+                <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>login_msg &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-login-msg &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Message to display to the client after authentication.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>login_msg_file &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-login-msg-file &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>File to read login message from.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+      </variablelist>
+      
+    </section>
+    
+    <section id="gridftp-config_options-user-msg">
+      <title>Module Options</title>
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>load_dsi_module &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-dsi &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Data Storage Interface module to load. File and remote modules are defined by
+                  the server. If not set the file module is loaded, unless the 'remote' option is
+                  specified, in which case the remote module is loaded. An additional configuration
+                  string can be passed to the DSI using the format [module name]:[configuration
+                  string]. The format of the configuration string is defined by the DSI being
+                  loaded.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>allowed_modules &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-allowed-modules &lt;string&gt;</option>
+          </term>
+          <listitem>
+               <para>Comma separated list of ERET/ESTO modules to allow and, optionally, specify an
+                  alias for. Example: module1,alias2:module2,module3 (module2 will be loaded when a
+                  client asks for alias2).</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      
+    </section>
+    
+    <section id="gridftp-config_options-other">
+      <title>Other Options</title>
+      <variablelist>
+        <varlistentry>
+          <term>
+            <option>configfile &lt;string&gt;</option>
+          </term>
+          <term>
+            <option>-c &lt;string&gt;</option>
+          </term>
+          <listitem>
+                <para>Path to configuration file that should be loaded. Otherwise will attempt to
+                  load $GLOBUS_LOCATION/etc/gridftp.conf and /etc/grid-security/gridftp.conf.</para>
+                <para>Default value: not set</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>use_home_dirs &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-use-home-dirs</option>
+          </term>
+          <listitem>
+<para>Set the startup directory to the authenticated user's home dir.</para>
+                <para>Default value: TRUE</para>
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term>
+            <option>debug &lt;0|1&gt;</option>
+          </term>
+          <term>
+            <option>-debug</option>
+          </term>
+          <listitem>
+                <para>Set options that make the server easier to debug. Forces no-fork, no-chdir,
+                  and allows core dumps on bad signals instead of exiting cleanly. Not recommended
+                  for production servers. Note that non-forked servers running as root will only
+                  accept a single connection and then exit.</para>
+                <para>Default value: FALSE</para>
+          </listitem>
+        </varlistentry>
+        
+      </variablelist>
+      
+    </section>
+    
+    [commenting out until variablelist style is confirmed ]
+      <table>
+        <title>Informational Options</title>
+
+        <tgroup cols="2">
+          <tbody>
+
+
+            <row>
+              <entry>
+                <para>
+                  <screen>longhelp &lt;0|1&gt;
+-hh
+-longhelp</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Show more usage information and exit.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>version &lt;0|1&gt;
+-v
+-version</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Show version information for the server and exit.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>versions &lt;0|1&gt;
+-V
+-versions</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Show version information for all loaded globus libraries and exit.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Modes of Operation</title>
+
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <screen>inetd &lt;0|1&gt;
+-i
+-inetd</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Run under an inetd service.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>daemon &lt;0|1&gt;
+-s
+-daemon</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Run as a daemon. All connections will fork off a new process and setuid if
+                  allowed.</para>
+                <para>Default value: TRUE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>detach &lt;0|1&gt;
+-S
+-detach</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Run as a background daemon detached from any controlling terminals.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>exec &lt;string&gt;
+-exec &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>For statically compiled or non-GLOBUS_LOCATION standard binary locations,
+                  specify the full path of the server binary here. Only needed when run in daemon
+                  mode.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>chdir &lt;0|1&gt;
+-chdir</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Change directory when the server starts. This will change directory to the dir
+                  specified by the chdir_to option.</para>
+                <para>Default value: TRUE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>chdir_to &lt;string&gt;
+-chdir-to &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Directory to chdir to after starting. Will use / if not set.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>fork &lt;0|1&gt;
+-f
+-fork</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Server will fork for each new connection. Disabling this option is only
+                  recommended when debugging. Note that non-forked servers running as 'root' will
+                  only accept a single connection and then exit.</para>
+                <para>Default value: TRUE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>single &lt;0|1&gt;
+-1
+-single</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Exit after a single connection.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Authentication, Authorization, and Security Options</title>
+
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <screen>auth_level &lt;number&gt;
+-auth-level &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>0 = Disables all authorization checks. 1 = Authorize identity only. 2 =
+                  Authorize all file/resource accesses. If not set, it uses level 2 for front ends
+                  and level 1 for data nodes.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>allow_from &lt;string&gt;
+-allow-from &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Only allow connections from these source ip addresses. Specify a comma
+                  separated list of ip address fragments. A match is any ip address that starts with
+                  the specified fragment. Example: '192.168.1.' will match and allow a connection
+                  from 192.168.1.45. Note that if this option is used any address not specifically
+                  allowed will be denied.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>deny_from &lt;string&gt;
+-deny-from &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Deny connections from these source ip addresses. Specify a comma separated
+                  list of ip address fragments. A match is any ip address that starts with the
+                  specified fragment. Example: '192.168.2.' will match and deny a connection from
+                  192.168.2.45.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>cas &lt;0|1&gt;
+-cas</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Enable CAS authorization.</para>
+                <para>Default value: TRUE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>secure_ipc &lt;0|1&gt;
+-si
+-secure-ipc</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Use GSI security on the ipc channel.</para>
+                <para>Default value: TRUE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>ipc_auth_mode &lt;string&gt;
+-ia &lt;string&gt;
+-ipc-auth-mode &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Set GSI authorization mode for the ipc connection. Options are: none, host,
+                  self or subject:[subject].</para>
+                <para>Default value: host</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>allow_anonymous &lt;0|1&gt;
+-aa
+-allow-anonymous</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Allow cleartext anonymous access. If server is running as root, anonymous_user
+                  must also be set. Disables ipc security.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>anonymous_names_allowed &lt;string&gt;
+-anonymous-names-allowed &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Comma separated list of names to treat as anonymous users when allowing
+                  anonymous access. If not set the default names of 'anonymous' and 'ftp' will be
+                  allowed. Use '*' to allow any username.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>anonymous_user &lt;string&gt;
+-anonymous-user &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>User to setuid to for an anonymous connection. Only applies when running as
+                  root.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>anonymous_group &lt;string&gt;
+-anonymous-group &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Group to setgid to for an anonymous connection. If not set the default group
+                  of anonymous_user will be used.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>pw_file &lt;string&gt;
+-password-file &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Enable cleartext access and authenticate users against this /etc/passwd
+                  formatted file.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>connections_max &lt;number&gt;
+-connections-max &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Maximum concurrent connections allowed. Only applies when running in daemon
+                  mode. Unlimited if not set.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>connections_disabled &lt;0|1&gt;
+-connections-disabled</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Disable all new connections. Does not affect ongoing connections. This would
+                  have to be set in the configuration file and then the server issued a SIGHUP in
+                  order to reload the config.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Logging Options</title>
+
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <screen>log_level &lt;string&gt;
+-d &lt;string&gt;
+-log-level &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Log level. A comma separated list of levels from: 'ERROR, WARN, INFO, DUMP,
+                  ALL'. Example: error,warn,info. You may also specify a numeric level of 1-255.</para>
+                <para>Default value: ERROR</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>log_module &lt;string&gt;
+-log-module &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>globus_logging module that will be loaded. If not set the default 'stdio'
+                  module will be used, and the logfile options apply. Built-in modules are 'stdio'
+                  and 'syslog'. Log module options may be set by specifying
+                  module:opt1=val1:opt2=val2. Available options for the built-in modules are
+                  'interval' and 'buffer', for buffer flush interval and buffer size, respectively.
+                  The default options are a 64k buffer size and a 5 second flush interval. A 0
+                  second flush interval will disable periodic flushing, and the buffer will only
+                  flush when it is full. A value of 0 for buffer will disable buffering and all
+                  messages will be written immediately. Example: -log-module
+                  stdio:buffer=4096:interval=10</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>log_single &lt;string&gt;
+-l &lt;string&gt;
+-logfile &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Path of a single file to log all activity to. If neither this option nor
+                  log_unique is set, logs will be written to stderr unless the execution mode is
+                  detached or inetd, in which case logging will be disabled.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>log_unique &lt;string&gt;
+-L &lt;string&gt;
+      -logdir &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Partial path to which 'gridftp.(pid).log' will be appended to construct the
+                  log filename. Example: -L /var/log/gridftp/ will create a separate log
+                  (/var/log/gridftp/gridftp.xxxx.log) for each process (which is normally each new
+                    <glossterm>client</glossterm> session). If neither this option nor log_single is
+                  set, logs will be written to stderr unless the execution mode is detached or
+                  inetd, in which case logging will be disabled.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>log_transfer &lt;string&gt;
+-Z &lt;string&gt;
+-log-transfer &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Log netlogger style info for each transfer into this file.</para>
+                <para>Default value: not set</para>
+                <para> ex: DATE=20050520163008.306532 HOST=localhost PROG=globus-gridftp-server
+                  NL.EVNT=FTP_INFO START=20050520163008.305913 USER=ftp FILE=/etc/group BUFFER=0
+                  BLOCK=262144 NBYTES=542 VOLUME=/ STREAMS=1 STRIPES=1 DEST=[127.0.0.1] TYPE=RETR
+                  CODE=226 </para>
+                <para>Time format is YYYYMMDDHHMMSS.UUUUUU (microsecs).</para>
+                <para>DATE: time the transfer completed.</para>
+                <para>START: time the transfer started.</para>
+                <para>HOST: hostname of the server.</para>
+                <para>USER: username on the host that transfered the file.</para>
+                <para>BUFFER: tcp buffer size (if 0 system defaults were used).</para>
+                <para>BLOCK: the size of the data block read from the disk and posted to the
+                  network.</para>
+                <para>NBYTES: the total number of bytes transfered.</para>
+                <para>VOLUME: the disk partition where the transfer file is stored.</para>
+                <para>STREAMS: the number of parallel TCP streams used in the transfer.</para>
+                <para>STRIPES: the number of stripes used on this end of the transfer.</para>
+                <para>DEST: the destination host.</para>
+                <para>TYPE: the transfer type, RETR is a send and STOR is a receive (ftp 959
+                  commands).</para>
+                <para>CODE: the FTP rfc959 completion code of the transfer. 226 indicates success,
+                  5xx or 4xx are failure codes.</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>log_filemode &lt;string&gt;
+-log-filemode &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>File access permissions of log files. Should be an octal number such as 0644
+                  (the leading 0 is required).</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>disable_usage_stats &lt;0|1&gt;
+-disable-usage-stats</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Disable transmission of per-transfer usage statistics. See the <ulink
+                    url="../../../Usage_Stats.html">Usage Statistics</ulink> section in the online
+                  documentation for more information.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>usage_stats_target &lt;string&gt;
+-usage-stats-target &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Comma separated list of contact strings for usage statistics listeners. The
+                  format of &lt;string&gt; is <computeroutput>host:port</computeroutput>.</para>
+                <para>Default value: <computeroutput>usage-stats.globus.org:4810</computeroutput></para>
+                <para>
+                  <emphasis role="strong">Example:</emphasis>
+                </para>
+                <screen>-usage-stats-target usage-stats.globus.org:4810,usage-stats.uc.teragrid.org:5920</screen>
+                <para>In this example, the usage statistics will be transmitted to the default
+                  Globus target (<computeroutput>usage-stats.globus.org:4810</computeroutput>) and
+                  another target
+                  (<computeroutput>usage-stats.uc.teragrid.org:5920</computeroutput>).</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Single and Striped Remote Data Node Options</title>
+
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <screen>remote_nodes &lt;string&gt;
+-r &lt;string&gt;
+-remote-nodes &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Comma separated list of remote node contact strings.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>data_node &lt;0|1&gt;
+-dn
+-data-node</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>This server is a back end data node.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>stripe_blocksize &lt;number&gt;
+-sbs &lt;number&gt;
+-stripe-blocksize &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Size in bytes of sequential data that each stripe will transfer.</para>
+                <para>Default value: 1048576</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>stripe_layout &lt;number&gt;
+-sl &lt;number&gt;
+-stripe-layout &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Stripe layout. 1 = Partitioned, 2 = Blocked.</para>
+                <para>Default value: 2</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>stripe_blocksize_locked &lt;0|1&gt;
+-stripe-blocksize-locked</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Do not allow client to override stripe blocksize with the OPTS RETR command.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>stripe_layout_locked &lt;0|1&gt;
+-stripe-layout-locked</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Do not allow client to override stripe layout with the OPTS RETR command.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Disk Options</title>
+
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <screen>blocksize &lt;number&gt;
+-bs &lt;number&gt;
+-blocksize &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Size in bytes of data blocks to read from disk before posting to the network.</para>
+                <para>Default value: 262144</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>sync_writes &lt;0|1&gt;
+-sync-writes</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Flush disk writes before sending a restart marker. This attempts to ensure
+                  that the range specified in the restart marker has actually been committed to
+                  disk. This option will probably impact performance and may result in different
+                  behavior on different storage systems. See the man page for sync() for more
+                  information.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Network Options</title>
+
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <screen>port &lt;number&gt;
+-p &lt;number&gt;
+-port &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Port on which a front end will listen for client control channel connections
+                  or on which a data node will listen for connections from a front end. If not set a
+                  random port will be chosen and printed via the logging mechanism.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>control_interface &lt;string&gt;
+-control-interface &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Hostname or IP address of the interface to listen for control connections on.
+                  If not set will listen on all interfaces.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>data_interface &lt;string&gt;
+-data-interface &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Hostname or IP address of the interface to use for data connections. If not
+                  set will use the current control interface.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>ipc_interface &lt;string&gt;
+-ipc-interface &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Hostname or IP address of the interface to use for ipc connections. If not set
+                  will listen on all interfaces.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>hostname &lt;string&gt;
+-hostname &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Effectively sets the above control_interface, data_interface and ipc_interface
+                  options.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>ipc_port &lt;number&gt;
+-ipc-port &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Port on which the front end will listen for data node connections.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Timeouts</title>
+
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <screen>control_preauth_timeout &lt;number&gt;
+-control-preauth-timeout &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Time in seconds to allow a client to remain connected to the control channel
+                  without activity before authenticating.</para>
+                <para>Default value: 30</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>control_idle_timeout &lt;number&gt;
+-control-idle-timeout &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Time in seconds to allow a client to remain connected to the control channel
+                  without activity.</para>
+                <para>Default value: 600</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>ipc_idle_timeout &lt;number&gt;
+-ipc-idle-timeout &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Idle time in seconds before an unused ipc connection will close.</para>
+                <para>Default value: 600</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>ipc_connect_timeout &lt;number&gt;
+-ipc-connect-timeout &lt;number&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Time in seconds before cancelling an attempted ipc connection.</para>
+                <para>Default value: 60</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>User Messages</title>
+
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <screen>banner &lt;string&gt;
+-banner &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Message to display to the client before authentication.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>banner_file &lt;string&gt;
+-banner-file &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>File to read banner message from.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>banner_terse &lt;0|1&gt;
+-banner-terse</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>When this is set, the minimum allowed banner message will be displayed to
+                  unauthenticated clients.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>login_msg &lt;string&gt;
+-login-msg &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Message to display to the client after authentication.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>login_msg_file &lt;string&gt;
+-login-msg-file &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>File to read login message from.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Module Options</title>
+
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <screen>load_dsi_module &lt;string&gt;
+-dsi &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Data Storage Interface module to load. File and remote modules are defined by
+                  the server. If not set the file module is loaded, unless the 'remote' option is
+                  specified, in which case the remote module is loaded. An additional configuration
+                  string can be passed to the DSI using the format [module name]:[configuration
+                  string]. The format of the configuration string is defined by the DSI being
+                  loaded.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>allowed_modules &lt;string&gt;
+-allowed-modules &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Comma separated list of ERET/ESTO modules to allow and, optionally, specify an
+                  alias for. Example: module1,alias2:module2,module3 (module2 will be loaded when a
+                  client asks for alias2).</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+        <title>Other</title>
+
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  <screen>configfile &lt;string&gt;
+-c &lt;string&gt;</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Path to configuration file that should be loaded. Otherwise will attempt to
+                  load $GLOBUS_LOCATION/etc/gridftp.conf and /etc/grid-security/gridftp.conf.</para>
+                <para>Default value: not set</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>use_home_dirs &lt;0|1&gt;
+-use-home-dirs</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Set the startup directory to the authenticated user's home dir.</para>
+                <para>Default value: TRUE</para>
+              </entry>
+            </row>
+
+            <row>
+              <entry>
+                <para>
+                  <screen>debug &lt;0|1&gt;
+-debug</screen>
+                </para>
+              </entry>
+
+              <entry>
+                <para>Set options that make the server easier to debug. Forces no-fork, no-chdir,
+                  and allows core dumps on bad signals instead of exiting cleanly. Not recommended
+                  for production servers. Note that non-forked servers running as root will only
+                  accept a single connection and then exit.</para>
+                <para>Default value: FALSE</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      [end generated block ]
+    
+  </section>
+-->
 </book>
