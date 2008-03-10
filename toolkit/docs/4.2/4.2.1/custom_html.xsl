@@ -102,7 +102,7 @@
                 <!-- Instead of using default filenames, use ids for filenames (dbhtml directives take precedence) -->
                 <xsl:param name="use.id.as.filename">1</xsl:param>
                 
-                <!-- custom toc - book only shows chapter -->
+                <!-- custom toc - book only shows chapter 
                 <xsl:template match="preface|chapter|reference|appendix|article" mode="toc">
                                 <xsl:param name="toc-context" select="."/>
                                 
@@ -123,7 +123,7 @@
                                                 </xsl:otherwise>
                                 </xsl:choose>
                 </xsl:template>
-                
+                -->
                 <!-- control TOCs -->
                 <xsl:param name="generate.toc">
                                 appendix  toc,title
