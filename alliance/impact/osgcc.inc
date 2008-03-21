@@ -6,7 +6,7 @@ Cluster Software from across the globe at this unique event.</p>
 <p>Open Source Grid &amp; Cluster Conference 2008<br>
 May 12-16, 2008<br>
 Marriott City Center<br>
-Oakland, California, USA<br>
+Oakland, California, USA</p>
 
-For more information visit <a href="http://www.OpenSourceGridCluster.org/">www.OpenSourceGridCluster.org</a></p>
+<p>For more information visit <a href="http://www.OpenSourceGridCluster.org/">www.OpenSourceGridCluster.org</a></p>
         
