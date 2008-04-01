@@ -51,9 +51,9 @@
       >here</olink>, and more advanced configuration is described <olink targetdoc="gridftpAdmin"
         targetptr="gridftp-admin-advanced">here</olink>.</para></section>
   <section id="gridftp-config-types"><title>Types of configurations</title>
-    <indexterm type="gridftp-howto">
+    <indexterm type="gridftp">
       <primary>configuring GridFTP</primary>
-      <secondary>basic</secondary>
+      <secondary>types</secondary>
     </indexterm>
     <para>The following describes different GridFTP configurations of the front end (control
       channel) and back end (data channels).</para><orderedlist>
@@ -67,14 +67,21 @@
       </listitem>
       <listitem>
         <para><emphasis role="strong">Separate processes (or split process):</emphasis> control
-          channel and data channel are on different ports - with front end run as a user (such as
-            <computeroutput>globus</computeroutput>) with very limited access to the machine and the
+          channel and data channel are on different ports - with front end run as a non-privileged user (typically
+                                the <computeroutput>globus</computeroutput> user) with very limited access to the machine and the
           back end is run as root, but configured to only allow connections from the
-          front end. Provides greater security and also allows for proxying and load balancing. Many
+          front end from a local machine. This means an external user is never
+                                connected to a root running process and thus minimizes the impact of
+                                an exploit. This does, however, require that a copy of the <olink targetdoc="gtadmin" targetptr="gtadmin-basic-host">host cert and host key</olink> be owned by the non-privileged user. If
+                                you use this configuration, the non-privileged user should not have
+                                write permission to executables, configuration files, etc. 
+          
+          Provides greater security and also allows for proxying and load balancing. Many
           backend data movers can be behind a single point of client contact. Each client is
           assigned a different backend in a round robin fashion. For more information about this
           configuration, see <olink targetdoc="gridftpAdmin" targetptr="gridftp-admin-separated"
-        />.</para>
+          />.</para>
+       
       </listitem>
       <listitem>
         <para><emphasis role="strong">Striped servers:</emphasis> single control channel (front
@@ -91,7 +98,7 @@
     </note></section>
   <section>
     <title><command>globus-gridftp-server</command> quickstart</title>
-    <para>FIXME use exercise 1 from slide as a way of getting the admin familiar with globus-gridftp-server and to test it's working</para>
+    <para>The following is a quick guide to running the server and using the client:</para>
       <para>Look through the list of options for globus-gridftp-server:</para>
       <screen>globus-gridftp-server --help</screen>
       <para>Start the server in anonymous mode (discussed more fully <olink targetdoc="gridftpAdmin" targetptr="gridftp-admin-config-security-anonymous">here</olink>):</para>
@@ -100,7 +107,8 @@
         <variablelist>
           <varlistentry>
             <term>–control-interface</term>
-            <listitem><simpara>is the hostname or IP address of the interface to listen for control connections on <!-- need to find better syntax for this sentence --></simpara></listitem>
+            <listitem><simpara>is the hostname or IP address of the interface to listen for control connections on <!-- fixme need to find better syntax for this sentence -->. 
+            This option is only needed here as a rudimentary means of security for this simple example. </simpara></listitem>
           </varlistentry>
                     <varlistentry>
             <term>–aa</term>
@@ -116,10 +124,26 @@
     <screen>globus-url-copy -v file:///etc/group ftp://localhost:5000/tmp/group</screen>
     <para>Run 3rd party transfer:</para>
     <screen>globus-url-copy -v ftp://localhost:<replaceable>port</replaceable>/etc/group ftp://localhost:<replaceable>port</replaceable>/tmp/group2</screen>
-    <para>Experiment with -dbg, -vb -fast options:</para>
+    <para>Experiment with -dbg, -vb, and -fast options for debugging and checking the performance of your setup:</para>
     <screen>globus-url-copy -dbg file:///etc/group ftp://localhost:5000/tmp/group</screen>
     <screen>globus-url-copy -vb file:///dev/zero ftp://localhost:5000/dev/null</screen>
+<para>where:</para>
+      <variablelist id="debugging-options">
+        <varlistentry>
+          <term><option> -dbg</option></term>
+          <listitem><para>A useful option when something is not working.  It results in a GridFTP control channel protocol dump (along with other useful information) to stderr.  If you understand the GridFTP protocol, or you have ambition to understand it, this can be a very useful tool to discover various problems in your setup such as overloaded servers and firewalls.  When submitting a bug report or asking a question on the support email lists one should always send along the -dbg output.</para></listitem>
+        </varlistentry>
+                <varlistentry>
+          <term><option>-vb</option></term>
+          <listitem><para>Provides a type of progress bar of the user to observe the rate at which their transfer is progressing.</para></listitem>
+                </varlistentry>
+                <varlistentry>
+          <term><option>-fast</option></term>
+          <listitem><para>FIXME hmmm...  I am not super sure what to say about this.  It basically tweaks a few options that 'tend' to make things faster.</para></listitem>
+        </varlistentry>
+      </variablelist>
     <para>Kill the server.</para>
+    <note><para>There are many possible options and configurations with <command>globus-gridftp-server</command>. For some guidelines on setting it up for your situation, see FIXME link to tuning/performance doc.</para></note>
       </section>
     <section id="gridftp-admin-daemon_mode"><title>Running in daemon mode</title>
       <indexterm type="gridftp-howto">
@@ -211,8 +235,5 @@ gsiftp   stream   tcp   nowait   root   /usr/bin/env env   \
         <para>Use the <option>-i</option> commandline option with <command
           >globus-gridftp-server</command>: <screen>globus-gridftp-server -i</screen></para>
       </section></section>
-    <section>
-      <title>Debugging and Optimizing Performance</title>
-      <para>FIXME describe -vb, -dbg and -fast and usual ways of checking performance</para>
-    </section>
+
   </chapter>
