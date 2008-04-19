@@ -209,9 +209,9 @@
     <para> The GRAM4 service returns an EPR that is used to control the job. However, the EPR is an
       XML document and cannot effectively be used as a primary key for a database table. Therefore,
       the job's EPR needs to be converted to an acceptable GJID format. </para>
-    <para> A utility class, <computeroutput>EPRUtil.java</computeroutput>, is available to both the
-      GRAM service before storing the audit record and the GRAM client before getting audit
-      information from the audit database. </para>
+    <para> A utility class, <computeroutput>org.globus.exec.utils.audit.AuditUtil</computeroutput>,
+      is available to both the GRAM service before storing the audit record and the
+      GRAM client before getting audit information from the audit database. </para>
   </section>
   <section>
     <title>Accessing Audit and Accounting Information</title>
@@ -246,13 +246,15 @@
     <para>Audit logging is turned off by default. To turn on Audit Logging, follow these steps:</para>
     <section>
       <title>Configure Log4J</title>
-      <para> Add the following lines to the Log4j configuration in <computeroutput
-          >$GLOBUS_LOCATION/etc/container.log4j.properties</computeroutput> to enable audit logging: </para>
-      <screen># GRAM AUDIT
-log4j.category.org.globus.exec.service.exec.StateMachine.audit=DEBUG, AUDIT
-log4j.appender.AUDIT=org.globus.exec.utils.audit.AuditDatabaseAppender
-log4j.appender.AUDIT.layout=org.apache.log4j.PatternLayout
-log4j.additivity.org.globus.exec.service.exec.StateMachine.audit=false</screen>
+      <para>Uncomment the lines 3-6 of the Log4j configuration in <computeroutput
+          >$GLOBUS_LOCATION/etc/globus_wsrf_gram/log4j.properties</computeroutput>
+          to enable audit logging (as seen in the following example): </para>
+      <screen># WS-GRAM audit logging database appender. Configuration of the database is in
+# $GLOBUS_LOCATION/etc/globus_wsrf_gram/jndi-config.xml
+log4j.category.org.globus.exec.service.audit.db=DEBUG, auditDB
+log4j.additivity.org.globus.exec.service.audit.db=false
+log4j.appender.auditDB=org.globus.exec.utils.audit.AuditDatabaseAppender
+log4j.appender.auditDB.layout=org.apache.log4j.PatternLayout</screen>
     </section>
     <section>
       <title>Create the Audit Database</title>
@@ -343,36 +345,58 @@ host      gt4audit  gt4auditview   &lt;containerhostip&gt; 255.255.255.255 md5
     </section>
     <section>
       <title>Configure the Database in JNDI</title>
-      <para> Add or modify the database configuration where the audit records are stored in
-          <computeroutput>$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml </computeroutput>: </para>
-      <screen>&lt;resource name="auditDatabaseConfiguration" type="org.globus.exec.service.utils.AuditDatabaseConfiguration"&gt;
-  &lt;resourceParams&gt;
-    &lt;parameter&gt;
-      &lt;name&gt;factory&lt;/name&gt;
-      &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
-    &lt;/parameter&gt;
-    &lt;parameter&gt;
-      &lt;name&gt;driverClass&lt;/name&gt;
-      &lt;value&gt;com.mysql.jdbc.Driver&lt;/value&gt;
-    &lt;/parameter&gt;
-    &lt;parameter&gt;
-      &lt;name&gt;url&lt;/name&gt;
-      &lt;value&gt;jdbc:mysql://&lt;host&gt;[:port]/auditDatabase&lt;/value&gt;
-    &lt;/parameter&gt;
-    &lt;parameter&gt;
-      &lt;name&gt;user&lt;/name&gt;
-      &lt;value&gt;globus&lt;/value&gt;
-    &lt;/parameter&gt;
-    &lt;parameter&gt;
-      &lt;name&gt;password&lt;/name&gt;
-      &lt;value&gt;foo&lt;/value&gt;
-    &lt;/parameter&gt;
-    &lt;parameter&gt;
-      &lt;name&gt;globusVersion&lt;/name&gt;
-      &lt;value&gt;4.0.3&lt;/value&gt;
-    &lt;/parameter&gt;
-  &lt;/resourceParams&gt;
-&lt;/resource&gt;</screen>
+      <para>Modify the database access values in
+      <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_gram/jndi-config.xml</computeroutput>.
+      The parameters factory, maxIdle and maxWait should not be changed unless you
+      know what you're doing. The parameter maxActive is by default set to the same
+      value as the parameter runQueueThreadCount in the same file. If you change
+      this parameter also adapt maxActive.
+      </para>
+      <para>Example for MySQL:</para>
+      <screen>&lt;resource name="auditDatabase" type="javax.sql.DataSource"&gt;
+    &lt;resourceParams&gt;
+        ....
+        &lt;parameter&gt;
+            &lt;name>driverClassName&lt;/name&gt;
+            &lt;value>com.mysql.jdbc.Driver&lt;/value&gt;
+        &lt;/parameter&gt;
+        &lt;parameter&gt;
+            &lt;name>url&lt;/name&gt;
+            &lt;value>jdbc:mysql://host:port/auditDatabase&lt;/value&gt;
+        &lt;/parameter&gt;
+        &lt;parameter&gt;
+            &lt;name>username&lt;/name&gt;
+            &lt;value>user to access the database&lt;/value&gt;
+        &lt;/parameter&gt;
+        &lt;parameter&gt;
+            &lt;name>password&lt;/name&gt;
+            &lt;value>password to access the database&lt;/value&gt;
+        &lt;/parameter>
+    &lt;/resourceParams>
+ &lt;/resource></screen>
+       <para>Example for PostgreSQL:</para>
+      <screen>&lt;resource name="auditDatabase" type="javax.sql.DataSource"&gt;
+    &lt;resourceParams&gt;
+        ....
+        &lt;parameter&gt;
+            &lt;name>driverClassName&lt;/name&gt;
+            &lt;value>org.postgresql.Driver&lt;/value&gt;
+        &lt;/parameter&gt;
+        &lt;parameter&gt;
+            &lt;name>url&lt;/name&gt;
+            &lt;value>jdbc:postgresql://host:port/auditDatabase&lt;/value&gt;
+        &lt;/parameter&gt;
+        &lt;parameter&gt;
+            &lt;name>username&lt;/name&gt;
+            &lt;value>user to access the database&lt;/value&gt;
+        &lt;/parameter&gt;
+        &lt;parameter&gt;
+            &lt;name>password&lt;/name&gt;
+            &lt;value>password to access the database&lt;/value&gt;
+        &lt;/parameter>
+    &lt;/resourceParams>
+ &lt;/resource></screen>
+ 
     </section>
   </section>
 </chapter>
