@@ -647,6 +647,9 @@ attributes which may contain variables is:</para>
 <para>For a general introduction see section <olink targetdoc="executionKey"
 targetptr="execution-approach-lifetime">Job Lifetime</olink> in the GRAM4
 approach.</para>
+
+<section id="gram4-user-general">
+<title>Server-side resource properties that impact job lifetime</title>
 <para>There are 2 resource properties of GRAM4’s factory service
 that have impact on lifetime of job resources:</para>
 <informaltable><tgroup cols="2">
@@ -672,10 +675,8 @@ that have impact on lifetime of job resources:</para>
     </row>
   </tbody>
 </tgroup></informaltable>
-<para>Values are specified in seconds.</para>
-
-<para>A client can query the RPs to find out their values like explained
-in the following examples.</para>
+<para>Values are specified in seconds. A client can query the RPs to find out
+their values like explained in the following examples.</para>
 
 <para>Getting the value of the RP maxLifetime:</para>
 <screen>[martin@osg-test1 ~]$ globus-wsrf-get-property \
@@ -684,8 +685,7 @@ in the following examples.</para>
 </screen>
 
 <para>The result (in this case 1 year) is:</para>
-<screen>&lt;ns1:maxJobLifetime
-  xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
+<screen>&lt;ns1:maxJobLifetime xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
       31536000
 &lt;/ns1:maxJobLifetime&gt;</screen>
 
@@ -695,14 +695,16 @@ in the following examples.</para>
   {http://www.globus.org/namespaces/2008/03/gram/job}jobTTLAfterProcessing
 </screen>
 <para>The result (in this case 24h) is:</para>
-<screen>&lt;ns1:jobTTLAfterProcessing
-  xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
+<screen>&lt;ns1:jobTTLAfterProcessing xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
       86400
 &lt;/ns1:jobTTLAfterProcessing&gt;</screen>
+</section>
 
 <section id="gram4-user-lifetime-scenarios">
 <title>Scenarios for clients</title>
-
+<para>This section explains how the above parameters impact a client and what
+the actual lifetime of a job is, when a user does not specify a lifetime at all
+or when he/she specifies a lifetime for a job.</para>
 <section id="gram4-user-lifetime-scenario1">
 <title>A client does not specify lifetime in submission</title>
 <para>The job does not expire until it is fully processed. After that the
@@ -710,6 +712,7 @@ lifetime will be set to (now + jobTTLAfterProcessing). By this it is
 guaranteed that a job runs to completion (including fileStageOut and
 fileCleanUp) and a client has the ability to query the status of a job for
 a while before it will be removed.</para>
+<para>The default C-client globusrun-ws by default does not set a lifetime</para> 
 </section>
 
 <section id="gram4-user-lifetime-scenario2">
@@ -720,6 +723,17 @@ lifetime expires (restricted by maxJobLifetime if set > -1 by the admin).
 If a client specifies a termination time in the past or a termination time that
 exceeds maxJobLifetime an UnableToSetTerminationTimeFault is thrown by
 MJFS.createManagedJob()</para>
+<para>Using the C-client globusrun-ws you can set a lifetime for a job in 2 ways.
+The first example shows how to set a relative lifetime, i.e. the job will expire
+in 48h from now:</para>
+<screen>globusrun-ws -submit -term "+48:00" -b -o job.epr -f myJob.xml</screen>
+<para> The second example should how to set an absolute lifetime. The job
+will expire at the given date:</para>
+<screen>globusrun-ws -submit -term "10/23/2007 12:00" -b -o job.epr -f myJob.xml</screen>
+<para>In both example the job had been submitted in batch mode, which makes sense
+for longer running jobs. For more information about globusrun-ws and other
+command-line parameters, see [FIXME: add link]</para>
+
 </section>
  
 <section id="gram4-user-lifetime-scenario3">
