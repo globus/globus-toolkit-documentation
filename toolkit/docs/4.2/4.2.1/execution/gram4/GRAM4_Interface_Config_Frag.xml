@@ -190,6 +190,54 @@ NOPASSWD: /opt/globus/GT<replaceable role="entity">version</replaceable>/libexec
             <screen>http://somemachine.fakedomain.net:8444/tomcat/services/MyReliableFileTransferFactoryService
 http://somemachine.fakedomain.net:8444/tomcat/services/MyDelegationFactoryServiceForRFT</screen>
         </section>
+
+        <section id="gram4-nondefaultauthz">
+        <title>Authorization</title>
+        <para>
+          Note that, by default, two authorization checks are done during an invocation
+          of WS-GRAM:</para>
+        <orderedlist>
+          <listitem><simpara>
+            One authorization check is done by the container as configured by the
+            <computeroutput>defaultAuthzParam</computeroutput> element in
+            <filename>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml</filename>
+          </simpara></listitem>
+          <listitem><simpara>
+            Another check is done by WS-GRAM when it calls the Perl modules
+            which are used for job submission to the underlying local resource
+            manager. This is configured by the <computeroutput>authzChain</computeroutput>
+            element which is, by default, set to gridmap 
+            in <filename>$GLOBUS_LOCATION/etc/gram-service/managed-job-factory-security-config.xml</filename>
+            and <filename>$GLOBUS_LOCATION/etc/gram-service/managed-job-security-config.xml</filename>.
+            This check is done for additional security reasons to make sure
+            that a potentially hacked globus user account still can only act on
+            behalf of the users who are defined in a grid-mapfile.
+          </simpara></listitem>
+        </orderedlist>
+        <para>
+          The second gridmap check can be avoided by adding a system property to
+          the environment variable <computeroutput>GLOBUS_OPTIONS</computeroutput>
+          before starting the container:
+        </para>
+        <screen>export GLOBUS_OPTIONS="$GLOBUS_OPTIONS -Dorg.globus.exec.disablegge=true"</screen>
+        <para>
+          This however does not mean, that no authorization check at all is done. The
+          container still checks if the client is authorized as defined in
+          <computeroutput>$GLOBUS_LOCATION/etc/globus_wsrf_core/global_security_descriptor.xml</computeroutput>
+          but there's no further authorization check when calling the Perl modules.
+          It's up to the GT4 container administrator to decide whether or not to have
+          that additional authorization check. Note that a change in the sudo
+          configuration is required in that case because globus-gridmap-and-execute
+          will not be executed. <filename>/opt/globus/GT4.2.0</filename>
+          should be replaced with the value of <computeroutput>$GLOBUS_LOCATION</computeroutput>
+          for your installation:
+        </para>
+       <screen># Globus GRAM entries
+globus  ALL=(username1,username2) 
+NOPASSWD: /opt/globus/GT4.2.0/libexec/globus-job-manager-script.pl *
+globus  ALL=(username1,username2) 
+NOPASSWD: /opt/globus/GT4.2.0/libexec/globus-gram-local-proxy-tool *</screen>
+        </section>
     </section>
 
     <section id="gram4-Interface_Config_Frag-configuration">
