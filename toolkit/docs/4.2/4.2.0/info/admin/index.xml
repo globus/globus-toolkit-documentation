@@ -1,0 +1,698 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
+[
+
+<!ENTITY % xinclude SYSTEM "../../xinclude.mod" >
+%xinclude;
+
+]>
+<book id="mdsAdmin">
+  <title>GT <replaceable role="entity">version</replaceable> Monitoring and Discovery Services (MDS)
+    : System Administrator's Guide</title>
+  <titleabbrev>MDS System Administrator's Guide</titleabbrev>
+  <bookinfo id="mds-admin-introduction">
+    <abstract>
+      <title>Introduction</title>
+      <para>This guide contains advanced configuration information for system administrators working
+        with MDS. It provides references to information on procedures typically performed by system
+        administrators, including installation, configuring, deploying, and testing the
+        installation.</para>
+      <para>
+        <important>
+          <simpara> This information is in addition to the basic Globus Toolkit prerequisite,
+            overview, installation, security configuration instructions in the <olink
+              targetdoc="gtadmin"/>. Read through this guide before continuing!</simpara>
+        </important>
+      </para>
+    </abstract>
+  </bookinfo>
+  <chapter id="mds-admin-installing">
+    <title>Building and Installing</title>
+    <para>MDS is built and installed as part of a default GT <replaceable role="entity"
+      >version</replaceable> installation. See <olink targetdoc="gtadmin"/> for more
+    information.</para>
+  </chapter>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="MDS_Interface_Config_Frag.xml"/>
+  <chapter id="mds-admin-advanced">
+    <title>Advanced Configuration</title>
+    <para>Now that you have a basic hierarchy of default Index Services monitoring the other GT
+      services, you will most likely want to monitor other resources from your Grid. The following
+      sections show how to register WSRF services as well as other non-WSRF resources.</para>
+    <section id="mds-admin-register-wsrf">
+      <title>Registering a WSRF service to an Index Service</title>
+      <para>You need the following before you register a WSRF resource with an Index Service:</para>
+      <itemizedlist>
+        <listitem>
+          <para>Decide how you want to get information into the Index Service. The following
+            correspond to common Java WS Core user commands (in fact, you can use those commands
+            ahead of time to 'test' what information will end up in the Index Service): <itemizedlist>
+              <listitem>
+                <para>Request single resource property: <command>wsrf-get-property</command></para>
+              </listitem>
+              <listitem>
+                <para>Request one or more resource properties: <command
+                  >wsrf-get-properties</command></para>
+              </listitem>
+              <listitem>
+                <para>Query resource properties with XPath: <command>wsrf-query</command></para>
+              </listitem>
+              <listitem>
+                <para>Subscribe to a WSRF Topic: <command>wsn-subscribe</command> (to test, might
+                  use <command>wsn-get-current-message</command>)</para>
+              </listitem>
+            </itemizedlist></para>
+        </listitem>
+        <listitem>
+          <para>Know the EPR of the Index Service you want to register to. This can be seen in the
+            container output at startup of the container on the index host, and will look something
+            like this: <filename>https://myhost:8443/wsrf/services/DefaultIndexService</filename>,
+            (from a default installation of GT version)</para>
+        </listitem>
+        <listitem>
+          <para>Know the EPR to the resource and the names of the resource properties you want to
+            advertise (basically the same information you would use for the corresponding user
+            command).</para>
+        </listitem>
+      </itemizedlist>
+      <note>
+        <para>If the WSRF service does not advertise the data you want as RPs, you need to use the
+          instructions for <olink targetdoc="mdsAdmin" targetptr="mds-admin-register-custom-usefulrp"
+        />.</para>
+      </note>
+      <para>For more information, see the documentation for the the <olink targetdoc="aggregatorPI"
+          targetptr="mds-servicegroup-add"/> tool.</para>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../aggregator/sources/aggregator_sources_general_config.xml"/>
+      <section id="mds-admin-register-wsrf-content-block">
+        <title>Options for the <computeroutput>Content</computeroutput> block</title>
+        <section id="mds-admin-register-wsrf-single-rp">
+          <title>Request single resource property (GetResourcePropertyPollType)</title>
+          <screen>&lt;Content 
+    xsi:type="agg:AggregatorContent"
+    xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+  &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+    &lt;agg:GetResourcePropertyPollType&gt;
+         <emphasis role="strong">&lt;agg:PollIntervalMillis>interval_in_ms&lt;/agg:PollIntervalMillis&gt;</emphasis>
+         <emphasis role="strong">&lt;agg:ResourcePropertyName>rp_namespace:rp_localname&lt;/agg:ResourcePropertyName&gt;</emphasis>
+    &lt;/agg:GetResourcePropertyPollType&gt;
+  &lt;/agg:AggregatorConfig&gt; 
+  &lt;agg:AggregatorData/&gt;
+&lt;/Content&gt;
+</screen>
+          <para>where: <variablelist>
+              <varlistentry>
+                <term><computeroutput>PollIntervalMillis</computeroutput></term>
+                <listitem>
+                  <para>is the poll refresh period in milliseconds.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><computeroutput>ResourcePropertyName</computeroutput></term>
+                <listitem>
+                  <para>is the QName of the resource property you want to poll.</para>
+                </listitem>
+              </varlistentry>
+            </variablelist></para>
+        </section>
+        <section id="mds-admin-register-wsrf-multi-rps">
+          <title>Request one or more resource properties (GetMultipleResourcePropertiesPollType)</title>
+          <screen>&lt;Content
+    xmlns:agg="http://mds.globus.org/aggregator/types"
+    xsi:type="agg:AggregatorContent"> &lt;agg:AggregatorConfig
+    xsi:type="agg:AggregatorConfig">
+    &lt;agg:GetMultipleResourcePropertiesPollType>
+    <emphasis role="strong">&lt;agg:PollIntervalMillis>interval_in_ms&lt;/agg:PollIntervalMillis></emphasis>
+    <emphasis role="strong">&lt;agg:ResourcePropertyNames>rp1_namespace:rp1_localname&lt;/agg:ResourcePropertyNames>
+    &lt;agg:ResourcePropertyNames>rp2_namespace:rp3_localname&lt;/agg:ResourcePropertyNames>
+    &lt;agg:ResourcePropertyNames>rp3_namespace:rp3_localname&lt;/agg:ResourcePropertyNames></emphasis>
+    &lt;/agg:GetMultipleResourcePropertiesPollType>
+    &lt;/agg:AggregatorConfig> 
+    &lt;agg:AggregatorData/>
+&lt;/Content>
+        </screen>
+          <para>where: <variablelist>
+              <varlistentry>
+                <term><computeroutput>PollIntervalMillis</computeroutput></term>
+                <listitem>
+                  <para>is the poll refresh period in milliseconds.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><computeroutput>ResourcePropertyNames</computeroutput></term>
+                <listitem>
+                  <para>are the QNames of the resource properties to poll for. There is no limit on
+                    the number of ResourcePropertyNames that may be specified.</para>
+                </listitem>
+              </varlistentry>
+            </variablelist></para>
+        </section>
+        <section id="mds-admin-register-wsrf-query">
+          <title>Query resource properties with XPath (QueryResourcePropertiesPollType)</title>
+          <para>If a QueryResourcePropertiesPollType block is used, QueryAggregatorSource will
+            request that a query be executed against the Resource Property Set of the remote
+            resource. In the GT4 implementation of WSRF Core, the only query language that is
+            supported is XPath. The block has this form:</para>
+          <screen>&lt;Content 
+    xmlns:agg="http://mds.globus.org/aggregator/types"
+    xsi:type="agg:AggregatorContent"> 
+    &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig">
+    &lt;agg:QueryResourcePropertiesPollType>
+         <emphasis role="strong">&lt;agg:PollIntervalMillis>interval_in_ms&lt;/agg:PollIntervalMillis>
+         &lt;agg:QueryExpressionDialect="dialect">Query Expression&lt;/agg:QueryExpression></emphasis>
+    &lt;/agg:QueryResourcePropertiesPollType>
+    &lt;/agg:AggregatorConfig> 
+    &lt;agg:AggregatorData/>
+&lt;/Content>
+        </screen>
+          <para>where: <variablelist>
+              <varlistentry>
+                <term><computeroutput>PollIntervalMillis</computeroutput></term>
+                <listitem>
+                  <para>is the poll refresh period in milliseconds.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><computeroutput>QueryExpression</computeroutput></term>
+                <listitem>
+                  <para>is an <computeroutput>xsd:any</computeroutput> element - the <computeroutput
+                      >Dialect</computeroutput> attribute specifies the dialect of the query
+                    expression.</para>
+                </listitem>
+              </varlistentry>
+            </variablelist></para>
+        </section>
+        <section id="mds-admin-register-wsrf-subscribe">
+          <title>Subscribe to a WSRF Topic (AggregatorSubscriptionType)</title>
+          <para>The configuration block for SubscriptionAggregatorSource looks like this:</para>
+          <screen>&lt;Content
+   xmlns:agg="http://mds.globus.org/aggregator/types"
+   xsi:type="agg:AggregatorContent">
+   &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig">
+       &lt;agg:AggregatorSubscriptionType>
+           <emphasis role="strong">&lt;TopicExpression Dialect="dialect">
+           Topic Expression
+           &lt;/TopicExpression></emphasis>
+           &lt;Precondition Dialect="dialect">
+           Precondition
+           &lt;/Precondition>
+           &lt;Selector Dialect="dialect">
+           Selector
+           &lt;/Selector>
+           &lt;SubscriptionPolicy>
+           Subscription Policy
+           &lt;/SubscriptionPolicy>
+           &lt;InitialTerminationTime>time&lt;/InitialTerminationTime>
+       &lt;/agg:AggregatorSubscriptionType>
+   &lt;/agg:AggregatorConfig>
+   &lt;agg:AggregatorData/>
+&lt;/Content>
+        </screen>
+          <para>where: <variablelist>
+              <varlistentry>
+                <term><computeroutput>TopicExpression</computeroutput></term>
+                <listitem>
+                  <para>is the only required parameter; it specifies the topic expression to use in
+                    the subscription request.</para>
+                </listitem>
+              </varlistentry>
+            </variablelist></para>
+        </section>
+      </section>
+    </section>
+    <section id="mds-admin-advanced-providers">
+      <title>Registering any Grid resource via Information Providers</title>
+      <para>There are other types of resources in a Grid you may want to register: a non-WSRF
+        resource (basically anything not written in WSRF) or a WSRF service that has the data you
+        want but does not publish it as resource properties.</para>
+      <important>
+        <para>Any time you want to register a resource but cannot directly access resource
+          properties, you need an <olink targetdoc="mdsAdmin"
+            targetptr="mds-admin-advanced-providers">information provider</olink> to interface
+          between that resource and MDS4.</para>
+      </important>
+      <para>As discussed in the <olink targetdoc="infoKey" targetptr="info-key-mds4-interfaces">MDS
+          Key Concepts guide</olink>, information providers are basically the link between what you
+        want monitored and MDS. MDS comes with many standard information providers for clusters,
+        certain GT4 WSRF services (GRAM4, RFT, CAS), and other useful things). You can also write
+        your own custom information providers for just about any kind of Grid resource you need to
+        monitor.</para>
+      <section id="mds-admin-register-agg-or-usefulrp">
+        <title>Aggregator Framework vs UsefulRP</title>
+        <para>Information providers are based on either the Aggregator Framework (which publishes
+          the information within the Index Service) or based on UsefulRP (which publishes resource
+          properties within MDS but outside of the Index Service).</para>
+        <para>When a resource is registered via the Aggregator Framework (which is the underlying
+          framework for the Index and Trigger Services), it is plugged into the same ServiceGroup as
+          the Index Service and therefore the information will be displayed in the same manner as
+          the default information you saw in <olink targetdoc="mdsAdmin"
+            targetptr="mds-configuring-simple-usage"/>.</para>
+        <para>When a resource is registered via UsefulRP/RPProvider, it is still published within
+          MDS but as separate resource properties. One of the benefits of UsefulRP is you can output
+          any schema you want and you can control which provider(s) get executed by editing a config
+          file.</para>
+        <para>[In general, if you want to register a custom WSRF service use the UsefulRP method,
+          otherwise, use the Aggregator method. FIXME]</para>
+      </section>
+      <section id="mds-admin-advanced-providers-standard">
+        <title>Default Information Providers</title>
+        <para>The following list includes information providers available with a default
+          installation of GT <replaceable role="entity">version</replaceable>:</para>
+        <itemizedlist>
+          <listitem>
+            <para>GLUE-based Information Providers: Information providers are available for Ganglia, Hawkeye and 
+              Nagios. They are based on UsefulRP and the GLUE schema. For more information, see 
+            <olink targetptr="mds-admin-advanced-clusters"/>.</para>
+          </listitem>
+          <listitem>
+            <para>Simple Perl-based Information Providers: These are simple providers that are good
+              for modeling your own information providers. They are based on the Aggregator
+              Framework and are simply a Perl script and and XML configuration file (much like the
+              config file used to register WSRF resources). <itemizedlist>
+                <listitem>
+                  <para>[Web Check Information Provider] - This provider connects to a web server.
+                    If the connection can successful be made the server is registered as alive,
+                    otherwise it is down.</para>
+                </listitem>
+                <listitem>
+                  <para>[Cert Check Information Provider] - This provider will monitor the life of a
+                    remote certificate. It connects to an SSL TCP listener and obtains the
+                    certificate from it. If then checks the cert for subject, start date, end data,
+                    and email address. All of this information is put in the index if it is
+                    successfully obtained.</para>
+                </listitem>
+                <listitem>
+                  <para>[GridFTP Information Provider] - This provider connects to a GridFTP server,
+                    reads its banner, and puts the banner in the Index Service. If the connection
+                    cannot be made in 30 seconds, or some other error occurs the server is marked as
+                    down.</para>
+                </listitem>
+              </itemizedlist></para>
+          </listitem>
+          <listitem>
+            <para>[what can we call these? third party? def more complicated...]: <itemizedlist>
+                <listitem>
+                  <para>[GKrellm Information Provider] - Monitors local resources...FIXME</para>
+                </listitem>
+                <listitem>
+                  <para>[Performance Benchmark Information Provider] - This provider allows a set of
+                    performance benchmarks to be run and to aggregate the results of the test back
+                    into the MDS4 Index Service. The set includes the following common performance
+                    tests: <itemizedlist>
+                      <listitem>
+                        <para>Hello World (for testing)</para>
+                      </listitem>
+                      <listitem>
+                        <para>STREAM</para>
+                      </listitem>
+                      <listitem>
+                        <para>MPPTEST</para>
+                      </listitem>
+                      <listitem>
+                        <para>MPPTEST logscale</para>
+                      </listitem>
+                      <listitem>
+                        <para>MPPTest Bisect</para>
+                      </listitem>
+                      <listitem>
+                        <para>MPIBENCH/LLCBENCH</para>
+                      </listitem>
+                    </itemizedlist></para>
+                </listitem>
+              </itemizedlist></para>
+          </listitem>
+        </itemizedlist>
+      </section>
+      <section id="mds-admin-advanced-providers-custom">
+        <title>Writing your own information providers</title>
+        <para>The best way to learn how to write your own information providers is to look through
+          the documentation of the available information providers (listed above) and then configure
+          it for your own purposes (although we also provide some basic tutorials - links of which
+          will be available below). </para>
+        <!--  fixme - what about configuring an executing index service?  -->
+        <section id="mds-admin-register-custom-agg">
+          <title>Registering a resource via Aggregator</title>
+          <para>The Aggregator Framework is the underlying foundation of the MDS services (Index,
+            Trigger) and is what registers WSRF services to a DefaultIndexService. In this method,
+            you write an execution aggregator information provider that gathers arbitrary XML
+            information by executing an external script (similar to how we set up the <olink targetdoc="mdsAdmin" targetptr="mds-admin-email-trigger">Trigger
+            Service</olink>).</para>
+          <para>But first, a little bit about aggregator sources, in particular the execution
+            aggregator source. In <olink targetdoc="infoKey" targetptr="info-key-mds4-interfaces">
+              Key Concepts</olink>, we talked about three aggregator sources: query, subscription
+            and execution. We have already covered the query and subscription sources - they are
+            based on WSRF and are used when <olink targetdoc="mdsAdmin" targetptr="mds-admin-register-wsrf">registering WSRF services</olink>: <itemizedlist>
+              <listitem>
+                <para>The query aggregator source is used when registering via single resource
+                  property, multiple resource properties and querying. </para>
+              </listitem>
+              <listitem>
+                <para>The subscription aggregator source, as you can guess, is used when registering
+                  via subscriptions.</para>
+              </listitem>
+            </itemizedlist>In general, you do not need to know much more about those two (unless you
+            want to develop applications using those mechanisms, in which case you can learn more
+            <olink targetdoc="aggregatorSources">here</olink>).</para>
+          <para>Unlike the query and subscription sources, the execution aggregator source is
+            not based on WSRF; instead, it gets its information through any executable with an
+            output of well-formed XML.</para>
+          <para>In general, you need to:</para>
+          <orderedlist>
+            <listitem>
+              <para>Choose schema.</para>
+            </listitem>
+            <listitem>
+              <para>Write script/program that gathers and formats the data you want and outputs it
+                as well formatted XML that conforms to the above schema. This is basically the
+                information provider. It <emphasis role="strong">must</emphasis> be saved to
+                  <filename>$GLOBUS_LOCATION/libexec/aggrexec/</filename></para>
+            </listitem>
+            <listitem>
+              <para>Enable the provider in MDS by editing the <filename>jndi-config.xml</filename>
+                for the Index Service and adding a mapping to <computeroutput
+                >executableMappings</computeroutput>.</para>
+            </listitem>
+            <listitem>
+              <para>Configure the registration file using <computeroutput
+                >ExecutionPollType</computeroutput> in the <computeroutput>Content</computeroutput>
+                block.</para>
+              <para>[fixme - verify this] Save the XML configuration file to <filename
+                  >$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/default_providers/</filename>. </para>
+            </listitem>
+            <listitem>
+              <para>Register with <command>mds-servicegroup-add</command>.</para>
+            </listitem>
+          </orderedlist>
+          <para>For a detailed tutorial, see <olink targetdoc="indexDeveloper"
+              targetptr="index-howto-nonws-infoprovider"/>
+          </para>
+        </section>
+        <section id="mds-admin-register-custom-usefulrp">
+          <title>Registering a resource via UsefulRP/RPProvider</title>
+          <para>This method is similar to the above method in that it requires an executable that
+            outputs well-formed XML. However the procedure is a little simpler. In general, you need
+            to:</para>
+          <orderedlist>
+            <listitem>
+              <para>Choose a schema for your data.</para>
+            </listitem>
+            <listitem>
+              <para>Write a script/program that gathers and formats the data you want and outputs it
+                as well-formed XML that conforms to the above schema. This is basically the
+                information provider. It should be saved to <filename
+                >$GLOBUS_LOCATION/libexec/</filename> although it is not strictly necessary (note
+                that this is a different directory than where you save information providers written
+                via Aggregator).</para>
+            </listitem>
+            <listitem>
+              <para>Edit an RPProvider configuration file to enable the information provider you
+                just wrote. This file must be saved to <filename
+                  >$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/</filename>.</para>
+            </listitem>
+            <listitem>
+              <para>Restart container</para>
+            </listitem>
+          </orderedlist>
+          <para>These steps are described in more detail in two documents:</para>
+          <itemizedlist>
+            <listitem>
+              <para><olink targetdoc="usefulrpDeveloper" targetptr="usefulrp-howto-external-element"
+                  >How to Write an External Element producer using the RPProvider Framework</olink>
+                - detailed tutorial shows you how to register a non-WSRF, dynamic resource via
+                UsefulRP/RPProvider.</para>
+            </listitem>
+            <listitem>
+              <para><olink targetdoc="usefulrpDeveloper" targetptr="usefulrp-howto-file-element">How
+                  to Write a File Element producer using the RPProvider Framework</olink> - as
+                above, but for static resources (pulls in static contents from a file).</para>
+            </listitem>
+          </itemizedlist>
+          <para>For even more details, see the documentation for <olink targetdoc="usefulrp"
+          />.</para>
+        </section>
+      </section>
+      <section id="mds-admin-advanced-clusters">
+        <title>Registering Clusters and Condor Pools</title>
+        <para>MDS4 is frequently used with cluster monitoring systems, such as Ganglia and Hawkeye
+          (for Condor pools). GT <replaceable role="entity">version</replaceable> includes 
+          information providers for Hawkeye, Ganglia and Nagios. These information providers are based on the
+          GLUE schema [fixme which version compatible with?] and UsefulRP to collect information from two sources: the scheduler and the cluster
+          monitoring system. Both sources are merged to form a single output resource property in
+          the GLUE schema (which is used by <olink targetdoc="gram4">GRAM4</olink> and accessible
+          via the Index Service).</para>
+
+        <para>In general, you simply edit a configuration file to add the correct configuration
+          block, then restart the container. For Nagios, however, you need to manually configure ...
+          [FIXME did the nagios config improve since 4.0? ].</para>
+        <note>
+          <para>The scheduler does not need to be configured for default providers - GRAM4 already knows the scheduler
+            bundle to use through other means.</para>
+        </note>
+        <para>For configuration details, follow these links: <itemizedlist>
+            <listitem>
+              <para><olink targetdoc="ganglia" targetptr="ganglia-reference">Ganglia</olink></para>
+            </listitem>
+            <listitem>
+              <para><olink targetdoc="hawkeye" targetptr="hawkeye-reference">Hawkeye</olink></para>
+            </listitem>
+            <listitem>
+              <para><olink targetdoc="nagios" targetptr="nagios-reference">Nagios</olink></para>
+            </listitem>
+          </itemizedlist></para>
+        <para>Regardless which system you choose to monitor, the following is true: <itemizedlist>
+            <listitem>
+              <para>The data gathered is published as part of the GLUECE RP.</para>
+            </listitem>
+            <listitem>
+              <para>The namespaces are: <itemizedlist>
+                  <listitem>
+                    <para>GLUE: <filename>http://mds.globus.org/glue/ce/1.1</filename></para>
+                  </listitem>
+                  <listitem>
+                    <para>CE: <filename>http://mds.globus.org/glue/ce/1.1</filename></para>
+                  </listitem>
+                  <listitem>
+                    <para>XML: <filename>http://www.w3.org/2001/XMLSchema</filename></para>
+                  </listitem>
+                </itemizedlist></para>
+            </listitem>
+            <listitem>
+              <para>The schema is: <filename
+                >$GLOBUS_LOCATION/share/schema/mds/usefulrp/ce.xsd</filename> [what about
+                batchproviders.xsd?]</para>
+            </listitem>
+          </itemizedlist></para>
+        <section>
+          <title>Writing new cluster providers</title>
+
+          <para>There are two kinds of providers used by the GLUE Resource Property:</para>
+          <itemizedlist>
+            <listitem>
+              <para>Scheduler providers - which provide information about the queues that a batch
+                system makes available. Scheduler providers should be written as executables with a
+                name corresponding to the name of the batch system.</para>
+            </listitem>
+            <listitem>
+              <para>Cluster information providers - which provide information about the host(s) on
+                which GRAM will run jobs. Cluster providers can be written either as Java classes or
+                as executables.</para>
+            </listitem>
+          </itemizedlist>
+          <para>Java providers should implement the <ulink
+              url="http://www-unix.globus.org/api/javadoc-4.0.0/globus_wsrf_mds_usefulrp/org/globus/mds/usefulrp/glue/GLUEElementProducer.html"
+              >GLUEElementProducer</ulink> interface.</para>
+          <para>Executable providers should output a single XML document to stdout when executed,
+          and then exit.</para>
+          <para>fixme - any other info we can put here to help someone write their own cluster provider?</para>
+        </section>
+      </section>
+    </section>
+    <!--
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///this stuff belong in aggregator config frag////
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <!-- 
+    [summarize the technical stuff  'servicegroup'/aggregatorcontent object
+
+    <section id="aggregator-configuring_source">
+      <title>Configuring/Choosing the Aggregator Sources</title>
+      <para>this is where aggregator reference goes</para>
+     should be incorporated
+      In the most common case, the index service
+      uses the <constant>QueryAggregatorSource</constant> to gather resource
+      property values from the registered resource using one of the three
+      WS-Resource Properties operations to poll for information; the
+      polling method used depends on the configuration element supplied
+      in the registration content.
+[not sure the following is needed]
+      <para>For detailed information on configuring the three types of aggregator sources provided
+        by the Globus Toolkit, see <olink targetdoc="aggregatorSources"/>.</para>
+  <itemizedlist>
+    <listitem><simpara><olink targetptr="aggregator-sources-execution"/></simpara></listitem>
+    <listitem><simpara><olink targetptr="aggregator-sources-query"/></simpara></listitem>
+    <listitem><simpara><olink targetptr="aggregator-sources-subscription"/></simpara></listitem>
+  </itemizedlist>
+   
+      <section id="mds4-specifying-source">
+        <title>Defining the Aggregator Sources (include in Aggregator Source reference?)</title>
+        <para>The aggregation sources used to collect data can be changed from default by editing
+          the aggregatorSources parameter in the JNDI service configuration. See <filename
+            >$GLOBUS_LOCATION/etc/globus_wsrf_mds_index/jndi-config.xml</filename>:</para>
+        <screen>
+&lt;resource name="configuration"
+type="org.globus.mds.aggregator.impl.AggregatorConfiguration"&gt;
+&lt;resourceParams&gt;
+&lt;parameter&gt;
+&lt;name&gt; factory&lt;/name&gt;
+&lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+&lt;/parameter&gt;
+&lt;parameter&gt;
+&lt;name&gt;aggregatorSource&lt;/name&gt;
+<emphasis>&lt;value&gt;org.globus.mds.aggregator.impl.QueryAggregatorSource 
+org.globus.mds.aggregator.impl.SubscriptionAggregatorSource 
+org.globus.mds.aggregator.impl.ExecutionAggregatorSource
+&lt;/value&gt;</emphasis>
+&lt;/parameter&gt;
+&lt;/resourceParams&gt;
+</screen>
+        <para>This parameter specifies one or more Java classes that may be used to collect data for
+          the Index. By default it is set to use the QueryAggregatorSource,
+          SubscriptionAggregatorSource, and ExecutionAggregatorSource. Details of these standard
+          sources are in the <olink targetdoc="aggregatorSources"> Aggregator Sources
+          Reference</olink>.</para>
+      </section>
+    </section>
+    <section>
+      <title>[Service-side configuration]</title>
+      <para>service side configuration for standard aggregator services as well as what you need to
+        know if you are creating custom services.</para>
+      <para>Index and Archive Services do not require?</para>
+      <section>
+        <title>[configuring custom aggregator service to get data from one or more sources in a
+          grid?] (AF)</title>
+       below is general config for custom aggregator service? or how you get a ws resource ready for registration?
+        <para> In general, configuration of aggregator services involves configuring the service to
+          get information from one or more sources in a Grid. The mechanism for doing this is
+          described in [link to info for custom aggregator services].</para>
+        <para>Configure an Aggregating Service Group to perform a data aggregation by specifying an
+            <constant>AggregatorContent</constant> object as the content parameter of a ServiceGroup
+            <emphasis>
+            <emphasis>add</emphasis>
+          </emphasis> method invocation. An AggregatorContent object is composed of two xsd:any
+          arrays: <emphasis role="strong">AggregatorConfig</emphasis> and <emphasis role="strong"
+            >AggregatorData</emphasis>:</para>
+        <itemizedlist>
+          <listitem>
+            <simpara>The AggregatorConfig xsd:any array is used to specify parameters that are to be
+              passed to the underlying AggregatorSource when the
+              ServiceGroup<emphasis>add</emphasis> method is invoked. These parameters are generally
+              type-specific to the implementation of the AggregatorSource and/or AggregatorSink
+              being used.</simpara>
+          </listitem>
+          <listitem>
+            <simpara>The AggregatorData xsd:any array is used as the storage location for aggregated
+              data that is the result of message deliveries to the AggregatorSink. Generally, the
+              AggregatorData parameter of the AggregatorContent is not populated when the
+              ServiceGroup <emphasis>
+                <emphasis>add</emphasis>
+              </emphasis> method is invoked, but rather is populated by message delivery from the
+              AggregatorSource.</simpara>
+          </listitem>
+        </itemizedlist>
+        <para>[show some example code]</para>
+      </section>
+    </section>
+    <section>
+      <title>Disabling the publishing of the aggregator configuration on the server side (AF)</title>
+      <para> It is now possible to disable the publishing of the aggregator configuration along with
+        the aggregated data. The following optional parameter can be added to the
+          <emphasis>AggregatorConfiguration</emphasis> section of the service <filename
+          >jndi-config.xml</filename>
+        file:<screen> &lt;parameter&gt;
+          &lt;name&gt;publishAggregatorConfiguration&lt;/name&gt;
+          &lt;value&gt;false&lt;/value&gt; &lt;/parameter&gt;</screen>
+        By default, this option is disabled and the aggregator configuration information is
+        published.</para>
+    </section>
+     -->
+  </chapter>
+  <chapter id="mds-admin-deploying">
+    <title>Deploying</title>
+    <para>Because MDS is built on top of Java WS Core, make sure you are familiar with the
+      deployment information <olink targetdoc="javawscoreAdmin"
+        targetptr="javawscore-admin-deploying">here</olink>.</para>
+    <section id="mds-admin-deploying-vo">
+      <title>Deploying MDS into a Virtual Organization (VO)</title>
+      <para>MDS should be deployed in a distributed fashion. Some components should be deployed
+        central to a VO, while others should be deployed on individual resources. This document is a
+        suggested deployment, and is not the only way in which MDS components can be deployed.</para>
+      <section>
+        <title>What to deploy where</title>
+        <para>The following diagrams outlines a VO-wide deployment:</para>
+        <para>[FIXME better diagram]</para>
+      </section>
+      <section>
+        <title>Central to the VO</title>
+        <orderedlist>
+          <listitem>
+            <para>The following steps are VO-wide, although the services deployed do not need to be
+              run on the same host or be at the same location. <itemizedlist>
+                <listitem>
+                  <para>Deploy an index service central to the VO to collect information about all
+                    of the resources in the VO.</para>
+                </listitem>
+                <listitem>
+                  <para>If your VO is part of a larger VO, register the central index service of
+                    your VO to the central index of the larger VO.</para>
+                </listitem>
+                <listitem>
+                  <para>Install the WebMDS servlet to show the contents of the central index service
+                    in a web browser.</para>
+                </listitem>
+                <listitem>
+                  <para>Deploy a Trigger Service to notify interested parties about changes in the
+                    status of the VO.</para>
+                </listitem>
+              </itemizedlist></para>
+          </listitem>
+          <listitem>
+            <para>On each GRAM4 installation <itemizedlist>
+                <listitem>
+                  <para>Configure cluster monitoring at each GRAM installation to publish
+                    information about each resource.</para>
+                </listitem>
+                <listitem>
+                  <para>Register each resource into the central index service. </para>
+                </listitem>
+              </itemizedlist></para>
+          </listitem>
+          <listitem>
+            <para>On each RFT installation: Register the RFT Factory to the VO index.</para>
+          </listitem>
+        </orderedlist>
+      </section>
+    </section>
+  </chapter>
+  <chapter id="mds-admin-testing">
+    <title>Testing</title>
+    <para>[FIXME describe]</para>
+  </chapter>
+  <chapter id="mds-admin-sec-considerations">
+    <title>Security Considerations</title>
+    <para>[FIXME - which frag to import?]</para>
+  </chapter>
+  <chapter id="mds-admin-troubleshooting">
+    <title>Troubleshooting</title>
+    <para>Because MDS is based on the Java WS Core, information on troubleshooting the container is
+      included here:</para>
+    <xi:include href="../../common/javawscore/Java_WS_Core_Logging_Frag.xml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  </chapter>
+  <!-- i don't think usage stats will be collected for this, but just in case
+<section id="mds-admin-usage"><title>Usage statistics collection by the Globus Alliance</title>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+  href="../WS_MDS_UsefulRP_Usage_Statistics_Frag.xml"/>
+</section>
+ -->
+</book>

@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+<!ENTITY % xinclude SYSTEM "../../xinclude.mod">
+%xinclude;
+]>
+<chapter id="mds-configuring">
+  <title>Configuring</title>
+
+  <!-- overview: registering as a servicegroup, congifuring aggregator sources (info providers?), configuring standard and custom aggregator services, web mds (visualizer),  -->
+
+  <!-- describe what is already configured by default: index service, archive service, webmds (?). then in later section for each describe what else.  -->
+
+  <section id="mds-configuring-overview">
+    <title>Configuration overview</title>
+
+    <para>FIXME add very general overview info about configuring aggregator
+    services (config file, registering, info providers)</para>
+
+    <para>MDS is a monitoring service that collects recent state information
+    from registered information sources in a Grid. It is based on WSRF and
+    WS-Notification specifications and built on the Java WS Core. You should
+    be familiar with <olink targetdoc="javawscoreAdmin"
+    targetptr="javawscore-configuring">configuring information for Java WS
+    Core</olink> and have a basic understanding of WSRF and web services,
+    especially resource properties.</para>
+
+    <para>In MDS, the configuration of an aggregator service is based partly
+    on the Aggregator Framework (AF). The AF does not have its own service
+    side configuration, although aggregator services may have their own
+    service side configuration options (such as <olink targetdoc="trigger">MDS
+    Trigger</olink>).</para>
+
+    <section id="mds-configuring-use-cases">
+      <title>Admin use cases</title>
+
+      <para>Some common administrative uses of MDS4:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Use the MDS Index Service to monitor certain GT WSRF services
+          (this is the default).</para>
+        </listitem>
+
+        <listitem>
+          <para>Chain MDS Index Services to create a hierarchy throughout a
+          VO, with information aggregated in a central Index Service.</para>
+        </listitem>
+
+        <listitem>
+          <para>Use MDS Trigger Service to send an email when a condition on a
+          grid resource is met (such as being notified when a service goes
+          down).</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+  </section>
+
+  <section id="mds-configuring-default">
+    <title>Default configuration</title>
+
+    <para>After a default installation of GT version, the container includes a
+    default Index Service, which should be visible when starting the
+    container, like the following:</para>
+
+    <screen>...
+https://localhost:8440/wsrf/services/DefaultIndexService
+...</screen>
+
+    <para>This default Index Service automatically registers with certain
+    other WSRF-based services in GT:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><olink targetdoc="gram4Admin"
+        targetptr="gram4-Interface_Config_Frag-autoregistration">GRAM4</olink></para>
+      </listitem>
+
+      <listitem>
+        <para><olink targetdoc="casAdmin"
+        targetptr="cas-Interface_Config_Frag-autoregistration">Community
+        Authorization Service (CAS)</olink></para>
+      </listitem>
+
+      <listitem>
+        <para><olink targetdoc="rftAdmin"
+        targetptr="rft-autoregistration">Reliable File Transfer
+        (RFT)</olink></para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Check the links to see what information is captured for each service
+    and how to configure that information.</para>
+
+    <para>This means that without any further configuration, the default Index
+    Service is already monitoring these services.</para>
+
+    <section id="mds-configuring-simple-usage">
+      <title>Simple usage</title>
+
+      <para>A typical example of using the default Index Service is with the
+      <olink targetdoc="indexUser" targetptr="wsrf-query">wsrf-query</olink>
+      Java WS Core command. For example:</para>
+
+      <screen>$GLOBUS_LOCATION/bin/wsrf-query -s http://localhost:8443/wsrf/services/DefaultIndexService '/*'</screen>
+
+      <para>displays all the resource properties collected by the default
+      Index Service on your local host.</para>
+
+      <para>You can also use an XPath query to drill down your search as well
+      as other Java WS Core commands such as <olink targetdoc="indexUser"
+      targetptr="wsrf-get-property">wsrf-get-property</olink> and <olink
+      targetdoc="indexUser"
+      targetptr="wsrf-get-properties">wsrf-get-properties</olink>. For more
+      information, review the <olink targetdoc="indexUser"></olink>.</para>
+    </section>
+
+    <section>
+      <title>Toggle automatic registration of GT WS components</title>
+
+      <para>To turn off (or on, depending on your situation) automatic
+      registration of these components, edit the
+      <filename>jndi-config.xml</filename> file of the component.</para>
+
+      <para>For example, the jndi config file for GRAM4 is at
+      <filename>$GLOBUS_LOCATION/etc/gram-service/jndi-config.xml</filename>.</para>
+
+      <para>Find the following JNDI resource:</para>
+
+      <screen>
+&lt;resource name="mdsConfiguration" 
+          type="org.globus.wsrf.impl.servicegroup.client.MDSConfiguration"&gt;
+          &lt;resourceParams&gt;
+             &lt;parameter&gt; 
+                &lt;name&gt;reg&lt;/name&gt;
+                &lt;value&gt;true&lt;/value&gt;
+             &lt;/parameter&gt;
+             &lt;parameter&gt; 
+                &lt;name&gt;factory&lt;/name&gt;
+                &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+             &lt;/parameter&gt;
+          &lt;/resourceParams&gt;
+&lt;/resource&gt;
+   </screen>
+
+      <para>To configure the automatic registration of GRAM4 to the default
+      MDS Index Service, change the value of the parameter &lt;reg&gt; as
+      follows:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>true turns on auto-registration; this is the default.</para>
+        </listitem>
+
+        <listitem>
+          <para>false turns off auto-registration.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Overview of a typical deployment</title>
+
+      <para>A typical deployment of MDS will enable a project to:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>discover needed data from services in order to make job
+          submission or replica selection decisions;</para>
+        </listitem>
+
+        <listitem>
+          <para>evaluate the status of Grid services for a project
+          testbed;</para>
+        </listitem>
+
+        <listitem>
+          <para>be notified when disks are full or other error conditions
+          happen;</para>
+        </listitem>
+
+        <listitem>
+          <para>visualize the state of services.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>MDS should be deployed in a distributed fashion. Some components
+      should be deployed central to a VO, while others should be deployed on
+      individual resources.</para>
+
+      <para>In order to deploy a project or VO-wide MDS4 setup, we recommend
+      the following steps (which we will expand on later):</para>
+
+      <note>
+        <para>The services deployed do not need to be run on the same host or
+        be at the same location.</para>
+      </note>
+
+      <orderedlist>
+        <listitem>
+          <para>Set up a hierarchy of Indexes with one as the central (VO)
+          index to which all other Index Services are registered (see <olink
+          targetptr="mds-admin-hierarchy"></olink>below): <itemizedlist>
+              <listitem>
+                <para>If you want to set up a site-wide Index Service with all
+                services and resources for the project at that site registered
+                to it, including those provided by Ganglia or Hawkeye, please
+                see <olink targetdoc="mdsAdmin"
+                targetptr="mds-admin-register-wsrf"></olink> and <olink
+                targetdoc="mdsAdmin"
+                targetptr="mds-admin-advanced-providers-custom"></olink> under 'Advanced
+                Configuration'.</para>
+              </listitem>
+
+              <listitem>
+                <para>If you want to deploy an Index Service to act as the
+                centralized data source for the VO to collect information
+                about all of the resources in the VO, please see <olink
+                targetdoc="mdsAdmin"
+                targetptr="mds-admin-deploying-vo"></olink> (in addition to
+                <olink targetptr="mds-admin-hierarchy"></olink>).</para>
+              </listitem>
+            </itemizedlist></para>
+        </listitem>
+
+        <listitem>
+          <para>Set up WebMDS to view the contents of a central Index Service
+          in a web browser (please see <olink
+          targetptr="mds-admin-visualizing"></olink> below).</para>
+        </listitem>
+
+        <listitem>
+          <para>Deploy a Trigger Service notification script to alert
+          interested parties about changes in the status of the VO (please see
+          <olink targetptr="mds-admin-email-trigger"></olink>).</para>
+        </listitem>
+      </orderedlist>
+    </section>
+  </section>
+
+  <section id="mds-admin-getting-started">
+    <title>Getting started</title>
+
+    <para>This section will show you how to set up a basic hierarchy that
+    monitors other GT web services (in <olink targetdoc="mdsAdmin"
+    targetptr="mds-admin-advanced"></olink>, you will learn how to monitor
+    almost any Grid resource). You will learn how to create a hierarchy of
+    index services, use WebMDS to monitor from a web browser and set up a
+    Trigger Service to be notified if any of the services go down.</para>
+
+    <section id="mds-admin-hierarchy">
+      <title>Building a Hierarchy of DefaultIndexServices</title>
+
+      <para>This example shows how to configure the DefaultIndexService so
+      that it will register itself to an upstream DefaultIndexService. By
+      chaining such upstream registrations between hosts, it is possible to
+      build a hierarchical virtual organization with a complete aggregate data
+      view at the root level.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>1. Change to the
+          <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_index</filename>
+          directory.</para>
+        </listitem>
+
+        <listitem>
+          <para>2. Open the file <filename>hierarchy.xml</filename> and add
+          one or more upstream entries using the URL to DefaultIndexService(s)
+          you wish to register to. Example syntax for an upstream entry is as
+          follows: <screen>&lt;upstream&gt;https://vo-host:8443/wsrf/services/DefaultIndexService&lt;/upstream&gt;</screen>
+          Please note that if a secure container is targeted, you must set the
+          correct service URL (https protocol, right port number) in the
+          upstream entry. Note: The defaultIndexService(s) you enter here will
+          be higher in the hierarchy than the current one [fixme may need to
+          say this in a clearer way]</para>
+        </listitem>
+
+        <listitem>
+          <para>2.a (This step is optional) Change the default upstream
+          registration settings (if desired) in the upstream.xml file:</para>
+
+          <screen>&lt;ServiceGroupRegistrationParameters
+                  xmlns="http://mds.globus.org/servicegroup/client&gt;
+                  
+                  &lt;!-- Specifies that the registration will be renewed every 600
+                  seconds (= 10 minutes) --&gt;
+                  &lt;RefreshIntervalSecs&gt;600&lt;/RefreshIntervalSecs&gt;
+                  
+                  &lt;Content xsi:type="agg:AggregatorContent"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+                  
+                  &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+                  &lt;agg:GetResourcePropertyPollType
+                  xmlns:wssg= "http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ServiceGroup-1.2-draft-01.xsd"&gt;
+                  &lt;!-- Specifies that the upstream index should refresh information
+                  every 10 minutes --&gt;
+                  &lt;agg:PollIntervalMillis&gt;600000&lt;/agg:PollIntervalMillis&gt;
+                  
+                  &lt;!-- specified that the upstream index should collect the
+                  Entry resource properties from this index --&gt;
+                  &lt;agg:ResourcePropertyName&gt;wssg:Entry&lt;/agg:ResourcePropertyName&gt;
+                  
+                  &lt;/agg:GetResourcePropertyPollType&gt;
+                  &lt;/agg:AggregatorConfig&gt;
+                  &lt;agg:AggregatorData/&gt;
+                  &lt;/Content&gt;
+                  
+&lt;/ServiceGroupRegistrationParameters&gt;</screen>
+
+          <para>The two settings of note here are the
+          <parameter>RefreshIntervalSecs</parameter> and the
+          <parameter>PollIntervalMillis</parameter> parameters.</para>
+
+          <variablelist>
+            <varlistentry>
+              <term><parameter>RefreshIntervalSecs</parameter></term>
+
+              <listitem>
+                <para>This parameter specifies that the local
+                DefaultIndexService will attempt to refresh the registration
+                made to the upstream DefaultIndexService every (n) seconds. If
+                the upstream DefaultIndexService is a high level or root-level
+                member of a VO hierarchy, or is intended to support a large
+                number of registrants, it may be desirable to set the refresh
+                interval to be a larger value so that the overall amount of
+                registration traffic is reduced. Note that setting the
+                <parameter>RefreshIntervalSecs</parameter> to a larger value
+                will not affect the relative "freshness" of the aggregated
+                data from each registrant; rather, this is controlled by the
+                <parameter>PollIntervalMillis</parameter> parameter of the
+                GetResourcePropertyPollType element.</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><parameter>PollIntervalMillis</parameter></term>
+
+              <listitem>
+                <para>The <parameter>GetResourcePropertyPollType</parameter>
+                element contained within the
+                <parameter>AggregatorConfig</parameter> element specifies that
+                the upstream DefaultIndexService should poll the local
+                DefaultIndexService "Entry" resource property every (n)
+                milliseconds, based on the value of this parameter. Alter this
+                parameter in order to control the interval upon which data
+                from the downstream (local) DefaultIndexService is refreshed
+                in the upstream DefaultIndexService.</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </listitem>
+
+        <listitem>
+          <para>3. Start the container by running: <screen>$ bin/globus-start-container</screen></para>
+        </listitem>
+      </itemizedlist>
+
+      <para>When the DefaultIndexService is first activated, it will read the
+      contents of the <filename>hierarchy.xml</filename> file and attempt to
+      make an upstream registration for each upstream entry found within that
+      file. The service will make each registration according to the
+      parameters found in the <filename>upstream.xml</filename> file. Any
+      errors or warnings during the registration process will be written to
+      the container log. If successful, the "Entry" resource property of the
+      upstream Index will contain a child element for the downstream (local)
+      Index, and a copy of the downstream Index "Entry" resource property will
+      be cached within that element.</para>
+    </section>
+
+    <section id="mds-admin-visualizing">
+      <title>Visualizing Index Service with WebMDS</title>
+
+      <para>WebMDS is built and installed as part of a default GT installation
+      and you only need to deploy the servlet to view the contents of the
+      DefaultIndexService (in the local container) via a web browser.</para>
+
+      <para>To visualize the Index Service:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Deploy the servlet into a servlet container such as Tomcat.
+          For more information see the <olink targetdoc="webmdsAdmin"
+          targetptr="webmds-admin-deploying">Deploying section in the WebMDS
+          Admin Guide</olink>.</para>
+        </listitem>
+
+        <listitem>
+          <para>Point your web browser at
+          <filename>http://your-tomcat-host:your-tomcat-port/webmds</filename></para>
+        </listitem>
+
+        <listitem>
+          <para>Click on the link labelled "A list of resources registered to
+          the local default index service".</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>[fixme add screenshot of example display]</para>
+
+      <para>For more detailed information about changing the look of WebMDS
+      and more advanced configuration, see the <olink
+      targetdoc="webmdsAdmin">WebMDS Admin Guide</olink>.</para>
+    </section>
+
+    <section>
+      <title id="mds-admin-email-trigger">Setting up email notifications via
+      the Trigger Service</title>
+
+      <para>Deploy the Trigger Service to notify interested parties about
+      certain configured changes in the status of the resources that an Index
+      Service is monitoring. This can be useful for receiving emails about a
+      service going down, etc.</para>
+
+      <para>[Need to use an example of actual email notification FIXME]</para>
+
+      <para>The following is an overview of the steps involved. For a more
+      complete tutorial, see <olink targetdoc="triggerDeveloper"
+      targetptr="trigger-howto-basic"></olink>.</para>
+
+      <orderedlist>
+        <listitem>
+          <para><emphasis role="strong">Create configuration file</emphasis> A
+          default GT installation comes with an example configuration file at
+          <screen>$GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/trigger-registration-example.xml</screen>
+          You can see an <olink targetdoc="triggerDeveloper"
+          targetptr="trigger-howto-basic-configfile">example
+          here</olink>.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="strong">Write the action script</emphasis> A
+          simple example can be found at <screen>$GLOBUS_LOCATION/libexec/trigger/trigger-action-default.sh</screen>
+          which should look like this: <screen>#!/bin/sh
+
+DATE=`date`
+
+echo "Trigger Service Entry: $DATE" &gt;&gt; $GLOBUS_LOCATION/trigger_service_base_action_log
+
+cat &lt;&lt;EOF
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;OurActionScriptOutput&gt;
+  &lt;OurDataDetected&gt;true&lt;/OurDataDetected&gt;
+&lt;/OurActionScriptOutput&gt;
+EOF
+</screen></para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="strong">Start the container</emphasis>
+          <screen>$GLOBUS_LOCATION/bin/globus-start-container</screen></para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="strong">Create trigger registration</emphasis>
+          This registers the trigger registration service with the Index
+          Service: <screen>$GLOBUS_LOCATION/bin/mds-servicegroup-add $GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/trigger-registration-example.xml</screen>
+          Note: the above command should be on one line.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="strong">Configure the trigger commandline
+          clients</emphasis> <screen>$GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/client-config-settings</screen>
+          Make sure that the host service address on the first line
+          corresponds to your deployed container.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="strong">Create the trigger</emphasis> <screen>$GLOBUS_LOCATION/bin/mds-trigger-create https://127.0.0.1:8444/wsrf/services/DefaultIndexService</screen></para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="strong">Get the Trigger ID</emphasis>: View
+          information about the trigger: <screen>$GLOBUS_LOCATION/bin/mds-trigger-view</screen>
+          Note the Trigger ID, which you will need in the next step.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="strong">Enable the trigger</emphasis>: Use the
+          <command>mds-trigger-edit</command> command with the syntax:
+          <screen>mds-trigger-edit [TriggerID] [Parameter="Value"]</screen>
+          For example: <screen>$GLOBUS_LOCATION/bin/mds-trigger-edit 955e9d90-61d0-11dc-897d-dc2058e0ce31 TriggerName="NewName"</screen></para>
+        </listitem>
+      </orderedlist>
+
+      <para>These are just an outline of the basic steps needed. For complete
+      information, see <olink targetdoc="triggerDeveloper"
+      targetptr="trigger-howto-basic-configfile">Trigger Service - Easy
+      HowTo</olink>.</para>
+
+      <para>[fixme where does the matching rule come in?]</para>
+    </section>
+  </section>
+</chapter>
