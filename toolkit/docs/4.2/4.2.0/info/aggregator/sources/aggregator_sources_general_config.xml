@@ -1,22 +1,60 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section id="aggregator-services-registering-resources">
+  <title>Registering resources (general)</title>
 
-<section id="aggregator-services-registering-resources"><title>Registering resources (general)</title>
-<para>To register resources:</para>
+  <para>To register resources with the Index Service:</para>
 
-<itemizedlist>
-  <listitem><simpara>Create a configuration file in XML that specifies registrations. See <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-aggregator-registration.xml</filename> for several specific examples. </simpara></listitem>
-  <listitem><simpara>Run <olink targetdoc="aggregatorDeveloper" targetptr="mds-servicegroup-add"/> to perform the registrations specified in that configuration file (see the command documentation for a simple example using the Index Service).</simpara></listitem>
-</itemizedlist>
+  <orderedlist>
+    <listitem>
+      <para>Create a configuration file in XML that specifies registrations.
+      See
+      <filename>$GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-aggregator-registration.xml</filename>
+      for several specific examples. The configuration file is described in
+      more detail below.</para>
+    </listitem>
 
-  <para>The configuration file consists of an optional <computeroutput>defaultServiceGroupEPR</computeroutput>, an 
-    optional <computeroutput>defaultRegistrantEPR</computeroutput>, and then one or more
-    <computeroutput>ServiceGroupRegistrationParameters</computeroutput> blocks, each of which 
-    represents one registration.</para>
-  
+    <listitem>
+      <para>Run <olink targetdoc="aggregatorDeveloper"
+      targetptr="mds-servicegroup-add"></olink> to perform the registrations
+      specified in that configuration file. For example, to register to the
+      DefaultIndexService with a modified example-aggregator-registration.xml
+      file, you could run a command similar to the following: <screen>$GLOBUS_LOCATION/bin/mds-servicegroup-add -s \
+https://127.0.0.1:8443/wsrf/services/DefaultIndexService \
+$GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-aggregator-registration.xml</screen>
+      <itemizedlist>
+          <listitem>
+            <para>Each registration has a limited lifetime;
+            <command>mds-servicegroup-add</command> should be left running in
+            the background so that it can continue to refresh
+            registrations.</para>
+          </listitem>
+
+          <listitem>
+            <para>Depending on administration preference, it may be run on the
+            same host as the aggregator service, on the same host as a member
+            resource, or on any other host(s).</para>
+          </listitem>
+        </itemizedlist></para>
+    </listitem>
+  </orderedlist>
+
+  <para>The configuration file consists of an optional
+  <computeroutput>defaultServiceGroupEPR</computeroutput>, an optional
+  <computeroutput>defaultRegistrantEPR</computeroutput>, and then one or more
+  <computeroutput>ServiceGroupRegistrationParameters</computeroutput> blocks,
+  each of which represents one registration.</para>
+
+  <para>You can use the example configuration at <filename><ulink
+  url="http://viewcvs.globus.org/viewcvs.cgi/*checkout*/ws-mds/aggregator/source/etc/example-aggregator-registration.xml?revision=1.13">$GLOBUS_LOCATION/etc/globus_wsrf_mds_aggregator/example-aggregator-registration.xml</ulink></filename>,
+  replacing the EPRs in that file with the EPRs for your resources. It
+  includes many examples of configurations for GRAM, RFT and other
+  situations.</para>
+
   <para>The general syntax of the configuration file is:</para>
-<screen>
+
+  <screen>
 
 &lt;?xml version="1.0" encoding="UTF-8" ?&gt;
 &lt;ServiceGroupRegistrations
@@ -60,84 +98,109 @@
 &lt;/ServiceGroupRegistrations&gt;
 
 </screen>
-<para>The following table describes the different blocks of the file and any parameters:</para>
-<table><title>Aggregator configuration parameters</title>
-<tgroup cols="1"><tbody>
-<row>
-<entry><constant>defaultServiceGroupEPR</constant> block</entry>
-<entry>Provides a convenient way to register a number
-of resources to a single service group -- for example, if you wish
-to register several resources to your default VO index, you can
-specify that index as the default service group and omit the
-<constant>ServiceGroupEPR</constant> blocks from each
-<constant>ServiceGroupRegistrationParameters</constant> block.</entry>
-</row>
-<row>
-<entry><constant>defaultRegistrantEPR</constant></entry>
-<entry>Provides a convenient way to register a single
-resource to several service groups -- for example, if you wish to
-register your local GRAM server to several index servers, you can
-specify your GRAM server as the default registrant and omit the
-<constant>RegistrantEPR</constant> blocks from each
-<constant>ServiceGroupRegistrationParameters</constant> block.</entry>
-</row>
-<row>
-<entry><constant>defaultSecurityDescriptorFile</constant></entry>
-  <entry>Simply the path to the <olink targetdoc="wsaajava" targetptr="wsaajava-secdesc">
-  security descriptor file</olink>.</entry>
-</row>
-  <row>
-    <entry>
-<constant>ServiceGroupRegistrationParameters</constant></entry>
-<entry>Each
-<constant>ServiceGroupRegistrationParameters</constant> block specifies the
-parameters used to register a resource to a service group. The
-parameters specified in this block are:</entry>
-</row>
-<row>
-<entry><constant>ServiceGroupEPR</constant></entry>
-<entry>The EPR of the service group to register to. This parameter may
-be omitted if a <constant>defaultServiceGroupEPR</constant> block is
-specified; in this case, the value of
-<constant>defaultServiceGroupEPR</constant> will be used instead.</entry>
-</row>
-<row>
-<entry><constant>RegistrantEPR</constant></entry>
-<entry>The EPR of the resource to register. This parameter may be
-omitted if a <constant>defaultRegistrantEPR</constant> block is specified;
-in this case, the value of <constant>defaultRegistrantEPR</constant> will
-be used instead.</entry>
-</row>
-<row>
-<entry><constant>InitialTerminationTime</constant></entry>
-<entry>The initial termination time of this registration (this may be
-omitted). If the initial termination time is omitted, then the
-  <olink targetdoc="aggregatorDeveloper" targetptr="mds-servicegroup-add">
-  mds-servicegroup-add</olink> sets the initial termination time to the
-current wall time plus 2 times that of the specified
-<constant>RefreshIntervalSecs</constant> parameter.</entry>
-</row>
-<row>
-<entry><constant>RefreshIntervalSecs</constant></entry>
-<entry>The refresh interval of the registration, in seconds. The
-  <olink targetdoc="aggregatorDeveloper" targetptr="mds-servicegroup-add"/> will attempt to refresh the registration
-according to this interval, by default incrementing the termination
-time of the registration by 2 times this interval for every
-successful refresh. If at any point the termination time for the
-registration expires the registration will be subject to removal
-within a maximum of 5 minutes.</entry>
-</row>
-<row>
-<entry><constant>Content</constant></entry>
-<entry><simpara>Aggregator-source-specific registration parameters. The content
-blocks for the various aggregator sources are described in detail
-in the following sections.
-<!-- need links to execution/query/subscription config in aggregator source reference (for mds-add-servicegroup) -->
-</simpara>
-</entry>
-</row>
-</tbody></tgroup>
-</table>
 
+  <para>The following table describes the different blocks of the file and any
+  parameters:</para>
+
+  <table>
+    <title>Aggregator configuration parameters</title>
+
+    <tgroup cols="2">
+      <tbody>
+        <row>
+          <entry><constant>defaultServiceGroupEPR</constant> block</entry>
+
+          <entry>Provides a convenient way to register a number of resources
+          to a single service group -- for example, if you wish to register
+          several resources to your default VO index, you can specify that
+          index as the default service group and omit the
+          <constant>ServiceGroupEPR</constant> blocks from each
+          <constant>ServiceGroupRegistrationParameters</constant>
+          block.</entry>
+        </row>
+
+        <row>
+          <entry><constant>defaultRegistrantEPR</constant></entry>
+
+          <entry>Provides a convenient way to register a single resource to
+          several service groups -- for example, if you wish to register your
+          local GRAM server to several index servers, you can specify your
+          GRAM server as the default registrant and omit the
+          <constant>RegistrantEPR</constant> blocks from each
+          <constant>ServiceGroupRegistrationParameters</constant>
+          block.</entry>
+        </row>
+
+        <row>
+          <entry><constant>defaultSecurityDescriptorFile</constant></entry>
+
+          <entry>Simply the path to the <olink targetdoc="wsaajava"
+          targetptr="wsaajava-secdesc"> security descriptor
+          file</olink>.</entry>
+        </row>
+
+        <row>
+          <entry><constant>ServiceGroupRegistrationParameters</constant></entry>
+
+          <entry>Each <constant>ServiceGroupRegistrationParameters</constant>
+          block specifies the parameters used to register a resource to a
+          service group. The parameters specified in this block are:</entry>
+        </row>
+
+        <row>
+          <entry><constant>ServiceGroupEPR</constant></entry>
+
+          <entry>The EPR of the service group to register to. This parameter
+          may be omitted if a <constant>defaultServiceGroupEPR</constant>
+          block is specified; in this case, the value of
+          <constant>defaultServiceGroupEPR</constant> will be used
+          instead.</entry>
+        </row>
+
+        <row>
+          <entry><constant>RegistrantEPR</constant></entry>
+
+          <entry>The EPR of the resource to register. This parameter may be
+          omitted if a <constant>defaultRegistrantEPR</constant> block is
+          specified; in this case, the value of
+          <constant>defaultRegistrantEPR</constant> will be used
+          instead.</entry>
+        </row>
+
+        <row>
+          <entry><constant>InitialTerminationTime</constant></entry>
+
+          <entry>The initial termination time of this registration (this may
+          be omitted). If the initial termination time is omitted, then the
+          <olink targetdoc="aggregatorDeveloper"
+          targetptr="mds-servicegroup-add"> mds-servicegroup-add</olink> sets
+          the initial termination time to the current wall time plus 2 times
+          that of the specified <constant>RefreshIntervalSecs</constant>
+          parameter.</entry>
+        </row>
+
+        <row>
+          <entry><constant>RefreshIntervalSecs</constant></entry>
+
+          <entry>The refresh interval of the registration, in seconds. The
+          <olink targetdoc="aggregatorDeveloper"
+          targetptr="mds-servicegroup-add"></olink> will attempt to refresh
+          the registration according to this interval, by default incrementing
+          the termination time of the registration by 2 times this interval
+          for every successful refresh. If at any point the termination time
+          for the registration expires the registration will be subject to
+          removal within a maximum of 5 minutes.</entry>
+        </row>
+
+        <row>
+          <entry><constant>Content</constant></entry>
+
+          <entry><simpara>Aggregator-source-specific registration parameters.
+          The content blocks for the various [aggregator sources fixme] are
+          described in detail in the following sections. <!-- FIXME need links to execution/query/subscription config in aggregator source reference (for mds-add-servicegroup) -->
+          </simpara></entry>
+        </row>
+      </tbody>
+    </tgroup>
+  </table>
 </section>
-
