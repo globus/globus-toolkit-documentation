@@ -50,7 +50,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
       <ul>
 
-        <li><a href="http://www-fp.mcs.anl.gov/~allcock/">Bill Allcock</a></li>
+        
 
 	<li>Rachana Anathakrishnan</li>
 
@@ -63,20 +63,22 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 	<li>John Bresnahan</li>
 
 	<li><a href="http://www-unix.mcs.anl.gov/~childers/">Lisa Childers</a></li>
+	<li>Ben Clifford</li>
+	<li>Martin Feller</li>
 
 	<li><a href="http://www.mcs.anl.gov/~foster/">Ian Foster</a></li>
-
+<li>Dan Fraser</li>
         <li><a href="http://www-unix.mcs.anl.gov/%7Etfreeman/">Tim Freeman</a></li>
 
-	<li><a href="http://www.mcs.anl.gov/~gawor">Jarek Gawor</a></li>
+
 
         <li>Mihael Hategan</li>
-
+<li>Tom Howe</li>
 	<li><a href="http://www-unix.mcs.anl.gov/~keahey/">Kate Keahey</a></li>
 
 	<li><a href="http://www-unix.mcs.anl.gov/~kettimut/">Raj Kettimuthu</a></li>
 
-        <li>Deepti Kodeboyina</li>
+
 
       </ul>
 
@@ -86,9 +88,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
       <ul>
 
-	<li><a href="http://www-unix.mcs.anl.gov/~lane/">Peter Lane</a></li></li>
+	
 
-	<li><a href="http://www.mcs.anl.gov/~gregor/">Gregor von Laszewski</a></li>
+	
 
 	<li><a href="http://www-unix.mcs.anl.gov/~liming/">Lee Liming</a></li>
 
@@ -100,17 +102,15 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
         <li>Neill Miller</li>
 
-	<li>Veronika Nefedova</li>
+	
 
 	<li><a href="http://www-fp.mcs.anl.gov/~rohder/">Gigi Rohder</a></li>
 
-        <li>Doug Scheftner</li>
-
-	<li><a href="http://www-unix.mcs.anl.gov/~schopf/">Jennifer Schopf</a></li>
+        
 
 	<li><a href="http://www-unix.mcs.anl.gov/~franks/">Frank Siebenlist</a></li>
 
-        <li><a href="http://www-unix.mcs.anl.gov/~voeckler/">Jens-S. V&ouml;ckler</a>
+         <li>Dina Sulakhe</li>
 
 	<li><a href="http://www-unix.mcs.anl.gov/~wilde/">Mike Wilde</a></li>
 
@@ -200,7 +200,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 	<li><a href="http://www.cs.niu.edu/~karonis/">Nicholas T. Karonis</a></li>
 
-        <li><a href="http://www.mcs.anl.gov/~toonen">Brian Toonen</a></li>
+        
 
 	</ul>
 
@@ -224,7 +224,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
     
 
-<h2><a href="http://www.univa.com/">Univa Corporation</a></h2>
+<h2><a href="http://www.univa.com/">UnivaUD</a></h2>
 
 	
 
@@ -266,7 +266,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
       <li><a href="http://www.isi.edu/~deelman">Ewa Deelman</a></li>
 
-      <li><a href="http://www.isi.edu/~sridhar">Sridhar Gullapalli</a></li>
+
 
       <li><a href="http://www.isi.edu/~carl">Carl Kesselman</a></li>
 
@@ -282,7 +282,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
       <li>Laura Pearlman</li>
 
-      <li>Mats Rynge</li>
+
 
       <li>Robert Schuler</li>
 

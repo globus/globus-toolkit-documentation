@@ -24,19 +24,29 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <a href="http://www.cs.uchicago.edu/">The University of Chicago</a></h2>
 
       <ul>
+      <li>Bill Allcock</li>
 	<li><a href="http://people.cs.uchicago.edu/~dangulo/">Dave Angulo</a></li>
 	<li>Tom Garritano</li>
+		<li>Jarek Gawor</li>
         <li>Scott Gose</li>
         <li>Joe Insley</li>
+                <li>Deepti Kodeboyina</li>
+                <li>Peter Lane</li></li>
       <li>Sam Lang</li>
+      <li>Gregor von Laszewski</li>
       <li>Joe Link</li>
       <li>Greg Nawrocki (now President of the Globus Consortium)</li>
+      <li>Veronika Nefedova</li>
       <li><a href="http://www.gridwisetech.com/team">Pawel Plaszczak</a></li>
       <li>Darcy Quesnel</li>
       <li>Alain Roy</li>
 	<li>Michael Russell</li>
       <li><a href="http://www.mcs.anl.gov/~sander">Volker Sander</a></li>
+      <li>Doug Scheftner</li>
+
+	<li><a href="http://www-unix.mcs.anl.gov/~schopf/">Jennifer Schopf</a></li>
       <li>Rob Seed</li>
+      <li><a href="http://www-unix.mcs.anl.gov/~voeckler/">Jens-S. V&ouml;ckler</a>
 	<li>Michelle Wang</li>
         <li><a href="http://www-fp.mcs.anl.gov/~wulf/">Julie Wulf-Knoerzer</a></li>
 	</ul>
@@ -50,10 +60,12 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 	<li>Nabil Deeb</li>
 	<li>Steve Fitzgerald</li>
 	<li>Larry Flon</li>
+	      <li>Sridhar Gullapalli</li>
 	<li>Leon Kuntz (in memoriam)</li>
 	<li>Bob Lindell</li>
         <li>John McGee</li>
 	<li>Clifford Neuman</li>
+	      <li>Mats Rynge</li>
 	<li>Tatyana Ryutov</li>
     </ul>
 
@@ -73,7 +85,13 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       <li>Jason Novotny</li>
       <li>Andrea Van Proyen</li>
     </ul>
+    
+    <h2><a href="http://www.hpclab.niu.edu/">Northern
 
+    Illinois University, High Performance Computing Laboratory</a></h2>
+    <ul>
+    <li><a href="http://www.mcs.anl.gov/~toonen">Brian Toonen</a></li>
+</ul>
 </div>
 
 <?php include($SITE_PATHS["SERV_INC"].'footer.inc'); ?>
