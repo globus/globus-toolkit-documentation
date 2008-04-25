@@ -56,7 +56,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         <ul>
         <li>Alain Andrieux</li>
 	<li>Joseph Bannister</li>
-        <li><a href="http://www.hawaga.org.uk/ben/">Ben Clifford</a></li>
 	<li>Nabil Deeb</li>
 	<li>Steve Fitzgerald</li>
 	<li>Larry Flon</li>

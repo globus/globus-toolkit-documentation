@@ -63,7 +63,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 	<li>John Bresnahan</li>
 
 	<li><a href="http://www-unix.mcs.anl.gov/~childers/">Lisa Childers</a></li>
-	<li>Ben Clifford</li>
+	<li><a href="http://www.hawaga.org.uk/ben/">Ben Clifford</a></li>
 	<li>Martin Feller</li>
 
 	<li><a href="http://www.mcs.anl.gov/~foster/">Ian Foster</a></li>
