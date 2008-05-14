@@ -112,6 +112,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/cas/">CAS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/delegation/">Delegation Service</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/myproxy/">MyProxy</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/security/gridshib/">GridShib</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/openssh/">GSI-OpenSSH</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/simpleca/">SimpleCA</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/sgas/">SGAS</a></dt>
