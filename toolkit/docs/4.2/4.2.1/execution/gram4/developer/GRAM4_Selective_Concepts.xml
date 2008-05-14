@@ -55,23 +55,57 @@
 <section id="gram4-selective-concepts-termination-intro">
 <title>Introduction</title>
 <para>
-  In GRAM4 in 4.2 jobs cannot be destroyed synchronously anymore like this was
-  done GRAM4 in the 4.0 series. The reason for that is that many destroy
-  requests at a time caused the GT4 container to become unresponsive.
-  The new termination method applies to both ManagedExecutableJobResources (MEJRs)
-  and ManagedMultiJobResources (MMJRs) and is a replacement for the old destroy()
-  method.
+  Job termination can happen for three reasons:
+</para>
+<orderedlist> 
+  <listitem>
+    <para><emphasis role="strong">Processing errors</emphasis>: Any error
+    occurs during job processing. That can be an errors when files are staged in,
+    an invalid executable, an error of the job in the local resource manager,
+    an error while staging files out, etc.
+   </para>
+  </listitem>
+  <listitem>
+    <para><emphasis role="strong">Job resource expiration</emphasis>: The client
+      set a too short lifetime on a job.
+    </para>
+  </listitem>
+  <listitem>
+    <para><emphasis role="strong">Client cancellation</emphasis>: A client 
+      requests the termination of a job.
+    </para>
+  </listitem>
+</orderedlist>
+<para>
+  The clean up phase varies from job to job, depending on it's state. In short
+  one can say that a running job is canceled at the local resource manager and
+  fileCleanUp will be performed, if so specified in the job description.
+  If a job however is already fully processed when the job e.g. expires or the
+  user wants to terminate it, then  no clean up steps have to be performed,
+  because nothing leaves to be done. The same applies if the job didn't start
+  processing at the time the termination request comes in.
 </para>
 <para>
-  Same like the destroy() method in GRAM4 in the 4.0 series, terminate() interrupts
-  the processing of a job resource and puts the job in a clean up phase, where
-  various clean up steps (if any) are performed. Unlike destroy() however the call
-  to terminate() is asynchronous, i.e. returns quickly and does not wait until the
-  cleanup steps are all done.
+  Similar like to normal processing errors may happen in the clean up phase.
+  It might e.g. be interesting for a user whether the cancellation of a running
+  job at the local resource manager was successful or not, or whether
+  the specified fileCleanUp had been processed successfully .
 </para>
-<note><para>
-  GRAM4 in GT4.2 does not expose the old destroy() method anymore.
-</para></note>
+<para>
+  This section focuses on the interface GRAM4 offers a client to terminate
+  a job.
+</para>
+<para>
+  In GRAM4 in 4.2 a client cannot request synchronous destruction of a job
+  anymore like it was in GRAM4 in the 4.0 series. The reason for that is that 
+  many concurrent destroy requests at a time can cause the GT4 container to become
+  unresponsive. Unlike destroy() the call to terminate()
+  is asynchronous, i.e. returns quickly and does not block until the cleanup steps
+  are all done.
+  The new termination method applies to both ManagedExecutableJobResources (MEJRs)
+  and ManagedMultiJobResources (MMJRs) and is a replacement for the destroy()
+  method in GRAM4 in the 4.0 series.
+</para>
 <para>
   The new termination method is supposed to cope with different scenarios for
   jobs in different states, which resulted in an interface that might not be
@@ -82,7 +116,7 @@
 </section>
 
 <section id="gram4-selective-concepts-termination-def">
-<title>Method definition</title>
+<title>User termination method definition</title>
 <para>
   The terminate() method is defined as follows
 </para>
@@ -318,9 +352,18 @@
 <title>Termination related faults</title>
 <para>
   UserTerminateDone and UserTerminateFailed indicate only whether termination
-  was successful or not. In case of errors the following faults indicate what
-  happened. They are part of the notification message to client in case termination
-  failed, and are set in the ResourceProperty <computeroutput>fault</computeroutput>.
+  was successful or not. In case of errors in the clean up phase the following
+  faults indicate what had happened. They are part of the notification message
+  to client in case termination failed, and are set in the ResourceProperty
+  <computeroutput>fault</computeroutput>.
+</para>
+<para>These faults will only be set in a resource or are sent to a client as
+  part of a notification message if the clean up steps have to been performed and
+  the job did not already pass the correspondent state. As an example: For a job,
+  that run to completion in the local resource manager, no attempt will be made
+  to cancel it in the local resource manager. 
+</para>
+<para>
   No automated action can be done when these faults are found, they just indicate
   problems that would have to be manually taken care of.
 </para>
