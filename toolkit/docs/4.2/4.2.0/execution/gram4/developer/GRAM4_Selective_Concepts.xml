@@ -1,0 +1,478 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+  
+<chapter id="gram4-selective_concepts"><title>Selective Concepts</title>
+<para>
+    This chapter gives an overview and specifics about various topics
+    and concepts of GRAM4.
+</para>
+
+<section id="gram4-selective-concepts-submission">
+<title>Job Submission</title>
+<para>
+  IdempotenceId, Connection timeouts, Choosing an LRM
+</para>
+</section>
+
+<section id="gram4-selective-concepts-subscription">
+<title>Subscribing for job status notifications</title>
+<para>
+  You can subscribe for job status notifications of a job in two ways
+  <itemizedlist>
+    <listitem>
+      <para>
+        Subscribe on the call to ManagedJobFactoryService.createManagedJob(): GRAM4
+        creates the subscription resource for you and returns an EPR to it
+        in the response of the createManagedJob() call.
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        Subscribe in a separate WS call once the call to
+        ManagedJobFactoryService.createManagedJob() returns.
+      </para>
+    </listitem>
+  </itemizedlist>
+  The advantage of the first approach is that you save an additional WS call
+  to subscribe to a job, and that you won't miss a notification message, which
+  may happen because you subscribe after the job had been created and started.
+</para>
+<para>
+  Subscription resources of a job are destroyed on the server-side when the
+  job resource goes away, i.e. if a job is terminated by a client, or if the job
+  is terminated because its lifetime expired, all subscription resources are
+  destroyed automatically if the job resource is destroyed.
+  There’s no need for the client to manually destroy a subscription
+  resource.
+</para>
+</section>
+
+<section id="gram4-selective-concepts-termination">
+<title>Job Termination</title>
+
+<section id="gram4-selective-concepts-termination-intro">
+<title>Introduction</title>
+<para>
+  In GRAM4 in 4.2 jobs cannot be destroyed synchronously anymore like this was
+  done GRAM4 in the 4.0 series. The reason for that is that many destruction at
+  a time caused the GT4 container to become unresponsive.
+  The new termination method applies to both ManagedExecutableJobResources (MEJRs)
+  and ManagedMultiJobResources (MMJRs) and is a replacement for the old destroy()
+  method.
+</para>
+<para>
+  Same to the destroy() method in GRAM4 in the 4.0 series terminate() interrupts
+  the processing of a job resource and puts the job in a clean up phase, where
+  various clean up steps (if any) are performed. Unlike destroy() however the call
+  to terminate() is asynchronous, i.e. returns quickly and does not wait until the
+  cleanup steps are all done.
+</para>
+<para>
+  GRAM4 in GT4.2 will not expose the old destroy() method anymore.
+  Repetitive termination calls are possible. 
+</para>
+<para>
+  The rest of this section explains that parameters, return value and faults
+  of the call to terminate() and the implications for jobs in various states.
+</para>
+</section>
+
+<section id="gram4-selective-concepts-termination-details">
+<title>Details</title>
+
+<section id="gram4-selective-concepts-termination-details-def">
+<title>Method definition</title>
+<para>
+  The terminate() method is defined as follows
+</para>
+<screen>public TerminateOutputType terminate (
+    TerminateInputType parameters)
+    throws RemoteException, ResourceUnknownFaultType,
+    DelegatedCredentialDestroyFaultType,
+    ResourceNotTerminatedFaultType</screen>
+<para>
+  TerminateInputType contains:
+  <itemizedlist>
+    <listitem><simpara>boolean destroyAfterCleanup</simpara></listitem>
+    <listitem><simpara>boolean continueNotifying</simpara></listitem>
+    <listitem><simpara>boolean destroyDelegatedCredentials</simpara></listitem>
+  </itemizedlist>
+  TerminateOutputType contains:
+  <itemizedlist>
+    <listitem><simpara>boolean terminationCompleted</simpara></listitem>
+  </itemizedlist>
+</para>
+</section>
+
+<section id="gram4-selective-concepts-termination-details-exp-mejr">
+<title>Explanations for MEJRs</title>
+
+<section id="gram4-selective-concepts-termination-details-exp-mejr-args">
+<title>Arguments</title>
+<informaltable>
+  <tgroup cols="2"><tbody>
+  <row>
+    <entry>destroyAfterCleanup</entry>
+    <entry><para>
+      If set to true the job resource will be destroyed once all
+      cleanup steps are done. 
+    </para></entry>
+  </row>
+  <row>
+    <entry>continueNotifying</entry>
+    <entry><para>
+      If set to true a client will be notified about the success of the
+      termination. This happens via normal notifications. A client who is not
+      interested in the success of the termination can set this to false.
+    </para></entry>
+  </row>
+  <row>
+    <entry>destroyDelegatedCredentials</entry>
+    <entry><para>
+        If this is set to true, all delegated credentials that are specified
+        in the job description (if any) will be destroyed after all cleanup
+        steps are done. They must not be destroyed earlier because staging
+        credentials are needed during failureFileCleanUp.
+        </para>
+        <para>
+        Setting this parameter and destroyAfterCleanup both to true enables a
+        client to completely go away after the termination call in case the
+        success of the cleanup steps is not of importance.
+    </para></entry>
+  </row>
+  </tbody></tgroup>
+</informaltable>
+</section>
+
+<section id="gram4-selective-concepts-termination-details-exp-mejr-return">
+<title>Return value</title>
+<informaltable>
+  <tgroup cols="2"><tbody>
+  <row>
+    <entry>terminationCompleted</entry>
+    <entry><para>
+      Indicates whether termination of the MEJR completed or not when the
+      call to terminate() returns. It is true in case the job is already in
+      a final state, i.e. no cleanup steps had to be done. Otherwise it is false.
+      </para>
+      <para>
+      If it is true and destroyAfterCleanup had been set to true the client can
+      be sure that the job resource has been destroyed when the call to
+      terminate() returns.
+      </para>
+      <para>
+      If it is false, termination had been started and the
+      client can find out about success or failure of the termination either by
+      listening to state change notifications or by querying the status of the
+      job resource.
+    </para></entry>
+  </row>
+  </tbody></tgroup>
+</informaltable>
+</section>
+
+<section id="gram4-selective-concepts-termination-details-exp-mejr-exceptions">
+<title>Exceptions</title>
+<informaltable>
+  <tgroup cols="2"><tbody>
+  <row>
+    <entry>ResourceUnknownFaultType</entry>
+    <entry><para>
+      Thrown when the job resource to be terminated does not exist.
+    </para></entry>
+  </row>
+  <row>
+    <entry>DelegatedCredentialDestroyFaultType</entry>
+    <entry><para>
+      Thrown if the client demanded the destruction of delegated credentials
+      and this failed. If this exception is thrown all termination steps succeeded,
+      and only the destruction of the delegated credential failed.
+    </para></entry>
+  </row>
+  <row>
+    <entry>ResourceNotTerminatedFaultType</entry>
+    <entry><para>
+      An error occurred during termination. This should not happen at all,
+      but in case unforeseen things happen it will indicate that termination
+      failed.
+    </para></entry>
+  </row>
+  </tbody></tgroup>
+</informaltable>
+</section>
+
+</section> <!-- end of mejr explanations -->
+
+<section id="gram4-selective-concepts-termination-details-exp-mmjr">
+<title>Explanations for MMJRs</title>
+
+<section id="gram4-selective-concepts-termination-details-exp-mmjr-args">
+<title>Arguments</title>
+<informaltable>
+  <tgroup cols="2"><tbody>
+  <row>
+    <entry>destroyAfterCleanup</entry>
+    <entry><para>
+      If this is set to true the job resource will be destroyed once all
+      cleanup steps are done. 
+      This is when the termination calls to all SJs went successfully and the
+      MMJR received final notifications of all SJs.
+    </para></entry>
+  </row>
+  <row>
+    <entry>continueNotifying</entry>
+    <entry><para>
+      If set to true a client will be notified about the success of the
+      termination. This happens via normal notifications. A client who is
+      not interested in the success of the termination can set this to false.
+    </para></entry>
+  </row>
+  <row>
+    <entry>destroyDelegatedCredentials</entry>
+    <entry><para>
+      If this is set to true, all delegated credentials for the MMJR that
+      are specified in the job description will be destroyed when the MMJR is
+      destroyed. They must not be destroyed earlier because job credentials
+      are needed for potential repetitive termination calls. Otherwise the MMJR
+      wouldn’t be able to interact with SJ’s anymore.
+      </para>
+      <para>
+        Setting this parameter and destroyAfterCleanup both to true enables
+        a client to completely go away after the termination call in case the
+        success of the cleanup steps is not of importance.
+    </para></entry>
+  </row>
+  </tbody></tgroup>
+</informaltable>
+</section>
+
+<section id="gram4-selective-concepts-termination-details-exp-mmjr-return">
+<title>Return value</title>
+<informaltable>
+  <tgroup cols="2"><tbody>
+  <row>
+    <entry>terminationCompleted</entry>
+    <entry><para>
+      Indicates whether termination of the MMJR completed or not. It is true in
+      case the job is already in a final state, i.e. all SJs are in a final state.
+      Otherwise it is false.
+      </para>
+      <para>
+      If it is true and destroyAfterCleanup had been set to true the client
+      can be sure that the job resource has been destroyed.
+      </para>
+      <para>
+      If it is false, termination had been initialized and the client can
+      find out about success or failure of the termination either by listening
+      to state change notifications or by querying the status of the job
+      resource.
+    </para></entry>
+  </row>
+  </tbody></tgroup>
+</informaltable>
+</section>
+
+<section id="gram4-selective-concepts-termination-details-exp-mmjr-exceptions">
+<title>Exceptions</title>
+<informaltable>
+  <tgroup cols="2"><tbody>
+  <row>
+    <entry>ResourceUnknownFaultType</entry>
+    <entry><para>
+      Thrown when the resource to be terminated does not exist.
+    </para></entry>
+  </row>
+  <row>
+    <entry>DelegatedCredentialDestroyFaultType</entry>
+    <entry><para>
+      Thrown if the client demanded the destruction of delegated credentials and
+      this failed. If this exception is thrown all termination steps succeeded,
+      and only the destruction of the delegated credential failed.
+    </para></entry>
+  </row>
+  <row>
+    <entry>ResourceNotTerminatedFaultType</entry>
+    <entry><para>
+      An error occurred during the call to terminate e.g. a termination call
+      to at least one SJ caused a ResourceNotTerminatedFaultType exception.
+      Note that a failure in terminating a SJ does not prevent from terminate
+      calls to other SJs. But in this case, the MMJR will not be destroyed after
+      an error from terminating one of the SJs.
+    </para></entry>
+  </row>
+  </tbody></tgroup>
+</informaltable>
+</section>
+
+</section> <!-- end of mmjr explanations -->
+
+<section id="gram4-selective-concepts-termination-details-states">
+<title>New final job states</title>
+<para>
+  Additional to Done and Failed, two new final states UserTerminateDone and
+  UserTerminateFailed are introduced. Final states and their meaning:
+</para>
+
+<section id="gram4-selective-concepts-termination-details-states-mejr">
+<title>Explanations for MEJRs</title>
+<informaltable>
+  <tgroup cols="2"><tbody>
+  <row>
+    <entry>Done</entry>
+    <entry><para>
+      The MEJR has been fully processed
+    </para></entry>
+  </row>
+  <row>
+    <entry>Failed</entry>
+    <entry><para>
+      A processing error occurred that resulted in a termination
+      initialized by GRAM4.
+    </para></entry>
+  </row>
+  <row>
+    <entry>UserTerminateDone</entry>
+    <entry><para>
+      The client had called terminate() and all cleanup steps have
+      been processed successfully.
+    </para></entry>
+  </row>
+  <row>
+    <entry>UserTerminatFailed</entry>
+    <entry><para>
+      The client had called terminate() and at least one cleanup
+      step had not been processed successfully.
+    </para></entry>
+  </row>
+  </tbody></tgroup>
+</informaltable>
+</section> <!-- end mejr states -->
+
+<section id="gram4-selective-concepts-termination-details-states-mmjr">
+<title>Explanations for MMJRs</title>
+<informaltable>
+  <tgroup cols="2"><tbody>
+  <row>
+    <entry>Done</entry>
+    <entry><para>
+      All SJs are in state Done
+    </para></entry>
+  </row>
+  <row>
+    <entry>Failed</entry>
+    <entry><para>
+      Failed is not necessarily a final state, because a MMJR transitions into
+      state Failed if the first SJ fails. Failed is only a final state if at
+      least one SJ failed and all other SJs are in state Done or Failed. If just
+      one out of N (N>1) SJs failed and the client terminates the MMJR, the state
+      Failed will transition to state UserTerminateDone in case of termination
+      success or to state.
+    </para></entry>
+  </row>
+  <row>
+    <entry>UserTerminateDone</entry>
+    <entry><para>
+      At least one SJ is in state UserTerminateDone and all other
+      SJs are in state UserTerminateDone, Failed or Done.
+    </para></entry>
+  </row>
+  <row>
+    <entry>UserTerminatFailed</entry>
+    <entry><para>
+      At least one SJ is in state UserTerminateFailed and all other
+      SJs are in state UserTerminateDone, UserTerminateFailed, Done or Failed.
+    </para></entry>
+  </row>
+  </tbody></tgroup>
+</informaltable>
+</section> <!-- end mmjr states -->
+
+</section> <!-- end states -->
+</section> <!-- end of termination details -->
+
+<section id="gram4-selective-concepts-termination-client-scenarios">
+<title>Java-termination scenarios for MEJRs</title>
+<para>
+<orderedlist> 
+  <listitem>
+    <para><emphasis>A client let GramJob delegate and wants to terminate
+      a job and just go away</emphasis>
+    </para>
+    <para>
+      destroyAfterCleanup=true, continueNotifying=false,
+      destroyDelegatedCredentials=true
+    </para>
+  </listitem>
+  <listitem>
+    <para><emphasis>A client delegated itself and does not want the delegated
+      credential to be destroyed and wants to terminate a job and just go
+      away</emphasis>
+    </para>
+    <para>
+       Same like in (1) but destroyDelegatedCredentials=false
+    </para>
+  </listitem>
+  <listitem>
+    <para><emphasis>A client let GramJob delegate and wants to terminate a job,
+      get information about the success of termination, subscribed for
+      notifications</emphasis>
+    </para>
+    <para>
+       destroyAfterCleanup=true, destroyDelegatedCredentials=true
+       continueNotifying=true
+    </para>
+    <para>
+      If the call to terminate() returns true the job has been fully terminated
+      and destroyed. If it returns ‘false’ the client has to wait for the final
+      notification message of the job (state UserTerminateDone,
+      UserTerminateFailed). In case of problems it can find out from the faults
+      that are part of the notification message what happened.
+      In case it does not hear about the job the notification message might
+      have been lost and the client should query the RP ‘state’ for job status
+      the RP ‘fault’ to check what happened.
+    </para>
+  </listitem>
+  <listitem>
+    <para><emphasis>A client delegated itself and does not want the delegated
+      credential to be destroyed and wants to terminate a job, get information
+      about the success of termination, subscribed for notifications</emphasis>
+    </para>
+    <para>
+       Same like (3), but destroyDelegatedCredential=false
+    </para>
+  </listitem>
+  <listitem>
+    <para><emphasis>A client let GramJob delegate and wants to terminate a job,
+      get information about the success of termination, didn’t subscribe for
+      notifications</emphasis>
+    </para>
+    <para>
+       Same like (3), but periodical querying the RP’s state and fault is
+       necessary in case the call to terminate didn’t return true
+    </para>
+  </listitem>
+  <listitem>
+    <para><emphasis>A client delegated itself and does not want the delegated
+      credential to be destroyed and wants to terminate a job, get information
+      about the success of termination, didn’t subscribe for
+      notifications</emphasis>
+    </para>
+    <para>
+       Same like (4), but periodical querying the RP’s state and fault is
+       necessary in case the call to terminate didn’t return true.
+    </para>
+  </listitem>
+</orderedlist>
+</para>
+</section> <!-- end of client termination scenarios -->
+
+</section> <!--  end of termination -->
+
+<section id="gram4-selective-concepts-lifetime">
+<title>Job Lifetime</title>
+<para>
+</para>
+</section>
+
+</chapter>
