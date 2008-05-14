@@ -56,26 +56,28 @@
 <title>Introduction</title>
 <para>
   In GRAM4 in 4.2 jobs cannot be destroyed synchronously anymore like this was
-  done GRAM4 in the 4.0 series. The reason for that is that many destruction at
-  a time caused the GT4 container to become unresponsive.
+  done GRAM4 in the 4.0 series. The reason for that is that many destroy
+  requests at a time caused the GT4 container to become unresponsive.
   The new termination method applies to both ManagedExecutableJobResources (MEJRs)
   and ManagedMultiJobResources (MMJRs) and is a replacement for the old destroy()
   method.
 </para>
 <para>
-  Same like the destroy() method in GRAM4 in the 4.0 series terminate() interrupts
+  Same like the destroy() method in GRAM4 in the 4.0 series, terminate() interrupts
   the processing of a job resource and puts the job in a clean up phase, where
   various clean up steps (if any) are performed. Unlike destroy() however the call
   to terminate() is asynchronous, i.e. returns quickly and does not wait until the
   cleanup steps are all done.
 </para>
+<note><para>
+  GRAM4 in GT4.2 does not expose the old destroy() method anymore.
+</para></note>
 <para>
-  GRAM4 in GT4.2 will not expose the old destroy() method anymore.
-  Repetitive termination calls are possible. 
-</para>
-<para>
-  The rest of this section explains that parameters, return value and faults
-  of the call to terminate() and the implications for jobs in various states.
+  The new termination method is supposed to cope with different scenarios for
+  jobs in different states, which resulted in an interface that might not be
+  intuitive at first glance. This section explains parameters, return value and
+  faults of the call to terminate() and the implications for jobs in various
+  states.
 </para>
 </section>
 
@@ -121,8 +123,10 @@
 <title>continueNotifying</title>
 <para>
   If set to true a client will be notified about the success of the
-  termination. This happens via normal notifications. A client who is not
-  interested in the success of the termination can set this to false.
+  termination. This happens via a notification bound to the same
+  topic a client subscribes to for normal state change information.
+  A client who is not interested in the success of the termination
+  can set this to false.
 </para>
 </section>
 
@@ -153,15 +157,18 @@
   a final state, i.e. no cleanup steps had to be done. Otherwise it is false.
 </para>
 <para>
-  If it is true and destroyAfterCleanup had been set to true the client can
+  If it is true no further notifications will be sent, even if the
+  client requested it, because the job is in a final state where no state
+  transition is happening anymore.
+  If destroyAfterCleanup had been set to true the client can
   be sure that the job resource has been destroyed when the call to
   terminate() returns.
 </para>
 <para>
-  If it is false, termination had been started and the
+  If it is false, the job entered the clean up phase and the
   client can find out about success or failure of the termination either by
   listening to state change notifications or by querying the status of the
-  job resource.
+  MEJR.
 </para>
 </section>
 
@@ -199,7 +206,6 @@
 </section> <!-- end of mejr explanations -->
 
 
-
 <section id="gram4-selective-concepts-termination-details-exp-mmjr">
 <title>Explanations for MMJRs</title>
 
@@ -220,8 +226,10 @@
 <title>continueNotifying</title>
 <para>
   If set to true a client will be notified about the success of the
-  termination. This happens via normal notifications. A client who is
-  not interested in the success of the termination can set this to false.
+  termination. This happens via a notification bound to the same
+  topic a client subscribes to for normal state change information.
+  A client who is not interested in the success of the termination
+  can set this to false.
 </para>
 </section>
 
@@ -254,14 +262,18 @@
   Otherwise it is false.
   </para>
   <para>
-  If it is true and destroyAfterCleanup had been set to true the client
-  can be sure that the job resource has been destroyed.
+  If it is true no further notifications will be sent, even if the
+  client requested it, because the job is in a final state where no state
+  transition is happening anymore.
+  If destroyAfterCleanup had been set to true the client can
+  be sure that the job resource has been destroyed when the call to
+  terminate() returns.
   </para>
   <para>
-  If it is false, termination had been initialized and the client can
-  find out about success or failure of the termination either by listening
-  to state change notifications or by querying the status of the job
-  resource.
+  If it is false, the job entered the clean up phase, i.e. termination calls
+  to all subjobs had been sent, and the client can find out about success or
+  failure of the termination either by listening to state change notifications
+  or by querying the status of the MMJR.
 </para>
 </section>
 
@@ -302,8 +314,6 @@
 
 
 
-
-
 <section id="gram4-selective-concepts-termination-details-states">
 <title>New final job states</title>
 <para>
@@ -313,53 +323,46 @@
 
 <section id="gram4-selective-concepts-termination-states-mejr">
 <title>Explanations for MEJRs</title>
-
-<section id="gram4-selective-concepts-termination-states-mejr-done">
-<title>Done</title>
+<para>
+  <emphasis role="strong">Done</emphasis>
+</para>
 <para>
   The MEJR has been fully processed
 </para>
-</section>
-
-<section id="gram4-selective-concepts-termination-states-mejr-failed">
-<title>Failed</title>
+<para>
+  <emphasis role="strong">Failed</emphasis>
+</para>
 <para>
   A processing error occurred that resulted in a termination
   initialized by GRAM4.
 </para>
-</section>
-
-<section id="gram4-selective-concepts-termination-states-mejr-userterminatedone">
-<title>UserTerminateDone</title>
+<para>
+  <emphasis role="strong">UserTerminateDone</emphasis>
+</para>
 <para>
   The client had called terminate() and all cleanup steps have
   been processed successfully.
 </para>
-</section>
-
-<section id="gram4-selective-concepts-termination-states-mejr-userterminatefailed">
-<title>UserTerminateFailed</title>
+<para>
+  <emphasis role="strong">UserTerminateFailed</emphasis>
+</para>
 <para>
   The client had called terminate() and at least one cleanup
   step had not been processed successfully.
 </para>
-</section>
-
 </section> <!-- end mejr states -->
-
 
 <section id="gram4-selective-concepts-termination-states-mmjr">
 <title>Explanations for MMJRs</title>
-
-<section id="gram4-selective-concepts-termination-states-mmjr-done">
-<title>Done</title>
+<para>
+  <emphasis role="strong">Done</emphasis>
+</para>
 <para>
   All SJs are in state Done
 </para>
-</section>
-
-<section id="gram4-selective-concepts-termination-states-mmjr-failed">
-<title>Failed</title>
+<para>
+  <emphasis role="strong">Failed</emphasis>
+</para>
 <para>
   Failed is not necessarily a final state, because a MMJR transitions into
   state Failed if the first SJ fails. Failed is only a final state if at
@@ -368,25 +371,21 @@
   Failed will transition to state UserTerminateDone in case of termination
   success or to state.
 </para>
-</section>
-
-<section id="gram4-selective-concepts-termination-states-mmjr-userterminatedone">
-<title>UserTerminateDone</title>
+<para>
+  <emphasis role="strong">UserTerminateDone</emphasis>
+</para>
 <para>
   At least one SJ is in state UserTerminateDone and all other
   SJs are in state UserTerminateDone, Failed or Done.
 </para>
-</section>
-
-<section id="gram4-selective-concepts-termination-states-mmjr-userterminatefailed">
-<title>UserTerminateFailed</title>
+<para>
+  <emphasis role="strong">UserTerminateFailed</emphasis>
+</para>
 <para>
   At least one SJ is in state UserTerminateFailed and all other
   SJs are in state UserTerminateDone, UserTerminateFailed, Done or Failed.
 </para>
 </section>
-
-</section> <!-- end mmjr states -->
 
 </section> <!-- end states -->
 
