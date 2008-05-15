@@ -635,7 +635,7 @@
 <title>Getting information about jobs</title>
 
 <section id="gram4-user-query-single">
-<title>Resource properties of jobs</title>
+<title>Resource properties of a job</title>
 <para>
   A job submitted to GRAM4 has a set of resource properties that contain information
   about the job a user might be interested in, like
@@ -659,13 +659,13 @@
   <computeroutput>myJob.epr</computeroutput>.
 </para>
 <para>
-  For two important resource properties, status and fault, the information can
+  For two important resource properties, state and fault, the information can
   be gathered using globusrun-ws:
 </para>
 <screen>[martin@osg-test1 ~]$ globusrun-ws -status -j myJob.epr 
 Current job state: Active</screen>
 <para>
-  If a job failed, globusrun-ws will also print an error that indicates what
+  If a job failed, globusrun-ws will print an error that indicates what
   happened:
 </para>
 <screen>[martin@osg-test1 ~]$ globusrun-ws -status -j myJob.epr 
@@ -803,8 +803,68 @@ globusrun-ws: Job failed: Invalid executable path "/bin/sleeeeep".</screen>
 
 </section>
 
+<section id="gram4-user-terminate">
+<title>Terminating jobs</title>
+<para>
+  Terminating a job using globusrun-ws means interrupting the job processing
+  and destroying all job-related data on the server-side.
+</para>
+<para>
+  If the job is still running, termination will cause the job to go through
+  a series cleanup steps in GRAM4. The cleanup steps being performed depend
+  on the job and the state it is in.
+</para>
+<para>
+  In general this includes cancellation at the local resource manager and
+  running fileCleanUp if so specified in the job description. Termination at
+  the local resource manager however will only be performed if the job did
+  not already finished executing in the local resource manager.
+  This also applies to fileCleanUp: If no fileCleanUp is specified in the job
+  description or if the job already finished fileCleanUp when the termination
+  request comes in, then this step is skipped.
+</para>
+<para>
+  Depending on load in GRAM4 performing these cleanup steps may take
+  a while.
+</para>
+
+<section id="gram4-user-terminate-batch">
+<title>Terminating a job running in batch mode</title>
+<para>
+  The following shows how to terminate a job that had been submitted in batch
+  mode, assuming the EPR of the job is stored in the file myJob.epr:
+</para>
+<screen>[martin@osg-test1 ~]$ globusrun-ws -kill -j myJob.epr 
+Current job state: Active
+Current job state: UserTerminateDone
+Requesting original job description...Done.
+Destroying job...Done.</screen>
+</section>
+
+<section id="gram4-user-terminate-interactive">
+<title>Terminating a job running in interactive mode</title>
+<para>
+  If globusrun-ws is run in interactive mode
+  <computeroutput>Ctrl-C</computeroutput> will cause job termination.
+</para>
+<screen>[martin@osg-test1 ~]$ globusrun-ws -submit -c /bin/sleep 30
+Submitting job...Done.
+Job ID: uuid:56b15176-22d4-11dd-8bdd-0013d4c3b957
+Termination time: 05/15/3008 23:12 GMT
+Current job state: Active
+Canceling...Current job state: UserTerminateDone
+Canceled.
+Destroying job...Done.</screen>
+<para>
+  Repetitive <computeroutput>Ctrl-C</computeroutput> cause globusrun-ws
+  to return and not wait for success of termination.
+</para>
+</section>  
+
+</section>
+
 <section id="gram4-user-query-multiple">
-<title>List of all jobs in GRAM4</title>
+<title>List of all jobs in a GRAM4 instance</title>
 <para>
   There is currently no way to get a list of all jobs managed by a GRAM4 instance
   or to get a list of all jobs of a particular user managed by GRAM4. A user or
