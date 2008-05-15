@@ -758,6 +758,164 @@ scheduled: Tue May 13 09:27:15 CDT 2008</screen>
 </section>
 </chapter>
 
+<chapter id="gram4-user-query">
+<title>Getting information about a job</title>
+<para>
+  A job submitted to GRAM4 has a set of resource properties that hold information
+  about the job a user might be interested in, like state of the remote job, the
+  local user id the job is run under, the exit code of the executable after it
+  finished, information about errors, etc.
+</para>
+<para>
+  The following links give a complete list of all available resource properties of
+  <olink targetdoc="gram4Developer" targetptr="gram4-rps-mejpt">executable
+  jobs</olink> and <olink targetdoc="gram4Developer"
+  targetptr="gram4-rps-mmjpt">multi jobs</olink>. The rest of this section assumes
+  that a job had been submitted in batch mode, and that the EPR of the job is
+  available in the file <computeroutput>myJob.epr</computeroutput>.
+</para>
+<para>
+  For two important resource properties, the state of the job (state) and errors
+  that might have happened (fault), the information can be gathered using
+  globusrun-ws:
+</para>
+<screen>[martin@osg-test1 ~]$ globusrun-ws -status -j myJob.epr 
+Current job state: Active</screen>
+<para>
+  If a job failed, globusrun-ws will also print an error that indicates what
+  happened:
+</para>
+<screen>[martin@osg-test1 ~]$ globusrun-ws -status -j myJob.epr 
+Current job state: Failed
+globusrun-ws: Job failed: Invalid executable path "/bin/sleeeeep".</screen>
+<para>
+  More general-purpose programs exist that are not limited to resource properties
+  of job resources and that let you get information about the other resource
+  properties:
+  <itemizedlist>
+    <listitem><simpara><emphasis role="strong">wsrf-get-resource-property</emphasis>:
+      Get a single resource property</simpara>
+    </listitem>
+    <listitem><simpara><emphasis role="strong">wsrf-get-resource-properties</emphasis>:
+      Get a list of resource properties</simpara>
+    </listitem>
+    <listitem><simpara><emphasis role="strong">wsrf-query</emphasis>:
+      Query the resource property document</simpara>
+    </listitem>
+  </itemizedlist>
+  The following examples show how to use these commands to get information
+  about a job.
+</para>
+<para>
+  Get the value of a single resource property:
+</para>
+<screen>[martin@osg-test1 ~]$ wsrf-get-property \
+  -e myJob.epr \
+  {http://www.globus.org/namespaces/2008/03/gram/job/exec}localJobId
+&lt;ns1:localJobId xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job/exec"&gt;
+  51370.osg-test1.unl.edu
+&lt;/ns1:localJobId&gt;
+</screen>
+<para>
+  Get the values of two resource properties:
+</para>
+<screen>[martin@osg-test1 ~]$ wsrf-get-properties \
+  -e myJob.epr \
+  {http://www.globus.org/namespaces/2008/03/gram/job/types}localUserId \
+  {http://www.globus.org/namespaces/2008/03/gram/job/exec}localJobId
+&lt;ns1:localUserId xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
+  feller
+&lt;/ns1:localUserId&gt;
+&lt;ns2:localJobId xmlns:ns2="http://www.globus.org/namespaces/2008/03/gram/job/exec"&gt;
+  51370.osg-test1.unl.edu
+&lt;/ns2:localJobId&gt;
+</screen>
+<para>
+  Get the whole resource property document:
+</para>
+<screen>[martin@osg-test1 ~]$ wsrf-query -e myJob.epr "/*"
+&lt;ns0:managedJobResourceProperties
+   xmlns:ns0="http://www.globus.org/namespaces/2008/03/gram/job"
+   xmlns:ns04="http://www.w3.org/2001/XMLSchema-instance"
+   xmlns:ns05="http://www.w3.org/2001/XMLSchema"
+   xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job/exec"
+   xmlns:ns10="http://www.globus.org/namespaces/2008/03/gram/job/description"
+   xmlns:ns11="http://www.w3.org/2005/08/addressing"
+   xmlns:ns14="http://docs.oasis-open.org/wsn/b-2"
+   xmlns:ns2="http://www.globus.org/namespaces/2008/03/gram/job/types"
+   xmlns:ns6="http://docs.oasis-open.org/wsrf/rl-2"
+   xmlns:ns8="http://www.globus.org/namespaces/2008/04/rendezvous"&gt;
+  &lt;ns1:localJobId&gt;51370.osg-test1.unl.edu&lt;/ns1:localJobId&gt;
+  &lt;ns2:exitCode&gt;0&lt;/ns2:exitCode&gt;
+  &lt;ns3:localUserId xmlns:ns3="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
+     feller
+  &lt;/ns3:localUserId&gt;
+  &lt;ns4:userSubject xmlns:ns4="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
+     /DC=org/DC=doegrids/OU=People/CN=John Doe 807394
+  &lt;/ns4:userSubject&gt;
+  &lt;ns5:holding xmlns:ns5="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
+     false
+  &lt;/ns5:holding&gt;
+  &lt;ns6:TerminationTime&gt;3008-05-15T21:12:56.067Z&lt;/ns6:TerminationTime&gt;
+  &lt;ns7:state xmlns:ns7="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
+     Active
+  &lt;/ns7:state&gt;
+  &lt;ns8:Capacity&gt;1&lt;/ns8:Capacity&gt;
+  &lt;ns9:CurrentTime xmlns:ns9="http://docs.oasis-open.org/wsrf/rl-2"&gt;
+     2008-05-15T21:17:03.849Z
+  &lt;/ns9:CurrentTime&gt;
+  &lt;ns10:serviceLevelAgreement&gt;
+    &lt;ns10:job&gt;
+      &lt;ns10:factoryEndpoint&gt;
+        &lt;ns11:Address&gt;
+           https://osg-test1.unl.edu:8443/wsrf/services/ManagedJobFactoryService
+        &lt;/ns11:Address&gt;
+        &lt;ns12:ReferenceParameters xmlns:ns12="http://www.w3.org/2005/08/addressing"&gt;
+          &lt;ns5:ResourceID ns04:type="ns05:string"
+             xmlns:ns5="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
+             PBS
+          &lt;/ns5:ResourceID&gt;
+        &lt;/ns12:ReferenceParameters&gt;
+      &lt;/ns10:factoryEndpoint&gt;
+      &lt;ns10:executable&gt;/bin/sleep&lt;/ns10:executable&gt;
+      &lt;ns10:directory&gt;/home/john&lt;/ns10:directory&gt;
+      &lt;ns10:argument xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:type="xsd:string"&gt;
+         600
+      &lt;/ns10:argument&gt;
+      &lt;ns10:stdout&gt;/dev/null&lt;/ns10:stdout&gt;
+      &lt;ns10:stderr&gt;/dev/null&lt;/ns10:stderr&gt;
+      &lt;ns10:count&gt;1&lt;/ns10:count&gt;
+    &lt;/ns10:job&gt;
+  &lt;/ns10:serviceLevelAgreement&gt;
+  &lt;ns13:RendezvousCompleted
+     xmlns:ns13="http://www.globus.org/namespaces/2008/04/rendezvous"&gt;
+     false
+  &lt;/ns13:RendezvousCompleted&gt;
+  &lt;ns14:FixedTopicSet&gt;false&lt;/ns14:FixedTopicSet&gt;
+  &lt;ns16:TopicSet Dialect="http://docs.oasis-open.org/wsn/t-1/TopicExpression/Simple"
+     xmlns:ns15="http://www.globus.org/namespaces/2008/04/rendezvous" 
+     xmlns:ns16="http://docs.oasis-open.org/wsn/b-2"&gt;
+     ns15:RendezvousCompleted
+  &lt;/ns16:TopicSet&gt;
+  &lt;ns18:TopicSet Dialect="http://docs.oasis-open.org/wsn/t-1/TopicExpression/Simple"
+     xmlns:ns17="http://www.globus.org/namespaces/2008/03/gram/job" 
+     xmlns:ns18="http://docs.oasis-open.org/wsn/b-2"&gt;
+     ns17:stateChangeInformation
+  &lt;/ns18:TopicSet&gt;
+  &lt;ns19:TopicExpressionDialect xmlns:ns19="http://docs.oasis-open.org/wsn/b-2"&gt;
+     http://docs.oasis-open.org/wsn/t-1/TopicExpression/Simple
+  &lt;/ns19:TopicExpressionDialect&gt;
+&lt;/ns0:managedJobResourceProperties&gt;
+</screen>
+<para>
+  The output you get might not be so nicely formated like in the above examples.
+  For more information about these commands check <olink targetdoc="">Java WS
+  Core's User's Guide</olink>
+</para>
+</chapter>
+
 <chapter id="gram4-user-jobholdandrelease">
 <title>Job hold and release</title>
 <para>
