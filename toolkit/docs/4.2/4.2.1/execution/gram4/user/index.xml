@@ -139,50 +139,91 @@
 
 <chapter id="gram4-user-usagescenarios-jdd">
 <title>Submitting jobs</title>
-    <!-- updating title to be more descriptive in the top-level user's guide -->
-    <section id="gram4-user-simplejob-jdd">
-    <title>Simple job</title>
+    
+    <section id="gram4-user-simplejob-interactive-jdd">
+    <title>Simple interactive job</title>
     <para>
       Use the <computeroutput>globusrun-ws</computeroutput> program to submit a
       simple job without writing a job description document.  Use the -c argument,
       a job description will be generated assuming the first arg is the executable
-      and the remaining are arguments.  For example:
+      and the remaining are arguments. For example:
     </para>
 
-    <screen>
-       % globusrun-ws -submit -c /bin/touch touched_it
-       Submitting job...Done.
-       Job ID: uuid:4a92c06c-b371-11d9-9601-0002a5ad41e5
-       Termination time: 04/23/2005 20:58 GMT
-       Current job state: Active
-       Current job state: CleanUp
-       Current job state: Done
-       Destroying job...Done.
-    </screen>
-
-    <para>Confirm that the job worked by verifying the file was touched:</para>
-    <screen>
-       % ls -l ~/touched_it 
-       -rw-r--r--  1 smartin globdev 0 Apr 22 15:59 /home/smartin/touched_it
-
-       % date
-       Fri Apr 22 15:59:20 CDT 2005
-    </screen>
+    <screen>% globusrun-ws -submit -c /bin/touch touched_it
+Submitting job...Done.
+Job ID: uuid:4a92c06c-b371-11d9-9601-0002a5ad41e5
+Termination time: 04/23/2005 20:58 GMT
+Current job state: Active
+Current job state: CleanUp
+Current job state: Done
+Destroying job...Done.</screen>
 
     <para>
-      Note: you did not tell globusrun-ws where to run your job, so the default
+      Confirm on the server-side that the job worked by verifying the file
+      was touched:</para>
+    <screen>% ls -l ~/touched_it 
+-rw-r--r--  1 smartin globdev 0 Apr 22 15:59 /home/smartin/touched_it
+
+% date
+Fri Apr 22 15:59:20 CDT 2005</screen>
+
+    <para>
+      Note: You did not tell globusrun-ws where to run your job, so the default
       of localhost was used.
     </para>
+    <para>
+      Also note the globusrun-ws destroyed the job for you after it was fully
+      processed.
+    </para>
+    <para>
+      We call this kind of job interactive, because globusrun-ws does not return
+      after submission. It subscribes for status update notifications of the job
+      and informs the user about a status change as soon as it changes.
+      Once it gets the information the the job has been fully processed it destroys
+      the job, which means that internal state belonging to the job is cleaned up
+      on the server-side.
+    </para>
     </section> 
-  <!-- gram4-user-simplejob -->
+
+    <section id="gram4-user-simplejob-batch-jdd">
+    <title>Simple batch job</title>
+    <para>
+      Now we submit the same job in batch mode. The option
+      <computeroutput>-b</computeroutput> tells globusrun-ws to submit in batch mode,
+      and <computeroutput>-o</computeroutput> causes that a reference (also named
+      EndpointReference) of the is stored in the file
+      <computeroutput>myJob.epr</computeroutput>, which is used later to check for
+      job status and to terminate the job.
+    </para>
+    <screen>% globusrun-ws -submit -b -o myJob.epr -c /bin/touch touched_it
+globusrun-ws -submit -b -o myJob.epr -c /bin/date
+Submitting job...Done.
+Job ID: uuid:5ad25b06-22f7-11dd-8482-0013d4c3b957
+Termination time: 05/16/3008 03:22 GMT</screen>
+    <para>
+      globusrun-ws returns as soon as the job has been submitted. No status
+      information is printed. The user has to do additional calls to check the
+      status of the job. See section <olink targetptr="gram4-user-query">
+      Get information about jobs</olink> how to do that.
+    </para>
+    <para>
+      The user should also demand job termination when the job is done,
+      to clean up internal state belonging to the job on the server-side.
+      See section <olink targetptr="gram4-user-terminate">Terminate
+      jobs</olink> how to do that.
+    </para>
+    <para>
+      Again the job had been submitted to localhost
+    </para>
+    </section>
 
     <section id="gram4-user-jobwithcontact-jdd">
     <title>Using a contact string</title>
     <para>
-      Use globusrun-ws to submit the same touch job, but this time specify the 
-      contact string.
+      Use globusrun-ws to submit the same touch job, but this time tell globusrun-ws
+      to run the job on another machine (lucky0.mcs.anl.gov:8443). A GT4 server
+      with GRAM4 installed must run on that machine and listen on port 8443.
     </para>
-
     <screen>
        % globusrun-ws -submit -F https://lucky0.mcs.anl.gov:8443/wsrf/services/ManagedJobFactoryService -c /bin/touch touched_it
        Submitting job...Done.
@@ -193,10 +234,8 @@
        Current job state: Done
        Destroying job...Done.
     </screen>
-
     <para>
-      Try the same job to a remote host. Type globusrun-ws -help to learn the
-      details about the contact string.
+      Type globusrun-ws -help to learn the details about the contact string.
     </para>
     </section>
 
@@ -659,8 +698,7 @@
   <computeroutput>myJob.epr</computeroutput>.
 </para>
 <para>
-  For two important resource properties, state and fault, the information can
-  be gathered using globusrun-ws:
+  To check for status of the job, use globusrun-ws:
 </para>
 <screen>[martin@osg-test1 ~]$ globusrun-ws -status -j myJob.epr 
 Current job state: Active</screen>
@@ -690,14 +728,15 @@ globusrun-ws: Job failed: Invalid executable path "/bin/sleeeeep".</screen>
   about an executable job.
 </para>
 <para>
-  Get the value of the resource property <computeroutput>localJobId</computeroutput>:
+  Use wsrf-get-property to get the state of the job (resource property
+  <computeroutput>state</computeroutput>):
 </para>
 <screen>[martin@osg-test1 ~]$ wsrf-get-property -e myJob.epr \
-  {http://www.globus.org/namespaces/2008/03/gram/job/exec}localJobId
-  
-&lt;ns1:localJobId xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job/exec"&gt;
-  51370.osg-test1.unl.edu
-&lt;/ns1:localJobId&gt;
+  {http://www.globus.org/namespaces/2008/03/gram/job/types}state
+
+&lt;ns1:state xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
+  Done
+&lt;/ns1:state&gt;
 </screen>
 <para>
   Get the values of the two resource properties
