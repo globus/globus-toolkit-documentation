@@ -205,8 +205,8 @@
       Due to the WSRF, WSN and WS-Adressing specification upgrade namespaces 
       of many components have changed.
       Check section <olink targetptr="gram4-user-migrating-gt4-specupgrade">Specification
-      upgrade related changes</olink> and the Java WS Core
-      <olink targetptr="gram4-user-migrating-gt4-specupgrade">Migration guide</olink>
+      upgrade related changes</olink> and the <olink targetdoc="">Java WS Core
+      Migration guide</olink>
       for details.
     </para>
   </section>
@@ -218,10 +218,9 @@
       i.e. the Destroy() operation is no longer available to synchronously destroy
       job resources. Instead GRAM4 offers an asynchronous Terminate() method that
       lets clients terminate jobs and destroy a job resource.
-      Check the TerminateManagedJobPortType PortType in the
-      <olink targetdoc="gram4Developer" targetptr="gram4-wsdl">WSDL section</olink>
-      of the <olink targetdoc="gram4Developer">Developer's guide</olink>
-      for details and section <olink targetdoc="gram4Developer"
+      Check the TerminateManagedJobPortType PortType in the section
+      'WSDL and Schema Definition' of the <olink targetdoc="gram4Developer">Developer's
+      guide</olink> for details and section <olink targetdoc="gram4Developer"
       targetptr="gram4-selective-concepts-termination">Job termination</olink> for
       explanations of the new termination interface.
     </para>
@@ -296,19 +295,139 @@
 
     <section id="gram4-developer-migrating-gt4-api-service">
       <title>Service</title>
-      <para>
-        namespace, termination, destruction, fault types,
-        RPs (fault, defaultLRM, availableLRMs, lifetime-things),
-        topic name change, final job states
-      </para>
-    </section>
+    
+        <section id="gram4-developer-migrating-gt4-api-service-ns">
+        <title>Namespace</title>
+          <para>
+          <emphasis role="strong">New base namespace</emphasis>: All occurences of
+          <computeroutput>http://www.globus.org/namespaces/2004/10/gram/job</computeroutput>
+          had been replaced by
+          <computeroutput>http://www.globus.org/namespaces/2008/03/gram/job</computeroutput>.
+          </para>
+        </section>
 
+        <section id="gram4-developer-migrating-gt4-api-service-rp">
+        <title>ResourceProperties</title>
+          <itemizedlist>
+            <listitem><simpara>
+              <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job/faults}fault</computeroutput>
+              from the ManagedJobPortType is an array instead of a single element now.
+              All faults that happen during job processing will be added to that array.
+            </simpara></listitem>
+            <listitem><simpara>
+              New <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job}availableLocalResourceManager</computeroutput>
+              All local resource managers that are configured in this GRAM4 instance.
+            </simpara></listitem>
+            <listitem><simpara>
+              New <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job}jobTTLAfterProcessing</computeroutput>
+              Time in seconds a job resource will stay alive after a job finished processing in GRAM4
+              (including fileStageOut, fileCleanUp). When this time elapsed the job resource is destroyed
+              and no longer be available for a client. A negative values means that the job resource will
+              never be destroyed.
+            </simpara></listitem>
+            <listitem><simpara>
+              New <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job}maxJobLifetime</computeroutput>
+              Max time in seconds a user can set as initial lifetime in job submission or in subsequent
+              setTerminationTime calls. A negative value means that there is no limit.
+            </simpara></listitem>            
+          </itemizedlist>
+        </section>
+
+        <section id="gram4-developer-migrating-gt4-api-service-topic">
+        <title>State change notification topic</title>
+          <para>The QName of the topic that clients use to subscribe for job state change information
+            changed to <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job}stateChangeNotificationMessage</computeroutput>.
+            (In GRAM4 in 4.0 it was
+            <computeroutput>{http://www.globus.org/namespaces/2004/10/gram/job}state</computeroutput>)
+          </para>
+        </section>
+
+        <section id="gram4-developer-migrating-gt4-api-service-states">
+        <title>Job states</title>
+          <para>
+            New values of the resource property 
+            <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job/types}state</computeroutput>:
+            UserTerminateDone and UserTerminateFailed.
+          </para>
+        </section>
+
+        <section id="gram4-developer-migrating-gt4-api-service-faulttypes">
+        <title>Fault types</title>
+          <itemizedlist>
+            <listitem><simpara>
+              <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job/release}ResourceNotReleasedFaultType</computeroutput>:
+              thrown when a resource cannot not be released but it still exists.
+            </simpara></listitem>
+            <listitem><simpara>
+              <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job/terminate}ResourceNotTerminatedFaultType</computeroutput>:
+              Thrown when a resource cannot not be terminated but still exists.        
+            </simpara></listitem>
+            <listitem><simpara>
+              <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job/faults}DelegatedCredentialDestroyFaultType</computeroutput>:
+              Thrown when a job resource is terminated with request to destroy delegated credentials, and
+              the delegated credential can't be destroyed. This fault is also added to the job RP
+              <computeroutput>fault</computeroutput> and part of a notification message if a delegated
+              credential cannot be destroyed in asynchronous termination.
+            </simpara></listitem>
+            <listitem><simpara>
+              <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job/faults}JobResourceExpiredFaultType</computeroutput>:
+              Added to the job RP <computeroutput>fault</computeroutput> and part of a notification
+              message if a resource expired.              
+            </simpara></listitem>
+            <listitem><simpara>
+              <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job/faults}StagingTerminateFaultType</computeroutput>:
+              Added to the job RP <computeroutput>fault</computeroutput> and part of a notification
+              message if termination of a running transfer at RFT as part of job termination failed.
+            </simpara></listitem>            
+            <listitem><simpara>
+              <computeroutput>{http://www.globus.org/namespaces/2008/03/gram/job/faults}LocalResourceManagerJobTerminateFaultType</computeroutput>:
+              Added to the job RP <computeroutput>fault</computeroutput> and part of a notification
+              message if termination of a job at the local resource manager as part of job termination
+              failed.
+            </simpara></listitem>
+          </itemizedlist>        
+      </section>
+            
+      <section id="gram4-developer-migrating-gt4-api-service-destruction">
+      <title>Job destruction</title>
+        <para>
+          GRAM4 does no longer extend from the ImmediateResourceTermination port type, i.e. does
+          no longer offer the Destroy method. Instead jobs must be terminated. See above description.
+        </para>
+      </section>
+
+    </section>
+    
     <section id="gram4-developer-migrating-gt4-api-client">
       <title>Client</title>
           
       <section id="gram4-developer-migrating-gt4-api-client-gramjob">
         <title>Java client GramJob</title>
-        <para></para>
+        <para>
+          * New method
+               boolean terminate(
+                  boolean destroyAfterCleanUp,
+                  boolean continueNotifying,
+                  boolean destroyDelegatedCredentials)
+                    throws Exception
+            for the new job termination
+          * Re-factor methods destroy(), cancel() to do calls to terminate().
+            Those methods are kept but marked as deprecated and will be removed in 4.4
+          * Changed method setDuration() (see bug 5806).
+          * Notifications older than the latest will not be forwarded to
+            JobStateListeners anymore. GramJob pretended to do so already but did not
+            do so.
+          * Removed method isLocallyDestroyed()
+          * Extended the default axis stub timeout from 2min to 5min
+          * No more default lifetime: If a client does not explicitely set a lifetime
+            we won't set it and thus have a lifetime as described in bug 5806
+          * lifetime of the delegated credential: not explicitly set if no lifetime
+            is provided, i.e. DelegationUtil will use the lifetime of the proxy.
+            Set to job lifetime otherwise.
+          * Reflect the fact that subscription resources are destroyed on the
+            server-side automatically and don't destroy it anymore in unbind()
+          * public FaultType[] getFault() instead of public FaultType getFault()
+        </para>
       </section>
 
       <section id="gram4-developer-migrating-gt4-api-client-c">
