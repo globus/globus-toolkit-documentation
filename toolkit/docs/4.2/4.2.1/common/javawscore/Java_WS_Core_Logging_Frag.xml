@@ -8,33 +8,120 @@
  </indexterm>
  <para>The following information applies to Java WS Core and all services built on Java WS
  Core.</para>
- <para>Java WS Core has two types of loggers. One logger is used for development
-  logging and by default writes to standard out. The other logger includes system administration
-  information and is <ulink url="http://cedps.net/index.php/LoggingBestPractices">CEDPs best
+ 
+<para>Java WS Core has two types of loggers. One logger is used for
+  development logging and by default writes to standard out. The other
+  logger includes system administration information and is <ulink
+  url="http://cedps.net/index.php/LoggingBestPractices">CEDPs best
   practices</ulink> compliant.</para>
- <para>Configuration for both loggers
-  can be changed by editing <filename>$GLOBUS_LOCATION/container-log4j.properties</filename>.
- </para>
- <para>For more information about development logging in Java WS Core, see <olink
-   targetdoc="javawscoreDeveloper" targetptr="javawscore-developer-debugging">the Debugging section
-   of the Developer's Guide</olink></para><section id="javawscore-logging-cedps">
+
+ <para>Configuration for both loggers can be changed by editing
+  <filename>$GLOBUS_LOCATION/container-log4j.properties</filename>.
+  </para>
+
+ <para>For more information about development logging in Java WS Core,
+   see <olink targetdoc="javawscoreDeveloper"
+   targetptr="javawscore-developer-debugging">the Debugging section of
+   the Developer's Guide</olink></para>
+
+ <section id="javawscore-logging-cedps">
+
   <title>Configuring system administration logs</title>
-  <para>The specific logger to edit will be <computeroutput>log4j.logger.sysadmin</computeroutput>
-   in <filename>$GLOBUS_LOCATION/container-log4j.properties</filename>. There you can configure the
-   following properties:</para>
-  <screen>log4j.appender.infoCategory=org.apache.log4j.RollingFileAppender
-log4j.appender.infoCategory.Threshold=INFO
-log4j.appender.infoCategory.File=var/containerLog
-log4j.appender.infoCategory.MaxFileSize=10MB
-log4j.appender.infoCategory.MaxBackupIndex=2</screen>
-  <para>Above implies the logging file is rolling with each file size limited to 10MB and the
-   logging information is stored in <filename>$GLOBUS_LOCATION/var/containerLog</filename>.</para>
- </section><section id="javawscore-logging-sample">
-  <title>Sample log file</title>
-  <para>The <ulink url="http://www.globus.org/toolkit/docs/development/4.2-drafts/common/javawscore/sample-container-log.txt">sample log file</ulink> contains many log
-   entries for various scenarios in the Java WS container.</para>
- </section>
- <!-- rachana will write notes on "how to write to cedps logging if you write services using Java WS Core"
+ 
+ <para>The specific logger to edit will be
+   <computeroutput>log4j.logger.sysadmin</computeroutput> in
+   <filename>$GLOBUS_LOCATION/container-log4j.properties</filename>. There
+   you can configure the following properties:</para>
+   <screen>log4j.appender.infoCategory=org.apache.log4j.RollingFileAppender
+   log4j.appender.infoCategory.Threshold=INFO
+   log4j.appender.infoCategory.File=var/containerLog
+   log4j.appender.infoCategory.MaxFileSize=10MB
+   log4j.appender.infoCategory.MaxBackupIndex=2</screen> 
+
+   <para>Above implies the logging file is rolling with each file size
+   limited to 10MB and the logging information is stored in
+   <filename>$GLOBUS_LOCATION/var/containerLog</filename>.</para>
+   
+</section><section id="javawscore-logging-sample"> <title>Sample
+   log file</title> <para>The <ulink url="http://www.globus.org/toolkit/docs/development/4.2-drafts/common/javawscore/sample-container-log.txt">sample
+   log file</ulink> contains many log entries for various scenarios in
+   the Java WS container.</para> </section> 
+
+ </section><section id="javawscore-cedps-logging-api"> 
+  <title>Using Java WS Core API for CEDPs compliant logging</title> 
+  
+  <para> Java WS Core provides utility API to construct CEDPs Logging complant log information. Services can use <ulink url="http://viewcvs.globus.org/viewcvs.cgi/wsrf/java/core/source/src/org/globus/wsrf/utils/log4j/LogObject.java?view=markup">org.globus.wsrf.utils.log4j.LogObject</ulink> to construct the logging message and use that in the logger statements. The utility populates some of the common values, provides API to set some standard values and aloows for arbitrary name value pairs to be printed.
+  </para>
+
+  <para> The following properties, if not set using the constructor, are populated by the utility:
+   <itemizedlist>
+    <listitem>Global identifier: If not set, the value is picked up from MessageContext property. A unique value is set in Message Context for each request on the server.</listitem>
+   </itemizedlist>
+
+  The following name/value pairs are explicitly supported in the API:
+   <itemizedlist>
+    <listitem> event</listitem>
+    <listitem> status</listitem>
+    <listitem> guid</listitem>
+    <listitem> pid</listitem>
+    <listitem> cid</listitem>
+    <listitem> program</listitem>
+    <listitem> msg (New lines are removed from the value)</listitem>
+    <listitem> DN</listitem>
+    <listitem> service</listitem>
+    <listitem> oepration</listitem>
+   </itemizedlist>
+  </para>
+
+  <para> Java WS Core also provides a separate logging factory, that directs the CEDPs compliant logging to a seprate logging file. To add CEDPs logging, use the following logger factory <ulink url="http://viewcvs.globus.org/viewcvs.cgi/wsrf/java/core/source/src/org/globus/wsrf/utils/log4j/SystemAdminLogFactory.java?revision=1.2&view=markup">SystemAdminLogFactory</ulink>.</para>
+
+  <para> A sample usage of the utility:
+   <screen>
+   import org.apache.commons.logging.Log;
+   import org.apache.commons.logging.LogFactory;
+   import org.globus.wsrf.utils.log4j.LogObject;
+   import org.globus.wsrf.utils.log4j.SystemAdminLogFactory;
+   .
+   .
+   .
+   // This is sample code snippet to showcase how API *can* be used and is NOT
+   //  expected to compile as provided here.
+   public TestClass {
+
+    private static Log logger = LogFactory.getLog(TestClass.class.getName());
+    private static Log sysLogger = SystemAdminLogFactory
+        .getLog(TestClass.class.getName());
+
+    String START_EVENT = "org.globus.testMethod.start";
+    String END_EVENT = "org.globus.testMethod.end";
+
+    public void testMethod(int i) throws Exception {
+
+       sysLogger.info(LogObject.getStartObject(START_EVENT);
+
+       logger.debug("Non CEDPs compliant developer loggng");
+
+       if (i == 0) {
+         Exception exp = new Exception();
+         logger.error("Non CEDPs logging, can have exceptions also", exp);
+         // CEDPs logging. End event and message. Stack traces are not allowed.
+         LogObject logObject = LogObject.getErrorObject(END_EVENT, null,
+                               "Wrong param " + exp.getMessage(), null);
+         // add arbitrary name/value pairs
+         logObject.addNameValue("inputParam=" + i);
+         // log to system logging
+         sysLogger.error(logObject);
+         throw exp;
+       }
+
+       sysLogger.info(LogObject.getEndObject(END_EVENT));
+    }
+   }
+   </screen>
+  </para>
+  </section>
+
+<!-- 
 
 1) all gt components need this frag
 
