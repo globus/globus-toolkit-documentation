@@ -1966,6 +1966,89 @@ Integer newValue =
             testing JVM.
           Example:</para><screen>$ ant -f share/...
             -Djunit.jvmarg="-Dorg.globus.wsrf.container.server.id=myServerID"</screen></section></section></section>
+    <section id="javawscore-developer-cedps-logging-api">
+      <title>Using Java WS Core API for CEDPs compliant logging</title>
+      <para> Java WS Core provides utility API to construct CEDPs Logging complant log information. Services can use <ulink url="http://viewcvs.globus.org/viewcvs.cgi/wsrf/java/core/source/src/org/globus/wsrf/utils/log4j/LogObject.java?view=markup">org.globus.wsrf.utils.log4j.LogObject</ulink> to construct the logging message and use that in the logger statements. The utility populates some of the common values, provides API to set some standard values and aloows for arbitrary name value pairs to be printed.  </para>
+      
+      <para> The following properties, if not set using the constructor, are populated by the utility:
+   <itemizedlist>
+    <listitem><simpara>Global identifier: If not set, the value is picked up from MessageContext property. A unique value is set in Message Context for each request on the server.</simpara></listitem>
+   </itemizedlist>
+  </para>
+
+  <para>
+  The following name/value pairs are explicitly supported in the API:
+   <itemizedlist>
+    <listitem><simpara>event</simpara></listitem>
+    <listitem><simpara>status</simpara></listitem>
+    <listitem><simpara>guid</simpara></listitem>
+    <listitem><simpara>pid</simpara></listitem>
+    <listitem><simpara>cid</simpara></listitem>
+    <listitem><simpara>program</simpara></listitem>
+    <listitem><simpara>msg (New lines are removed from the value)</simpara></listitem>
+    <listitem><simpara>DN</simpara></listitem>
+    <listitem><simpara>service</simpara></listitem>
+    <listitem><simpara>operation</simpara></listitem>
+   </itemizedlist>
+  </para>
+
+  <para> Java WS Core also provides a separate logging factory, that directs the CEDPs compliant logging to a seprate logging file. To add CEDPs logging, use the following logger factory <ulink url="http://viewcvs.globus.org/viewcvs.cgi/wsrf/java/core/source/src/org/globus/wsrf/utils/log4j/SystemAdminLogFactory.java?revision=1.2?view=markup">SystemAdminLogFactory</ulink>.</para>
+
+  <para> A sample usage of the utility:
+   <screen>
+   import org.apache.commons.logging.Log;
+   import org.apache.commons.logging.LogFactory;
+   import org.globus.wsrf.utils.log4j.LogObject;
+   import org.globus.wsrf.utils.log4j.SystemAdminLogFactory;
+   .
+   .
+   .
+   // This is sample code snippet to showcase how API *can* be used 
+   // It is not any working sample or useful code and is NOT expected to 
+   // compile as provided here.
+   public TestClass {
+
+    private static Log logger = LogFactory
+        .getLog(TestClass.class.getName());
+    private static Log sysLogger = SystemAdminLogFactory
+        .getLog(TestClass.class.getName());
+
+    String START_EVENT = "org.globus.testMethod.start";
+    String END_EVENT = "org.globus.testMethod.end";
+
+    public void testMethod(int i) throws Exception {
+
+       sysLogger.info(LogObject.getStartObject(START_EVENT);
+
+       logger.debug("Non CEDPs compliant developer loggng");
+
+       if (i == 0) {
+         Exception exp = new Exception();
+         logger.error("Non CEDPs logging, can have exceptions also", 
+            exp);
+
+         // CEDPs logging. End event and message. Stack traces are 
+         // not allowed.
+         LogObject logObject = LogObject.getErrorObject(END_EVENT, 
+                               null,
+                               "Wrong param " + exp.getMessage(),
+                                null);
+
+         // add arbitrary name/value pairs
+         logObject.addNameValue("inputParam=" + i);
+
+         // log to system logging
+         sysLogger.error(logObject);
+         throw exp;
+       }
+
+       sysLogger.info(LogObject.getEndObject(END_EVENT));
+    }
+   }
+   </screen>
+  </para>
+  </section>
+    
     <section id="javawscore-developer-other">
       <title>Other</title>
       <section id="javawscore-developer-CustomExpressionEval"><title>Adding a new query/topic
@@ -2097,7 +2180,7 @@ Integer newValue =
             serializers/deserializers for the dialect are deployed as almost any other type mapping.
             In general, each type mapping specifies a type QName. For dialect
             serializers/deserializers, that type QName takes a slightly different name.</para>
-          <section>
+          <section id="javawscore-developer-qname">
             <title>Specifying the QName for query expression evaluators </title>
             <para>For query expression evaluators, that QName must have the local name part set to
                 <emphasis>
@@ -2176,6 +2259,7 @@ Integer newValue =
           </informaltable>
         </section></section>
     </section>
+  
   </chapter>
   <chapter id="javawscore-developer-tutorials">
     <title>Tutorials and Presentations</title>
@@ -2286,6 +2370,10 @@ Integer newValue =
     <indexterm type="javawscore">
       <primary>debugging</primary>
     </indexterm>
+    <!-- not sure where in the order of topics this frag fits best -->
+     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../Java_WS_Core_Logging_Frag.xml"/>
+    
     <section id="javawscore-developer-logging-general"><title>Development Logging in Java WS
       Core</title>
       <!-- this section is xincluded into other java ws components -->
@@ -2326,8 +2414,10 @@ Integer newValue =
             <computeroutput>$GLOBUS_LOCATION/log4j.properties</computeroutput> (configures logging
             for everything else besides the standalone container)</simpara>
         </listitem>
-      </itemizedlist></section><section id="javawscore-developer-tracingsoapmessages"><title>Tracing
-        SOAP messages</title>
+        </itemizedlist>
+    </section>
+    
+    <section id="javawscore-developer-tracingsoapmessages"><title>Tracing SOAP messages</title>
       <indexterm type="javawscore-howto">
         <primary>debugging</primary>
         <secondary>tracing SOAP messages</secondary>
@@ -2432,8 +2522,11 @@ Integer newValue =
           run:</para><screen>$ java org.apache.axis.utils.tcpmon [listenPort targetHost targetPort]</screen><para>If
           no arguments are used, you have to fill out these values in the GUI. Make sure to also
           start the standalone container with the proxy server port option set to the
-            <computeroutput>listenPort</computeroutput> value.</para></section></section><section
-      id="javawscore-developer-debugging-general"><title>Debugging Java process</title>
+            <computeroutput>listenPort</computeroutput> value.</para>
+          </section>
+    </section>
+    
+    <section id="javawscore-developer-debugging-general"><title>Debugging Java process</title>
       <indexterm type="javawscore-howto">
         <primary>debugging</primary>
         <secondary>Java process</secondary>
@@ -2522,34 +2615,13 @@ Integer newValue =
       <primary>troubleshooting</primary>
       <secondary>for developers</secondary>
     </indexterm>
-    <section id="javawscore-developer-nosocket">
-      <title>No socket factory for &apos;https&apos; protocol</title>
-      <para>When a client fails with the following exception:</para>
-      <screen> java.io.IOException: No socket factory for &apos;https&apos; protocol at
-        org.apache.axis.transport.http.HTTPSender.getSocket(HTTPSender.java:179) at
-        org.apache.axis.transport.http.HTTPSender.writeToSocket(HTTPSender.java:397) at
-        org.apache.axis.transport.http.HTTPSender.invoke(HTTPSender.java:135)</screen>
-      <para> add the following to the client:</para>
-      <screen> import org.globus.axis.util.Util; ... static { Util.registerTransport(); }
-      ...</screen>
-    </section><section id="javawscore-developer-notransport">
-      <title>No client transport named &apos;https&apos; found</title>
-      <para>When a client fails with the following exception:</para>
-      <screen>No client transport named &apos;https&apos; found at
-        org.apache.axis.client.AxisClient.invoke(AxisClient.java:170) at
-        org.apache.axis.client.Call.invokeEngine(Call.java:2726)</screen>
-      <para> The client is most likely loading an incorrect <computeroutput
-        >client-config.wsdd</computeroutput> configuration file. Ensure that the GT4 installation
-        directory is listed as a first entry in the <computeroutput>CLASSPATH</computeroutput> of
-        the client. For example:</para>
-      <screen>CLASSPATH=/usr/local/globus-<replaceable role="entity">shortversion</replaceable>.0:/foo/bar/others.jar:...</screen>
-      <para>If you are seeing this problem in Tomcat, copy the <computeroutput
-        >client-config.wsdd</computeroutput> from the GT4 installation directory to the Web
-        application's <computeroutput>WEB-INF/classes</computeroutput> directory.</para>
-      <para/>
-    </section><xi:include href="../Java_WS_Core_Logging_Frag.xml"
-      xmlns:xi="http://www.w3.org/2001/XInclude"/><xi:include
-      xmlns:xi="http://www.w3.org/2001/XInclude" href="../Java_WS_Core_Troubleshooting_Frag.xml"/></chapter>
+    
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" 
+      href="../Java_WS_Core_Error_Codes_Frag.xml"/>
+
+    <xi:include
+    xmlns:xi="http://www.w3.org/2001/XInclude" href="../Java_WS_Core_Troubleshooting_Frag.xml"/>
+  </chapter>
   <chapter id="javawscore-developer-relateddocs"><title>Related Documentation</title>
     <indexterm type="javawscore">
       <primary>related documentation</primary>
