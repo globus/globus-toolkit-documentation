@@ -1,18 +1,470 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 
-<article id="javawscoreMig">
+<book id="javawscoreMig">
   <?dbhtml filename="index.html" ?>
-  <title> GT <replaceable role="entity">shortversion</replaceable> Migrating Guide for Java WS Core</title>
+  <title> GT <replaceable role="entity">version</replaceable> Migrating Guide for Java WS Core</title>
   <titleabbrev>Migrating Guide</titleabbrev>
-  <para>The following provides available information about migrating from previous versions of the
-    Globus Toolkit.</para>
-  <section id="javawscore-migrating-GT2">
-    <title>Migrating Java WS Core from GT2</title>
-    <para>Not applicable. This component did not exist in GT2.</para>
+  <bookinfo><abstract><para>The following provides available information about migrating from previous versions of the
+  Globus Toolkit.</para></abstract></bookinfo>
+  
+  <chapter id="javawscore-migrating-GT4">
+    <title>Migrating Java WS Core from GT4.0</title>
+  <para>Java WS Core Framework has been updated to use the final version of the WSRF/WSN and WS Addressing 
+    specifications. <ulink url="CoreSpecificationUpgradeVer11.pdf">This document</ulink> provides an overview of the 
+    changes and provides a link to the specifications.
+    <note><para>Features that are new in the final specification have not been implemented, 
+      only the features from the previous specification have been ported.</para></note></para>
+  
+  <section id="javawscore-migrating-GT4-high-level">
+    <title>Updating higher level services</title>
+    <para>The following is a suggested approach to updating the higher level services:</para>
+    
+    <section>
+      <title>WSDL changes</title>
+      
+      <para>The specification WSDL names and namespace have changed. 
+      The section <olink targetptr="javawscore-migrating-GT4-wsdl-changes">WSDL Files and Namespace Changes</olink> provides a mapping from old WSDL file names 
+      and namespaces to the new equivalent. All operations in the old specification are in the new specification, 
+      so no other WSDL change should be needed.</para>
+      
+      <para>If your service uses compact and schema directories, ensure that the new WSDLs are correctly written and 
+      deployed in schema. </para>
+    </section>
+    
+    <section>
+      <title>Stub generation</title>
+      <para>The old targets for stub generation can be used as is. Ensure that modified WSDLs have been deployed to 
+      <filename>GLOBUS_LOCATION</filename> before you run the targets. </para>
+    </section>
+    
+    <section>
+      <title>Service, client and test code changes</title>
+      
+      <para>Some class and package names have changed. There is minimal change in the core infrastructure API, but the 
+      addressing package has been moved from <filename>org.apache</filename> to <filename>org.globus</filename>.</para>
+      
+      <para>The section <olink targetptr="javawscore-migrating-GT4-package-class-changes">Package and class name changes</olink> provides a table with some mappings from old to 
+      new class names. Note this does not cover all cases, but the most commonly used code.</para>
+      
+      <para>For changes to features and sample code, refer to the section on <olink targetptr="javawscore-migrating-GT4-code-changes">Code change details</olink>. 
+      The section discusses changes per feature and should provide details on how to edit your code.</para>
+      
+      <para>Also, <olink targetptr="javawscore-migrating-GT4-constant-changes">Constant changes</olink> provides information on some constants that have changed.</para>
+      
+      <para>You should not have to change anything in your Ant build files or deployment infrastructure.</para>
+      
+      <para>For samples, you can look at counter service.</para> 
+    </section>
   </section>
-  <section id="javawscore-migrating-GT3">
+    
+    <section id="javawscore-migrating-GT4-code-changes">
+      <title>Code change details</title>
+      
+       <section id="javawscore-migrating-GT4-ws-addressing"><title>WS Addressing</title>
+         
+         <para>The Apache WS Addressing project is being archived. So the code base has been moved to the 
+         Globus repository and has been checked into <filename>wsrf/java/lib-src/ws-addressing</filename>. 
+           The library now has <filename>org.globus</filename> package names and guarantees support only for 
+           the final version of the WS Addressing specification.</para>
+         
+         <para>One of the key changes in the specification is that Reference Parameters are used now rather than 
+           Reference Properties. Java WS Core adds and expects EPR key information in Reference Parameters 
+           element now.</para> 
+       </section>
+      
+      <section id="javawscore-migrating-GT4-faults">
+        <title>Faults</title>
+        
+        <para>Unlike the old specification, fault cause consists of a single <computeroutput>BaseFaultType</computeroutput>,
+          rather than an array of <computeroutput>BaseFaultType</computeroutput>. The <computeroutput>FaultHelper</computeroutput> 
+          utility has been modified to handle this. Now when a fault cause is added, the helper class walks through the chain of 
+          fault causes to find one without a fault cause set and then sets the new cause. Higher level services can continue to 
+          use the same API as before and faults should get serialized and deserialized correctly.</para>
+        
+        <para>If in your testing, you look for a specific error code in a <computeroutput>Fault Cause</computeroutput>, it is 
+          not an array anymore. You will need to walk though the chain of fault causes. An example of such a test is 
+          <computeroutput>testTargetedXPathQueryInvalidRP()</computeroutput> in 
+          <filename>org.globus.wsrf.impl.properties.QueryResourcePropertiesTests.java</filename>.</para> 
+      </section>
+      
+      <section id="javawscore-migrating-GT4-lifetime">
+        <title>Lifetime</title>
+        
+        <para>The new specification allows <computeroutput>SetTerminationTime</computeroutput> to have either an 
+          <computeroutput>xsd:dateTime</computeroutput> or <computeroutput>xsd:duration</computeroutput>. 
+          Java WS Core currently does <emphasis role="strong">not</emphasis> support duration and 
+          <emphasis role="strong">only</emphasis> uses the <computeroutput>xsd:dateTime</computeroutput> value 
+          set in the request. A bug in Axis ends up with <computeroutput>SetTerminationTime</computeroutput> data 
+          binding having a contructor that takes two parameters.</para> 
+
+      </section>
+      
+      <section id="javawscore-migrating-GT4-properties">
+        <title>Properties</title>
+        
+        <para>None of the new methods in the final specification have been implemented; only a minor change in schema, 
+          which is taken care of in the providers and <computeroutput>Simple*</computeroutput> implementations.</para> 
+      </section>
+      
+      <section id="javawscore-migrating-GT4-subscribing-notifications">
+        <title>Subscribing to notifications</title>
+        
+        <itemizedlist>
+          <listitem><para>A new data type Filter has been defined, which is used to provide subscription information, including the Topics to subscribe to.</para></listitem>
+          <listitem><para>Currently we only support TopicExpressionType and hence FilterType is expected to have just one element.</para></listitem>
+          <listitem><para>SubscribeSubscriptionPolicy: the only piece we used before was useNotify. As per latest specification, that is default. If useRaw is set in subscription policy a UnsupportedPolicy fault will be thrown, any other policy set will cause a UnrecogonizedPolocy fault.</para></listitem>
+          <listitem><para>Example subscription request:
+            <screen>     Subscribe request = new Subscribe();
+     request.setConsumerReference(consumerEPR);
+     TopicExpressionType topicExpression = new TopicExpressionType();
+     topicExpression.setDialect(WSNConstants.SIMPLE_TOPIC_DIALECT);
+     topicExpression.setValue(Counter.VALUE);
+     MessageElement element = 
+            (MessageElement)ObjectSerializer
+            .toSOAPElement(topicExpression, WSNConstants.TOPIC_EXPRESSION);
+     FilterType filter = new FilterType();
+     filter.set_any(new MessageElement[] { element });
+     request.setFilter(filter);</screen></para></listitem>
+        </itemizedlist>
+
+      </section>
+      
+      <section id="javawscore-migrating-GT4-unsubscribing-notifications">
+        <title>Unsubscribing notifications</title>
+        
+        <para><computeroutput>Destroy</computeroutput> was used in the old code to remove notification subscription, 
+          <computeroutput>Unsubscribe</computeroutput> should be used now.</para>
+
+<screen> SubscriptionManager subscriptionPort =
+                subscriptionManagerLocator.getSubscriptionManagerPort(
+                    subscriptionEPR);
+
+...
+
+subscriptionPort.unsubscribe(new Unsubscribe());</screen>
+
+      </section>
+      
+      <section id="javawscore-migrating-GT4-consuming-notifications">
+        <title>Consuming notifications</title>
+        
+        <itemizedlist>
+          <listitem><para>Notify message has changed and a new utility has been added to take care of deserialization of the message:
+            <screen>import org.globus.wsrf.encoding.DeserializationException;
+import org.globus.wsrf.utils.NotificationUtil;
+import org.oasis.wsrf.properties.ResourcePropertyValueChangeNotificationType;
+
+// Notification callback
+public void deliver(List topicPath, EndpointReferenceType producer,
+                    Object message) {
+
+    
+    ResourcePropertyValueChangeNotificationType changeMessage
+                        = null;
+    try {
+         changeMessage = NotificationUtil.getRPValueChangeNotification(message);
+   } catch (DeserializationException e) {
+        // handle exception
+   }</screen>
+            
+          </para></listitem>
+          <listitem><para><computeroutput>ResourcePropertyValueChangeNotificationType</computeroutput> API has 
+            <computeroutput>getNewValues()</computeroutput> and <computeroutput>getOldValues()</computeroutput> 
+            instead of <computeroutput>getNewValue()</computeroutput> and <computeroutput>getOldValue()</computeroutput>. </para></listitem>
+        </itemizedlist>
+      </section>
+      
+      <section id="javawscore-migrating-GT4-subscription-mgr">
+        <title>Subscription Manager Service</title>
+        
+        <para>This is not relevant, unless you want to write a new subcription manager and not use the one in Core.</para>
+        
+        <para>The recent specification defines two port types for subscription manager: one with pause/resume and 
+          another without. To maintain previous functionality, the default subscription manager service provided in Core 
+          uses the pause-able subscription manager port type.</para>
+        
+        <itemizedlist>
+          <listitem><para><computeroutput>GetRP</computeroutput> - <emphasis role="strong">Required</emphasis></para></listitem>
+          <listitem><para><computeroutput>Destroy</computeroutput> - <emphasis role="strong">Required</emphasis></para></listitem>
+          <listitem><para><computeroutput>SetTerminationTime</computeroutput> - Not required</para></listitem>
+          <listitem><para><emphasis role="strong">Required</emphasis> resource properties:
+                    <itemizedlist>
+          <listitem><para>consumer reference</para></listitem>
+          <listitem><para>filter type</para></listitem>
+          <listitem><para>subscription policy</para></listitem>
+          <listitem><para>creation time</para></listitem>
+          </itemizedlist>
+          </para></listitem>
+        </itemizedlist> 
+
+<para>The <computeroutput>BaseSubscriptionProvider</computeroutput> and 
+  <computeroutput>PausableSubscriptionProvider</computeroutput> cover all the required functionality.</para>
+
+<para>(Refer to <olink targetptr="javawscore-migrating-GT4-subscribing-notifications">Subscribing to Notification</olink> section above for more details on what is supported) </para>
+      </section>
+      
+      <section id="javawscore-migrating-GT4-subscription-support">
+        <title>Resources that support Subscription</title>
+        
+        <para>The interface <computeroutput>org.globus.wsrf.Subscription</computeroutput> has been split into two. 
+          A new interface, <computeroutput>PausableSubcription</computeroutput> has been introduced in the same 
+          package and contains the method for pause/resume functionality. By default, subscription support in Core 
+          uses the <computeroutput>PausableSubcription</computeroutput> interface <emphasis role="strong">only</emphasis>.</para>
+        
+        <para>If pause/renew capability is required, resources need to implement <computeroutput>PausableSubscription</computeroutput> 
+          instead of <computeroutput>Subscription</computeroutput>. If you are looking to maintain old functionality, 
+          change to <computeroutput>PausableSubscription</computeroutput>.</para> 
+      </section>
+      
+    </section>
+    
+    <section id="javawscore-migrating-GT4-wsdl-changes">
+      <title>WSDL files and namespace changes</title>
+      
+      <section>
+        <title>WSDL files and namespace changes</title>
+        <para><emphasis role="strong">All WSRF/WSN and WSA namespaces have changed.</emphasis> 
+          The file names have also changed, but they have been updated in the same directory. This table shows 
+          the mapping from old filenames and namespaces to the new ones.</para>
+        
+        <table frame='all'><title>Mappings for existing WSDL files and namespaces</title>
+          <tgroup cols='2' colsep='1' rowsep='1'>
+            <colspec colname='c1'/>
+            <colspec colname='c2'/>
+            <thead>
+              <row>
+                <entry>Old WSDL files and namespaces</entry>
+                <entry>New WSDL files and namespaces</entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry><literallayout>WS-ResourceProperties.xsd
+<ulink url="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceProperties-1.2-draft-01.xsd">http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceProperties-1.2-draft-01.xsd</ulink></literallayout></entry>
+                <entry><literallayout>rp-2.xsd
+<ulink url="http://docs.oasis-open.org/wsrf/rp-2">http://docs.oasis-open.org/wsrf/rp-2</ulink></literallayout></entry>
+              </row>
+              <row>
+                <entry><literallayout>WS-ResourceProperties.wsdl
+<ulink url="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceProperties-1.2-draft-01.wsdl">http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceProperties-1.2-draft-01.wsdl</ulink></literallayout></entry>
+                <entry><literallayout>rpw-2.wsdl
+<ulink url="http://docs.oasis-open.org/wsrf/rpw-2">http://docs.oasis-open.org/wsrf/rpw-2</ulink></literallayout></entry>
+              </row>
+              <row>
+                <entry><literallayout>WS-ResourceLifetime.xsd
+<ulink url="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd">http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd</ulink></literallayout></entry>
+                <entry><literallayout>rl-2.xsd
+<ulink url="http://docs.oasis-open.org/wsrf/rl-2">http://docs.oasis-open.org/wsrf/rl-2</ulink></literallayout></entry>
+              </row>
+                            <row>
+                <entry><literallayout>WS-ResourceLifetime.wsdl
+<ulink url="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.wsdl">http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.wsdl</ulink></literallayout></entry>
+                <entry><literallayout>rlw-2.wsdl
+<ulink url="http://docs.oasis-open.org/wsrf/rlw-2">http://docs.oasis-open.org/wsrf/rlw-2</ulink></literallayout></entry>
+                            </row>
+                            <row>
+                <entry><literallayout>WS-BaseN.wsdl
+<ulink url="http://docs.oasis-open.org/wsn/2004/06/wsn-WS-BaseNotification-1.2-draft-01.wsdl">http://docs.oasis-open.org/wsn/2004/06/wsn-WS-BaseNotification-1.2-draft-01.wsdl</ulink></literallayout></entry>
+                <entry><literallayout>bw-2.wsdl
+<ulink url="http://docs.oasis-open.org/wsn/bw-2">http://docs.oasis-open.org/wsn/bw-2</ulink></literallayout></entry>
+                            </row>
+                            <row>
+                <entry><literallayout>WS-Topics.xsd
+<ulink url="http://docs.oasis-open.org/wsn/2004/06/wsn-WS-Topics-1.2-draft-01.xsd">http://docs.oasis-open.org/wsn/2004/06/wsn-WS-Topics-1.2-draft-01.xsd</ulink></literallayout></entry>
+                <entry><literallayout>t-1.xsd
+<ulink url="http://docs.oasis-open.org/wsn/t-1">http://docs.oasis-open.org/wsn/t-1</ulink></literallayout></entry>
+                            </row>
+                            <row>
+                <entry><literallayout>WS-BaseFault.xsd
+<ulink url="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-BaseFaults-1.2-draft-01.xsd">http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-BaseFaults-1.2-draft-01.xsd</ulink></literallayout></entry>
+                <entry><literallayout>bf-2.xsd
+<ulink url="http://docs.oasis-open.org/wsrf/bf-2">http://docs.oasis-open.org/wsrf/bf-2</ulink></literallayout></entry>
+                            </row>
+                            <row>
+                <entry><literallayout>WS-BaseFault.wsdl
+<ulink url="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-BaseFaults-1.2-draft-01.wsdl">http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-BaseFaults-1.2-draft-01.wsdl</ulink></literallayout></entry>
+                <entry><literallayout>bfw-2.wsdl
+<ulink url="http://docs.oasis-open.org/wsrf/bfw-2">http://docs.oasis-open.org/wsrf/bfw-2</ulink></literallayout></entry>
+                            </row>
+                            <row>
+                <entry><literallayout>WS-ServiceGroup.xsd
+<ulink url="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ServiceGroup-1.2-draft-01.xsd">http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ServiceGroup-1.2-draft-01.xsd</ulink></literallayout></entry>
+                <entry><literallayout>sg-2.xsd
+<ulink url="http://docs.oasis-open.org/wsrf/sg-2">http://docs.oasis-open.org/wsrf/sg-2</ulink></literallayout></entry>
+                            </row>
+                                          <row>
+                <entry><literallayout>WS-ServiceGroup.wsdl
+<ulink url="http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ServiceGroup-1.2-draft-01.wsdl">http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ServiceGroup-1.2-draft-01.wsdl</ulink></literallayout></entry>
+                <entry><literallayout>sgw-2.wsdl
+<ulink url="http://docs.oasis-open.org/wsrf/sgw-2">http://docs.oasis-open.org/wsrf/sgw-2</ulink></literallayout></entry>
+                                          </row>
+                                          <row>
+                <entry><literallayout>WS-Addressing.xsd
+<ulink url="http://schemas.xmlsoap.org/ws/2004/03/addressing">http://schemas.xmlsoap.org/ws/2004/03/addressing</ulink></literallayout></entry>
+                <entry><literallayout>ws-addr.xsd
+<ulink url="http://www.w3.org/2005/08/addressing">http://www.w3.org/2005/08/addressing</ulink></literallayout></entry>
+                                          </row>
+            </tbody>
+            </tgroup>
+        </table>
+        
+      </section>
+      
+      <section>
+        <title>New additional schema and WSDLs</title>
+        
+        <para>A WS Resource specification had been added. <computeroutput>ResourceUnknown</computeroutput> and 
+          <computeroutput>ResourceUnAvailableFaultType</computeroutput> are defined in this namespace, instead of 
+          multiple definitions in lifetime and resource in the old specification.</para> 
+        
+               <table frame='all'><title>New WSDL files and namespaces</title>
+          <tgroup cols='2' colsep='1' rowsep='1'>
+            <colspec colname='c1'/>
+            <colspec colname='c2'/>
+            <thead>
+              <row>
+                <entry>Filename</entry>
+                <entry>Namespace</entry>
+              </row>
+            </thead>
+            <tbody>
+                                          <row>
+                <entry>wsrf/compact/wsrf/resource/r-2.xsd</entry>
+                <entry><ulink url="http://docs.oasis-open.org/wsrf/r-2">http://docs.oasis-open.org/wsrf/r-2</ulink></entry>
+              </row>
+              <row>
+                <entry>wsrf/compact/wsrf/resource/rw-2.wsdl</entry>
+                <entry><ulink url="http://docs.oasis-open.org/wsrf/rw-2">http://docs.oasis-open.org/wsrf/rw-2</ulink></entry>
+              </row>
+
+            </tbody>
+            </tgroup>
+        </table>
+        
+      </section>
+      
+    </section>
+    
+    <section id="javawscore-migrating-GT4-package-class-changes">
+      <title>Package names and class name changes</title>
+      <para>This section describes package name changes and equivalent classes.</para>
+                     <table frame='all'><title>Package names and class name mappings</title>
+          <tgroup cols='3' colsep='0' rowsep='0'>
+            <colspec colname='c1'/>
+            <colspec colname='c2'/>
+            <colspec colname='c3'/>
+            <thead>
+              <row>
+                <entry>No.</entry>
+                <entry>Old name</entry>
+                <entry>New Name</entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry morerows="1" valign="middle">1</entry>
+                <entry><literallayout><filename>org.oasis.wsrf.lifetime.ResourceUnknownFaultType</filename>
+<filename>org.oasis.wsn.ResourceUnknownFaultType</filename>
+<filename>org.oasis.wsrf.properties.ResourceUnknownFaultType</filename></literallayout></entry>
+                <entry><para><filename>org.oasis.wsrf.resource.ResourceUnknownFaultType</filename></para></entry>
+              </row>
+              <row>
+                <entry namest="c2" nameend="c3" align="center">All these faults have been moved to a single common namespace and hence one package.</entry>
+              </row>
+              <row>
+                <entry morerows="1" valign="middle">2</entry>
+                <entry><para><filename>org.oasis.wsn.TopicPathDialectUnknownFaultType</filename></para></entry>
+                <entry><para><filename>org.oasis.wsn.TopicExpressionDialectUnknownFaultType</filename></para></entry>
+              </row>
+               <row>
+                <entry namest="c2" nameend="c3" align="center">Equivalent as per new specification.</entry>
+              </row>
+              <row>
+                <entry morerows="1" valign="middle">3</entry>
+                <entry><para><filename>org.apache.axis.message.addressing.Address</filename></para></entry>
+                <entry><para><filename>org.globus.axis.message.addressing.Address</filename></para></entry>
+              </row>
+               <row>
+                <entry namest="c2" nameend="c3" align="center">Moved over Apache addressing code to Globus repository and namespace.</entry>
+              </row>
+              <row>
+                <entry morerows="1" valign="middle">4</entry>
+                <entry><para><filename>org.apache.axis.message.addressing.EndpointReference</filename></para></entry>
+                <entry><para><filename>org.globus.axis.message.addressing.EndpointReference</filename></para></entry>
+              </row>
+              <row>
+                <entry namest="c2" nameend="c3" align="center">Moved over Apache addressing code to Globus repository and namespace.</entry>
+              </row>
+              <row>
+                <entry morerows="1" valign="middle">5</entry>
+                <entry><para><filename>org.apache.axis.message.addressing.EndpointReferenceType</filename></para></entry>
+                <entry><para><filename>org.globus.axis.message.addressing.EndpointReferenceType</filename></para></entry>
+              </row>
+              <row>
+                <entry namest="c2" nameend="c3" align="center">Moved over Apache addressing code to Globus repository and namespace.</entry>
+              </row>
+              <row>
+                <entry morerows="1" valign="middle">6</entry>
+                <entry><para><filename>org.apache.axis.message.addressing.ReferencePropertiesType</filename></para></entry>
+                <entry><para><filename>org.globus.axis.message.addressing.ReferenceParametersType</filename></para></entry>
+              </row>
+              <row>
+                <entry namest="c2" nameend="c3" align="center">Moved over Apache addressing code to Globus repository and namespace. Reference parameters are now used to store resource key information.</entry>
+              </row>
+              <row>
+                <entry morerows="1" valign="middle">7</entry>
+                <entry><para><filename>org.globus.axis.message.addressing.AttributedURI</filename></para></entry>
+                <entry><para><filename>org.globus.axis.message.addressing.AttributedURIType</filename></para></entry>
+              </row>
+              <row>
+                <entry namest="c2" nameend="c3" align="center"><emphasis role="strong">API has changed here</emphasis>. There is no direct to set port, schema, etc. 
+                  Use <computeroutput>getValue()</computeroutput> and change the URI that is returned.</entry>
+              </row>
+              <row>
+                <entry morerows="1" valign="middle">8</entry>
+                <entry><para><filename>org.globus.wsrf.impl.notification.PauseSubscriptionProvider</filename></para></entry>
+                <entry><para><filename>org.globus.wsrf.impl.notification.PausableSubscriptionProvider</filename></para></entry>
+              </row>
+              <row>
+                <entry namest="c2" nameend="c3" align="center">Refer to notes on Subscription Manager [link me].</entry>
+              </row>
+            </tbody>
+            </tgroup>
+        </table>
+    </section>
+    
+    <section id="javawscore-migrating-GT4-constant-changes">
+      <title>Constant changes</title>
+      
+                     <table frame='all'><title>New WSDL files and namespaces</title>
+          <tgroup cols='2' colsep='1' rowsep='1'>
+            <colspec colname='c1'/>
+            <colspec colname='c2'/>
+            <thead>
+              <row>
+                <entry>Old constant</entry>
+                <entry>New constant</entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry>WSNConstants.TOPIC</entry>
+                <entry>WSNConstants.TOPIC_SET</entry>
+              </row>
+              <row>
+                <entry>WSNConstants.TOPIC_EXPRESSION_DIALECTS</entry>
+                <entry>WSNConstants.TOPIC_EXPRESSION_DIALECT</entry>
+              </row>
+
+            </tbody>
+            </tgroup>
+        </table>
+    </section>
+    
+  </chapter>
+  <chapter id="javawscore-migrating-GT3">
     <title>Migrating Java WS Core from GT3</title>
     <section id="javawscore-migrating-points">
       <title>Key Migration Points</title>
@@ -84,7 +536,11 @@
         </listitem>
       </itemizedlist>
     </section>
-  </section>
+  </chapter>
+    <chapter id="javawscore-migrating-GT2">
+    <title>Migrating Java WS Core from GT2</title>
+    <para>Not applicable. This component did not exist in GT2.</para>
+  </chapter>
   <glossary role="auto" id="glossary-javawscoreMig">
     <glossdiv><title>A</title>
       <glossentry>
@@ -96,4 +552,4 @@
       </glossentry>
     </glossdiv>
   </glossary>
-</article>
+</book>
