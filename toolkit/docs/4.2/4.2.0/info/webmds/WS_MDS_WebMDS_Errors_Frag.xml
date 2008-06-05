@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<section id="webmds-errors"><title>Error Messages</title>
+ <indexterm type="mds">
+  <primary>errors</primary>
+ </indexterm>
+  <para>Error handling in WebMDS is currently done by throwing exceptions, which are displayed by Tomcat as stack traces.</para>
+ 
+  <table frame='all' id="webmds-errors-table"><title>WS MDS Trigger Service Error Messages</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+<colspec colname='c1' />
+<colspec colname='c2' />
+<colspec colname='c3' />
+<thead>
+<row>
+  <entry>Error Code</entry>
+  <entry>Definition</entry>
+  <entry>Possible Solutions</entry>
+</row>
+</thead>
+<tbody>
+<row>
+  <entry><code>java.net.ConnectException: Connection refused</code></entry>
+  <entry>
+    If you attempt to use WebMDS to collect information from a service that is not running, you will see a stack trace that begins with:
+
+<screen>org.globus.mds.webmds.xmlSources.resourceProperties.ResourcePropertySourceException: ; nested exception is: 
+	java.net.ConnectException: Connection refused</screen>
+
+  </entry>
+  <entry>
+Make sure the service you are trying to collect information from is running.
+  </entry>
+</row>
+    <row>
+  <entry><code>faultString: org.globus.common.ChainedIOException: Authentication failed 
+[Caused by: Failure unspecified at GSS-API level [Caused by: Unknown CA]]</code></entry>
+  <entry>
+  When WebMDS sends resource property queries to a secure WSRF service instance (such as an MDS4 Index Server), the WebMDS server 
+  must trust the certificate authority that issued the certificate used by the WSRF service instance. If the WebMDS server does not trust the CA 
+  used by the remote service, then WebMDS queries will produce a stack trace that includes this message.
+  </entry>
+  <entry>
+This can be solved by configuring the Tomcat server that hosts WebMDS to trust the appropriate CA, by either:
+<itemizedlist>
+    <listitem><para>placing the CA certificate in /etc/grid-security/certificates, or</para></listitem>
+    <listitem><para>placing the CA certificate somewhere else, and setting the Tomcat process's X509_CERT_DIR system parameter to the directory in which the CA certificate was installed. One way to do this is to set the CATALINA_OPTS environment variable and then restart Tomcat:
+<screen>export CATALINA_OPTS=-DX509_CERT_DIR=/path/to/cert/dir
+$CATALINA_HOME/bin/shutdown.sh
+$CATALINA_HOME/bin/startup.sh</screen>
+      </para></listitem>
+</itemizedlist> 
+  </entry>
+</row>
+  <row>
+  <entry>WebMDS connections to secure Index Servers (or other secure WSRF servers) just hang</entry>
+  <entry>
+   If the JVM used by Tomcat is configured to use a blocking random-number source, WebMDS connections to secure Index Servers (or other 
+   secure WSRF servers) can hang. This is the default configuration for many installations.
+  </entry>
+  <entry>
+One solution is to set the <envar>CATALINA_OPTS</envar> environment variable to ensure that Tomcat's JVM will use a non-blocking 
+    random-number source:
+
+<screen>export CATALINA_OPTS=-Djava.security.egd=/dev/urandom
+$CATALINA_HOME/bin/shutdown.sh
+$CATALINA_HOME/bin/startup.sh</screen>
+
+<note><para>f you encounter this problem with WebMDS, you may also encounter 
+  <olink targetdoc="javawscoreAdmin" targetptr="javawscore-admin-globusstart">a similar problem</olink> with the Globus container on 
+  the same system.</para></note> 
+  </entry>
+  </row>
+
+  <!-- just copy the <row> block above for each row you need to add -->
+</tbody>
+</tgroup>
+   </table>
+ </section>
