@@ -1,0 +1,2241 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+    <chapter id="javawscore-developer-programming-recipes">
+        <title>Programming Recipes</title>
+        <section id="javawscore-developer-service-scope-lifetime">
+            <title>Service Scope and Lifetime</title>
+            <section id="javawscore-developer-service-startup">
+                <title>How can I force my service to initialize when the container starts?</title>
+                <para>By default, a service is initialized on the first invocation of a method in that service. However,
+                    there are frequently times when a service needs to run some time-consuming, global initialization.
+                    In this situation, it is better to have the service initialize when the container starts, so as to
+                    not impact the performance of the first method invocation. To have the service initialize on
+                    container starup, add the following to your deploy-service.wsdd descriptor: </para>
+                <programlisting language="xml" linenumbering="numbered">
+                    <![CDATA[
+<parameter name="loadOnStartup" value="true"/>                                        
+                    ]]>
+                </programlisting>
+            </section>
+            <section id="javawscore-developer-service-lifetime">
+                <title>How can I have Service methods execute at lifetime (Startup/Shutdown) events?</title>
+                <para>If the service implements the <ulink
+                        url="http://java.sun.com/j2ee/1.4/docs/api/javax/xml/rpc/server/ServiceLifecycle.html"
+                        >javax.xml.rpc.server.ServiceLifecycle</ulink> interface, the lifecycle methods will be called
+                    according to the <computeroutput>scope</computeroutput> setting as a service instance is created and
+                    destroyed. </para>
+                <para>For example, in <emphasis>Application</emphasis> scope, <emphasis>destroy()</emphasis> will be
+                    called on container shutdown, and in <emphasis>Request</emphasis> scope it will be called after the
+                    service method is called. (See <link linkend="javawscore-developer-service-scope">next
+                    question</link>) </para>
+            </section>
+            <section id="javawscore-developer-jndi-lifetime">
+                <title>How can I have ResourceHome (or any JNDI resource) methods execute at lifetime events?</title>
+                <para>A <glossterm>ResourceHome</glossterm> will be activated either on the first service invocation or,
+                    if <emphasis>&quot;loadOnStartup&quot;</emphasis> parameter is set to
+                        <emphasis>&quot;true&quot;</emphasis>, during container startup. Both mechanisms trigger
+                    actual activation by looking up the ResourceHome in the JNDI directory. This initial lookup causes a
+                    proper MessageContext and/or JAAS subject to be associated with the current thread, instantiation of
+                    the object implementing the ResourceHome and, if the ResourceHome implements the
+                        <emphasis>org.globus.wsrf.jndi.Initializable</emphasis> interface, the invocation of the
+                        <emphasis>initialize()</emphasis> function. </para>
+                <para>In fact, the same steps are performed upon initial lookup of any JNDI
+                    <emphasis>resource</emphasis> entry that uses the
+                    <emphasis>org.globus.wsrf.jndi.BeanFactory</emphasis> class for its factory and is defined directly
+                    under a <emphasis>service</emphasis> entry in a <emphasis>jndi-config.xml</emphasis> file. </para>
+            </section>
+            <section id="javawscore-developer-service-scope">
+                <title>How do I set the scope of my service?</title>
+                <para> The <computeroutput>scope</computeroutput> setting of the service dictates when and how service
+                    instances are created. It is generally recommended that services use the Application scope (even
+                    though it is not currently the default) because it associates the security credentials with the
+                    thread. To set the scope, you add the following parameters to your deploy-server.wsdd: </para>
+                <programlisting language="xml" linenumbering="numbered">
+<![CDATA[
+<parameter name="scope" value="Application"/>
+<parameter name="handlerClass" value="org.globus.axis.providers.RPCProvider"/>
+    ]]>
+                    </programlisting>
+                <para> This will specify to use the globus supplied RPCProvider and to set the scope to Application.
+                    This is the recommended setting for most services. If you have any question about what to use, set
+                    this. </para>
+                <para> There are two scope options: <table>
+                        <title>Service Scopes</title>
+                        <tgroup cols="2">
+                            <tbody>
+                                <row>
+                                    <entry>Application Scope</entry>
+                                    <entry>
+                                        <para>Service/provider instances are created either on first invocation or on
+                                            container startup. The behavior is determined by the value of the
+                                            "loadOnStartup" parameter. This will work in the same way in both the
+                                            stand-alone container and in Tomcat. </para>
+                                        <para>If the service or the container is configured with a security descriptor,
+                                            the appropriate credentials will be associated with the thread during
+                                            activation (using JAAS). Also, during activation a basic Axis MessageContext
+                                            will be associated with the thread with only Constants.MC_HOME_DIR,
+                                            Constants.MC_CONFIGPATH, and the right target service properties set (see
+                                                <link linkend="javawscore-developer-ContextProperties"> “Obtaining
+                                                standard MessageContext properties”</link> for details). If service or
+                                            providers implement the javax.xml.rpc.server.ServiceLifecycle interface, the
+                                            lifecycle methods will be called accordingly. </para>
+                                    </entry>
+                                </row>
+                                <row>
+                                    <entry>Request Scope</entry>
+                                    <entry>
+                                        <para>One instance is created per invocation. This is the default (if scope
+                                            parameter is not set in the deployment descriptor). </para>
+                                        <para>Service/Provider instances are created per invocation, ServiceLifecycle
+                                            methods called right before and after service method invocation, no JAAS
+                                            credentials during ServiceLifecycle methods</para>
+                                    </entry>
+                                </row>
+                            </tbody>
+                        </tgroup>
+                    </table>
+                </para>
+            </section>
+        </section>
+
+        <section id="javawscore-developer-op-providers">
+            <title>Operation Providers</title>
+            <section id="javawscore-developer-OperationProvider">
+                <title>How do I use Operation Providers?</title>
+                <indexterm type="javawscore">
+                    <primary>operation providers</primary>
+                </indexterm>
+                <para>GT3 introduced the concept of <emphasis>operation providers</emphasis> where a service could be
+                    composed of different parts/classes. Java WS Core also supports this functionality. In GT3 operation
+                    providers had to implement a specific interface. In Java WS Core <emphasis>no</emphasis> such
+                    interface is required. In fact, an operation provider is not in any way different from a standard
+                    web service. That means that <emphasis>any</emphasis> web service implementation can automatically
+                    be used as an operation provider (as long as it uses common or standard interfaces to operate on
+                    resources). </para>
+                <para>To enable operation provider support for your service, make the following changes to the service
+                    deployment descriptor: <orderedlist>
+                        <listitem>
+                            <simpara>Change the value of the <computeroutput>provider</computeroutput> attribute to
+                                    <computeroutput>Handler</computeroutput>.</simpara>
+                        </listitem>
+                        <listitem>
+                            <simpara>Add a <computeroutput>handleClass</computeroutput> parameter with a value of
+                                    <classname>org.globus.axis.providers.RPCProvider</classname>.</simpara>
+                        </listitem>
+                        <listitem>
+                            <simpara>Specify providers in the <computeroutput>providers</computeroutput> parameter. </simpara>
+                            <para>The value of the parameter is a space-separated list of either provider names or class
+                                names. </para>
+
+                        </listitem>
+                        <listitem>
+                            <simpara>Add or change the value of the <computeroutput>scope</computeroutput> parameter to
+                                    <computeroutput>Application</computeroutput> or
+                                <computeroutput>Request</computeroutput>.</simpara>
+                        </listitem>
+                    </orderedlist>
+                </para>
+                <para>The following is an example of a modified service deployment descriptor: <programlisting language="xml" linenumbering="numbered">                        
+&lt;service name=&quot;SubscriptionManagerService&quot; <emphasis> provider=&quot;Handler&quot;</emphasis> 
+        use=&quot;literal&quot; style=&quot;document&quot;&gt; &lt;parameter name=&quot;allowedMethods&quot; 
+        value=&quot;*&quot;/&gt;
+    <emphasis>&lt;parameter name=&quot;scope&quot; value=&quot;Application&quot;/&gt;</emphasis>
+    <emphasis>&lt;parameter name=&quot;providers&quot; 
+            value=&quot; GetRPProvider org.globus.wsrf.impl.lifetime.SetTerminationTimeProvider PauseSubscriptionProvider&quot;/&gt;
+            </emphasis>
+    <emphasis>&lt;parameter name=&quot;handlerClass&quot; 
+            value=&quot;org.globus.axis.providers.RPCProvider&quot;/&gt;</emphasis>
+    &lt;parameter name=&quot;className&quot;
+            value=&quot;org.globus.wsrf.impl.notification.ResumeSubscriptionProvider&quot;/&gt;
+    &lt;wsdlFile&gt;share/schema/core/notification/subscription_manager_service.wsdl&lt;/wsdlFile&gt;
+&lt;/service&gt;
+                    </programlisting>
+                    <note>
+                        <simpara>The operations defined in the <computeroutput>className</computeroutput> service always
+                            overwrite the providers&apos; operations. That is, if one provider defines the same
+                            method as the service specified in the <computeroutput>className</computeroutput> parameter,
+                            the operation will be invoked on the service. Also, if two providers define the same method,
+                            the first one specified in the <computeroutput>providers</computeroutput> parameter will be
+                            invoked.</simpara>
+                    </note>
+                </para>
+            </section>
+            <section id="javawscore-developer-expose-operation-provider">
+                <title>How can I expose my own class as an Operation Provider for other services to use?</title>
+                <para>Any service can provide an object for other service to include as a operation provider. The
+                    consuming service simply needs to add the fully qualified classname (FQCN) to the list of providers.
+                    However, if you wish to allow users to refer to your class by a friendly name instead of FQCN, you
+                    need to add an entry to the container's main deployment file element of the
+                    <emphasis>main</emphasis> deployment descriptor
+                        (<computeroutput>etc\globus_wsrf_core\server-config.wsdd</computeroutput>). </para>
+                <para>For example: </para>
+                <programlisting language="xml" linenumbering="numbered">
+                   <![CDATA[
+<globalConfiguration> 
+
+    ... 
+    
+    <parameter name="GetRPProvider" value="org.globus.wsrf.impl.properties.GetResourcePropertyProvider"/>
+    
+    ... 
+
+</globalConfiguration>
+]]>
+               </programlisting>
+
+            </section>
+        </section>
+
+        <section id="javawscore-developer-connecting">
+            <title>Connecting to Services</title>
+            <simpara>These recipes are all about connecting to services running in a Java WS Core container.</simpara>
+            <section id="javawscore-connecting-webservice">
+                <title>How do I connect to a service via WSRF?</title>
+                <para>There are several ways to connect to a service. The simplest is to use the AddressingLocator that
+                    is created as part of the WSDL2Java execution. The AddressingLocator class can be used to get a stub
+                    for a service by passing the Apache Addressing EndpointReferenceType parameter. Each service has
+                    it's own AddressingLocator which can be used to acquire a port for the remote service. The port can
+                    then be used to access the service. If an EndpointReferenceType is returned from a method on that
+                    service, it can be used to acquire the port from the AddressingLocator and will be associated with
+                    the resource context created by the service. </para>
+                <programlisting language="java" linenumbering="numbered">
+//Specify the service address
+String url = "http://localhost:8080/wsrf/services/Version";
+//Create the EndpointReferenceType
+EndpointReferenceType epr = new EndpointReferenceType(); 
+epr.setAddress(new Address(url)); 
+//Create the AddressingLocator for the service
+VersionServiceAddressingLocator locator = new VersionServiceAddressingLocator();
+//Get the port for the service
+VersionServicePortType port = locator.getVersionPort(epr); 
+port.getVersion();
+                </programlisting>
+            </section>
+            <section id="javawscore-connecting-localinvocations">
+                <title>How do I connect to a service in the same Java Virtual Machine in memory?</title>
+                <para>Services in the container can be invoked locally. Local invocations work just like remote
+                    invocations (all handlers are called, messages get serialized/deserialized) but messages do not
+                    travel over the network - everything happens in memory. </para>
+                <para>Local invocations can only be made on the server side. URLs with
+                    &quot;<emphasis>local</emphasis>&quot; protocol name are used for local invocations. </para>
+                <para>To invoke a service locally, do the following: </para>
+                <orderedlist>
+                    <listitem>
+                        <para>Create a service URL with &quot;<emphasis>local</emphasis>&quot; protocol: </para>
+                        <programlisting language="java" linenumbering="numbered">
+URL url = new URL(<emphasis>&quot;local:///wsrf/services/MyService&quot;</emphasis>);
+                            </programlisting>
+                    </listitem>
+                    <listitem>
+                        <para>And as normal make the call:</para>
+                        <programlisting language="java" linenumbering="numbered"> 
+MyServiceAddressingLocator locator = new MyServiceAddressingLocator();
+MyService port = locator.getMyServicePort(url); 
+port.hello(); 
+                        </programlisting>
+                    </listitem>
+                </orderedlist>
+                <para>That's all. By default the local invocations are made using the default instance of the
+                        <computeroutput>AxisServer</computeroutput> engine. It is possible to make local invocations
+                    using a different <computeroutput>AxisServer</computeroutput> engine instance if there is a
+                        <computeroutput>MessageContext</computeroutput> associated with the current thread (the
+                        <computeroutput>MessageContext</computeroutput> should have a reference to the desired
+                        <computeroutput>AxisServer</computeroutput> engine instance). To make a local invocation using
+                    non-default <computeroutput>AxisServer</computeroutput> engine add the following (using above
+                    example):</para>
+                <programlisting language="java" linenumbering="numbered">
+    
+import org.globus.axis.transport.local.LocalTransportUtils;  
+...
+MyService port = ...
+LocalTransportUtils.enableLocalTransport((Stub)port);
+port.hello();
+                </programlisting>
+                <para> The &quot;<emphasis>local</emphasis>&quot; protocol URL handler is automatically
+                    registered by Java WS Core. However, sometimes it might be necessary to install the handler
+                    explicitly. To register the &quot;<emphasis>local</emphasis>&quot; URL protocol hander do
+                    the following:</para>
+                <programlisting language="java" linenumbering="numbered"> 
+import org.globus.axis.transport.local.LocalTransportUtils; 
+...
+<emphasis>LocalTransportUtils.init();</emphasis> 
+... 
+                    </programlisting>
+                <para>This step must be done before creating URLs with &quot;<emphasis>local</emphasis>&quot;
+                    protocol. Also, make sure that <computeroutput>axis-local.jar</computeroutput> is accessible from
+                    the system classloader.</para>
+            </section>
+        </section>
+
+        <section id="javawscore-developer-addressing">
+            <title>Recipes about working with Endpoint Addressing</title>
+            <section id="javawscore-developer-service-get-endpoint">
+                <title>How can my service object obtain information about its Endpoint Address?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>service-side</secondary>
+                    <tertiary>obtaining container and service endpoint information</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>service-side</secondary>
+                    <tertiary>obtaining container and service endpoint information</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>containers</primary>
+                    <secondary>obtaining endpoint information</secondary>
+                    <tertiary/>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>containers</primary>
+                    <secondary>obtaining endpoint information</secondary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>services</primary>
+                    <secondary>obtaining endpoint information</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>services</primary>
+                    <secondary>obtaining endpoint information</secondary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>endpoint</primary>
+                    <secondary>obtaining container and service endpoint information</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>endpoint</primary>
+                    <secondary>obtaining container and service endpoint information</secondary>
+                </indexterm>
+                <para>In most cases, a service will need to return the endpoint information of the container to a
+                    client. Unfortunately, getting that information might not be easy. The only reliable way of getting
+                    the container endpoint information is to extract it from the
+                        <computeroutput>MessageContext.TRANS_URL</computeroutput> property of the
+                        <computeroutput>MessageContext/ResourceContext</computeroutput> associated with the current
+                    thread. </para>
+                <para>To obtain base container endpoint information use the <ulink
+                        url="http://www.globus.org/api/javadoc-4.2.0/org/globus/wsrf/container/ServiceHost.html">
+                        ServiceHost </ulink> API. For example: </para>
+                <programlisting language="java" linenumbering="numbered"> 
+import org.globus.wsrf.container.ServiceHost; 
+
+... 
+
+URL containerBaseUrl = ServiceHost.getBaseURL(); 
+
+... 
+                </programlisting>
+                <para>The above will return the base container URL such as
+                        <computeroutput>http://localhost:8080/wsrf/services/</computeroutput>. </para>
+                <para>To obtain service endpoint information use the <ulink
+                        url="http://www.globus.org/api/javadoc-4.2.0/org/globus/wsrf/ResourceContext.html"
+                        >ResourceContext</ulink> API. For example:</para>
+                <programlisting language="java" linenumbering="numbered"> import org.globus.wsrf.ResourceContext; ... URL serviceUrl =
+                                            ResourceContext.getResourceContext().getServiceURL(); ... </programlisting>
+                <para>The above will return the service URL such as
+                        <computeroutput>http://localhost:8080/wsrf/services/MyService</computeroutput>. </para>
+                <para>To obtain WS-Addressing endpoint for the service use the <ulink
+                        url="http://www.globus.org/api/javadoc-4.2.0/org/globus/wsrf/utils/AddressingUtils.html"
+                        >AddressingUtils</ulink> API. For example:</para>
+                <programlisting language="java" linenumbering="numbered"> 
+import org.apache.axis.message.addressing.EndpointReferenceType; 
+import org.globus.wsrf.utils.AddressingUtils; 
+
+... 
+
+EndpointReferenceType containerEndpoint = AddressingUtils.createEndpointReference(null); 
+
+... 
+                </programlisting>
+                <para>The above will create a <computeroutput>EndpointReferenceType</computeroutput> object initialized
+                    with the <computeroutput>Address</computeroutput> field set to the service URL (as before) and empty
+                    reference properties. Also, you can pass a non-null <computeroutput>ResourceKey</computeroutput>
+                    instance to the <computeroutput>createEndpointReference()</computeroutput> function to create an
+                    endpoint for a specific resource. The reference properties field of the created
+                        <computeroutput>EndpointReferenceType</computeroutput> object will be set to the given
+                        <computeroutput>ResourceKey</computeroutput>. </para>
+                <para>
+                    <note>
+                        <simpara>The <computeroutput>ServiceHost</computeroutput> API will return the correct
+                            information and <computeroutput>AddressingUtils</computeroutput> API will work correctly
+                            only if called from the same thread as the service method was invoked from.</simpara>
+                    </note>
+                </para>
+            </section>
+            <section id="javawscore-developer-low-level-addressing-api">
+                <title>How do I use WS-Addressing with low level API's such as javax.xml.rpc.Call?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>using the call object directly</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>using the call object directly</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>call object</primary>
+                    <secondary>using directly</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>call object</primary>
+                    <secondary>using directly</secondary>
+                </indexterm>
+                <para>If you are using the <computeroutput>javax.xml.rpc.Call</computeroutput> object directly, you can
+                    pass the addressing information by setting a
+                        <computeroutput>Constants.ENV_ADDRESSING_REQUEST_HEADERS</computeroutput> property on the call
+                    object. </para>
+                <para>For example:
+                    <programlisting language="java" linenumbering="numbered">
+Service service = new Service(); 
+Call call = (Call) service.createCall(); 
+String url = &quot;http://localhost:8080/axis/services/Version&quot;; 
+AddressingHeaders headers = new AddressingHeaders(); 
+headers.setTo(new To(url)); 
+// pass the addressing info to the addressing handler
+call.setProperty(Constants.ENV_ADDRESSING_REQUEST_HEADERS, headers);
+call.setTargetEndpointAddress(new URL(url)); 
+call.setOperationName(new QName(url, &quot;getVersion&quot;)); // url here is just a namespace 
+String ret = (String) call.invoke(new Object[]);
+                    </programlisting>
+                </para>
+            </section>
+            <section id="javawscore-developer-reference-parameters">
+                <title>How do I use ReferenceParameters to specify resource identity for my service?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>using ReferenceParameters</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>using ReferenceParameters</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>ReferenceParameters</primary>
+                    <secondary>using</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>ReferenceParameters</primary>
+                    <secondary>using</secondary>
+                </indexterm>
+                <para>In the WS-RF and WS-N specifications, the WS-Addressing
+                    <computeroutput>ReferenceParameters</computeroutput> are used to carry resource identity
+                    information. In previous versions of the WSRF/WSN specification, ReferenceProperties was used for
+                    the same purpose. The resource identity can be anything as long as it serializes as a XML element.
+                    The <computeroutput>ReferenceParameters</computeroutput> are serialized as separate SOAP headers in
+                    the SOAP envelope. </para>
+                <para>The Apache Addressing library only allows a DOM <computeroutput>Element</computeroutput> or a
+                        <computeroutput>SOAPElement</computeroutput> to be a reference parameters. </para>
+                <para>For example, create <computeroutput>ReferenceParametersType</computeroutput> and fill it with
+                    resource key info: </para>
+                <programlisting language="java" linenumbering="numbered">
+// create a reference property 
+QName keyName = new QName(&quot;http://axis.org&quot;, &quot;VersionKey&quot;); 
+String keyValue = &quot;123&quot;; 
+SimpleResourceKey key = new SimpleResourceKey(keyName, keyValue); 
+ReferenceParametersType props = new ReferenceParametersType();
+// convert to SOAPElement and add to the list
+props.add(key.toSOAPElement());
+
+...
+                </programlisting>
+                <para>Then pass it to <computeroutput>AddressingHeaders</computeroutput>:</para>
+                <programlisting language="java" linenumbering="numbered">
+... 
+                    
+Service service = new Service(); 
+Call call = (Call) service.createCall();
+String url = &quot;http://localhost:8080/axis/services/Version&quot;;
+AddressingHeaders headers = new AddressingHeaders(); headers.setTo(new To(url));
+<emphasis>headers.setReferenceParameters(props);</emphasis> // pass the addressinginfo to the addressing handler
+call.setProperty(Constants.ENV_ADDRESSING_REQUEST_HEADERS, headers);
+call.setTargetEndpointAddress(new URL(url)); 
+call.setOperationName(new QName(url, &quot;getVersion&quot;)); // url here is just a namespace 
+String ret = (String) call.invoke(new Object[]);
+                </programlisting>
+                <para> Or set it on <computeroutput>EndpointReferenceType</computeroutput>: </para>
+                <programlisting language="java" linenumbering="numbered">
+... 
+
+String url = &quot;http://localhost:8080/axis/services/Version&quot;; 
+EndpointReferenceType epr = new EndpointReferenceType(); 
+epr.setAddress(new Address(url));
+<emphasis>epr.setParameters(props);</emphasis> 
+VersionServiceAddressingLocator locator = new VersionServiceAddressingLocator(); 
+VerionServicePortType port = locator.getVersionPort(epr); 
+port.getVersion();
+                </programlisting>
+                <para/>
+            </section>
+        </section>
+
+        <section id="javawscore-developer-serialization">
+            <title>Object Serialization</title>
+            <section id="javawscore-developer-xsd-any">
+                <title>How can I handle information defined as xsd:any in my service?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>working with AnyContentType content</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>working with AnyContentType content</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>AnyContentType</primary>
+                    <secondary>working with AnyContentType content</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>AnyContentType</primary>
+                    <secondary>working with AnyContentType content</secondary>
+                </indexterm>
+                <para> Java Beans generated by Apache Axis that represent a XML type with the
+                    <computeroutput>xsd:any</computeroutput> content implement the
+                        <computeroutput>org.apache.axis.encoding.AnyContentType</computeroutput> interface and have
+                        <computeroutput>get_any()</computeroutput> and <computeroutput>set_any()</computeroutput>
+                    methods. There are several API to help you deal with the
+                    <computeroutput>AnyContentType</computeroutput> content. </para>
+                <para> To convert <computeroutput>AnyContentType</computeroutput> content to a Java object use the
+                        <ulink
+                        url="http://www.globus.org/api/javadoc-4.2.0/org/globus/wsrf/encoding/ObjectDeserializer.html"
+                        >ObjectDeserializer</ulink> API. For example:</para>
+                <programlisting language="java"> 
+AnyContentType bean = ...; 
+Integer value = (Integer) ObjectDeserializer.getFirstAsObject( bean), Integer.class);
+                </programlisting>
+                <para> To convert a Java object into a type that can be used with
+                    <computeroutput>AnyContentType</computeroutput> content use the <ulink
+                        url="http://www.globus.org/api/javadoc-4.2.0/org/globus/wsrf/encoding/ObjectSerializer.html"
+                        >ObjectSerializer</ulink> API. For example:</para>
+                <programlisting language="java" linenumbering="numbered"> 
+// convert Java object into SOAPElement EndpointReferenceType object = ...; 
+QName elementName = new QName("http://example.com", "EPR"); 
+SOAPElement element = ObjectSerializer.toSOAPElement(object, elementName); 
+// set the SOAPlement as Any content 
+AnyContentType bean = ...; 
+AnyHelper.setAny(bean, element);
+                </programlisting>
+                <para> To examine the raw <computeroutput>AnyContentType</computeroutput> content use the <ulink
+                        url="http://www.globus.org/api/javadoc-4.2.0/org/globus/wsrf/utils/AnyHelper.html"
+                    >AnyHelper</ulink> API to serialize it as XML. For example:</para>
+                <programlisting language="java" linenumbering="numbered"> 
+AnyContentType bean = ...; 
+String contents = AnyHelper.toSingleString(bean);
+System.out.println("Contents: " + contents);
+                </programlisting>
+            </section>
+            <section id="javawscore-developer-object-ser-dser">
+                <title>How can I serialize my Java Object to a file?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>Serializing and deserializing Java objects to and from files</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>Serializing and deserializing Java objects to and from files</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>Java</primary>
+                    <secondary>serializing and deserializing Java objects to and from files</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>Java</primary>
+                    <secondary>serializing and deserializing Java objects to and from files</secondary>
+                </indexterm>
+                <para>You can use the <ulink
+                        url="http://www.globus.org/api/javadoc-4.2.0/org/globus/wsrf/encoding/ObjectSerializer.html"
+                        >ObjectSerializer</ulink> API to serialize the Java object into a file (in XML format):</para>
+                <programlisting language="java" linenumbering="numbered"> 
+// object to serialize EndpointReferenceType epr = ...; 
+// root element name
+QName elementName = new QName("http://example.com", "EPR"); 
+FileWriter out = null; 
+try {
+    out = new FileWriter("epr.xml"); 
+    ObjectSerializer.serialize(out, epr, elementName);
+    out.write('\n'); 
+} catch (IOException e) { 
+    System.err.println("Error: " +
+        e.getMessage()); 
+} finally { 
+    if (out != null) { 
+        try { 
+            out.close(); 
+        } catch (Exception ee) {} 
+    } 
+} </programlisting>
+                <para>Similarly, use can use the <ulink
+                        url="http://www.globus.org/api/javadoc-4.2.0/org/globus/wsrf/encoding/ObjectDeserializer.html"
+                        >ObjectDeserializer</ulink> API to deserialize a file containing XML data into a Java object:</para>
+                <programlisting language="java" linenumbering="numbered"> 
+                    // deserialized object EndpointReferenceType epr = ...; FileInputStream in =
+                                null; try { in = new FileInputStream("epr.xml"); epr =
+                                (EndpointReferenceType)ObjectDeserializer.deserialize( new InputSource(in),
+                                EndpointReferenceType.class); } catch (IOException e) { System.err.println("Error: " +
+                                e.getMessage()); } finally { if (in != null) { try { in.close(); } catch (Exception ee)
+                                {} } } </programlisting>
+            </section>
+        </section>
+
+        <section id="javawscore-developer-notifications">
+            <title>Notifications</title>
+            <indexterm type="javawscore-howto">
+                <primary>programming</primary>
+                <secondary>general</secondary>
+                <tertiary>setting up and receiving notifications</tertiary>
+            </indexterm>
+            <indexterm type="javawscore">
+                <primary>programming</primary>
+                <secondary>general</secondary>
+                <tertiary>setting up and receiving notifications</tertiary>
+            </indexterm>
+            <indexterm type="javawscore-howto">
+                <primary>notifications</primary>
+                <secondary>setting up and receiving notifications</secondary>
+            </indexterm>
+            <indexterm type="javawscore">
+                <primary>notifications</primary>
+                <secondary>setting up and receiving notifications</secondary>
+            </indexterm>
+            <section id="javawscore-developer-receive-notifications">
+                <title>How can I set up my client/service to receive notifications</title>
+                <para>There are a few steps involved in setting up and receiving notifications:</para>
+                <section id="javawscore-developer-callback">
+                    <title>Step 1: Implement the callback </title>
+                    <para>The notification consumer application must provide an implementation of the <ulink
+                            url="http://www-unix.mcs.anl.gov/~gawor/javawscore/HEAD/doc/javadocs/org/globus/wsrf/NotifyCallback.html"
+                            >NotifyCallback</ulink> interface. The <computeroutput>deliver</computeroutput> function of
+                        the interface will be invoked whenever a notification for that consumer arrives.</para>
+                    <para>
+                        <note>
+                            <simpara>The <computeroutput>deliver</computeroutput> function should be thread-safe as
+                                multiple notifications might come at once. Notifications might also come unordered and
+                                some might even be lost (due to network failures).</simpara>
+                        </note>
+                    </para>
+                    <section>
+                        <title>Resource property notifications</title>
+                        <para>For resource property notifications the <computeroutput>message</computeroutput> parameter
+                            will usually be of
+                            <computeroutput>ResourcePropertyValueChangeNotificationElementType</computeroutput> type.
+                            From that type you can retrieve the real notification message which contains the new and
+                            optionally the old value of the resource property. Example:</para>
+                        <programlisting language="java" linenumbering="numbered"> 
+import org.globus.wsrf.encoding.DeserializationException;
+import org.globus.wsrf.utils.NotificationUtil;
+import org.oasis.wsrf.properties.ResourcePropertyValueChangeNotificationType;
+...
+// Notification callback
+public void deliver(List topicPath, EndpointReferenceType producer, Object message) {
+                                               
+    ResourcePropertyValueChangeNotificationType changeMessage = null;
+    try {
+        changeMessage = NotificationUtil.getRPValueChangeNotification(message);
+    } catch (DeserializationException e) {
+        // handle exception
+    }
+                        
+    Integer newValue = (Integer)ObjectDeserializer.getFirstAsObject( changeMessage.getNewValue(), Integer.class); 
+    System.out.println("New value: " + newValue); 
+    if(changeMessage.getOldValue() != null) { 
+        Integer oldValue = (Integer)ObjectDeserializer.getFirstAsObject(changeMessage.getNewValue(), Integer.class); 
+        System.out.println("Old value: " + oldValue); 
+    } 
+} 
+                    </programlisting>
+                        <para>The resource property values are of <computeroutput>AnyContentType</computeroutput> type.
+                            Please see the <olink targetdoc="javawscore-features-cookbook" targetptr="xsd-any"> Working
+                                with AnyContentType content</olink> section for more information on how to deal with
+                            such types.</para>
+                    </section>
+                    <section>
+                        <title>Other notifications</title>
+                        <para>For other non-resource property notifications the <computeroutput>message</computeroutput>
+                            parameter will either be of the type into which the message type maps into (if there is an
+                            appropriate type mapping defined) or of <computeroutput>org.w3c.dom.Element</computeroutput>
+                            type if there is no appropriate type mapping defined. Example: </para>
+                        <programlisting language="java" linenumbering="numbered">
+public void deliver(List topicPath, EndpointReferenceType producer, Object message) { 
+    EndpointReferenceType epr = null; 
+    if (message instanceof Element) { 
+        //type mapping not defined, try to deserialize into right Java 
+        // type using ObjectDeserializer API. 
+        epr = (EndpointReferenceType)ObjectDeserializer.toObject((Element)message, EndpointReferenceType.class); 
+    } else if (message instanceof EndpointReferenceType) { 
+        // type mapping defined 
+        epr = (EndpointReferenceType)message; 
+    } else { 
+        // some other type 
+    } 
+}
+                    </programlisting>
+                        <para> The custom notification message type mappings can be defined in a
+                                <filename>client-server-config.wsdd</filename> file. This file can be deployed with your
+                            service (it must be placed directly under the <filename>etc/</filename> directory in the GAR
+                            file). Please see the
+                                <filename>$GLOBUS_LOCATION/etc/globus_wsrf_core/client-server-config.wsdd</filename>
+                            file for an example. If your callback implementation will be used on the server-side, you
+                            might also need to define the type mappings in your <filename>server-config.wsdd</filename>.
+                        </para>
+                    </section>
+                </section>
+                <section id="javawscore-developer-notificationconsumermgr">
+                    <title>Step 2: Start NotificationConsumerManager</title>
+                    <para>In order to facilitate the receipt of notifications, start a
+                            <computeroutput>NotificationConsumerManager</computeroutput> by doing the following: </para>
+                    <programlisting language="java" linenumbering="numbered"> 
+import org.globus.wsrf.NotificationConsumerManager; 
+
+...
+
+NotificationConsumerManager consumer = null; 
+
+try { 
+    consumer = NotificationConsumerManager.getInstance(); 
+    consumer.startListening(); 
+    ... 
+} catch (...) { 
+    ... 
+} 
+                </programlisting>
+                    <important>
+                        <simpara> On the client when the <computeroutput>consumer.startListening()</computeroutput> is
+                            called an embedded container is actually started in the background. That embedded container
+                            is the same as the standalone container but configured with only one or two services needed
+                            to handle the notifications. Therefore, any client using notification consumer API will have
+                            the same dependencies on the libraries and configurations files as the basic standalone
+                            container code. Also, please check the <olink targetdoc="javawscoreUser"
+                                targetptr="javawscore-user-notificationconsumer"/> if the
+                                <computeroutput>consumer.startListening()</computeroutput> call failed on the client. </simpara>
+                        <simpara> On the server when the <computeroutput>consumer.startListening()</computeroutput> is
+                            called the container in which the service is running in is used to receive the
+                            notifications. Therefore, there are no extra dependencies. </simpara>
+                    </important>
+                </section>
+                <section id="javawscore-developer-registrationcallback">
+                    <title>Step 3: Register the callback</title>
+                    <para>Register the callback implementation with the
+                        <computeroutput>NotificationConsumerManager</computeroutput> (once it is started) using the
+                            <computeroutput>createNotificationConsumer</computeroutput> function. </para>
+                    <para>The <computeroutput>createNotificationConsumer</computeroutput> function returns an endpoint
+                        for this notification consumer. </para>
+                    <para>Example:
+                        <programlisting language="java" linenumbering="numbered"> 
+import org.globus.wsrf.NotifyCallback; 
+import org.apache.axis.message.addressing.EndpointReferenceType; 
+                        
+... 
+                        
+MyCallback callback = new MyCallback(); 
+EndpointReferenceType consumerEPR = consumer.createNotificationConsumer(callback); 
+... 
+class MyCallback implements NotifyCallback { 
+    .... 
+} 
+                    </programlisting>
+                    </para>
+                </section>
+                <section id="javawscore-developer-subscription">
+                    <title>Step 4: Subscribe to the callback</title>
+                    <para>Pass the endpoint returned by the <computeroutput>createNotificationConsumer</computeroutput>
+                        function to the subscribe call. </para>
+                    <para>Example:
+                        <programlisting language="java" linenumbering="numbered"> 
+import org.oasis.wsn.TopicExpressionType; 
+import org.oasis.wsn.Subscribe; 
+import org.oasis.wsn.SubscribeResponse; 
+import org.globus.wsrf.WSNConstants; 
+import org.globus.wsrf.WSRFConstants; 
+
+...
+
+Subscribe request = new Subscribe();
+request.setConsumerReference(consumerEPR);
+TopicExpressionType topicExpression = new TopicExpressionType();
+topicExpression.setDialect(WSNConstants.SIMPLE_TOPIC_DIALECT);
+topicExpression.setValue(Counter.VALUE);
+MessageElement element = (MessageElement)ObjectSerializer.toSOAPElement(topicExpression, WSNConstants.TOPIC_EXPRESSION);
+FilterType filter = new FilterType();
+filter.set_any(new MessageElement[] { element });
+request.setFilter(filter);
+port.subscribe(request); 
+
+... 
+                        </programlisting>
+                    </para>
+                </section>
+                <section id="javawscore-developer-cleanup">
+                    <title>Step 5: Clean up</title>
+                    <para>Once done with the notifications, do the following clean up tasks.</para>
+                    <formalpara>
+                        <title>Step 5a: Destroy subscriptions resource</title>
+                        <para>Make sure to explicitly destroy the subscription resource or set its termination time.
+                            Example:
+                            <programlisting language="java" linenumbering="numbered"> 
+import org.globus.wsrf.core.notification.SubscriptionManager; 
+import org.globus.wsrf.core.notification.service.SubscriptionManagerServiceAddressingLocator;
+import org.oasis.wsrf.lifetime.Destroy; 
+                        
+...
+                        
+SubscriptionManagerServiceAddressingLocator sLocator = new SubscriptionManagerServiceAddressingLocator(); 
+SubscriptionManager manager = sLocator.getSubscriptionManagerPort( subResponse.getSubscriptionReference());
+manager.destroy(new Destroy()); 
+                                
+... 
+                            </programlisting>
+                        </para>
+                    </formalpara>
+                    <formalpara>
+                        <title>Step 5b: Un-register the callback</title>
+                        <para> Make sure to call (especially in error cases) the <emphasis>
+                                <computeroutput>NotificationConsumerManager.removeNotificationConsumer()</computeroutput>
+                            </emphasis> function to unregister the callback from the
+                                <computeroutput>NotificationConsumerManager</computeroutput>. </para>
+                    </formalpara>
+                    <formalpara>
+                        <title>Step 5c: Release resources</title>
+                        <para>In addition, make sure to always call the <emphasis>
+                                <computeroutput>NotificationConsumerManager.stopListening()</computeroutput>
+                            </emphasis> function when finished using the
+                            <computeroutput>NotificationConsumerManager</computeroutput>. Otherwise, some resources
+                            might not be released. Example:
+                            <programlisting language="java" linenumbering="numbered">
+... 
+} catch(Exception e) { 
+... 
+}
+finally { 
+    if (consumer != null) { 
+        try { 
+            consumer.stopListening(); 
+        }catch (Exception ee) {
+            //Handle Exception
+        } 
+    } 
+}
+                            </programlisting>
+                        </para>
+                    </formalpara>
+                </section>
+            </section>
+            <section id="javawscore-developer-non-rp-topics">
+                <title>How can I use a notification topic that is not tied to a ResourceProperty?</title>
+                <para>While the typical usage of WS-Notification within WSRF is to notify subscribers when a
+                    ResourceProperty changes, this is not a requirement. In fact, it is easy to set up a WS-Notification
+                    topic to support general messages. The Resource which will handle your topic should implement
+                        <computeroutput>org.globus.wsrf.TopicListAccessor</computeroutput>. This means your Resource
+                    needs to implement the <computeroutput>TopicList getTopicList()</computeroutput> method. The
+                    simplest way to do this, is to create an instance of SimpleTopicList in your resource like such:</para>
+                <programlisting language="java" linenumbering="numbered">
+public class MyResource implements ResourceProperties, TopicListAccessor{
+    private TopicList topicList;
+    
+    private ResourcePropertySet propertySet;
+    
+    private QName qname = new QName("http://www.globus.org/MyService", "MyResource");
+    public MyResource(){
+        topicList = new SimpleTopicList(this);
+        propertySet = new ResourcePropertySet(qname);
+    }
+    
+    public TopicList getTopicList(){
+        return topicList;
+    }
+
+    public ResourcePropertySet getResourcePropertySet(){
+        return propertySet;
+    }
+}
+                </programlisting>
+                <para>Once you have this, your resource is ready to work with topics. To create a new
+                        <computeroutput>Topic</computeroutput> in thisresource, you need to define the
+                        <computeroutput>Topic</computeroutput> and add it to your
+                    <computeroutput>TopicList</computeroutput> like so (this is in the same class as above): </para>
+                <programlisting language="java" linenumbering="numbered">
+import org.globus.wsrf.impl.SimpleTopic;
+
+. . . 
+    private static final QName topicName = new QName("http://www.globus.org/MyService", "MyTopic");
+
+    private void init(){
+       Topic myTopic = new SimpleTopic(topicName);
+       this.getTopicList().addTopic(myTopic);
+    }
+                </programlisting>
+                <para>There is nothing magical about the names or what method this occurs in. For simplicity's sake
+                    let's just assume that our Resource has an init method that will set up the
+                    <computeroutput>Topic</computeroutput>. This creates a new <computeroutput>Topic</computeroutput>
+                    with the supplied identifier and adds it to our list of Topics. Ok, our setup is done. </para>
+                <para>Java Core has provided a helper class to assist in subscribing to a
+                    <computeroutput>Topic</computeroutput> from a service. The
+                    <computeroutput>SubscribeHelper</computeroutput> provides a simple way for you service to subscribe
+                    a client to a <computeroutput>Topic</computeroutput>. You can use it like this:</para>
+                <programlisting language="java" linenumbering="numbered">
+private EndpointReferenceType subscribe(QName topicName, ResourceKey key, Resource resource, 
+        EndpointReferenceType consumerAddr) throws ServiceException, RemoteException {
+    Subscribe request = new Subscribe();
+    request.setConsumerReference(consumerAddr);
+    try {
+        TopicExpressionType topicExpression = new TopicExpressionType();
+        topicExpression.setDialect(WSNConstants.SIMPLE_TOPIC_DIALECT);
+        topicExpression.setValue(topicName);
+        MessageElement element = 
+            (MessageElement) ObjectSerializer.toSOAPElement(topicExpression, WSNConstants.TOPIC_EXPRESSION);
+        FilterType filter = new FilterType();
+        filter.set_any(new MessageElement[]{element});
+        request.setFilter(filter);
+        ResourceContext ctx = ResourceContext.getResourceContext();
+        String homeLocation = ((ResourceContextImpl) ctx).getResourceHomeLocation();
+        return new SubscribeHelper(
+            ctx, resource, key, homeLocation, request).subscribe();
+    } catch (Exception e) {
+        throw new RemoteException("Error creating Subscription", e);
+    }
+}                    
+                </programlisting>
+                <para>This is a little ugly, but it is boilerplate code. Specify your topicName, resourceKey, resource,
+                    and the EndpointReferenceType of the client you are subscribing, and this will handle the
+                    subscription for you. You return the EndpointReferenceType of the subscription, so that the client
+                    can unsubscribe when they are complete. </para>
+                <para>Finally, once you have all of this set up the last piece is to actually send a message on your
+                    topic. This is pretty easy:</para>
+                <programlisting language="java" linenumbering="numbered">
+LinkedList topicPath = new LinkedList();
+topicPath.add(myTopicQName);                    
+Topic myTopic = this.getTopicList().getTopic(topicPath);
+myTopic.notify(myMessage);                                        
+                </programlisting>
+                <para>This will send the notification to the <computeroutput>Topic</computeroutput> and, as a result, to
+                    all consumers for that topic.</para>
+                <para>It is not strictly necessary to use all of the <computeroutput>ResourceProperties</computeroutput>
+                    and <computeroutput>TopicListAccessor</computeroutput> Interfaces as shown above, but this is the
+                    scenario for which Java WS Core provides explicit support.</para>
+            </section>
+        </section>
+
+        <section id="javawscore-developer-jndi">
+            <title>JNDI, Resources and Objects</title>
+            <simpara>These recipes all relate to using JNDI to store resources and objects to be used by your service</simpara>
+            <section id="javawscore-developer-jndi-resources">
+                <title>How do I access other objects from my service?</title>
+                <para>Services should avoid creating and destroying resources that live beyond the lifetime of a
+                    resource. However, this does not mean that shouldn't use objects that have a longer lifetime. Java
+                    WS Core uses JNDI to support these objects. Several objects already exist in JNDI, having been put
+                    there by Java WS Core. <itemizedlist>
+                        <listitem>
+                            <simpara>commonj.work.WorkManager -- Constants.DEFAULT_WORK_MANAGER</simpara>
+                            <simpara>This is a WorkManager for handling asynchronous work</simpara>
+                        </listitem>
+                        <listitem>
+                            <simpara>commonj.timers.TimerManager -- Constants.DEFAULT_TIMER</simpara>
+                            <simpara>This a timer for scheduling future or recurring asynchronous work</simpara>
+                        </listitem>
+                        <listitem>
+                            <simpara>org.globus.wsrf.query.QueryEngine -- Constants.DEFAULT_QUERY_ENGINE</simpara>
+                            <simpara>This is used to map queries on the service data of a service to the appropriate
+                                ExpressionEvaluators and then return the result.</simpara>
+                        </listitem>
+                        <listitem>
+                            <simpara>org.globus.wsrf.topicexpression.TopicExpressionEngine --
+                                Constants.DEFAULT_TOPIC_EXPRESSION_ENGINE</simpara>
+                            <simpara>The TopicExpressionEngine interface is used to map queries on a topic list to the
+                                appropriate TopicExpressionEvaluators and then return the result. </simpara>
+                        </listitem>
+                        <listitem>
+                            <simpara>javax.sql.DataSource -- Constants.DEFAULT_DATABASE</simpara>
+                            <simpara>This is an in-memory base (Apache Derby), which can be used by services</simpara>
+                        </listitem>
+                    </itemizedlist> To access these objects from JNDI, you can use a convenience method provided by Java
+                    WS Core.
+                    <programlisting language="java" linenumbering="numbered">
+import org.globus.wsrf.jndi.JNDIUtils;
+import org.globus.wsrf.Constants;
+
+...
+
+WorkManager wm = (WorkManager) JNDIUtils.getInitialContext().lookup(Constants.DEFAULT_WORK_MANAGER);
+                    </programlisting>
+                    Note, that you need to cast whatever you lookup to the proper type, which is, in this case,
+                    WorkManager. The org.globus.wsrf.Constants class has constant fields for looking up each of standard
+                    resources provided by Java WS Core </para>
+            </section>
+            <section id="javawscore-developer-jndi-configuration">
+                <title>How can I store my own resources in JNDI?</title>
+                <para> As stated before, services should avoid creating objects and resources that have a lifetime that
+                    extends beyond a single request directly, so service developers should create and store those
+                    objects in JNDI. Any object can be stored in JNDI. The simplest way to implement an object as a
+                    JavaBean, i.e., having properties with corresponding get/set methods. Let's assume we have a bean
+                    that has a timeout property. We can configure this to be put in JNDI by putting the following
+                    information in our jndi-config-deploy.xml file. <programlisting language="xml" linenumbering="numbered">
+                        <![CDATA[
+<resource name="MyBean" type="org.mypackage.MyBean">
+    <resourceParams>
+        <parameter>
+            <name>timeout</name>
+            <value>10000</value>
+        </parameter>                               
+    </resourceParams>
+</resource>                
+]]>
+                   </programlisting> This would set the timeout property to be 10000. All properties which follow
+                    the JavaBean pattern can be set this way. </para>
+                <para> If you want to work with a class that does not follow the JavaBean pattern, or that requires a
+                    greater level of set up, you can implement your own factory to be used by JNDI. The interface for
+                    ObjectFactory only has one method to be implemented
+                    <programlisting language="java" linenumbering="numbered">
+Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable environment) 
+                    </programlisting>
+                    The parameters to this method provide all of the information necessary to create your object. In
+                    most situations, you will only work with the first parameter.
+                    <programlisting language="java" linenumbering="numbered">
+if (obj instanceof ResourceRef) {                        
+    Reference ref = (Reference) obj;
+    int timeout = ref.get("timeout");
+    MyBean bean = new MyBean();
+    bean.setTimeout(timeout);
+    return bean;
+}else{
+    return null;
+}                        
+                    </programlisting>
+                    This is the most common way of creating an object factory. Assuming the first parameter is an
+                    instance of ResourceRef, we have a simple way of getting the parameters defined in the
+                    configuration. The get() method of ResourceRef allows us to access those parameters. Once you have
+                    your parameters, create and configure your object, then return it. Now you can use this object just
+                    like you could any of the resources that Java WS Core supplies for you. The lookup name is
+                    specicified by the name attribute of the resource element in your configuration. To lookup an object
+                    you have supplied, you still use the JNDIUtils as before, specifying the proper lookup path.
+                    <programlisting language="java" linenumbering="numbered">
+MyBean bean = (MyBean) JNDIUtils.getInitialContext().lookup(Constants.DEFAULT_WSRF_LOCATION + "MyService/MyBean");
+                    </programlisting>
+                    Any object you define in your jndi-config-deploy.xml file can be found at the default wsrf location
+                    followed by your service name and the name you specified in the jndi-config-deploy.xml file. </para>
+            </section>
+        </section>
+
+        <section id="javawscore-developer-hreading">
+            <title>Asynchronous Work and Threads</title>
+            <section id="javawscore-developer-container-managed-threads">
+                <title>How can I run work asynchronously from my service?</title>
+                <para> You can use the container to maintain your threads for you. This is considered the best approach
+                    towards dealing with concurrency. The container's thread management is handled by the <ulink
+                        url="http://edocs.beasys.com/wls/docs90/javadocs/commonj/work/WorkManager.html"
+                    >WorkManager</ulink> class. The WorkManager is abstraction on top of how a task (or Work) is
+                    executed. It also assures that the execution context will be set correctly for the task. The
+                    abstract nature of the WorkManager provides a lot of flexibility to do things such as execute work
+                    in a pool, or on a remote cluster To use the WorkManager, you need to construct a Work object. Work
+                    just extends the Runnable interface to supply a method which allows the Work to gracefully end its
+                    processing. Basically, though, you only need to implement a <computeroutput>run()</computeroutput>
+                    method, just like you normally would. One advantage the WorkManager provides is that the caller can
+                    get information about the progress of Work which has been submitted to the WorkManager. This
+                    includes the state, as well as any information regarding exceptions that might have been thrown. The
+                        <computeroutput>WorkManager</computeroutput> works in a similar way to the ExecutorServices.
+                    <programlisting language="java" linenumbering="numbered">
+import commonj.work.WorkManager;
+                        
+...
+WorkManager manager = ... //acquired from JNDI
+manager.scheduleWork(myWork);
+                    </programlisting>
+                    The above code will execute the <computeroutput>myWork</computeroutput> asynchronously in a separate
+                    thread. It is also possible to run work synchronously in a separate thread:
+                    <programlisting language="java" linenumbering="numbered">
+import commonj.work.WorkManager;
+                        
+...
+WorkManager manager = ... //acquired from JNDI
+manager.doWork(myWork);
+                    </programlisting>
+                    This will also execute the <computeroutput>myWork</computeroutput> in a separate thread, but it will
+                    block until the job has completed. The <computeroutput>doWork</computeroutput> method should be used
+                    sparingly. </para>
+            </section>
+            <section id="javawscore-developer-configure-workmanager">
+                <title>How do I configure WorkManagers for my service?</title>
+                <para>Java WS Core sets up a default WorkManager which can be used by any service. The default
+                    Workmanager can be found in JNDI by doing the following:
+                    <programlisting language="java" linenumbering="numbered">
+WorkManager manager = (WorkManager) JNDIUtils.getInitialContext().lookup(Constants.DEFAULT_WORK_MANAGER);                        
+                    </programlisting>
+                    (See <link linkend="javawscore-developer-jndi-resources">the section on JNDI Objects</link> for
+                    details about looking up the WorkManager) </para>
+                <para>However, the job queue and thread pool for the default WorkManager is shared amongst all of the
+                    services, and, as such, may not be appropriate for time-sensitive jobs. In addition, the default
+                    WorkManager has a simple default configuration, which may not meed the needs of a service. Most
+                    services will want to configure one or more WorkManagers for use by their service. To configure a
+                    WorkManager for your service, you will need to add a resource to your jndi-deploy-config.xml file
+                    (see <link linkend="javawscore-developer-jndi-configuration">the section on configuring JNDI</link>
+                    for an overview)</para>
+                <para> There is only one parameter currently used for the WorkManager (more will be coming soon). This
+                    is the maximumPoolSize. This allows you to set the maximum number of threads that will be running at
+                    any given time. To configure a WorkManager for your service, you can specify the following: <programlisting language="xml" linenumbering="numbered">
+                        <![CDATA[
+<resource name="wm/WorkManager1" type="org.globus.wsrf.impl.work.WorkManagerImpl">
+    <resourceParams>
+        <parameter>
+            <name>maximumPoolSize</name>
+            <value>5</value>
+        </parameter>                               
+    </resourceParams>
+</resource>                
+]]>
+                    </programlisting> This will create a WorkManager that has a maximum size of 5 threads. Note that
+                    this is only the maximum number of threads. The WorkManager can still accept an unlimited number of
+                    jobs, but they will be queued until a thread is available to service them. This WorkManager can be
+                    acquired using the following code:
+                    <programlisting language="java" linenumbering="numbered">
+WorkManager WorkManager1 = (WorkManager) JNDIUtils.getInitialContext().lookup(Constants.DEFAULT_WSRF_LOCATION + "/MyService/wm/WorkManager1");                        
+                    </programlisting>
+                    Now the WorkManager can service your Work objects. Your service can use multiple WorkManagers. In
+                    fact, it is often advisable to have more than one WorkManager with a fairly small pool of threads
+                    (5-10) where each WorkManager processes a particular stage of your job. That way, long running tasks
+                    won't block fast tasks from executing. </para>
+            </section>
+            <section id="javawscore-developer-daemon-work">
+                <title>How can I run a "Daemon" process from my service?</title>
+                <para> Sometimes a service will need to run a process that lasts for a very long time (for example, for
+                    the lifetime of the container). A typical example, would be a monitoring process that is constantly
+                    listening for some event to occur. Clearly, the service won't want one of the Threads from its
+                    WorkManager pool to be occupied with this permanent task. To resolve this, you can specify your Work
+                    object as a Daemon which will launch it in a new Thread automatically. You should still use the
+                    WorkManager for this task, since it sets the context for you and can reuse threads when a Daemon has
+                    completed. The only difference is that when you create your Work object, you will return
+                        <computeroutput>true</computeroutput> for the <computeroutput>isDaemon()</computeroutput>
+                    method. </para>
+            </section>
+            <section id="javawscore-developer-create-a-thread">
+                <title>How can I create a Thread from my service?</title>
+                <para>Creating and using Java threads is a complicated task because of classloader, security and
+                    transction contexts. As such, it is <emphasis>strongly</emphasis> recommended that service
+                    developers not launch their own threads. If you, as a developer, feel you must launch your own
+                    thread, do so at your own risk. Here are a couple of pieces of advice, however if you are creating
+                    your own threads: <itemizedlist>
+                        <listitem>
+                            <simpara>
+                                <emphasis>Use the java.utils.concurrent constructs</emphasis>
+                            </simpara>
+                            <para>Java 5 has introduced a whole suite of concurrency tools which hide the details of
+                                handling threads. You should take advantage of these, specifically, the ExecutorService
+                                framework. This provides a way of abstracting thread pools and other thread handling.
+                                <programlisting language="java" linenumbering="numbered">
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+...
+//Create the Executor
+ExecutorService executor = Executors.newFixedThreadPool(numOfThreads);
+...
+//Now use the executor
+executor.submit(myRunnable);
+                        </programlisting>
+                                This assumes that <computeroutput>myRunnable</computeroutput> is an instance of a class
+                                that implements Runnable. The above code will submit the Runnable to the executor, and
+                                when a thread becomes available, execute the Runnable. There are other options for
+                                creating your Executor service and if you have other needs, you should read <ulink
+                                    url="http://java.sun.com/j2se/1.5.0/docs/api/java/util/concurrent/package-summary.html"
+                                    >the javadocs</ulink>. If you are going to use an ExecutorService, you should either
+                                set your service scope to "application", store the ExecutorService in JNDI or both.
+                                Otherwise, the ExecutorService will be created everytime your service has a request.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <simpara>
+                                <emphasis>Use the ClassLoaderUtils from CoG</emphasis>
+                            </simpara>
+                            <para> It is difficult to keep track of classloaders when you are working in threads. If you
+                                need to load a class using a method like
+                                <computeroutput>Class.forName(name)</computeroutput> or load a resourse like
+                                    <computeroutput>getClass().getResource(resource)</computeroutput> you must take
+                                special care to ensure that you are using the correct classloader. CoG provides a
+                                utility to help ensure that you are using the correct classloader. Instead of calling
+                                the above methods, use <computeroutput>ClassLoaderUtils.forName(name)</computeroutput>
+                                or <computeroutput>ClassLoaderUtils.getResource(resource)</computeroutput>. The
+                                ClassLoaderUtils has other helper methods as well. The documentation can be found <ulink
+                                    url="http://www-unix.globus.org/cog/distribution/1.4/api/org/globus/util/ClassLoaderUtils.html"
+                                    >here</ulink></para>
+                        </listitem>
+                    </itemizedlist> Even with these tools, it is possible you may still run into problems with Threads,
+                    but these should help get you on the way. </para>
+            </section>
+        </section>
+
+        <section id="javawscore-developer-querying">
+            <title>Querying Properties</title>
+            <section id="javawscore-developer-xpath">
+                <title>How can I query resource properties using XPath</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>querying resource properties using XPath</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>querying resource properties using XPath</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>resource properties</primary>
+                    <secondary>querying resource properties using XPath</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>resource properties</primary>
+                    <secondary>querying resource properties using XPath</secondary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>XPath</primary>
+                    <secondary>querying resource properties using XPath</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>XPath</primary>
+                    <secondary>querying resource properties using XPath</secondary>
+                </indexterm>
+                <para> Java WS Core currently provides two ways of querying the resource properties using XPath: the
+                    standard method and a proprietary method. The standard method is defined by the
+                        <computeroutput>WS-ResourceProperties</computeroutput> specification and all implementations of
+                    this specification support it. The proprietary method is a custom solution and therefore only
+                    supported by Globus Toolkit. The proprietary method is a new query dialect called
+                        <computeroutput>TargetedXPath</computeroutput>. The
+                    <computeroutput>TargetedXPath</computeroutput> query dialect offers three key advantages over the
+                    standard XPath query method:</para>
+                <itemizedlist>
+                    <listitem>
+                        <para>Namespace mappings - a set of explicit namespace mappings to be passed along with the
+                            query. With these mappings the query expression can be dramatically simplified as namespace
+                            prefixes can be used freely within the query.</para>
+                    </listitem>
+                    <listitem>
+                        <para>Single resource property querying - a specific resource property can be queried instead of
+                            the entire resource property document.</para>
+                    </listitem>
+                    <listitem>
+                        <para>WS-Enumeration support - the query results can be returned as an enumeration.</para>
+                    </listitem>
+                </itemizedlist>
+                <para>The <olink targetdoc="javawscoreDeveloper" targetptr="globus-xpath-query"/> command line tool can
+                    be used to query resource properties with the <computeroutput>TargetedXPath</computeroutput> query
+                    dialect. If the query results were returned as an enumeration they can be retrieved using the <olink
+                        targetdoc="javawscoreDeveloper" targetptr="ws-enumerate"/> command line tool.</para>
+                <section>
+                    <title>API</title>
+                    <para>Example querying resource properties using the <computeroutput>TargetedXPath</computeroutput>
+                        query dialect:</para>
+                    <programlisting language="java" linenumbering="numbered"> 
+import org.globus.wsrf.core.query.targetedXPath.TargetedXPathQueryType; 
+import org.globus.wsrf.core.query.targetedXPath.NamespaceMappingType; 
+import org.globus.wsrf.query.targetedXPath.TargetedXPathConstants; 
+                    
+... 
+                    
+TargetedXPathQueryType
+targetedQuery = new TargetedXPathQueryType(); 
+NamespaceMappingType nsMap[] = new NamespaceMappingType[1]; 
+nsMap[0] = new NamespaceMappingType();
+nsMap[0].setMappedName("fooPrefix"); nsMap[0].setNamespace(new URI("http://fooNamespace")); 
+targetedQuery.setNamespaceMappings(nsMap);
+targetedQuery.setQueryString("boolean(//fooPrefix:fooElement)"); 
+QueryExpressionType query = new QueryExpressionType();
+query.setDialect(TargetedXPathConstants.TARGETED_XPATH_DIALECT);
+query.setValue(targetedQuery); 
+QueryResourceProperties_Element queryRequest = new QueryResourceProperties_Element(); 
+queryRequest.setQueryExpression(query);
+QueryResourcePropertiesResponse queryResponse = port.queryResourceProperties(queryRequest); 
+                </programlisting>
+                    <para>To query a specific resource property do:</para>
+                    <programlisting linenumbering="numbered" language="java"> 
+... 
+targetedQuery.setNamespaceMappings(nsMap);
+targetedQuery.setQueryString("boolean(//fooPrefix:fooElement)"); 
+QName rp = new QName("http://foo", "bar"); 
+targetedQuery.setResourcePropertyName(rp); 
+... 
+                </programlisting>
+                    <para>To return query results as an enumeration do:</para>
+                    <programlisting language="java" linenumbering="numbered"> 
+import org.xmlsoap.schemas.ws._2004._09.enumeration.EnumerationContextType; 
+                    
+...
+                    
+targetedQuery.setNamespaceMappings(nsMap);
+targetedQuery.setQueryString("boolean(//fooPrefix:fooElement)");
+targetedQuery.setEnumerateResults(Boolean.TRUE); 
+                    
+... 
+                    
+QueryResourcePropertiesResponse
+queryResponse = port.queryResourceProperties(queryRequest); 
+EnumerationContextType context = 
+        (EnumerationContextType)ObjectDeserializer.getFirstAsObject(queryResponse, EnumerationContextType.class); 
+                </programlisting>
+                </section>
+            </section>
+            <section id="javawscore-developer-CustomExpressionEval">
+                <title>How can I add a new query/topic expression evaluator?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>adding a new query/topic expression evaluator</primary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>adding a new query/topic expression evaluator</primary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>expression evaluator</primary>
+                    <secondary>adding a new query/topic</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>expression evaluator</primary>
+                    <secondary>adding a new query/topic</secondary>
+                </indexterm>
+                <para>Java WS Core allows for custom query/topic expression evaluators to be plugged in. The process of
+                    adding a new query/topic expression evaluator is composed of three steps:</para>
+                <section id="javawscore-developer-implementation">
+                    <title>Step 1: Implement the evaluator </title>
+                    <table>
+                        <title>Evaluator interfaces</title>
+                        <tgroup cols="2">
+                            <thead>
+                                <row>
+                                    <entry>If the evaluator is a... </entry>
+                                    <entry>then it must implement: </entry>
+                                </row>
+                            </thead>
+                            <tbody>
+                                <row>
+                                    <entry>query expression evaluator </entry>
+                                    <entry>
+                                        <computeroutput>org.globus.wsrf.query.ExpressionEvaluator</computeroutput>
+                                    </entry>
+                                </row>
+                                <row>
+                                    <entry>topic expression evaluator </entry>
+                                    <entry>
+                                        <computeroutput>org.globus.wsrf.topicexpression.TopicExpressionEvaluator</computeroutput>
+                                    </entry>
+                                </row>
+                            </tbody>
+                        </tgroup>
+                    </table>
+                </section>
+                <section id="javawscore-developer-registration">
+                    <title>Step 2: Register the evaluator </title>
+                    <para>The evaluators must be registered in order for Java WS Core to recognize them. The
+                        registration is done through the JNDI configuration file. The expression evaluators must be
+                        deployed as global resources under a specific subcontext. </para>
+                    <section>
+                        <title>Registering query expression evaluators </title>
+                        <para>The query expression evaluators must be deployed as global resources under the <emphasis>
+                                <computeroutput>query/eval/</computeroutput>
+                            </emphasis> subcontext in the JNDI configuration file. </para>
+                        <para> Example: </para>
+                        <screen>&lt;global&gt; &lt;resource <emphasis role="bold">name</emphasis>=&quot;query/eval/<emphasis>MyQueryExpressionEval</emphasis>&quot;
+                            <emphasis role="bold">type</emphasis>=&quot;<emphasis>foo.bar.MyQueryExpressionEvaluator</emphasis>&quot;&gt;
+                            &lt;resourceParams&gt; &lt;parameter&gt;
+                            &lt;name&gt;factory&lt;/name&gt;
+                            &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+                            &lt;/parameter&gt; &lt;/resourceParams&gt; &lt;/resource&gt;
+                            &lt;/global&gt;</screen>
+                        <para> Where the <computeroutput>&lt;resource&gt;</computeroutput> attribute: </para>
+                        <informaltable>
+                            <tgroup cols="2">
+                                <tbody>
+                                    <row>
+                                        <entry>
+                                            <computeroutput>name</computeroutput>
+                                        </entry>
+                                        <entry>Specifies the name of the evaluator in JNDI space. The name can be
+                                            arbitrary as long as it is unique and is in the right subcontext as
+                                            explained above.</entry>
+                                    </row>
+                                    <row>
+                                        <entry>
+                                            <computeroutput>type</computeroutput>
+                                        </entry>
+                                        <entry>Specifies the class that implements the expression evaluator.</entry>
+                                    </row>
+                                </tbody>
+                            </tgroup>
+                        </informaltable>
+                    </section>
+                    <section>
+                        <title>Registering topic expression evaluators </title>
+                        <para>Topic expression evaluators must be deployed as global resources under the <emphasis>
+                                <computeroutput>topic/eval/</computeroutput>
+                            </emphasis> subcontext in the JNDI configuration file. </para>
+                        <para>Example:</para>
+                        <screen>
+                            
+                            &lt;global&gt; &lt;resource <emphasis role="bold">name</emphasis>=&quot;topic/eval/<emphasis>MyTopicExpressionEval</emphasis>&quot;
+                            <emphasis role="bold">type</emphasis>=&quot;<emphasis>foo.bar.MyTopicExpressionEvaluator</emphasis>&quot;&gt;
+                            &lt;resourceParams&gt; &lt;parameter&gt;
+                            &lt;name&gt;factory&lt;/name&gt;
+                            &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+                            &lt;/parameter&gt; &lt;/resourceParams&gt; &lt;/resource&gt;
+                            &lt;/global&gt;</screen>
+                        <para> Where the <computeroutput>&lt;resource&gt;</computeroutput> attribute: </para>
+                        <informaltable>
+                            <tgroup cols="2">
+                                <tbody>
+                                    <row>
+                                        <entry>
+                                            <computeroutput>name</computeroutput>
+                                        </entry>
+                                        <entry>Specifies the name of the evaluator in JNDI space. The name can be
+                                            arbitrary as long as it is unique and is in the right subcontext as
+                                            explained above.</entry>
+                                    </row>
+                                    <row>
+                                        <entry>
+                                            <computeroutput>type</computeroutput>
+                                        </entry>
+                                        <entry>Specifies the class that implements the expression evaluator.</entry>
+                                    </row>
+                                </tbody>
+                            </tgroup>
+                        </informaltable>
+                    </section>
+                </section>
+                <section id="javawscore-developer-registrationserializerdeserializer">
+                    <title>Step 3: Register the serializer/deserializer for the evaluator</title>
+                    <para>A serializer/deserializer must be registered for the dialect of the evaluator in order for the
+                        expression to be properly serialized and deserialized. The serializers/deserializers for the
+                        dialect are deployed as almost any other type mapping. In general, each type mapping specifies a
+                        type QName. For dialect serializers/deserializers, that type QName takes a slightly different
+                        name.</para>
+                    <section>
+                        <title>Specifying the QName for query expression evaluators </title>
+                        <para>For query expression evaluators, that QName must have the local name part set to <emphasis>
+                                <computeroutput>QueryExpressionDialect</computeroutput>
+                            </emphasis> and namespace part set to the dialect of the query expression evaluator. </para>
+                        <para>Example: </para>
+                        <screen>&lt;typeMapping encodingStyle=&quot;&quot;
+                            deserializer=&quot;org.apache.axis.encoding.ser.SimpleDeserializerFactory&quot;
+                            serializer=&quot;org.apache.axis.encoding.ser.SimpleSerializerFactory&quot;
+                            type=&quot;java:java.lang.String&quot;
+                            qname=&quot;ns12:QueryExpressionDialect&quot;
+                            xmlns:ns12=&quot;http://foo.bar/MyQueryDialect&quot;/&gt;</screen>
+                        <para>
+                            <note>
+                                <simpara>These type mappings must be deployed both on the client and the
+                                server.</simpara>
+                            </note>
+                        </para>
+                    </section>
+                    <section>
+                        <title>Specifying the QName for topic expression evaluators </title>
+                        <para>For topic expression evaluators, that QName must have the local name part set to <emphasis>
+                                <computeroutput>TopicExpressionDialect</computeroutput>
+                            </emphasis> and namespace part set to the dialect of the topic expression evaluator. </para>
+                        <para>Example: <screen>&lt;typeMapping encodingStyle=&quot;&quot;
+                            deserializer=&quot;org.apache.axis.encoding.ser.SimpleDeserializerFactory&quot;
+                            serializer=&quot;org.apache.axis.encoding.ser.SimpleSerializerFactory&quot;
+                            type=&quot;java:java.lang.String&quot;
+                            qname=&quot;ns12:TopicExpressionDialect&quot;
+                            xmlns:ns12=&quot;http://foo.bar/MyTopicDialect&quot;/&gt;</screen><note>
+                                <simpara>These type mappings must be deployed both on the client and the
+                                server.</simpara>
+                            </note></para>
+                    </section>
+                </section>
+                <section id="javawscore-developer-GetCurrentMessageProvider">
+                    <title>Step 4: Configuring a helper serializer for GetCurrentMessageProvider</title>
+                    <para> The standard <computeroutput>GetCurrentMessageProvider</computeroutput> might not know how to
+                        properly serialize the notification message currently associated with the specified topic. The
+                            <computeroutput>GetCurrentMessageProvider</computeroutput> can be configured to use a helper
+                        serializer for a given notification message type. </para>
+                    <para>To configure such a helper serializer, define the following global resource in your
+                            <computeroutput>deploy-jndi.xml</computeroutput> configuration file:</para>
+                    <screen>&lt;global&gt; &lt;resource <emphasis role="bold">name</emphasis>=&quot;providers/GetCurrentMessageProvider/<emphasis>foo.bar.MyNotificationMessage</emphasis>&quot;
+                        <emphasis role="bold">type</emphasis>=&quot;<emphasis>foo.bar.MyMessageSerializer</emphasis>&quot;&gt;
+                        &lt;resourceParams&gt; &lt;parameter&gt;
+                        &lt;name&gt;factory&lt;/name&gt;
+                        &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+                        &lt;/parameter&gt; &lt;/resourceParams&gt; &lt;/resource&gt;
+                        &lt;/global&gt;</screen>
+                    <para> Where the <computeroutput>&lt;resource&gt;</computeroutput> attribute: </para>
+                    <informaltable>
+                        <tgroup cols="2">
+                            <tbody>
+                                <row>
+                                    <entry>
+                                        <computeroutput>name</computeroutput>
+                                    </entry>
+                                    <entry>Must start with <emphasis>
+                                            <computeroutput>providers/GetCurrentMessageProvider/</computeroutput>
+                                        </emphasis> and must end with the full class name of the notification
+                                    message.</entry>
+                                </row>
+                                <row>
+                                    <entry>
+                                        <computeroutput>type</computeroutput>
+                                    </entry>
+                                    <entry>Specifies the class that implements the
+                                            <computeroutput>org.globus.wsrf.encoding.ObjectConverter</computeroutput>
+                                        interface and is responsible for serializing the notification message. The
+                                            <computeroutput>GetCurrentMessageProvider</computeroutput> will use the type
+                                        of the notification message to find the helper serializer.</entry>
+                                </row>
+                            </tbody>
+                        </tgroup>
+                    </informaltable>
+                </section>
+            </section>
+        </section>
+
+        <section id="javawscore-developer-build-recipes">
+            <title>Build Recipes</title>
+            <section id="javawscore-developer-ant-file">
+                <title>How can I process my wsdl using an Ant build file?</title>
+                <para> Java WS Core supplies some helper build files to simplify the task of processing wsdl. In order
+                    to use the helper build files, you should tell ant about GLOBUS_LOCATION. You can set an Ant
+                    property to do this: <programlisting language="xml" linenumbering="numbered">
+                        <![CDATA[
+<property environment="env"/>
+<property name="globus_location" value="${env.GLOBUS_LOCATION}">
+]]>
+                </programlisting> The first property statement creates a property which holds all of the system
+                    environment variables and the second assigns the GLOBUS_LOCATION environment variable to the
+                    property <computeroutput>globus_location</computeroutput>. Obviously, this means you need to have
+                    set the GLOBUS_LOCATION variable in your environment. Once you have set this, you can use this
+                    property in your target. </para>
+                <para>If you have used the <computeroutput>wsdlpp:extends</computeroutput> (where wsdlpp is
+                        <computeroutput>http://www.globus.org/namespaces/2004/10/WSDLPreprocessor</computeroutput>)
+                    property in your wsdl, the first step to preparing your stubs is to flatten your wsdl file. To run
+                    this task, use this:</para>
+                <programlisting language="xml" linenumbering="numbered">
+                    <![CDATA[
+<ant antfile="${build.stubs}" target="flatten">
+    <property name="source.flatten.dir"
+        location="${schema.src}/myservice"/>
+    <property name="target.flatten.dir"
+        location="${schema.dest}/myservice"/>
+    <property name="wsdl.source"
+        value="myservice_port.wsdl"/>
+    <property name="wsdl.target" 
+        value="myservice_flattened.wsdl"/>
+    <property name="wsdl.porttype" value="MyServicePortType"/>
+</ant>                 
+]]>
+                    </programlisting>
+                <para>The arguments here are fairly self-explanatory, but just to clarify the
+                        <computeroutput>source.flatten.dir</computeroutput> represents the directory that your wsdl file
+                    is in, the <computeroutput>target.flatten.dir</computeroutput> is the directory that you want your
+                    processed wsdl file to be written to, <computeroutput>wsdl.source</computeroutput> is the name of
+                    the wsdl file that you are processing, <computeroutput>wsdl.target</computeroutput> is the name that
+                    you want the new wsdl file to be called, and <computeroutput>wsdl.porttype</computeroutput> is the
+                    port type that you are processing (as defined in your wsdl file. You'll notice that there are
+                    references to properties such as <computeroutput>${build.stubs}</computeroutput>,
+                        <computeroutput>${schema.src}</computeroutput>, etc. These are just properties I set up. You can
+                    set these up to whatever you wish (or just use the paths directly instead of using properties). </para>
+                <para> The next step is to generate the bindings for your service. This is very similar to the previous
+                    step: <programlisting language="xml" linenumbering="numbered">
+                        <![CDATA[
+<target name="binding" depends="flatten">
+                            
+    <ant antfile="${build.stubs}" target="generateBinding">
+        <property name="source.binding.dir"
+            location="${schema.dest}/myservice"/>
+        <property name="target.binding.dir" location="${schema.dest}/myservice"/>
+        <property name="binding.root" value="myservice"/>
+        <property name="porttype.wsdl"
+            value="myservice_flattened.wsdl"/>
+    </ant>
+</target>                        
+]]>
+                    </programlisting>
+                </para>
+                <para> Again, the arguments should be fairly clear. The
+                    <computeroutput>source.binding.dir</computeroutput> is the directory where the wsdl that you want to
+                    bind resides (this will almost always be the <computeroutput>target.flatten.dir</computeroutput>
+                    from the previous step). The <computeroutput>target.binding.dir</computeroutput> is the directory
+                    where the bindings will be written. The <computeroutput>binding.root</computeroutput> is the base
+                    name of the outputted wsdl files, and the <computeroutput>porttype.wsdl</computeroutput> is the name
+                    of the wsdl file to bind (This will almost always be the name of the
+                    <computeroutput>wsdl.target</computeroutput> from the previous step). </para>
+                <para> The final step to prepare your wsdl is to generate the stub classes. These are the java classes
+                    to which you will refer in your service and your clients. Similar to the previous two steps: <programlisting language="xml" linenumbering="numbered">
+                        <![CDATA[
+<target name="stubs" depends="binding">
+    <ant antfile="${build.stubs}" target="mergePackageMapping">
+        <property name="mapping.src" value="${basedir}/namespace2package.properties"/>
+        <property name="mapping.dst" value="${build.dir}/namespace2package.properties"/>
+    </ant>
+                            
+    <ant antfile="${build.stubs}" target="generateStubs">
+        <property name="source.stubs.dir"
+            location="${schema.dest}/test/performance"/>
+        <property name="target.stubs.dir" location="${stubs.src}"/>
+        <property name="wsdl.file"
+            value="performance_test_service.wsdl"/>
+        <property name="mapping.file" value="${build.dir}/namespace2package.properties"/>
+        </ant>
+</target>
+]]>
+                    </programlisting>
+                </para>
+                <para>There are actually two Globus-provided tasks in this target. The first one is optional. If you
+                    have custom mappings to map namespaces to Java package names, you can create a properties file that
+                    lists those mappings. Then use the <computeroutput>mergePackageMapping</computeroutput> task to
+                    merge your mappings with the default mappings. The parameters are:
+                    <computeroutput>mapping.src</computeroutput> -- where your custom mappings live and
+                        <computeroutput>mapping.dst</computeroutput> -- where you want the merged file to be written. </para>
+                <para>The final task here (<computeroutput>generateStubs</computeroutput>) actually generates the stub
+                    classes. The parameter names here are not entirely intuitive.
+                    <computeroutput>source.stubs.dir</computeroutput> is the directory where your wsdl's live.
+                        <computeroutput>target.stubs.dir</computeroutput> is where you want the Java source files to be
+                    written. <computeroutput>wsdl.file</computeroutput> is the name of your wsdl file, and
+                        <computeroutput>mapping.file</computeroutput> is the location of the (optional)
+                    namespace-package mapping file. </para>
+                <para>Once you have run all of these steps, you should generated all of the java stubs and bindings that
+                    you need to build your service.</para>
+            </section>
+            <section id="javawscore-developer-gar-creating">
+                <title>How can I create a GAR?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>Grid Archive (GAR)</primary>
+                    <secondary>creating a GAR file through Ant</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>Grid Archive (GAR)</primary>
+                    <secondary>creating a GAR file through Ant</secondary>
+                </indexterm>
+                <para>To create a GAR file use the following example:</para>
+                <programlisting language="xml" linenumbering="numbered"> 
+                    <![CDATA[
+<property name=&quot;build.packages&quot; location=&quot;${deploy.dir}/share/globus_wsrf_common/build-packages.xml&quot;/>
+... 
+<property name=&quot;garjars.id&quot; value=&quot;garjars&quot;/> 
+<fileset dir=&quot;lib&quot; id=&quot;garjars&quot;/> 
+<property name=&quot;garetc.id&quot; value=&quot;garetc&quot;/>
+<fileset dir=&quot;etc&quot; id=&quot;garetc&quot;/> 
+...
+
+<target name=&quot;dist&quot; depends=&quot;...&quot;>
+    <ant antfile=&quot;${build.packages}&quot;target=&quot;makeGar&quot;> 
+        <property name=&quot;gar.name&quot; value=&quot;mygar.gar&quot;/>
+        <reference refid=&quot;${garjars.id}&quot;/> 
+        <reference refid=&quot;${garetc.id}&quot;/> 
+    </ant>
+</target> 
+]]>
+                    </programlisting>
+                <para>The <computeroutput>gar.name</computeroutput> property must be passed. That property specifies the
+                    gar file to create. The <computeroutput>makeGar</computeroutput> task will look for
+                        <computeroutput>deploy-client.wsdd</computeroutput>,
+                    <computeroutput>deploy-server.wsdd</computeroutput>, and
+                    <computeroutput>deploy-jndi-config.xml</computeroutput> files in the base directory of the calling
+                    Ant process. All of these files are optional and do not have exist. The list of files to be included
+                    in the GAR file is passed via Ant references. The <computeroutput>makeGar</computeroutput> accepts
+                    the following references: <computeroutput>garjars.id</computeroutput>,
+                    <computeroutput>garschema.id</computeroutput>, <computeroutput>garetc.id</computeroutput>,
+                        <computeroutput>garshare.id</computeroutput>, <computeroutput>gardocs.id</computeroutput>, and
+                        <computeroutput>garbin.id</computeroutput>. All of these references are optional and do not have
+                    to be defined.</para>
+                <para>In the above example, all files in the <computeroutput>etc</computeroutput> and
+                        <computeroutput>lib</computeroutput> directories, and the
+                    <computeroutput>deploy-client.wsdd</computeroutput>,
+                    <computeroutput>deploy-server.wsdd</computeroutput>, and
+                    <computeroutput>deploy-jndi-config.xml</computeroutput> files (if they exist) will be included into
+                    the GAR file. </para>
+            </section>
+            <section id="javawscore-developer-gar-deploying">
+                <title>How can I deploy my GAR?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>Grid Archive (GAR)</primary>
+                    <secondary>deploying a GAR file</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>Grid Archive (GAR)</primary>
+                    <secondary>deploying a GAR file</secondary>
+                </indexterm>
+                <para>To deploy a GAR file use the following example:</para>
+                <programlisting language="xml" linenumbering="numbered"> 
+                    <![CDATA[
+<property name=&quot;build.packages&quot; location=&quot;${deploy.dir}/share/globus_wsrf_common/build-packages.xml&quot;/>
+... 
+<target name=&quot;deploy&quot; depends=&quot;...&quot;> 
+    <ant antfile=&quot;${build.packages}&quot; target=&quot;deployGar&quot;> 
+        <property name=&quot;gar.name&quot; value=&quot;mygar.gar&quot;/>
+    </ant> 
+</target> 
+]]>
+                    </programlisting>
+                <para>The <computeroutput>gar.name</computeroutput> property must be passed. That property specifies the
+                    gar file to deploy. Optionally, the <computeroutput>profile</computeroutput> property can be passed
+                    to indicate which configuration profile the gar should be deployed under. </para>
+            </section>
+            <section id="javawscore-developer-CreatingLaunchers">
+                <title>How can I generate a laucher for my client?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>deploying GARs</primary>
+                    <secondary>generating launcher scripts</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>Grid Archive (GAR)</primary>
+                    <secondary>generating launcher scripts</secondary>
+                </indexterm>
+                <para>Bourne Shell and Windows batch scripts can be automatically generated to hide the details of
+                    launching a Java program from the command line. </para>
+                <para>To generate such a command line script, write a Ant task that calls the
+                        <computeroutput>generateLauncher</computeroutput> target in
+                        <computeroutput>$GLOBUS_LOCATION/share/globus_wsrf_common/build-launcher.xml</computeroutput>.
+                    The following properties/parameters must be specified: </para>
+                <itemizedlist>
+                    <listitem>
+                        <simpara>
+                            <emphasis>
+                                <computeroutput>${launcher-name}</computeroutput>
+                            </emphasis> - the base name of script to generate.</simpara>
+                    </listitem>
+                    <listitem>
+                        <simpara>
+                            <emphasis>
+                                <computeroutput>${class.name}</computeroutput>
+                            </emphasis> - the name of Java class the script must call.</simpara>
+                    </listitem>
+                </itemizedlist>
+                <para> For example: </para>
+                <programlisting language="xml" linenumbering="numbered"> 
+<![CDATA[
+... 
+<property name="env.GLOBUS_LOCATION" value="."/> 
+<property name="deploy.dir" location="${env.GLOBUS_LOCATION}"/>
+<property name="abs.deploy.dir" location="${deploy.dir}"/> 
+<property name="build.launcher" location="${abs.deploy.dir}/share/globus_wsrf_common/build-launcher.xml">
+                    
+... 
+
+<ant antfile="${build.launcher}" target="generateLauncher"> 
+    <property name="launcher-name" value="myClient"/>
+    <property name="class.name" value="org.mypackage.MyClient"/> 
+</ant>
+]]>
+                </programlisting>
+                <para>It is also possible to specify default JVM options and command line options via the
+                        <computeroutput>default.jvm.options</computeroutput> and
+                    <computeroutput>default.cmd.line</computeroutput> parameters. When passing multiple parameters using
+                        <computeroutput>default.jvm.options</computeroutput> for Unix/Linux scripts the parameters must
+                    be separated by <computeroutput>${DELIM}</computeroutput> delimiter. For example:</para>
+                <programlisting language="xml" linenumbering="numbered"> 
+<![CDATA[
+<target name="generateUnixScripts" if="generate.unix" depends="testUnix">
+<ant antfile="${build.launcher}" target="generateLauncher"> 
+
+... 
+
+<property name="default.jvm.options" value="-DFOO="$FOO"${DELIM}-DBAR="$BAR"/>
+</ant> 
+</target>
+]]>
+                    </programlisting>
+                <para>In general the generation of the command line scripts is done in the
+                        <computeroutput>post-deploy.xml</computeroutput> script during GAR deployment (<olink
+                        targetdoc="javawscoreDeveloper" targetptr="deployGar"/>). </para>
+            </section>
+            <section id="javawscore-developer-client-jar-creating">
+                <title>How do I create a client distribution for my service?</title>
+                <para> There is no automated process for this, but there are a few simple steps that can provide the
+                    pieces that you need. (Note, this is one possible approach. Other methods can work too.) First, when
+                    you are building your service, you need to generate your stubs in their own directory. From Ant,
+                    this would look like this (from the CounterService example): </para>
+                <programlisting language="xml" linenumbering="numbered">
+<![CDATA[
+<target name="stubs" unless="stubs.present" depends="init">
+    <ant antfile="${build.stubs}" target="generateStubs">
+        <property name="source.stubs.dir" 
+            location="${schema.dest}/core/samples/counter"/>
+        <property name="target.stubs.dir" location="${stubs.src}"/>
+        <property name="wsdl.file" 
+            value="counter_service.wsdl"/>
+    </ant>
+</target>
+]]>                    
+                </programlisting>
+                <para>The <computeroutput>source.stubs.dir</computeroutput> determines where the stub classes are
+                    created. This, in turn, will allow us to compile those classes into their own compile directory like
+                    this (also from the CounterService example):</para>
+                <programlisting language="xml" linenumbering="numbered">
+<![CDATA[
+<target name="compileStubs" depends="stubs">
+       <javac srcdir="${stubs.src}" destdir="${stubs.dest}" 
+            debug="${java.debug}">
+            <include name="**/*.java"/>
+            <classpath>
+                <fileset dir="${deploy.dir}/lib">
+                    <include name="common/*.jar"/>
+                    <include name="*.jar"/>
+                    <exclude name="${stubs.jar.name}"/>
+                    <exclude name="${jar.name}"/>
+                </fileset>
+            </classpath>
+        </javac>
+        <copy todir="${build.dest}" >
+              <fileset dir="src" includes="**/*.properties" />
+              <fileset dir="src" includes="**/*.xml" />
+        </copy>
+</target>
+]]>                                        
+                </programlisting>
+                <para>So, now we have our stubs compiled into their own directory and copied all resource files into the
+                    same directory. The final step in preparing the stubs is to jar them up:</para>
+                <programlisting language="xml" linenumbering="numbered">
+<![CDATA[
+<target name="jarStubs" depends="compileStubs">
+    <jar destfile="${build.lib.dir}/${stubs.jar.name}" 
+        basedir="${stubs.dest}"/>
+</target>
+]]>                    
+                </programlisting>
+                <para>At this point, we have a jar which contains all of our stubs. This will be used on both the server
+                    and by the clients. Now, you need to write your client code (probably in it's own src dirctory),
+                    compile it and create a jar for it. These two jars are the only jars you need to produce. In
+                    addition you need to make sure that you have an installation of Java WS Core available. The root
+                    directory of your installation should have both a
+                    <computeroutput>client-config.wsdd</computeroutput> and a
+                    <computeroutput>log4j.properties</computeroutput> file in it. You can combine this with the launcher
+                        <link linkend="javawscore-developer-CreatingLaunchers">example above</link> to build a launcher
+                    for the client jars which you have just generated.</para>
+            </section>
+        </section>
+
+        <section id="javawscore-developer-client-connection">
+            <title>Controlling client connection settings</title>
+            <indexterm type="javawscore-howto">
+                <primary>programming</primary>
+                <secondary>client-side</secondary>
+                <tertiary>controlling connection settings</tertiary>
+            </indexterm>
+            <indexterm type="javawscore">
+                <primary>programming</primary>
+                <secondary>client-side</secondary>
+                <tertiary>controlling connection settings</tertiary>
+            </indexterm>
+            <indexterm type="javawscore-howto">
+                <primary>connection</primary>
+                <secondary>controlling connection settings</secondary>
+            </indexterm>
+            <indexterm type="javawscore">
+                <primary>connection</primary>
+                <secondary>controlling connection settings</secondary>
+            </indexterm>
+            <para> By default Java WS Core clients will use HTTP 1.1 protocol with chunked encoding. Java WS Core
+                clients will also attempt to reuse HTTP/S connections between the calls. The default timeout for clients
+                is 10 minutes. All of these connection properties can be controlled programmatically using the <ulink
+                    url="http://www-unix.mcs.anl.gov/~gawor/jglobus-fx/HEAD/javadoc/org/globus/axis/transport/HTTPUtils.html"
+                    >HTTPUtils</ulink> API as shown below. </para>
+            <note>
+                <simpara>Please note that once a connection property is set on a given Stub, it is applied to ALL calls
+                    made using that Stub. </simpara>
+            </note>
+            <section id="javawscore-developer-client-connection-timeout">
+                <title>How can I set the timeout on my client?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>client-side</secondary>
+                    <tertiary>setting connection timeout</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>client-side</secondary>
+                    <tertiary>setting connection timeout</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>connection</primary>
+                    <secondary>setting connection timeout</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>connection</primary>
+                    <secondary>setting connection timeout</secondary>
+                </indexterm>
+                <para> To set connection timeout do (the timeout value is in milliseconds): </para>
+                <programlisting linenumbering="numbered" language="xml"> 
+import org.globus.axis.transport.HTTPUtils; 
+
+... 
+
+MyServiceAddressingLocator locator = new MyServiceAddressingLocator(); 
+MyService port = locator.getMyServicePort(url); // set timeout to 2 minutes
+<emphasis>HTTPUtils.setTimeout((Stub)port, 1000 * 60 * 2);</emphasis> 
+port.hello();
+                        </programlisting>
+            </section>
+            <section id="javawscore-developer-client-connection-close">
+                <title>How can I reuse my connection?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>client-side</secondary>
+                    <tertiary>controlling connection reuse</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>client-side</secondary>
+                    <tertiary>controlling connection reuse</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>connection</primary>
+                    <secondary>controlling connection reuse</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>connection</primary>
+                    <secondary>controlling connection reuse</secondary>
+                </indexterm>
+                <para> To control connection reuse do: </para>
+                <programlisting language="xml" linenumbering="numbered"> 
+import org.globus.axis.transport.HTTPUtils; 
+                            
+... 
+                            
+MyServiceAddressingLocator locator = new MyServiceAddressingLocator(); 
+MyService port = locator.getMyServicePort(url); // close connection after the call
+<emphasis>HTTPUtils.setCloseConnection((Stub)port, true);</emphasis> 
+port.hello();
+// do not close connection - let it be reused
+<emphasis>HTTPUtils.setCloseConnection((Stub)port, false);</emphasis> 
+port.hello();
+                        </programlisting>
+            </section>
+            <section id="javawscore-developer-client-connection-chunking">
+                <title>How can I control HTTP chunked encoding</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>client-side</secondary>
+                    <tertiary>controlling HTTP chunked encoding</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>client-side</secondary>
+                    <tertiary>controlling HTTP chunked encoding</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>HTTP</primary>
+                    <secondary>controlling HTTP chunked encoding</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>HTTP</primary>
+                    <secondary>controlling HTTP chunked encoding</secondary>
+                </indexterm>
+                <para> To control whether HTTP chunked encoding should be used do: </para>
+                <programlisting language="xml" linenumbering="numbered"> 
+import org.globus.axis.transport.HTTPUtils;
+                            
+... 
+                            
+MyServiceAddressingLocator locator = new MyServiceAddressingLocator(); 
+MyService port = locator.getMyServicePort(url); // disable chunked encoding
+<emphasis>HTTPUtils.setChunkedEncoding((Stub)port, false);</emphasis> 
+port.hello();
+// re-enable chunked encoding 
+<emphasis>HTTPUtils.setChunkedEncoding((Stub)port, true);</emphasis> 
+port.hello(); 
+                        </programlisting>
+            </section>
+            <section id="javawscore-developer-client-connection-version">
+                <title>How can I control the HTTP protocol version?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>client-side</secondary>
+                    <tertiary>controlling HTTP protocol version</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>client-side</secondary>
+                    <tertiary>controlling HTTP protocol version</tertiary>
+                </indexterm>
+                <para> To control what HTTP protocol version should be used do: </para>
+                <programlisting language="xml" linenumbering="numbered"> 
+import org.globus.axis.transport.HTTPUtils; 
+                            
+... 
+
+MyServiceAddressingLocator locator = new MyServiceAddressingLocator(); 
+MyService port = locator.getMyServicePort(url); 
+// force HTTP 1.0
+<emphasis>HTTPUtils.setHTTP10Version((Stub)port, true);</emphasis> port.hello(); 
+//force HTTP 1.1 
+<emphasis>HTTPUtils.setHTTP10Version((Stub)port, false);</emphasis>
+port.hello(); 
+                        </programlisting>
+            </section>
+        </section>
+
+        <!-- Miscelaneous Recipes -->
+        <section id="misc-recipes">
+            <title>Miscellaneous Recipes</title>
+            <section id="javawscore-developer-version">
+                <title>How do I obtain Version Information about Java WS Core</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>obtaining version information</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>obtaining version information</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>version</primary>
+                    <secondary>obtaining version information</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>version</primary>
+                    <secondary>obtaining version information</secondary>
+                </indexterm>
+                <para> The <ulink url="http://www.globus.org/api/javadoc-4.2.0/org/globus/wsrf/utils/Version.html"
+                        >Version</ulink> API can be used to obtain Java WS Core version information programmatically.
+                    For example to display major, minor and patch version information do:
+                    <programlisting language="java" linenumbering="numbered"> 
+import org.globus.wsrf.utils.Version;
+                        
+... 
+                        
+System.out.println("Major: " + Version.getMajor()); 
+System.out.println("Minor: " + Version.getMinor());
+System.out.println("Micro: " + Version.getMicro()); 
+                    </programlisting>
+                </para>
+            </section>
+            <section id="javawscore-developer-soap-attachments">
+                <title>How can I use SOAP Attachments with my service?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>adding and retrieving SOAP Attachments</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>general</secondary>
+                    <tertiary>adding and retrieving SOAP Attachments</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>SOAP</primary>
+                    <secondary>adding and retrieving SOAP Attachments</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>SOAP</primary>
+                    <secondary>adding and retrieving SOAP Attachments</secondary>
+                </indexterm>
+                <para> Java WS Core supports SOAP with Attachments. DIME, MIME, and MTOM formats are supported. This
+                    section provides brief sample code. Detailed code can be found in the automated tests for this
+                    feature at, <ulink
+                        url="http://viewcvs.globus.org/viewcvs.cgi/wsrf/java/core/test/unit/src/org/globus/wsrf/impl/security/"
+                    /> AttachmentTestService.java and AttachmentsTests.java.</para>
+                <para>To add an attachment to a request do: </para>
+                <programlisting language="java" linenumbering="numbered"> 
+import javax.activation.DataHandler; 
+import javax.activation.FileDataSource;                            
+import javax.xml.rpc.Stub; 
+import org.apache.axis.client.Call; 
+                    
+.... 
+                    
+File file = new File(..); 
+DataHandler dataHandler = new DataHandler(new FileDataSource(file));
+((Stub)port)._setProperty( Call.ATTACHMENT_ENCAPSULATION_FORMAT, Call.ATTACHMENT_ENCAPSULATION_FORMAT_MTOM);
+((org.apache.axis.client.Stub)port).addAttachment(dataHandler); 
+                </programlisting>
+                <para>To retrieve attachments associated with a request do:</para>
+                <programlisting language="java" linenumbering="numbered"> 
+import javax.activation.DataHandler; 
+import javax.xml.soap.AttachmentPart; 
+import org.apache.axis.Message; 
+import org.apache.axis.MessageContext; 
+                    
+.... 
+                    
+MessageContext msgContext = MessageContext.getCurrentContext(); 
+Message reqMsg = msgContext.getRequestMessage(); 
+if (reqMsg.getAttachmentsImpl() == null) { 
+    throw new Exception("Attachments are not supported"); 
+} 
+Iterator it = reqMsg.getAttachments();
+while (it.hasNext()) { 
+    AttachmentPart part = (AttachmentPart) it.next(); 
+    DataHandler dataHandler = part.getDataHandler(); 
+} 
+                </programlisting>
+                <para> The SwA support adds a small overhead to overall SOAP processing. To disable SwA support for
+                    improved performance delete
+                        <filename>$GLOBUS_LOCATION/lib/common/geronimo-activation_1.0.2_spec-1.1-SNAPSHOT.jar</filename>
+                    and <filename>$GLOBUS_LOCATION/lib/common/geronimo-javamail_1.3.1_spec-1.1-SNAPSHOT.jar</filename>
+                    files. </para>
+                <para> Please note that SOAP attachments can be used with message security but they will not be signed
+                    or encrypted. </para>
+            </section>
+            <section id="javawscore-developer-wsdlsoaprules">
+                <title>How can I make sure my WSDL/SOAP documents are valid for GT 4?</title>
+                <indexterm type="javawscore">
+                    <primary>WSDL/SOAP rules</primary>
+                </indexterm>
+                <para>The <glossterm baseform="Web Services Resource Framework">WSRF</glossterm> and <glossterm
+                        baseform="Web Services Notification">WSN</glossterm> specifications schemas follow the
+                        <emphasis>document/literal</emphasis> mode as described in <glossterm
+                        baseform="Web Services Interoperability Basic Profile">WS-I Basic Profile</glossterm>. The Basic
+                    Profile defines certain rules to follow for <emphasis>document/literal</emphasis> and other modes to
+                    ensure interoperability. </para>
+                <para>Java WS Core relies on these restrictions so please keep them in mind when designing your own
+                    schema. </para>
+                <section id="javawscore-developer-DocumentLiteral">
+                    <title>Document/literal</title>
+                    <indexterm type="javawscore">
+                        <primary>document/literal</primary>
+                    </indexterm>
+                    <para>In the <emphasis>document/literal</emphasis> mode as defined in the <glossterm
+                            baseform="Web Services Interoperability Basic Profile">WS-I Basic Profile</glossterm> at
+                        most one &lt;wsdl:part&gt; is allowed in the &lt;wsdl:message&gt; element and it
+                        must use the &apos;element&apos; attribute. Also, the wire signatures must be unique
+                        (cannot use the same &apos;element&apos; attribute in &lt;wsdl:part&gt; in two
+                        different &lt;wsdl:message&gt; elements). </para>
+                    <note>
+                        <para>
+                            <glossterm baseform="Apache Axis">Axis</glossterm>&apos; WSDL2Java tool might sometimes
+                            incorrectly detect that schema follows the <emphasis>wrapped/literal</emphasis> mode and
+                            generate wrong stub and type classes. To ensure that <emphasis>document/literal</emphasis>
+                            mode is always used: <itemizedlist>
+                                <listitem>
+                                    <simpara>use Java WS Core&apos;s <computeroutput>generateStub*</computeroutput>
+                                        Ant tasks in
+                                            <computeroutput>&lt;install&gt;/share/globus_wsrf_tools/build-stubs.xml</computeroutput>
+                                        file</simpara>
+                                </listitem>
+                                <listitem>
+                                    <simpara>if you are using Axis&apos; WSDL2Java tool directly, you can
+                                        alternatively specify the <computeroutput>-W</computeroutput> command line
+                                        option.</simpara>
+                                </listitem>
+                            </itemizedlist>Also, with <emphasis>wrapped/literal</emphasis> mode, the element name had to
+                            match the operation name in wsdl. This is <emphasis>not</emphasis> necessary with
+                                <emphasis>document/literal</emphasis> mode.</para>
+                    </note>
+                    <para/>
+                </section>
+                <section id="javawscore-developer-soapencoding">
+                    <title>SOAP Encoding</title>
+                    <indexterm type="javawscore">
+                        <primary>SOAP Encoding</primary>
+                    </indexterm>
+                    <para> Do <emphasis>not</emphasis> use or mix the literal mode with the SOAP encoding mode (<ulink
+                            url="http://www.ws-i.org/Profiles/BasicProfile-1.0-2004-04-16.html#refinement16638080"
+                        >R2706</ulink>). For example, do not use the <computeroutput>soapenc:Array</computeroutput>
+                        type. Please see the <ulink
+                            url="http://www.ws-i.org/Profiles/BasicProfile-1.0-2004-04-16.html#refinement16556272">5.2.3
+                            section</ulink> in the <glossterm
+                            baseform="Web Services Interoperability Basic
+                                Profile">WS-I
+                            Basic Profile</glossterm> for details. </para>
+                </section>
+            </section>
+            <section id="javawscore-developer-service-parameters">
+                <title>How can I retrieve service parameters from my WSDD file?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>service-side</secondary>
+                    <tertiary>obtaining service parameters</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>service-side</secondary>
+                    <tertiary>obtaining service parameters</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>service</primary>
+                    <secondary>obtaining service parameters</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>service</primary>
+                    <secondary>obtaining service parameters</secondary>
+                </indexterm>
+                <para>While we strongly recommend that you use the JNDI mechanism to provide your service with
+                    configuration information, it is sometimes necessary to obtain the value of parameters set in the
+                        <glossterm baseform="Web Services Deployment Descriptor">WSDD</glossterm> file although it is
+                    extremely rare. If you aren't sure that you need to do this, you likely do not. Java WS Core
+                    provides some helper functions to ease this process:</para>
+                <programlisting language="java" linenumbering="numbered">
+<![CDATA[                    
+import org.globus.wsrf.utils.ContextUtils; 
+import org.apache.axis.MessageContext;
+
+... 
+
+MessageContext context = MessageContext.getCurrentContext(); 
+String sampleProperty = (String) ContextUtils.getServiceProperty(context, "myProperty"); 
+
+... 
+]]>
+                </programlisting>
+                <para>Note that this function requires that a <classname>MessageContext</classname> is associated with
+                    the current thread, which in general means that the call needs to happen within the context of a web
+                    service invocation.</para>
+                <note>
+                    <simpara>Specifying parameters using WSDD files depends on Axis and will likely not be supported in
+                        future versions of the toolkit.</simpara>
+                </note>
+            </section>
+            <section id="javawscore-developer-ContextProperties">
+                <title>How do I get standard MessageContext properties?</title>
+                <indexterm type="javawscore-howto">
+                    <primary>programming</primary>
+                    <secondary>service-side</secondary>
+                    <tertiary>obtaining standard MessageContext properties</tertiary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>programming</primary>
+                    <secondary>service-side</secondary>
+                    <tertiary>obtaining standard MessageContext properties</tertiary>
+                </indexterm>
+                <indexterm type="javawscore-howto">
+                    <primary>MessageContext</primary>
+                    <secondary>obtaining standard MessageContext properties</secondary>
+                </indexterm>
+                <indexterm type="javawscore">
+                    <primary>MessageContext</primary>
+                    <secondary>obtaining standard MessageContext properties</secondary>
+                </indexterm>
+                <para>The following properties can be obtained from the SOAPContext/MessageContext associated with the
+                    current thread: <itemizedlist>
+                        <listitem>
+                            <simpara>
+                                <emphasis>
+                                    <computeroutput>org.apache.axis.Constants.MC_HOME_DIR</computeroutput>
+                                </emphasis> - the base directory from which the wsdl files are loaded.</simpara>
+                        </listitem>
+                        <listitem>
+                            <simpara>
+                                <emphasis>
+                                    <computeroutput>org.apache.axis.Constants.MC_CONFIGPATH</computeroutput>
+                                </emphasis> - the base directory from which different configuration files are
+                            loaded.</simpara>
+                        </listitem>
+                        <listitem>
+                            <simpara>
+                                <emphasis>
+                                    <computeroutput>org.apache.axis.Constants.MC_REMOTE_ADDR</computeroutput>
+                                </emphasis> - the IP address of the client.</simpara>
+                        </listitem>
+                        <listitem>
+                            <simpara>
+                                <emphasis>
+                                    <computeroutput>org.apache.axis.MessageContext.TRANS_URL</computeroutput>
+                                </emphasis> - the URL of the request.</simpara>
+                        </listitem>
+                    </itemizedlist></para>
+                <para>The <computeroutput>Constants.MC_CONFIGPATH</computeroutput> property should be used to load any
+                    type of configuration file. Only <computeroutput>Constants.MC_CONFIGPATH</computeroutput> and
+                        <computeroutput>Constants.MC_HOME_DIR</computeroutput> are associated with the thread during
+                    activation. In the standalone container the <computeroutput>Constants.MC_HOME_DIR</computeroutput>
+                    and <computeroutput>Constants.MC_CONFIGPATH</computeroutput> properties will usually point to the
+                    same directory. However, in Tomcat they will point to two different directories. Since GT 4.0.1, the
+                        <computeroutput>Constants.MC_HOME_DIR</computeroutput> value can be accessed using the
+                        <computeroutput>org.globus.wsrf.ContainerConfig.getSchemaDirectory()</computeroutput> static
+                    call, and <computeroutput>Constants.MC_CONFIGPATH</computeroutput> value via the
+                        <computeroutput>org.globus.wsrf.ContainerConfig.getBaseDirectory()</computeroutput> static call.
+                </para>
+            </section>
+        </section>
+    </chapter>
+
