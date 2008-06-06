@@ -107,8 +107,9 @@ globus_out_of_date(); ?>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/prewsaa/">Non-WS (General) Security</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/wsaajava/">WS Java Security</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/message/">Message-level</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/authzframe/">Authz Framework</a></dt>
+				<!-- fixme - make live when content is up
+				<dt><a href="/toolkit/docs/development/4.2-drafts/security/wsaac/">WS C Security</a></dt>
+				-->
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/cas/">CAS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/delegation/">Delegation Service</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/myproxy/">MyProxy</a></dt>
