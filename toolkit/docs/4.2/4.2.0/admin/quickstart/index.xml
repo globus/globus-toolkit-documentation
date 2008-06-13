@@ -135,7 +135,7 @@ general, I decided to use source instead.
 
 <para>Now it's time to build the toolkit:
 <screen>
-<prompt>globus@choate:~/gt<replaceable role="entity">version</replaceable>-all-source-installer$</prompt> <userinput>make | tee installer.log</userinput>
+<prompt>globus@elephant:~/gt<replaceable role="entity">version</replaceable>-all-source-installer$</prompt> <userinput>make | tee installer.log</userinput>
 cd gpt-3.2autotools2004 &amp;&amp; OBJECT_MODE=32 ./build_gpt
 build_gpt ====&gt; installing GPT into /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/
 ...
@@ -166,9 +166,9 @@ We will need identites for both the services and users. For the services, we wil
 that is equal to their hostname.  For the users, we'll use their full name.  To create the certificates, we're going to use the SimpleCA
   that is distributed with the toolkit.  Here's how we set it up, based on the instructions at <olink targetdoc="gtadmin" targetptr="gtadmin-simpleca">SimpleCA Admin</olink>:
 <screen>
-<prompt>globus@choate:~$</prompt> <userinput>export GLOBUS_LOCATION=/sandbox/globus/globus-<replaceable role="entity">version</replaceable></userinput>
-<prompt>globus@choate:~$</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.sh</userinput>
-<prompt>globus@choate:~$</prompt> <userinput>perl gt-server-ca.pl -y</userinput>
+<prompt>globus@elephant:~$</prompt> <userinput>export GLOBUS_LOCATION=/sandbox/globus/globus-<replaceable role="entity">version</replaceable></userinput>
+<prompt>globus@elephant:~$</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.sh</userinput>
+<prompt>globus@elephant:~$</prompt> <userinput>perl gt-server-ca.pl -y</userinput>
 Setting up /sandbox/globus/globus-4.2.0/
 Please enter a password of at least four characters for the CA: 
 Confirm password:
@@ -197,53 +197,12 @@ cacert.pem  globus_simple_ca_ebb88ce5_setup-0.18.tar.gz  newcerts
 certs       grid-ca-ssl.conf                             private
 crl         index.txt                                    serial
 </screen>
-That's the directory where my simpleCA has been created.  Now I need to make my machine trust that new CA, which I do by running the following command as root:
-<screen>
-<prompt>root@choate:~#</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
-<prompt>root@choate:~#</prompt> <userinput>$GLOBUS_LOCATION/setup/globus_simple_ca_ebb88ce5_setup/setup-gsi -default</userinput>
-setup-gsi: Configuring GSI security
-Making /etc/grid-security...
-mkdir /etc/grid-security
-Making trusted certs directory: /etc/grid-security/certificates/
-mkdir /etc/grid-security/certificates/
-Installing /etc/grid-security/certificates//grid-security.conf.ebb88ce5...
-Running grid-security-config...
-Installing Globus CA certificate into trusted CA certificate directory...
-Installing Globus CA signing policy into trusted CA certificate directory...
-setup-gsi: Complete
-<prompt>root@choate:~#</prompt> <userinput>ls /etc/grid-security/</userinput>
-certificates  globus-host-ssl.conf  globus-user-ssl.conf  grid-security.conf
-<prompt>root@choate:~#</prompt> <userinput>ls /etc/grid-security/certificates/</userinput>
-ebb88ce5.0                     globus-user-ssl.conf.ebb88ce5
-ebb88ce5.signing_policy        grid-security.conf.ebb88ce5
-globus-host-ssl.conf.ebb88ce5
-</screen>
-Those are the configuration files that establish trust for the simpleCA for
-my Globus Toolkit installation.  Notice that the hash value ebb88ce5 matches the hash value of my SimpleCA.  These files are all explained in the 
+That's the directory where my simpleCA has been created.  
+  These files are all explained in the 
   <olink targetdoc="prewsaaAdmin">Security Admin Guide</olink>.
 </para>
 
 <para>
-Now that we've created a CA and trust it, we'll get a hostcert for the machine:
-<screen>
-<prompt>root@choate:~#</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.sh</userinput>
-<prompt>root@choate:~#</prompt> <userinput>grid-cert-request -host `hostname`</userinput>
-Generating a 1024 bit RSA private key
-..++++++
-...................................................++++++
-writing new private key to '/etc/grid-security/hostkey.pem'
-...
-Your certificate will be mailed to you within two working days.
-If you receive no response, contact Globus Simple CA at bacon@choate
-</screen>
-We need to sign the certificate using our simpleCA, as globus:
-<screen>
-<prompt>globus@choate:~$</prompt> <userinput>grid-ca-sign -in /etc/grid-security/hostcert_request.pem -out hostsigned.pem</userinput>
-To sign the request
-please enter the password for the CA key:<userinput>******</userinput>
-
-The new signed certificate is at: /home/globus/.globus/simpleCA//newcerts/01.pem
-</screen>
 Our last step is to copy that signed certificate into <filename class="directory">/etc</filename>:
 <screen>
 <prompt>root@choate:~#</prompt> <userinput>cp ~globus/hostsigned.pem /etc/grid-security/hostcert.pem </userinput>
@@ -252,10 +211,8 @@ Our last step is to copy that signed certificate into <filename class="directory
 
 
 <para>
-We'll make a copy of these that are owned by globus:
+We'll make the containercerts owned by globus:
 <screen>
-<prompt>root@choate:/etc/grid-security#</prompt> <userinput>cp hostcert.pem containercert.pem</userinput>
-<prompt>root@choate:/etc/grid-security#</prompt> <userinput>cp hostkey.pem containerkey.pem</userinput>
 <prompt>root@choate:/etc/grid-security#</prompt> <userinput>chown globus:globus container*.pem</userinput>
 <prompt>root@choate:/etc/grid-security#</prompt> <userinput>ls -l *.pem</userinput>
 -r--------  1 root   root    887 2005-11-15 07:48 containerkey.pem
@@ -267,77 +224,10 @@ We'll make a copy of these that are owned by globus:
 </para>
 
 <para>
-Now we'll get a usercert for bacon.  In this example I'm running tcsh, just
-to show that the version of <filename>globus-user-env</filename> depends on your
-shell:
+Now we'll get a usercert for bacon.
 <screen>
-choate % setenv GLOBUS_LOCATION /usr/local/globus-<replaceable role="entity">version</replaceable>/
-choate % source $GLOBUS_LOCATION/etc/globus-user-env.csh
-choate % grid-cert-request 
-A certificate request and private key is being created.
-You will be asked to enter a PEM pass phrase.
-This pass phrase is akin to your account password, 
-and is used to protect your key file.
-If you forget your pass phrase, you will need to
-obtain a new certificate.
-
-Generating a 1024 bit RSA private key
-.........................................................++++++
-.........................++++++
-unable to write 'random state'
-writing new private key to '/home/bacon/.globus/userkey.pem'
-Enter PEM pass phrase: <userinput>****</userinput>
-Verifying - Enter PEM pass phrase: <userinput>****</userinput>
------
-You are about to be asked to enter information that will be incorporated
-into your certificate request.
-What you are about to enter is what is called a Distinguished Name or a DN.
-There are quite a few fields but you can leave some blank
------
-Level 0 Organization [Grid]:
-Level 0 Organizational Unit [GlobusTest]:
-Level 1 Organizational Unit [simpleCA-choate.mcs.anl.gov]:
-Level 2 Organizational Unit [mcs.anl.gov]:
-Name (e.g., John M. Smith) []:
-
-A private key and a certificate request has been generated with the subject:
-
-/O=Grid/OU=GlobusTest/OU=simpleCA-choate.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon
-
-If the CN=Charles Bacon is not appropriate, rerun this
-script with the -force -cn "Common Name" options.
-
-Your private key is stored in /home/bacon/.globus/userkey.pem
-Your request is stored in /home/bacon/.globus/usercert_request.pem
-
-Please e-mail the request to the Globus Simple CA bacon@choate
-You may use a command similar to the following:
-
-  cat /home/bacon/.globus/usercert_request.pem | mail bacon@choate
-
-Only use the above if this machine can send AND receive e-mail. if not, please
-mail using some other method.
-
-Your certificate will be mailed to you within two working days.
-If you receive no response, contact Globus Simple CA at bacon@choate
-</screen>
-Now I need to get that certificate request to the globus user so it can be signed, then send the signed cert back to bacon:
-<screen>
-<prompt>choate %</prompt> <userinput>cat /home/bacon/.globus/usercert_request.pem | mail globus@choate</userinput>
-</screen>
-Now, sign it as user globus:
-<screen>
-<prompt>globus@choate:~$</prompt> <userinput>grid-ca-sign -in request.pem -out signed.pem</userinput>
-
-To sign the request
-please enter the password for the CA key: <userinput>******</userinput>
-
-The new signed certificate is at: /home/globus/.globus/simpleCA//newcerts/02.pem
-<prompt>globus@choate:~$</prompt> <userinput>cat signed.pem | mail bacon@choate</userinput>
-</screen>
-Now user bacon checks his mail and copies the cert to the proper location:
-<screen>
-<prompt>choate %</prompt> <userinput>cp signed.pem ~/.globus/usercert.pem</userinput>
+globus@elephant: perl gt-add-user.pl -y -user bacon
+bacon@elepant: mkdir .globus; cd .globus; tar xzf bacon_dot_globus.tar.gz
 <prompt>choate %</prompt> <userinput>ls -l ~/.globus/</userinput>
 total 12
 -rw-r--r--  1 bacon globdev  895 2005-11-15 07:57 usercert.pem
@@ -346,8 +236,7 @@ total 12
 </screen>
 Our last act will be to create a grid-mapfile as root for authorization:
 <screen>
-<prompt>root@choate:/etc/grid-security#</prompt> <userinput>vim /etc/grid-security/grid-mapfile</userinput>
-<prompt>root@choate:/etc/grid-security#</prompt> <userinput>cat /etc/grid-security/grid-mapfile </userinput>
+<prompt>root@choate:/etc/grid-security#</prompt> <userinput>cp ~globus/.gridmap /etc/grid-security/grid-mapfile</userinput>
 "/O=Grid/OU=GlobusTest/OU=simpleCA-choate.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon" bacon
 </screen>
 </para>
