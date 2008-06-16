@@ -235,7 +235,7 @@ We are going to create a MyProxy server on elephant, following the instructions 
 store our user's certificates.  Recall that so far we have made a host certificate, but we don't have any certificates for
 end users yet.
 <screen>
-<prompt>root@elephant:~#</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable>/</userinput>
+<prompt>root@elephant:~#</prompt> <userinput>export GLOBUS_LOCATION=/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/</userinput>
 <prompt>root@elephant:~#</prompt> <userinput>cp $GLOBUS_LOCATION/etc/myproxy-server.config /etc</userinput>
 <prompt>root@elephant:~#</prompt> <userinput>vim /etc/myproxy-server.config </userinput>
 <prompt>root@elephant:~#</prompt> <userinput>diff /etc/myproxy-server.config $GLOBUS_LOCATION/etc/myproxy-server.config</userinput>
@@ -275,8 +275,8 @@ service myproxy-server
   protocol     = tcp
   wait         = no
   user         = root
-  server       = /usr/local/globus-<replaceable role="entity">version</replaceable>/sbin/myproxy-server
-  env          = GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable> LD_LIBRARY_PATH=/usr/local/globus-<replaceable role="entity">version</replaceable>/lib <co id="myproxy_ld-co" linkends="myproxy_ld"/>
+  server       = /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/sbin/myproxy-server
+  env          = GLOBUS_LOCATION=/sandbox/globus/globus-<replaceable role="entity">version</replaceable> LD_LIBRARY_PATH=/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/lib <co id="myproxy_ld-co" linkends="myproxy_ld"/>
   disable      = no
 }
 <prompt>root@elephant:~#</prompt> <userinput>/etc/init.d/xinetd reload</userinput>
@@ -380,10 +380,10 @@ instances               = 100
 socket_type             = stream
 wait                    = no
 user                    = root
-env                     += GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable>
-  env                     += LD_LIBRARY_PATH=/usr/local/globus-<replaceable role="entity">version</replaceable>/lib <co  id="q-ld_lib-co"  linkends="q-ld_lib" />
+env                     += GLOBUS_LOCATION=/sandbox/local/globus-<replaceable role="entity">version</replaceable>
+  env                     += LD_LIBRARY_PATH=/sandbox/local/globus-<replaceable role="entity">version</replaceable>/lib <co  id="q-ld_lib-co"  linkends="q-ld_lib" />
 
-server                  = /usr/local/globus-<replaceable role="entity">version</replaceable>/sbin/globus-gridftp-server
+server                  = /sandbox/local/globus-<replaceable role="entity">version</replaceable>/sbin/globus-gridftp-server
 server_args             = -i
 log_on_success          += DURATION
 nice                    = 10
@@ -476,120 +476,24 @@ That is the expected output, so it looks like the container is up and running.  
 
 <section id="q-rft"><title>Configuring RFT</title>
 <para>
-  Following the instructions at <olink targetdoc="rftAdmin" />, we'll first configure the system to allow TCP/IP connections to postgres, as well as adding a trust 
-  entry for our current host:
+We will use the globus-crft command to start a reliable file transfer.  It takes an input file whose syntax is one pair
+of URLs per line.  It will use RFT to manage the transfer of all the URLs in the transfer file.  For this example, we'll
+just move a single file:
 <screen>
-<prompt>root@choate:~#</prompt> <userinput>vim /var/lib/postgres/postmaster.conf </userinput>
-<prompt>root@choate:~#</prompt> <userinput>grep POSTMASTER /var/lib/postgres/postmaster.conf </userinput>
-POSTMASTER_OPTIONS="-i"
-<prompt>root@choate:~#</prompt> <userinput>vim /var/lib/postgres/data/pg_hba.conf </userinput>
-<prompt>root@choate:~#</prompt> <userinput>grep rftDatabase /etc/postgresql/pg_hba.conf </userinput>
-host rftDatabase "globus" "140.221.8.31" 255.255.255.255 md5
-<prompt>root@choate:~#</prompt> <userinput>/etc/init.d/postgresql restart</userinput>
-Stopping PostgreSQL database server: postmaster.
-Starting PostgreSQL database server: postmaster.
-<prompt>root@choate:~#</prompt> <userinput>su postgres -c "createuser -P globus"</userinput>
-Enter password for new user: <userinput>*****</userinput>
-Enter it again: <userinput>*****</userinput>
-Shall the new user be allowed to create databases? (y/n) y
-Shall the new user be allowed to create more new users? (y/n) n
-CREATE USER
+<prompt>bacon@elephant $ </prompt><userinput>cat transfer</userinput>
+gsiftp://elephant.mcs.anl.gov/etc/group gsiftp://elephant.mcs.anl.gov/tmp/asdf
+<prompt>bacon@elephant $ </prompt><userinput>globus-crft -ez -f transfer</userinput>
+Communicating with delegation service.
+Creating the RFT service.
+Starting the RFT service.
+Waiting for the RFT transfers to complete.
+Transfered 1 of 1			| Status: Done       
+
+<prompt>bacon@elephant $</prompt> <userinput>diff /etc/group /tmp/asdf</userinput>
+<prompt>bacon@elephant $</prompt> 
 </screen>
-</para>
-<note><para>
-This is one of the most system-dependent steps of this quickstart.  Your
-pg_hba.conf and postmaster.conf files may be located in a different directory.  Please consult your vendor's notes for details.
-</para></note>
-
-<para>
-Now the globus user can create the rftDatabase:
-<screen>
-<prompt>globus@choate:~$</prompt> <userinput>createdb rftDatabase</userinput>
-CREATE DATABASE
-<prompt>globus@choate:~$</prompt> <userinput>psql -d rftDatabase -f $GLOBUS_LOCATION/share/globus_wsrf_rft/rft_schema.sql</userinput>
-psql:/usr/local/globus-<replaceable role="entity">version</replaceable>/share/globus_wsrf_rft/rft_schema.sql:6: NOTICE:
-CREATE TABLE / PRIMARY KEY will create implicit index "requestid_pkey" for table "requestid"
-CREATE TABLE
-psql:/usr/local/globus-<replaceable role="entity">version</replaceable>/share/globus_wsrf_rft/rft_schema.sql:11: NOTICE: 
-CREATE TABLE / PRIMARY KEY will create implicit index "transferid_pkey" for table "transferid"
-CREATE TABLE
-psql:/usr/local/globus-<replaceable role="entity">version</replaceable>/share/globus_wsrf_rft/rft_schema.sql:30: NOTICE: 
-CREATE TABLE / PRIMARY KEY will create implicit index "request_pkey" for table "request"
-CREATE TABLE
-psql:/usr/local/globus-<replaceable role="entity">version</replaceable>/share/globus_wsrf_rft/rft_schema.sql:65: NOTICE: 
-CREATE TABLE / PRIMARY KEY will create implicit index "transfer_pkey" for table "transfer"
-CREATE TABLE
-CREATE TABLE
-CREATE TABLE
-CREATE INDEX
-<prompt>globus@choate:~$</prompt> <userinput>vim $GLOBUS_LOCATION/etc/globus_wsrf_rft/jndi-config.xml</userinput>
-<prompt>globus@choate:~$</prompt> <userinput>grep -C 3 password $GLOBUS_LOCATION/etc/globus_wsrf_rft/jndi-config.xml </userinput>
-            &lt;/parameter&gt;
-            &lt;parameter&gt;
-                &lt;name&gt;
-                password
-                &lt;/name&gt;
-                &lt;value&gt;
-                *****
-</screen>
-I have created the database, loaded the RFT schema, and changed the password in the jndi-config.xml file.
-</para>
-
-<para>
-The database is setup, so we restart the container to load the new RFT
-configuration:
-<screen>
-<prompt>root@choate:~#</prompt> <userinput>/etc/init.d/globus-<replaceable role="entity">version</replaceable> restart</userinput>
-Stopping Globus container. PID: 29985
-Starting Globus container. PID: 8620
-<prompt>root@choate:~#</prompt> <userinput>head /usr/local/globus-<replaceable role="entity">version</replaceable>/var/container.log</userinput>
-Starting SOAP server at: https://140.221.8.31:8443/wsrf/services/ 
-With the following services:
-
-[1]: https://140.221.8.31:8443/wsrf/services/TriggerFactoryService
-[2]: https://140.221.8.31:8443/wsrf/services/DelegationTestService
-[3]: https://140.221.8.31:8443/wsrf/services/SecureCounterService
-[4]: https://140.221.8.31:8443/wsrf/services/IndexServiceEntry
-[5]: https://140.221.8.31:8443/wsrf/services/DelegationService
-[6]: https://140.221.8.31:8443/wsrf/services/InMemoryServiceGroupFactory
-[7]: https://140.221.8.31:8443/wsrf/services/mds/test/execsource/IndexService
-...
-</screen>
-Great, we got rid of the warning.  Now let's try an RFT transfer to make sure the service is really working:
-<screen>
-<prompt>choate %</prompt> <userinput>cp /usr/local/globus-<replaceable role="entity">version</replaceable>/share/globus_wsrf_rft_test/transfer.xfr /tmp/rft.xfr</userinput>
-<prompt>choate %</prompt> <userinput>vim /tmp/rft.xfr </userinput>
-<prompt>choate %</prompt> <userinput>cat /tmp/rft.xfr </userinput>
-true
-16000
-16000
-false
-1
-true
-1
-null
-null
-false
-10
-gsiftp://choate.mcs.anl.gov:2811/etc/group
-gsiftp://choate.mcs.anl.gov:2811/tmp/rftTest_Done.tmp
-<prompt>choate %</prompt> <userinput>rft -h choate.mcs.anl.gov -f /tmp/rft.xfr </userinput>
-Number of transfers in this request: 1
-Subscribed for overall status
-Termination time to set: 60 minutes
-
- Overall status of transfer:
-Finished/Active/Failed/Retrying/Pending
-0/1/0/0/0
-
- Overall status of transfer:
-Finished/Active/Failed/Retrying/Pending
-1/0/0/0/0
-All Transfers are completed
-<prompt>choate %</prompt> <userinput>diff /etc/group /tmp/rftTest_Done.tmp </userinput>
-<prompt>choate %</prompt> 
-</screen>
-RFT did its job, starting up a reliable transfer and notifying us of the status and results.
+RFT did its job, starting up a reliable transfer and notifying us of the status and results.  The globus-crft command
+has many options.  You may want to explore using it asynchronously, see the -help for details.
 </para>
 </section>
 
@@ -601,17 +505,18 @@ management.  First we have to setup sudo so the globus user can start jobs
   <screen>
     <prompt>root@choate:~#</prompt> <userinput>visudo</userinput>
 <prompt>root@choate:~#</prompt> <userinput>cat /etc/sudoers </userinput>
-globus ALL=(bacon) NOPASSWD: /usr/local/globus-<replaceable role="entity">version</replaceable>/libexec/globus-gridmap-and-execute
+Runas_Alias GLOBUSUSERS = ALL, !root;
+globus ALL=(GLOBUSUSERS) NOPASSWD: /usr/local/globus-<replaceable role="entity">version</replaceable>/libexec/globus-gridmap-and-execute
 -g /etc/grid-security/grid-mapfile /usr/local/globus-<replaceable role="entity">version</replaceable>/libexec/globus-job-manager-script.pl *
-globus  ALL=(bacon) NOPASSWD: /usr/local/globus-<replaceable role="entity">version</replaceable>/libexec/globus-gridmap-and-execute
+globus  ALL=(GLOBUSUSERS) NOPASSWD: /usr/local/globus-<replaceable role="entity">version</replaceable>/libexec/globus-gridmap-and-execute
 -g /etc/grid-security/grid-mapfile /usr/local/globus-<replaceable role="entity">version</replaceable>/libexec/globus-gram-local-proxy-tool *
 </screen>
 Make sure they're all on one line.  I split them up in the HTML to keep the page width down.  With that addition, we can now run jobs:
 <screen>
 <prompt>choate %</prompt> <userinput>globusrun-ws -submit -c /bin/true</userinput>
 Submitting job...Done.
-Job ID: uuid:3304e3f2-55f2-11da-8b8f-00d0b7b7c0bc
-Termination time: 11/16/2005 16:09 GMT
+Job ID: uuid:a4b5e324-3bec-11dd-95ac-003048241085
+Termination time: 06/16/3008 21:39 GMT
 Current job state: Active
 Current job state: CleanUp
 Current job state: Done
@@ -620,12 +525,13 @@ Destroying job...Done.
 0
 <prompt>choate %</prompt> <userinput>globusrun-ws -submit -c /bin/false</userinput>
 Submitting job...Done.
-Job ID: uuid:456b7c9a-55f2-11da-9b0d-00d0b7b7c0bc
-Termination time: 11/16/2005 16:09 GMT
+Job ID: uuid:b49462c0-3bec-11dd-9441-003048241085
+Termination time: 06/16/3008 21:39 GMT
 Current job state: Active
 Current job state: CleanUp
 Current job state: Done
 Destroying job...Done.
+
 <prompt>choate %</prompt> <userinput>echo $?</userinput>
 1
 </screen>
