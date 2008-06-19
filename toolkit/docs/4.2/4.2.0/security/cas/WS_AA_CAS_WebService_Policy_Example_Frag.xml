@@ -74,25 +74,49 @@ Also set the CAS_SERVER_IDENTITY environment variable to point to the identity o
 <screen>bin\cas-group-add-entry.bat -m msg user testUGp su</screen>
 </para></listitem>
 
-<listitem><para> Add web service operation as a service type.
+<!-- listitem><para> Add web service operation as a service type.
 <screen>bin\cas-enroll.bat -m msg serviceType testUGp 
         &quot;http://www.gridforum.org/namespaces/2003/06/ogsa-authorization/
         saml/action/operation&quot;</screen>
-</para></listitem>
+</para></listitem -->
 
-<listitem><para> Add &quot;add&quot; (an operation on counter service) as an action of the above service type.
+ <listitem><para> Add &quot;createCounter&quot; (an operation on counter service) as an action of the above service type.
+                        <screen>bin\cas-action.bat -m msg add 
+                                &quot;http://www.gridforum.org/namespaces/2003/06/ogsa-authorization/
+                        saml/action/operation&quot; createCounter</screen>
+        </para></listitem>
+        
+<listitem><para> Add &quot;add&quot; (an operation on counter resource) as an action of the above service type.
 <screen>bin\cas-action.bat -m msg add 
         &quot;http://www.gridforum.org/namespaces/2003/06/ogsa-authorization/
         saml/action/operation&quot; add</screen>
 </para></listitem>
 
-<listitem><para> Add &quot;destroy&quot; (an operation on counter service) as an action of the above service type.
+<listitem><para> Add &quot;destroy&quot; (an operation on counter resource) as an action of the above service type.
 <screen>bin\cas-action.bat -m msg add 
         &quot;http://www.gridforum.org/namespaces/2003/06/ogsa-authorization/
         saml/action/operation&quot; destroy</screen>
 </para></listitem>
 
-<listitem><para> Create a new counter resource using the counter client and use the -b option to get the string representation of EPR.
+<listitem>
+        <para> The create counter operation is on the secure counter service (rather than any resource). The security descriptor will use the CAS service to authorize requests on the service. Hence policy needs to be written for the createCounter operation. First step is the enroll the SecureCounterService endpoint as an object in CAS.
+                <screen>
+                        bin\cas-enroll.bat -m msg object testUGp http://192.168.1.101:8080/wsrf/serv              ices/SecureCounterService casDefaultNS
+                        
+                </screen>
+        </para>
+</listitem>
+        
+ <listitem>
+        <para> In this command, policy for users in testUGp to invoke createCounter operation on the SecureCounterService endpoint.
+                <screen>
+                        bin\cas-rights-admin.bat -m msg grant testUGp object casDefaultNS http://192                       .168.1.101:8080/wsrf/services/SecureCounterService serviceAction "http://www.gri                       dforum.org/namespaces/2003/06/ogsa-authorization/saml/action/operation" createCounter
+                                              </screen>
+        </para> 
+ </listitem>
+        
+   
+<listitem><para> Now we create a new counter resource using the counter client and use the -b option to get the string representation of EPR. The string representation of EPR is used to add rights on the counter resource that was created in this command.
 <screen>bin\counter-create.bat 
         -s http://localhost:8080/wsrf/services/SecureCounterService -m msg 
         -z none -b eprAsString > epr</screen>
