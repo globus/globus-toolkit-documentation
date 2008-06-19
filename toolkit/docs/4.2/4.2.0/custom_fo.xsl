@@ -16,7 +16,7 @@
                   <xsl:choose>
                                    <xsl:when test=". = 'version'">4.2.0</xsl:when>
                                   <xsl:when test=". = 'shortversion'">4.2</xsl:when>
-                                  <xsl:when test=". = 'previousversion'">4.0.6</xsl:when>
+                                  <xsl:when test=". = 'previousversion'">4.0.x</xsl:when>
                                  <xsl:otherwise>
                                 <xsl:message>Undefined replacement text for <xsl:value-of select="."/></xsl:message>
                                 </xsl:otherwise>

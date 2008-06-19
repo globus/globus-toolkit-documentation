@@ -10,7 +10,7 @@
                   <xsl:choose>
                                    <xsl:when test=". = 'version'">4.2.0</xsl:when>
                                   <xsl:when test=". = 'shortversion'">4.2</xsl:when>
-                                  <xsl:when test=". = 'previousversion'">4.0.6</xsl:when>
+                                  <xsl:when test=". = 'previousversion'">4.0.x</xsl:when>
                                  <xsl:otherwise>
                                 <xsl:message>Undefined replacement text for <xsl:value-of select="."/></xsl:message>
                                 </xsl:otherwise>
@@ -52,6 +52,10 @@
                 -->
                 
                 <!-- shared urls - something similar to above where ulink with url of x, the url changes to y-->
+                
+                <!-- default width of tables -->
+                <xsl:param name="default.table.width" select="'700px'"/>
+                
                 
                 <!-- speed up the chunking process? -->
                 <xsl:param name="chunk.fast">1</xsl:param>
