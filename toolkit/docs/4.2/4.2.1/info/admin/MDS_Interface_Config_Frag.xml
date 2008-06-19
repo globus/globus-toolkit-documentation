@@ -11,17 +11,12 @@
   <section id="mds-configuring-overview">
     <title>Configuration overview</title>
     <indexterm type="mds"><primary>configuring</primary><secondary>overview</secondary></indexterm>
-    <para>FIXME add very general overview info about configuring aggregator services (config file,
-      registering, info providers)</para>
-    <para>MDS is a monitoring service that collects recent state information from registered
+    <para>MDS is a collection of monitoring services and related interfaces that collect and act on recent state information from
       information sources in a Grid. It is based on WSRF and WS-Notification specifications and
       built on the Java WS Core. You should be familiar with <olink targetdoc="javawscoreAdmin"
         targetptr="javawscore-configuring">configuring information for Java WS Core</olink> and have
       a basic understanding of WSRF and web services, especially resource properties.</para>
-    <para>In MDS, the configuration of an aggregator service is based partly on the Aggregator
-      Framework (AF). The AF does not have its own service side configuration, although aggregator
-      services may have their own service side configuration options (such as <olink
-        targetdoc="trigger">MDS Trigger</olink>).</para>
+    <para>MDS includes an Index Service, which collects information and then advertises it as resource properties (which can then be queried or subscribed to using standard WSRF and WS-N interfaces) and a Trigger Service, which collects information and can be configured to perform actions when certain user-specified conditions are met.  The Index and Trigger Services are built upon a common framework, the Aggregator Framework, which handles the collection of data.  The interface for configuring how these services collect their information is the same.</para>
     <section id="mds-configuring-use-cases">
       <title>Admin use cases</title>
       <indexterm type="mds"><primary>use cases</primary><secondary>admin</secondary></indexterm>
@@ -48,10 +43,9 @@
     <para>After a default installation of GT version, the container includes a <indexterm type="mds"><primary>Index Service</primary></indexterm>default Index
       Service, which should be visible when starting the container, like the following:</para>
     <screen>...
-https://localhost:8440/wsrf/services/DefaultIndexService
+https://localhost:8443/wsrf/services/DefaultIndexService
 ...</screen>
-    <para>This default Index Service automatically registers with certain other WSRF-based services
-      in GT:</para>
+    <para>These WSRF-based services automatically register themselves with the default Index Service running in the same Globus container:</para>
     <itemizedlist>
       <listitem>
         <para><olink targetdoc="gram4Admin" targetptr="gram4-Interface_Config_Frag-autoregistration"
@@ -77,7 +71,7 @@ https://localhost:8440/wsrf/services/DefaultIndexService
       <para>A typical example of using the default Index Service is with the <olink
           targetdoc="indexUser" targetptr="wsrf-query">wsrf-query</olink> Java WS Core command. For
         example:<indexterm type="mds"><primary>wsrf-query</primary></indexterm></para>
-      <screen>$GLOBUS_LOCATION/bin/wsrf-query -s http://localhost:8443/wsrf/services/DefaultIndexService '/*'</screen>
+      <screen>$GLOBUS_LOCATION/bin/wsrf-query -s https://localhost:8443/wsrf/services/DefaultIndexService '/*'</screen>
       <para>displays all the resource properties collected by the default Index Service on your
         local host.</para>
       <para>You can also use an XPath query to drill down your search as well as other Java WS Core
@@ -215,32 +209,34 @@ https://localhost:8440/wsrf/services/DefaultIndexService
           <para>2.a (This step is optional) Change the default upstream registration settings (if
             desired) in the <indexterm type="mds"><primary>upstream.xml</primary></indexterm><filename>upstream.xml</filename> file:</para>
           <screen>&lt;ServiceGroupRegistrationParameters
-                  xmlns="http://mds.globus.org/servicegroup/client&gt;
-                  
-                  &lt;!-- Specifies that the registration will be renewed every 600
-                  seconds (= 10 minutes) --&gt;
-                  &lt;RefreshIntervalSecs&gt;600&lt;/RefreshIntervalSecs&gt;
-                  
-                  &lt;Content xsi:type="agg:AggregatorContent"
-                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                  xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
-                  
-                  &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
-                  &lt;agg:GetResourcePropertyPollType
-                  xmlns:wssg= "http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ServiceGroup-1.2-draft-01.xsd"&gt;
-                  &lt;!-- Specifies that the upstream index should refresh information
-                  every 10 minutes --&gt;
-                  &lt;agg:PollIntervalMillis&gt;600000&lt;/agg:PollIntervalMillis&gt;
-                  
-                  &lt;!-- specified that the upstream index should collect the
-                  Entry resource properties from this index --&gt;
-                  &lt;agg:ResourcePropertyName&gt;wssg:Entry&lt;/agg:ResourcePropertyName&gt;
-                  
-                  &lt;/agg:GetResourcePropertyPollType&gt;
-                  &lt;/agg:AggregatorConfig&gt;
-                  &lt;agg:AggregatorData/&gt;
-                  &lt;/Content&gt;
-                  
+   xmlns="http://mds.globus.org/servicegroup/client" &gt;
+
+
+   &lt;!-- Specifies that the registration will be renewed every 600
+        seconds (= 10 minutes) --&gt;
+   &lt;RefreshIntervalSecs&gt;600&lt;/RefreshIntervalSecs&gt;
+
+
+   &lt;Content xsi:type="agg:AggregatorContent"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:agg="http://mds.globus.org/aggregator/types"&gt;
+
+      &lt;agg:AggregatorConfig xsi:type="agg:AggregatorConfig"&gt;
+         &lt;agg:GetResourcePropertyPollType
+            xmlns:wssg="http://docs.oasis-open.org/wsrf/sg-2"&gt;
+            &lt;!-- Specifies that the upstream index should refresh information
+                 every 10 minutes --&gt;
+            &lt;agg:PollIntervalMillis&gt;600000&lt;/agg:PollIntervalMillis&gt;
+
+            &lt;!-- specified that the upstream index should collect the
+                 Entry resource properties from this index --&gt;
+            &lt;agg:ResourcePropertyName&gt;wssg:Entry&lt;/agg:ResourcePropertyName&gt;
+
+         &lt;/agg:GetResourcePropertyPollType&gt;
+      &lt;/agg:AggregatorConfig&gt;
+      &lt;agg:AggregatorData/&gt;
+   &lt;/Content&gt;
+
 &lt;/ServiceGroupRegistrationParameters&gt;</screen>
           <para>The two settings of note here are the <parameter>RefreshIntervalSecs</parameter> and
             the <parameter>PollIntervalMillis</parameter> parameters.</para>
@@ -276,7 +272,7 @@ https://localhost:8440/wsrf/services/DefaultIndexService
         </listitem>
         <listitem>
           <para>3. Start the container by running:
-          <screen>$ bin/globus-start-container</screen></para>
+          <screen>$ ./bin/globus-start-container</screen></para>
         </listitem>
       </itemizedlist>
       <para>When the DefaultIndexService is first activated, it will read the contents of the
