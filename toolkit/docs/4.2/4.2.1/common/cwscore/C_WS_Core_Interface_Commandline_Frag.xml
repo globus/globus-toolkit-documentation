@@ -8,6 +8,7 @@
 
 ]>
 <reference id="cwscore-cmd"><title>C WS Core Commands</title>
+
 <refentry id="globus-wsc-container">
   <indexterm type="cwscore-howto"><primary>containers</primary><secondary>starting C standalone container</secondary></indexterm>
   <indexterm type="cwscore"><primary>containers</primary><secondary>globus-wsc-container</secondary></indexterm>
@@ -18,58 +19,144 @@
 
 <refnamediv>
 <refname>globus-wsc-container</refname>
-<refpurpose>Hosts C web services</refpurpose>
+<refpurpose>Host C web services</refpurpose>
 </refnamediv>
-<refsynopsisdiv><cmdsynopsis>
+
+<refsynopsisdiv>
+<cmdsynopsis>
 <command>globus-wsc-container</command>
+<arg choice="opt">-bg</arg>
+<arg choice="opt">-pidfile PID</arg>
+<arg choice="opt">-help</arg>
+<arg choice="opt">-usage</arg>
+<arg choice="opt">-version</arg>
+<arg choice="opt">-max MAX-SESSIONS</arg>
+<arg choice="opt">-port PORT</arg>
+<arg choice="opt">-log LOGPATH</arg>
+<arg choice="opt">-nosec</arg>
 </cmdsynopsis>
 </refsynopsisdiv>
 
-<refsect1><title>Tool description</title>
+<refsect1><title>Description</title>
+<refsect2><title>Starting the Container</title>
 <para>
-  This command starts the C WS container, allowing WS and WSRF-enabled services
-  to be invoked.  <emphasis>globus-wsc-container</emphasis> must be running to
-  invoke services written using the C WS core.  
+The <command>globus-wsc-container</command> is a stand-alone
+<glossterm>SOAP</glossterm> service hosting container. It listens for SOAP /
+HTTP operation requests on a network
+port and dispatches those to dynamically loaded service modules. By default,
+<command>globus-wsc-container</command> will process SOAP messages until it
+receives a SIGINT or SIGTERM signal. In interactive usage, it typically runs
+until the user enters <keycombo action="simul">
+<keycap>Ctrl</keycap><keycap>C</keycap></keycombo> on the keyboard.
 </para>
-</refsect1>
+</refsect2>
 
-<refsect1><title>Features</title>
-  <itemizedlist>
-  <listitem><simpara>
-    The container can be run in the background with the <emphasis>-bg</emphasis> option,
-    and <emphasis>-pidfile</emphasis> allows the pid of the process to written to a specified
-    file.  This is useful for scripting the command, especially when running
-    tests, or when the container process is expected to have a short lifetime. </simpara></listitem>
-  <listitem><simpara>Supports HTTPS by default.  In order to turn off HTTPS, use the <emphasis>-nosec</emphasis> argument </simpara></listitem>
-</itemizedlist>
-</refsect1><refsect1><title>Limitations</title>
-  <itemizedlist>
-  <listitem><simpara>
-    The C container does not have a shutdown command (the Java container
-    has <emphasis>globus-stop-container</emphasis>).  To shutdown the C container, you
-    can either CRTL-C the process, or kill the process with the
-    process ID (use <emphasis>-pidfile</emphasis>)
-  </simpara></listitem>
-</itemizedlist>
-</refsect1>
-<refsect1><title>Command syntax</title>
+<refsect2><title>Choosing a HTTP(S) Port</title>
 <para>
-  Run: <emphasis>globus-wsc-container -help</emphasis>
-<screen>
-Syntax: globus-wsc-container [-help][-max &lt;max sessions&gt;] ...
+By default, the <command>globus-wsc-container</command> program picks an
+anonymous TCP port within values specified by the GLOBUS_TCP_PORT_RANGE
+environment variable, if present. To choose a specific port to listen on,
+pass the option <option>-port PORT</option> on the command-line of the process.
+</para>
 
-    Options
-    -help, -usage             Displays usage
-    -version                  Displays version
-    -max      &lt;max sessions&gt;  Max sessions that can be started in parallel
-    -port &lt;port&gt;              Set the port of the container
-    -pidfile &lt;path&gt;           Write PID of container to this file
-    -bg                       Run container in the background
-    -log PATH                 Log to PATH
-    -nosec                    Don't use https
+</refsect2>
+
+<refsect2><title>Running as a Daemon</title>
+<para>
+The <command>globus-wsc-container</command> program can also be run
+in the background as a daemon. This is done by passing the <option>-bg</option>
+command-line option. This can be combined with the <option>-pidfile PID</option>
+option to run in the background and record the PID of the process in a file,
+so that the daemon can be easily terminated.
+</para>
+</refsect2>
+
+<refsect2><title>Disabling TLS Security</title>
+<para>
+By default, the container uses
+<glossterm baseform="transport-level security">TLS</glossterm> for SOAP
+requests over https. This can be disabled to use unprotected http by passing
+the <option>-nosec</option> command-line option to this program. Message-level
+security may be enabled on a per-service basis if this is used.
+</para>
+</refsect2>
+
+<refsect2><title>CEDPs Best-Practices Logging</title>
+<para>
+To enable CEDPs best practices logging, pass the <option>-log LOGPATH</option>
+option to the container. The log file will contain name=value pairs for all
+events that the container processes.
+</para>
+</refsect2>
+
+
+<refsect2><title>Connection Throttling</title>
+<para>
+By default the container will accept as many SOAP connections as the operating
+system will allow. To throttle the number of outstanding connections that can
+be processed in parallel, use the <option>-max MAX-SESSIONS</option>
+command-line option.
+</para>
+</refsect2>
+</refsect1>
+
+<refsect1><title>Services</title>
+
+<para>
+The container looks for services in dynamic modules located in the 
+<filename>$GLOBUS_LOCATION/lib/globus_service_modules</filename> directory.
+The Globus Toolkit ships with a number of sample services, test services, and
+implementations of the core
+<glossterm baseform="Web Services Resource Framework">WSRF</glossterm> services
+for implementing Resource Properties, Resource Lifetime, Service Groups, and
+Notifications. The <command><olink
+targetptr="globus-wsrf-cgen">globus-wsrf-cgen</olink></command> command
+parses <glossterm baseform="Web Services Description Language">WSDL</glossterm>
+schemas and generates service skeletons which can be used to implement
+additional web services.
+</para>
+
+</refsect1>
+
+<refsect1><title>Examples</title>
+<para>
+Start a container in the foreground on port 8443:
+
+<screen>
+<prompt>% </prompt><command>globus-wsc-container</command> <option>-port 8443</option>
+
+<computeroutput>Contact: https://grid.example.org:8443/</computeroutput>
 
 </screen>
 </para>
+
+<para>
+Star a container as a daemon on an anonymous port, with a maximum of 64
+parallel sessions, recording the port number to a file and logging to another
+file.
+
+<screen>
+<prompt>% </prompt><command>globus-wsc-container</command> \
+    <option>-bg</option> \
+    <option>-pidfile <filename>$GLOBUS_LOCATION/var/globus-wsc-container.pid</filename></option> \
+    <option>-log <filename>$GLOBUS_LOCATION/var/globus-wsc-container.log</filename></option> \
+    <option>-max 64</option>
+    > <filename>$GLOBUS_LOCATION/var/globus-wsc-container.contact</filename>
+
+
+<prompt>% </prompt><command>cat</command> <filename>$GLOBUS_LOCATION/var/globus-wsc-container.contact</filename>
+
+<computeroutput>Contact: https://grid.example.org:18332/</computeroutput>
+
+<prompt>% </prompt><command>cat</command> <filename>$GLOBUS_LOCATION/var/globus-wsc-container.log</filename>
+
+<computeroutput>
+ts=2008-06-19T22:43:21.645807Z id=21475 event=globus_service_engine.start engine_id=40235 contact=https://grid.example.org:38001/
+</computeroutput>
+
+</screen>
+</para>
+
 </refsect1>
 
 </refentry>
@@ -541,7 +628,7 @@ globus-wsrf-cgen [-help][-s &lt;package name&gt;][-f &lt;flavor&gt;] \
 
         <para><emphasis>Example:</emphasis></para>
         <screen><prompt>$ </prompt><command>globus-wsrf-get-properties \
-        -s http://localhost:8080/wsrf/services/WidgetService \
+        -s http://grid.example.org:8080/wsrf/services/WidgetService \
         -k "{http://www.globus.org/namespaces/2004/06/core}WidgetKey" 123 \
         "{http://widgets.com}foo" \
         "{http://docs.oasis-open.org/wsrf/2004/06/wsrf-WS-ResourceLifetime-1.2-draft-01.xsd}CurrentTime"</command>
@@ -744,7 +831,7 @@ Foo Value String
 
        <para><emphasis>Example:</emphasis></para>
        <screen><prompt>$ </prompt><command>globus-wsrf-delete-property \
-       -s http://localhost:8080/wsrf/services/WidgetService \
+       -s http://grid.example.org:8080/wsrf/services/WidgetService \
        -k "{http://www.globus.org/namespaces/2004/06/core}WidgetKey" 123 \
        "{http://widgets.com}foo"</command>
        </screen>
