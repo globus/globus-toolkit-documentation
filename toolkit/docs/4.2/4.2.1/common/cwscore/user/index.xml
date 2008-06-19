@@ -43,27 +43,174 @@
   </bookinfo>
   
    <chapter id="cwscore-user-using">
-  <title>Using WS Core Commands (C)</title>
-  <para> [FIXME] explain how
-  end users typically interact with core in all ws services in gt mainly via commands - provide a common real world example (more than one if applicable.)</para>
+  <title>Using WS C Core Commands</title>
+
+
+<!--
   <para>need the following topics:</para>
   <itemizedlist>
-   <listitem><para>how do i start the container? globus-wsc-container</para></listitem>
-   <listitem><para>how do i stop the container?</para></listitem>
-   <listitem><para> what are the gt java web services and how do i find out about published resources from a web service?</para></listitem>
    <listitem><para>how do i subscribe to a service's topic?</para></listitem>
    <listitem><para>how do i query a resource?</para></listitem>
    <listitem><para> how do i destroy a resource?</para></listitem>
   </itemizedlist>
+  -->
+
+  <section id="cwscore-user-start-container">
+    <title>Starting the C Container</title>
+
+    <para>The <command>globus-wsc-container</command> command is an
+    implementation of a Web Service container for hosting services written in
+    C. By default, the container will run in the foreground and process SOAP
+    requests until terminated by a signal.  See <olink targetptr="globus-wsc-container">globus-wsc-container</olink> documentation
+    for a complete list of command-line options.
+
+    <screen>
+<prompt>%</prompt> <command>globus-wsc-container</command>
+
+<computeroutput>Contact: https://grid.example.org:8443/</computeroutput></screen>
+    </para>
+  </section>
+
+  <section id="cwscore-user-stop-container">
+    <title>Stopping the C Container</title>
+    <para>There is no special command for stopping a c container. If the
+    command is in the foreground (default), then sending the TERM signal
+    (typically <keycap>ctrl</keycap>-<keycap>C</keycap>.
+    
+    <screen>
+<prompt>%</prompt> <command>globus-wsc-container</command>
+
+<computeroutput>Contact: https://grid.example.org:8443</computeroutput>
+
+<userinput>^C</userinput>
+
+<computeroutput>Execution cancelled, cleaning up.</computeroutput>
+
+<prompt>%</prompt> </screen>
+    
+    
+    If the container is in the background, it can be terminated with the
+    POSIX-standard <command>kill</command> command. If the container was
+    started with the <option>-pidfile</option> command-line option, that fill
+    can be read to determine which process to kill. For example:
+
+    <screen>
+<prompt>%</prompt> <command>globus-wsc-container -bg -pidfile $GLOBUS_LOCATION/var/wsc.pid</command>
+
+<computeroutput>Contact: https://grid.example.org:8443</computeroutput>
+
+<prompt>%</prompt> <command>cat $GLOBUS_LOCATION/var/wsc.pid</command>
+
+<computeroutput>19773</computeroutput>
+
+<prompt>%</prompt> <command>kill 19773</command>
+
+<prompt>%</prompt> </screen>
+    
+    The container will automatically remove the PID file
+    (<filename>$GLOBUS_LOCATION/var/wsc.pid</filename> in this example).
+    </para>
+  </section>
+
+  <section id="cwscore-user-query-resources">
+    <title>Accessing Resources Properties with C WS Core</title>
+
+    <para>
+    WSRF services share information on resource state through
+    <glossterm baseform="resource properties">resource properties</glossterm>.
+    C WS Core provides several tools for inspecting these properties. A
+    <olink targetdoc="gtdeveloper" targetptr="gt-rp">list 
+    of the properties</olink> provided by Globus Toolkit services is
+    available in the developer's guide.
+    </para>
+
+    <para>
+    The <olink 
+    targetptr="globus-wsrf-get-property"><command>globus-wsrf-get-property</command></olink> and
+    <command><olink 
+    targetptr="globus-wsrf-get-properties">globus-wsrf-get-properties</olink></command>
+    commands provide two options for getting the value of a single resource
+    property or multiple resource properties, respectively. For this example,
+    we'll explore some of the properties provided by the GRAM4 service.
+    </para>
+
+    <para>First, we'll check the version information of a GRAM4 service using
+    <command>globus-wsrf-get-property</command>:
+    <screen>
+<prompt>% </prompt><command>globus-wsrf-get-property</command> <option>-s</option> <option>https://grid.example.org:8443/wsrf/services/ManagedJobFactoryService</option> \
+    <option>'{http://mds.globus.org/metadata/2005/02}ServiceMetaDataInfo'</option>
+
+<computeroutput><![CDATA[<ns1:ServiceMetaDataInfo xmlns:ns1="http://mds.globus.org/metadata/2005/02">
+    <ns1:startTime>2008-06-19T16:34:31.248Z</ns1:startTime>
+    <ns1:version>4.1.0</ns1:version>
+    <ns1:serviceTypeName>ManagedJobFactoryService</ns1:serviceTypeName>
+</ns1:ServiceMetaDataInfo>]]></computeroutput>
+
+<prompt>% </prompt></screen>
+    </para>
+
+    <para>
+    Now, we'll check for some system-specific information using
+    <command>globus-wsrf-get-properties</command>:
+    <screen>
+<prompt>% </prompt><command>globus-wsrf-get-properties</command> <option>-s</option> <option>https://grid.example.org:8443/wsrf/services/ManagedJobFactoryService</option> \
+    <option>'{http://www.globus.org/namespaces/2004/10/gram/job}hostCPUType'</option> \
+    <option>'{http://www.globus.org/namespaces/2004/10/gram/job}hostOSName'</option>
+
+<computeroutput>
+<![CDATA[<ns1:hostCPUType xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job">i686</ns1:hostCPUType>
+<ns2:hostOSName xmlns:ns2="http://www.globus.org/namespaces/2008/03/gram/job">Linux</ns2:hostOSName>]]>
+
+</computeroutput>
+<prompt>% </prompt></screen>
+    </para>
+
+    <para>
+    The
+    <command><olink targetptr="globus-wsrf-query">globus-wsrf-query-propery</olink></command>
+    program can be used to perform more sophisticated queries of resource
+    properties using <glossterm baseform="xpath">XPath</glossterm> expressions.
+    We can check for the number of local resource managers supported by this
+    installation:
+
+<screen>
+<prompt>% </prompt><command>globus-wsrf-query</command> \
+    <option>-s</option> <option>https://grid.example.org:8443/wsrf/services/ManagedJobFactoryService</option> \
+    <option>'count(//*[local-name() = "availableLocalResourceManagers"])'</option>
+
+<computeroutput>2</computeroutput>
+<prompt>% </prompt></screen>
+    </para>
+
+    <para>We can then get the names of the local resource managers:
+
+<screen>
+<prompt>% </prompt><command>globus-wsrf-query</command> \
+    <option>-s</option> <option>https://grid.example.org:8443/wsrf/services/ManagedJobFactoryService</option> \
+    <option>'//*[local-name() = "availableLocalResourceManagers"]/*[1]/text()'</option>
+
+<computeroutput>Fork</computeroutput>
+
+<prompt>% </prompt><command>globus-wsrf-query</command> \
+    <option>-s</option> <option>https://grid.example.org:8443/wsrf/services/ManagedJobFactoryService</option> \
+    <option>'//*[local-name() = "availableLocalResourceManagers"]/*[2]/text()'</option>
+
+<computeroutput>Multi</computeroutput>
+
+<prompt>% </prompt></screen>
+    </para>
+
+  </section>
+
  </chapter>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+ <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../C_WS_Core_Interface_Commandline_Frag.xml"/>
-  
+
+ 
   <chapter id="cwscore-user-troubleshooting">
     <title>Troubleshooting</title>
-    <para>This is a new component. If you are having trouble, please <ulink url="http://www.globus.org/toolkit/support.html">let us know</ulink>! [link to support
-    page]</para>
+
     <para>For a list of common errors in GT, see <olink targetdoc="gtuser" targetptr="errors"/>.</para>
         <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../C_WS_Core_Errors_Frag.xml"/>
@@ -73,4 +220,21 @@
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../C_WS_Core_Usage_Statistics_Frag.xml"/>
   </chapter>
+
+      <glossary role="auto" id="glossary-cwscoreUser">
+        <!-- 
+        <remark>some terms not in the docs but wanted in glossary: 
+        <glossterm>scheduler</glossterm>
+        </remark>
+        -->
+        <glossdiv><title>A</title>
+            <glossentry>
+                <glossterm>Dummy term</glossterm>
+                <glossdef>
+                    <para>This is a dummy entry for the automatic glossary datab
+ase. Do not edit.</para>
+                </glossdef>
+            </glossentry>
+        </glossdiv>
+    </glossary>
 </book>
