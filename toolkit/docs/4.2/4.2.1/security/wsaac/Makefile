@@ -2,9 +2,10 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
+SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/wsaacAdminGuide.pdf user/wsaacUserGuide.pdf developer/wsaacDeveloperGuide.pdf mig/wsaacMigratingGuide.pdf qp/wsaacQualityProfile.pdf rn/wsaacReleaseNotes.pdf
 
-all: lint html
-pdf: fo xep
+all: lint html subdirs
 
 html:
 	xsltproc \
@@ -15,20 +16,10 @@ html:
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
 
-fo:
-	xsltproc \
-	--novalid \
-	--xinclude \
-	-o index.fo \
-	--stringparam target.database.document "../../../olinkdb_fo.xml" \
-	--stringparam current.docid "wsaac" \
-	../../../custom_fo.xsl \
-	$(FILENAME)
-	
-xep:
-	~bacon/XEP/xep -quiet \
-	-fo index.fo \
-	-pdf javawscoreDeveloperGuide.pdf
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output wsaac.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
@@ -59,3 +50,8 @@ olink:
 	--stringparam  collect.xref.targets  "only"  \
 	../../custom_html.xsl \
 	$(FILENAME)
+	
+subdirs:
+	for dir in $(SUBDIRS); do \
+	cd $${dir}; make; if [ $$? -ne 0 ]; then exit 1; fi; cd ..; \
+	done
