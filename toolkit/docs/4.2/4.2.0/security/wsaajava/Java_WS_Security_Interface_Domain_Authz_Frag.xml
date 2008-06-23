@@ -1,0 +1,259 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="wsaajava-authzframe-domain"><title>Authorization domain-level interface</title>
+  <!-- fixme - better title for this? consider the title for the message version, too - afraid of using the word 'configuration' - the meaning is tied 
+  up with admin guide -->
+  <indexterm type="authzframe"><primary>Configuration using security
+  descriptors</primary></indexterm>
+  <section>
+    <title>Interface introduction</title>
+    <para> Configuration on the server side is done using <olink targetdoc="wsaajavaDescriptor"
+        targetptr="wsaajava-secdesc-introduction"/>. Make sure you have read about security
+      descriptors (in the aforementioned link) before continuing with this chapter. Custom
+      authorization mechanisms can be written and used as a part of the GT framework. The next
+      section describes the steps involved.</para>
+    <para> On the client side, in addition to the security descriptor, properties on the stub can be
+      set to configure security properties. Properties and values are described in detail in the
+      next section.</para>
+  </section><section>
+    <title>Syntax of the interface</title>
+    <section id="wsaajava-domain-clientAuthz-stub-config"><title>Configuring client-side
+        authorization on the stub</title>
+      <indexterm type="authzframe"><primary>security descriptors</primary><secondary>client side
+          authorization</secondary><tertiary>configuring</tertiary></indexterm>
+      <para> The property to use depends on the authentication scheme: <itemizedlist>
+          <listitem>
+            <para>
+              <emphasis role="strong"> If GSI Secure Transport or GSI Secure Conversation is
+              used</emphasis>, the
+              <constant>org.globus.axis.gsi.GSIConstants.GSI_AUTHORIZATION</constant> property must
+              be set on the stub. The value of this property must be an instance of an object that
+              extends from <constant>org.globus.gsi.gssapi.auth.GSSAuthorization</constant>. All
+              distributed authorization schemes have implementation in
+                <constant>org.globus.gsi.gssapi.auth</constant> package. </para>
+          </listitem>
+          <listitem>
+            <para>
+              <emphasis role="strong">For all other authentication schemes</emphasis>, the
+                <constant>org.globus.wsrf.impl.security.Constants.AUTHORIZATION</constant> property
+              must be set on the stub. The value of this property must be an instance of an object
+              that implements the
+                <constant>org.globus.wsrf.impl.security.authorization.Authorization</constant>
+              interface. </para>
+          </listitem>
+          <listitem>
+            <para> Example:
+              <screen>
+      // Create endpoint reference EndpointReferenceType
+      endpoint = new EndpointReferenceType(); 
+      // Set address of service
+      String counterAddr = 
+         &quot;http://localhost:8080/wsrf/services/CounterService&quot;;
+      // Get handle to stub object
+      CounterPortType port = 
+           locator.getCounterPortTypePort(endpoint);
+      <emphasis>// set client authorization to self 
+      ((Stub)port)._setProperty(Constants.AUTHORIZATION, 
+                   SelfAuthorization.getInstance());</emphasis>
+            </screen></para>
+          </listitem>
+        </itemizedlist></para></section>
+    <section id="wsaajava-domain-clientAuthz-custom"><title>Writing custom client-side
+        authorization scheme</title>
+      <indexterm type="authzframe"><primary>security descriptors</primary><secondary>client side
+          authorization</secondary><tertiary>writing custom scheme</tertiary></indexterm>
+      <para> Other than the distributed client authorization scheme, custom client-side
+        authorization schemes can be written and can be set as the value for the appropriate
+        property on the stub.</para><note>
+        <para> Security descriptors cannot be used to configure custom authorization schemes on the
+          client side.</para>
+      </note><itemizedlist>
+        <listitem>
+          <para>
+            <emphasis role="strong">If the authentication scheme to be used is GSI Secure Transport
+              or GSI Secure Conversation</emphasis>, the custom authorization scheme should extend
+            from extends from <constant>org.globus.gsi.gssapi.auth.GSSAuthorization</constant>.</para>
+          <screen>
+      public class TestAuthorization extends GSSAuthorization {
+      
+        // Provide some way to instantiate this class. Can use constructor
+        // with arguments to pass in parameters.
+         public TestAuthorization() {
+
+         }
+
+         public GSSName getExpectedName(GSSCredential cred, String host) 
+            throws GSSException {
+
+            // Return the expected GSSName of the remote entity.
+         }
+
+
+          public void authorize(GSSContext context, String host)
+	     throws AuthorizationException {      
+
+             // Perform the authorization steps.
+             // context.getSrcName() provides the local GSSName
+             // context.getTargName() provides the remote GSSName
+
+             // if authorization fails, throw AuthorizationException
+         }
+      }
+      </screen>
+          <para> The following describes the steps done for client side authorization during context
+            establishment: <itemizedlist>
+              <listitem>
+                <para> Prior to initialization of context establishment the relevant handler
+                  (HTTPSSender in case of GSI Secure Transport or SecContextHandler in case of GSI
+                  Secure Conversation), invokes <emphasis>getExpectedName</emphasis> on the instance
+                  of GSSAuthorization set on the Stub. </para>
+              </listitem>
+              <listitem>
+                <para> During context establishment, if the expected target name from previous step
+                  is not null, it is compared with the remote peer's GSSName. If it is not a match,
+                  context establishment is abandoned and an error is thrown. </para>
+                <para> If the expected target name is null, then a match is not done, unless the
+                  option of delegation is used. That is, if GSI Secure Conversation with delegation
+                  is used, then the expected target name cannot be null and must match the remote
+                  peer's identity. </para>
+              </listitem>
+              <listitem>
+                <para> Once the context has been established, the <emphasis>authorize</emphasis>
+                  method is invoked. </para>
+              </listitem>
+            </itemizedlist></para>
+          <note>
+            <para> Client authorization is done prior to invocation. </para>
+          </note>
+          <para>To configure the custom authorization scheme:
+            <screen>
+      ((Stub)port)._setProperty(GSIConstants.GSI_AUTHORIZATION, 
+                   new TestAuthorization());
+      </screen></para>
+          <para> Various authorization scheme implementations in package
+              <constant>org.globus.gsi.gssapi.auth</constant> would serve as examples. <ulink
+              url="http://viewcvs.globus.org/viewcvs.cgi/jglobus/src/org/globus/gsi/gssapi/auth/?root=Java+COG&amp;pathrev=HEAD"
+              >View CVS Link</ulink>
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis role="strong">For all authentication schemes other than those in previous
+            step</emphasis> the
+            <constant>org.globus.wsrf.impl.security.Constants.AUTHORIZATION</constant> property must
+            be set on the stub. The value of this property must be an instance of an object that
+            implements the
+            <constant>org.globus.wsrf.impl.security.authorization.Authorization</constant>
+            interface.</para>
+          <screen>
+      public class TestAuthorization implements Authorization {
+      
+        // Provide some way to instantiate this class. Can use constructor
+        // with arguments to pass in parameters.
+         public TestAuthorization() {
+
+         }
+
+         public GSSName getName(MessageContext ctx) 
+            throws GSSException {
+
+            // Return the expected GSSName of the remote entity.
+         }
+
+
+          void authorize(Subject peerSubject, MessageContext context)
+                                 throws AuthorizationException {
+
+             // Perform the authorization steps.
+             // peerSubject provides the remote Subject
+             // Use SecurityManager API to get local Subject
+
+             // if authorization fails, throw AuthorizationException
+         }
+      }
+      </screen>
+          <para> The following describes the steps done for client side authorization: <itemizedlist>
+              <listitem>
+                <para> The client side handler WSSecurityClientHandler, invokes
+                  <emphasis>authorize</emphasis> method on the authorization instance. </para>
+              </listitem>
+            </itemizedlist><note>
+              <para> Client authorization is done after the invocation. </para>
+            </note></para>
+          <para>To configure the custom authorization scheme:
+            <screen>
+      ((Stub)port)._setProperty(Constants.AUTHORIZATION, 
+                   new TestAuthorization());
+      </screen></para>
+          <para> Various authorization scheme implementations in package
+              <constant>org.globus.wsrf.impl.security.authorization</constant> would serve as
+            examples. <ulink
+              url="http://viewcvs.globus.org/viewcvs.cgi/wsrf/java/core/source/src/org/globus/wsrf/impl/security/authorization/?pathrev=HEAD"
+              >View CVS Link</ulink>. </para>
+        </listitem>
+      </itemizedlist></section>
+    <section id="wsaajava-domain-serverAuthz-custom">
+      <title>Writing a custom server-side authorization mechanism</title>
+      <para>The server side authorization framework can be configured to use custom authorization
+        interceptors, bootstrap PIP, PIP and PDP. Detailed information on writing custom PDPs can be
+        found in <ulink url="../gtJavaAuthzEngine.pdf">GT Java Authorization Framework</ulink>.
+        Also, the section <olink targetdoc="wsaajavaMig" targetptr="wsaajava-migrating-GT4.0"/>
+        describes migrating from older PDP/PIP implementations. </para>
+      <para> For example, a custom PDP must implement the interface
+          <constant>org.globus.security.authorization.PDP</constant>. </para>
+      <para><emphasis>Example: </emphasis>
+      </para>
+      <screen>package org.foobar;
+
+import ....;
+
+public class FooPDP implements PDP
+{
+    private Principal authorizedIdentity;
+
+
+    public Decision canAccess(RequestEntity requestEntity,
+                              NonRequestEntity nonRequestEntity)
+        throws AuthorizationException {
+        
+        // process and return decision
+    }
+
+    public Decision canAdminister(RequestEntity requestEntity,
+                                  NonRequestEntity nonRequestEntity)
+        throws AuthorizationException {
+
+        // process and return decision
+    }
+
+}
+</screen>
+      <para>To use the above PDP one would configure a service security descriptor with the
+        following authorization settings:</para>
+      <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
+   ...
+   &lt;authz value=&quot;foo1:org.foobar.FooPDP&quot;/&gt;
+   ...
+&lt;securityConfig/&gt;</screen>
+      <para>This security descriptor (identified as <filename
+        >/.../foo-pdp-security-config.xml</filename> below) can then be used by a service. The
+        association is created by adding a couple of parameters to the service&apos;s WSDD entry:</para>
+      <screen>...
+&lt;service name=&quot;MyDummyService&quot; 
+             provider=&quot;Handler&quot; 
+             style=&quot;document&quot;&gt;
+   ...
+   &lt;parameter name=&quot;securityDescriptor&quot; 
+                     value=&quot;/.../foo-pdp-security-config.xml&quot;/&gt;
+   &lt;parameter name=&quot;foo1-authorizedIdentity&quot; 
+                     value=&quot;/DC=org/DC=doe/OU=People/CN=John D&quot;/&gt;
+   ...
+&lt;/service&gt;</screen>
+      <para>Note that the parameter &lt;parameter&gt;foo1-authorizedIdentity&lt;/parameter&gt; in
+        the above configures the identity the PDP uses for authorizing incoming requests. The
+        parameter name is derived by composing the prefix (&lt;parameter&gt;foo1&lt;/parameter&gt;)
+        used when specifying the PDP in the security descriptor with the property
+        (&lt;parameter&gt;authorizedIdentity&lt;/parameter&gt;) used in the PDP code.</para>
+    </section>
+  </section></chapter>
