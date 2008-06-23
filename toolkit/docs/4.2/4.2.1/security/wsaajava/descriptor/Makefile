@@ -11,6 +11,7 @@ html:
 	--xinclude \
 	--stringparam target.database.document "../../../olinkdb.xml" \
 	--stringparam current.docid "wsaajavaDescriptor" \
+	--stringparam toc.max.depth "3" \
 	../../../custom_html.xsl \
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
