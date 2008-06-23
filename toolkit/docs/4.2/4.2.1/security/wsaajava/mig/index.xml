@@ -1,0 +1,185 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<article id="wsaajavaMig">
+ <title> GT <replaceable role="entity">version</replaceable> Migrating Guide for Java WS Security</title>
+ <titleabbrev>Migrating Guide</titleabbrev>
+ <para>The following provides available information about migrating from previous versions of the
+  Globus Toolkit.</para>
+ <section id="wsaajava-migrating-GT4.0">
+  <title>Migrating Java WS Authorization Framework from GT 4.0</title>
+  <para> Java WS Authorization framework has been reworked with WS independent authorization engine
+   and separate authorization module. The following sections describe migrating from GT 4.0.x and
+   intermediate GT 4.1.x development releases. </para>
+  <section id="wsaajava-migrating-interfaces">
+   <title>Interface and code changes</title>
+   <para> The Java WS Authorization Framework now uses the generic GT Java Authorization Framework,
+    that eliminates dependency on web services components. The following changes will be needed from
+    GT 4.0.x: </para>
+   <orderedlist>
+    <listitem>
+     <para> Package name: PDP/PIP interfaces, attribute processing classes and configuration classes
+      are now used from the generic authorization engine. Hence the authorization interfaces have
+      changed from org.globus.wsrf.security.authorization to org.globus.security.authorization. The
+      following classes have changed:</para>
+     <itemizedlist>
+      <listitem>
+       <para>Attribute</para>
+      </listitem>
+      <listitem>
+       <para>AttributeCollection</para>
+      </listitem>
+      <listitem>
+       <para>AttributeException</para>
+      </listitem>
+      <listitem>
+       <para>AttributeIdentifier</para>
+      </listitem>
+      <listitem>
+       <para>AuthorizationConfig</para>
+      </listitem>
+      <listitem>
+       <para>AuthorizationDeniedException</para>
+      </listitem>
+      <listitem>
+       <para>AuthorizationEngineSpi</para>
+      </listitem>
+      <listitem>
+       <para>AuthorizationException</para>
+      </listitem>
+      <listitem>
+       <para>BootstrapPIP</para>
+      </listitem>
+      <listitem>
+       <para>ChainConfig</para>
+      </listitem>
+      <listitem>
+       <para>CloseException</para>
+      </listitem>
+      <listitem>
+       <para>Decision</para>
+      </listitem>
+      <listitem>
+       <para>EntityAttributes</para>
+      </listitem>
+      <listitem>
+       <para>IdentityAttributeCollection</para>
+      </listitem>
+      <listitem>
+       <para>InitializeException</para>
+      </listitem>
+      <listitem>
+       <para>Interceptor</para>
+      </listitem>
+      <listitem>
+       <para>InterceptorConfig</para>
+      </listitem>
+      <listitem>
+       <para>InterceptorException</para>
+      </listitem>
+      <listitem>
+       <para>PDP</para>
+      </listitem>
+      <listitem>
+       <para>PIP</para>
+      </listitem>
+     </itemizedlist>
+    </listitem>
+    <listitem>
+     <para> RequestAttributes class: This class has been renamed as RequestEntities with no
+      functionality change </para>
+    </listitem>
+    <listitem>
+     <para> PIPResponse class: This class has been renamed as NonRequestEntities. Functionality from
+      the older class has been preserved, with additional methods to merge attributes to this
+      structure has been added.</para>
+    </listitem>
+    <listitem>
+     <para>PIP Interface change: The new PIP interface is as follows:
+      <screen> public
+      NonRequestEntities collectAttributes(RequestEntities requestAttr) throws AttributeException; </screen>
+      <function>MessageContext</function> has been removed from the interface. Refer to item (7) on
+      information on retrieving message context. </para>
+     <para> This interface does not extend from Interceptor interface. But PIPInterceptor interface
+      is equivalent to the previous version of the PIP interface, with collect attributes method and
+      interceptor interface methods. </para>
+    </listitem>
+    <listitem>
+     <para>PDP Interface change: The new PDP interface is as follows:
+      <screen> public Decision
+      canAccess(RequestEntities requestEntities, NonRequestEntities nonReqEntities) throws
+      AuthorizationException; public Decision canAdminister(RequestEntities requestEntities,
+      NonRequestEntities nonReqEntities) throws AuthorizationException; </screen>
+      NonRequestAttributes class encompasses the three List objects for non-request subject,
+      resource and action. </para>
+     <para>The RequestAttributes class is replaced by RequestEntities class as is. <function
+       >MessageContext</function> has been removed from the interface. Refer to item (7) on
+      information on retrieving message context. </para>
+     <para> This interface does not extend from Interceptor interface. But PDPInterceptor interface
+      is equivalent to the previous version of the PDP interface, with collect attributes method and
+      interceptor interface methods. </para>
+    </listitem>
+    <listitem>
+     <para> Providers package: The providers that were a part of the authorization package are now a
+      part of the generic interface. So the FirstApplicable and PermitOverride combinging algorithm
+      interface, in addition to the AbstractEngine class are now a part of the new package,
+      org.globus.security.authorization.providers.</para>
+    </listitem>
+    <listitem>
+     <para> Message Context: ContainerPIP, the default PIP that is used by the GT framework to
+      initialize request context, adds the message context assiciated wiht the request as an
+      environment attribute with null issuer. To extract the message context, the following code
+      snippet can be used:</para>
+     <screen> RequestEntities reqEntities; org.apache.axis.MessageContext msgCtx =
+     AttributeUtil.getMessageContext(reqEntities.getEnvironment(), null); </screen>
+    </listitem>
+   </orderedlist>
+  </section>
+  <section id="wsaajava-migrating-codebase">
+   <title>Authorization Module Changes</title>
+   <para>The Java WS server side authorization code has been moved to a separate module called
+     <code>authorization</code>. A migration guide, that outlines the changes needed for services
+    that build on Java WS Core, is provided <ulink
+     url="http://dev.globus.org/wiki/Java_WS_Core/Independent_Java_Authz_Module">here.</ulink>
+   </para>
+  </section>
+ </section>
+ <section id="wsaajava-migrating-GT3">
+  <title>Migrating Java WS Authorization Framework from GT3</title>
+  <para>While the GT4 version of this component has similar features to the GT3 version, some of the
+   configuration methodology has changed and some features have been enhanced. Refer to <olink
+    targetdoc="wsaajava" targetptr="wsaajava-secdesc-configAuthz"/> for changes in
+  configuration.</para>
+ </section>
+ <section id="wsaajava-migration-hostcreds">
+  <title>Migrating host credentials from GT3 and GT2</title>
+  <para>GT2 and GT3 services were set up to run with root owned <glossterm>host credentials</glossterm>. 
+   In GT4 most, but not all, services will run as the
+   <emphasis role="strong">globus</emphasis> user. To allow the <emphasis role="strong">globus</emphasis> user to start services using host
+   credentials, the <emphasis role="strong">globus</emphasis> user needs to be able to access them. This requirement can be satisfied by
+   making a copy of the root-owned host credentials, i.e. the <glossterm>host certificate</glossterm> 
+   and <glossterm>private key</glossterm>, owned by the <emphasis role="strong">globus</emphasis> user. In GT4
+   this copy is assumed to be <filename>/etc/grid-security/container{cert,key}.pem</filename>.
+  </para>
+ </section>
+   <glossary id="glossary-wsaajavaMig" role="auto">
+    <!-- 
+    <remark>some terms not in the docs but wanted in glossary: 
+    <glossterm>scheduler</glossterm>
+    </remark>
+    -->
+
+    <glossdiv>
+      <title>A</title>
+
+      <glossentry>
+        <glossterm>Dummy term</glossterm>
+
+        <glossdef>
+          <para>This is a dummy entry for the automatic glossary database. Do
+          not edit.</para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+  </glossary>
+</article>
