@@ -66,6 +66,9 @@
                 <!-- update target database with all possible cross references (for olinks)-->
                 <xsl:param name="collect.xref.targets">yes</xsl:param>
                 
+                <!-- default location for target database document (for olinks) -->
+                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/olinkdb.xml</xsl:param>
+                
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
                 <xsl:param name="admon.graphics">1</xsl:param>
                 

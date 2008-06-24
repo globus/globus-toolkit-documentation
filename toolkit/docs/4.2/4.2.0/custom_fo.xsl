@@ -33,6 +33,9 @@
                               <xsl:attribute name="text-decoration">underline</xsl:attribute>
                </xsl:attribute-set>
                
+               <!-- default location for target database document (for olinks) -->
+                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/olinkdb.xml</xsl:param>
+               
                <!-- enable extensions -->
                <xsl:param name="xep.extensions" select="1"></xsl:param>
                
