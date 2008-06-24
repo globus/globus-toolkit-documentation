@@ -8,7 +8,6 @@ all: lint html
 html:
 	xsltproc \
 	--xinclude \
-	--stringparam target.database.document "../olinkdb.xml" \
 	--stringparam current.docid "security" \
 	--stringparam generate.toc "" \
 	../custom_html.xsl \

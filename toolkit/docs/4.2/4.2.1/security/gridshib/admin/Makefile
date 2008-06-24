@@ -9,7 +9,6 @@ pdf: fo xep
 html:
 	xsltproc \
 	--xinclude \
-	--stringparam target.database.document "../../../olinkdb.xml" \
 	--stringparam current.docid "gridshibAdmin" \
 	../../../custom_html.xsl \
 	$(FILENAME) \
