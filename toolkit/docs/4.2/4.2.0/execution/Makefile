@@ -8,7 +8,6 @@ all: lint html
 html:
 	xsltproc \
 	--xinclude \
-	--stringparam target.database.document "../olinkdb.xml" \
 	--stringparam current.docid "execution" \
 	../custom_html.xsl \
 	$(FILENAME) \

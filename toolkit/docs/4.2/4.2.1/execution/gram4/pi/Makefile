@@ -9,7 +9,6 @@ pdf: fo xep
 html:
 	xsltproc \
 	--xinclude \
-	--stringparam target.database.document "../../../olinkdb.xml" \
 	--stringparam current.docid "gram4PI" \
 	../../../custom_html.xsl \
 	$(FILENAME) \
@@ -19,7 +18,6 @@ fo:
 	xsltproc \
 	--xinclude \
 	-o index.fo \
-	--stringparam target.database.document "../../../olinkdb_fo.xml" \
 	--stringparam current.docid "gram4PI" \
 	../../../custom_fo.xsl \
 	$(FILENAME)
