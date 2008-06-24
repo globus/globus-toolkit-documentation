@@ -4,7 +4,7 @@
 
 <chapter id="trigger-howto-basic">
         <chapterinfo>
-            <date>(version 2.0) November 2006</date>
+            <date>June 2008</date>
         </chapterinfo>
         <title>Trigger Service - Easy HowTo </title>
   <indexterm type="trigger"><primary>tutorial</primary><secondary>basic</secondary></indexterm>
@@ -19,34 +19,84 @@
   </section>
   <section id="trigger-howto-basic-prereq"><title>Prerequisites</title>
   <itemizedlist>
-    <listitem><para>Basic GT4 installation (one of the following):</para>
-      <itemizedlist>
-      <listitem><para>GT 4.1.3+ Installation (including Java WS Core and WS MDS Aggregator Framework).</para>
-        <note><para>GT 4.1.3+ is simply a preview to some of the upcoming GT 4.2 functionality.  The trigger state is still highly developmental.</para></note>
-      </listitem>
-        </itemizedlist>
-    </listitem>
-    <listitem><para>Basic <ulink url="http://www.w3.org/TR/xpath">XML Path Language (XPath)</ulink></para></listitem>
+    <listitem><para>Globus Toolkit installation</para></listitem>
+    <listitem><para>Some basic familiarity with <ulink url="http://www.w3.org/TR/xpath">XML Path Language (XPath).</ulink></para></listitem>
+    <listitem><para>You must have a valid X.509 user certificate</para></listitem>
   </itemizedlist>
   </section>
   
   <section id="trigger-howto-basic-intro"><title>Introduction</title>
   
-  <para>Triggers collect information from information providers using the same mechanism as the Index service (within the context of the common aggregator
-      framework); but once that data is collected, we can configure a <emphasis role="strong">trigger</emphasis> to perform an action based on that data.</para>
-    <para>Once the conditions are prepared, and the collected data is evaluated, the data will be compared to the conditions and, if there's a match, the trigger will set an action to occur.</para>
-    <para>Learning to use triggers involves understanding what you are doing conceptually and knowing how to configure everything properly. 
-      Below we'll go through an example trigger configuration file and discuss some steps that should occur in an example setup. 
-      Generally when setting up a trigger you should follow the steps outlined in this tutorial.</para>
-    <para>First let's explain what we are doing. We're going to set up a trigger to monitor the Default Index Service, and we'll use it to act as a function of how many Entries are in the Default Index Service.  
-      Based on the number of entries, we can set the trigger to execute an action. When we want an action to occur, our trigger will execute a script that will create a [log] file in our $GLOBUS_LOCATION directory 
-      [and every 30 seconds that the new entry is still registered, we'll add a notification to this log file].  This is not necessarily a practical example of how you would use a trigger, but it's simple enough to 
+  <para>The Trigger Service collects information and then performs actions based on that information.  The Trigger Service works like this:</para>
+<orderedlist>
+<listitem>Administrators use a configuration file to specify the names and locations of <command>trigger actions</command>, programs that can be executed by the Trigger Service as a result of trigger conditions being met.</listitem>
+<listitem>Users (or administrators, depending on authorization policy) use a programmatic interface to specify what information will be collected by the Trigger Service.  This interface is the Aggregator Framework, the same configuration interface used by the Index Service</listitem>
+<listitem>Users use a programmatic interface to define <command>triggers</command>.  A trigger includes (among other things) an XPath query string and the name of one of the trigger actions defined in step 1.</listitem>
+<listitem>The Trigger Service periodically collects data (based on the configuration specified in step 2) and, for each trigger specified in step 3, evaluates the XPath query associated with the trigger and then executes the trigger's action if the query returns true.</listitem>
+</orderedlist>
+    <para>In this example, we will configure the Trigger Service to monitor the Default Index Service running in the same Globus container, and then set up a trigger that will add an entry to a log file any time the number of Index Service registrations is less than 1.
+This is not necessarily a practical example of how you would use a trigger, but it's simple enough to 
       give you a basic idea of how to set one up. So let's get started!</para>
       </section>
       
   <section id="trigger-howto-basic-tutorial"><title>Trigger Tutorial</title>
-    <section id="trigger-howto-basic-config"><title>Trigger Registration Configuration</title>
-      <para>The first thing we do is to configure the trigger service to collect some information (we will later configure the trigger service to periodically run a query on that information and, based on the results of the query, take some action).  In this example, we will configure the trigger service to collect infoformation by querying the Default Index Service running in the same Globus container for the entire contents of its index.</para>
+  <section id="trigger-howto-basic-prelim"><title>Preliminaries:  Set Up Your Environment</title>
+    <para>First things first -- in order to run most Globus commands, you must have your environment set up correctly and have a valid proxy certificate.  To set up your environment, first set the GLOBUS_LOCATION environment variable to the directory in which Globus is installed.  To finish setting up your environment, run:</para>
+<screen>
+. $GLOBUS_LOCATION/etc/globus-user-env.sh
+</screen>
+<para>if you're a Bourne shell user, or</para>
+<screen>
+source $GLOBUS_LOCATION/etc/globus-user-env.csh
+</screen>
+<para>if you're a C shell user.  Finally, generate a proxy certificate with:</para>
+<screen>
+$GLOBUS_LOCATION/bin/grid-proxy-init -verify -debug
+</screen>
+  </section>
+    <section id="trigger-howto-basic-config-actions"><title>Configure Trigger Action Programs</title> 
+      <para>Next, we will specify what commands can be used in Trigger Service triggers.  The Trigger Service comes with some simple action scripts in the <command>$GLOBUS_LOCATION/libexec/trigger</command> directory</para>; we will edit the
+<command>$GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/jndi-config.xml</command> file to enable them:</para>
+      <screen>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;jndiConfig xmlns="http://wsrf.globus.org/jndi/config"&gt;
+    &lt;global&gt;
+       &lt;resource name="configuration"
+                 type="org.globus.mds.aggregator.impl.AggregatorConfiguration"&gt;
+            ...
+       &lt;/resource&gt;
+      
+       &lt;resource name="triggerConfiguration"
+                 type="org.globus.mds.trigger.impl.TriggerConfiguration"&gt;
+          &lt;resourceParams&gt;
+             &lt;parameter&gt;
+                 ...
+             &lt;/parameter&gt;
+             &lt;parameter&gt;
+	        &lt;name&gt;<emphasis role="strong">executableMappings</emphasis>&lt;/name&gt;
+	        &lt;value&gt;<emphasis> role="strong">trigger-action-default=trigger-action-default.sh, trigger-action-input-default=trigger-action-input-default.sh</emphasis>&lt;/value&gt;
+	     &lt;/parameter&gt;
+	  &lt;/resourceParams&gt;
+       &lt;/resource&gt;  
+                    
+    &lt;/global&gt;
+    
+    &lt;service name="TriggerRegistrationService"&gt;
+          ...
+    &lt;/service&gt;
+       ...
+
+&lt;/jndiConfig&gt;
+      </screen>
+<para>This jndi-config.xml file defines an <command>executableMappings</command> parameter.  The format of the executableMappings parameter is a sequence of name=value strings, separated by commas.
+The left hand side of each name/value pair is the name that users will specify in trigger definitions; the right hand side is the path name (relative to the $GLOBUS_LOCATION/libexec/trigger directory) of the program to execute.  In this example, we
+define two trigger actions: "trigger-action-default" maps to $GLOBUS_LOCATION/libexec/trigger/trigger-action-default.sh, and "trigger-action-input-default" maps to $GLOBUS_LOCATION/libexec/trigger-action-input-default.sh.  These action scripts are distributed as part of the Globus distribution.  The version of $GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/jndi-config.xml distributed with Globus has these mappings defined in a commented-out section; in order to continue with this example, you must uncomment them.</para>
+<para>Before you continue, you'll need to restart your Globus container to make the
+changes to
+jndi-config.xml take effect.  If you normally use <command>/etc/init.d/gt4container</command>, then you can type "/etc/init.d/gt4container restart", or you can kill the running Globus container (if there is one) and run <command>$GLOBUS_LOCATION/etc/globus-start-container-detached</command> by hand.  If you have a production container running and want to test the trigger service with a different instance on another port, you can run "globus-start-container-detached -p NNNN" to cause the new container to listen on port NNNN.</para>
+</section>
+    <section id="trigger-howto-basic-registration"><title>Configure the Trigger Service to Collect Information</title>
+      <para>The next thing we will do is configure the trigger service to collect some information (we will later configure the trigger service to periodically run a query on that information and, based on the results of the query, take some action).  In this example, we will configure the trigger service to collect infoformation by querying the Default Index Service running in the same Globus container for the entire contents of its index.</para>
 <para>The Trigger Service uses the <olink targetdoc="aggregator">Aggregator Framework</olink> to configure its sources of information.  Aggregator sources are configured through a service interface; we will create a
 file specifying configuration parameters and then run the <command><olink targetptr="mds-servicegroup-add">mds-servicegroup-add</olink></command> command to read that configuration file and register the configuration information with the Trigger Service.  We will start with the example trigger registration file included with Globus distributions in <command>$GLOBUS_LOCATION/etc/globus_wsrf_mds_trigger/trigger-registration-example.xml</command></para>
 <screen>
@@ -77,40 +127,18 @@ file specifying configuration parameters and then run the <command><olink target
 &lt;/ServiceGroupRegistrations&gt;
 </screen>
 <para>For this example, the only items in the registration file that you
-might need to edit are the <emphasis role="strong">DefaultServiceGroupEPR</emphasis> (the
-address of your trigger registration service) and the <emphasis role="strong">RegistrantEPR</emphasis> (the address of the resource you want to monitor; in this case, your Default Index Service).  If these look correct (i.e., if you're running your Globus
-container using the default port and security parameters), then you do not need
+might need to edit are the <command>DefaultServiceGroupEPR</command> (the
+address of your trigger registration service) and the <command>RegistrantEPR</command> (the address of the resource you want to monitor; in this case, your Default Index Service).  If these look correct (i.e., the host names and port numbers correspond to
+the Globus container you just started),
+then you do not need
 to edit this file at all.</para>
+<note>In general, it's a bad idea to use loopback addresses like "localhost" or "127.0.0.1" in MDS configuration files (because if you configure a remote host to poll "localhost" for information, the remote host will poll itself, not the host that the mds-servicegroup-add command was run from).  We can get away with it here because all the
+addresses we're using are local, but in real life, it's better to use non-local IP addresses or fully-qualified domain names</note>
     </section>
-    <section id="trigger-howto-basic-config-action-script"><title>Trigger Action Script Configuration</title> 
-      <para> We have the trigger set to execute an action whenever our conditions are met, but we need to determine what those actions will be.  
-        What do we want the trigger to do if it's going to fire?  We do this by setting up a Trigger Action Script.</para>
-      
-      <para>Here we write the action script; we'll make it very simple:</para>
-      
-      <screen>
-#!/bin/sh
 
-DATE=`date`
-
-echo "Trigger Service Entry: $DATE" &gt;&gt; $GLOBUS_LOCATION/trigger_service_base_action_log
-
-cat &lt;&lt;EOF
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;OurActionScriptOutput&gt;
-  &lt;OurDataDetected&gt;true&lt;/OurDataDetected&gt;
-&lt;/OurActionScriptOutput&gt;
-EOF
-      </screen>
-      <para><emphasis>Note: This example script should be provided if your have a recent installation, however if not:</emphasis></para>
-      
-      <para>Save this file as: <filename>$GLOBUS_LOCATION/libexec/trigger/trigger-action-default.sh</filename></para>
-      
-      <important><para>Be sure that this file is executable! (e.g. chmod u+x trigger-action-default.sh)</para></important>
-    </section>
-    
-    <section><title>Start the container</title>
-      
+<section id="trigger-howto-basic-define-triggers"><title>Define Triggers</title>
+<para>
+Now, we're going to define some containers.  But first, since
       <para><emphasis>Now start the container:</emphasis> (Note: the <computeroutput>-p</computeroutput> option allows you to specify a port.  We have been using 8444 in this example.  
         You may also specify <computeroutput>-nosec</computeroutput> if you want to ignore security.)</para>
       <screen>$GLOBUS_LOCATION/bin/globus-start-container -p 8444</screen>
@@ -118,7 +146,7 @@ EOF
       
 <screen id="info-trigger-exampletest">
 source $GLOBUS_LOCATION/etc/globus-user-env.sh
-$GLOBUS_LOCATION/bin/grid-proxy-init -verify -debug
+
 </screen>
       <para>But before we create the trigger, let's just quickly test how many Entries are being registered by the Index Service. Type the following command in one line:</para>
       <screen>$GLOBUS_LOCATION/bin/wsrf-query -s https://127.0.0.1:8444/wsrf/services/DefaultIndexService 'count(//*[local-name()="Entry"])'</screen>
