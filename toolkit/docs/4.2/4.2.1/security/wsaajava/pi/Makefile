@@ -9,7 +9,6 @@ pdf: fo xep
 html:
 	xsltproc \
 	--xinclude \
-	--stringparam target.database.document "../../../olinkdb.xml" \
 	--stringparam current.docid "wsaajavaPI" \
 	../../../custom_html.xsl \
 	$(FILENAME) \

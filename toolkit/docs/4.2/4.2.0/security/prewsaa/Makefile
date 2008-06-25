@@ -10,7 +10,6 @@ all: lint html subdirs
 html:
 	xsltproc \
 	--xinclude \
-	--stringparam target.database.document "../../olinkdb.xml" \
 	--stringparam current.docid "prewsaa" \
 	--stringparam generate.toc "" \
 	../../custom_html.xsl \
