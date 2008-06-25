@@ -49,3 +49,8 @@ olink:
 	--stringparam  collect.xref.targets  "only"  \
 	../../custom_html.xsl \
 	$(FILENAME)
+
+subdirs:
+	for dir in $(SUBDIRS); do \
+	cd $${dir}; make; if [ $$? -ne 0 ]; then exit 1; fi; cd ..; \
+	done
