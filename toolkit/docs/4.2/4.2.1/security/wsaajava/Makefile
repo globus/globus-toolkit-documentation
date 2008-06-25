@@ -2,9 +2,10 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
+SUBDIRS=admin developer mig pi qp rn user
+PDFS=admin/wsaajavaAdminGuide.pdf user/wsaajavaUserGuide.pdf developer/wsaajavaDeveloperGuide.pdf mig/wsaajavaMigratingGuide.pdf qp/wsaajavaQualityProfile.pdf rn/wsaajavaReleaseNotes.pdf
 
-all: lint html
-pdf: fo xep
+all: lint html subdirs
 
 html:
 	xsltproc \
@@ -14,18 +15,10 @@ html:
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
 
-fo:
-	xsltproc \
-	--xinclude \
-	-o index.fo \
-	--stringparam current.docid "wsaajava" \
-	../../custom_fo.xsl \
-	$(FILENAME)
-	
-xep:
-	~bacon/XEP/xep -quiet \
-	-fo index.fo \
-	-pdf wsaajava.pdf
+pdf:
+	pdftk \
+	$(PDFS) \
+	cat output wsaajava.pdf
 	
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
