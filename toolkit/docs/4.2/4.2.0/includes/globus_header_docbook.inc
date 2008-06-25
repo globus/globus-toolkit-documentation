@@ -68,7 +68,9 @@ globus_out_of_date(); ?>
 			
 		<h2 class="smalltitle">Getting Started</h2>
 			<dl class="leftColumn">
+			<!--
 				<dt><a href="/toolkit/docs/development/4.2-drafts/doc_overview.html">Doc Structure</a></dt>
+				-->
 				<dt><a href="/toolkit/docs/development/4.2-drafts/key/">A Globus Primer</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/globus_is_modular.html">Globus Is Modular!</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/quickstart/">Quickstart</a></dt>
@@ -85,11 +87,13 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/developer/gt-bestpractices.html">Best Practices</a></dt>
 				<dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
 				<dt><a href="/api/">API docs</a></dt>
-				<dt>Public Interfaces (coming soon)</dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/pi/">Public Interfaces</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/developer/gt-rp.html">Resource Properties</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/developer/gt-samples.html">Samples</a></dt>
+				<!--
 				<dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
 				<dt>Performance Studies (coming soon)</dt>
+				-->
 			</dl>
 		<h2 class="smalltitle">Manuals</h2>
 		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/common/">Common Runtime</a></h2>
@@ -107,9 +111,7 @@ globus_out_of_date(); ?>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/prewsaa/">Non-WS (General) Security</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/wsaajava/">WS Java Security</a></dt>
-				<!-- fixme - make live when content is up
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/wsaac/">WS C Security</a></dt>
-				-->
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/cas/">CAS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/delegation/">Delegation Service</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/myproxy/">MyProxy</a></dt>
@@ -121,11 +123,10 @@ globus_out_of_date(); ?>
 		
 		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/data/">Data Mgt</a></h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/data/rft/">RFT</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/data/gridftp/">GridFTP</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/data/rft/">RFT</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/data/rls/">RLS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/data/wsrls/">WS RLS</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/data/ogsadai/">OGSA-DAI</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/data/datarep/">DRS</a></dt>
 			</dl>
 		
@@ -134,7 +135,6 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">Aggregator Framework</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/index/">Index Service</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/trigger/">Trigger Service</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/archive/">Archive Service</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/webmds/">WebMDS</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/usefulrp/">UsefulRP</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/providers/">Info Providers</a></dt>
