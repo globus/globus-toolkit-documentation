@@ -340,37 +340,165 @@ globus$ make install</screen>
     </section>
     
   </chapter>
-  <chapter id="gridftp-admin-tuning"><title>Tuning Recommendations</title>
+  <chapter id="gridftp-admin-tuning"><title>Key Admin Settings and Tuning Recommendations</title>
     <indexterm type="gridftp-howto">
       <primary>tuning</primary>
     </indexterm>
     <indexterm type="gridftp">
       <primary>tuning</primary>
     </indexterm>
-    <para>[from 3/11/08 concall:] basically try to give advice for people trying to set up gridftp
-      in some common scenarios: default configuration, single core, multiple core, whatevs. discuss
-      issues with filesystems, how system-dependent things are. also, "here are some reasons you
-      would try tuning this..."</para><para>[from user perspective report:] more info for installing
-      gridftp server (like engineering guide for sysadmins) - one user specifically asked for: <itemizedlist>
-        <listitem>
-          <simpara>how big does the machine need to be?</simpara>
-        </listitem>
-        <listitem>
-          <para>how big do the drives need to be? how fast?</para>
-        </listitem>
-        <listitem>
-          <para>what should the network connectivity look like?</para>
-        </listitem>
-        <listitem>
-          <simpara>should I run a striped server? should I not run a striped server?</simpara>
-        </listitem>
-        <listitem>
-          <simpara>should I run GSI?</simpara>
-        </listitem>
-      </itemizedlist></para>
-    <!-- 
-    <para> Please also see <olink targetptr="gridftp-cft-whatistesting">Call for Community Testing</olink>.</para>
-    -->
+    <indexterm type="gridftp">
+      <primary>administrative settings, recommended</primary>
+    </indexterm>
+    <indexterm type="gridftp">
+      <primary>performance</primary>
+    </indexterm>
+<para>The <command>globus-gridftp-server</command> is a flexible and tunable piece of software. 
+It is easy for an admin to get lost in all of the options it offers. 
+This document intends to highlight some of the more commonly important 
+options related to performance and robustness.  It does not intend to 
+account for all of the options but rather to give the system administator
+a better perspective into how to set some of the less obvious controls.</para>
+
+<section><title>Concurrent Instances</title>
+
+<para>A very important option for a system administrator to set is the number 
+of simultaneous GridFTP transfers allowed.  In other words, the number of 
+clients that are allowed to connect to the server at the same time.</para>
+
+<para>GridFTP is designed to be a high performance, on-demand data transfer 
+service.  Quite a bit of system resources (mainly memory) are allocated 
+to each client connection and this is with the assumption that the 
+session will consume even more system resources (CPU, net/disk 
+bandwidth) when performing a high speed data transfer.  For this reason, 
+the system administrator must evaluate the resource their host machine 
+has to offer and set a reasonable limit to the number of client connects 
+allowed at one time.</para>
+
+<para><emphasis role="strong">GridFTP, in both protocol and implementation, is not designed to queue 
+transfer requests.</emphasis>  Queuing transfer requests is certainly an important 
+feature for a service to offer, and the Globus Toolkit offers this with 
+the <olink targetdoc="rft">RFT service</olink>. Users who want to submit a transfer request and forget 
+about it until they are notified of its completion should use the RFT 
+service.  Users that want an on-demand transfer service should use the 
+GridFTP server directly.</para>
+
+<para>When determining the instance concurrency level, there are two major 
+factors to consider: <emphasis role="strong">system memory</emphasis> helps 
+  determine the upper limit of the instance range and <emphasis role="strong">available I/O bandwidth</emphasis> helps determine 
+  the lower limit.</para>
+<section><title>System memory considerations</title>
+<para>First and foremost is system memory.  The 
+recommended instance count based on system memory is:
+    <screen>instance count = system memory / 38</screen>
+</para>
+  
+<para>Each instance of a GridFTP server will require about 2MB of memory just 
+to handle the connection in a sane way.  Beyond that is the amount of 
+memory required to handle a fast, TCP-based data transfer.  A safe rule 
+of thumb here is 32MB.  This allows for a TCP buffer size of 16MB (which 
+is a common client selection for high performance WAN bandwidth delay 
+products) and a user space buffer to match that value.  2MB + 16MB + 
+16MB = 38MB, thus the denominator in the above formula.</para>
+</section>
+<section><title>I/O bandwidth considerations</title>
+<para>Simultaneous clients share the 
+available I/O resources.  Most often it is beneficial to allocate enough 
+bandwidth so that each client can transfer data at an acceptable rate.  
+In a simple model, the higher the instance count, the lower the transfer 
+rates for each client.  At some point it is beneficial for the GridFTP 
+server to reject connections in an attempt to provide a higher level of 
+service to its currently connected clients.  There is also a point where 
+too many simultaneous clients can cause thrashing and drop network 
+packets.  Obviously this situation should be avoided.</para>
+<!-- fixme doesn't seem like following paragraph fits with i/o bandwidth info - could be its own section - what title? -->
+<para>While no client wants to be rejected, a higher level service can take 
+advantage of this by either trying again later at a more efficient time, 
+reordering its work load, or finding a replica.  RFT provides some of 
+this functionality and other such services are being researched and 
+designed.</para>
+</section>
+<section><title>Why More Than One?</title>
+
+<para>When considering the right concurrent instance level it is helpful to 
+consider why there should ever be more than one at a time.  There are 
+three major reasons for this:</para>
+<orderedlist>
+<listitem><para><emphasis role="strong">The other side of the connection is the bottleneck.</emphasis></para>
+    <para>If we assume that each transfer moves as fast as our system can
+    send it, then, when considering overall throughput, having two 
+    connections going at half speed is roughly the same thing as having
+    2 full speed connections run one at a time.  However, if the remote
+    end of the connection is the bottleneck, then there is unused
+    local bandwidth from which another simultaneous connection and
+    thus the overall system can benefit.
+</para></listitem>
+<listitem><para><emphasis role="strong">Hide the overhead.</emphasis></para>
+    <para>Another important aspect of simultaneous connections is that the 
+    needed overhead of control messaging can be overlapped with the
+    payload of another sessions data transfer.  Hiding this processing
+    and messaging latency makes for a more efficient system with a higher
+    overall throughput.</para></listitem>
+
+<listitem><para><emphasis role="strong">Provide an interactive service.</emphasis></para>
+    <para>In some case, users may find connection rejections unacceptable and
+    would prefer a slower overall system provided they could connect to it 
+    immediately for the purpose of an interactive session.</para></listitem>
+</orderedlist>
+<para>In the case of #3 the the highest safe level of instance count possible 
+is ideal.  In the other two case the ideal number is less deterministic.
+At least 10 instance is always recommended.</para>
+</section>
+<section><title>Setting the instance cap</title>
+<para>
+If using GFork or Xinetd, set the instance cap by adding the following 
+line to the configuration file:
+    <screen>instance = &lt;integer&gt;</screen>
+</para>
+<para>If running the GridFTP server as a daemon, use the following option to set 
+the instance cap:
+
+   <screen> -connections-max &lt;integer&gt;</screen></para>
+      </section>
+</section>
+
+<section><title>Disk Block Size</title>
+
+<para>The <command>globus-gridftp-server</command> sits on top of various file systems.  Each 
+file system has its own ideal access patterns and I/O buffer sizes.  To 
+provide the user with some means of control, we offer the option:
+    <screen>-blocksize &lt;number&gt;</screen>
+</para>
+<para>This number indicates the size of the read requests posted to the disk.</para>
+</section>
+
+<section><title>System TCP Buffer Settings</title>
+
+<para>The most important setting in achieving high performance, TCP-based 
+transfers is the TCP buffer size.  It is our experience that this should 
+be set to at least 16MB.  On Linux systems, this is done by editing the 
+file <filename>/etc/sysctl.conf</filename> and adding the following lines:
+<screen>
+    net/core/rmem_max = 16777216
+    net/core/wmem_max = 16777216
+
+    net/ipv4/tcp_rmem = 8192 1048576 16777216
+    net/ipv4/tcp_wmem = 8192 1048576 16777216</screen>
+</para>
+<para>This sets the max to 16MB, the default to 1MB, and the min to 8KB.  In 
+most cases this will be a good value, but administrators are encouraged 
+to experiment.</para>
+</section>
+<section><title>Data Interface</title>
+
+<para>On systems that have multiple network interfaces, the system admin likely 
+wants to associate data transfers with the fastest possible NIC 
+available.  This can be done in the GridFTP server by using the option:
+
+    <screen>--data-interface &lt;ip address&gt;</screen>
+</para>
+</section>
+
   </chapter>
   <chapter id="gridftp-admin-testing"><title>Testing</title>
     <indexterm type="gridftp-howto">
