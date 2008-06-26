@@ -77,9 +77,8 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/">Installing GT</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/admin/docbook/gtadmin-platform.html">Platform Notes</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/developer/">GT Developer's Guide</a></dt>
-				<dt>GT User's Guide (coming soon)</dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/mig/migrating-gt2.html">Migrating from GT2</a></dt>
-				<dt><a href="/toolkit/docs/development/4.2-drafts/mig/migrating-gt3.html">Migrating from GT3</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/user/">GT User's Guide</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/mig/">Migrating Guides</a></dt>
 			</dl>
 			
 		<h2 class="smalltitle">Reference</h2>
@@ -90,8 +89,8 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/pi/">Public Interfaces</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/developer/gt-rp.html">Resource Properties</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/developer/gt-samples.html">Samples</a></dt>
-				<!--
 				<dt><a href="/toolkit/docs/development/4.2-drafts/glossary.html">Glossary</a></dt>
+				<!--
 				<dt>Performance Studies (coming soon)</dt>
 				-->
 			</dl>
@@ -109,7 +108,8 @@ globus_out_of_date(); ?>
 			
 			<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/security/">Security</a></h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/security/prewsaa/">Non-WS (General) Security</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/security/gsic/">GSI C</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/common/javacog/">GSI Java</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/wsaajava/">WS Java Security</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/wsaac/">WS C Security</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/security/cas/">CAS</a></dt>
@@ -130,12 +130,12 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/data/datarep/">DRS</a></dt>
 			</dl>
 		
-		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/info/">MDS4</a></h2>
+		<h2 class="smalltitle"><a href="/toolkit/docs/development/4.2-drafts/info/">WS MDS</a></h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">Aggregator Framework</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/index/">Index Service</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/trigger/">Trigger Service</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/webmds/">WebMDS</a></dt>
+				<dt><a href="/toolkit/docs/development/4.2-drafts/info/aggregator/">Aggregator Framework</a></dt>				
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/usefulrp/">UsefulRP</a></dt>
 				<dt><a href="/toolkit/docs/development/4.2-drafts/info/providers/">Info Providers</a></dt>
 			</dl>
