@@ -17,40 +17,6 @@
                   </xsl:choose>
                 </xsl:template>
                 
-                <!-- 
-                <xsl:template match="replaceable">
-                  <xsl:choose>
-                    <xsl:when test="@role = 'entity'">
-                      <xsl:variable name="entity"><xsl:value-of select="."/></xsl:variable>
-                      <xsl:choose>
-                        <xsl:when test="$entity = 'version'">
-                          <xsl:text>4.2-drafts</xsl:text>
-                        </xsl:when>
-                         <xsl:when test="$entity = 'shortversion'">
-                          <xsl:text>4.2</xsl:text>
-                         </xsl:when>
-                         <xsl:when test="$entity = 'previousversion'">
-                          <xsl:text>4.0.5</xsl:text>
-                         </xsl:when>
-                         <xsl:when test="$entity = 'tag'">
-                          <xsl:text>globus_4_1_3</xsl:text>
-                         </xsl:when>
-                         <xsl:when test="$entity = 'docpath'">
-                          <xsl:text>http://www.globus.org/toolkit/docs/development/4.2-drafts/</xsl:text>
-                         </xsl:when>
-                          <xsl:when test="$entity = 'JavaWSCoreAPI'">
-                          <xsl:text>http://www-unix.mcs.anl.gov/~gawor/javawscore/HEAD/doc/javadocs/</xsl:text>
-                         </xsl:when>
-                        
-                        </xsl:choose>
-                    </xsl:when>
-                    <xsl:otherwise>
-                      <xsl:apply-imports/>
-                    </xsl:otherwise>
-                  </xsl:choose>
-                </xsl:template>
-                -->
-                
                 <!-- shared urls - something similar to above where ulink with url of x, the url changes to y-->
                 
                 <!-- default width of tables -->
@@ -67,7 +33,7 @@
                 <xsl:param name="collect.xref.targets">yes</xsl:param>
                 
                 <!-- default location for target database document (for olinks) -->
-                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/olinkdb.xml</xsl:param>
+                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/4.2/4.2.0/olinkdb.xml</xsl:param>
                 
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
                 <xsl:param name="admon.graphics">1</xsl:param>
@@ -251,7 +217,7 @@
                                                 <body>
                                                                 <xsl:call-template name="body.attributes"/>
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_header_docbook.inc");
+                                                                                include_once("http://www.globus.org/toolkit/docs/4.2/4.2.0/includes/globus_header_docbook.inc");
                                                                                 ?</xsl:processing-instruction>
                                                                 
  
@@ -282,7 +248,7 @@
                                                                 <xsl:call-template name="user.footer.navigation"/>
 
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/development/4.2-drafts/includes/globus_footer_docbook.inc");
+                                                                                include_once("http://www.globus.org/toolkit/docs/4.2/4.2.0/includes/globus_footer_docbook.inc");
                                                                                 ?</xsl:processing-instruction>
                                                       
                                                 </body>

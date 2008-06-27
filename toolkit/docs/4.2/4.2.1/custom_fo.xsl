@@ -34,7 +34,7 @@
                </xsl:attribute-set>
                
                <!-- default location for target database document (for olinks) -->
-                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/development/4.2-drafts/olinkdb.xml</xsl:param>
+                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/4.2/4.2.0/olinkdb.xml</xsl:param>
                
                <!-- enable extensions -->
                <xsl:param name="xep.extensions" select="1"></xsl:param>
