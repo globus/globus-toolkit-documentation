@@ -13,7 +13,9 @@
 <titleabbrev>User's Guide</titleabbrev>
 
 <bookinfo><abstract><title>Introduction</title>
-<para>RFT Service implementation
+<para>RFT is the Reliable Transfer Service.  It allows clients to submit URL
+transfer requests to a persistent service which will perform
+the transfers on behalf of the client.  RFT Service implementation
   in GT <replaceable role="entity">version</replaceable> uses
 standard SOAP messages over HTTP to submit and manage a set of 3rd
 party GridFTP transfers and to delete files using GridFTP. The user
@@ -38,7 +40,105 @@ the changes in state periodically using standard command line clients.</para>
     <title>Using RFT</title>
         <indexterm type="rft"><primary>using RFT</primary></indexterm>
     <indexterm type="rft-howto"><primary>using RFT</primary></indexterm>
-    <para>The <command><olink targetdoc="rftUser" targetptr="rft-command">rft</olink></command> and <command><olink targetdoc="rftUser" targetptr="rft-delete">rft-delete</olink></command> commands are available for very simple transfers. For more options, use the programming instructions <olink targetdoc="rftDeveloper" targetptr="rft-developer-scenarios">here</olink>.</para>
+    <para>The Java clients, <command><olink targetdoc="rftUser" targetptr="rft-command">rft</olink></command> and 
+      <command><olink targetdoc="rftUser" targetptr="rft-delete">rft-delete</olink></command> commands are available for 
+      very simple transfers. For more options, use the programming instructions <olink targetdoc="rftDeveloper" targetptr="rft-developer-scenarios">here</olink>.</para>
+    
+    <section><title><code>globus-crft</code></title>
+    <para>Beginning with 4.2.0, RFT also offers a new C client, <command>globus-crft</command>.</para>
+    <section><title>Submitting A Transfer</title>
+
+<para>To submit a transfer request the user must first create a 'transfer file'.
+Each line of this ASCII text file is a source/destination URL pair.  There
+can be any number of of lines per file.  An example file follows:
+<screen>
+    gsiftp://localhost:2811/etc/group  gsiftp://localhost:2811/tmp/test_crft
+    gsiftp://ftp.globus.org:2811/pub/README gsiftp://myhost.here/home/user/file
+</screen></para>
+<para>This file requests two transfers.  The first will user the GridFTP server
+running on the localhost to transfer /etc/group to /tmp/test_crft.  The
+second will transfer the file /pub/README on ftp.globus.org to the file
+/home/user/file located on myhost.here</para>
+
+<para>Once the transfer file is created globus-crft can be used in a variety
+of ways to transfer a file.  The most simple is the blocking transfer:
+<screen>
+    % globus-crft -c -s -m -vb -f &lt;transfer file&gt; -e &lt;container contact string&gt;
+</screen></para>
+<para>Looking at each option individually, this command line does the following</para>
+<variablelist>
+  <varlistentry>
+    <term> <option>-c</option> Create a new RFT server.</term>
+    <term><option>-s</option> Submit the transfer request.</term>
+    <listitem><para>Since RFT is a 2 phase commit we allow the client the ability to do them
+    in separate stages, however it is expected that the vast majority of the
+    time -c and -s will be used together.</para></listitem>
+  </varlistentry>
+    <varlistentry>
+    <term><option>-m</option></term>
+    <listitem><para>Monitor the transfers. When this option is used the client will block until all transfers
+    have completed.  It monitors the status of the transfers along the
+    way and can report it to the user.</para></listitem>
+    </varlistentry>
+    <varlistentry>
+    <term><option>-vb</option></term>
+    <listitem><para>Display verbose output. This just increases the level of diagnostic messages sent to stdout.
+    When combined with -m it will allow the user to see the status of a
+    transfer.</para></listitem>
+    </varlistentry>
+    <varlistentry>
+    <term>-f &lt;transfer file&gt;</term>
+    <listitem><para>This option is a pointer to the transfer file described above.</para></listitem>
+    </varlistentry>
+  <varlistentry>
+    <term>-e &lt;container contact strings&gt;</term>
+    <listitem>
+   <para>   The contact string is in the following form: 
+
+    <screen>https://hostname.com:8443/wsrf/services/</screen>
+
+    The strings ___ and ___ will be appended to the given string in
+    order for the client to interact with that containers delegation 
+    service and RFT service.</para>
+      
+    </listitem>
+  </varlistentry>
+</variablelist>
+    </section>
+      
+<section><title>Non-blocking Transfer</title>
+
+<para>The client can do non-blocking RFT submission.  It can submit an RFT request
+and then terminate, returning later to monitor the status of the request.
+To accomplish this the client saves the EPR of the newly created RFT
+service to disk. 
+
+<screen>% globus-crft -c -s -f &lt;transfer file&gt; -e &lt;container contact string&gt; \
+                -ef &lt;epr output file&gt;</screen>
+</para>
+
+<para>At some point later the client uses this same file to
+monitor the state of the transfer:
+
+<screen>% globus-crft -ef &lt;epr input file&gt; --getOverallStatus</screen>
+</para>
+<note><para>Note that in both cases the option <option>-ef</option> is used.  In the first case, since
+the <option>-c</option> option is used, we are creating a new service and the <option>-ef</option> option is a
+pointer to an output file.  In all cases where <option>-c</option> is not used, the <option>-ef</option> switch
+is a pointer to an input file.</para></note>
+</section>
+      
+<section><title>Cleaning Up</title>
+
+<para>Once a transfer request completes, the user should destroy the resources 
+associated with it.  If the user stored the EPR of the service it created,
+this can be done with:
+<screen>% globus-crft -ef &lt;epr input file&gt; --destroy</screen></para>
+</section>
+
+<section><title>More</title>
+<para>For a list of more options run: <screen>globus-crft --help</screen> </para> </section>
+    </section>
   </chapter>
 
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
