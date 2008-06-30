@@ -41,10 +41,20 @@
       <para>Anonymous mode (using the <option>-aa</option> option) allows any user with an FTP
         client to read and write (and delete) files that the server process can similarly access (it
         is also a quick way to test that your server works).</para><screen>% globus-gridftp-server -aa 
-Server listening at 127.0.0.1:58806</screen><warning>
-        <para>When the server is run in this way, the account running it is open to the world for
-          both reading and writing. fixme - will be able to just read and not write</para>
-      </warning></section>
+        Server listening at 127.0.0.1:58806</screen>
+ 
+      <warning>
+        <para>When the server is run in this way, anyone who can connect to the server will posses all the same 
+      rights as the user that the process is run as (directly or via <option>-anonymous-user</option>).  If using this mode 
+      intentionally for open access, it is best to run under a dedicated account with limited filesystem 
+      permissions. You can also use the option below to disable FTP commands such as STOR, ESTO, 
+      DELE, RDEL, RNTO, etc to make sure that users can only read from the server and not write to it.
+        <screen> -disable-command-list &lt;string&gt;</screen>
+          Where &lt;string&gt;  represents a comma separated list of client commands that will be disabled. Default: not set.
+        </para>
+      </warning>
+    
+    </section>
     <section id="gridftp-admin-config-security-userpw"><title>Username/password</title>
       <indexterm type="gridftp-howto">
         <primary>configuring GridFTP</primary>
@@ -115,7 +125,7 @@ Server listening at 127.0.0.1:5555</screen>
           before; simply change <filename>ftp://</filename> to <filename>sshftp://</filename>.</para>
         <screen>% globus-url-copy -v file:/etc/group sshftp://127.0.0.1/tmp/group % globus-url-copy -list sshftp://127.0.0.1/tmp/</screen>
       </section></section>
-    <section><title>GSIFTP</title>
+    <section id="gridftp-admin-gsiftp"><title>GSIFTP</title>
       <indexterm type="gridftp-howto">
         <primary>configuring GridFTP</primary>
         <secondary>security</secondary>
@@ -133,10 +143,29 @@ Server listening at 127.0.0.1:5555</screen>
         GSI-authenticated transfer:</para><screen>globus-url-copy &lt;-s subject&gt; src_url dst_url</screen><note>
         <para>The subject option is only needed if the server was not started as root.</para>
       </note></section>
-    <section>
+    <section id="gridftp-admin-user-pems">
       <title>User permissions</title>
-      <para>FIXME discuss this in re: to file, inetd/daemon mode, map user to local account (gridmap
-        file?)</para>
+      <para>Users are mapped to a local account on the server machine and file permissions are handled by the 
+        operating systems. In the anonymous mode, users that connect to the server will posses all the same rights 
+        as the user that the server process is run as (directly or via -anonymous-user).</para>
+      
+      <para>In case of username/password authentication, the users are mapped to the uid corresponding to the 
+        username in the GridFTP password file and the access permissions for the users is same as that of the UID 
+        that they are mapped to. If SSH based authentication is used, upon successful authentication, SSHD maps 
+        users to a local account and the GridFTP server is run as the mapped local user. The access permissions 
+        are the same as that of the mapped local user.</para> 
+      
+      <para>If GSI is used, upon successful authentication an authorization callout is invoked to (a) verify authorization 
+        and (b) determine the local user id as which the request should be executed. This callout is linked dynamically. 
+        Globus GridFTP provides an implementation that supports both a Globus "gridmapfile" and 
+        <olink targetdoc="cas">Community Authorization Service</olink> credentials, which may encode in SAML assertions 
+        the specific files that a user is authorized to read and/or write. Sites can also provide alternative implementations. 
+        Server does a setuid to the local user id as determined by the authorization callout and the access permissions are 
+        the same as that of the local user id.</para>
+      <para>GridFTP server provides an option to disable certain FTP commands:
+<screen> -disable-command-list &lt;string&gt;</screen>
+          Where &lt;string&gt;  represents a comma separated list of client commands that will be disabled. Default: not set.</para>
+
     </section>
   </chapter>
   <chapter id="gridftp-admin-advanced">

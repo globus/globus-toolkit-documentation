@@ -118,7 +118,6 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/security/gridshib/">GridShib</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/security/openssh/">GSI-OpenSSH</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/security/simpleca/">SimpleCA</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.0/security/sgas/">SGAS</a></dt>
 			</dl>
 		
 		<h2 class="smalltitle"><a href="/toolkit/docs/4.2/4.2.0/data/">Data Mgt</a></h2>
@@ -144,9 +143,6 @@ globus_out_of_date(); ?>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/4.2/4.2.0/execution/gram4/">GRAM4</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/execution/gridway/">GridWay</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.0/execution/da/">Dynamic Accounts</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.0/execution/gtcp/">GTCP</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.0/execution/csf/">CSF</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/execution/gram2/">GRAM2 (legacy)</a></dt>
 			</dl>
 	</div>
