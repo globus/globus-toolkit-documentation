@@ -110,12 +110,11 @@ globus_out_of_date(); ?>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/4.2/4.2.0/security/gsic/">GSI C</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/common/javacog/">GSI Java</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.0/security/wsaajava/">WS Java Security</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.0/security/wsaac/">WS C Security</a></dt>
+				<dt><a href="/toolkit/docs/4.2/4.2.0/security/wsaajava/">Java WS A&amp;A</a></dt>
+				<dt>C WS A&amp;A (coming soon)</dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/security/cas/">CAS</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/security/delegation/">Delegation Service</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/security/myproxy/">MyProxy</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.0/security/gridshib/">GridShib</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/security/openssh/">GSI-OpenSSH</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.0/security/simpleca/">SimpleCA</a></dt>
 			</dl>
