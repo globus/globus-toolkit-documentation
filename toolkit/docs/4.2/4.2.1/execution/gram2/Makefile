@@ -2,8 +2,8 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
-SUBDIRS=audit rn seg
-PDFS=rn/gram2ReleaseNotes.pdf audit/gram2AuditLogging.pdf seg/gram2SEG.pdf
+SUBDIRS=admin audit developer rn seg user
+PDFS=admin/gram2AdminGuide.pdf user/gram2UserGuide.pdf developer/gram2DeveloperGuide.pdf rn/gram2ReleaseNotes.pdf audit/gram2AuditLogging.pdf seg/gram2SEG.pdf
 
 all: lint html subdirs
 
