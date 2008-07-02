@@ -33,7 +33,7 @@
                 <xsl:param name="collect.xref.targets">yes</xsl:param>
                 
                 <!-- default location for target database document (for olinks) -->
-                <xsl:param name="target.database.document">/nfs/asd2/cristina/testing/alliance/toolkit/docs/4.2/4.2.0/olinkdb.xml</xsl:param>
+                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/4.2/4.2.0/olinkdb.xml</xsl:param>
                 
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
                 <xsl:param name="admon.graphics">1</xsl:param>
