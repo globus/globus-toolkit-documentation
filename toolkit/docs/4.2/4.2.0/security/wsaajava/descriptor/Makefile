@@ -11,6 +11,7 @@ html:
 	--xinclude \
 	--stringparam current.docid "wsaajavaDescriptor" \
 	--stringparam toc.max.depth "3" \
+	--stringparam generate.section.toc.level "2" \
 	../../../custom_html.xsl \
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
