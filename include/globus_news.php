@@ -225,12 +225,10 @@ function globus_print_rss20(
         $fp = fopen($cache_file, 'w') or die("Could not open $cache_file");
         $dblink = globus_news_db_connect();
 
-        fwrite($fp, "<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n" .
+        fwrite($fp, "<rss version=\"2.0\">\n" .
                     "<channel>\n" .
                     "  <title>$title</title>\n" .
                     "  <link>$site_url</link>\n" .
-                    "  <guid>$site_url</guid>\n" .
-                    "  <atom:link href="http://www.globus.org/toolkit/rss/downloadNews/downloadNews.xml" rel="self" type="application/rss+xml" />\n" .
                     "  <description>$desc</description>\n" .
                     "  <language>en-us</language>\n" .
                     "  <image>\n" .
