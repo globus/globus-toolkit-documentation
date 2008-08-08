@@ -44,7 +44,7 @@
     {
         print "<p>[ <a href=../docs/4.2/4.2.$matches[1]>Globus 4.2.$matches[1] Documents</a> ]</p>\n";
     }
-    else if ( preg_match( "/4.0.(\d)/", $link, $matches ) )
+    else if ( preg_match( "/4\.0\.(\d)/", $link, $matches ) )
     {
         print "<p>[ <a href=../releasenotes/4.0.$matches[1]/>4.0.$matches[1] Release Notes</a> ]<br>\n";
         print "[ <a href=../docs/4.0/>Full Documentation</a> ]<br>\n";
