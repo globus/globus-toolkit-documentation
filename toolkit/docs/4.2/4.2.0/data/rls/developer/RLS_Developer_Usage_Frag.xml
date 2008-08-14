@@ -25,7 +25,90 @@
                 }
             </screen>
         </section>
+        <section><title>Create a connection</title>
+            <simpara>Use the connection source to establish a connection. If the source has defaults you may use its parameterless <computeroutput>connect()</computeroutput> method, otherwise you must supply the connection string and credentials.</simpara>
+            <screen>
+                RLSConnection connection = null;
+                try {
+                    connection = source.connect(url, credential);
+                } catch (RLSException e) {
+                    // handle exception
+                }
+            </screen>
+        </section>
+        <section><title>Create a simple index query</title>
+            <simpara>Query objects are used to represent different types of RLS queries. There are simple queries, batch queries, and attribute searches. This examples uses a simple query object. We begin by querying the RLS index service which tells us which catalog services to query for a given logcial name.</simpara>
+            <screen>
+                IndexQuery indexQuery = new SimpleIndexQuery(
+                    SimpleIndexQuery.queryMappingsByLogicalName,
+                    "my-logical-name-123",
+                    null);
+            </screen>
+        </section>
+        <section><title>Query the index service</title>
+            <simpara>RLS index services keep an index of logical names for each catalog service that sends its index to the given index service. By querying an index service, the client can find out which catalog services may have replica locations for a desired logical name.</simpara>
+            <screen>
+                try {
+                    ReplicaLocationIndex index = connection.index();
+                    Results results = index.query(indexQuery);
+                    if (results.getRC() == RLSStatusCode.RLS_SUCCESS) {
+                        List batch = results.getBatch();
+                        Iterator i = batch.iterator();
+                        while (i.hasNext()) {
+                            IndexMappingResult result = (IndexMappingResult) i.next();
+                            if (result.getRC() != RLSStatusCode.RLS_SUCCESS)
+                                continue;
+                            String logicalName = result.getLogical();
+                            String catalogURL = result.getCatalog();
+                            // At this point, the client will need to create
+                            // a CatalogQuery object for each distinct catalog
+                            // URL returned in the results. These URLs indicate
+                            // the catalog services which have replica locations
+                            // for the given logical name.
+                        }
+                    }
+                } catch (RLSException e) {
+                    // handle exception
+                }
+            </screen>
+        </section>
+        <section><title>Create a simple catalog query</title>
+            <simpara>Based on the results of the index query, a client will create catalog queries.</simpara>
+            <screen>
+                CatalogQuery catalogQuery = new SimpleCatalogQuery(
+                    SimpleCatalogQuery.queryMappingsByLogicalName,
+                    "my-logical-name-123",
+                    null);
+            </screen>
+        </section>
+        <section><title>Query the catalog service</title>
+            <simpara>RLS catalog services keep a catalog of logical names mapped to target names. The target names are typically used to indicate the URL for a data object (e.g., a gsiftp, http, etc. URL).</simpara>
+            <screen>
+                try {
+                    LocalReplicaCatalog catalog = connection.catalog();
+                    Results results = catalog.query(catalogQuery);
+                    if (results.getRC() == RLSStatusCode.RLS_SUCCESS) {
+                        List batch = results.getBatch();
+                        Iterator i = batch.iterator();
+                        while (i.hasNext()) {
+                            MappingResult result = (MappingResult) i.next();
+                            if (result.getRC() != RLSStatusCode.RLS_SUCCESS)
+                                continue;
+                            String logicalName = result.getLogical();
+                            String targetName = result.getTarget();
+                            // At this point, the client has resolved the 
+                            // target name for the given logical name. Keep in
+                            // mind that in the RLS, a logical name may be
+                            // mapped to multiple target names.
+                        }
+                    }
+                } catch (RLSException e) {
+                    // handle exception
+                }
+            </screen>
+        </section>
     </section>
+
     <section id="rls-developer-scenarios-examplecode"><title>Example Code</title>
         <para>This section provides examples illustrating the basic usage of the client interfaces
             supported by the RLS. Using the client API, developers may create client applications that
