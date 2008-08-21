@@ -3,6 +3,8 @@
 
 <body>
 
+<p>
+Globus Toolkit Advisories RSS Feeds
 <ul>
 <?php
 if ($handle = opendir('.')) {
@@ -15,13 +17,21 @@ if ($handle = opendir('.')) {
     }
 
     arsort($feeds);
+    $i = 0;
 
     foreach (array_keys($feeds) as $feed) {
-        print "  <li><a href=\"$feeds[$feed]\">$feed</a></li>\n";
+        $obsolete = "";
+        if (++$i > 2)
+        {
+            $obsolete = " [unsupported]";
+        }
+        print "  <li><a href=\"$feeds[$feed]\">Globus Toolkit $feed</a>$obsolete</li>\n";
     }
     closedir($handle);
 }
 ?>
 </ul>
+</p>
+
 </body>
 </html>
