@@ -107,7 +107,7 @@ ANL - <i>see Argonne National Laboratory</i><br>
     <a name="Global Grid Forum" href="http://www.gridforum.org/">
     Global Grid Forum</a><br>
     <a href="alliance"> Globus Alliance</a><br>
-    <a href="../toolkit/staging" name="Globus Toolkit">
+    <a href="../toolkit/" name="Globus Toolkit">
     Globus Toolkit</a><br>
     <!--<a name="Globus Toolkit Contributors" href="../toolkit/contributors.html">Globus Toolkit Contributors</a><br>-->
     <!--<a name="Globus Toolkit Public License" href="../toolkit/download/license.html">
@@ -132,7 +132,7 @@ ANL - <i>see Argonne National Laboratory</i><br>
     <a name="Grid Security Infrastructure" href="grid_software/security-components.php">
 
     Grid Security Infrastructure</a><br>
-      <a href="http://www.grids-center.org">GRIDS Center</a><br>
+   <!--   <a href="http://www.grids-center.org">GRIDS Center</a><br>-->
     GRIP - <i>see <a href="#Grid Information Protocol"> Grid Information Protocol</a></i><br>
     GRIS - <i>see <a href="#Grid Resource Information Service"> Grid Resource Infomation Service</a></i><br>
 <a href="grid_software/computation/gram.php"> GRAM-Basic Job Submission and Control Service</a><br>
