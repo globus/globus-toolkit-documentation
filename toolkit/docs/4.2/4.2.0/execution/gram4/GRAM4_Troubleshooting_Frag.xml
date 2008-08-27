@@ -43,12 +43,215 @@
     </itemizedlist>
 </section>
     
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../../common/javawscore/Java_WS_Core_Errors_Frag.xml"/>
     
-        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-        href="GRAM4_Errors_Frag.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="GRAM4_Errors_Frag.xml"/>
     
+<section id="gram4-globusrun-ws-latency"><title>Latency in globusrun-ws calls</title>    
+    <para>
+      This section illustrates some topics of <emphasis>how</emphasis> globusrun-ws
+      interacts with Gram4 and what happens behind the scenes in various job submission
+      scenarios. This will hopefully remove some magic and enable a user to find out
+      the best usage of globusrun-ws for a given use-case.
+    </para>
+    <para>
+      Some parts of this discussion may be useful for people writing their own clients too.
+      We won't discuss the use of job descriptions or how to specify the remote server
+      or the desired local resource manager, as this is explained in other documents.
+    </para>
+    <para>
+      If you are interested in the exact message exchanges you can run globusrun-ws in
+      debug mode (globusrun-ws -dbg ...). All SOAP messages exchanges are then printed
+      to the command-line.
+    </para>
+    <para>
+      There are many facets to a job submission that impact performance of
+      globusrun-ws calls:
+      <itemizedlist>
+         <listitem><simpara>
+           In what mode is globusrun-ws used (interactive, batch)?
+         </simpara></listitem>
+         <listitem><simpara>
+           Does the job include staging?
+         </simpara></listitem>
+         <listitem><simpara>
+           If credentials are needed: Job credentials? Staging credentials?
+           Delegation per job? Shared delegation?
+         </simpara></listitem>
+         <listitem><simpara>
+           How do i get the output of my run: Staging? Streaming?
+         </simpara></listitem>
+      </itemizedlist>
+    </para>
+
+    <section id="gram4-globusrun-ws-latency-simple-batch">
+    <title>Simple batch job</title>
+    <para>
+      The cheapest job with respect to message exchanges between client and server you can
+      submit in Gram4 is the following:
+      <screen>globusrun-ws -submit -b -o myJob.epr -c /bin/date</screen>
+      globusrun-ws creates a job description from what the user provided on the
+      command-line and will then submit the job to the server. After the job has been
+      submitted it'll return to the command-line immediately, and you are done.
+    </para>
+    <para>Done? ... Done how?</para>
+    <para>
+      Well, you are done if you are not interested in your job status. If you want
+      to know about the status of your job, you must query for state yourself now. You
+      can use globusrun-ws for that:
+      <screen>globusrun-ws -status -f myJob.epr</screen>
+      Depending on how long your job is supposed to run you may not query very often.
+      The query interval is up to you.
+      If one of your state queries returns "done" or "failed" you should call
+      <screen>globusrun-ws -kill -j myJob.epr</screen>
+      This is an optional but in fact a very desired step, as each job is represented
+      by a so called job resource on the server-side which consumes server-memory
+      and/or server-disk-space. If a job is fully processed it is desirable to free up
+      the memory and the disk-space consumed by this job representation.
+    </para>
+    </section>
+    
+    <section id="gram4-globusrun-ws-latency-simple-interactive">
+      <title>Simple interactive job</title>
+      <para>
+        Now, if you don't want to query for job status manually, and if you don't
+        want to destroy a job resource manually, you can let globusrun-ws do the job for you:
+        <screen>globusrun-ws -submit -c /bin/date</screen>
+        globusrun-ws submits the job and requests to be notified about major job state
+        changes. Behind the scenes a notification listener is started that is responsible
+        for catching job state change notification messages sent by the server.
+      </para>
+      <para>
+        globusrun-ws will not return to the command-line until the job is done or failed.
+        Note that this does not mean that globusrun-ws is holding an open connection to the
+        server, it is just listening for incoming notification messages.
+        Once it is getting a notification message globusrun-ws prints the status of the job to
+        the command-line. After it got the final notification, i.e. the job finished or failed,
+        it will destroy the job resource on the server-side.
+      </para>
+    </section>
+    
+    <section id="gram4-globusrun-ws-latency-jobdelegation">
+      <title>Adding job delegation</title>
+      <para>
+      If your executable needs a job credential, e.g. to do other WS calls, you
+      can delegate a credential, so that your executable can act on your behalf.
+      There are two ways to do that:
+      <itemizedlist>
+        <listitem><simpara>
+          You can delegate credentials manually and let globusrun-ws add a reference
+          (EPR) of the delegated credential to the job description.
+        </simpara></listitem>
+        <listitem><simpara>
+          You can ask globusrun-ws to delegate for you. It'll pick up you proxy
+          cert and interact with the DelegationService - all very convenient.
+        </simpara></listitem>
+      </itemizedlist>
+      </para>
+      
+      <section id="gram4-globusrun-ws-latency-jobdelegation-manual">
+        <title>Delegating manually</title>
+        <para>
+          See at <olink targetdoc="gram4User" targetptr="gram4-user-delegating">Delegating
+          Credentials</olink> for how to delegate a credential.
+          Submit the job using
+          <screen>globusrun-ws -submit -Jf delegCred.epr -c /some/executable/needing/creds</screen>
+          globusrun-ws incorporates the EPR of the job credential into the job description
+          ane then submits the job. 
+          With respect to message exchanges no overhead will happen. The only thing that
+          will slow down is the job processing on the server-side: The credential must
+          be fetched from the DelegationService, and then a user-proxy file is created
+          from the data of the delegated credential in ~/.globus/of the home-directory
+          of the remote user. This happens before the job is executed.
+        </para>
+        <para>
+          After globusrun-ws got the final notification, i.e. the job finished or failed,
+          it destroys the job resource on the server-side. Note that globusrun-ws does not
+          destroy the delegated credential for you. If you don't need the delegated
+          credential anymore you'll have to destroy it manually.
+          See at <olink targetdoc="gram4User" targetptr="gram4-user-delegating">Delegating
+          Credentials</olink> for how to do that.
+        </para>
+        <para>  
+          Also note that the proxy-file is not removed at the end of the job automatically,
+          and also not when globusrun-ws destroys the job resource. It is removed when the
+          delegated credential is destroyed. If several jobs use the same delegated credential
+          and request the creation of a proxy, then this proxy is only created once, namely as
+          part of the first job.
+        </para>
+      </section>      
+
+      <section id="gram4-globusrun-ws-latency-jobdelegation-automatical">
+        <title>Let globusrun-ws delegate for you</title>
+        <para>
+          If you don't want to delegate manually, and if you don't want to share a
+          job credential amongst several jobs, then you can let globusrun-ws delegate for
+          you. globusrun-ws then also takes care that the delegated credential is destroyed
+          at the end of the job, which includes the removal of the generated user-proxy
+          file at the end of job processing also destroyed. Submit such a job like this:
+          <screen>globusrun-ws -submit -J -c /some/executable/needing/creds</screen>
+          First globusrun-ws fetches the values of the resource properties
+          <filename>delegationFactoryEndpoint</filename> and
+          <filename>stagingDelegationFactoryEndpoint</filename> from the
+          ManagedJobFactoryService. Actually, in this example, only the
+          <filename>delegationFactoryEndpoint</filename> is needed, because we only do job
+          delegation, and no staging delegation. But it's one WS call either way, so it does
+          not really matter.
+        </para>
+        <note>
+          <para>
+            Why do we need to fetch the value of RP delegationFactoryEndpoint from the
+            ManagedJobFactoryService? Isn't the DelegationFactoryService always located at
+            the same address like the job services, and just the service name differs?
+          </para>
+          <para>
+            The answer is yes. Strictly speaking this RP query is not necessary because the
+            delegationFactoryEndpoint is always in the same container like Gram4, so globusrun-ws
+            could just use the same address and replace the service name.
+            This is different for jobs with staging though, as will be described in the
+            explanations for jobs with staging.
+          </para>
+        </note>
+        <para>
+          Then globusrun-ws fetches the value for the resource property
+          <filename>CertificateChain</filename>
+          of the DelegationFactoryService and then calls <filename>RequestSecurityToken</filename>
+          on the DelegationFactoryService, which does the actual delegation. The
+          DelegationFactoryService responds with an EPR of the resource that represents the
+          delegated credential.
+        </para>
+        <para>
+          globusrun-ws will then incorporate the EPR of the job credential into the job
+          description and submits the job. 
+          On the server-side the credential is fetched from the DelegationService, and
+          the user-proxy file is created from the data of the delegated credential
+          in ~/.globus/of the home-directory of the remote user.
+        </para>
+        <para>
+          After globusrun-ws catched the final job status change notification it destroys
+          the job resource and then the delegated credential. When the delegated credential
+          is destroyed the user proxy file will be removed on the server too.
+        </para>
+      </section>      
+
+    </section>
+
+    <section id="gram4-globusrun-ws-latency-stagingdelegation">
+      <title>Adding staging delegation</title>
+      <para>
+      </para>
+    </section>
+
+    <section id="gram4-globusrun-ws-latency-streaming">
+      <title>Streaming</title>
+      <para>
+      </para>
+    </section>
+    
+</section>
+
 <!--    
 <section><title>The job manager detected an invalid script response</title>
     <para>[fixme - the bug referenced shows resolved and fixed - can we take this out?] Check for a restrictive umask. When the service writes the native
