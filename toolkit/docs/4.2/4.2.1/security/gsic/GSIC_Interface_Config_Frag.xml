@@ -382,59 +382,36 @@ It should be mailed to ${GSI_CA_EMAIL_ADDR}
   </section>
 
   <section id="setting-up-gridmap">
-    <title>Specifying Identity Mapping Information (gridmap file)</title>
+    <title>Configuring Credential Mappings</title>
 
-    <para>Several Globus services map distinguished names (found in
-    certificates) to local identities (e.g., unix logins). These mappings are
-    maintained in the <glossterm
-    baseform="grid map file">gridmap</glossterm> file. </para>
+    <para>
+    Several Globus services map certificates to local unix usernames to
+    be used with unix services. The default implementation uses a 
+    <glossterm baseform="grid map file">gridmap</glossterm> file to map the
+    distinguished name of the identity of the client's certificate to a local
+    login name. Administrators can modify the contents of the gridmap file to
+    control what certificate identities are allowed to access Globus services, 
+    as well as configure, via an environment variable, what gridmap file 
+    a particular service uses.
+    </para>
 
-    <section>
-      <title>Gridmap location</title>
-
-      <para>The location of the <filename>gridmap</filename> file is
-      determined as follows: <orderedlist>
-          <listitem>
-            <simpara><envar>GRIDMAP</envar> environment variable</simpara>
-          </listitem>
-
-          <listitem>
-            <para><filename>/etc/grid-security/grid-mapfile</filename></para>
-          </listitem>
-
-          <listitem>
-            <para> <filename>$HOME/.gridmap</filename></para>
-          </listitem>
-        </orderedlist></para>
-    </section>
+    <para>In addition to the identity-based mapping done via the gridmap file,
+    administrators can configure Globus services to to use arbitrary mapping
+    functions. These may use other criteria, such as SAML assertions, to map a
+    certificate to a local account, or may map certificates to temporary
+    accounts.  Administrators can install different mapping implementations and
+    configure services to use them by creating appropriate configuration
+    files and setting environment variables.
+    </para>
 
     <section>
-      <title>Gridmap formats</title>
+      <title>Configuring Identity Mappings Using <filename>gridmap</filename> Files</title>
 
-      <para>A gridmap line of the form:</para>
-
-      <screen>"<replaceable>Distinguished Name</replaceable>" <replaceable>local_name</replaceable></screen>
-
-      <para>maps the distinguished name <replaceable>Distinguished
-      Name</replaceable> to the local name
-      <replaceable>local_name</replaceable>. </para>
-
-      <para>A gridmap line of the form:</para>
-
-      <screen>"<replaceable>Distinguished Name</replaceable>" <replaceable>local_name1</replaceable>,<replaceable>local_name2</replaceable></screen>
-
-      <para>maps <replaceable>Distinguished Name</replaceable> to both
-      <replaceable>local_name1</replaceable> and
-      <replaceable>local_name2</replaceable>; any number of local user names
-      may occur in the comma-separated local name list.</para>
-    </section>
-
-    <section>
-      <title>Managing gridmap files</title>
-
-      <para>Several tools exist to manage grid map files. These commands
-      recognize several useful options, including a <option>-help</option>
-      option, which lists detailed usage information.</para>
+      <para>
+        Gridmap files contain a database of entries mapping distinguished names
+        to local user names. These may be manipulated by using the following
+        tools.
+      </para>
 
       <section>
         <title>Adding an entry to a gridmap file</title>
@@ -463,7 +440,232 @@ It should be mailed to ${GSI_CA_EMAIL_ADDR}
 
         <screen>$GLOBUS_LOCATION/sbin/grid-mapfile-check-consistency</screen>
       </section>
+
+      <section>
+        <title>Configuring per-service gridmap files</title>
+        <para>
+            To configure a service to use a particular gridmap file, set
+            the <envar>GRIDMAP</envar> variable in the service's environment
+            to the path of the gridmap file.  In this way, you
+            can grant different access rights to different certificate
+            identities on a per-service basis by setting the
+            <envar>GRIDMAP</envar> variable in different service environments.
+        </para>
+        <para>
+            You can  use tools described above to operate on different gridmap
+            files by either setting the <envar>GRIDMAP</envar> environment
+            variable prior to invoking them, or by using the
+            -mapfile command-line option.
+        </para>
+
+         <para>For reference, the GSI C code looks for the gridmap in these
+         locations:
+
+         <table frame='all' id="gsic-gridmap-location-table">
+            <title>Gridmap File Location Algorithm </title>
+            <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+            <colspec colname='Location' />
+            <colspec colname='c2' />
+            <thead>
+                <row>
+                    <entry>Location</entry>
+                    <entry>notes</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry>
+                        <simpara>
+                            <envar>GRIDMAP</envar> environment variable
+                        </simpara>
+                    </entry>
+                    <entry><simpara/></entry>
+                </row>
+                <row>
+                    <entry>
+                        <simpara>
+                            <filename>/etc/grid-security/grid-mapfile</filename>
+                        </simpara>
+                    </entry>
+                    <entry>
+                        <simpara>
+                        Only for services running as root.
+                        </simpara>
+                    </entry>
+                </row>
+                <row>
+                    <entry>
+                        <simpara>
+                            <filename><envar>HOME</envar>.gridmap</filename>
+                        </simpara>
+                    </entry>
+                    <entry>
+                        <simpara>
+                        Only for services not running as root.
+                        </simpara>
+                    </entry>
+                </row>
+            </tbody>
+            </tgroup>
+        </table>
+        </para>
+        </section>
+
+    <section>
+      <title>Gridmap formats</title>
+
+      <para>A gridmap line of the form:</para>
+
+      <screen>"<replaceable>Distinguished Name</replaceable>" <replaceable>local_name</replaceable></screen>
+
+      <para>maps the distinguished name <replaceable>Distinguished
+      Name</replaceable> to the local name
+      <replaceable>local_name</replaceable>. </para>
+
+      <para>A gridmap line of the form:</para>
+
+      <screen>"<replaceable>Distinguished Name</replaceable>" <replaceable>local_name1</replaceable>,<replaceable>local_name2</replaceable></screen>
+
+      <para>maps <replaceable>Distinguished Name</replaceable> to both
+      <replaceable>local_name1</replaceable> and
+      <replaceable>local_name2</replaceable>; any number of local user names
+      may occur in the comma-separated local name list.</para>
+
+      <para>For more detailed information about the gridmap file see the
+      <ulink
+      url="https://dev.globus.org/wiki/Gridmap">file description and grammars
+      </ulink> on dev.globus.org.</para>
     </section>
+
+  </section>
+  <section>
+    <title>Configuring Alternate Credential Mappings</title>
+
+    <para>
+      To use an alternative credential mapping, you create a
+      <filename>gsi-authz.conf</filename> file containing information about
+      how the mapping functions are called from the authorization library.
+    </para>
+
+    <para>To configure a per-service authorization configuration file, set
+      the <envar>GSI_AUTHZ_CONF</envar> variable to the
+      path to the configuration file in the environment of the service.
+    </para>
+
+         <para>For reference, the GSI C code looks for the authorization
+         configuration file in these locations (in the given order):
+
+         <table frame='all' id="gsic-gsi-authz-conf-location-table">
+            <title>Authorization Configuration File Locations</title>
+            <tgroup cols='1' align='left' colsep='1' rowsep='1'>
+            <colspec colname='Location' />
+            <thead>
+                <row>
+                    <entry>Location</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry>
+                        <simpara>
+                            <envar>GSI_AUTHZ_CONF</envar> environment variable
+                        </simpara>
+                    </entry>
+                </row>
+                <row>
+                    <entry>
+                        <simpara>
+                            <filename>/etc/grid-security/gsi-authz.conf</filename>
+                        </simpara>
+                    </entry>
+                </row>
+                <row>
+                    <entry>
+                        <simpara>
+                            <filename><envar>GLOBUS_LOCATION</envar>/etc/gsi-authz.conf</filename>
+                        </simpara>
+                    </entry>
+                </row>
+                <row>
+                    <entry>
+                        <simpara>
+                            <filename><envar>HOME</envar>/.gsi-authz.conf</filename>
+                        </simpara>
+                    </entry>
+                </row>
+            </tbody>
+            </tgroup>
+        </table>
+        </para>
+
+        <section>
+          <title>Callout File Format</title>
+
+          <para>
+              The authorization file defines a set of callouts, one per line.
+              Each callout is defined by an <emphasis>abstract type</emphasis>,
+              <emphasis>library</emphasis>, and <emphasis>symbol</emphasis>
+              separated by whitespace.  Comments begin with the
+              <emphasis>#</emphasis> character and continue to the end of line.
+
+
+             <table frame='all' id="gsic-gsi-authz-conf-entries-table">
+                <title>Authorization Configuration File Locations</title>
+                <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+                <colspec colname='Field' />
+                <colspec colname='Meaning' />
+                <thead>
+                    <row>
+                        <entry>Field</entry>
+                        <entry>Meaning</entry>
+                    </row>
+                </thead>
+                <tbody>
+                    <row>
+                        <entry><simpara><replaceable>abstract
+                        type</replaceable></simpara></entry>
+                        <entry><simpara>Type of the callout:
+                        <emphasis>globus_mapping</emphasis> for credential
+                        mapping callouts</simpara> </entry>
+                    </row>
+                    <row>
+                        <entry><simpara><replaceable>library</replaceable>
+                        </simpara></entry>
+                        <entry><simpara>Path to the shared object containing
+                        the callout implementation. The library name may be
+                        a literal filename, or a partial filename to which the
+                        compilation flavor of the service is appended to the
+                        filename before its extension.
+                        </simpara></entry>
+                    </row>
+                    <row>
+                        <entry><simpara><replaceable>symbol</replaceable></simpara></entry>
+                        <entry><simpara>The exported symbol containing the
+                        entry point to the callout implementation.</simpara>
+                        </entry>
+                    </row>
+                </tbody>
+                </tgroup>
+            </table>
+          </para>
+
+          <para>Here is a sample <filename>gsi-authz.conf</filename> file that
+          configures a <emphasis>globus_mapping</emphasis> callout to use
+          the <emphasis>globus_gridmap_callout</emphasis> function in the
+          <filename>/usr/local/globus/lib/libglobus_gridmap_callout_gcc32dbg</filename>
+          shared object:
+
+          <screen>
+# abstract-type     library                                            symbol
+
+globus_mapping      /opt/globus/lib/libglobus_gridmap_callout_gcc32dbg globus_gridmap_callout
+</screen>
+          </para>
+
+        </section>
+
+  </section>
+
   </section>
 
   <section id="gsic-config-permissions">
