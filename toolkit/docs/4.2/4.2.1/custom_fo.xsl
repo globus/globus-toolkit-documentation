@@ -14,7 +14,7 @@
                                <!-- shared text COMMON -->
                 <xsl:template match="replaceable[@role='entity']">
                   <xsl:choose>
-                                   <xsl:when test=". = 'version'">4.2.0</xsl:when>
+                                   <xsl:when test=". = 'version'">4.2.1</xsl:when>
                                   <xsl:when test=". = 'shortversion'">4.2</xsl:when>
                                   <xsl:when test=". = 'previousversion'">4.0.x</xsl:when>
                                  <xsl:otherwise>
@@ -34,7 +34,7 @@
                </xsl:attribute-set>
                
                <!-- default location for target database document (for olinks) -->
-                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/4.2/4.2.0/olinkdb.xml</xsl:param>
+                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/4.2/4.2.1/olinkdb.xml</xsl:param>
                
                <!-- enable extensions -->
                <xsl:param name="xep.extensions" select="1"></xsl:param>

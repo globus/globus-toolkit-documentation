@@ -8,7 +8,7 @@
                 <!-- shared text -->
                 <xsl:template match="replaceable[@role='entity']">
                   <xsl:choose>
-                                   <xsl:when test=". = 'version'">4.2.0</xsl:when>
+                                   <xsl:when test=". = 'version'">4.2.1</xsl:when>
                                   <xsl:when test=". = 'shortversion'">4.2</xsl:when>
                                   <xsl:when test=". = 'previousversion'">4.0.x</xsl:when>
                                  <xsl:otherwise>
@@ -33,7 +33,7 @@
                 <xsl:param name="collect.xref.targets">yes</xsl:param>
                 
                 <!-- default location for target database document (for olinks) -->
-                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/4.2/4.2.0/olinkdb.xml</xsl:param>
+                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/4.2/4.2.1/olinkdb.xml</xsl:param>
                 
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
                 <xsl:param name="admon.graphics">1</xsl:param>
@@ -217,7 +217,7 @@
                                                 <body>
                                                                 <xsl:call-template name="body.attributes"/>
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/4.2/4.2.0/includes/globus_header_docbook.inc");
+                                                                                include_once("http://www.globus.org/toolkit/docs/4.2/4.2.1/includes/globus_header_docbook.inc");
                                                                                 ?</xsl:processing-instruction>
                                                                 
  
@@ -248,7 +248,7 @@
                                                                 <xsl:call-template name="user.footer.navigation"/>
 
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/4.2/4.2.0/includes/globus_footer_docbook.inc");
+                                                                                include_once("http://www.globus.org/toolkit/docs/4.2/4.2.1/includes/globus_footer_docbook.inc");
                                                                                 ?</xsl:processing-instruction>
                                                       
                                                 </body>
