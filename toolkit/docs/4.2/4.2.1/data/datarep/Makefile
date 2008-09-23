@@ -2,8 +2,6 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
-SUBDIRS=admin developer mig pi qp rn user
-PDFS=admin/datarepAdminGuide.pdf user/datarepUserGuide.pdf developer/datarepDeveloperGuide.pdf mig/datarepMigratingGuide.pdf qp/datarepQualityProfile.pdf rn/datarepReleaseNotes.pdf
 
 all: lint html subdirs
 
@@ -14,11 +12,6 @@ html:
 	../../custom_html.xsl \
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
-
-pdf:
-	pdftk \
-	$(PDFS) \
-	cat output datarep.pdf
 
 debian-sarge:
 	xsltproc --stringparam chunk.section.depth 0 \
@@ -49,8 +42,3 @@ olink:
 	--stringparam  collect.xref.targets  "only"  \
 	../../custom_html.xsl \
 	$(FILENAME)
-
-subdirs:
-	for dir in $(SUBDIRS); do \
-	cd $${dir}; make; if [ $$? -ne 0 ]; then exit 1; fi; cd ..; \
-	done
