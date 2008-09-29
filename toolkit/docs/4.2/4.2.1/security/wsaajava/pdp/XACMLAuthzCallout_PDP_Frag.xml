@@ -1,0 +1,450 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+<section id="wsaajava-pdp-XACMLAuthzCallout"
+         xreflabel="XACML Authorization Callout PDP">
+    <title>XACML Authorization Callout</title>
+    <indexterm type="authzframe">
+        <primary>PDP</primary>
+        <secondary>XACMLAuthzCallout</secondary>
+    </indexterm>
+    <section>
+        <title>Class name</title>
+        <para>
+            <filename>
+                org.globus.wsrf.impl.security.authorization.XACMLAuthorizationCallout
+            </filename>
+        </para>
+    </section>
+
+    <section>
+        <title>Overview</title>
+
+        <para>Policy Decision Point that communicates with a configured
+            authorization service that has XACML Authorization Service
+            interface. The PDP constructs a XACML Authorization Query and parses
+            the XACML Authorization Decision response from the service to
+            ascertain a decision. It uses the data types defined in
+            <ulink
+                link="http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-saml-profile-spec-os.pdf">
+                SAML 2.0 Profile for XACML 2.0</ulink>.
+        </para>
+
+        <section>
+            <title>Request construction</title>
+            <para>
+                The PDP does not create or collect any attributes, but sends a
+                subset of attributes from the RequestEntities object as part of
+                XACML Request sent to the authorization service. Custom PIPs
+                which collect relevant attributes should be configured in the
+                authorization chain. Requestor attributes are added to
+                SubjectType, action attributes to Action Type, resource
+                attributes to ResourceType and environment attributes to
+                EnvironmentType. Both identity and non-identity attributes that
+                meet the following criteria are added:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>Any attribute with data type set to
+                        http://www.w3.org/2001/XMLSchema#string with the
+                        attributes values of type java.lang.String are added.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Any attribute with data type set to
+                        http://www.w3.org/2001/XMLSchema#integerwith the
+                        attributes values of type java.lang.Integer are added.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Any attribute with the attributes values that
+                        implement org.opensaml.xml.XMLObject are added.
+                    </para>
+                </listitem>
+            </itemizedlist>
+
+            <para>Only a subset of attributes are added, since these are known
+                types to serialize and send on the wire. Custom types can be
+                sent by adding attribute values that implement XMLObject
+                interface.
+            </para>
+        </section>
+
+        <section id="xacmlAuthzPDP-response-eval">
+            <title>Evaluation of response from authoritzation service</title>
+            <itemizedlist>
+                <listitem>
+                    <para>The response is expected to have the attribute
+                        InResponseTo, since it is be sent in response to the
+                        query sent by the callout. If attribute is null or does
+                        not match query id, indeterminate decision is returned.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>If no assertion is received or if no XACML Authz
+                        Decision Statement is found, an indeterminate decision
+                        is returned.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>If return context is set to true and no request
+                        context is returned from service, an indeterminate
+                        decision is returned. The request context is NOT used
+                        currently for any decision making process.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>If even a single XACMLAuthzDecsionStatement, embedded
+                        in a Response with InResponseTo attribute set to the
+                        Request id is found, with the ResultType deny, a deny
+                        decision is returned.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>If even a single XACMLAuthzDecsionStatement, embedded
+                        in a Response with InResponseTo attribute set to the
+                        Request id is found, with the ResultType indeterminate,
+                        a indeterminate decision is returned.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>If every XACMLAuthzDecisionStatement, embedded in a
+                        Response with InResponseTo attribute set to the Request
+                        id is found, with the ResultType permit, a permit
+                        decision is returned.Note: at least one such permit
+                        statement is required, if not an indeterminate decision
+                        is returned.
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+
+        <section>
+            <title>Known Limitation</title>
+            <itemizedlist>
+                <listitem>
+                    <para>The response received from an authorization service
+                        should have explicit xmlns declarations for the prefixes
+                        that are part of values of xsi:type attribute. Example,
+                        if one of the elements in Response is &lt;foo:element1
+                        xsi:type=&quot;bar:type1&quot;&gt;&lt;/foo:element1&gt;
+                        and no other element in response has the prefix bar, an
+                        explicit xmlns:bar attribute should be added to the
+                        Response element, even if the ns is present in SOAP
+                        header.
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+
+        <section>
+            <title>Installation</title>
+            <para>This component is not installed by default, use the following
+                options to install it.
+                <itemizedlist>
+                    <listitem>
+                        <para>From source: XACML authorization module depends on
+                            Java WS Core installation, including the basic
+                            authorization module.
+                            <itemizedlist>
+                                <listitem>
+                                    <para>Checkout source code:
+                                        <pre>cvs co wsrf/schema wsrf/build.xml
+                                            wsrf/java authorization/java
+                                        </pre>
+                                    </para>
+                                </listitem>
+                                <listitem>
+                                    <para>Install to GLOBUS_LOCATION:
+                                        <itemizedlist>
+                                            <listitem>
+                                                <para>export GLOBUS_LOCATION
+                                                    /sandbox/globus/gtInstall
+                                                </para>
+                                            </listitem>
+                                            <listitem>
+                                                <para>cd wsrf</para>
+                                            </listitem>
+                                            <listitem>
+                                                <para>ant all</para>
+                                            </listitem>
+                                        </itemizedlist>
+                                    </para>
+                                </listitem>
+                                <listitem>
+                                    <para>
+                                        <itemizedlist>
+                                            <listitem>
+                                                <para>Checkout source code for
+                                                    the XACML authorization
+                                                    callout and install:
+                                                </para>
+                                            </listitem>
+                                            <listitem>
+                                                <para>cvs co
+                                                    authorization/common/xacml
+                                                    authorization/java/xacml
+                                                    authorization/build.xml
+                                                </para>
+                                            </listitem>
+                                            <listitem>
+                                                <para>cd authorization</para>
+                                            </listitem>
+                                            <listitem>
+                                                <para>ant deployXACML</para>
+                                            </listitem>
+                                        </itemizedlist>
+                                    </para>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>Using Globus installer: The first step in an
+                            installer is to run configure command. Use option
+                            <code>-enablexacml</code>
+                            with the configure command to install the XACML
+                            pieces
+                            .
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </section>
+
+        <section>
+            <title>Testing XACML Authorization Callout</title>
+            <para>Code base is shipped with unit tests that leverage a sample
+                XACML authorization service and test the callout.
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>export GLOBUS_LOCATION /sandbox/globus/gtInstall
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>cd authorization/java/xacml/test</para>
+                </listitem>
+                <listitem>
+                    <para>ant test</para>
+                </listitem>
+                <listitem>
+                    <para>Test reports are available in
+                        authorization/java/xacml/test/test-reports
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+
+        <section>
+            <title>Configuration</title>
+            <para>The XACML callout can be used at container, service or
+                resource level security and configured using security
+                descriptors. The following properties can be configured:
+            </para>
+            <itemizedlist>
+
+                <listitem>
+                    <para>Authorization service endpoint: This is a required
+                        configuration that provides the endpoint of the
+                        authorization service. The value should have the format
+                        &lt;protocol&gt;://&lt;hostname&gt;:&lt;portNumber&gt;/serivicePath.
+                        For
+                        example,
+                        https://foo.bar.edu:8443/wsrf/services/SampleAuthzService.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>Input context only: Determines the value of attribute
+                        set in XACML Authz Decision Query. Based on
+                        specification,
+                        if the value is “true”, then the authorization decision
+                        MUST
+                        be made solely on the basis of information contained in
+                        the
+                        XACML Authz Decision Query and external XACML Attributes
+                        MUST NOT be used. If the value is “false”, then the
+                        authorization decision MAY be made on the basis of XACML
+                        Attributes not contained in the XACML Authz Decision
+                        Query.
+                        False, by default.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Return Context: Attribute is set in the XACML Request.
+                        If the value is “true”, then the PDP MUST include an
+                        &lt;xacmlcontext:Request&gt;
+                        instance in the XACMLAuthzDecision Statement in the
+                        XACMLAuthzDecision Response. This &lt;xacml-context:Request&gt;
+                        instance MUST include all those attributes supplied by
+                        the
+                        PEP in the &lt;xacml-samlp:XACMLAuthzDecisionQuery&gt;
+                        that
+                        were used in making the authorization decision. If
+                        “false”,
+                        then the PDP MUST NOT include an &lt;xacml-context:Request&gt;
+                        instance in the XACMLAuthzDecision Statement in the
+                        XACMLAuthzDecision Response. False, by default.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Combine Policies: Attribute is set in the XACML
+                        Request. If the attribute value is &quot;true&quot;,
+                        then the PDP MUST
+                        insert all policies passed in the
+                        &lt;xacmlsamlp:XACMLAuthzDecisionQuery&gt;
+                        into the set of policies or policy sets that define the
+                        PDP
+                        as specified in Section 7.13 of the XACML 2.0 core
+                        specification. If the attribute value is &quot;false&quot;,
+                        then there
+                        MUST be no more than one &lt;xacml:Policy&gt; or &lt;xacml:PolicySet&gt;
+                        passed in the &lt;xacml-samlp:XACMLAuthzDecisionQuery&gt;.
+                        True, by default.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Privacy enabled: If the attribute is set to true,
+                        encryption is enabled in communication with the
+                        authorization
+                        service. If the authorization service URL is http, then
+                        secure
+                        message is used and public certificate of the server can
+                        be
+                        configured for encryption.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Authorization service identity: Expected identity of
+                        the authorization service.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Obligation handlers: An arbitrary number of obligation
+                        handlers can be configured with a corresponding
+                        obligation
+                        Ids. The handlers should extend the abstract class
+                        org.globus.wsrf.impl.security.authorization.AbstractObligationHandler
+                        and are used to process the obligations returned by the
+                        authorization service.
+                    </para>
+                </listitem>
+            </itemizedlist>
+
+            <section>
+                <title>Configuration Notes:</title>
+                <itemizedlist>
+                    <listitem>
+                        <para>Default container configuration is NOT used and
+                            hence relevant security descriptor should be
+                            configured with the properties
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>All requests to the authorization service uses the
+                            system credentials and is NOT configurable.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>If authorization service URL starts with http,
+                            then GSI Secure Message is used for conversation. If
+                            the service URL starts with https, then GSI Secure
+                            Transport is used. This is not configurable.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </section>
+
+            <section>
+                <title>Sample security descriptor:</title>
+                <para>Sample security descriptor with XACML configuration:
+                    <ulink
+                        link="http://viewcvs.globus.org/viewcvs.cgi/authorization/java/xacml/samples/etc/xacml-security-config.xml?view=markup">
+                        Security Descriptor
+                    </ulink>
+                </para>
+            </section>
+
+            <section>
+                <title>Obligation Handlers</title>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            Local Obligation Handler: The toolkit is shipped
+                            with a LocalAccountObligationHandler, that processes
+                            obligation with id provided in the constructor. It
+                            expects local user name to be added as an attribute
+                            with id XACMLConstants.USERNAME_ATTRIBUTE_ID, with
+                            string dataype. All values of the above attribute
+                            are added to the peer subject as local username
+                            principal, similar to the mechanism used in GridMap
+                            PDP.
+
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Custom obligation handler: An obligation handler to
+                            process any obligation can be configured and should
+                            extend from the AbstractObligaitonHandler class.
+                            This requires the the method evaluateObligation be
+                            overridden withe code to process the obligation. The
+                            authorization context is provided as the
+                            RequestEntity object and can be used to store any
+                            processed obligation data.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </section>
+        </section>
+
+        <section>
+            <title>Decision Table</title>
+            <informaltable>
+                <tgroup cols='2'>
+                    <tbody>
+                        <row>
+                            <entry>No peer subject</entry>
+                            <entry>INDETERMINATE</entry>
+                        </row>
+                        <row>
+                            <entry>Configuration erors</entry>
+                            <entry>INDETERMINATE</entry>
+                        </row>
+                        <row>
+                            <entry>Deny response from authorization service
+                            </entry>
+                            <entry>DENY</entry>
+                        </row>
+                        <row>
+                            <entry>Response from authorization service vioates
+                                conditions explained in
+                                <olink
+                                    targetptr="xacmlAuthzPDP-response-eval"></olink>
+                            </entry>
+                            <entry>DENY</entry>
+                        </row>
+                        <row>
+                            <entry>Permit response from authorization service
+                            </entry>
+                            <entry>PERMIT</entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </informaltable>
+
+        </section>
+
+        <section>
+            <title>Related interceptors</title>
+            <itemizedlist>
+                <listitem>
+                    <para>Default bootstrap interceptor
+                        (<olink targetptr="wsaajava-pip-X509Bootstrap"/>)
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+    </section>
