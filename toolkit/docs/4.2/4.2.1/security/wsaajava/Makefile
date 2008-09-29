@@ -2,8 +2,8 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
-SUBDIRS=admin developer mig pi qp rn user
-PDFS=admin/wsaajavaAdminGuide.pdf user/wsaajavaUserGuide.pdf developer/wsaajavaDeveloperGuide.pdf mig/wsaajavaMigratingGuide.pdf qp/wsaajavaQualityProfile.pdf rn/wsaajavaReleaseNotes.pdf
+SUBDIRS=admin developer mig pdp pi pip qp rn user
+PDFS=admin/wsaajavaAdminGuide.pdf user/wsaajavaUserGuide.pdf developer/wsaajavaDeveloperGuide.pdf pdp/wsaajavaPDP.pdf pip/wsaajavaPIP.pdf mig/wsaajavaMigratingGuide.pdf qp/wsaajavaQualityProfile.pdf rn/wsaajavaReleaseNotes.pdf
 
 all: lint html subdirs
 
