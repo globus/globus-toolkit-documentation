@@ -1,0 +1,294 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+<chapter id="wsaajava-pip-executionService" xreflabel="Execution Service PIP">
+    <title>Execution Service PIP (Since GT 4.2.1)</title>
+    <indexterm type="wsaajava">
+        <primary>PIP</primary>
+        <secondary>Execution Service PIP</secondary>
+    </indexterm>
+    <section>
+        <title>Class name</title>
+        <para>
+            <filename>
+                org.globus.exec.authz.xacml.FactoryServicePIP
+                org.globus.exec.authz.xacml.JobServicePIP
+            </filename>
+        </para>
+    </section>
+
+    <section>
+        <title>Overview</title>
+
+        <para>These PIPs are for use with WS GRAM service to collect attributes
+            about the job submitted. The PIPs collect attributes as required in
+            the
+            <ulink
+                url="https://edms.cern.ch/document/929867/1">OSG/EGEE
+                Authorization
+                Interoperability Profile</ulink>. The PIPs add two
+            kinds of attributes:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>Action attribute: Depending on whether it is a Fork job or
+                    not, the an action attribute set to execute-now or queue is
+                    added.
+                </para>
+            </listitem>
+            <listitem>
+                <para>Resource attribute: A resource attribute set to Compute
+                    Element as defined in the profile.
+                </para>
+            </listitem>
+        </itemizedlist>
+
+        <para>The attributes are added as part of the RequestEntities and will
+            be sent to the authorization service as part of the
+            <olink targetdoc="wsaajava-pdp-XACMLAuthzCallout"/>
+        </para>
+
+        <para>There are two PIPs,</para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    FactoryServicePIP: PIP to configure with the WS GRAM Factory
+                    Service
+                    (ManagedJobFactoryService)
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    JobServicePIP: PIP to configure with WS GRAM Job Service
+                    (ManagedJobService)
+                </para>
+            </listitem>
+        </itemizedlist>
+
+        <para>The PIPs are part of the WS-GRAM code base and depend on a WS-GRAM
+            service code base.
+        </para>
+
+    </section>
+
+    <section>
+        <title>Installation</title>
+        <para>This component is installed part of WS GRAM service. Link to GRAM
+            admin documentation. With installer use, use
+            <code>-enable-gramxacml</code>
+            option when you run<code>configure</code>for this code to be
+            installed.
+        </para>
+        <section>
+            <title>Testing Execution Service PIPs</title>
+            <para>
+                Unit tests exercise the PIPs to establish that the correct
+                attributes are extacted and added. This requires a complete
+                install of GRAM Fork service and tests.
+            </para>
+            <para>To run the test,</para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        export GLOBUS_LOCATION /sandbox/globus/gtInstall
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        cd ws-gram/authz/java/test
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        ant test
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+
+    </section>
+
+    <section>
+        <title>Configuration</title>
+        <para>The PIPs do not require any additional configuration and have to
+            be used as part of the security descriptors of WS GRAM service,
+            factory and job.
+        </para>
+        <para>Both factory and job service configuration has to be modified for
+            the service to use the PIPs as follows:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>Factory Service Configuration: Factory security descriptor
+                    should be modified to have the following entry:
+                    <code>
+                        &lt;pips&gt;
+                        &lt;interceptor name=&quot;pip2:org.globus.exec.authz.xacml.FactoryServicePIP&quot;/&gt;
+                        &lt;/pips&gt;
+                    </code>
+                    Note, other pieces for authentication, PDPs and other PIPs
+                    should be configured as needed.
+                </para>
+                <para>
+                    Typically this involves editing the file configured as part
+                    of value in
+                    $GLOBUS_LCOATION/etc/globus_wsrf_gram/server-config.wsdd, as
+                    value for parameter
+                    <code>securityDescriptor.</code>
+                    Refer to WS GRAM administrator document for details.
+                </para>
+            </listitem>
+            <listitem>
+                <para>Job Service Configuration: The job service security
+                    descriptor should be modified to have the following entry:
+                    <code>
+                        &lt;pips&gt;
+                        &lt;interceptor name=&quot;pip2:org.globus.exec.authz.xacml.JobServicePIP&quot;/&gt;
+                        &lt;/pips&gt;
+                    </code>
+                    Note, other pieces for authentication, PDPs and other PIPs
+                    should be configured as needed.
+                </para>
+                <para>The JNDI configuration of WS GRAM service should be
+                    modified to use the security descriptor with job service
+                    PIP. Example:
+                    <code>
+                        &lt;!-- Resource security descriptor --&gt;
+                        &lt;parameter&gt;
+                        &lt;name&gt;resourceSecurityDescriptorFile&lt;/name&gt;
+                        &lt;value&gt;
+                        etc/globus_exec_authz_xacml/job-xacml-security-config.xml
+                        &lt;/value&gt;
+                        &lt;/parameter&gt;
+                    </code>
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            Sample descriptors:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    <ulink
+                        url="http://viewcvs.globus.org/viewcvs.cgi/ws-gram/authz/java/source/etc/factory-xacml-security-config.xml?view=annotate">
+                        Sample Factory Security Descriptor
+                    </ulink>
+                </para>
+                <para>
+                    <ulink
+                        url="http://viewcvs.globus.org/viewcvs.cgi/ws-gram/authz/java/source/etc/job-xacml-security-config.xml?annotate=1.2.2.2">
+                        Sample Job Security Descriptor
+                    </ulink>
+                </para>
+            </listitem>
+        </itemizedlist>
+    </section>
+
+    <section>
+    <title>Attributes Collected</title>
+        <para>These PIPs collect the following attributes described in the
+            following tables:
+        </para>
+
+        <table>
+            <title>Attribute I</title>
+            <tgroup cols='2'>
+                <tbody>
+                    <row>
+                        <entry>Description of attribute</entry>
+                        <entry>Type of schedule used for the job, distingushes
+                            between a fork job and any other backend scheduler.
+                            It is either
+                            org.globus.exec.authz.xacml.ACTION_EXECUTE_NOW for
+                            Fork jobs and
+                            org.globus.exec.authz.xacml.ACTION_QUEUE for
+                            allother jobs.
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>Identity attribute</entry>
+                        <entry>False</entry>
+                    </row>
+                    <row>
+                        <entry>Attribute ID</entry>
+                        <entry>
+                            org.globus.wsrf.impl.security.authorization.XACMLConstants.ACTION_ID
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>Datatype</entry>
+                        <entry>
+                            org.globus.wsrf.impl.security.authorization.XACMLConstants.STRING_DATATYPE
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>Issuer</entry>
+                        <entry>Container Issuer Entity</entry>
+                    </row>
+                    <row>
+                        <entry>Validity from</entry>
+                        <entry>Current time</entry>
+                    </row>
+                    <row>
+                        <entry>Validity to</entry>
+                        <entry>Infinity</entry>
+                    </row>
+                </tbody>
+            </tgroup>
+        </table>
+
+        <table>
+            <title>Attribute II</title>
+            <tgroup cols='2'>
+                <tbody>
+                    <row>
+                        <entry>Description of attribute</entry>
+                        <entry>Resource attribute always set to compute element.
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>Identity attribute</entry>
+                        <entry>No</entry>
+                    </row>
+                    <row>
+                        <entry>Attribute ID</entry>
+                        <entry>
+                            org.globus.wsrf.impl.security.authorization.XACMLConstants.RESOURCE_ID
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>Datatype</entry>
+                        <entry>
+                            org.globus.wsrf.impl.security.authorization.XACMLConstants.STRING_DATATYPE
+                        </entry>
+                    </row>
+                    <row>
+                        <entry>Issuer</entry>
+                        <entry>Container Issuer Entity</entry>
+                    </row>
+                    <row>
+                        <entry>Validity from</entry>
+                        <entry>Current time</entry>
+                    </row>
+                    <row>
+                        <entry>Validity to</entry>
+                        <entry>Infinity</entry>
+                    </row>
+                </tbody>
+            </tgroup>
+        </table>
+    </section>
+
+    <section>
+        <title>Related interceptors</title>
+        <para>This PIP can be used in tandem with
+            <olink targetdoc="wsaajavaPDP"
+                   targetptr="wsaajava-pdp-XACMLAuthzCallout"/>
+            to
+            obtain authorization decision from a XACML Authorization Callout
+            about the service access.
+        </para>
+    </section>
+</chapter>
