@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+        "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+        <!ENTITY % xinclude SYSTEM "../../xinclude.mod">
+        %xinclude;
+        ]>
+<article id="javawscore-jndi" xreflabel="JNDI Configuration in Java WS Core">
+    <title>GT<replaceable role="entity">version</replaceable>: Java WS
+        Core JNDI Configuration
+    </title>
+
+    <titleabbrev>JNDI in Java WS Core</titleabbrev>
+
+    <para>The Jave Naming and Directory Interface (JNDI) is the central point for configuration in Java WS Core.
+        Services can use components which are registered in JNDI, and JNDI represents a central location for
+        configurations
+        which should be swappable at runtime. Unfortunately, setting up and deploying components in JNDI in Java WS
+        Core has been tedious and error prone in the past. Because the configuration relies heavily on reflection, it
+        was difficult, if not impossible, to do type checking when the at configuration time. As a result, an incorrect
+        configuation was likely and could not be discovered until the server was running and suffered a failure.
+        To fix this, we have implemented much more robust support for using custom schemas in the JNDI configuration
+        files which can be deployed at runtime. This has the significant advantage of requiring less verbose and
+        more customized configuration as well as supporting type checking while the configuration file is being written.
+    </para>
+
+    <section id="using-jndi-schemas">
+        <title>Using JNDI schemas</title>
+        <para>
+            It is quite simple to take advantage of the schema support for JNDI configuration.  The first step is to
+            declare the namespace of the schema in your jndi configuration file.  This is accomplished like this:
+            <programlisting lang="xml">
+                &lt;jndiConfig xmlns="http://wsrf.globus.org/jndi/config"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                            xmlns:wsrf="http://wsrf.globus.org/resources"
+                            xsi:schemaLocation="http://wsrf.globus.org/resources resource.xsd&gt;                
+            </programlisting>
+            Notice that we've specified that <computeroutput>wsrf</computeroutput> is mapped to
+            <computeroutput>http://wsrf.globus.org/resource</computeroutput>.  This namespace is one of the default
+            namespaces that ships with GT <replaceable role="entity">version</replaceable>.  From this point on, you can
+            use <computeroutput>wsrf</computeroutput> for that namespace.  In addition, we've specified the schema
+            location.  For most of the jndi schemas you can simply specify the name of the xsd file.  The JNDI
+            configuration system can locate the file based on the name of the xsd. 
+        </para>
+        <para>
+            At this point, we can start to use the types defined in the
+            <computeroutput>http://wsrf.globus.org/resource</computeroutput> schema.  We'll look at those types in more
+            detail later, but as an example:
+            <programlisting lang="xml">
+                &lt;wsrf:resourceStore name="notificationConsumerHome"
+                            class="org.globus.wsrf.impl.notification.NotificationConsumerHome"&gt;
+                    &lt;wsrf:keyType&gt;java.lang.String&lt;/wsrf:keyType&gt;
+                    &lt;wsrf:keyName&gt;{http://www.globus.org/namespaces/2004/06/core}NotificationConsumerKey&lt;/wsrf:keyName&gt;
+                    &lt;wsrf:resourceType&gt;org.globus.wsrf.impl.NotificationConsumerCallbackManagerImpl&lt;/wsrf:resourceType&gt;
+                &lt;/wsrf:resourceStore&gt;
+            </programlisting>
+            This will create a ResourceStore object. Notice that the schema specifies the specific types of the arguments
+            instead of just using the generic:
+            <programlisting lang="xml">
+                &lt;parameter&gt;
+                    &lt;name&gt;...&lt;/name&gt;
+                    &lt;value&gt;...&lt;/value&gt;
+                &lt;/parameter&gt;
+            </programlisting>
+            Later in this document, we'll discuss the namespaces that are shipped with GT, but this should give a sense
+            of how to use them in your own configuration files.
+        </para>
+    </section>
+
+    <section id="develoing-jndi-schemas">
+        <title>Developing JNDI Schemas</title>
+        <para>Developers who create components that need runtime configuration or could be used by other service
+        developers are encouraged to create support for custom schemas so as to help simplify the configuration of
+        services.  Fortunately, developing such support is fairly straight forward, although it does require some
+        understanding of Apache Commons Digester.   The first step is to develop a schema that represents the
+        configuration for your component.  There isn't much to say about this, since how to write an XML schema is a
+        bit out of the scope of this document (examples exist in the /wsrf/schema/core/jndi/descriptor directory of
+        the source tree).  Once you are satisfied with your schema, you need to create a class to process the elements
+        using <ulink url="http://commons.apache.org/digester/">Apache Commons Digester</ulink>.  Digester is a
+        rule-based xml processing toolkit.  Basically, it allows you to create rule modules which are then used to
+        process the XML.  <ulink url="http://www.theserverside.com/tt/articles/article.tss?l=Digester">This</ulink>
+        is a fairly good tutorial on how to use the Digester component.  In addition, you can look at the rules which
+        have been created for the existing namespaces.  Once your schema is done and your processing rules are complete,
+        you need to register your rules with the JNDI processing system.  This is done using a simple text file in your
+        deployed jar.  The JNDI configuration system will search for any files under the META-INF/digester directory
+        whose extensions are .prop, .conf or .properties.
+        So, for example, if you have a file called digester-rules.properties in the META-INF/digester directory of your
+        jar, the system will process the contents.  The file is quite simple.  It maps a name to a class that implements
+        <computeroutput>org.apache.commons.digester.RuleSet</computeroutput>.  This class provides the rules for the
+        system.  There are several ways to have Ant place the file in the correct directory of the jar file, but one is
+        to have a directory called <computeroutput>resources/META-INF/digester</computeroutput>.  In the jar task
+        of your Ant file you can then do:</para>
+        <para>
+            <programlisting lang="xml">
+                &lt;jar destfile="${build.lib.dir}/${jar.name}"&gt;
+                    &lt;!-- The fileset of your compiled classes --&gt;
+                    &lt;fileset dir="${build.dest}" includes="**/*"/&gt;
+                    &lt;!-- The fileset of your resources for META-INF --&gt;
+                    &lt;fileset dir="resources" includes="**/*"/&gt;
+                &lt;/jar&gt;
+            </programlisting>
+        </para>
+        <para>This will copy your files from the resource directory into the appropriate location in your jar.  Your
+        configuration module is now ready to use.</para>
+    </section>
+
+    <section id="available-core-jndi-schemas">
+        <title>Available Core Schemas</title>
+        <para>The following describes the schemas which are currently available as part of the core distribution.  More
+        will be added as time goes on.</para>
+        <section id="resource-schema">
+            <title>WSRF Resource Schema - http://wsrf.globus.org/resources</title>
+        </section>
+    </section>
+
+</article>
