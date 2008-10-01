@@ -3,7 +3,7 @@
                 version="1.0">
                 
                 <!-- Which DocBook standard xsl file should we use as the default? -->
-                <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/html/chunk.xsl"/>
+                <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/html/onechunk.xsl"/>
 
                 <!-- shared text -->
                 <xsl:template match="replaceable[@role='entity']">
@@ -34,6 +34,7 @@
                 
                 <!-- default location for target database document (for olinks) -->
                 <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/4.2/4.2.1/olinkdb.xml</xsl:param>
+                <!-- should be: /www/www-unix.globus.org/toolkit/docs/4.2/4.2.1/olinkdb.xml -->
                 
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
                 <xsl:param name="admon.graphics">1</xsl:param>
@@ -64,7 +65,7 @@
                 <xsl:param name="section.autolabel">1</xsl:param>
                 
                 <!-- how deep should each toc be? (how many levels?) -->
-                <xsl:param name="toc.max.depth">2</xsl:param>
+                <xsl:param name="toc.max.depth">4</xsl:param>
                 
                 <!-- How deep should recursive sections appear in the TOC for chapters? -->
                  <xsl:param name="toc.section.depth">4</xsl:param>
