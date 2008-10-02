@@ -43,7 +43,7 @@
                <xsl:param name="tablecolumns.extension" select="'0'"></xsl:param>
                
                <!-- should output be in draft mode? -->
-               <xsl:param name="draft.mode" select="'yes'"></xsl:param>
+               <xsl:param name="draft.mode" select="'no'"></xsl:param>
                <xsl:param name="draft.watermark.image">/www/www-unix.globus.org/docbook-images/draft.png</xsl:param>
                
                <!-- ALIGNMENT -->
