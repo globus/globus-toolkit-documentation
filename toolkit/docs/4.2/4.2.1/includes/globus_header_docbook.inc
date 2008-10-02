@@ -58,7 +58,7 @@ globus_out_of_date(); ?>
 		 <h2 class="smalltitle">Software Links</h2>
            <dl class="leftColumn">
 		   		<dt><a href="/toolkit/docs/4.2/4.2.1/Usage_Stats.html">Usage Statistics</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.1/rn/release_notes.html">Release Notes</a></dt>
+				<dt><a href="/toolkit/docs/4.2/4.2.1/rn/">Release Notes</a></dt>
 				<dt><a href="/toolkit/versioning.html">Versioning</a></dt>
 				<dt><a href="/toolkit/downloads/">Downloads</a></dt>
 				<dt><a href="/toolkit/advisories.html">Advisories</a></dt>
@@ -76,6 +76,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/admin/quickstart/">Quickstart</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/admin/install/">Installing GT</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/admin/install/gtadmin-platform.html">Platform Notes</a></dt>
+				<dt><a href="/toolkit/docs/4.2/4.2.1/commands/">GT Commands Reference</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/developer/">GT Developer's Guide</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/user/">GT User's Guide</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/mig/">Migrating Guides</a></dt>
