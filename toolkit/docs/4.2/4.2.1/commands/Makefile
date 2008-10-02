@@ -10,7 +10,7 @@ html:
 	xsltproc \
 	--xinclude \
 	--stringparam current.docid "gtcommands" \
-	../custom_html.xsl \
+	../custom_html_chunk.xsl \
 	$(FILENAME)
 
 fo:
