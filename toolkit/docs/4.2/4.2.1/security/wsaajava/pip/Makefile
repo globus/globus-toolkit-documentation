@@ -10,7 +10,8 @@ html:
 	xsltproc \
 	--xinclude \
 	--stringparam current.docid "wsaajavaPIP" \
-	../../../custom_html.xsl \
+	--stringparam toc.max.depth "1" \
+	../../../custom_html_chunk.xsl \
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
 
