@@ -76,7 +76,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/admin/quickstart/">Quickstart</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/admin/install/">Installing GT</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/admin/install/gtadmin-platform.html">Platform Notes</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.1/commands/">GT Commands Reference</a></dt>
+				
 				<dt><a href="/toolkit/docs/4.2/4.2.1/developer/">GT Developer's Guide</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/user/">GT User's Guide</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/mig/">Migrating Guides</a></dt>
@@ -87,9 +87,10 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/developer/gt-bestpractices.html">Best Practices</a></dt>
 				<dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
 				<dt><a href="/api/">API docs</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.1/pi/">Public Interfaces</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.1/developer/gt-rp.html">Resource Properties</a></dt>
-				<dt><a href="/toolkit/docs/4.2/4.2.1/developer/gt-samples.html">Samples</a></dt>
+				<dt><a href="/toolkit/docs/4.2/4.2.1/commands/">GT Commands</a></dt>
+				<dt><a href="/toolkit/docs/4.2/4.2.1/user/#public-interfaces">Public Interfaces</a></dt>
+				<dt><a href="/toolkit/docs/4.2/4.2.1/developer/#gt-rp">Resource Properties</a></dt>
+				<dt><a href="/toolkit/docs/4.2/4.2.1/developer/#gt-samples">Samples</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/glossary.html">Glossary</a></dt>
 				<!--
 				<dt>Performance Studies (coming soon)</dt>
