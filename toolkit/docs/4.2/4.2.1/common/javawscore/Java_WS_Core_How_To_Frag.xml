@@ -1020,6 +1020,45 @@ MyBean bean = (MyBean) JNDIUtils.getInitialContext().lookup(Constants.DEFAULT_WS
                     Any object you define in your jndi-config-deploy.xml file can be found at the default wsrf location
                     followed by your service name and the name you specified in the jndi-config-deploy.xml file. </para>
             </section>
+
+            <section id="javawscore-developer-jndi-namespace">
+        <title>Developing JNDI Schemas</title>
+        <para>Developers who create components that need runtime configuration or could be used by other service
+        developers are encouraged to create support for custom schemas so as to help simplify the configuration of
+        services.  Fortunately, developing such support is fairly straight forward, although it does require some
+        understanding of Apache Commons Digester.   The first step is to develop a schema that represents the
+        configuration for your component.  There isn't much to say about this, since how to write an XML schema is a
+        bit out of the scope of this document (examples exist in the /wsrf/schema/core/jndi/descriptor directory of
+        the source tree).  Once you are satisfied with your schema, you need to create a class to process the elements
+        using <ulink url="http://commons.apache.org/digester/">Apache Commons Digester</ulink>.  Digester is a
+        rule-based xml processing toolkit.  Basically, it allows you to create rule modules which are then used to
+        process the XML.  <ulink url="http://www.theserverside.com/tt/articles/article.tss?l=Digester">This</ulink>
+        is a fairly good tutorial on how to use the Digester component.  In addition, you can look at the rules which
+        have been created for the existing namespaces.  Once your schema is done and your processing rules are complete,
+        you need to register your rules with the JNDI processing system.  This is done using a simple text file in your
+        deployed jar.  The JNDI configuration system will search for any files under the META-INF/digester directory
+        whose extensions are .prop, .conf or .properties.
+        So, for example, if you have a file called digester-rules.properties in the META-INF/digester directory of your
+        jar, the system will process the contents.  The file is quite simple.  It maps a name to a class that implements
+        <computeroutput>org.apache.commons.digester.RuleSet</computeroutput>.  This class provides the rules for the
+        system.  There are several ways to have Ant place the file in the correct directory of the jar file, but one is
+        to have a directory called <computeroutput>resources/META-INF/digester</computeroutput>.  In the jar task
+        of your Ant file you can then do:</para>
+        <para>
+            <programlisting lang="xml">
+                <![CDATA[
+<jar destfile="${build.lib.dir}/${jar.name}">
+    <!-- The fileset of your compiled classes -->
+    <fileset dir="${build.dest}" includes="**/*"/>
+    <!-- The fileset of your resources for META-INF -->
+    <fileset dir="resources" includes="**/*"/>
+</jar>
+                ]]>
+            </programlisting>
+        </para>
+        <para>This will copy your files from the resource directory into the appropriate location in your jar.  Your
+        configuration module is now ready to use.</para>
+    </section>
         </section>
 
         <section id="javawscore-developer-hreading">
