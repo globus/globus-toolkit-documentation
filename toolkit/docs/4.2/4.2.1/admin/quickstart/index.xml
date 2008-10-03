@@ -175,15 +175,15 @@ Here's how we set it up, based on the instructions at
 <prompt>root@elephant:~#</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.sh</userinput>
 <prompt>root@elephant:~#</prompt> <userinput>cd ~globus/gt<replaceable role="entity">version</replaceable>-all-source-installer</userinput>
 <prompt>root@elephant:gt<replaceable role="entity">version</replaceable>-all-source-installer#</prompt> <userinput>perl gt-server-ca.pl -y</userinput>
-Setting up /sandbox/globus/globus-4.2.1/
+Setting up /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/
 Please enter a password of at least four characters for the CA: 
 Confirm password:
 Creating a new simpleCA, logging to gt-server-ca.log...
 Running setup-gsi...
 Your CA hash is: 1bcdfe89
-It is located at /sandbox/globus/globus-4.2.1//share/certificates/1bcdfe89.0
+It is located at /sandbox/globus/globus-<replaceable role="entity">version</replaceable>//share/certificates/1bcdfe89.0
 Your host DN is /O=Grid/OU=GlobusTest/OU=simpleCA-elephant.mcs.anl.gov/CN=host/elephant.mcs.anl.gov
-The hostcert is located at /sandbox/globus/globus-4.2.1//etc/hostcert.pem
+The hostcert is located at /sandbox/globus/globus-<replaceable role="entity">version</replaceable>//etc/hostcert.pem
 </screen>
 <note><para>This will fail if /tmp is mounted noexec.  If you get a failure, you might try setting
 GLOBUS_SH_TMP=`pwd` and trying again.
@@ -241,7 +241,7 @@ end users yet.
 <prompt>root@elephant:~#</prompt> <userinput>export GLOBUS_LOCATION=/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/</userinput>
 <prompt>root@elephant:~#</prompt> <userinput>cp $GLOBUS_LOCATION/share/myproxy/myproxy-server.config /etc</userinput>
 <prompt>root@elephant:~#</prompt> <userinput>vim /etc/myproxy-server.config </userinput>
-<prompt>root@elephant:~#</prompt> <userinput>diff /etc/myproxy-server.config $GLOBUS_LOCATION/etc/myproxy-server.config</userinput>
+<prompt>root@elephant:~#</prompt> <userinput>diff /etc/myproxy-server.config $GLOBUS_LOCATION/share/myproxy/myproxy-server.config</userinput>
 15,21c15,21
 &lt; accepted_credentials  "*"
 &lt; authorized_retrievers "*"
@@ -469,7 +469,7 @@ Apache Axis version: 1.4
 Built on Mar 01, 2007 (10:42:15 CST)
 
 Java WS Core Version on remote endpoint https://localhost:8443:
-4.2.1
+<replaceable role="entity">version</replaceable>
 
 </screen>
 That is the expected output, so it looks like the container is up and running. 
@@ -591,7 +591,7 @@ config.status: creating fork.pm
 first machine to our second:
 <screen>
 <prompt>globus@cognito:~$</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
-<prompt>globus@cognito:~$</prompt> <userinput>scp -r elephant:/sandbox/globus/globus-4.2.1/share/certificates $GLOBUS_LOCATION/share</userinput>
+<prompt>globus@cognito:~$</prompt> <userinput>scp -r elephant:/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/share/certificates $GLOBUS_LOCATION/share</userinput>
 </screen>
 
 We're going to create the host certificate for cognito, but we create it on elephant:
@@ -651,6 +651,21 @@ A credential has been received for user bacon in /tmp/x509up_u1817.
 </screen>
 That was a slightly fancier test than I ran on elephant.  In this case, I did a third-party transfer between two GridFTP servers.  It worked, so I have the local and remote security setup correctly.
 </para>
+<para>
+If it did not work, perhaps you have a firewall between the two machines?  GridFTP needs to communicate on
+data ports, not just port 2811.  The error looks like:
+<screen>
+error: globus_ftp_client: the server responded with an error
+500 500-Command failed. : callback failed.
+500-globus_xio: Unable to connect to 140.221.8.19:42777
+500-globus_xio: System error in connect: No route to host
+500-globus_xio: A system call failed: No route to host
+500 End.
+</screen>
+You can setup a range of ports to be open on the firewall and configure
+GridFTP to use them, see <ulink url="http://dev.globus.org/wiki/FirewallHowTo#Configuring_GridFTP_to_use_GLOBUS_TCP_PORT_RANGE">GridFTP Firewall HOWTO</ulink> for details.  That document also contains firewall information for the rest of the services too.
+</para>
+
 </section>
 
 <section id="q-container2"><title>Setting up your second machine: Webservices</title>
@@ -738,7 +753,7 @@ into choate so we can have an aggregated view of the two machines, as
     Set an upstream entry for each VO index that you wish to participate in.
     <upstream>https://choate.mcs.anl.gov:8443/wsrf/services/DefaultIndexService</upstream>
 ]]>
-root@cognito:~# /etc/init.d/globus-<replaceable role="entity">version</replaceable> restart
+globus@cognito:~$ /etc/init.d/globus-ws-java-container restart
 Stopping Globus container. PID: 18069
 Container stopped
 Starting Globus container. PID: 18405
@@ -777,7 +792,10 @@ WebMDS has a dependency on the Tomcat container, so we'll install that now.  The
 <screen>
 <prompt>root@cognito:/usr/local#</prompt> <userinput>tar xzf jakarta-tomcat-5.0.28.tar.gz </userinput>
 <prompt>root@cognito:/usr/local#</prompt> <userinput>chown -R globus:globus jakarta-tomcat-5.0.28</userinput>
+<prompt>root@cognito:/usr/local#</prompt> <userinput>cd /etc/grid-security</userinput>
+<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>ln -sf $GLOBUS_LOCATION/share/certificates certificates</userinput>
 </screen>
+
 Now the globus user can configure WebMDS:
 <screen>
 <prompt>globus@cognito:~$</prompt> <userinput>vim $GLOBUS_LOCATION/lib/webmds/conf/indexinfo</userinput>
