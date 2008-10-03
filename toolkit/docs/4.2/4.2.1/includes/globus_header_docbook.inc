@@ -112,7 +112,7 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/security/gsic/">GSI C</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/common/javacog/">GSI Java</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/security/wsaajava/">Java WS A&amp;A</a></dt>
-				<dt>C WS A&amp;A (coming soon)</dt>
+				<dt><a href="/toolkit/docs/4.2/4.2.1/security/wsaac/">C WS A&amp;A</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/security/cas/">CAS</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/security/delegation/">Delegation Service</a></dt>
 				<dt><a href="/toolkit/docs/4.2/4.2.1/security/myproxy/">MyProxy</a></dt>
