@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+        "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+        <!ENTITY % xinclude SYSTEM "../../xinclude.mod">
+        %xinclude;
+        ]>
+<article id="javawscore-wsrf-jpa" xreflabel="Resource Persistence using JPA">
+    <title>GT<replaceable role="entity">version</replaceable>:
+        Resource Persistence using the Java Persistence API (JPA)
+    </title>
+
+    <titleabbrev>Resource Persistence using JPA</titleabbrev>
+
+    <section id="introduction">
+        <title>Introduction</title>
+        <para>Part of creating a reliable service is assuring that the state can be preserved in the event of
+            a planned or unplanned server restart. GT has provided an interface for supporting resource persistence
+            (<ulink
+                url="http://www.globus.org/api/javadoc-4.2.0/globus_java_ws_core/org/globus/wsrf/PersistentResource.html">
+            org.globus.wsrf.PersistentResource</ulink>) and a helper class for facilitating filesystem based persistence
+            (<ulink
+                url="http://www.globus.org/api/javadoc-4.2.0/globus_java_ws_core/org/globus/wsrf/utils/FilePersistenceHelper.html">
+            org.globus.wsrf.utils.FilePersistenceHelper</ulink>). There has, however, been limited support for
+            simplifying the use of relational database systems (RDBMS) as a more reliable method for persisting
+            Resources.
+            The JPA module is designed to fill that void. The Java Persistence API (JPA) is a standardized framework for
+            mapping objects to relational tables in a straightforward and declarative way. Because of the declarative
+            nature of the JPA, developers can create persistent resources without making any compile time coupling to
+            the
+            JPA framework, which means the code is quite flexible.
+        </para>
+    </section>
+
+    <section id="intro-to-jpa">
+        <title>Introduction to Object Relational Mapping with the JPA</title>
+        <para>
+            The major challenge in persisting objects to an RDBMS is figuring out how to map your objects to RDBMS
+            tables.
+            JPA provides a straightforward method for this Object Relational Mapping (O/R) process which can either
+            employ
+            XML or Java 5 Annotations. For the purposes of this documentation, we will only look at the XML
+            configuration.
+            Java 5 Annotation configuration is very similar and for a guide on using this, I recommend looking at
+            <ulink url="http://openjpa.apache.org/builds/1.2.0/apache-openjpa-1.2.0/docs/manual">The OpenJPA
+                manual</ulink>.
+            <ulink url="http://openjpa.apache.org">Apache OpenJPA</ulink>
+            is the implementation of JPA that we ship
+            with the standard GT, but the documentation is largely applicable to any JPA deployment environment
+        </para>
+        <para>
+            This documentation also assumes that you are using the recommended wsdl-first approach to developing
+            services,
+            which implies that your ResourceProperty classes have been generated using wsdl2java. Those are the classes
+            that you will be persisting.
+        </para>
+        <para>you will be creating an XML file to define your O/R mappings. This file should be called
+            <filename>orm.xml</filename>
+            and should be located in the META-INF directory of your JAR file.
+            A simple mapping file for the archetypal counter service, would look like this:
+            <programlisting lang="xml">
+                <![CDATA[
+<entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_1_0.xsd"
+    version="1.0">
+
+    <entity class="com.counter.Counter">
+        ...
+    </entity>
+
+</entity-mappings>
+                ]]>
+            </programlisting>
+            You would include an entity entry for each class you want to persist. This should be fairly straightforward.
+            The ellipse inside the
+            <computeroutput>entity</computeroutput>
+            element will define the how you persist the
+            fields.
+        </para>
+        <para>
+            The simplest type of field is one that is of a "basic" type, something like a String, int, long, etc. In
+            the case of the counter service, the "
+            <computeroutput>value</computeroutput>
+            field is such a field. It is
+            just an<computeroutput>int</computeroutput>. In order to map this field, you simply put:
+            <programlisting lang="xml">
+                <![CDATA[
+<basic name="value"/>
+                ]]>
+            </programlisting>
+            There are other options available, but for this particular field, all we need to specify is the name. This
+            entry tells the JPA system to map the
+            <computeroutput>value</computeroutput>
+            field in our object to the
+            <computeroutput>Counter</computeroutput>
+            table. So far, our configuration now looks like"
+            <programlisting lang="xml">
+                <![CDATA[
+<entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_1_0.xsd"
+    version="1.0">
+
+    <entity class="com.counter.Counter">
+        <basic name="value"/>
+        ...
+    </entity>
+
+</entity-mappings>
+                ]]>
+            </programlisting>
+            I should point out that the basic type can also be used to represent a
+            <ulink url="http://databases.about.com/od/specificproducts/g/onetoone.htm">One-to-One relationship</ulink>
+            with another object that has been mapped in this same way. So, if you had field in your object that
+            represented a more complex object than a simple
+            <computeroutput>int</computeroutput>
+            (but not a collection)
+            you would use the
+            <computeroutput>basic</computeroutput>
+            mapping type as well.
+        </para>
+        <para>
+            Tables in an RDBMS require an ID to serve as the<ulink url="http://en.wikipedia.org/wiki/Primary_key">
+            Primary Key</ulink>. This is simple to specify as well:
+            <programlisting lang="xml">
+                <![CDATA[
+<entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_1_0.xsd"
+    version="1.0">
+
+    <entity class="com.counter.Counter">
+        <id name="id"/>
+        <basic name="value"/>
+        ...
+    </entity>
+
+</entity-mappings>
+                ]]>
+            </programlisting>
+            So, now we have specified the Primary Key in our configuration. For services whose objects are fairly
+            straightforward and only contain simple fields or One-to-One relationships, this is all the mapping that
+            needs to be done.
+        </para>
+    </section>
+    <section id="configure-jpa">
+        <title>Configuring JPA</title>
+        <para>In addition to the O/R mapping, JPA requires that you create a configuration for deploying your persistent
+            resources into the framework. Fortunately, this is also a fairly simple process. This file needs to be
+            called
+            <filename>persistence.xml</filename>
+            and should be located in the
+            <filename>META-INF</filename>
+            directory of
+            your JAR file. Just like the mapping file described above, there are many options which could be included in
+            your
+            <filename>persistence.xml</filename>
+            file, but the basic file is quite simple:
+            <programlisting lang="xml">
+                <![CDATA[
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"
+   version="1.0">
+   <persistence-unit name="counter">
+        <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
+        <class>com.counter.Counter</class>
+        <properties>
+                <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema"/>
+                <property name="openjpa.DataCache" value="true"/>
+                <property name="openjpa.RemoteCommitProvider" value="sjvm"/>                            
+        </properties>
+   </persistence-unit>
+</persistence>
+            ]]>
+            </programlisting>
+            When using the JPA in your own service, you should be able to use most of this configuration as boilerplate.
+            First, we need to provide a name for our PersistenceUnit.  This is the "context" in which our JPA will be working.
+            This can be called whatever you want.  It makes sense to give it a name similar to your service.  This name
+            will be used later, when we are deploying. Next we specify which JPA provider we are using with the
+            <computeroutput>provider</computeroutput>
+            entry.
+            You can leave this as is, unless you are using a non-default JPA provider. Next you need to list the classes
+            which can be persisted.  Finally, we've included a few properties which are specific to OpenJPA.  The 
+            <computeroutput>openjpa.jdbc.SynchronizeMappings</computeroutput> property tells the system to create
+            any tables which are specified in our mapping, but which are not already created.  The 
+            <computeroutput>openjpa.DataCache</computeroutput> and <computeroutput>openjpa.RemoteCommtProvider</computeroutput>
+            properties allow us to set up data caching for improved performance.  Again, there are many, many other options
+            available.  For a more complete description, see:
+            <ulink url="http://openjpa.apache.org/builds/1.2.0/apache-openjpa-1.2.0/docs/manual/ref_guide_conf.html">
+                OpenJPA Configuration Reference Guide
+            </ulink>.
+        </para>
+    </section>
+    <section id="deploy-jpa">
+        <title>Deploying JPA support in GT</title>
+        <para>Now that the mapping and configuration work is done, we need to deploy this in GT.  This will take
+        advantage of the custom namespace support for JNDI configuration provided in GT 4.2.1.  In order to use the
+        JPA in your ResourceHome, you need to configure three pieces.  The first piece is the JDBC datastore.  The second
+        is the JPA EntityManagerFactory.  Finally, the third piece is the JPA ResourceHome class.  Here is an
+        example of configuring a JDBC Datastore:
+        <programlisting lang="xml">
+            <![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<jndiConfig xmlns="http://wsrf.globus.org/jndi/config"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:wsrf="http://wsrf.globus.org/resources"
+            xmlns:jdbc="http://wsrf.globus.org/jdbc"
+            xmlns:jpa="http://wsrf.globus.org/resources/home/jpa"
+            xsi:schemaLocation="http://wsrf.globus.org/resources/home/jpa wsrf_jpa.xsd
+                http://wsrf.globus.org/resources resources.xsd
+                http://wsrf.globus.org/jdbc jdbc.xsd">
+                
+    <service name="CounterService">
+        <jdbc:datasource name="jdbc">
+            <jdbc:driverClassName>org.apache.derby.jdbc.EmbeddedDriver</jdbc:driverClassName>
+            <jdbc:url>jdbc:derby:myapp2;create=true</jdbc:url>
+        </jdbc:datasource>
+    </service>
+</jndiConfig>                        
+            ]]>
+        </programlisting> 
+        The first thing you should notice is that we have declared the <computeroutput>wsrf</computeroutput>, 
+        <computeroutput>jdbc</computeroutput>, and <computeroutput>jpa</computeroutput> namespaces.  This will allow
+            us to use the custom configuration elements.  Next, inside our <computeroutput>service</computeroutput>
+            element, we have declared a new element <computeroutput>jdbc:datasource</computeroutput>.  This will create
+            a JDBC datasource based on the parameters provided.  In this case, we are using a very simple 
+            <ulink url="http://db.apache.org/derby">Derby</ulink> database, but you could use any RDBMS you wish.
+            The <computeroutput>datasource</computeroutput> element supports <computeroutput>password</computeroutput>
+            and <computeroutput>username</computeroutput> fields so that you can specify the security information.
+        </para>
+        <para>The next piece to configure is the JPA EntityManagerFactory to be used by your ResourceHome.  This is just
+        as simple:
+        <programlisting lang="xml">
+            <![CDATA[
+<jpa:entityManagerFactory name="CounterEMF" persistenceUnit="counter" >
+    <connectionFactory>
+        <jdbc:datasource ref="jdbc"/>
+    </jpa:connectionFactory>
+    <jpa:properties/>
+</jpa:entityManagerFactory>
+            ]]>
+        </programlisting>  All that is required is to specify the persistence unit name (remember when we defined that
+        earlier?) an supply a datasource to the connection factory.  There is a spot for specifying additional properties
+        to JPA, so if there is anything you didn't define in you <filename>persistence.xml</filename>, you can define it
+        here.</para>
+        <para>
+            The final piece to define is the ResourceHome itself.  Here is the declaration for our JPA enabled
+            ResourceHome:
+            <programlisting lang="xml">
+                <![CDATA[
+<jpa:JPAStore name="home">
+    <wsrf:keyType>java.lang.Integer</wsrf:keyType>
+    <wsrf:keyName>{http://www.counter.com}Counter</wsrf:keyName>
+    <wsrf:resourceType>com.counter.Counter</wsrf:resourceType>
+    <jpa:persistence ref="CounterEMF"/>
+</jpa:JPAStore>
+                ]]>
+            </programlisting>
+            This creates a ResourceHome which is backed by JPA using the EntityManagerFactory located at CounterEMF in
+            JNDI.  At this point, your service will be backed by JPA.
+        </para>
+    </section>
+    <section id="future-jpa-docs">
+        <title>Upcoming JPA docs</title>
+        <para>These docs should be enough to get you up and started with using JPA to handle persistence in your Resource
+        Home, but it only scratches the surface of what can be done.  Upcoming documentation will cover how to work
+        with resources that define one-to-many relationships, many-to-many relationship, monitoring resource lifecycle,
+        advanced querying and other topics.</para>
+    </section>
+
+</article>
