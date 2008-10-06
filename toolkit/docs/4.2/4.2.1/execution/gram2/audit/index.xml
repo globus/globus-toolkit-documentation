@@ -231,7 +231,7 @@
   This prevents users from interfering with other users' audit records.</para>
 </section>
 
-  <section id="gram2-audit-logging-config"><title>Configuring WS-GRAM To Enable Audit Logging</title>
+  <section id="gram2-audit-logging-config"><title>Configuration to enable audit logging</title>
     <para>Audit logging is turned off by default. To turn on Audit Logging, follow these steps:</para>
     
     <section><title>Configure Audit Record Directory</title>
@@ -244,39 +244,79 @@
       <screen>rws-wsrwx</screen>
     </section>
     
-    <section><title>Add Database Connection Parameters</title>
+    <section><title>Database configuration</title>
       
       <para>Edit <filename>$GLOBUS_LOCATION/etc/globus-job-manager-audit.conf</filename> to include the correct database connection parameters. For example::</para>
       <screen>DRIVERCLASS:com.mysql.jdbc.Driver
 USERNAME:john
 PASSWORD:foo
-URL:jdbc:mysql://myhost/auditDatabase</screen>
+URL:jdbc:mysql://myhost/auditDatabase
+AUDITVERSION:1</screen>
+     <para>
+      We support 3 database systems: MySQL, PostgreSQL, Derby.
+      The following table gives an overview which values must be used for
+      the parameters url and driverClassName in the above JNDI configuration
+      for the various db systems. Derby is configured as the default DB system.
+      <informaltable>
+      <tgroup cols="3">
+        <thead>
+          <row>
+            <entry>DB system</entry>
+            <entry>driverClassName</entry>
+            <entry>url</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>MySQL</entry>
+            <entry>com.mysql.jdbc.Driver</entry>
+            <entry>jdbc:mysql://HOST[:PORT]/auditDatabase</entry>
+          </row>
+          <row>
+            <entry>PostgreSQL</entry>
+            <entry>org.postgresql.Driver</entry>
+            <entry>jdbc:mysql://HOST[:PORT]/auditDatabase</entry>
+          </row>
+          <row>
+            <entry>Derby</entry>
+            <entry>org.apache.derby.jdbc.EmbeddedDriver</entry>
+            <entry>jdbc:derby:directory:PATH_TO_GLOBUS_LOCATION/var/gram/auditDatabase</entry>
+          </row>
+        </tbody>
+      </tgroup>
+      </informaltable>
+      </para>
+      <para>
+         Don't change the parameter AUDITVERSION for now. In future releases we'll
+         support more than one version.
+      </para>
+     
     </section>
     
-    <section><title>Create Audit Database</title>
-        <para>
-          Audit records are stored in a database which must be set up once. Currently we provide schemas for
-          <itemizedlist>
-            <listitem><para>
-                MySQL (<filename>$GLOBUS_LOCATION/share/gram-service/gram_audit_schema_mysql.sql</filename>)
-           </para></listitem>
-           <listitem><para>
-             Postgres (<filename>$GLOBUS_LOCATION/share/gram-service/gram_audit_schema_postgres-8.0.sql</filename>)
-           </para></listitem>
-          </itemizedlist>
-        </para>
-     <section><title>If You Are Using MySQL</title>
-         <para> The following describes how to set up the database for audit records in MySQL:</para>
+    <section><title>Creating the Audit Database</title>
+         <para>
+           Audit records are stored in a database which must be set up once.
+         </para>
+      
+         <section><title>MySQL</title>
+          <para>
+            The following describes how to set up the audit database in MySQL:
+          </para>
           <orderedlist>
-             <listitem><para>Create a database inside of MySQL</para></listitem>
-             <listitem>
-               <para>
-                 Grant necessary privileges to the account that will be used to upload the audit records in the audit.  Typically the "globus" account.
-               </para>
-             </listitem>
-             <listitem><para>Use the schema to create the table</para></listitem>
+            <listitem>
+              <para>Create a database inside of MySQL</para>
+            </listitem>
+            <listitem>
+              <para>
+                Grant necessary privileges to the account that will be used
+                to upload the audit records in the audit. Typically the "globus"
+                account.
+              </para>
+            </listitem>
+            <listitem>
+              <para>Use the schema to create the table</para>
+            </listitem>
           </orderedlist>
-
           <screen>host:~ feller$ mysql -u root -p
 Enter password: 
 Welcome to the MySQL monitor.  Commands end with ; or \g.
@@ -293,23 +333,31 @@ Query OK, 0 rows affected (0.32 sec)
 
 mysql&gt; exit
 Bye
-host:~ feller$ mysql -u globus -p auditDatabase &lt; ${GLOBUS_LOCATION}/share/gram-service/gram_audit_schema_mysql.sql 
+host:~ feller$ mysql -u globus -p auditDatabase &lt; ${GLOBUS_LOCATION}/share/globus_wsrf_gram/gram_audit_schema_mysql.sql 
 Enter password: 
 host:~ feller$</screen>
         </section>
-    
-    <section><title>If You Are Using PostgreSQL</title>
-      <para>The following describes how to set up the database for audit records in PostgreSQL:</para>
-      <orderedlist>
-        <listitem><para>Create a database inside of PostgreSQL</para></listitem>
-        <listitem>
+      
+        <section><title>PostgreSQL</title>
           <para>
-            Grant necessary privileges to the account that will be used to upload the audit records in the audit.  Typically the "globus" account.
+            The following describes how to set up the audit database in PostgreSQL:
           </para>
-        </listitem>
-        <listitem><para>Use the schema to create the table</para></listitem>
-      </orderedlist>
-      <screen># Connect as postgres admin
+          <orderedlist>
+            <listitem>
+              <para>Create a database inside of PostgreSQL</para>
+            </listitem>
+            <listitem>
+              <para>
+                Grant necessary privileges to the account that will be used
+                to upload the audit records in the audit. Typically the "globus"
+                account.
+              </para>
+            </listitem>
+            <listitem>
+              <para>Use the schema to create the table:</para>
+            </listitem>
+          </orderedlist>
+          <screen># Connect as postgres admin
 create database gt4audit\g
 create user gt4auditload with encrypted password '&lt;password1&gt;'\g
 create user gt4auditview with encrypted password '&lt;password2&gt;'\g
@@ -318,42 +366,32 @@ create user gt4auditview with encrypted password '&lt;password2&gt;'\g
 grant insert on gram_audit_table to gt4auditload\g
 grant select on gram_audit_table to gt4auditview\g
 \q</screen>
-      <para>You must also update <filename>pg_hba.conf</filename> to allow connections from container host (<filename>pg_hba.conf</filename> configures client authentication and is stored in the database cluster's data directory):</para>
-      <screen>hostssl   gt4audit  gt4auditload   &lt;containerhostip&gt; 255.255.255.255 md5
+          <para>
+            You must also update <filename>pg_hba.conf</filename> to allow
+            connections from container host (<filename>pg_hba.conf</filename>
+            configures client authentication and is
+            stored in the database cluster's data directory):
+          </para>
+          <screen>hostssl   gt4audit  gt4auditload   &lt;containerhostip&gt; 255.255.255.255 md5
 host      gt4audit  gt4auditload   &lt;containerhostip&gt; 255.255.255.255 md5
 hostssl   gt4audit  gt4auditview   &lt;containerhostip&gt; 255.255.255.255 md5
 host      gt4audit  gt4auditview   &lt;containerhostip&gt; 255.255.255.255 md5</screen>
-    </section>
-        
-  </section>
-  
-  <section><title>Log4J configuration</title>
-      <para>
-          In an installation of Gram2 a log4j configuration file is written to
-          <filename>$GLOBUS_LOCATION/share/globus_gram_job_manager_auditing/log4j.properties</filename>
-          which is used when you upload the records into the database using
-          <filename>${GLOBUS_LOCATION}/libexec/globus-gram-audit</filename>.
-          If audit logging does not work, please check for the existence of this file and
-          verify that the content is
-        </para>
-        <screen>log4j.rootCategory=ERROR, A1
+        </section>
 
-# A1 is set to be a ConsoleAppender.
-log4j.appender.A1=org.apache.log4j.ConsoleAppender
+        <section><title>Derby</title>
+          <para>
+            During GT installation the Derby audit database is already
+            created. It's location is
+            <computeroutput>${GLOBUS_LOCATION}/var/gram/auditDatabase</computeroutput>.
+            If you ever have to create it manually, make sure that this directory does
+            not exist and then call
+            <computeroutput>${GLOBUS_LOCATION}/setup/globus/setup-gram-service-database</computeroutput>.
+            The user and password information can be found in
+            <computeroutput>${GLOBUS_LOCATION}/share/globus_wsrf_gram/gram_audit_v1_schema_derby.sql</computeroutput>.
+          </para>
+        </section>
 
-# A1 uses PatternLayout.
-log4j.appender.A1.layout=org.apache.log4j.PatternLayout
-log4j.appender.A1.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} [%t,%M:%L] %m%n
-
-# Display any warnings generated by our code
-log4j.category.org.globus=WARN
-
-# AUDIT
-log4j.appender.AUDIT=org.globus.exec.utils.audit.AuditDatabaseAppender
-log4j.appender.AUDIT.layout=org.apache.log4j.PatternLayout
-log4j.category.org.globus.exec.utils.audit.AuditDatabaseAppender.audit=DEBUG, AUDIT
-log4j.additivity.org.globus.exec.utils.audit.AuditDatabaseAppender.audit=false</screen>
-    </section>
-  
+      </section>
+    
   </section>
 </article>
