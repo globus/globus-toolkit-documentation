@@ -28,9 +28,9 @@ One implementation of PKINIT currently in use for Grid purposes is a PKINIT patc
 </p>
 
 <?
-$software = "<a href='http://147.228.60.85/software/heimdal/pkinit.en.html'>PKINIT</a>";
-$developer = "<a href='http://147.228.60.85/'>MetaCentrum Project</a>";
-$distros = "<a href='http://147.228.60.85/software/heimdal/pkinit.en.html'>PKINIT patch</a> to the <a href='http://www.pdc.kth.se/heimdal/'>Heimdal Kerberos</a> implementation";
+$software = "<a href='http://meta.cesnet.cz/cms/opencms/en/docs/software/devel/PKINIT.html'>PKINIT</a>";
+$developer = "<a href='http://meta.cesnet.cz/cms/opencms/en/about/meta.html'>MetaCentrum Project</a>";
+$distros = "<a href='http://people.su.se/~lha/patches/heimdal/pkinit/'>PKINIT patch</a> to the <a href='http://www.pdc.kth.se/heimdal/'>Heimdal Kerberos</a> implementation";
 $contact = "<a href='mailto:kouril@ics.muni.cz'>Daniel Kouril &lt;kouril@ics.muni.cz&gt;</a>";
 
 // use the function below once problem is discovered, remove the two lines above
