@@ -355,11 +355,22 @@
                     <para>Obligation handlers: An arbitrary number of obligation
                         handlers can be configured with a corresponding
                         obligation
-                        Ids. The handlers should extend the ab1stract class
+                        Ids. The handlers should extend the abstract class
                         org.globus.wsrf.impl.security.authorization.AbstractObligationHandler
                         and are used to process the obligations returned by the
-                        authorization service.
+                        authorization service. For example:
                     </para>
+                    <screen>&lt;param:ObligationHandlers&gt;
+                            &lt;param:SupportedObligation&gt;
+                                &lt;param:ObligationId&gt;
+                                    http://authz-interop.org/xacml/obligation/username
+                                &lt;/param:ObligationId&gt;
+                                &lt;param:FQClassName&gt;
+                                    org.globus.wsrf.impl.security.authorization.LocalAccountObligationHandler
+                                &lt;/param:FQClassName&gt;
+                            &lt;/param:SupportedObligation&gt;
+                        &lt;/param:ObligationHandlers&gt;</screen>
+                        <para>Details regarding custom obligation handler is described in <olink targetptr="wsaajava-pdp-XACMLAuthzCallout-obligHandlers"/></para>
                 </listitem>
             </itemizedlist>
 
@@ -397,36 +408,72 @@
                 </para>
             </section>
 
-            <section>
+            <section id="wsaajava-pdp-XACMLAuthzCallout-obligHandlers">
                 <title>Obligation Handlers</title>
-                <itemizedlist>
-                    <listitem>
-                        <para>
-                            Local Obligation Handler: The toolkit is shipped
-                            with a LocalAccountObligationHandler, that processes
-                            obligation with id provided in the constructor. It
-                            expects local user name to be added as an attribute
-                            with id XACMLConstants.USERNAME_ATTRIBUTE_ID, with
-                            string dataype. All values of the above attribute
-                            are added to the peer subject as local username
-                            principal, similar to the mechanism used in GridMap
-                            PDP.
 
-                        </para>
-                    </listitem>
-                    <listitem>
-                        <para>
-                            Custom obligation handler: An obligation handler to
-                            process any obligation can be configured and should
-                            extend from the AbstractObligaitonHandler class.
-                            This requires the the method evaluateObligation be
-                            overridden withe code to process the obligation. The
-                            authorization context is provided as the
-                            RequestEntity object and can be used to store any
-                            processed obligation data.
-                        </para>
-                    </listitem>
-                </itemizedlist>
+                   <para>The toolkit is shipped with a
+                   LocalAccountObligationHandler, that processes
+                   obligation with id provided in the constructor. It
+                   expects local user name to be added as an attribute
+                   with id XACMLConstants.USERNAME_ATTRIBUTE_ID, with
+                   string dataype. All values of the above attribute
+                   are added to the peer subject as local username
+                   principal, similar to the mechanism used in GridMap
+                   PDP.</para>
+
+                   <para>The toolkit also allows custom obligation
+                   handlers. An obligation handler to process any
+                   obligation can be configured and should extend from
+                   the AbstractObligaitonHandler class. This requires
+                   the the method evaluateObligation be overridden
+                   with the code to process the obligation. The
+                   authorization context is provided as the
+                   RequestEntity object and can be used to store any
+                   processed obligation data.</para>
+
+                   <screen>public class LocalAccountObligationHandler extends AbstractObligationHandler {
+
+    public void setRequestEntities(RequestEntities reqEntities_) {
+        super.setRequestEntities(reqEntities_);
+    }
+
+    /**
+     * This is the method that processes the obligation. It checks for username
+     * attribute and adds the value to the peer subject.
+     *
+     * @param obligationProcessingContext {@inheritDoc}
+     * @param obligation {@inheritDoc}
+     * @throws ObligationProcessingException {@inheritDoc}
+     */
+    public void
+    evaluateObligation(ObligationProcessingContext obligationProcessingContext,
+                       ObligationType obligation)
+        throws ObligationProcessingException {
+
+        // Typically only obligation Id that the ObligationHandler is 
+        // initialized with is processed by a handler.
+        if (!obligation.getObligationId().equals(this.getObligationId())) {
+            logger.debug("Obligation is not " + this.getObligationId());
+            return;
+        }
+
+        // process obligation
+
+        // attributes in obligation
+        List attrs = obligation.getAttributeAssignments();
+        if (attrs.size() < 1) {
+            logger.warn("No attributes found in obligation");
+        }
+
+        // examine and process attributes
+        Iterator attrsIterator = attrs.iterator();
+        while (attrsIterator.hasNext()) {
+            AttributeAssignmentType attrType =
+                (AttributeAssignmentType) attrsIterator.next();
+        }
+     }
+}</screen>
+
             </section>
         </section>
 
@@ -474,6 +521,16 @@
                     <para>Default bootstrap interceptor
                         (<olink targetdoc="wsaajavaPIP" targetptr="wsaajava-pip-X509Bootstrap"/>)
                     </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+
+        <section>
+            <title>Related Documents</title>
+            <itemizedlist>
+                <listitem>
+                    <para><ulink url="http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-saml-profile-spec-os.pdf">SAML 2.0 Profile for XACML 2.0.</ulink>.</para>
+                    <para>FIXME: add link to OSG/GUMS document</para>
                 </listitem>
             </itemizedlist>
         </section>
