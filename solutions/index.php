@@ -39,8 +39,15 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
        components and application code.  Each solution is presented in the context
        of a specific Grid project.  These solutions can be reused or treated 
        as roadmaps to ease the work of developing new applications.</p>
+       
+       <h2>Job Execution Challenges</h2>
+       
+       <ul>
+       <li><b><a href="olsgw/">Open Life Science Gateway and GRAM</a></b><br />
+       The challenge:  Allow biologists with no prior experience of Grid computing to easily use a gateway environment to run their analysis programs and compose computational workflow scripts without the challenges of a sharp learning curve. <a class="learnmore" href="olsgw/">Learn how...</a>       </li>
+       </ul>
 
-    <h2>Security Challenges</h2>
+  <h2>Security Challenges</h2>
 
     <ul>
       <li><b><a href="purse/">Registering Users For The Earth System Grid</a></b><br>
@@ -68,6 +75,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
     <h2>Data Challenges</h2>
 
     <ul>
+    <!-- outdated - tgcp being removed from teragrid
+    
       <li><b><a href="tgcp/">Moving Data Fast On The TeraGrid</a></b><br>
         The challenge: Give your users a way to transfer files between sites on a wide area 
         network that utilizes the maximum capacity of a 10-30 Gb/s network 
@@ -76,7 +85,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         details about service configurations, networks, or system architecture.
         <a class="learnmore" href="tgcp/">Learn how...</a>
       </li>
-
+-->
       <li><b><a  href="data_replication/">Data Replication For The Laser Interferometer 
              Gravitational Wave Observatory</a></b><br>
         The challenge: Replicate large datasets on servers in several locations 
