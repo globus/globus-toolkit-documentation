@@ -424,6 +424,17 @@ submitting bibliographic citations</a>.</b></p>
       Virtual Data System, etc.)</a></h2>
       
       
+      <p><font size="2"><strong><a name="gridftpSecurity">Communicating Security Assertions over the GridFTP Control Channel</a></strong>. 
+      
+       Rajkumar Kettimuthu, Liu Wantao, Frank Siebenlist and Ian Foster. 
+      
+      <em>4th IEEE International Conference on e-Science</em>, December 2008<br>
+      
+      [<a href="#gridftpSecurity">Citation</a>, 
+      
+      <a href="papers/GridFTP_Security_Assertions.pdf">PDF</a>]</font></p>
+      
+      
       <p><font size="2"><strong><a name="overlays">Using Overlays For Efficient Data Transfer Over Shared Wide-Area Networks</a></strong>. 
       
        Gaurav Khanna, Umit Catalyurek, Tahsin Kurc, Rajkumar Kettimuthu, P. Sadayappan, Ian Foster and Joel Saltz. 
