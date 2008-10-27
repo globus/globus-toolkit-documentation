@@ -423,6 +423,64 @@ submitting bibliographic citations</a>.</b></p>
 
       Virtual Data System, etc.)</a></h2>
       
+      
+      <p><font size="2"><strong><a name="overlays">Using Overlays For Efficient Data Transfer Over Shared Wide-Area Networks</a></strong>. 
+      
+       Gaurav Khanna, Umit Catalyurek, Tahsin Kurc, Rajkumar Kettimuthu, P. Sadayappan, Ian Foster and Joel Saltz. 
+      
+      <em>Proceedings of the 2008 ACM/IEEE conference on Supercomputing (SC 2008), November 2008<br>
+      
+      [<a href="#overlays">Citation</a>, 
+      
+      <a href="papers/overlay_data_transfer_wan.pdf">PDF</a>]</font></p>
+      
+      
+      <p><font size="2"><strong><a name="transportXIO">A GridFTP Transport Driver for Globus XIO</a></strong>. 
+      
+       Rajkumar Kettimuthu, Liu Wantao, Joseph Link and John Bresnahan. 
+      
+      <em>Proceedings of the 2008 International Conference on Parallel and Distributed Processing Techniques and Applications (PDPTA 2008), July 2008<br>
+      
+      [<a href="#transportXIO">Citation</a>, 
+      
+      <a href="papers/gridftp_transport_driver_xio.pdf">PDF</a>]</font></p>
+      
+      <p><font size="2"><strong><a name="dynamicGridftp">A Dynamic Scheduling Approach for Coordinated Wide-Area Data Transfers using GridFTP</a></strong>. 
+      
+       Gaurav Khanna, Umit Catalyurek, Tahsin Kurc, Rajkumar Kettimuthu, P. Sadayappan and Joel Saltz. 
+      
+      <em>Proceedings of the 22nd IEEE International Parallel and Distributed Processing Symposium (IPDPS 2008), April 2008<br>
+      
+      [<a href="#dynamicGridftp">Citation</a>, 
+      
+      <a href="papers/dynamic_scheduling_gridftp.pdf">PDF</a>]</font></p>
+      
+      <p><font size="2"><strong><a name="multihop">Multi-Hop Path Splitting and Multi-Pathing Optimizations for Data Transfers over Shared Wide-Area Networks using GridFTP</a></strong>. 
+      
+       Gaurav Khanna, Umit Catalyurek, Tahsin Kurc, Rajkumar Kettimuthu, P. Sadayappan, Joel Saltz and Ian Foster. 
+      
+      <em>Proceedings of the 17th IEEE International Symposium on High-Performance Distributed Computing (HPDC 2008), June 2008.<br>
+      
+      [<a href="#multihop">Citation</a>, 
+      
+      <a href="papers/multihop.pdf">PDF</a>]</font></p>
+      
+      
+      <p><font size="2"><strong><a name="posixGridftp">A POSIX-like Client Interface for GridFTP</a></strong>. 
+      
+       Rajkumar Kettimuthu, Liu Wantao, John Bresnahan and Joseph Link. 
+      
+      <em>Proceedings of the 2008 TeraGrid Conference, June 2008.<br>
+      
+      [<a href="#posixGridftp">Citation</a>, 
+      
+      <a href="papers/GridFTP_TG08_abstract.pdf">PDF</a>]</font></p>
+      
+      
+      
+      
+      
+      
       <p><font size="2"><strong><a name="gridnets07">Globus GridFTP: What's New in 2007 (Invited Paper)</a></strong>. 
       
       John Bresnahan, Michael Link, Gaurav Khanna, Zulfikar Imani, Rajkumar Kettimuthu and Ian Foster. 
