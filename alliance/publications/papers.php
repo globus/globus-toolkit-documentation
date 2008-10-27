@@ -428,7 +428,7 @@ submitting bibliographic citations</a>.</b></p>
       
        Gaurav Khanna, Umit Catalyurek, Tahsin Kurc, Rajkumar Kettimuthu, P. Sadayappan, Ian Foster and Joel Saltz. 
       
-      <em>Proceedings of the 2008 ACM/IEEE conference on Supercomputing (SC 2008), November 2008<br>
+      <em>Proceedings of the 2008 ACM/IEEE conference on Supercomputing (SC 2008)</em>, November 2008<br>
       
       [<a href="#overlays">Citation</a>, 
       
@@ -439,7 +439,7 @@ submitting bibliographic citations</a>.</b></p>
       
        Rajkumar Kettimuthu, Liu Wantao, Joseph Link and John Bresnahan. 
       
-      <em>Proceedings of the 2008 International Conference on Parallel and Distributed Processing Techniques and Applications (PDPTA 2008), July 2008<br>
+      <em>Proceedings of the 2008 International Conference on Parallel and Distributed Processing Techniques and Applications (PDPTA 2008)</em>, July 2008<br>
       
       [<a href="#transportXIO">Citation</a>, 
       
@@ -449,7 +449,7 @@ submitting bibliographic citations</a>.</b></p>
       
        Gaurav Khanna, Umit Catalyurek, Tahsin Kurc, Rajkumar Kettimuthu, P. Sadayappan and Joel Saltz. 
       
-      <em>Proceedings of the 22nd IEEE International Parallel and Distributed Processing Symposium (IPDPS 2008), April 2008<br>
+      <em>Proceedings of the 22nd IEEE International Parallel and Distributed Processing Symposium (IPDPS 2008)</em>, April 2008<br>
       
       [<a href="#dynamicGridftp">Citation</a>, 
       
@@ -459,7 +459,7 @@ submitting bibliographic citations</a>.</b></p>
       
        Gaurav Khanna, Umit Catalyurek, Tahsin Kurc, Rajkumar Kettimuthu, P. Sadayappan, Joel Saltz and Ian Foster. 
       
-      <em>Proceedings of the 17th IEEE International Symposium on High-Performance Distributed Computing (HPDC 2008), June 2008.<br>
+      <em>Proceedings of the 17th IEEE International Symposium on High-Performance Distributed Computing (HPDC 2008)</em>, June 2008.<br>
       
       [<a href="#multihop">Citation</a>, 
       
@@ -470,7 +470,7 @@ submitting bibliographic citations</a>.</b></p>
       
        Rajkumar Kettimuthu, Liu Wantao, John Bresnahan and Joseph Link. 
       
-      <em>Proceedings of the 2008 TeraGrid Conference, June 2008.<br>
+      <em>Proceedings of the 2008 TeraGrid Conference</em>, June 2008.<br>
       
       [<a href="#posixGridftp">Citation</a>, 
       
