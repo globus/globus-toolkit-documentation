@@ -15,7 +15,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
      phased out soon.  Please use the following address to reach the new
      location.</p>
 
-  <p><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/4.2/4.2.1/security/"; ?>">http://www.globus.org/toolkit/docs/4.2/4.2.1/security/</a></p>
+  <p><a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."docs/latest-stable/security/"; ?>">http://www.globus.org/toolkit/docs/latest-stable/security/</a></p>
 
   <p>You may also find the 
      <a href="<?=$SITE_PATHS["WEB_ROOT"]."site_map.php"; ?>">Site Map</a> 
