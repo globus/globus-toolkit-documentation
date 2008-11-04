@@ -45,7 +45,7 @@
             </tgroup>
         </informaltable>
         <para>The security descriptors (container, security and resource) can be created and altered
-            programmatically (as opposed to writing a security descriptor file). For the service and
+            programmatically (as opposed to writing a security descriptor file), as described in <olink targetptr="wsaajava-secdesc-serverSide-configDesc-program"/>. For the service and
             container descriptor, we recommend writing a security descriptor file so that the
             security properties are initialized at start up. </para>
         <para>Service and container security descriptors can be configured as XML files in the
@@ -1412,49 +1412,85 @@ desc.initialize();
                 The custom PDP class must implement the interface
                     <constant>org.globus.wsrf.security.PDP</constant> and the custom PIP class must
                 implement the interface<constant>org.globus.wsrf.security.PDP</constant>. </para>
+
             <para>
-                <emphasis>Example PIP:</emphasis>
+                <emphasis>Example Bootstrap PIP:</emphasis>
             </para>
 <screen>
 package org.foobar;
 
 import ....;
 
-public class FooPIP implements PIP {
+public class FooBootstrapPIP implements BootstrapPIP {
 
-     public String CURRENT_TIME = "org.foobar.current.time";
 
-     public void collectAttributes(Subject peerSubject, MessageContext context,
-                QName operation) throws AttributeException {
 
-         // collect attributes, say attributes from certificate extension
-         // store in message context with some property.
-         // Example here stores current time.
-         messageContext.setProperty(FooPIP.CURRENT_TIME, 
-         Calendar.getInstance());
-     }
+    public void initialize(String chainName, String prefix_, 
+                           ChainConfig config) throws InitializeException {
 
-     public void initialize(PDPConfig config, String name, String id)
-                throws InitializeException {
+        logger.debug(&quot;Initialize called&quot;);
+    }
 
-                /* Read the initialization information
-                */
+    public void collectRequestAttributes(RequestEntities requestAttrs)
+            throws AttributeException {
 
-     }
+        // add attributes to RequestEntities
+    }
 
-     public void close() throws CloseException {
-                this. authorizedIdentity = null;
-     }
+    public NonRequestEntities collectAttributes(RequestEntities requestAttr) {
+     
+        // any attributes for non request entities
+    }
+
+    public void close() throws CloseException {
+    }
+
+}
+</screen>
+
+<para>To use the above Bootstrap PIP, configure security descriptor as follows </para>
+<screen>
+    &lt;authzChain combiningAlg=&quot;org.globus.sample.SampleAlg&gt;
+        &lt;bootstrapPips &quot;
+             &lt;interceptor name=&quot;scope1:org.foobar.GooBootstrapPIP&quot;/&gt;
+        &lt;/bootstrapPips&gt;
+    &lt;/authzChain>
+</screen>
+            <para>
+                <emphasis>Example  PIP:</emphasis>
+            </para>
+<screen>
+package org.foobar;
+
+import ....;
+
+public class FooPIP implements PIPInterceptor {
+
+   public void initialize(String chainName, String prefix, ChainConfig config)
+            throws InitializeException {
+            // initialize
+   }
+
+    public NonRequestEntities collectAttributes(RequestEntities requestAttr)
+            throws AttributeException {
+
+            // collect attributes, both for request entities and others
+    }
+
+    public void close() throws CloseException {
+
+    }
+
 }
 </screen>
             <para>To use the above PIP one would configure a service security descriptor with the
                 following authorization settings: </para>
 <screen>
-&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
-    ...
-    &lt;authz value=&quot;foo1:org.foobar.FooPIP&quot;/&gt;
-    ...
-    &lt;securityConfig/&gt;
+        &lt;authzChain&gt;
+            &lt;pips&gt;
+                &lt;interceptor name=&quot;scope2:org.foobar.FooPIP&quot;/&gt;
+            &lt;/pips&gt;
+        &lt;/authzChain&gt;
 </screen>
            <para>
                 <emphasis>Example PDP:</emphasis>
@@ -1466,97 +1502,41 @@ import ....;
 
 public class FooPDP implements PDP {
 
-    private Principal authorizedIdentity;
+    public void initialize(String chainName, String prefix_, 
+                           ChainConfig config) throws InitializeException {
 
-    /* Not used by the current code */
-    public String[] getPolicyNames() {
-        return new String[0];
+        // use to read in configuration
+     }
+
+    public Decision canAccess(RequestEntities requestEntities,
+                              NonRequestEntities nonRequestEntities)
+            throws AuthorizationException {
+            
+        // evaluate to see if Subject can access
     }
 
-    /* Not used by the current code */
-    public Node getPolicy(Node query)
-           throws InvalidPolicyException {
-         return null;
+    public Decision canAdminister(RequestEntities requestEntities,
+                                  NonRequestEntities nonRequestEntities)
+            throws AuthorizationException {
+
+        // evaluate to see if Subject can administer
     }
 
-    /* Not used by the current code */
-    public Node setPolicy(Node policy)
-           throws InvalidPolicyException {
-         return null;
-    }
+     public void close() throws CloseException {
 
-    public boolean isPermitted(Subject peerSubject,MessageContext context,
-                QName operation)
-                throws AuthorizationException {
+     }
+}
 
-                // The parameters set by FooPIP can be accessed here.
-                Calendar currentTime =
-                (Calendar)context.getProperty(FooPIP.CURRENT_TIME);
-
-                if (peerSubject == null) {
-                return false;
-                }
-
-                Set peerPrincipals = peerSubject.getPrincipals();
-
-                if ((peerPrincipals == null) ||
-                peerPrincipals.isEmpty()) {
-                return false;
-                }
-
-                /* Check if the peer identity and the authorized
-                * identity match
-                */
-
-                return peerPrincipals.contains(this.authorizedIdentity);
-                }
-
-                public void initialize(PDPConfig config,
-                String name,
-                String id)
-                throws InitializeException {
-
-                /* Read the initialization information from the service
-                * specific WSDD parameter &lt;name&gt;-authorizedIdentity
-                */
-
-                this. authorizedIdentity =
-                new GlobusPrincipal((String) config.getProperty(
-                name, &quot;authorizedIdentity&quot;));
-                }
-
-                public void close() throws CloseException {
-                this. authorizedIdentity = null;
-                }
-                }
-            </screen>
+</screen>
             <para>To use the above PDP one would configure a service security descriptor with the
                 following authorization settings: </para>
-            <screen>&lt;securityConfig xmlns=&quot;http://www.globus.org&quot;&gt;
-                ...
-                &lt;authz value=&quot;foo1:org.foobar.FooPDP&quot;/&gt;
-                ...
-                &lt;securityConfig/&gt;</screen>
-            <para>This security descriptor (identified as <filename>/.../foo-pdp-security-config.xml
-                </filename> below) can then be used by a service. The association is created by
-                adding a couple of parameters to the service&apos;s WSDD entry: </para>
-<screen>
-...
-    &lt;service name=&quot;MyDummyService&quot; provider=&quot;Handler&quot;
-                style=&quot;document&quot;&gt;
-        ...
-        &lt;parameter name=&quot;securityDescriptor&quot; 
-            value=&quot;/.../foo-pdp-security-config.xml&quot;/&gt;
-        &lt;parameter name=&quot;foo1-authorizedIdentity&quot;
-            value=&quot;/DC=org/DC=doe/OU=People/CN=John D&quot;/&gt;
-         ...
-     &lt;/service&gt;
+            <screen>
+        &lt;authzChain&gt;
+            &lt;pdps&gt;
+                &lt;interceptor name=&quot;scope2:org.foobar.FooPDP&quot;/&gt;
+            &lt;/pdps&gt;
+        &lt;/authzChain&gt;
 </screen>
-            <para>Note that the parameter <parameter>foo1-authorizedIdentity</parameter> in the
-                above configures the identity the PDP uses for authorizing incoming requests. The
-                parameter name is derived by composing the prefix (<parameter>foo1</parameter>) used
-                when specifying the PDP in the security descriptor with the property (<parameter>
-                    authorizedIdentity</parameter>) used in the PDP code. </para>
         </section>
     </chapter>
     <chapter id="wsaajava-secdesc-clientSide">
