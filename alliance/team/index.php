@@ -112,8 +112,9 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
          <li>Dina Sulakhe</li>
 
-	<li><a href="http://www-unix.mcs.anl.gov/~wilde/">Mike Wilde</a></li>
-
+	     <li>Wei Tan</li>
+	     <li>Steve Tuecke</li>
+	     <li><a href="http://www-unix.mcs.anl.gov/~wilde/">Mike Wilde</a></li>
       </ul>
 
     </td>
@@ -230,16 +231,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
 	<ul>
 
-	<li>Karl Czajkowski</li>
-
-	<li>Bob Gaffaney</li>
-
-        <li>Samuel Meder</li>
-
-	<li><a href="http://www.univa.com/about/founders.shtml#stuecke">Steve Tuecke</a></li>
-
 	<li>Rich Wellner</li>
-
 	</ul>
 
 	    
@@ -262,6 +254,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
       <li><a href="http://www.isi.edu/~annc">Ann L. Chervenak</a></li>
 
+      <li>Karl Czajkowski</li>
       <li>Mike D'Arcy</li>
 
       <li><a href="http://www.isi.edu/~deelman">Ewa Deelman</a></li>
@@ -271,7 +264,6 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       <li><a href="http://www.isi.edu/~carl">Carl Kesselman</a></li>
 
         <li><a href="http://www.isi.edu/~gmehta">Gaurang Mehta</a></li>
-
     </ul>
 
     </td>
