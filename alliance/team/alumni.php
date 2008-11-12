@@ -26,15 +26,16 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       <ul>
       <li>Bill Allcock</li>
 	<li><a href="http://people.cs.uchicago.edu/~dangulo/">Dave Angulo</a></li>
+	<li>Bob Gaffaney</li>
 	<li>Tom Garritano</li>
 		<li>Jarek Gawor</li>
         <li>Scott Gose</li>
         <li>Joe Insley</li>
                 <li>Deepti Kodeboyina</li>
-                <li>Peter Lane</li></li>
-      <li>Sam Lang</li>
+                <li>Peter Lane</li><li>Sam Lang</li>
       <li>Gregor von Laszewski</li>
       <li>Joe Link</li>
+      <li>Samuel Meder</li>
       <li>Greg Nawrocki (now President of the Globus Consortium)</li>
       <li>Veronika Nefedova</li>
       <li><a href="http://www.gridwisetech.com/team">Pawel Plaszczak</a></li>
@@ -57,8 +58,10 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         <li>Alain Andrieux</li>
 	<li>Joseph Bannister</li>
 	<li>Nabil Deeb</li>
+	<li><a href="http://www.isi.edu/~deelman">Ewa Deelman</a></li>
 	<li>Steve Fitzgerald</li>
 	<li>Larry Flon</li>
+	      <li><a href="http://www.isi.edu/~gmehta">Gaurang Mehta</a></li>
 	      <li>Sridhar Gullapalli</li>
 	<li>Leon Kuntz (in memoriam)</li>
 	<li>Bob Lindell</li>
@@ -66,6 +69,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 	<li>Clifford Neuman</li>
 	      <li>Mats Rynge</li>
 	<li>Tatyana Ryutov</li>
+    <li>Karan Vahi</li>
     </ul>
 
 <h2><a href="http://epcc.ed.ac.uk/">EPCC</a>, <a href="http://www.ed.ac.uk/">University of Edinburgh</a></h2>

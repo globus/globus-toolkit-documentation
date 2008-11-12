@@ -257,14 +257,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
       <li>Karl Czajkowski</li>
       <li>Mike D'Arcy</li>
 
-      <li><a href="http://www.isi.edu/~deelman">Ewa Deelman</a></li>
-
-
-
       <li><a href="http://www.isi.edu/~carl">Carl Kesselman</a></li>
-
-        <li><a href="http://www.isi.edu/~gmehta">Gaurang Mehta</a></li>
-    </ul>
+        </ul>
 
     </td>
 
@@ -280,12 +274,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
       <li>Mei-Hui Su</li>
 
-      <li><a href="http://www.isi.edu/~thiebaux">Marcus Thiebaux</a>
-
-        <li>Karan Vahi</li>
-
-	<li>Cristina Williams</li>
-
+      <li><a href="http://www.isi.edu/~thiebaux">Marcus Thiebaux</a>      
+      <li>Cristina Williams</li>
     </ul> 
 
     </td>
