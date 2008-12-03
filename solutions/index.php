@@ -45,6 +45,8 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
        <ul>
        <li><b><a href="olsgw/">Open Life Science Gateway and GRAM</a></b><br />
        The challenge:  Allow biologists with no prior experience of Grid computing to easily use a gateway environment to run their analysis programs and compose computational workflow scripts without the challenges of a sharp learning curve. <a class="learnmore" href="olsgw/">Learn how...</a>       </li>
+       <li><b><a href="boinc/">Client scripting for BOINC applications</a></b><br />
+       The challenge: Finding an alternative to using several different mechanisms to submit and monitor jobs on  various  resources. <a class="learnmore" href="boinc/">Learn how...</a></li>
        </ul>
 
   <h2>Security Challenges</h2>
