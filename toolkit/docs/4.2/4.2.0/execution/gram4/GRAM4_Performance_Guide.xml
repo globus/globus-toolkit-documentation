@@ -10,50 +10,92 @@
     <section>
         <title>Server-side Recommendations</title>
         <indexterm type="gram4"><primary>performance guide</primary><secondary>server-side</secondary></indexterm>
-        <orderedlist>
+       
+        <section><title>Memory related settings</title>
+          <para>
+            GRAM4 service and/or the container can run out of memory with large number of jobs.
+            To avoid this adjust the LRUCache settings in the JNDI for the 
+            ManagedExecutableJobService as follows:
+          </para>
+          <screen>&lt;service name="ManagedExecutableJobService"&gt;
+    ...
+    &lt;resource name="cache" type="org.globus.wsrf.utils.cache.LRUCache"&gt;
+        &lt;resourceParams&gt;
+            &lt;parameter&gt;
+                &lt;name&gt;factory&lt;/name&gt;
+                &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
+            &lt;/parameter&gt;
+            &lt;parameter&gt;
+                &lt;name&gt;timeout&lt;/name&gt;
+                &lt;value&gt;10000&lt;/value&gt;
+            &lt;/parameter&gt;
+            &lt;parameter&gt;
+                &lt;name&gt;delay&lt;/name&gt;
+                &lt;value&gt;10000&lt;/value&gt;
+            &lt;/parameter&gt;
+        &lt;/resourceParams&gt;
+    &lt;/resource&gt;
+    ...   </screen>  
+          <para>
+            Set the Java heap size for the container by defining the environment
+            variable GLOBUS_OPTIONS as follows:
+          </para>
+          <screen>GLOBUS_OPTIONS="-Xms256M -Xmx256M"</screen>
+        </section>
+       
+        <section><title>Filesystem related settings</title>
+          <orderedlist>
             <listitem>
-                <para>GRAM4 service and/or the container can run out of memory under lower settings.
-                    For this reason, set the Max container heap size to be 1GB.</para>
-                <screen>GLOBUS_OPTIONS="-Xms256M -Xmx1024M"</screen>
+              <para>
+                The GRAM4 service stores the per job metadata used for crash/ recovery in
+                files on disk. By default, the container account's home dir is used,
+                specifically <filename>~/.globus/persisted/</filename>. Often this home dir is
+                not located on a local disk, but on NFS. NFS is not needed for this purpose and
+                can negatively effect performance. For this reason, configure the container to
+                use a local disk.
+              </para>
+              <screen>GLOBUS_OPTIONS="${GLOBUS_OPTIONS} -Dorg.globus.wsrf.container.persistence.dir=/use/this/path"</screen>
+              <para>
+                By adding ${GLOBUS_OPTIONS} you make sure that you don't override
+                the memory options above.
+              </para>
             </listitem>
             <listitem>
-                <para>The account the container runs under, typically "globus", can run out of open
-                    file descriptors. For this reason, set the open file descriptors to 16,384.</para>
-                <para>Specific settings can vary per operating system; for a "globus" user on redhat
-                    / RHEL based distributions, add the following to <filename
-                        >/etc/security/limits.conf</filename>: </para>
-                <screen>globus          hard     nofile           16384</screen>
+              <para>
+                The account the container runs under, typically "globus", can run out of open
+                file descriptors. If you run into this problem, set the open file descriptors
+                to 16,384.
+              </para>
+              <para>
+                Specific settings can vary per operating system; for a "globus" user on
+                redhat/RHEL based distributions, add the following to
+                <filename>/etc/security/limits.conf</filename>:
+              </para>
+              <screen>globus          hard     nofile           16384</screen>
             </listitem>
-            <listitem>
-                <para>The GRAM4 service stores the per job metadata used for crash/ recovery in
-                    files on disk. By default, the container account's home dir is used,
-                    specifically <filename>~/.globus/persisted/</filename>. Often this home dir is
-                    not located on a local disk, but on NFS. NFS is not needed for this purpose and
-                    can negatively effect performance. For this reason, configure the container to
-                    use a local disk.</para>
-                <screen>GLOBUS_OPTIONS="-Dorg.globus.wsrf.container.persistence.dir=/use/this/path"</screen>
-                <para>Make sure you don't overwrite the above memory settings. You could
-                    provide both settings in the same GLOBUS_OPTIONS variable like:
-                </para>
-                <screen>GLOBUS_OPTIONS="-Xms256M -Xmx512M -Dorg.globus.wsrf.container.persistence.dir=/use/this/path"</screen>
-            </listitem>
-            <listitem>
-                <para>
-                  We recommend the following thread settings as part of the global configuration in
-                    <filename>$GLOBUS_LOCATION/etc/globus_wsrf_core/server-config.wsdd</filename>:</para>
-                <screen>
-&lt;globalConfiguration:
+          </orderedlist> 
+       </section>
+       
+       <section><title>Container thread settings</title>
+         <para>
+           We recommend the following thread settings as part of the global
+           configuration in
+           <filename>$GLOBUS_LOCATION/etc/globus_wsrf_core/server-config.wsdd</filename>:
+         </para>
+         <screen>&lt;globalConfiguration:
     ...
     &lt;parameter name="containerThreads" value="20"/&gt;
     &lt;parameter name="containerThreadsMax" value="40"/&gt;
     &lt;parameter name="containerThreadsHighWaterMark" value="10"/&gt;
     ...
-&lt;/globalConfiguration&gt;
-        </screen>
-                <para>For more information, see global configurations under <olink
-                        targetdoc="javawscoreAdmin" targetptr="javawscore-configuring">Java WS
-                    Core</olink>.</para>
-            </listitem>
-        </orderedlist>
-    </section>
+&lt;/globalConfiguration&gt;</screen> 
+         <para>
+           For more information, see global configurations under <olink
+           targetdoc="javawscoreAdmin" targetptr="javawscore-configuring">Java WS
+           Core</olink>.
+         </para>
+       </section>
+
+     </section>
+    
 </chapter>
