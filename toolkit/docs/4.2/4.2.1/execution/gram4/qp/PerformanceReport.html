@@ -1,6 +1,81 @@
-<html><head><title>Performance reports</title></head>
-<body>
-  <h1>Performance Reports for Gram4 in GT 4.2.1</h1>
+<html>
+<head>
+  <title>Performance reports</title>
+  <style type="text/css">
+    <!--
+      h1 { font-size: 16pt; }
+      h2 { font-size: 14pt; }
+      h3 { font-size: 12pt; }
+      #toc { float: left; font-size: 100%; padding: 5px; }
+      #toc .level2 { margin-left: 1em; }
+      #toc .level3 { margin-left: 2em; }
+      #toc .level4 { margin-left: 3em; }
+      #toc .level5 { margin-left: 4em; }
+      #toc .level6 { margin-left: 5em; }
+    -->
+  </style>
+
+  <script type="text/javascript">
+
+    function H_getText(el) {
+      var text = "";
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 3) {
+          text += i.data;
+        } else if (i.firstChild != null) {
+          text += H_getText(i);
+        }
+      }
+      return text;
+    }
+
+    function TOC_EL(el, text, level) {
+      this.element = el;
+      this.text = text;
+      this.level = level;
+    }
+
+    function getHeadlines(el) {
+      var l = new Array;
+      var rx = /[hH]([1-6])/;
+      // internal recursive function that scans the DOM tree
+      var rec = function (el) {
+        for (var i = el.firstChild; i != null; i = i.nextSibling) {
+          if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+            if (rx.exec(i.tagName)) {
+              l[l.length] = new TOC_EL(i, H_getText(i), parseInt(RegExp.$1));
+            }
+            rec(i);
+          }
+        }
+      }
+      rec(el);
+      return l;
+    }
+
+    function generate_TOC(parent_id) {
+      var parent = document.getElementById(parent_id);
+      var hs = getHeadlines(document.getElementsByTagName("body")[0]);
+      for (var i = 0; i < hs.length; ++i) {
+        var hi = hs[i];
+        var d = document.createElement("div");
+        if (hi.element.id == "") {
+          hi.element.id = "gen" + i;
+        }
+        var a = document.createElement("a");
+        a.href = "#" + hi.element.id;
+        a.appendChild(document.createTextNode(hi.text));
+        d.appendChild(a);
+        d.className = "level" + hi.level;
+        parent.appendChild(d);
+      }
+    }
+  </script>
+
+</head>
+
+<body onload="generate_TOC('toc');">
+  <font size="6"><b>Performance Reports for Gram4 in GT 4.2.1</b></font><br><br>
 
   Performance tests with Gram4 from GT 4.2.1 had been run in 2 different environments:
   <ol>
@@ -11,22 +86,9 @@
   The throughput-tester is a Java program which can simulate all kinds of
   submission and job scenarios.
 
-  <p>
-  <a href="#nomer-tpt">1 Tests on Nomer</a><br>  
-  &nbsp;&nbsp;&nbsp;&nbsp;<a href="#nomer">1.1 Throughput tests on Nomer</a><br>
-  &nbsp;&nbsp;&nbsp;&nbsp;<a href="#nomer-termination">1.2 Termination tests on Nomer</a><br>
-  &nbsp;&nbsp;&nbsp;&nbsp;<a href="#nomer-fake">1.3 Fake LRM tests on Nomer</a><br>
-  <a href="#edge">2 Tests on uct3-edge</a><br>
-  &nbsp;&nbsp;&nbsp;&nbsp;<a href="#edge-tpt">2.1 Throughput tests on uct3-edge</a><br>
-  &nbsp;&nbsp;&nbsp;&nbsp;<a href="#edge-fake">2.2 Fake LRM tests on uct3-edge</a><br>
-  &nbsp;&nbsp;&nbsp;&nbsp;<a href="#edge-condorg">2.3 Condor-G tests on uct3-edge</a><br>  
-  <a href="#errors">3 Errors</a><br>
-  <a href="#lessons">4 Lessons learnt</a><br>
-  <a href="#conclusion">5 Conclusion</a><br>
+  <hr><table><tr><td><div id="toc"></div></td></tr></table><hr>
   
-
-  <a name="nomer"/>
-  <h2>1 Tests on Nomer</h2>
+  <h1>1. Tests on Nomer</h1>
   <p>
     Nomer is a cloud of max 6 VM's, each with the following characteristics
   </p>
@@ -45,9 +107,8 @@
     </tr>
   </table>
   
-  <a name="nomer-tpt"/>
-  <h3>1.1 Throughput tests</h3>
-  <p>
+  <h2>1.1 Throughput tests</h2>
+  
     5 client machines submitted to 1 server, each with 50 threads, for 1h. 50 threads means:
     At most 50 concurrent operations (submission, resource property query, termination)
     to the server at any time.<br>
@@ -60,7 +121,7 @@
     between each client VM and the server VM.<br>
     If a scenario included fileCleanUp two files of size 1B were deleted.<br>
     On the server-side the jobs were run by 2 different users.<br>
-  </p>
+  
   <table cellpadding="2" border="1">
     <tr>
       <td valign="top"><nobr><b>Monitoring</b></nobr></td>
@@ -325,16 +386,14 @@
 
   </table>
 
-  <a name="nomer-termination"/>
-  <h3>1.2 Termination tests</h3>
+  <h2>1.2 Termination tests</h2>
    5 clients submitted jobs with FileStageIn, FileStageOut, FileCleanUp (shared delegation)
    for 10 min. Then all outstanding jobs were terminated.<br>
    Memory settings: heap 256M-256M<br>
    9400 were jobs terminated<br>
    Duration of the termination: 25min<br>
 
-  <a name="nomer-fake"/>
-  <h3>1.3 Fake LRM tests</h3>
+  <h2>1.3 Fake LRM tests</h2>
   <p> 
    The fake local resource manager consists of a set of scripts, a SchedulerEventGenerator (SEG)
    and a Java daemon, which simulate a local resource manager. All jobs are "queued" for a
@@ -401,9 +460,7 @@
   
   
   
-  
-  <a name="edge"/>
-  <h2>2 Tests on the uct3-edge cluster of the University of Chicago</h2>
+  <h1>2. Tests on the uct3-edge cluster of the University of Chicago</h1>
     <p>
     The uct3-edge cluster, which was also used by other users at the time of the tests,
     has the following characteristics per machine:
@@ -424,8 +481,7 @@
       </tr>
     </table>
     
-   <a name="edge-tpt"/>
-   <h3>2.1 Throughput tests</h3>
+   <h2>2.1 Throughput tests</h2>
    <p> 
     4 client machines (uct3-edge[2356]) submitted to 1 server (uct3-edge7), each with 50
     submission threads, for 1h. 50 threads means: At most 50 concurrent operations (submission,
@@ -494,8 +550,7 @@
     </tr>
   </table>
 
-  <a name="edge-fake"/>
-  <h3>2.2 Fake LRM tests</h3>
+  <h2>2.2 Fake LRM tests</h2>
   <p> 
    The fake local resource manager consists of a set of scripts, a SchedulerEventGenerator (SEG)
    and a Java daemon, which simulate a local resource manager. All jobs are "queued" for a
@@ -559,8 +614,7 @@
     </tr>
   </table>
 
-  <a name="edge-condorg"/>
-  <h3>2.3 Condor-G tests</h3>
+  <h2>2.3 Condor-G tests</h2>
   <p> 
     We used Condor-7.1.4 in these tests. It's so far the only version that works without
     problems for job submissions to GT 4.2.
@@ -745,8 +799,7 @@
   </table> 
 
 
-  <a name="errors"/>
-  <h3>3 Errors and Problems</h3>
+  <h1>3. Errors and Problems</h1>
   <p> 
     On nomer no error happened at all. On the server-side on uct3-edge7 the following errors
     happened:
@@ -838,8 +891,7 @@ java.lang.NullPointerException
       It's not clear what exactly lead to the OOM exceptions.</li>
   </ol>
 
-  <a name="lessons"/>
-  <h3>4 Lessons learnt</h3>
+  <h1>4. Lessons learnt</h1>
     <ul>
       <li>The amount of memory assigned to a JVM has impact on both performance and
         reliability.
@@ -861,14 +913,14 @@ java.lang.NullPointerException
       </li>
       <li>Running a container "just" on another, architecturally similar, machine CAN have
         huge impact on performance and reliabilty. Be careful, check the environment.</li>
+      <li>One misconfigured GridFTP server resulting in hanging transfers seems to make all
+        staging requests hang, even if other GridFTP servers are involved.</li>
     </ul>
     
-  <a name="conclusion"/>
-  <h3>5 Conclusion</h3>
-    Overall the tests ran very well.<br>
-    On nomer no errors at all showed up. It's encouraging to see that the container was
-    stable running on a single-processor based VM (nomer) while accepting requests from
-    5 different multi-threaded clients.<br>
+  <h1>5. Conclusions</h1>
+    Overall the tests ran very well. On nomer no errors at all showed up. It's encouraging
+    to see that the container was stable running on a single-processor based VM (nomer)
+    while accepting requests from 5 different multi-threaded clients.<br>
     On the University of Chicago cluster we didn’t have tight control over the
     environment, but after figuring out how to deal with certain details the tests ran
     pretty well too. A few errors happened here, but they did not bring the
