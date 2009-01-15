@@ -2941,6 +2941,16 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
 
 	<h2><a name="Other Globus-Related Research">Other Globus-Related Research</a></h2>
+    
+    <p><font size="2"><strong><a name="userPerspective">Perspectives on Distributed Computing: Thirty People, Four User Types, and the Distributed Computing User Experience</a></strong>. 
+	L. Childers, L. Liming, and I. Foster.  
+	
+	<em>Argonne National Laboratory Technical Report ANL/MCS/CI-31</em>, September 2008<br>
+	
+	[<a href="#userPerspective">Citation</a>,
+	
+	<a href="papers/ANL_MCS_CI_31_no-binding.pdf">PDF</a>]</font></p>
+    
 	
 	<p><font size="2"><strong><a name="LEGS">LEGS: A WSRF Service to Estimate Latency Between Arbitrary Hosts on the Internet</a></strong>. 
 	R. Vijayprasanth, R. Kavithaa and Rajkumar Kettimuthu.  
@@ -3143,7 +3153,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
 
 
-	<p><font size="2" face="Verdana,Arial,Helvetica,Courier New,Courier"><b><a name="ADASS">Grid
+	<p><font size="2"><b><a name="ADASS">Grid
 
     Technologies &amp; Applications: Architecture &amp; Achievements</a></b>.&nbsp;
 
@@ -3157,7 +3167,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
 
 
-	<p><font size="2" face="Verdana,Arial,Helvetica,Courier New,Courier"><b><a name="GenComm">Generalized
+	<p><font size="2"><b><a name="GenComm">Generalized
 
     Communicators in the Message Passing Interface</a></b>. E. Demaine,  I.
 
@@ -3181,7 +3191,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
 
 
-	<p><font size="2" face="Verdana,Arial,Helvetica,Courier New,Courier"><b><a name="model-coupling">The
+	<p><font size="2"><b><a name="model-coupling">The
 
     Model Coupling Toolkit</a></b>. J. Larson, R. Jacob, I. Foster, J. Guo. <em>2001
 
