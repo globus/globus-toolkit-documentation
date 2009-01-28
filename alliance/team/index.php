@@ -137,16 +137,12 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
     <ul>
 
+      <li>Tilaye Alemu</li>
       <li>Mario Antonioletti</li>
-
       <li>Malcolm Atkinson (National e-Science Centre)</li>
-
       <li>Rob Baxter</li>
-
-      <li>Ally Hume</li>
-
-      <li>Neil Chue Hong</li>
-
+      <li>Bartosz Dobrzelecki</li>
+      <li>Alistair Grant</li>
     </ul>
 
     </td>
@@ -155,15 +151,12 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 
     <ul>
 
+      <li>Ally Hume</li>
       <li>Mike Jackson</li>
-
       <li>Amy Krause</li>
-
-      <li>Mark Parsons</li>
-
-      <li>Tom Sugden</li>
-
-      </ul>
+      <li>Michal Piotrowski</li>
+      <li>Craig Thomson</li>
+    </ul>
 
     </td>
 
