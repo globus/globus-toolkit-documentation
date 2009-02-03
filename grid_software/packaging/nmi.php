@@ -19,6 +19,8 @@ include($SITE_PATHS["SERV_INC"] . "app-info.inc");
 
 <h1 class="first">NSF Middleware Initiative (NMI)</h1>
 
+<p>Please note, the NMI has since been closed. We're keeping this information for historical purposes.</p>
+
 <p>
 The National Science Foundation's NMI program aims to develop, improve, and deploy a suite of reusable software
 components for use in national-scale "cyberinfrastructure" (aka "e-Science" or distributed collaboration) projects.
@@ -39,7 +41,7 @@ DataCutter STORM, Globus Toolkit, GPT, Gridconfig, GridPort, GridSolve, GSI Open
 MPICH-G2, MyProxy, Network Weather Service, OpenSAML, PERMIS, PyGlobus, Shibboleth, SRB Client, UberFTP, 
 and WebISO (Web Initial Sign-on).
 </p>
-
+<!--
 <?
 $software = "<a href='http://www.nsf-middleware.org'>NMI</a>";
 $developer = "<a href='http://www.nsf-middleware.org/'>NSF Middleware Initiative</a>";
@@ -49,7 +51,7 @@ $contact = "<a href='mailto:support@grids-center.org'>support@grids-center.org</
 app_info($software, $developer, $distros, $contact);
 
 ?>
-
+-->
 <p></p>
 
 
