@@ -5,7 +5,7 @@
 <title><?=$title; ?></title>
 <!-- <link rel="shortcut icon" href="/images/favicon.ico"> -->
 <!-- <link rel="icon" href="/images/favicon.ico"> -->
-<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+<meta http-equiv="Content-type" content="text/html;charset=ISO-8859-1" />
 <link href="<?=$SITE_PATHS["WEB_CSS"]."default.css"; ?>" rel="stylesheet" type="text/css" />
 <link href="<?=$SITE_PATHS["WEB_CSS"]."print.css"; ?>" rel="stylesheet" type="text/css" media="print" />
 
