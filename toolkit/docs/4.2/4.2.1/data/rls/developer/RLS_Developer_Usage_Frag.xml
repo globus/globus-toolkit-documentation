@@ -116,6 +116,107 @@
                 }
             </screen>
         </section>
+        <section><title>Defining attributes</title>
+            <simpara>RLS also supports attributes on objects (logical names and target names) in the catalog. Before assigning attributes to objects, attributes must be defined.</simpara>
+            <screen>
+                List defs = new List();
+
+                // Define a string attribute
+                defs.add(new RLSAtribute(
+                        "label", 
+                        RLSAttribute.LRC_PFN, 
+                        RLSAttribute.STR, 
+                        null));
+
+                // Define an integer attribute
+                defs.add(new RLSAtribute(
+                        "series", 
+                        RLSAttribute.LRC_PFN, 
+                        RLSAttribute.INT, 
+                        0));
+                
+                try {
+                    catalog.defineAttributes(defs);
+                } catch (RLSException e) {
+                    // handle exception
+                }
+            </screen>
+        </section>
+        <section><title>Undefining attributes</title>
+            <simpara>Defined attributes may be undefined, and (optionally) all assigned attributes of the matching type may be cleared.</simpara>
+            <screen>
+                try {
+                    catalog.undefineAttributes(defs, true);
+                } catch (RLSException e) {
+                    // handle exception
+                }
+            </screen>
+        </section>
+        <section><title>Adding attributes</title>
+            <simpara>Attributes may be added to objects (logical names or target names) in the catalog. Before adding an attribute, it must be defined. Once added, it may be modified or removed.</simpara>
+            <screen>
+                List attributes = new List();
+
+                // Add a string attribute
+                attributes.add(new RLSAttributeObject(new RLSAttribute(
+                        "label",
+                        RLSAttribute.LRC_PFN,
+                        "my-label-value"),
+                        "my-target-name-XYZ));
+
+                // Add an integer attribute
+                defs.add(new RLSAtributeObject(new RLSAttribute(
+                        "series", 
+                        RLSAttribute.INT, 
+                        RLSAttribute.LRC_PFN, 
+                        12345),
+                        "my-target-name-XYZ));
+
+                try {
+                    catalog.addAttributes(attributes);
+                } catch(RLSException e) {
+                    // handle exception
+                }
+            </screen>
+        </section>
+        <section><title>Searching by attributes</title>
+            <simpara>In addtion to catalog queries by logical name, target name, or wildcards, the catalog may be search based on attribute values. Attribute searching suppors the most common comparison operators (equality, less than, greater than, etc.), a similarity operator (like), and ranges (between).</simpara>
+            <screen>
+                // Specify search parameters
+                AttributeSearch asearch = new AttributeSearch(
+                        "series",               // the name of the attribute
+                        RLSAttribute.LRC_PFN,   // the object type
+                        RLSAttribute.OPBTW,     // the comparison operation
+                        new RLSAttribute(
+                            "series",
+                            RLSAttribute.LRC_PFN,
+                            0),                 // the left value
+                        new RLSAttribute( 
+                            "series",
+                            RLSAttribute.LRC_PFN,
+                            99999),             // the right value
+                        null);                  // optional offset/limit
+
+                try {
+                    Results results = catalog.query(asearch);
+                    if (results.getRC() == RLSStatusCode.RLS_SUCCESS) {
+                        List batch = results.getBatch();
+                        Iterator i = batch.iterator();
+                        while (i.hasNext()) {
+                            // Returns RLSAttributeObject values
+                            RLSAttributeObject aobj = (RLSAttributeObject) i.next();
+                            if (aobj.rc != RLSStatusCode.RLS_SUCCESS)
+                                continue;
+
+                            // The search was on LRC_PFN objects therefore the key is the target name
+                            String targetName = aobj.key;
+                        }
+                    }
+                } catch (RLSException e) {
+                    // handle exception
+                }
+            </screen>
+        </section>
     </section>
 
     <section id="rls-developer-scenarios-examplecode"><title>Example Code</title>
