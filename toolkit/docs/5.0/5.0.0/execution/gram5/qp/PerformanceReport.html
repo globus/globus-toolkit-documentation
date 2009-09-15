@@ -1,0 +1,958 @@
+<html>
+<head>
+  <title>Performance reports</title>
+  <style type="text/css">
+    <!--
+      h1 { font-size: 16pt; }
+      h2 { font-size: 14pt; }
+      h3 { font-size: 12pt; }
+      #toc { float: left; font-size: 100%; padding: 5px; }
+      #toc .level2 { margin-left: 1em; }
+      #toc .level3 { margin-left: 2em; }
+      #toc .level4 { margin-left: 3em; }
+      #toc .level5 { margin-left: 4em; }
+      #toc .level6 { margin-left: 5em; }
+    -->
+  </style>
+
+  <!-- generate TOC -->
+  <script type="text/javascript">
+
+    function H_getText(el) {
+      var text = "";
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 3) {
+          text += i.data;
+        } else if (i.firstChild != null) {
+          text += H_getText(i);
+        }
+      }
+      return text;
+    }
+
+    function TOC_EL(el, text, level) {
+      this.element = el;
+      this.text = text;
+      this.level = level;
+    }
+
+    function getHeadlines(el) {
+      var l = new Array;
+      var rx = /[hH]([1-6])/;
+      // internal recursive function that scans the DOM tree
+      var rec = function (el) {
+        for (var i = el.firstChild; i != null; i = i.nextSibling) {
+          if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+            if (rx.exec(i.tagName)) {
+              l[l.length] = new TOC_EL(i, H_getText(i), parseInt(RegExp.$1));
+            }
+            rec(i);
+          }
+        }
+      }
+      rec(el);
+      return l;
+    }
+
+    function generate_TOC(parent_id) {
+      var parent = document.getElementById(parent_id);
+      var hs = getHeadlines(document.getElementsByTagName("body")[0]);
+      for (var i = 0; i < hs.length; ++i) {
+        var hi = hs[i];
+        var d = document.createElement("div");
+        if (hi.element.id == "") {
+          hi.element.id = "gen" + i;
+        }
+        var a = document.createElement("a");
+        a.href = "#" + hi.element.id;
+        a.appendChild(document.createTextNode(hi.text));
+        d.appendChild(a);
+        d.className = "level" + hi.level;
+        parent.appendChild(d);
+      }
+    }
+  </script>
+
+</head>
+
+<body onload="generate_TOC('toc');">
+
+  <font size="6"><b>Performance Reports for Gram4 in GT 4.2.1</b></font><br><br>
+
+  Performance tests with Gram4 from GT 4.2.1 had been run in 2 different environments:
+  <ol>
+    <li>On a fully controlled VM cluster (Nomer cloud)</li>
+    <li>On a University of Chicago cluster (uct3-edge)</li>
+  </ol>
+  All tests focused on large job submissions, as Gram4 used to have problems in the past,
+  when several clients submitted jobs to a GT4 container at the same time. We did not measure
+  performance for single job submissions in this test-series.<br>
+  As clients a throughput-tester program and Condor-G were used. The throughput-tester is a
+  Java program which can simulate all kinds of submission and job scenarios.<br>
+  The jobs being used in these tests had been no-op jobs, like /bin/date, executed by the Fork
+  local resource manager (except the tests with the Fake local resource manager [see below]). 
+
+  <hr><table><tr><td><div id="toc"></div></td></tr></table><hr>
+  
+  <h1>1. Tests on Nomer</h1>
+  <p>
+    Nomer is a cloud of max 6 VM's, each with the following characteristics
+  </p>
+  <table border="1">
+    <tr>
+      <td><nobr><b>Processor</b></nobr></td>
+      <td><nobr>Intel(R) Xeon(R) CPU E5430 @ 2.66GHz</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr><b>RAM</b></nobr></td>
+      <td><nobr>2GB</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr><b>OS</b></nobr></td>
+      <td><nobr>Linux/gentoo</nobr></td>
+    </tr>
+  </table>
+  
+  <h2>1.1 Throughput tests</h2>
+  
+    5 client machines submitted to 1 server, each with 50 threads, for 1h. 50 threads means:
+    At most 50 concurrent operations (submission, resource property query, termination)
+    to the server at any time.<br>
+    A client stopped submitting when it was holding 2K jobs in the server, and did
+    continue submitting another job only after one of his jobs finished.<br>
+    After 1h all clients stopped submitting and waited for all their outstanding jobs to
+    finish.<br>
+    By this at most 10K jobs had been managed by Gram4 at any time.<br>
+    If a scenario included staging the transferred file had the size of 1B were transfered
+    between each client VM and the server VM.<br>
+    If a scenario included fileCleanUp two files of size 1B were deleted.<br>
+    On the server-side the jobs were run by 2 different users.<br>
+  
+  <table cellpadding="2" border="1">
+    <tr>
+      <td valign="top"><nobr><b>Monitoring</b></nobr></td>
+      <td valign="top"><b>Job<br>Delegation</b></td>
+      <td valign="top"><b>Staging<br>Delegation</b></td>
+      <td valign="top"><b>File<br>Stage<br>In</b></td>
+      <td valign="top"><b>File<br>Stage<br>Out</b></td>
+      <td valign="top"><b>File<br>Clean<br>Up</b></td>
+      <td valign="top"><nobr><b>API</b></nobr></td>
+      <td valign="top"><nobr><b>#Jobs</b></nobr></td>
+      <td valign="top"><b>Duration<br>(min)</b></td>
+      <td valign="top"><b>Jobs/<br>min</b></td>
+      <td valign="top"><nobr><b>Comment</b></nobr></td>
+    </tr>
+    <tr>
+      <td colspan="11"><br><i>Simple job, Polling:</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Polling 1pM</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/reuse</nobr></td>
+      <td><nobr>14235</nobr></td>
+      <td><nobr>184</nobr></td>
+      <td><nobr>77.36</nobr></td>
+      <td><nobr>No heap settings</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Polling 1pM</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/reuse</nobr></td>
+      <td><nobr>14269</nobr></td>
+      <td><nobr>181</nobr></td>
+      <td><nobr>78.83</nobr></td>
+      <td><nobr>Heap settings: 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td colspan="11"><br><i>Simple job,  Notifications:</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/reuse</nobr></td>
+      <td><nobr>14384</nobr></td>
+      <td><nobr>165</nobr></td>
+      <td><nobr>87.18</nobr></td>
+      <td><nobr>No heap settings</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/reuse</nobr></td>
+      <td><nobr>14383</nobr></td>
+      <td><nobr>179</nobr></td>
+      <td><nobr>80.35</nobr></td>
+      <td><nobr>Heap settings: 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>14781</nobr></td>
+      <td><nobr>164</nobr></td>
+      <td><nobr>90.13</nobr></td>
+      <td><nobr>No heap settings</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>14401</nobr></td>
+      <td><nobr>181</nobr></td>
+      <td><nobr>79.56</nobr></td>
+      <td><nobr>Heap: 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>14627</nobr></td>
+      <td><nobr>175</nobr></td>
+      <td><nobr>83.58</nobr></td>
+      <td><nobr>Heap: 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>14793</nobr></td>
+      <td><nobr>174</nobr></td>
+      <td><nobr>85.02</nobr></td>
+      <td><nobr>Heap: 256M-256M, 20 StateMachine threads</nobr></td>
+    </tr>
+    <tr>
+      <td colspan="11"><br><i>Simple job, using GramJob API:</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>14761</nobr></td>
+      <td><nobr>172</nobr></td>
+      <td><nobr>85.82</nobr></td>
+      <td><nobr>Heap: 256M-256M</nobr></td>
+    </tr>
+
+    <tr>
+      <td colspan="11"><br><i>Simple job, shared job delegation:</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>9226</nobr></td>
+      <td><nobr>161</nobr></td>
+      <td><nobr>57.30</nobr></td>
+      <td><nobr>no heap settings, slow submission phase</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>14253</nobr></td>
+      <td><nobr>164</nobr></td>
+      <td><nobr>86.91</nobr></td>
+      <td><nobr>no heap settings</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>14306</nobr></td>
+      <td><nobr>164</nobr></td>
+      <td><nobr>87.23</nobr></td>
+      <td><nobr>no heap settings</nobr></td>
+    </tr>
+
+    <tr>
+      <td colspan="11"><br><i>Simple job, job delegation per job:</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>perJob</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/ reuse</nobr></td>
+      <td><nobr>9944</nobr></td>
+      <td><nobr>194</nobr></td>
+      <td><nobr>51.26</nobr></td>
+      <td><nobr>Heap: 256M-256M</nobr></td>
+    </tr>
+
+    <tr>
+      <td colspan="11"><br><i>Job with FileStageIn:</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/ reuse</nobr></td>
+      <td><nobr>12543</nobr></td>
+      <td><nobr>196</nobr></td>
+      <td><nobr>63.99</nobr></td>
+      <td><nobr>no heap settings</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/ reuse</nobr></td>
+      <td><nobr>13149</nobr></td>
+      <td><nobr>228</nobr></td>
+      <td><nobr>57.67</nobr></td>
+      <td><nobr>Heap: 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>13325</nobr></td>
+      <td><nobr>220</nobr></td>
+      <td><nobr>60.57</nobr></td>
+      <td><nobr>Heap: 256M-256M</nobr></td>
+    </tr>
+
+    <tr>
+      <td colspan="11"><br><i>Job with FileStageIn and FileStageOut:</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/ reuse</nobr></td>
+      <td><nobr>11464</nobr></td>
+      <td><nobr>229</nobr></td>
+      <td><nobr>50.06</nobr></td>
+      <td><nobr>no heap settings</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/ reuse</nobr></td>
+      <td><nobr>12422</nobr></td>
+      <td><nobr>276</nobr></td>
+      <td><nobr>45.01</nobr></td>
+      
+      <td><nobr>Heap: 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>12557</nobr></td>
+      <td><nobr>267</nobr></td>
+      <td><nobr>47.03</nobr></td>
+      <td><nobr>Heap: 256M-256M</nobr></td>
+    </tr>
+
+    <tr>
+      <td colspan="11"><br><i>Job with FileStageIn, FileStageOut and FileCleanUp
+        (no directory creation or directory removal):</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>Stubs w/ reuse</nobr></td>
+      <td><nobr>10483</nobr></td>
+      <td><nobr>256</nobr></td>
+      <td><nobr>40.95</nobr></td>
+      <td><nobr>no heap settings</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>Stubs w/ reuse</nobr></td>
+      <td><nobr>10501</nobr></td>
+      <td><nobr>255</nobr></td>
+      <td><nobr>41.18</nobr></td>
+      <td><nobr>heap 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>Stubs w/ reuse</nobr></td>
+      <td><nobr>12025</nobr></td>
+      <td><nobr>320</nobr></td>
+      <td><nobr>37.58</nobr></td>
+      <td><nobr>heap 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>Stubs w/ reuse</nobr></td>
+      <td><nobr>11434</nobr></td>
+      <td><nobr>504</nobr></td>
+      <td><nobr>22.69</nobr></td>
+      <td><nobr>heap 256M-1024M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>12102</nobr></td>
+      <td><nobr>313</nobr></td>
+      <td><nobr>38.66</nobr></td>
+      <td><nobr>heap 256M-256M</nobr></td>
+    </tr>
+
+  </table>
+
+  <h2>1.2 Termination tests</h2>
+   5 clients submitted jobs with FileStageIn, FileStageOut, FileCleanUp (shared delegation)
+   for 10 min. Then all outstanding jobs were terminated.<br>
+   Memory settings: heap 256M-256M<br>
+   9400 were jobs terminated<br>
+   Duration of the termination: 25min<br>
+
+  <h2>1.3 Fake LRM tests</h2>
+  <p> 
+   The fake local resource manager consists of a set of scripts, a SchedulerEventGenerator (SEG)
+   and a Java daemon, which simulate a local resource manager. All jobs are "queued" for a
+   configurable amount of time and then put into state Active for a configurable amount
+   of time.<br>
+   This enabled us to simulate a local resource manager and a different load situation in
+   Gram4, compared to the quick running no-op jobs, without the need of a real local resource
+   manager.<br>
+   The setup (number of clients, duration of submission, max jobs per client, etc)
+   had been the same like in the throughput tests described above.<br>
+   In these tests jobs stayed in state Pending for 3-5min (random), and in state Active
+   for 1min.
+  </p>
+  
+  <table cellpadding="2" border="1">
+    <tr>
+      <td valign="top"><nobr><b>Monitoring</b></nobr></td>
+      <td valign="top"><b>Job<br>Delegation</b></td>
+      <td valign="top"><b>Staging<br>Delegation</b></td>
+      <td valign="top"><b>File<br>Stage<br>In</b></td>
+      <td valign="top"><b>File<br>Stage<br>Out</b></td>
+      <td valign="top"><b>File<br>Clean<br>Up</b></td>
+      <td valign="top"><nobr><b>API</b></nobr></td>
+      <td valign="top"><nobr><b>#Jobs</b></nobr></td>
+      <td valign="top"><b>Duration<br>(min)</b></td>
+      <td valign="top"><b>Jobs/<br>min</b></td>
+      <td valign="top"><nobr><b>Comment</b></nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>14225</nobr></td>
+      <td><nobr>177</nobr></td>
+      <td><nobr>80.37</nobr></td>
+      <td><nobr>heap 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>12144</nobr></td>
+      <td><nobr>302</nobr></td>
+      <td><nobr>40.21</nobr></td>
+      <td><nobr>heap 256M-256M</nobr></td>
+    </tr>
+  </table>
+  
+  <p>
+    The following graphs illustrate how many jobs had been in state Pending/Active and
+    at any time in the test. There is a limited number of worker threads to process jobs
+    in the Gram4 StateMachine.
+    The peaks and valleys show the internal StateMachine job processing priority:
+    Jobs that are furthest along and are waiting to be moved to the next state are processed
+    first.
+  </p>
+  
+  <table cellpadding="2">
+    <tr>
+      <td><img src="./fake_nomer_simple.png"></td>
+      <td><img src="./fake_nomer_staging.png"></td>
+    </tr>
+  </table>
+  
+  
+  
+  <h1>2. Tests on the uct3-edge cluster of the University of Chicago</h1>
+    <p>
+    The uct3-edge cluster, which was also used by other users at the time of the tests,
+    has the following characteristics per machine:
+    </p>
+    
+    <table border="1">
+      <tr>
+        <td><nobr><b>Processor</b></nobr></td>
+        <td><nobr>4 x Dual Core AMD Opteron(tm) Processor 285</nobr></td>
+      </tr>
+      <tr>
+        <td><nobr><b>RAM</b></nobr></td>
+        <td><nobr>8GB</nobr></td>
+      </tr>
+      <tr>
+        <td><nobr><b>OS</b></nobr></td>
+        <td><nobr>Linux/RHEL3</nobr></td>
+      </tr>
+    </table>
+    
+   <h2>2.1 Throughput tests</h2>
+   <p> 
+    4 client machines (uct3-edge[2356]) submitted to 1 server (uct3-edge7), each with 50
+    submission threads, for 1h. 50 threads means: At most 50 concurrent operations (submission,
+    resource property query, termination) to the server at any time.<br>
+    A client stopped submitting when it was holding 2.5K jobs in the server, and did
+    continue submitting another job only after one of his jobs finished.<br>
+    After 1h all clients stopped submitting and waited for all their outstanding jobs to
+    finish.<br>
+    By this at most 10K jobs had been managed by Gram4 at any time.<br>
+    If a scenario included staging the transferred file had the size of 1B were transfered
+    between each client VM and the server VM.<br>
+    If a scenario included fileCleanUp two files of size 1B were deleted.<br>
+    On the server-side the jobs ran under the same user id, the same user that ran the
+    container. That means that no sudo callouts were done.
+   </p>
+
+  <table cellpadding="2" border="1">
+    <tr>
+      <td valign="top"><nobr><b>Monitoring</b></nobr></td>
+      <td valign="top"><b>Job<br>Delegation</b></td>
+      <td valign="top"><b>Staging<br>Delegation</b></td>
+      <td valign="top"><b>File<br>Stage<br>In</b></td>
+      <td valign="top"><b>File<br>Stage<br>Out</b></td>
+      <td valign="top"><b>File<br>Clean<br>Up</b></td>
+      <td valign="top"><nobr><b>API</b></nobr></td>
+      <td valign="top"><nobr><b>#Jobs</b></nobr></td>
+      <td valign="top"><b>Duration<br>(min)</b></td>
+      <td valign="top"><b>Jobs/<br>min</b></td>
+      <td valign="top"><nobr><b>Comment</b></nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>21770</nobr></td>
+      <td><nobr>103</nobr></td>
+      <td><nobr>211.36</nobr></td>
+      <td><nobr>heap 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>16949</nobr></td>
+      <td><nobr>134</nobr></td>
+      <td><nobr>126.49</nobr></td>
+      <td><nobr>heap 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>15519</nobr></td>
+      <td><nobr>154</nobr></td>
+      <td><nobr>100.77</nobr></td>
+      <td><nobr>heap 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>14341</nobr></td>
+      <td><nobr>175</nobr></td>
+      <td><nobr>81.95</nobr></td>
+      <td><nobr>heap 256M-256M, no dir creation/removal</nobr></td>
+    </tr>
+  </table>
+
+  <h2>2.2 Condor-G tests</h2>
+  <p> 
+    We used Condor-7.1.4 in these tests. It's so far the only version that works without
+    problems for job submissions to GT 4.2.
+  </p>
+    <table cellpadding="2" border="1">
+    <tr>
+      <td valign="top"><nobr><b>Monitoring</b></nobr></td>
+      <td valign="top"><b>Job<br>Delegation</b></td>
+      <td valign="top"><b>Staging<br>Delegation</b></td>
+      <td valign="top"><b>File<br>Stage<br>In</b></td>
+      <td valign="top"><b>File<br>Stage<br>Out</b></td>
+      <td valign="top"><b>File<br>Clean<br>Up</b></td>
+      <td valign="top"><nobr><b>API</b></nobr></td>
+      <td valign="top"><nobr><b>#Jobs</b></nobr></td>
+      <td valign="top"><b>Duration<br>(min)</b></td>
+      <td valign="top"><b>Jobs/<br>min</b></td>
+      <td valign="top"><nobr><b>Comment</b></nobr></td>
+    </tr>
+    <tr>
+      <td colspan="11"><br><i>10K jobs with FileStageIn, FileStageOut and FileCleanUp
+        including unique job directory and directory deletion:</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>206</nobr></td>
+      <td><nobr>48.54</nobr></td>
+      <td><nobr>-Xmx700M, polling every 10min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>201</nobr></td>
+      <td><nobr>49.75</nobr></td>
+      <td><nobr>-Xmx700M, polling every 10min, one memory error</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>194</nobr></td>
+      <td><nobr>51.55</nobr></td>
+      <td><nobr>-Xmx500M, polling every 10min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>194</nobr></td>
+      <td><nobr>51.55</nobr></td>
+      <td><nobr>-Xmx500M, polling every 10min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>199</nobr></td>
+      <td><nobr>50.25</nobr></td>
+      <td><nobr>-Xmx500M, polling every 10min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>193</nobr></td>
+      <td><nobr>51.81</nobr></td>
+      <td><nobr>-Xmx500M, polling every 10min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>198</nobr></td>
+      <td><nobr>50.51</nobr></td>
+      <td><nobr>-Xmx500M, polling every 10min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>199</nobr></td>
+      <td><nobr>50.25</nobr></td>
+      <td><nobr>-Xmx500M, polling every 10min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>190</nobr></td>
+      <td><nobr>52.63</nobr></td>
+      <td><nobr>-Xmx500M, polling every 10min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>188</nobr></td>
+      <td><nobr>53.19</nobr></td>
+      <td><nobr>-Xmx500M, polling every 10min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>10000</nobr></td>
+      <td><nobr>192</nobr></td>
+      <td><nobr>52.08</nobr></td>
+      <td><nobr>-Xmx500M, polling every 10min, 2 errors: 1 memory error, 1 NPE in JobManagerScript</nobr></td>
+    </tr>
+    <tr>
+     <td colspan="11"><br><i>20K jobs, 10s for both timeout and delay of MEJH's LRU-cache</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>20000</nobr></td>
+      <td><nobr>402</nobr></td>
+      <td><nobr>49.75</nobr></td>
+      <td><nobr>-Xmx500M, polling every 30min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>20000</nobr></td>
+      <td><nobr>399</nobr></td>
+      <td><nobr>50.13</nobr></td>
+      <td><nobr>-Xmx500M, polling every 30min, 2 errors: 1 memory error, 1 NPE in LRUCache (line 150)</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>20000</nobr></td>
+      <td><nobr>359</nobr></td>
+      <td><nobr>55.71</nobr></td>
+      <td><nobr>-Xmx300M, polling every 30min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>20000</nobr></td>
+      <td><nobr>329</nobr></td>
+      <td><nobr>60.79</nobr></td>
+      <td><nobr>-Xmx200M, polling every 30min</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>20000</nobr></td>
+      <td><nobr>331</nobr></td>
+      <td><nobr>60.42</nobr></td>
+      <td><nobr>-Xmx200M, polling every 30min</nobr></td>
+    </tr>
+    <tr>
+     <td colspan="11"><br><i>40K jobs, 10s for both timeout and delay of MEJH's LRU-cache</i></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications + Polling</nobr></td>
+      <td><nobr>shared</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>GramJob</nobr></td>
+      <td><nobr>40000</nobr></td>
+      <td><nobr>646</nobr></td>
+      <td><nobr>61.92</nobr></td>
+      <td><nobr>-Xmx200M, polling every 120min, 5 Condor-G connection timeouts</nobr></td>
+    </tr>
+  </table> 
+
+  <h2>2.3 Fake LRM tests</h2>
+  <p> 
+   The fake local resource manager consists of a set of scripts, a SchedulerEventGenerator (SEG)
+   and a Java daemon, which simulate a local resource manager. All jobs are "queued" for a
+   configurable amount of time and then put into state Active for a configurable amount
+   of time.<br>
+   This enabled us to simulate a local resource manager and a different load situation in
+   Gram4, compared to the quick running no-op jobs, without the need of a real local resource
+   manager.<br>
+   The setup (number of clients, duration of submission, max jobs per client, etc)
+   had been the same like in the throughput tests described above.<br>
+   In these tests jobs stayed in state Pending for 3-5min (random), and in state Active
+   for 1min.
+  </p>
+  <table cellpadding="2" border="1">
+    <tr>
+      <td valign="top"><nobr><b>Monitoring</b></nobr></td>
+      <td valign="top"><b>Job<br>Delegation</b></td>
+      <td valign="top"><b>Staging<br>Delegation</b></td>
+      <td valign="top"><b>File<br>Stage<br>In</b></td>
+      <td valign="top"><b>File<br>Stage<br>Out</b></td>
+      <td valign="top"><b>File<br>Clean<br>Up</b></td>
+      <td valign="top"><nobr><b>API</b></nobr></td>
+      <td valign="top"><nobr><b>#Jobs</b></nobr></td>
+      <td valign="top"><b>Duration<br>(min)</b></td>
+      <td valign="top"><b>Jobs/<br>min</b></td>
+      <td valign="top"><nobr><b>Comment</b></nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td><td><nobr>-</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>20547</nobr></td>
+      <td><nobr>108</nobr></td>
+      <td><nobr>190.25</nobr></td>
+      <td><nobr>heap 256M-256M</nobr></td>
+    </tr>
+    <tr>
+      <td><nobr>Notifications</nobr></td>
+      <td><nobr>-</nobr></td><td><nobr>shared</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td><td><nobr>Yes</nobr></td>
+      <td><nobr>Stubs w/o reuse</nobr></td>
+      <td><nobr>14007</nobr></td>
+      <td><nobr>183</nobr></td>
+      <td><nobr>76.54</nobr></td>
+      <td><nobr>heap 256M-256M</nobr></td>
+    </tr>
+  </table>
+  
+  <p>
+    The following graphs illustrate how many jobs had been in state Pending/Active and
+    "in the local resource manager" at any time in the test.
+    There is a limited number of worker threads to process jobs in the Gram4 StateMachine.
+    The peaks and valleys show the internal StateMachine job processing priority.
+    Jobs that are furthest along and are waiting to be moved to the next state are processed
+    first.
+  </p>
+  
+  <table cellpadding="2">
+    <tr>
+      <td><img src="./fake_edge_simple.png"></td>
+      <td><img src="./fake_edge_staging.png"></td>
+    </tr>
+  </table>
+
+
+  <h1>3. Errors and Problems</h1>
+  <p> 
+    On nomer no error happened at all. On the server-side on uct3-edge7 the following errors
+    happened:
+  <br>
+
+  <ol>
+    <li><pre>2008-12-09T10:05:56.630-06:00 ERROR service.TransferWork [Thread-29,oldLog:175]
+Transient transfer error Check for existence of directory /home/mfeller/.globus/scratch failed
+on server uct3-edge7.uchicago.edu [Caused by: java.io.EOFException]</pre>
+      <b>Comment: </b>RFT error, happens in every test-run; is handled ok by retries in RFT.
+        Happens only with directory creation and deletion, and it seems that this is new in 4.2</li>
+   
+    <li><pre>2008-12-10T10:52:38.403-06:00 WARN  service.DelegationResource [ServiceThread-74,notifyListeners:407]
+Error setting credential on listener
+java.lang.RuntimeException: Error retrieving resource to set delegated credentialnull
+        at org.globus.transfer.reliable.service.CredentialRefreshListener.setCredential(CredentialRefreshListener.java:77)
+        at org.globus.delegation.service.DelegationResource.notifyListeners(DelegationResource.java:405)
+        at org.globus.delegation.service.DelegationResource.setToken(DelegationResource.java:307)
+        at org.globus.delegation.service.DelegationResource.storeToken(DelegationResource.java:154)
+        at org.globus.delegation.service.DelegationService.refresh(DelegationService.java:64)
+        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+        at java.lang.reflect.Method.invoke(Method.java:585)
+        at org.apache.axis.providers.java.RPCProvider.invokeMethod(RPCProvider.java:410)
+        at org.globus.axis.providers.RPCProvider.invokeMethodSub(RPCProvider.java:112)
+        at org.globus.axis.providers.PrivilegedInvokeMethodAction.run(PrivilegedInvokeMethodAction.java:47)
+        at java.security.AccessController.doPrivileged(Native Method)
+        at javax.security.auth.Subject.doAs(Subject.java:396)
+        at org.globus.gsi.jaas.GlobusSubject.runAs(GlobusSubject.java:60)
+        at org.globus.gsi.jaas.JaasSubject.doAs(JaasSubject.java:100)
+        at org.globus.axis.providers.RPCProvider.invokeMethod(RPCProvider.java:102)
+        at org.apache.axis.providers.java.RPCProvider.processMessage(RPCProvider.java:186)
+        at org.apache.axis.providers.java.JavaProvider.invoke(JavaProvider.java:332)
+        at org.apache.axis.strategies.InvocationStrategy.visit(InvocationStrategy.java:32)
+        at org.apache.axis.SimpleChain.doVisiting(SimpleChain.java:118)
+        at org.apache.axis.SimpleChain.invoke(SimpleChain.java:83)
+        at org.apache.axis.handlers.soap.SOAPService.invoke(SOAPService.java:454)
+        at org.apache.axis.server.AxisServer.invokeService(AxisServer.java:234)
+        at org.apache.axis.server.AxisServer.invoke(AxisServer.java:375)
+        at org.globus.wsrf.container.ServiceThread.doPost(ServiceThread.java:949)
+        at org.globus.wsrf.container.ServiceThread.process(ServiceThread.java:684)
+        at org.globus.wsrf.container.GSIServiceThread.process(GSIServiceThread.java:182)
+        at org.globus.wsrf.container.ServiceThread.run(ServiceThread.java:471)</pre>
+	<b>Comment: </b>Non-fatal, no job fails because of that, caused by RFT</li>
+
+    <li><pre>2008-12-09T10:47:35.459-06:00 ERROR service.CredentialRefreshListener [ServiceThread-69,oldLog:175]
+org.globus.wsrf.NoSuchResourceException at org.globus.wsrf.impl.ResourceHomeImpl.find(ResourceHomeImpl.java:290)</pre>
+	 <b>Comment: </b>Non-fatal, no job fails because of that, probably RFT related.</li>
+   
+    <li><pre>Job 0ae808c0-c1d0-11dd-b002-b73ff0672cbb failed. Fault #1: Description: Error code: 202java.io.IOException:
+Cannot allocate memory Cause: org.globus.exec.generated.FaultType: Error code: 202java.io.IOException:
+Cannot allocate memory caused by [0: org.oasis.wsrf.faults.BaseFaultType: java.io.IOException: Cannot allocate memory]</pre>
+	 <b>Comment: </b>This is due to low memory. Runtime.exec() forks the java process and for a short time needs too much memory.
+	    Using less memory in the JVM (-Xmx) removed this problem</li>
+   
+    <li><pre>WARN  helper.ProcessingFaultHelper [pool-1-thread-2,createFaultFromErrorCode:233] Unhandled fault code 202.</pre>
+	 <b>Comment: </b>Happened rarely and only in tests where memory problems showed up, so it might be memory related</li>
+   
+    <li><pre>WARN  service.DelegationResource [pool-1-thread-6,store:574]
+Check file permissions on "/scratch/mfeller/.globus/persisted/uct3-edge7.uchicago.edu-9999/DelegationResource/85cb0030-c287-11dd-8ca8-f8ea0cea575b.ser"</pre>
+	 <b>Comment: </b>Does not happen very often and so far only in tests where memory problems showed up,
+	    so it might be memory related</li>
+	       
+    <li><pre>NullPointerException in JobManagerScript</pre>
+	 <b>Comment: </b>Happened only once in this test series, don't know the reason</li>
+    <li><pre>"2008-12-09T13:02:45.155-06:00 WARN  processing.StateProcessingTask [pool-1-thread-9,run:63]
+Job resource 35b3b270-c608-11dd-a1d2-b0667ead9260 not found.
+java.lang.NullPointerException
+        at org.globus.wsrf.utils.cache.LRUCache.update(LRUCache.java:150)
+        at org.globus.wsrf.impl.ResourceHomeImpl.find(ResourceHomeImpl.java:298)
+        at org.globus.exec.service.exec.processing.StateProcessingTask.run(StateProcessingTask.java:55)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:650)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:675)
+        at java.lang.Thread.run(Thread.java:595)"</pre>
+	 <b>Comment: </b>Happened 2-3 times</li>						
+
+    <li>Using another machine (uct3-edge2) as headnode caused connection timeouts and extremely
+      slow staging: tests took twice as long compared to using uct3-edge7 as headnode.<br>
+      The cluster-admin confirmed that uct3-edge2 is architecturally the same like uct3-edge7.
+      The problems had been independent from the client being used: Condor-G, Throughput-tester.
+      Jobs without staging ran pretty stable though.<br>
+      The problems disappeared when we used uct3-edge7 as headnode again.</li>
+  
+    <li>OutOfMemory exceptions happened if GridFTP was misconfigured on one client. Server and
+      client-machines had two NICs. With a wrong configuration the data channel of a gridftp
+      connection used the internal IP address of one machine, which caused the transfers to hang.
+      Those transfers blocked the progress of all jobs in state stageIn.<br>
+      It's not clear what exactly lead to the OOM exceptions.</li>
+  </ol>
+
+  <h1>4. Lessons learnt</h1>
+    <ul>
+      <li>The amount of memory assigned to the container JVM has impact on both performance and
+        reliability of Gram4.
+        <ul>
+          <li>Too much memory seems to slow the processing down.</li>
+          <li>The container can run out of memory in the execution of the perl scripts,
+              (see item 4 in section Errors), if at least half of the available memory
+              of the machine is assigned to the server JVM. For more precise information see
+              <a href="http://developers.sun.com/solaris/articles/subprocess/subprocess.html">here</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        We seemed to have sub-optimal JNDI settings. With improved settings for the LRUCache
+        of the ManagedExecutableJobService we can run the container with just 200M of heap
+        size, and can handle 40K jobs.
+        See <a href="http://bugzilla.globus.org/globus/show_bug.cgi?id=6579">http://bugzilla.globus.org/globus/show_bug.cgi?id=6579</a><br>
+        The improved JNDI settings will be in Gram4 in GT 4.2.2.
+      </li>
+      <li>Running a container "just" on another, architecturally similar, machine CAN have
+        huge impact on performance and reliabilty. Be careful, check the environment.</li>
+      <li>One misconfigured GridFTP server resulting in hanging transfers seems to make all
+        staging requests hang in jobs with staging, even if other GridFTP servers are
+        involved.</li>
+    </ul>
+    
+  <h1>5. Conclusions</h1>
+    <p>
+      Overall the tests ran very well.
+    </p>
+    <p>
+      On nomer no errors at all showed up. It's encouraging to see that the container
+      was stable running on a single-processor based VM (nomer) while accepting requests
+      from 5 different multi-threaded clients.
+    </p>
+    <p>
+      On the University of Chicago cluster we didn’t have tight control over the
+      environment, but after figuring out how to deal with certain details the tests ran
+      pretty well too. A few errors happened here, but they did not bring the
+      container down.
+    </p>
+    <p>
+      However, when we used a different headnode (uct3-edge2) in some tests on the UoC
+      cluster, we experienced problems (see section Errors).<br>
+      Also note that these clients and service hosts used in the tests on the UoC cluster
+      are powerful. Although tests on nomer proved that we are able to perform reliably on
+      weaker machines, it MAY happen that Gram4 from GT4.2 is less stable yet in a wide
+      range of deployment and client scenarios in less controllable environments.
+      This impression can probably be backed by the experience we gain from Gram 4.0.x on
+      TeraGrid, where sometimes a container hangs after just a bunch of test jobs, which
+      shouldn’t happen even with Gram from the 4.0 series.
+    </p>
+    <p>
+      Overall, we think GRAM4.2 is clearly an improvement over GRAM4.0, with respect to
+      scalability and reliability.
+    </p>
+</body>
+</html>

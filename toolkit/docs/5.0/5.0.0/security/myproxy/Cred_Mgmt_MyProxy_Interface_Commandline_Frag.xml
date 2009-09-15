@@ -1,0 +1,1100 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+  <reference id="myproxy-cmd"><title>Command-line tools</title>
+
+	<refentry id="myproxy-init">
+		<refmeta>
+			<refentrytitle>myproxy-init</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		<refnamediv>
+			<refname>myproxy-init</refname>
+			<refpurpose>Store a <glossterm baseform="proxy credentials">proxy credential</glossterm> for later retrieval</refpurpose>
+		</refnamediv>
+		<refsynopsisdiv><cmdsynopsis>
+				<command>myproxy-init</command>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		<refsect1><title>Tool description</title>
+			<para> The <command>myproxy-init</command> command uploads a credential to a <command>myproxy-server</command> for
+				later retrieval. In the default mode, the command first prompts for the user's
+				Grid pass phrase (if needed), which is used to create a proxy credential. The
+				command then prompts for a MyProxy pass phrase, which will be required to later
+				retrieve the credential. The MyProxy pass phrase must be entered a second time
+				for confirmation. A credential with a lifetime of one week (by default) is
+				then delegated to the <command>myproxy-server</command> and stored with the given
+				MyProxy pass phrase. Proxy credentials with a default lifetime of 12 hours can
+				then be retrieved by <command>myproxy-logon</command> using the MyProxy
+				passphrase. The default behavior can be overridden by options specified below. </para>
+			<para> The <command>myproxy-init</command> command can also upload a credential to a <command>myproxy-server</command> to
+				support credential renewal. Renewal allows a trusted service (for example,
+				a batch job scheduler) to obtain a new credential for a user before the existing
+				credential it has for that user expires. The <command>-R</command> argument to <command>myproxy-init</command> configures
+				the credential for renewal by the specified service. Renewal requires two authentications.
+				The renewing service must authenticate with its own credentials, matching the
+				distinguished name specified by the <command>-R</command> argument, and must also
+				authenticate with an existing credential that matches the distinguished name
+				of the stored credential to retrieve a new credential. </para>
+			<para> A credential may be used either for retrieval or renewal, but not both. If
+				both are desired, upload a different credential for each use with a different
+				name, using the <command>-k</command> option. </para>
+			<para> The hostname where the <command>myproxy-server</command> is running must be specified
+				by either defining the <command>MYPROXY_SERVER</command> environment variable or
+				the <command>-s</command> option. </para>
+
+			<para>
+				By default, <command>myproxy-init</command> will create a proxy
+				credential from the user's end-entity credentials at
+				~/.globus/usercert.pem and ~/.globus/userkey.pem to delegate to the
+				<command>myproxy-server</command>.  To specify an alternate location
+				for the source certificate and key to delegate, use the X509_USER_CERT
+				and X509_USER_KEY environment variables.  To use a proxy credential as
+				the source of the delegation, set both environment variables to the
+				location of the proxy credential.  To delegate a "legacy globus
+				proxy", set the GT_PROXY_MODE environment variable to "old". </para>
+
+			</refsect1><refsect1><title>Command syntax</title>
+			<screen>myproxy-init [ options ]</screen>
+			</refsect1><refsect1><title>Command options</title>
+			<table><title>myproxy-init options</title>
+				<tgroup cols="2"><tbody>
+						<row><entry>-h, --help</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -u, --usage</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -v, --verbose</entry>
+							<entry> Enables verbose debugging output to the terminal.</entry>
+						</row>
+						<row><entry> -V, --version</entry>
+							<entry> Displays version information and exits.</entry>
+						</row>
+						<row><entry> -s <emphasis>hostname</emphasis>, --pshost <emphasis>hostname</emphasis></entry>
+							<entry> Specifies the hostname of the myproxy-server. This option is required
+								if the <command>MYPROXY_SERVER</command> environment variable is not defined. If
+								specified, this option overrides the <command>MYPROXY_SERVER</command> environment
+								variable.</entry>
+						</row>
+						<row><entry> -p <emphasis>port</emphasis>, --psport <emphasis>port</emphasis></entry>
+							<entry> Specifies the TCP port number of the <command>myproxy-server</command>. Default:
+								7512.</entry>
+						</row>
+					<row><entry>-P, --pidfile <emphasis>path</emphasis></entry>
+						<entry>Specifies a file to write the pid to.</entry>
+						</row>
+						<row><entry> -l, --username</entry>
+							<entry> Specifies the MyProxy account under which the credential should be stored.
+								by default, the command uses the value of the <command>LOGNAME</command> environment
+								variable. Use this option to specify a different account username on the
+								MyProxy server. The MyProxy username need not correspond to a real Unix username.</entry>
+						</row>
+						<row><entry> -c <emphasis>hours</emphasis>, --cred_lifetime <emphasis>hours</emphasis></entry>
+							<entry> Specifies the lifetime of the credential stored on the <command>myproxy-server</command> in
+								hours. Specify <emphasis>0</emphasis> for the maximum possible lifetime, i.e., the
+								lifetime of the original credential. Default: 1 week (168 hours).</entry>
+						</row>
+						<row><entry> -t <emphasis>hours</emphasis>, --proxy_lifetime <emphasis>hours</emphasis></entry>
+							<entry> Specifies the maximum lifetime of credentials retrieved from the <command>myproxy-server</command> using
+								the stored credential. Default: 12 hours.</entry>
+						</row>
+						<row><entry> -d, --dn_as_username</entry>
+							<entry> Use the <glossterm>certificate subject</glossterm> (DN) as the default username, instead of the <command>LOGNAME</command> environment
+								variable.</entry>
+						</row>
+						<row><entry> -a, --allow_anonymous_retrievers</entry>
+							<entry> Allow credentials to be retrieved with just pass phrase authentication.
+								By default, only entities with credentials that match the <command>myproxy-server.config</command> default
+								retriever policy may retrieve credentials. This option allows entities without
+								existing credentials to retrieve a credential using pass phrase authentication
+								by including "anonymous" in the set of allowed retrievers. The <command>myproxy-server.config</command> server-wide
+								policy must also allow "anonymous" clients for this option to have an effect.</entry>
+						</row>
+						<row><entry> -A, --allow_anonymous_renewers</entry>
+							<entry> Allow credentials to be renewed by any client. Any client with a valid
+								credential with a subject name that matches the stored credential may retrieve
+								a new credential from the MyProxy repository if this option is given. Since
+								this effectively defeats the purpose of proxy credential lifetimes, it is
+								not recommended. It is included only for the sake of completeness.</entry>
+						</row>
+						<row><entry> -r <emphasis>dn</emphasis>, --retrievable_by <emphasis>dn</emphasis></entry>
+							<entry> Allow the specified entity to retrieve credentials. By default, the argument
+								will be matched against the common name (CN) of the client (for example: "Jim
+								Basney"). Specify <command>-x</command> before this option to match against the
+								full distinguished name (DN) (for example: "/C=US/O=National Computational
+								Science Alliance/CN=Jim Basney") instead.</entry>
+						</row>
+						<row><entry> -R <emphasis>dn</emphasis>, --renewable_by <emphasis>dn</emphasis></entry>
+							<entry> Allow the specified entity to renew credentials. By default, the argument
+								will be matched against the common name (CN) of the client (for example: "condorg/modi4.ncsa.uiuc.edu").
+								Specify <command>-x</command> before this option to match against the full distinguished
+								name (DN) (for example: "/C=US/O=National Computational Science Alliance/CN=condorg/modi4.ncsa.uiuc.edu")
+								instead. This option implies <command>-n</command> since passphrase authentication
+								is not used for credential renewal.</entry>
+						</row>
+						<row><entry> -x, --regex_dn_match</entry>
+							<entry> Specifies that the DN used by options <command>-r</command> and <command>-R</command> will
+								be matched as a regular expression.</entry>
+						</row>
+						<row><entry> -X, --match_cn_only</entry>
+							<entry> Specifies that the DN used by options <command>-r</command> and <command>-R</command> will
+								be matched against the Common Name (CN) of the subject.</entry>
+						</row>
+						<row><entry> -k <emphasis>name</emphasis>, --credname <emphasis>name</emphasis></entry>
+							<entry> Specifies the credential name.</entry>
+						</row>
+						<row><entry> -K <emphasis>description</emphasis></entry>
+							<entry>blank</entry>
+						</row> 
+						<row><entry>--creddesc <emphasis>description</emphasis></entry>
+							<entry> Specifies credential description.</entry>
+						</row>
+						<row><entry> -S, --stdin_pass</entry>
+							<entry> by default, the command prompts for a passphrase and reads the passphrase
+								from the active tty. When running the command non-interactively, there may
+								be no associated tty. Specifying this option tells the command to read passphrases
+								from standard input without prompts or confirmation.</entry>
+						</row>
+				</tbody></tgroup>
+			</table>
+	</refsect1></refentry>
+	<refentry id="myproxy-info">
+		<refmeta>
+			<refentrytitle>myproxy-info</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		<refnamediv>
+			<refname>myproxy-info</refname>
+			<refpurpose>Display information about credentials</refpurpose>
+		</refnamediv>
+		<refsynopsisdiv><cmdsynopsis>
+				<command>myproxy-info</command>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		<refsect1><title>Tool description</title>
+			<para> The <command>myproxy-info</command> command displays information about a user's
+				credentials stored on a <command>myproxy-server</command>. The user must have a
+				valid proxy credential as generated by <command>grid-proxy-init</command> or retrieved
+				by <command>myproxy-logon</command> when running this command. </para>
+			</refsect1><refsect1><title>Command syntax</title>
+			<screen>myproxy-info [ options ]</screen>
+			</refsect1><refsect1><title>Command options</title>
+			<table><title>myproxy-info options</title>
+				<tgroup cols="2"><tbody>
+						<row><entry> -h, --help</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -u, --usage</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -v, --verbose</entry>
+							<entry> Enables verbose debugging output to the terminal.</entry>
+						</row>
+						<row><entry> -V, --version</entry>
+							<entry> Displays version information and exits.</entry>
+						</row>
+						<row><entry> -s <emphasis>hostname</emphasis>, --pshost <emphasis>hostname</emphasis></entry>
+							<entry> Specifies the hostname of the myproxy-server. This option is required
+								if the <command>MYPROXY_SERVER</command> environment variable is not defined. If
+								specified, this option overrides the <command>MYPROXY_SERVER</command> environment
+								variable.</entry>
+						</row>
+						<row><entry> -p <emphasis>port</emphasis>, --psport <emphasis>port</emphasis></entry>
+							<entry> Specifies the TCP port number of the <command>myproxy-server</command>. Default:
+								7512.</entry>
+						</row>
+						<row><entry> -l <emphasis>name</emphasis>, --username <emphasis>name</emphasis></entry>
+							<entry> Specifies the MyProxy account to query. By default, the command uses the
+								value of the <command>LOGNAME</command> environment variable. Use this option to
+								specify a different account username on the MyProxy server. The MyProxy username
+								need not correspond to a real Unix username.</entry>
+						</row>
+						<row><entry> -d, --dn_as_username</entry>
+							<entry> Use the certificate subject (DN) as the default username, instead of the <command>LOGNAME</command> environment
+								variable.</entry>
+						</row>
+				</tbody></tgroup>
+			</table>
+	</refsect1></refentry>
+	<refentry id="myproxy-logon">
+		<refmeta>
+			<refentrytitle>myproxy-logon</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		<refnamediv>
+			<refname>myproxy-logon</refname>
+			<refpurpose>Retrieve a credential</refpurpose>
+		</refnamediv>
+		<refsynopsisdiv><cmdsynopsis>
+				<command>myproxy-logon</command>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		<refsect1><title>Tool description</title>
+			<para> The <command>myproxy-logon</command> command retrieves a credential from
+				the <command>myproxy-server</command> that was previously stored using <command>myproxy-init</command>.
+				In the default mode, the command prompts for the MyProxy pass phrase associated with the credential to be retrieved and stores the retrieved credential
+				in the standard location (<emphasis>/tmp/x509up</emphasis>_<emphasis>u&lt;uid&gt;</emphasis>). </para>
+
+			<para> If the repository contains an end-entity certificate, this command
+				will retrieve an RFC 3820 compliant proxy (also known as "proxy draft
+				compliant impersonation proxy") by default.  Set the the GT_PROXY_MODE
+				environment variable to "old" to retrieve a "legacy globus proxy"
+				instead.  If the repository contains a <glossterm>proxy certificate</glossterm>, the
+				retrieved proxy will always be of the same type as the stored proxy. </para>
+
+			<para> The <command>myproxy-logon</command> is also available under the name
+			       <command>myproxy-get-delegation</command> for backward compatibility. </para>
+
+			</refsect1><refsect1><title>Command syntax</title>
+			<screen>myproxy-logon [ options ]</screen>
+			</refsect1><refsect1><title>Command options</title>
+			<table><title>myproxy-logon options</title>
+				<tgroup cols="2"><tbody>
+						<row><entry> -h, --help</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -u, --usage</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -v, --verbose</entry>
+							<entry> Enables verbose debugging output to the terminal.</entry>
+						</row>
+						<row><entry> -V, --version</entry>
+							<entry> Displays version information and exits.</entry>
+						</row>
+						<row><entry> -s <emphasis>hostname</emphasis>, --pshost <emphasis>hostname</emphasis></entry>
+							<entry> Specifies the hostname of the myproxy-server. This option is required
+								if the <command>MYPROXY_SERVER</command> environment variable is not defined. If
+								specified, this option overrides the <command>MYPROXY_SERVER</command> environment
+								variable.</entry>
+						</row>
+						<row><entry> -p <emphasis>port</emphasis>, --psport <emphasis>port</emphasis></entry>
+							<entry> Specifies the TCP port number of the <command>myproxy-server</command>. Default:
+								7512.</entry>
+						</row>
+						<row><entry> -l, --username</entry>
+							<entry> Specifies the MyProxy account under which the credential to retrieve is
+								stored. By default, the command uses the value of the <command>LOGNAME</command> environment
+								variable. Use this option to specify a different account username on the
+								MyProxy server. The MyProxy username need not correspond to a real Unix username.</entry>
+						</row>
+						<row><entry> -d, --dn_as_username</entry>
+							<entry> Use the certificate subject (DN) as the default username, instead of the <command>LOGNAME</command> environment
+								variable. When used with the <command>-a</command> option, the certificate subject
+								of the authorization credential is used. Otherwise, the certificate subject
+								of the default credential is used.</entry>
+						</row>
+						<row><entry> -t <emphasis>hours</emphasis>, --proxy_lifetime <emphasis>hours</emphasis></entry>
+							<entry> Specifies the lifetime of credentials retrieved from the <command>myproxy-server</command> using
+								the stored credential. The resulting lifetime is the shorter of the requested
+								lifetime and the lifetime specified when the credential was stored using <command>myproxy-init</command>.
+								Default: 12 hours.</entry>
+						</row>
+						<row><entry> -o <emphasis>file</emphasis>, --out <emphasis>file</emphasis></entry>
+							<entry> Specifies where the retrieved proxy credential should be stored. If this
+								option is not specified, the proxy credential will be stored in the default
+								location (<command>/tmp/x509up_u&lt;uid&gt;</command>).</entry>
+						</row>
+						<row><entry> -a <emphasis>file</emphasis>, --authorization <emphasis>file</emphasis></entry>
+							<entry> Specifies a credential to be used for authorizing the request instead
+								of a passphrase. When renewing a credential, use this option to specify the
+								existing, valid credential that you want to renew. Renewing a credential
+								generally requires two certificate-based authentications. The client authenticates
+								with its identity, using the credential in the standard location or specified by <command>X509_USER_PROXY</command> or <command>X509_USER_CERT</command> and <command>X509_USER_KEY</command> in
+								addition to authenticating with the existing credential, in the location
+								specified by this option, that it wants to renew.</entry>
+						</row>
+						<row><entry> -k <emphasis>name</emphasis>, --credname <emphasis>name</emphasis></entry>
+							<entry> Specifies the name of the credential that is to be retrieved or renewed.</entry>
+						</row>
+						<row><entry> -S, --stdin_pass</entry>
+							<entry> by default, the command prompts for a passphrase and reads the passphrase
+								from the active tty. When running the command non-interactively, there may
+								be no associated tty. Specifying this option tells the command to read passphrases
+								from standard input without prompts or confirmation.</entry>
+						</row>
+				</tbody></tgroup>
+			</table>
+	</refsect1></refentry>
+	<refentry id="myproxy-store">
+	  <refmeta>
+	    <refentrytitle>myproxy-store</refentrytitle>
+	    <manvolnum>1</manvolnum>
+	  </refmeta>
+	  <refnamediv>
+	    <refname>myproxy-store</refname>
+	    <refpurpose>Store end-entity credential for later retrieval</refpurpose>
+	  </refnamediv>
+	  <refsynopsisdiv><cmdsynopsis>
+	      <command>myproxy-store</command>
+	    </cmdsynopsis>
+	  </refsynopsisdiv>
+	  <refsect1><title>Tool description</title>
+	    <para>
+	      The  <command>myproxy-store</command>  command uploads a credential to a <command>myproxy-server(8)</command>
+	      for later retrieval.  Unlike <command>myproxy-init(1)</command>,  this  command  transfers
+	      the  private  key  over  the  network (over a private channel).  In the
+	      default  mode,  the  command  will  take  the  credentials   found   in
+	      ~/.globus/usercert.pem  and ~/.globus/userkey.pem and store them in the
+	      <command>myproxy-server(8)</command> repository.  Proxy credentials with a default lifetime
+	      of 12 hours can then be retrieved by <command>myproxy-logon(1)</command> using the credential passphrase.  The default behavior can  be  overridden  by  options
+	      specified below.
+	    </para>
+	    <para>
+	      The  hostname  where the <command>myproxy-server(8)</command> is running must be specified
+	      by either defining the <command>MYPROXY_SERVER</command> environment variable  or  the  <command>-s</command>
+	      option.
+	    </para>
+	  </refsect1><refsect1><title>Command syntax</title>
+	    <screen>myproxy-store [ options ]</screen>
+	  </refsect1><refsect1><title>Command options</title>
+	    <table><title>myproxy-store options</title>
+	      <tgroup cols="2"><tbody>
+		  <row><entry>-h, --help</entry>
+		    <entry> Displays command usage text and exits.</entry>
+		  </row>
+		  <row><entry>-u, --usage</entry>
+		    <entry> Displays command usage text and exits.</entry>
+		  </row>
+		  <row><entry>-v, --verbose</entry>
+		    <entry> Enables verbose debugging output to the
+		      terminal.</entry>
+		  </row>
+		  <row><entry>-V, --version</entry>
+		    <entry> Displays version information and exits.</entry>
+		  </row>
+		  <row><entry>-s <emphasis>hostname</emphasis>, --pshost <emphasis>hostname</emphasis></entry>
+		    <entry> Specifies  the  hostname  of the myproxy-server.  This option is
+		      required if  the  <command>MYPROXY_SERVER</command>  environment  variable  is  not
+		      defined.  If specified, this option overrides the <command>MYPROXY_SERVER</command>
+		      environment variable.</entry>
+		  </row>
+		  <row><entry>-p <emphasis>port</emphasis>, --psport <emphasis>port</emphasis></entry>
+		    <entry> Specifies  the  TCP  port  number  of   the   <command>myproxy-server(8)</command>.
+		      Default: 7512.</entry>
+		  </row>
+		  <row><entry>-l, --username</entry>
+		    <entry> Specifies  the MyProxy account under which the credential should
+		      be stored.  by default, the command uses the value of  the  <command>LOGNAME</command> environment variable.  Use this option to specify a different account username on the MyProxy server.  The  MyProxy  username need not correspond to a real Unix username.</entry>
+		  </row>
+		  <row><entry>-c <emphasis>filename</emphasis>, --certfile <emphasis>filename</emphasis></entry>
+		    <entry> Specifies  the  filename  of  the source certificate.  This is a
+		      required parameter.</entry>
+		  </row>
+		  <row><entry>-y <emphasis>filename</emphasis>, --keyfile <emphasis>filename</emphasis></entry>
+		    <entry> Specifies the filename of the source private  key.   This  is  a
+		      required parameter.</entry>
+		  </row>
+		  <row><entry>-t <emphasis>hours</emphasis>, --proxy_lifetime <emphasis>hours</emphasis></entry>
+		    <entry> Specifies the maximum lifetime of credentials retrieved from the
+		      <command>myproxy-server(8)</command> using  the  stored  credential.   Default:  12
+		      hours</entry>
+		  </row>
+		  <row><entry>-d, --dn_as_username</entry>
+		    <entry> Use  the  certificate  subject  (DN)  as  the  default username,
+		      instead of the <command>LOGNAME</command> environment variable.</entry>
+		  </row>
+		  <row><entry>-a, --allow_anonymous_retrievers</entry>
+		    <entry> Allow credentials to be retrieved with just pass phrase  authentication.  by default, only entities with credentials that match
+		      the  <command>myproxy-server.config(5)</command>  default  retriever   policy   may
+		      retrieve  credentials.   This  option  allows  entities  without
+		      existing credentials to retrieve a credential using pass  phrase
+		      authentication  by  including  "anonymous" in the set of allowed
+		      retrievers.   The  <command>myproxy-server.config(5)</command>  server-wide  policy
+		      must  also  allow "anonymous" clients for this option to have an
+		      effect.</entry>
+		  </row>
+		  <row><entry>-A, --allow_anonymous_renewers</entry>
+		    <entry> Allow credentials to be renewed by any client.  Any client  with
+		      a  valid  credential with a subject name that matches the stored
+		      credential may retrieve a new credential from the MyProxy repository  if  this option is given.  Since this effectively defeats
+		      the purpose of proxy credential  lifetimes,  it  is  not  recommended.  It is included only for sake of completeness.</entry>
+		  </row>
+		  <row><entry>-r <emphasis>dn</emphasis>, --retrievable_by <emphasis>dn</emphasis></entry>
+		    <entry> Allow the specified entity to retrieve credentials.  by default,
+		      the argument will be matched against the common name (CN) of the
+		      client  (for  example:  "Jim  Basney").   Specify <command>-x</command> before this
+		      option to match against the full distinguished  name  (DN)  (for
+		      example: "/C=US/O=National Computational Science Alliance/CN=Jim
+		      Basney") instead.</entry>
+		  </row>
+		  <row><entry>-E <emphasis>dn</emphasis>, --retrieve_key <emphasis>dn</emphasis></entry>
+		    <entry> Allow the specified entity to retrieve  end-entity  credentials.
+		      by default, the argument will be matched against the common name
+		      (CN) of the client (for  example:  "Jim  Basney").   Specify  <command>-x</command>
+		      before  this option to match against the full distinguished name
+		      (DN)  (for  example:  "/C=US/O=National  Computational   Science
+		      Alliance/CN=Jim Basney") instead.</entry>
+		  </row>
+		  <row><entry>-R <emphasis>dn</emphasis>, --renewable_by <emphasis>dn</emphasis></entry>
+		    <entry> Allow  the  specified  entity to renew credentials.  by default,
+		      the argument will be matched against the common name (CN) of the
+		      client (for example: "condorg/modi4.ncsa.uiuc.edu").  Specify <command>-x</command>
+		      before this option to match against the full distinguished  name
+		      (DN)   (for  example:  "/C=US/O=National  Computational  Science
+		      Alliance/CN=condorg/modi4.ncsa.uiuc.edu") instead.  This  option
+		      implies  <command>-n</command> since passphrase authentication is not used for credential renewal.</entry>
+		  </row>
+		  <row><entry>-x, --regex_dn_match</entry>
+		    <entry> Specifies that the DN used by options <command>-r</command> and <command>-R</command> will be  matched
+		      as a regular expression.</entry>
+		  </row>
+		  <row><entry>-X, --match_cn_only</entry>
+		    <entry> Specifies  that the DN used by options <command>-r</command> and <command>-R</command> will be matched
+		      against the Common Name (CN) of the subject.</entry>
+		  </row>
+		  <row><entry>-k <emphasis>name</emphasis>, --credname <emphasis>name</emphasis></entry>
+		    <entry> Specifies the credential name.</entry>
+		  </row>
+		  <row><entry>-K <emphasis>description</emphasis>, --creddesc <emphasis>description</emphasis></entry>
+		    <entry> Specifies credential description.</entry>
+		  </row>
+	      </tbody></tgroup>
+	    </table>
+	</refsect1></refentry>
+	<refentry id="myproxy-retrieve">
+	  <refmeta>
+	    <refentrytitle>myproxy-retrieve</refentrytitle>
+	    <manvolnum>1</manvolnum>
+	  </refmeta>
+	  <refnamediv>
+	    <refname>myproxy-retrieve</refname>
+	    <refpurpose>Retrieve an end-entity credential</refpurpose>
+	  </refnamediv>
+	  <refsynopsisdiv><cmdsynopsis>
+	      <command>myproxy-retrieve</command>
+	    </cmdsynopsis>
+	  </refsynopsisdiv>
+	  <refsect1><title>Tool description</title>
+	    <para> The  <command>myproxy-retrieve</command>  command retrieves a credential directly from the
+	      <command>myproxy-server(8)</command> that was previously stored using  <command>myproxy-init(1)</command>  or
+	      <command>myproxy-store(1)</command>.   Unlike <command>myproxy-logon(1)</command>, this command transfers the
+	    	<glossterm>private key</glossterm> in the repository over the network (over  a  private  channel).   To  obtain  a  proxy  credential,  we  recommend
+	      using <command>myproxy-logon(1)</command> instead. </para>
+	    <para> In the default mode, the command prompts for the pass phrase associated
+	      with the credential to be retrieved and stores the retrieved credential
+	      in    the    standard    location    (    ~/.globus/usercert.pem    and
+	      ~/.globus/userkey.pem).  You could then run <command>grid-proxy-init</command> to create a
+	      proxy credential from the retrieved credentials. </para>
+	  </refsect1><refsect1><title>Command syntax</title>
+	    <screen>myproxy-retrieve [ options ]</screen>
+	  </refsect1><refsect1><title>Command options</title>
+	  <table><title>myproxy-retrieve options</title>
+	      <tgroup cols="2"><tbody>
+		  <row><entry>-h, --help</entry>
+		    <entry> Displays command usage text and exits.</entry>
+		  </row>
+		  <row><entry>-u, --usage</entry>
+		    <entry> Displays command usage text and exits.</entry>
+		  </row>
+		  <row><entry>-v, --verbose</entry>
+		    <entry> Enables verbose debugging output to the terminal.</entry>
+		  </row>
+		  <row><entry>-V, --version</entry>
+		    <entry> Displays version information and exits.</entry>
+		  </row>
+		  <row><entry>-s <emphasis>hostname</emphasis>, --pshost <emphasis>hostname</emphasis></entry>
+		    <entry> Specifies the hostname of the myproxy-server.   This  option  is
+		      required  if  the  <command>MYPROXY_SERVER</command>  environment  variable  is not
+		      defined.  If specified, this option overrides the <command>MYPROXY_SERVER</command>
+		      environment variable.</entry>
+		  </row>
+		  <row><entry>-p <emphasis>port</emphasis>, --psport <emphasis>port</emphasis></entry>
+		    <entry> Specifies   the   TCP  port  number  of  the  <command>myproxy-server(8)</command>.
+		      Default: 7512.</entry>
+		  </row>
+		  <row><entry>-l, --username</entry>
+		    <entry> Specifies the MyProxy account  under  which  the  credential  to
+		      retrieve  is  stored.  by default, the command uses the value of
+		      the <command>LOGNAME</command> environment variable.  Use this option to specify  a
+		      different  account  username on the MyProxy server.  The MyProxy
+		      username need not correspond to a real Unix username.</entry>
+		  </row>
+		  <row><entry>-d, --dn_as_username</entry>
+		    <entry> Use the  certificate  subject  (DN)  as  the  default  username,
+		      instead of the <command>LOGNAME</command> environment variable.  When used with the
+		      <command>-a</command> option, the certificate subject of the authorization  credential is used.  Otherwise, the certificate subject of the default
+		      credential is used.</entry>
+		  </row>
+		  <row><entry>-t <emphasis>hours</emphasis>, --proxy_lifetime <emphasis>hours</emphasis></entry>
+		    <entry> Specifies  the  lifetime  of  credentials  retrieved  from   the
+		      <command>myproxy-server(8)</command>  using  the  stored credential.  The resulting
+		      lifetime is the shorter of the requested lifetime and the  lifetime  specified  when  the  credential was stored using <command>myproxy-init(1)</command>.  Default: 12 hours.</entry>
+		  </row>
+		  <row><entry>-c <emphasis>filename</emphasis>, --certfile <emphasis>filename</emphasis></entry>
+		    <entry> Specifies  the  filename  of  where  the   certificate  will  be
+		      stored.</entry>
+		  </row>
+		  <row><entry>-y <emphasis>filename</emphasis>, --keyfile <emphasis>filename</emphasis></entry>
+		    <entry> Specifies the filename of where the private  key will be stored.</entry>
+		  </row>
+		  <row><entry>-a <emphasis>file</emphasis>, --authorization <emphasis>file</emphasis></entry>
+		    <entry> Specifies a credential to be used for  authorizing  the  request
+		      instead  of  a passphrase.  When renewing a credential, use this
+		      option to specify the existing, valid credential that  you  want
+		      to renew.  Renewing a credential generally requires two certificate-based authentications.  The client authenticates  with  its
+		      identity, using the credential in the standard location or specified by <command>X509_USER_PROXY</command> or <command>X509_USER_CERT</command> and <command>X509_USER_KEY</command>  in
+		      addition  to authenticating with the existing credential, in the
+		      location specified by this option, that it wants to renew.</entry>
+		  </row>
+		  <row><entry>-k <emphasis>name</emphasis>, --credname <emphasis>name</emphasis></entry>
+		    <entry> Specifies the name of the credential that is to be retrieved  or
+		      renewed.</entry>
+		  </row>
+		  <row><entry>-S, --stdin_pass</entry>
+		    <entry> By  default,  the command prompts for a passphrase and reads the
+		      passphrase from the active tty.  When running the  command  non-
+		      interactively,  there may be no associated tty.  Specifying this
+		      option tells the command to read passphrases from standard input
+		      without prompts or confirmation.</entry>
+		  </row>
+	      </tbody></tgroup>
+	    </table>
+	</refsect1></refentry>
+	<refentry id="myproxy-destroy">
+		<refmeta>
+			<refentrytitle>myproxy-destroy</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		<refnamediv>
+			<refname>myproxy-destroy</refname>
+			<refpurpose>Remove a credential from the repository</refpurpose>
+		</refnamediv>
+		<refsynopsisdiv><cmdsynopsis>
+				<command>myproxy-destroy</command>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		<refsect1><title>Tool description</title>
+			<para> The <command>myproxy-destroy</command> command removes a credential from the <command>myproxy-server</command> that
+				was previously stored using <command>myproxy-init</command>. The user must have a
+				valid proxy credential as generated by <command>grid-proxy-init</command> or retrieved
+				by <command>myproxy-logon</command> when running this command. </para>
+			</refsect1><refsect1><title>Command syntax</title>
+			<screen>myproxy-destroy [ options ] </screen>
+			</refsect1><refsect1><title>Command options</title>
+			<table><title>myproxy-destroy options</title>
+				<tgroup cols="2"><tbody>
+						<row><entry> -h, --help</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -u, --usage</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -v, --verbose</entry>
+							<entry> Enables verbose debugging output to the terminal.</entry>
+						</row>
+
+						<row><entry> -V, --version</entry>
+							<entry> Displays version information and exits.</entry>
+						</row>
+						<row><entry> -s <emphasis>hostname</emphasis>, --pshost <emphasis>hostname</emphasis></entry>
+							<entry> Specifies the hostname of the myproxy-server. This option is required
+								if the <command>MYPROXY_SERVER</command> environment variable is not defined. If
+								specified, this option overrides the <command>MYPROXY_SERVER</command> environment
+								variable.</entry>
+						</row>
+						<row><entry> -p <emphasis>port</emphasis>, --psport <emphasis>port</emphasis></entry>
+							<entry> Specifies the TCP port number of the <command>myproxy-server</command>. Default:
+								7512.</entry>
+						</row>
+						<row><entry> -l, --username</entry>
+							<entry> Specifies the MyProxy account under which the credential to destroy is
+								stored. By default, the command uses the value of the <command>LOGNAME</command> environment
+								variable. Use this option to specify a different account username on the
+								MyProxy server. The MyProxy username need not correspond to a real Unix username.</entry>
+						</row>
+						<row><entry> -d, --dn_as_username</entry>
+							<entry> Use the certificate subject (DN) as the default username, instead of the <command>LOGNAME</command> environment
+								variable.</entry>
+						</row>
+						<row><entry> -k <emphasis>name</emphasis>, --credname <emphasis>name</emphasis></entry>
+							<entry> Specifies name of the credential to be destroyed.</entry>
+						</row>
+				</tbody></tgroup>
+			</table>
+	</refsect1></refentry>
+	<refentry id="myproxy-change-pass-phrase">
+		<refmeta>
+			<refentrytitle>myproxy-change-pass-phrase</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		<refnamediv>
+			<refname>myproxy-change-pass-phrase</refname>
+			<refpurpose>Change a credential's passphrase</refpurpose>
+		</refnamediv>
+		<refsynopsisdiv><cmdsynopsis>
+				<command>myproxy-change-pass-phrase</command>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		<refsect1><title>Tool description</title>
+			<para> The <command>myproxy-change-pass-phrase</command> command changes the passphrase
+				under which a credential is protected in the MyProxy repository. The command
+				first prompts for the current passphrase for the credential, then prompts twice
+				for the new passphrase. Only the credential owner can change a credential's
+				passphrase. The user must have a valid proxy credential as generated by <command>grid-proxy-init</command> or
+				retrieved by <command>myproxy-logon</command> when running this command. </para>
+			</refsect1><refsect1><title>Command syntax</title>
+			<screen>myproxy-change-pass-phrase [ options ] </screen>
+			</refsect1><refsect1><title>Command options</title>
+			<table><title>myproxy-change-pass-phrase options</title>
+				<tgroup cols="2"><tbody>
+						<row><entry> -h, --help</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -u, --usage</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -v, --verbose</entry>
+							<entry> Enables verbose debugging output to the terminal.</entry>
+						</row>
+						<row><entry> -V, --version</entry>
+							<entry> Displays version information and exits.</entry>
+						</row>
+						<row><entry> -s <emphasis>hostname</emphasis>, --pshost <emphasis>hostname</emphasis></entry>
+							<entry> Specifies the hostname of the myproxy-server. This option is required
+								if the <command>MYPROXY_SERVER</command> environment variable is not defined. If
+								specified, this option overrides the <command>MYPROXY_SERVER</command> environment
+								variable.</entry>
+						</row>
+						<row><entry> -p <emphasis>port</emphasis>, --psport <emphasis>port</emphasis></entry>
+							<entry> Specifies the TCP port number of the <command>myproxy-server</command>. Default:
+								7512.</entry>
+						</row>
+						<row><entry> -l, --username</entry>
+							<entry> Specifies the MyProxy account under which the credential should be stored.
+								by default, the command uses the value of the <command>LOGNAME</command> environment
+								variable. Use this option to specify a different account username on the
+								MyProxy server. The MyProxy username need not correspond to a real Unix
+								username.</entry>
+						</row>
+						<row><entry> -d, --dn_as_username</entry>
+							<entry> Use the certificate subject (DN) as the default username, instead of the <command>LOGNAME</command> environment
+								variable.</entry>
+						</row>
+						<row><entry> -k <emphasis>name</emphasis>, --credname <emphasis>name</emphasis></entry>
+							<entry> Specifies the credential name.</entry>
+						</row>
+						<row><entry> -S, --stdin_pass</entry>
+							<entry> by default, the command prompts for a passphrase and reads the passphrase
+								from the active tty. When running the command noninteractively, there may
+								be no associated tty. Specifying this option tells the command to read passphrases
+								from standard input without prompts or confirmation.</entry>
+						</row>
+				</tbody></tgroup>
+			</table>
+	</refsect1></refentry>
+	<refentry id="myproxy-admin-adduser">
+		<refmeta>
+			<refentrytitle>myproxy-admin-adduser</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		<refnamediv>
+			<refname>myproxy-admin-adduser</refname>
+			<refpurpose>Add a new <glossterm baseform="user credentials">user credential</glossterm></refpurpose>
+		</refnamediv>
+		<refsynopsisdiv><cmdsynopsis>
+				<command>myproxy-admin-adduser</command>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		<refsect1><title>Tool description</title>
+			<para> The <command>myproxy-admin-adduser</command> command creates a new credential for
+				a user and loads it into the MyProxy repository. It is a <command>perl</command> script
+				that runs <command>grid-cert-request</command> (a standard Globus Toolkit program)
+				and <command>grid-ca-sign</command> (from the Globus Simple CA package) to create
+				the credential and then runs <command>myproxy-admin-load-credential</command> to
+				load the credential into the MyProxy repository. The command prompts for the
+				common name to be included in the new certificate (if the <command>-c</command> argument
+				is not specified), the Globus Simple CA key password for signing the certificate,
+				the MyProxy username (if the <command>-l</command> or <command>-d</command> arguments are
+				not specified), and the MyProxy passphrase for the credential. Most of the
+				command-line options for this command are passed directly to the <command>myproxy-admin-load-credential</command> command.
+				The Globus Simple CA must be configured before using this command. </para>
+			</refsect1><refsect1><title>Command syntax</title>
+			<screen>myproxy-admin-adduser [ options ] </screen>
+			</refsect1><refsect1><title>Command options</title>
+			<table><title>myproxy-admin-adduser options</title>
+				<tgroup cols="2"><tbody>
+						<row><entry> -h</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -u</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -c <emphasis>cn</emphasis></entry>
+							<entry> Specifies the Common Name for the new credential (for example: "Jim Basney").</entry>
+						</row>
+						<row><entry> -s <emphasis>dir</emphasis></entry>
+							<entry> Specifies the location of the credential storage directory. The directory
+								must be accessible only by the user running the <command>myproxy-server</command> process
+								for security reasons. Default: /var/myproxy or $GLOBUS_LOCATION/var/myproxy.</entry>
+						</row>
+						<row><entry> -l <emphasis>username</emphasis></entry>
+							<entry> Specifies the MyProxy account under which the credential should be stored.</entry>
+						</row>
+						<row><entry> -t <emphasis>hours</emphasis></entry>
+							<entry> Specifies the maximum lifetime of credentials retrieved from the <command>myproxy-server</command> using
+								the stored credential. Default: 12 hours.</entry>
+						</row>
+						<row><entry> -n</entry>
+							<entry> Disables passphrase authentication for the stored credential. If specified,
+								the command will not prompt for a passphrase, the credential will not be
+								encrypted by a passphrase in the repository, and the credential will not
+								be retrievable using passphrase authentication with <command>myproxy-logon</command>.
+								This option is used for storing renewable credentials and is implied by <command>-R</command>.
+							</entry>
+						</row>
+						<row><entry> -d</entry>
+							<entry> Use the certificate subject (DN) as the username.</entry>
+						</row>
+						<row><entry> -a</entry>
+							<entry> Allow credentials to be retrieved with just pass phrase authentication.
+								by default, only entities with credentials that match the <command>myproxy-server.config</command> default
+								retriever policy may retrieve credentials. This option allows entities without
+								existing credentials to retrieve a credential using pass phrase authentication
+								by including "anonymous" in the set of allowed retrievers. The <command>myproxy-server.config</command> server-wide
+								policy must also allow "anonymous" clients for this option to have an effect.</entry>
+						</row>
+						<row><entry> -A</entry>
+							<entry> Allow credentials to be renewed by any client. Any client with a valid
+								credential with a subject name that matches the stored credential may retrieve
+								a new credential from the MyProxy repository if this option is given. Since
+								this effectively defeats the purpose of proxy credential lifetimes, it is
+								not recommended. It is included only for sake of completeness.</entry>
+						</row>
+						<row><entry> -r <emphasis>dn</emphasis></entry>
+							<entry> Allow the specified entity to retrieve credentials. By default, the argument
+								will be matched against the common name (CN) of the client (for example: "Jim
+								Basney"). Specify <command>-x</command> before this option to match against the
+								full distinguished name (DN) (for example: "/C=US/O=National Computational
+								Science Alliance/CN=Jim Basney") instead.</entry>
+						</row>
+						<row><entry> -R <emphasis>dn</emphasis></entry>
+							<entry> Allow the specified entity to renew credentials. By default, the argument
+								will be matched against the common name (CN) of the client (for example: "condorg/modi4.ncsa.uiuc.edu").
+								Specify <command>-x</command> before this option to match against the full distinguished
+								name (DN) (for example: "/C=US/O=National Computational Science Alliance/CN=condorg/modi4.ncsa.uiuc.edu")
+								instead. This option implies <command>-n</command> since passphrase authentication
+								is not used for credential renewal.</entry>
+						</row>
+						<row><entry> -x</entry>
+							<entry> Specifies that the DN used by options <command>-r</command> and <command>-R</command> will
+								be matched as a regular expression.</entry>
+						</row>
+						<row><entry> -X</entry>
+							<entry> Specifies that the DN used by options <command>-r</command> and <command>-R</command> will
+								be matched against the Common Name (CN) of the subject.</entry>
+						</row>
+						<row><entry> -k <emphasis>name</emphasis></entry>
+							<entry> Specifies the credential name.</entry>
+						</row>
+						<row><entry> -K <emphasis>description</emphasis></entry>
+							<entry> Specifies credential description.</entry>
+						</row>
+				</tbody></tgroup>
+			</table>
+	</refsect1></refentry>
+	<refentry id="myproxy-admin-change-pass">
+		<refmeta>
+			<refentrytitle>myproxy-admin-change-pass</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		<refnamediv>
+			<refname>myproxy-admin-change-pass</refname>
+			<refpurpose>Change credential passphrase</refpurpose>
+		</refnamediv>
+		<refsynopsisdiv><cmdsynopsis>
+				<command>myproxy-admin-change-pass</command>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		<refsect1><title>Tool description</title>
+			<para> The <command>myproxy-admin-change-pass</command> command changes the passphrase
+				used to encrypt a credential in the MyProxy repository. The command first prompts
+				for the current passphrase for the credential, then prompts twice for the new
+				passphrase. If an empty passphrase is given, the credential will not be encrypted.
+				It accesses the repository directly and must be run on the machine where the <command>myproxy-server</command> is
+				installed from the account that owns the repository. </para>
+			</refsect1><refsect1><title>Command syntax</title>
+			<screen>myproxy-admin-change-pass [ options ] </screen>
+			</refsect1><refsect1><title>Command options</title>
+			<table><title>myproxy-admin-change-pass options</title>
+				<tgroup cols="2"><tbody>
+						<row><entry> -h </entry>
+							<entry>Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -u</entry>
+							<entry>Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -s <emphasis>dir</emphasis> </entry>
+							<entry>Specifies the location of the credential storage directory. The directory
+								must be accessible only by the user running the <command>myproxy-server</command> process
+								for security reasons. Default: /var/myproxy or $GLOBUS_LOCATION/var/myproxy.</entry>
+						</row>
+						<row><entry> -l <emphasis>username</emphasis></entry>
+							<entry> Specifies the MyProxy account under which the credential should be stored.</entry>
+						</row>
+						<row><entry> -k <emphasis>name</emphasis></entry>
+							<entry> Specifies the credential name.</entry>
+						</row>
+						<row><entry> -S, --stdin_pass</entry>
+							<entry> by default, the command prompts for a passphrase and reads the passphrase
+								from the active tty. When running the command non-interactively, there may
+								be no associated tty. Specifying this option tells the command to read passphrases
+								from standard input without prompts or confirmation.</entry>
+						</row>
+						<row><entry>-v, --verbose</entry>
+						<entry>Enables verbose debugging output to the terminal.</entry></row>
+						<row><entry>-V, --version</entry>
+						<entry>Displays version information and exits.</entry></row>
+				</tbody></tgroup>
+			</table>
+	</refsect1></refentry>
+	<refentry id="myproxy-admin-query">
+		<refmeta>
+			<refentrytitle>myproxy-admin-query</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		<refnamediv>
+			<refname>myproxy-admin-query</refname>
+			<refpurpose>Query repository contents</refpurpose>
+		</refnamediv>
+		<refsynopsisdiv><cmdsynopsis>
+				<command>myproxy-admin-query</command>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		<refsect1><title>Tool description</title>
+			<para> The <command>myproxy-admin-query</command> command displays information about the
+				credentials stored in the MyProxy repository. It can also be used to remove
+				credentials from the repository. It accesses the repository directly and must
+				be run on the machine where the <command>myproxy-server</command> is installed from
+				the account that owns the repository. </para>
+			</refsect1><refsect1><title>Command syntax</title>
+			<screen>myproxy-admin-query [ options ] </screen>
+			</refsect1><refsect1><title>Command options</title>
+			<table><title>myproxy-admin-query options</title>
+				<tgroup cols="2"><tbody>
+						<row><entry> -h, --help</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -u, --usage</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -v, --verbose</entry>
+							<entry> Enables verbose debugging output to the terminal.</entry>
+						</row>
+						<row><entry> -V, --version</entry>
+							<entry> Displays version information and exits.</entry>
+						</row>
+						<row><entry> -l <emphasis>name</emphasis>, --username <emphasis>name</emphasis></entry>
+							<entry> Returns information on credentials for a single username. By default, the
+								command returns information on all credentials for all usernames.</entry>
+						</row>
+						<row><entry> -k <emphasis>name</emphasis>, --credname <emphasis>name</emphasis></entry>
+							<entry> Returns information on the credentials with the specified name.</entry>
+						</row>
+						<row><entry> -e <emphasis>hours</emphasis>, --expiring_in <emphasis>hours</emphasis></entry>
+							<entry> Returns information on credentials with remaining lifetime less than the
+								specified number of hours. For example, <command>-e</command> <emphasis>0</emphasis> will return
+								all expired credentials.</entry>
+						</row>
+						<row><entry> -t <emphasis>hours</emphasis>, --time_left <emphasis>hours</emphasis></entry>
+							<entry> Returns information on credentials with remaining lifetime greater than
+								the specified number of hours.</entry>
+						</row>
+						<row><entry> -s <emphasis>dir</emphasis>, --storage <emphasis>dir</emphasis></entry>
+							<entry> Specifies the location of the credential storage directory. The directory
+								must be accessible only by the user running the <command>myproxy-server</command> process
+								for security reasons. Default: /var/myproxy or $GLOBUS_LOCATION/var/myproxy.</entry>
+						</row>
+						<row><entry> -r, --remove</entry>
+							<entry> Remove the credentials matching the query from the repository. For example, <emphasis>myproxy-admin-query</emphasis> <emphasis>-e</emphasis> <emphasis>0</emphasis> <emphasis>-r</emphasis> will
+								remove all expired credentials from the repository.</entry>
+						</row>
+						<row><entry> -L <emphasis>'msg'</emphasis>, --lock <emphasis>'msg'</emphasis></entry>
+							<entry> Places the credentials matching the query under an administrative lock
+								and specifies a message to be returned on access attempts.
+							        Be sure to put the message in quotes so it is captured as one argument
+							        to the command.</entry>
+						</row>
+						<row><entry> -U, --unlock</entry>
+							<entry> Removes any administrative locks for the credentials matching the query.</entry>
+						</row>
+				</tbody></tgroup>
+			</table>
+	</refsect1></refentry>
+	<refentry id="myproxy-admin-load-credential">
+		<refmeta>
+			<refentrytitle>myproxy-admin-load-credential</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		<refnamediv>
+			<refname>myproxy-admin-load-credential</refname>
+			<refpurpose>Directly load repository</refpurpose>
+		</refnamediv>
+		<refsynopsisdiv><cmdsynopsis>
+				<command>myproxy-admin-load-credential</command>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		<refsect1><title>Tool description</title>
+			<para> The <command>myproxy-admin-load-credential</command> command stores a credential
+				directly in the local MyProxy repository. It must be run from the account that
+				owns the repository. Many of the options are similar to <command>myproxy-init</command>.
+				However, unlike <command>myproxy-init</command>, <command>myproxy-admin-load-credential</command> does
+				not create a proxy from the source credential but instead directly loads a
+				copy of the source credential into the repository. The pass phrase of the source
+				credential is unchanged. Use <command>myproxy-admin-change-pass</command> to change
+				the pass phrase after the credential is stored if desired. Proxy credentials
+				with a default lifetime of 12 hours can then be retrieved by <command>myproxy-logon</command> using
+				the MyProxy passphrase. The command's behavior is controlled by the following
+				options. </para>
+			</refsect1><refsect1><title>Command syntax</title>
+			<screen>myproxy-admin-load-credential [ options ] </screen>
+			</refsect1><refsect1><title>Command options</title>
+			<table><title>myproxy-admin-load-credential options</title>
+				<tgroup cols="2"><tbody>
+						<row><entry> -h, --help</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -u, --usage</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -v, --verbose</entry>
+							<entry> Enables verbose debugging output to the terminal.</entry>
+						</row>
+						<row><entry> -V, --version</entry>
+							<entry> Displays version information and exits.</entry>
+						</row>
+						<row><entry> -s <emphasis>dir</emphasis>, --storage <emphasis>dir</emphasis></entry>
+							<entry> Specifies the location of the credential storage directory. The directory
+								must be accessible only by the user running the <command>myproxy-server</command> process
+								for security reasons. Default: /var/myproxy or $GLOBUS_LOCATION/var/myproxy</entry>
+						</row>
+						<row><entry> -c <emphasis>filename</emphasis>, --certfile <emphasis>filename</emphasis></entry>
+							<entry> Specifies the filename of the source certificate. This is a required parameter.</entry>
+						</row>
+						<row><entry> -y <emphasis>filename</emphasis>, --keyfile <emphasis>filename</emphasis></entry>
+							<entry> Specifies the filename of the source private key. This is a required parameter.</entry>
+						</row>
+						<row><entry> -l <emphasis>username</emphasis>, --username <emphasis>username</emphasis></entry>
+							<entry> Specifies the MyProxy account under which the credential should be stored.
+								by default, the command uses the value of the <command>LOGNAME</command> environment
+								variable. Use this option to specify a different account username on the
+								MyProxy server. The MyProxy username need not correspond to a real Unix
+								username.</entry>
+						</row>
+						<row><entry> -t <emphasis>hours</emphasis>, --proxy_lifetime <emphasis>hours</emphasis></entry>
+							<entry> Specifies the maximum lifetime of credentials retrieved from the <command>myproxy-server</command> using
+								the stored credential. Default: 12 hours.</entry>
+						</row>
+						<row><entry> -d, --dn_as_username</entry>
+							<entry> Use the certificate subject (DN) as the username.</entry>
+						</row>
+						<row><entry> -a, --allow_anonymous_retrievers</entry>
+							<entry> Allow credentials to be retrieved with just pass phrase authentication.
+								by default, only entities with credentials that match the <command>myproxy-server.config</command> default
+								retriever policy may retrieve credentials. This option allows entities without
+								existing credentials to retrieve a credential using pass phrase authentication
+								by including "anonymous" in the set of allowed retrievers. The <command>myproxy-server.config</command> server-wide
+								policy must also allow "anonymous" clients for this option to have an effect.</entry>
+						</row>
+						<row><entry> -A, --allow_anonymous_renewers</entry>
+							<entry> Allow credentials to be renewed by any client. Any client with a valid
+								credential with a subject name that matches the stored credential may retrieve
+								a new credential from the MyProxy repository if this option is given. Since
+								this effectively defeats the purpose of proxy credential lifetimes, it is
+								not recommended. It is included only for sake of completeness.</entry>
+						</row>
+						<row><entry> -r <emphasis>dn</emphasis>, --retrievable_by <emphasis>dn</emphasis></entry>
+							<entry> Allow the specified entity to retrieve credentials. By default, the argument
+								will be matched against the common name (CN) of the client (for example: "Jim
+								Basney"). Specify <command>-x</command> before this option to match against the
+								full distinguished name (DN) (for example: "/C=US/O=National Computational
+								Science Alliance/CN=Jim Basney") instead.</entry>
+						</row>
+						<row><entry> -R <emphasis>dn</emphasis>, --renewable_by <emphasis>dn</emphasis></entry>
+							<entry> Allow the specified entity to renew credentials. By default, the argument
+								will be matched against the common name (CN) of the client (for example: "condorg/modi4.ncsa.uiuc.edu").
+								Specify <command>-x</command> before this option to match against the full distinguished
+								name (DN) (for example: "/C=US/O=National Computational Science Alliance/CN=condorg/modi4.ncsa.uiuc.edu")
+								instead.</entry>
+						</row>
+						<row><entry> -x, --regex_dn_match</entry>
+							<entry> Specifies that the DN used by options <command>-r</command> and <command>-R</command> will
+								be matched as a regular expression.</entry>
+						</row>
+						<row><entry> -X, --match_cn_only</entry>
+							<entry> Specifies that the DN used by options <command>-r</command> and <command>-R</command> will
+								be matched against the Common Name (CN) of the subject.</entry>
+						</row>
+						<row><entry> -k <emphasis>name</emphasis>, --credname <emphasis>name</emphasis></entry>
+							<entry> Specifies the credential name.</entry>
+						</row>
+						<row><entry> -K <emphasis>description</emphasis>, --creddesc <emphasis>description</emphasis></entry>
+							<entry> Specifies credential description.</entry>
+						</row>
+				</tbody></tgroup>
+			</table>
+	</refsect1></refentry>
+	<refentry id="myproxy-server">
+		<refmeta>
+			<refentrytitle>myproxy-server</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		<refnamediv>
+			<refname>myproxy-server</refname>
+			<refpurpose>Store credentials in an online repository</refpurpose>
+		</refnamediv>
+		<refsynopsisdiv><cmdsynopsis>
+				<command>myproxy-server</command>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		<refsect1><title>Tool description</title>
+			<para> The <command>myproxy-server</command> is a server that runs on a trusted, secure
+				host and manages a database of security credentials for use from remote sites.
+				The <command>myproxy-init</command> program stores credentials with associated policies
+				that specify credential lifetimes and who is authorized to retrieve credentials.
+				The <command>myproxy-server.config</command> file sets server-wide policies that
+				are used in conjunction with the policies set by <command>myproxy-init</command> to
+				control who is authorized to store and retrieve credentials. </para>
+			</refsect1><refsect1><title>Command syntax</title>
+			<screen>myproxy-server [ options ]</screen>
+			</refsect1><refsect1><title>Command options</title>
+			<table><title>myproxy-server options</title>
+				<tgroup cols="2"><tbody>
+						<row><entry>-h, --help</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -u, --usage</entry>
+							<entry> Displays command usage text and exits.</entry>
+						</row>
+						<row><entry> -v, --verbose</entry>
+							<entry> Enables verbose debugging output to the terminal.</entry>
+						</row>
+						<row><entry> -V, --version</entry>
+							<entry> Displays version information and exits.</entry>
+						</row>
+						<row><entry> -d, --debug</entry>
+							<entry> Run the server in debug mode. In this mode, the server will run in the
+								foreground, will accept one connection, write log messages to the terminal
+								while processing the incoming request, and exit after completing one request.</entry>
+						</row>
+						<row><entry> -p <emphasis>port</emphasis>, --port <emphasis>port</emphasis></entry>
+							<entry> Specifies the TCP port number that the <command>myproxy-server</command> should
+								listen on. Default: 7512.</entry>
+						</row>
+						<row><entry> -c <emphasis>file</emphasis>, --config <emphasis>file</emphasis></entry>
+							<entry> Specifies the location of the <command>myproxy-server</command> configuration
+								file. Default: /etc/myproxy-server.config or $GLOBUS_LOCATION/etc/myproxy-server.config.</entry>
+						</row>
+						<row><entry> -s <emphasis>dir</emphasis>, --storage <emphasis>dir</emphasis></entry>
+							<entry> Specifies the location of the credential storage directory. The directory
+								must be accessible only by the user running the <command>myproxy-server</command> process
+								for security reasons. Default: /var/myproxy or $GLOBUS_LOCATION/var/myproxy.</entry>
+						</row>
+				</tbody></tgroup>
+			</table>
+		</refsect1>
+	</refentry>
+
+</reference>

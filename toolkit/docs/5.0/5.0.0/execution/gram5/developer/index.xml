@@ -1,0 +1,258 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
+[
+
+<!ENTITY % xinclude SYSTEM "../../../xinclude.mod" >
+%xinclude;
+
+]>
+<book id="gram5Developer">
+<title>GT <replaceable role="entity">version</replaceable> GRAM5: Developer's Guide</title>
+<titleabbrev>Developer's Guide</titleabbrev> 
+
+<bookinfo><abstract><title>Introduction</title>
+<para>
+  This guide is intended to help a developer create compatible GRAM5 clients
+  and alternate service implementations.
+</para>
+<para>
+  The key concepts for the GRAM component have not changed. Its purpose
+  is still to provide the mechanisms to execute remote applications for a
+  user. Given an XML job description, GRAM submits the job to a scheduling system
+  such as <glossterm baseform="Portable Batch System">PBS</glossterm> or
+  <glossterm>Condor</glossterm>, or to a simple fork-based way of spawning processes,
+  and monitors it until completion. More details can be found here:
+</para>
+
+<para><ulink url="http://www.globus.org/toolkit/docs/3.2/gram/key">http://www.globus.org/toolkit/docs/3.2/gram/key</ulink></para>
+</abstract></bookinfo>
+
+<chapter id="gram5-developer-beforeyoubegin">
+    <title>Before you begin</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Feature_Summary_Frag.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Platform_Summary_Frag.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Compatibility_Summary_Frag.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Dependencies_Summary_Frag.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Security_Considerations_Frag.xml"/>
+</chapter>
+
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="GRAM5_Selective_Concepts.xml"/>
+
+<chapter id="gram5-developer-scenarios">
+    <title>Scenarios</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="GRAM5_C_Scenarios_Frag.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="GRAM5_Java_Scenarios_Frag.xml"/>
+</chapter>
+
+<chapter id="gram5-developer-tutorials"><title>Tutorials</title>
+    <para>The following tutorials are available for GRAM5 developers:</para>
+    <itemizedlist>
+      <listitem><simpara>
+          <ulink url="scheduler-tutorial.html">GRAM5 Scheduler Interface Tutorial</ulink>
+      </simpara></listitem>
+    </itemizedlist>
+  </chapter>
+  
+  
+<chapter id="gram5-developer-archdes"><title>Architecture and design overview</title>
+
+  <para>  The GRAM services in GT <replaceable role="entity">version</replaceable> are WSRF compliant. One of the key
+  concepts in the <ulink url="http://www.globus.org/wsrf/">WSRF</ulink> specification
+  is the decoupling of a  service with the public &quot;state&quot; of the service
+  in the interface via the <ulink url="http://www.globus.org/wsrf/faq.php#wsrf12">implied
+    resource pattern</ulink>.
+    Following this concept, the data of GT <replaceable role="entity">version</replaceable> GRAM jobs is published
+  as part of WSRF resources, while there is only one service
+  to start jobs or query and monitor their state. This is different from the
+   <ulink url="http://www.gridforum.org/ogsi-wg/drafts/draft-ggf-ogsi-gridservice-04_2002-10-04.pdf">OGSI</ulink> model
+   of GT3 where each job was represented as a separate service. There is still
+   a job factory service that can be called in order to create job instances
+   (represented as WSRF resources). Each scheduling system that GRAM is interfaced
+   with is represented as a separate factory resource. By making a call to the
+   factory service while associating the call to  the appropriate factory resource,
+   the job submitting actor can create  a job resource mapping to a job in the
+   chosen scheduling system.</para>
+
+<section id="gram5-developer-archdes-states">
+<title>Job States</title>
+
+<section id="gram5-developer-archdes-states-overview">
+<title>Overview</title>
+<para>
+  The <glossterm baseform="Managed Executable Job Service">Managed Executable Job Service (MEJS)</glossterm> relies on a state machine to handle state
+transitions. There are two sets of states: external and internal.  The external
+states are those that the user gets in notifications and can be queried as a
+resource property. The internal states are those that are strictly used by the
+state machine to step through all the necessary internal tasks that need to be
+performed for a particular job.
+</para>
+
+<para>
+  The Managed Multi Job Service does not rely on a state machine, but instead
+makes judgements after receiving notifications from the sub-jobs about which
+  external state it should be in.  The external states for the <glossterm baseform="Managed Multi Job Service">MMJS</glossterm> are identical
+to the ones used by the MEJS.
+</para>
+</section>
+
+<section id="gram5-developer-archdes-states-listing">
+<title>External and Internal States of the Managed Job Services</title>
+
+<section id="gram5-developer-archdes-states-external">
+<title>External States of the Managed Job Services</title>
+<itemizedlist>
+<listitem><simpara>Unsubmitted</simpara></listitem>
+<listitem><simpara>StageIn</simpara></listitem>
+<listitem><simpara>Pending</simpara></listitem>
+<listitem><simpara>Active</simpara></listitem>
+<listitem><simpara>Suspended</simpara></listitem>
+<listitem><simpara>StageOut</simpara></listitem>
+<listitem><simpara>CleanUp</simpara></listitem>
+<listitem><simpara>Done</simpara></listitem>
+<listitem><simpara>Failed</simpara></listitem>
+<listitem><simpara>UserTerminateDone</simpara></listitem>
+<listitem><simpara>UserTerminateFailed</simpara></listitem>
+</itemizedlist>
+</section>
+
+<section id="gram5-developer-archdes-states-internal">
+<title>Internal States of the Managed Executable Job Service</title>
+<itemizedlist>
+<listitem><simpara>None</simpara></listitem>
+<listitem><simpara>Start</simpara></listitem>
+<listitem><simpara>StageIn</simpara></listitem>
+<listitem><simpara>StageInHold</simpara></listitem>
+<listitem><simpara>StageInResponse</simpara></listitem>
+<listitem><simpara>Submit</simpara></listitem>
+<listitem><simpara>PendingHold</simpara></listitem>
+<listitem><simpara>WaitingForStateChanges</simpara></listitem>
+<listitem><simpara>Suspend</simpara></listitem>
+<listitem><simpara>Resume</simpara></listitem>
+<listitem><simpara>OpenStdout</simpara></listitem>
+<listitem><simpara>OpenStderr</simpara></listitem>
+<listitem><simpara>MergeStdout</simpara></listitem>
+<listitem><simpara>StageOut</simpara></listitem>
+<listitem><simpara>StageOutHold</simpara></listitem>
+<listitem><simpara>StageOutResponse</simpara></listitem>
+<listitem><simpara>CleanUp</simpara></listitem>
+<listitem><simpara>CleanUpHold</simpara></listitem>
+<listitem><simpara>FileCleanUp</simpara></listitem>
+<listitem><simpara>FileCleanUpResponse</simpara></listitem>
+<listitem><simpara>CacheCleanUp</simpara></listitem>
+<listitem><simpara>UserTerminate</simpara></listitem>
+<listitem><simpara>SystemTerminate</simpara></listitem>
+<listitem><simpara>FailureFileCleanUp</simpara></listitem>
+<listitem><simpara>FailureFileCleanUpResponse</simpara></listitem>
+<listitem><simpara>FailureCacheCleanUp</simpara></listitem>
+<listitem><simpara>FinalizeTermination</simpara></listitem>
+<listitem><simpara>Done</simpara></listitem>
+<listitem><simpara>Restart</simpara></listitem>
+</itemizedlist>
+</section>
+
+</section>
+
+<section id="gram5-developer-archdes-statediag">
+<title>Managed Executable Job Service Internal State</title>
+<para>
+Here is a diagram illustrating the internal state transitions of the
+Managed Executable Job Service and how the external states are triggered
+  within this progression:
+</para>
+  
+  <figure id="MEJS_internal_state_transitions"><title>Managed Executable Job Service Internal State Transition Diagram</title>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="MEJS_internal_state_transitions-Resized.jpg" format="JPEG" align="center"/>
+      </imageobject>
+    </mediaobject>
+  </figure>
+  
+</section>
+
+</section>
+
+</chapter>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Interface_API_Frag.xml"/>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Interface_WSDL_Frag.xml"/>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Debugging_Frag.xml"/>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Troubleshooting_Frag.xml"/>
+
+  <!-- n/a 
+  <chapter id="gram5-developer-protocols"><title>Semantics and syntax of non-WSDL protocols</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Interface_Protocol_Frag.xml"/>
+  </chapter>
+  -->
+
+  <!-- n/a 
+  <chapter id="gram5-developer-guis"><title>Graphical User Interface</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Interface_GUI_Frag.xml"/>
+  </chapter>
+  -->
+
+  <!-- n/a 
+  <chapter id="gram5-developer-env"><title>Environment variable interface</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Interface_Env_Frag.xml"/>
+  </chapter>
+  -->
+
+<!--
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Interface_Commandline_Frag.xml"/>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Interface_Config_Frag.xml"/>
+-->
+
+<chapter id="gram5-developer-relateddocs"><title>Related Documentation</title>
+<para>No related documentation links have been determined at this time.</para>
+</chapter>
+
+<chapter id="gram5-developer-internal-components"><title>Internal Components</title>
+  <para><ulink url="internal-components.html">Internal Components</ulink></para></chapter>
+
+  <!-- 
+  <appendix id="gram5-developer-samples">
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="../GRAM5_Samples.xml"/>
+  </appendix>
+  -->
+  <glossary role="auto" id="glossary-gram5Developer">
+    <!-- 
+    <remark>some terms not in the docs but wanted in glossary: 
+    <glossterm>scheduler</glossterm>
+    </remark>
+    -->
+    <glossdiv><title>A</title>
+      <glossentry>
+        <glossterm>Dummy term</glossterm>
+        <glossdef>
+          <para>This is a dummy entry for the automatic glossary database. Do not edit.</para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+  </glossary>
+    <index type="gram5">
+    <title>Index</title>
+</index>
+</book>

@@ -1,0 +1,329 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+<chapter id="gram5-troubleshooting"><title>Troubleshooting</title>
+    <indexterm type="gram5"><primary>troubleshooting</primary></indexterm>
+    <indexterm type="gram5"><primary>troubleshooting</primary><secondary>errors</secondary></indexterm>
+     <para>For a list of common errors in GT, see <olink targetdoc="gtuser" targetptr="errors"/>.</para>
+<para>For information about sys admin logging, see <olink targetdoc="gram5Admin" targetptr="gram5-admin-debugging"/> in the GRAM5 
+    Admin Guide.</para>
+<section><title>Troubleshooting tips</title>    
+    <para>In case you run into problems you can do the following</para>
+    <itemizedlist>
+      <listitem><simpara><indexterm type="gram5"><primary>troubleshooting</primary><secondary>check documentation</secondary></indexterm>Check the GRAM5 documentation. Maybe you'll
+        find hints here to solve your problem.</simpara>
+      </listitem>
+      <listitem><simpara><indexterm type="gram5"><primary>troubleshooting</primary><secondary>mailing lists</secondary></indexterm>Send e-mails to one of several Globus e-mail lists.
+        You'll have to subscribe to a list before you can send an e-mail to it.
+        See <ulink url="http://dev.globus.org/wiki/Mailing_Lists">here</ulink> for
+        general e-mail lists and information on how to subscribe to a list and
+        <ulink url="http://dev.globus.org/wiki/GRAM#Mailing_Lists">here</ulink>
+        for GRAM specific lists.</simpara>
+        <simpara>Probably the best lists for GRAM5-related problems are
+        gt-user@globus.org and gram-user@globus.org</simpara>
+      </listitem>
+      <listitem><simpara><indexterm type="gram5"><primary>troubleshooting</primary><secondary>check container log</secondary></indexterm>Check the container log for errors.</simpara>
+        <simpara>In case you don't find anything suspicious you can increase the
+        log-level of GRAM5 or other relevant components. 
+        Maybe the additional logging-information will
+        tell you what's going wrong. </simpara>
+        <simpara>To get debug information from GRAM5, un-comment the following line
+        in <computeroutput>$GLOBUS_LOCATION/container-log4j.properties</computeroutput>
+          by removing the leading '#' and restart the GT5 server.</simpara>
+        <screen># log4j.category.org.globus.exec=DEBUG</screen>
+        <simpara>The logging output can either be found on the console if you started
+        the container using <computeroutput>globus-start-container</computeroutput>
+        (maybe with arguments) or in <computeroutput>$GLOBUS_LOCATION/var/container.log</computeroutput> in
+        if you started the container using the command
+        <computeroutput>globus-start-container-detached</computeroutput></simpara>
+      </listitem> 
+    </itemizedlist>
+</section>
+    
+
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="GRAM5_Errors_Frag.xml"/>
+    
+<!--
+<section id="gram5-globusrun-ws-latency"><title>Latency in globusrun-ws calls</title>    
+    <para>
+      This section illustrates some topics of <emphasis>how</emphasis> globusrun-ws
+      interacts with GRAM5 and what happens behind the scenes in various job submission
+      scenarios. This will hopefully remove some magic and enable a user to find out
+      the best usage of globusrun-ws for a given use-case.
+    </para>
+    <para>
+      Some parts of this discussion may be useful for people writing their own clients too.
+      We won't discuss the use of job descriptions or how to specify the remote server
+      or the desired local resource manager, as this is explained in other documents.
+    </para>
+    <para>
+      If you are interested in the exact message exchanges you can run globusrun-ws in
+      debug mode (globusrun-ws -dbg ...). All SOAP messages exchanges are then printed
+      to the command-line.
+    </para>
+    <para>
+      There are many facets to a job submission that impact performance of
+      globusrun-ws calls:
+      <itemizedlist>
+         <listitem><simpara>
+           In what mode is globusrun-ws used (interactive, batch)?
+         </simpara></listitem>
+         <listitem><simpara>
+           Does the job include staging?
+         </simpara></listitem>
+         <listitem><simpara>
+           If credentials are needed: Job credentials? Staging credentials?
+           Delegation per job? Shared delegation?
+         </simpara></listitem>
+         <listitem><simpara>
+           How do i get the output of my run: Staging? Streaming?
+         </simpara></listitem>
+      </itemizedlist>
+    </para>
+
+    <section id="gram5-globusrun-ws-latency-simple-batch">
+    <title>Simple batch job</title>
+    <para>
+      The cheapest job with respect to message exchanges between client and server you can
+      submit in GRAM5 is the following:
+      <screen>globusrun-ws -submit -b -o myJob.epr -c /bin/date</screen>
+      globusrun-ws creates a job description from what the user provided on the
+      command-line and will then submit the job to the server. After the job has been
+      submitted it'll return to the command-line immediately, and you are done.
+    </para>
+    <para>Done? ... Done how?</para>
+    <para>
+      Well, you are done if you are not interested in your job status. If you want
+      to know about the status of your job, you must query for state yourself now. You
+      can use globusrun-ws for that:
+      <screen>globusrun-ws -status -f myJob.epr</screen>
+      Depending on how long your job is supposed to run you may not want or need to query
+      for job status very often. The query interval is up to you.
+      If one of your state queries returns "done" or "failed" you should call
+      <screen>globusrun-ws -kill -j myJob.epr</screen>
+      This is an optional but in fact a very desirable step, as each job is represented
+      by a so called job resource on the server-side which consumes server-memory
+      and/or server-disk-space. If a job is fully processed it is desirable to free up
+      the memory and the disk-space consumed by this job representation.
+    </para>
+    </section>
+    
+    <section id="gram5-globusrun-ws-latency-simple-interactive">
+      <title>Simple interactive job</title>
+      <para>
+        Now, if you don't want to query for job status manually, and if you don't
+        want to destroy a job resource manually, you can let globusrun-ws do the job for you:
+        <screen>globusrun-ws -submit -c /bin/date</screen>
+        globusrun-ws submits the job and requests to be notified about major job state
+        changes. Behind the scenes a notification listener is started that is responsible
+        for catching job state change notification messages sent by the server.
+      </para>
+      <para>
+        globusrun-ws will not return to the command-line until the job is done or failed.
+        Note that this does not mean that globusrun-ws is holding an open connection to the
+        server, it is just listening for incoming notification messages.
+        Once it is getting a notification message globusrun-ws prints the status of the job to
+        the command-line. After it got the final notification, i.e. the job finished or failed,
+        it will destroy the job resource on the server-side.
+      </para>
+    </section>
+    
+    <section id="gram5-globusrun-ws-latency-jobdelegation">
+      <title>Adding job delegation</title>
+      <para>
+      If your executable needs a job credential, e.g. to do other WS calls, you
+      can delegate a credential, so that your executable can act on your behalf.
+      There are two ways to do that:
+      <itemizedlist>
+        <listitem><simpara>
+          You can delegate credentials manually and let globusrun-ws add a reference
+          (EPR) of the delegated credential to the job description.
+        </simpara></listitem>
+        <listitem><simpara>
+          You can ask globusrun-ws to delegate for you. It'll pick up you proxy
+          cert and interact with the DelegationService - all very convenient.
+        </simpara></listitem>
+      </itemizedlist>
+      </para>
+      
+      <section id="gram5-globusrun-ws-latency-jobdelegation-manual">
+        <title>Delegating manually</title>
+        <para>
+          See at <olink targetdoc="gram5User" targetptr="gram5-user-delegating">Delegating
+          Credentials</olink> for how to delegate a credential.
+          Submit the job using
+          <screen>globusrun-ws -submit -Jf delegCred.epr -c /some/executable/needing/creds</screen>
+          globusrun-ws incorporates the EPR of the job credential into the job description
+          ane then submits the job. 
+          With respect to message exchanges no overhead will happen. The only thing that
+          will slow down is the job processing on the server-side: The credential must
+          be fetched from the DelegationService, and then a user-proxy file is created
+          from the data of the delegated credential in ~/.globus/of the home-directory
+          of the remote user. This happens before the job is executed.
+        </para>
+        <para>
+          After globusrun-ws got the final notification, i.e. the job finished or failed,
+          it destroys the job resource on the server-side. Note that globusrun-ws does not
+          destroy the delegated credential for you. If you don't need the delegated
+          credential anymore you'll have to destroy it manually.
+          See at <olink targetdoc="gram5User" targetptr="gram5-user-delegating">Delegating
+          Credentials</olink> for how to do that.
+        </para>
+        <para>  
+          Also note that the proxy-file is not removed at the end of the job automatically,
+          and also not when globusrun-ws destroys the job resource. It is removed when the
+          delegated credential is destroyed. If several jobs use the same delegated credential
+          and request the creation of a proxy, then this proxy is only created once, namely as
+          part of the first job.
+        </para>
+      </section>      
+
+      <section id="gram5-globusrun-ws-latency-jobdelegation-automatical">
+        <title>Let globusrun-ws delegate for you</title>
+        <para>
+          If you don't want to delegate manually, and if you don't want to share a
+          job credential amongst several jobs, then you can let globusrun-ws delegate for
+          you. globusrun-ws then also takes care that the delegated credential is destroyed
+          at the end of the job, which includes the removal of the generated user-proxy
+          file at the end of job processing also destroyed. Submit such a job like this:
+          <screen>globusrun-ws -submit -J -c /some/executable/needing/creds</screen>
+          First globusrun-ws fetches the values of the resource properties
+          <filename>delegationFactoryEndpoint</filename> and
+          <filename>stagingDelegationFactoryEndpoint</filename> from the
+          ManagedJobFactoryService. Actually, in this example, only the
+          <filename>delegationFactoryEndpoint</filename> is needed, because we only do job
+          delegation, and no staging delegation. But it's one WS call either way, so it does
+          not really matter.
+        </para>
+        <note>
+          <para>
+            Why do we need to fetch the value of RP delegationFactoryEndpoint from the
+            ManagedJobFactoryService? Isn't the DelegationFactoryService always located at
+            the same address like the job services, and just the service name differs?
+          </para>
+          <para>
+            The answer is yes. Strictly speaking this RP query is not necessary because the
+            delegationFactoryEndpoint is always in the same container like GRAM5, so globusrun-ws
+            could just use the same address and replace the service name.
+            This is different for jobs with staging though, as will be described in the
+            explanations for jobs with staging.
+          </para>
+        </note>
+        <para>
+          Then globusrun-ws fetches the value for the resource property
+          <filename>CertificateChain</filename>
+          of the DelegationFactoryService and then calls <filename>RequestSecurityToken</filename>
+          on the DelegationFactoryService, which does the actual delegation. The
+          DelegationFactoryService responds with an EPR of the resource that represents the
+          delegated credential.
+        </para>
+        <para>
+          globusrun-ws will then incorporate the EPR of the job credential into the job
+          description and submits the job. 
+          On the server-side the credential is fetched from the DelegationService, and
+          the user-proxy file is created from the data of the delegated credential
+          in ~/.globus/of the home-directory of the remote user.
+        </para>
+        <para>
+          After globusrun-ws catched the final job status change notification it destroys
+          the job resource and then the delegated credential. When the delegated credential
+          is destroyed the user proxy file will be removed on the server too.
+        </para>
+      </section>      
+
+    </section>
+
+    <section id="gram5-globusrun-ws-latency-stagingdelegation">
+      <title>Adding staging delegation</title>
+      <para>
+      </para>
+    </section>
+
+    <section id="gram5-globusrun-ws-latency-streaming">
+      <title>Streaming</title>
+      <para>
+      </para>
+    </section>
+    
+</section>
+
+-->
+
+<!--    
+<section><title>The job manager detected an invalid script response</title>
+    <para>[fixme - the bug referenced shows resolved and fixed - can we take this out?] Check for a restrictive umask. When the service writes the native
+        scheduler <glossterm>job description</glossterm> to a file, an overly restrictive umask will
+        cause the permissions on the file to be such that the submission
+        script run through <glossterm baseform="superuser do">sudo</glossterm> as the user cannot read the file (bug #2655).
+    </para>
+</section>
+
+    <section>
+<title>Fork jobs work fine, but submitting PBS jobs with globusrun-ws hangs at: <computeroutput>Current job state: Unsubmitted</computeroutput></title>
+
+<itemizedlist>
+    <listitem><simpara>Make sure the the log_path in
+    <filename>$GLOBUS_LOCATION/etc/globus-pbs.conf</filename> points to locally accessible scheduler
+    logs that are readable by the user running the container.  The Scheduler
+    Event Generator (SEG) will not work without local scheduler logs to monitor.
+    This can also apply to other resource managers, but is most comonly seen
+    with PBS.
+    </simpara></listitem>
+    <listitem><simpara>If the SEG configuration looks sane, try running the SEG
+    tests. They are located in
+    <filename>$GLOBUS_LOCATION/test/globus_scheduler_event_generator_*_test/</filename>. If Fork jobs
+    work, you only need to run the PBS test. Run each test by going to the
+    associated directory and run <filename>./TESTS.pl</filename>. If any tests fail, report this to
+    the gram-dev@globus.org mailing list.
+    </simpara></listitem>
+    <listitem><simpara>If the SEG tests succeed, the next step is to figure out
+    the ID assigned by PBS to the queued job. Enable GRAM debug logging by
+    uncommenting the appropriate line in the
+    <filename>$GLOBUS_LOCATION/container-log4j.properties</filename> configuration file.
+    Restart the container, run a PBS job, and search the container log for a
+    line that contains "Received local job ID" to obtain the local job ID.
+    </simpara></listitem>
+    <listitem><simpara>Once you have the local job ID you can check the latest
+    PBS logs pointed to by the value of "log_path" in
+    <filename>$GLOBUS_LOCATION/etc/globus-pbs.conf</filename> to make sure the job's status is being
+    logged. If the status is not being logged, check the documentation for your
+    flavor of PBS to see if there's any futher configuration that needs to be
+    done to enable job status logging. For example, PBS Pro requires a
+    sufficient -e &lt;bitmask&gt; option added to the pbs_server command line to
+    enable enough logging to satisfy the SEG.
+    </simpara></listitem>
+    <listitem><simpara>If the correct status is being logged, try running the
+    SEG manually to see if it is reading the log file properly. The general
+    form of the SEG command line is as follows:
+
+    <computeroutput>
+    $GLOBUS_LOCATION/libexec/globus-scheduler-event-generator -s pbs -t &lt;timestamp&gt;
+    </computeroutput>
+
+    The timestamp is in seconds since the epoch and dictates how far back in the
+    log history the SEG should scan for job status events. The command should
+    hang after dumping some status data to stdout. If no data appears, change
+    the timestamp to an earlier time. If nothing ever appears, report this to
+    the gram-user@globus.org mailing list.
+    </simpara></listitem>
+    <listitem><simpara>If running the SEG manually succeeds, try running another
+    job and make sure the job process actually finishes and PBS has logged the
+    correct status before giving up and cancelling globusrun-ws. If things are
+    still not working, report your problem and exactly what you have tried to
+    remedy the situtation to the gram-user@globus.org mailing list.
+    </simpara></listitem>
+</itemizedlist>
+</section>
+<section><title>When restarting the container, I get the following error:
+<computeroutput>Error getting delegation resource</computeroutput></title>
+
+    <para>Most likely this is simply a case of the delegated
+    credential expiring.  Either refresh it for the affected job or destroy
+    the job resource.
+    </para>
+</section>
+-->
+      
+</chapter>

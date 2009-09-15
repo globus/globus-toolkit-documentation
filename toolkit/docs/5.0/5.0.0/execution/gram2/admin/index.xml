@@ -1,0 +1,962 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+<book id="gram2Admin">
+<title>GT <replaceable role="entity">version</replaceable> GRAM2: Admin Guide</title>
+<titleabbrev>Admin Guide</titleabbrev>
+
+
+ <chapter id="gram2-admin-install"><title>Building and Installing GRAM</title>
+   <para>
+     Gram will be installed during the normal installation of the GT <replaceable role="entity">version</replaceable> and needs
+     no extra steps.
+   </para>
+ </chapter>
+
+ <chapter id="gram2-admin-configuring"><title>Configuring GRAM</title>
+
+   <section id="gram2-admin-configfiles"><title>Configuration Files</title>
+     
+     <para>
+       GRAM uses the following configuration files and directories:
+       <orderedlist>
+         <listitem>
+           <para>
+             <ulink url="#gram2-admin-configfile-gatekeeper">
+             globus-gatekeeper.conf</ulink>
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <ulink url="#gram2-admin-configfile-jobmanager">
+             globus-job-manager.conf</ulink>
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <ulink url="#gram2-admin-configfile-gridservices">
+             grid-services/</ulink>
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <ulink url="#gram2-admin-configfile-gridmapfile">
+             /etc/grid-security/grid-mapfile</ulink>
+           </para>
+         </listitem>
+       </orderedlist>
+     </para>
+     
+     <para>
+       <emphasis role="strong" id="gram2-admin-configfile-gatekeeper">
+       1. globus-gatekeeper.conf</emphasis>
+     </para>
+     
+     <para>
+       Here is the default globus-gatekeeper.conf:
+     </para>
+     <screen>-x509_cert_dir /etc/grid-security/certificates
+-x509_user_cert /etc/grid-security/hostcert.pem
+-x509_user_key /etc/grid-security/hostkey.pem
+-gridmap /etc/grid-security/grid-mapfile
+-home /usr/local/globus
+-e libexec
+-logfile var/globus-gatekeeper.log
+-port 2119
+-grid_services etc/grid-services
+-inetd</screen>
+     
+     <para>
+       <itemizedlist>
+         <listitem>
+           <para>
+             <emphasis>-x509_cert_dir</emphasis>
+             specifies where to find the trusted CA certificates.
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <emphasis>-x509_user_cert</emphasis>
+             specifies where to find the gatekeeper cert.
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <emphasis>-x509_user_key</emphasis>
+             specifies where to find the gatekeeper key.
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <emphasis>-gridmap</emphasis>
+             specifies where to find the grid-mapfile.
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <emphasis>-home</emphasis>
+             specifies where the -e and -logfile variables are relative to.
+             By default, this is your $GLOBUS_LOCATION.
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <emphasis>-e</emphasis>
+             specifies where to find scripts.
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <emphasis>-logfile</emphasis>
+             specifies where the gatekeeper should put its log.
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <emphasis>-port</emphasis>
+             specifies what port the gatekeeper will run on.
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <emphasis>-grid_service</emphasis>
+             specifies where the directory which contains the configured
+             jobmanagers is.
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <emphasis>-inetd</emphasis>
+             specifies that the gatekeeper should exit after dealing with one
+             request. That is because inetd will launch a copy of the gatekeeper
+             for every request that comes in to the port in -port. If you are
+             running a gatekeeper by hand, don't use this flag.
+           </para>
+         </listitem>
+       </itemizedlist>
+     </para>
+     
+     <para>
+       <emphasis role="strong" id="gram2-admin-configfile-jobmanager">
+       2. globus-job-manager.conf</emphasis>
+     </para>
+   
+     <para>
+       Here is an example globus-job-manager.conf:
+     </para>
+     <screen>-home "/home/bacon/pkgs/globus-2.4"
+-globus-gatekeeper-host bacon.mcs.anl.gov
+-globus-gatekeeper-port 2119
+-globus-gatekeeper-subject "/O=Grid/O=Globus/CN=bacon.mcs.anl.gov"
+-globus-host-cputype i686
+-globus-host-manufacturer pc
+-globus-host-osname Linux
+-globus-host-osversion 2.2.19-4.7mdk
+-save-logfile on_error
+-state-file-dir /home/bacon/pkgs/globus-2.4/tmp
+-machine-type unknown</screen>
+     
+     <para>
+       See <ulink url="#gram2-admin-jobmanager-config">Job Manager
+       Configuration</ulink> for details. Note
+       that the entries in this file are combined with the entries in
+       $GLOBUS_LOCATION/etc/grid-services for any specific jobmanager.
+     </para>
+     
+     <para>
+       <emphasis role="strong" id="gram2-admin-configfile-gridservices">
+       3. grid-services/</emphasis>
+     </para>  
+   
+     <para>
+       $GLOBUS_LOCATION/etc/grid-services contains one file per configured
+       jobmanager. The default jobmanager is contained in a file named
+       "jobmanager". Actually this is a symbolic link to one of the jobmanager files
+       located in the same directory that will be used as the default
+       jobmanager. Here are the contents of an example file for a fork
+       jobmanager:
+     </para>
+     <screen>stderr_log,local_cred - /home/bacon/pkgs/globus-2.4/libexec/globus-job-manager globus-job-manager -conf /home/bacon/pkgs/globus-2.4/etc/globus-job-manager.conf -type fork -rdn jobmanager-fork -machine-type unknown -publish-jobs</screen>
+     <para>
+       To install additional jobmanagers, you need to download the
+       scheduler-specific jobmanager package from the
+       <ulink url="http://www.globus.org/toolkit/downloads/development/">
+       download page</ulink>.
+     </para>
+   
+     <para>
+       <emphasis role="strong" id="gram2-admin-configfile-gridmapfile">
+       4. /etc/grid-security/grid-mapfile</emphasis>
+     </para>  
+     
+     <para>
+       The grid-mapfile specifies the list of authorized users of this resource.
+       Each entry is a pairing of a subject name and a local user account.
+       The location of this file is specified in globus-gatekeeper.conf
+     </para>
+     
+   </section>  
+     
+
+
+   <section id="gram2-admin-starting"><title>Configure Inetd and Xinetd</title>
+ 
+     <para>
+       While running globus-personal-gatekeeper as a user is a good test, you will
+       want to configure your machine to run globus-gatekeeper as root, so that
+       other people will be able to use your gatekeeper. If you just run the
+       personal gatekeeper, you won't have authority to su to other user accounts.
+       To setup a full gatekeeper, you will need to make the following modifications
+       as root:
+     </para>
+     <para>
+       In /etc/services, add the service name "gsigatekeeper" to port 2119.
+     </para>
+     <screen>gsigatekeeper      2119/tcp                   # Globus Gatekeeper</screen>
+     <para>
+       Depending on whether your host is running inetd or xinetd, you will need
+       to modify its configuration. If the directory /etc/xinetd.d/ exists, then
+       your host is likely running xinetd. If the directory doesn't exist, your
+       host is likely running inetd. Follow the appropriate instructions below
+       according to what your host is running.
+     </para>
+
+     <para>
+       <emphasis role="strong">Inetd</emphasis>
+     </para>
+     <para> 
+       For inetd, add the following entry, all on one line, to /etc/inetd.conf.
+       Be sure to replace GLOBUS_LOCATION below with the actual value of
+       $GLOBUS_LOCATION in your environment.
+     </para>
+     <screen>gsigatekeeper stream tcp nowait root
+    /usr/bin/env env LD_LIBRARY_PATH=GLOBUS_LOCATION/lib 
+    GLOBUS_LOCATION/sbin/globus-gatekeeper
+    -conf GLOBUS_LOCATION/etc/globus-gatekeeper.conf</screen>
+     <para>
+       This entry has changed from the entry provided for the gatekeeper in the
+       Globus Toolkit 2.0 Administrator's Guide.
+       The reason is that if you followed the instructions from the install
+       section, you do not have a static gatekeeper. This requires you to set the
+       LD_LIBRARY_PATH so that the gatekeeper can dynamically link against the
+       libraries in $GLOBUS_LOCATION/lib.  
+       To accomplish the setting of the environment variable in inetd, we use
+       /usr/bin/env (the location may vary on your system) to first set
+       LD_LIBRARY_PATH, and then to call the gatekeeper itself.
+     </para>
+     <para>
+       The advantage of this setup is that when you apply a security update to
+       your installation, the gatekeeper will pick it up dynamically without your
+       having to rebuild it.
+     </para>
+   
+     <para>
+       <emphasis role="strong">Xinetd</emphasis>
+     </para>
+     <para>
+       For xinetd, add a file called "globus-gatekeeper" to the /etc/xinetd.d/
+       directory that has the following contents. Be sure to replace
+       GLOBUS_LOCATION below with the actual value of $GLOBUS_LOCATION in your
+       environment.
+     </para>
+     <screen>service gsigatekeeper
+{
+   socket_type  = stream
+   protocol     = tcp
+   wait         = no
+   user         = root
+   env          = LD_LIBRARY_PATH=GLOBUS_LOCATION/lib
+   server       = GLOBUS_LOCATION/sbin/globus-gatekeeper
+   server_args  = -conf GLOBUS_LOCATION/etc/globus-gatekeeper.conf
+   disable      = no
+}</screen>
+     <para>
+       This entry has changed from the entry provided for the gatekeeper in the
+       Globus Toolkit 2.0 Administrator's Guide. The reason is that if you
+       followed the instructions from the install section, you do not have a
+       static gatekeeper.  This requires you to set the LD_LIBRARY_PATH so
+       that the gatekeeper can dynamically link against the libraries in
+       $GLOBUS_LOCATION/lib. To accomplish the setting of the environment
+       variable in xinetd, we use the "env =" option to set LD_LIBRARY_PATH
+       in the gatekeeper's environment.
+     </para>
+     <para>
+       The advantage of this setup is that when you apply a security update to
+       your installation, the gatekeeper will pick it up dynamically without
+       your having to rebuild it.
+     </para>
+     <para>
+       After you have added the globus-gatekeeper service to either inetd or
+       xinetd, you will need to notify inetd (or xinetd) that its configuration
+       file has changed. To do this, follow the instructions for the server you
+       are running below.
+     </para>
+
+     <para>
+       <emphasis role="strong">Inetd</emphasis>
+     </para>
+     <para>
+       On most Linux systems, you can simply run `killall -HUP inetd`
+       On other systems, the following has the same effect: ps aux | grep inetd
+       | awk '{print $2;}' | xargs kill -HUP
+     </para>
+
+     <para>
+       <emphasis role="strong">Xinetd</emphasis>
+     </para>
+     <para>
+       On most linux systems, you can simply run `/etc/rc.d/init.d/xinetd
+       restart`.  Your system may also support the "reload" option.
+       On other systems (or if that doesn't work), see man xinetd.
+     </para>
+    
+     <para>
+       At this point, your gatekeeper will start up when a connection comes in to
+       port 2119, and will keep a log of its activity in
+       <computeroutput>$GLOBUS_LOCATION/var/globus-gatekeeper.log.</computeroutput>
+       However, it does not yet have
+       any authorization mapping between certificate subjects and usernames.
+       You will need to create a file named
+       <computeroutput>/etc/grid-security/grid-mapfile</computeroutput>
+       which consists of single line entries listing a certificate subject
+       and a username, like this:
+     </para>
+     <screen>"/O=Grid/O=Globus/OU=your.domain/CN=Your Name"    youruserid</screen>
+     <para>
+       You can check your subject name using <computeroutput>grid-cert-info
+       -subject</computeroutput>. 
+       There are utility commands in $GLOBUS_LOCATION/sbin/grid-mapfile* for
+       adding entries, removing entries, and checking consistency. 
+     </para>
+
+   </section>
+
+   <section id="gram2-admin-config-advanced"><title>Advanced Configuration</title>
+   
+     <para>
+       Advanced configuration of GRAM consists of the following tasks:
+       <orderedlist>
+         <listitem>
+           <para><ulink url="#add-jobmanagers">Adding jobmanagers</ulink></para>
+         </listitem>
+         <listitem>
+           <para><ulink url="#add-ca">Adding trust to a new CA/removing trust from an old CA</ulink></para>
+         </listitem>
+         <listitem>
+           <para><ulink url="#start-ca">Starting your own CA</ulink></para>
+         </listitem>
+         <!--
+         <listitem>
+           <para><ulink url="#add-reporter">Adding gram-reporter</ulink></para>
+         </listitem>
+         -->
+       </orderedlist>
+     
+     </para>
+   
+     <para>
+       <emphasis role="strong" id="add-jobmanagers">1. Adding jobmanagers</emphasis>
+     </para>
+     <para>
+       For information about how to add a job manager for Condor, PBS, or LSF please
+       look <ulink url="#gram2-adding-jobmanager">here</ulink>
+     </para>
+   
+     <para>
+       <emphasis role="strong" id="add-ca">2. Adding trust to a new CA/removing trust from an old CA</emphasis>
+     </para>
+     <para>
+       The set of trusted Certificate Authorities is contained in the
+       /etc/grid-security/certificates directory. By default, that directory contains
+       two entries. One, called 42864e48.0 is the public certificate of the Globus CA.
+       The other, called 42864e48.signing_policy is the signing policy for the Globus
+       CA certificate.
+     </para>
+     <para>
+       The name "42864e8" comes from the openssl -hash option. If you create your own
+       Certificate Authority, you can use the command openssl x509 -in yourcert.pem
+       -noout -hash to determine its hash value. You will need to place a copy of
+       that public certificate, under the name hash.0 (where "hash" corresponds to
+       the output of the openssl command) in the /etc/grid-security/certificates of
+       every Toolkit installation which you want to trust certificates which your
+       CA has signed. Additionally, you will have to create a hash.signing_policy
+       file which contains the DN of your CA, as well as the namespace for which
+       your CA signs.
+     </para>
+     <para>
+       Namespaces for CAs are designed to be unique. If you do establish your own CA,
+       do not use the "/O=Grid/O=Globus" namespace. That is reserved for the Globus CA.
+     </para>
+     <para>
+       Removing trust for a particular CA is as easy as deleting the two files which
+       correspond to the CA. First, look for the .signing_policy which corresponds
+       to the CA you want to remove. Then remove both the .signing_policy and .0 file
+       that correspond to that hash.
+     </para>
+   
+     <para>
+       <emphasis role="strong" id="start-ca">3. Starting your own CA</emphasis>
+     </para>
+     <para>
+       There is a Globus package named
+       <olink targetdoc="simpleca">
+       Simple CA</olink> which is designed to help you
+       establish a CA for your test Grid.
+     </para>
+   
+     <!--
+     <para>
+       <emphasis role="strong" id="add-reporter">4. Adding gram-reporter</emphasis>
+     </para>
+     <para>   
+       If you installed the "All" or "All Server" binary bundles, the gram-reporter
+       package was installed for you, since it was known at install time that you had
+       both GRAM and MDS. gram-reporter publishes jobmanager information into MDS. 
+     </para>
+     <para>
+       To enable gram-reporter, you need to install the globus-gram-reporter package
+        plus one jobmanager-specific setup package.  You also need to edit the
+       globus-job-manager.conf file to add the "-publish-jobs" and
+       "-job-reporting-dir" options, as described in the
+       <ulink url="#gram2-admin-jobmanager">GRAM jobmanager
+       documentation</ulink>.  The jobmanager will output status files to the
+       -job-reporting-dir, which gram-reporter will read and publish into MDS.
+     </para>
+     -->
+   
+   </section>
+
+   
+ </chapter>
+
+
+
+
+ <chapter id="gram2-admin-jobmanager"><title>Job Manager</title>
+   <para>
+     The GRAM Job Manager program starts and monitors jobs on behalf of a GRAM
+     client application. The job manager is typically started by the Gatekeeper
+     program. It interfaces with a local scheduler to start jobs based on a job
+     request RSL string.
+   </para>
+   
+   <section id="gram2-admin-jobmanager-setup"><title>Job Manager Setup</title>
+     <para>
+       Job managers for Fork, PBS, LSF and Condor are included in the toolkit.
+       But only the fork job manager is installed by default during a normal installation
+       of the toolkit. The others must be installed separately if they are needed.
+     </para>
+     <para>  
+       To install them from a source distribution, follow these steps:
+       <orderedlist>
+         <listitem>
+           <para>
+             go to the installer directory (e.g. gt<replaceable role="entity">version</replaceable>-all-source-installer)
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <computeroutput>make gt5-gram-[pbs|lsf|condor]</computeroutput>
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <computeroutput>make install</computeroutput>
+           </para>
+         </listitem>         
+       </orderedlist>
+       Using PBS as the example, make sure the scheduler commands are in your path (qsub, qstat, pbsnodes).
+       For PBS, another setup step is required to configure the remote shell for rsh access:
+     </para>
+     <screen>% cd $GLOBUS_LOCATION/setup/globus
+% ./setup-globus-job-manager-pbs --remote-shell=rsh</screen>                
+     <para>
+       The following links give extra information what parameters can be added
+       to the setup scripts of the different scheduler adapters:    
+       <itemizedlist>
+         <listitem>
+           <para>
+             <ulink url="http://www.globus.org/api/c-globus-5.0.0/globus_gram_job_manager_setup_condor/html/main.html">
+             Condor Job Manager Setup</ulink>
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <ulink url="http://www.globus.org/api/c-globus-5.0.0/globus_gram_job_manager_setup_pbs/html/main.html">
+             PBS Job Manager Setup</ulink>
+           </para>
+         </listitem>
+         <listitem>
+           <para>
+             <ulink url="http://www.globus.org/api/c-globus-5.0.0/globus_gram_job_manager_setup_lsf/html/main.html">
+             LSF Job Manager Setup</ulink>
+           </para>
+         </listitem>         
+       </itemizedlist>       
+     </para>
+     
+   </section>
+      
+   <section id="gram2-admin-jobmanager-config"><title>Job Manager Configuration</title>
+     <para>
+       <ulink url="http://www.globus.org/api/c-globus-5.0.0/globus_gram_job_manager/html/globus_gram_job_manager_configuration.html">
+       Job Manager Configuration</ulink>
+     </para>
+   </section>
+ 
+   <section id="w-gram-admin-jobmanager-validation"><title>RSL Validation File Format</title>
+     <para>
+       <ulink url="http://www.globus.org/api/c-globus-5.0.0/globus_gram_job_manager/html/globus_gram_job_manager_rsl_validation_file.html">
+       RSL Validation File Format</ulink>
+     </para>
+   </section>
+ 
+   <section id="w-gram-admin-jobmanager-environment"><title>Job Execution Environment</title>
+     <para>
+       <ulink url="http://www.globus.org/api/c-globus-5.0.0/globus_gram_job_manager/html/globus_gram_job_manager_job_execution_environment.html">
+       Job Execution Environment</ulink>
+     </para>
+   </section>
+ 
+   <section id="w-gram-admin-jobmanager-rslattributes"><title>RSL attributes</title>
+     <para>
+       <ulink url="http://www.globus.org/api/c-globus-5.0.0/globus_gram_job_manager/html/globus_job_manager_rsl.html">
+       RSL Attributes</ulink>
+     </para>
+   </section> 
+ 
+   <section id="gram2-adding-jobmanager"><title>Adding job managers</title>
+   
+     <para>
+       The fork job manager scheduler will be installed during a normal installation
+       of the toolkit and will be installed as the 
+       default job manager service (e.g. $GLOBUS_LOCATION/grid-services/jobmanager).
+       Additional job manager scheduler packages installed will be installed using
+       the convention "jobmanager-&lt;scheduler-name&gt;"
+       (e.g. $GLOBUS_LOCATION/grid-services/jobmanager-pbs).
+     </para>
+     <para>
+       Information on how to install an additional job manager for Condor, PBS or
+       LSF can be found <ulink url="#gram2-admin-jobmanager-setup">here</ulink>.
+     </para>
+     <para>
+       All job manager scheduler setup packages have the argument "-service-name
+       &lt;name&gt;" in order to install a non-fork scheduler as the default job
+       manager service.  For example, this command will set the pbs scheduler as
+       the default job manager service:
+     </para>
+     <screen>% setup-globus-job-manager-pbs -service-name jobmanager</screen>
+     <para>
+       If you need to alter the behavior of the job manager scheduler interface,
+       or you want to create a new job manager scheduler interface for a scheduler
+       that is not available, see this tutorial web page.
+       The details of how to make a client submit to a non-default gatekeeper is
+       covered in the user's guide section.
+     </para>
+     <para>
+       Note: If you wish to have your job manager report into your MDS, you need to
+       install the appropriate GRAM Reporter setup package for your scheduler. 
+       The GRAM Reporter setup packages for each scheduler can be found on the
+       <ulink url="http://www.globus.org/toolkit/downloads/development/">download page</ulink>.
+     </para>
+     <para>
+       The details of how to make a client submit to a non-default gatekeeper is
+       covered in the user's guide section.
+     </para>
+     <para>
+       Note: If you wish to have your job manager report into your MDS, you need to
+       install the appropriate GRAM Reporter setup package for your scheduler.
+       The GRAM Reporter setup packages for each scheduler can be found on the
+       <ulink url="http://www.globus.org/toolkit/downloads/development/">download page</ulink>.
+     </para> 
+   
+   </section>
+ 
+ 
+ </chapter>  <!-- end Job Manager-->
+		    
+ <chapter id="gram2-admin-seg"><title>Scheduler Event Generator / Job Manager Integration</title>
+
+
+   <section id="gram2-admin-seg-intro"><title>Introduction</title>
+  
+     <para>
+       This option is a method for the GRAM2 Job Manager to
+       monitor the jobs it submits to the local scheduler.  After installing, you
+       can configure a job manager to use the new event based method for
+       monitoring jobs, instead of the script-based polling implementation.
+     </para>
+
+     <para>
+       This change consists of a few parts
+       
+       <itemizedlist>
+         <listitem><para>
+           A new script <computeroutput>globus-job-manager-event-generator</computeroutput>
+           which translates
+           scheduler-specific log information to a general form which the job manager
+           can parse.  This script may need to be run as a privileged account in order
+           to parse the log files, depending on the log permissions. This script MUST
+           be running in order for Job Manager processes to receive job state change
+           notifications from the scheduler.
+         </para></listitem>
+
+         <listitem><para>
+           A new SEG module <computeroutput>globus_scheduler_event_generator_job_manager</computeroutput>
+           which parses a log file to determine which job state changes occur for jobs
+           being managed by a pre-WS GRAM Job Manager.
+         </para></listitem>
+
+         <listitem><para>
+           Changes to the globus-gram-job-manager program to use the Scheduler Event
+           Generator API to look for job state change events in a log file instead
+           using scripts to query the scheduler state.
+         </para></listitem>
+       </itemizedlist>
+
+     </para>
+ 
+   </section>
+
+   <section id="gram2-admin-seg-jmeg"><title>globus-job-manager-event-generator</title>
+   
+     <para>
+       The globus-job-manager-event-generator script creates a log of all scheduler
+       events related to a particular scheduler instance. This script was created for
+       two purposes
+     
+       <itemizedlist>
+         <listitem><para>
+           To avoid requiring that all GRAM user's have the privileges to read the
+           scheduler's log file. Users may not be allowed read access to the
+           scheduler's log files on all sites. The Job Manager processes is run
+           under the user's local account (as mapped in the gridmap file), it is this
+           processes that will be updated for job status via the SEG log file instead
+           of directly from the scheduler's log file.
+         </para></listitem>
+         <listitem><para>
+           To provide a simple format for the scheduler event generator logs so that
+           the job manager will be able to quickly recover state information if the
+           job manager is terminated and restarted. Some scheduler logs are difficult
+           to parse, or inefficient for seeking to a particular timestamp (as is
+           necessary for recovering job state change information). The data written by
+           this script is easily locatably by date, and it is simple to remove old job
+           information without compromising current job manager execution.
+         </para></listitem>
+       </itemizedlist>
+
+       One instance of the globus-job-manager-event-generator must be running for
+       each scheduler type to be implemented using the Scheduler Event Generator
+       interface to receive job state changes. This program is located in the sbin
+       subdirectory of the GLOBUS_LOCATION. The typical command line for this program
+       is <computeroutput>$GLOBUS_LOCATION/sbin/globus-job-manager-event-generator -s
+       SCHEDULER_TYPE</computeroutput>,
+       where SCHEDULER_TYPE is the scheduler name of the Scheduler Event Generator
+       module which should be used to generate events (lsf, condor, pbs).
+     </para>
+
+     <para>
+       For example, to start the event generator program to monitor an LSF batch
+       system:
+     </para>
+
+     <screen>$GLOBUS_LOCATION/sbin/globus-job-manager-event-generator -s lsf</screen>
+
+     <para>
+       NOTE: if the globus-job-manager-event-generator is not running, no job
+       state changes will be sent from any job manager program which is configured
+       to use the Scheduler Event Generator.
+     </para>
+ 
+   </section>
+ 
+ 
+   <section id="s-pregram-admin-seg-jmconfig"><title>Job Manager Configuration</title>
+       
+     <para>
+       By default, the job manager is configured to use the pre-WS GRAM script-based
+       polling method. A new command line option (<computeroutput>-seg-module LRM-type</computeroutput>) was added to the
+       globus-job-manager program to enable using the Scheduler Event Generator-driven
+       job state change notifications. 
+     </para>
+
+
+     <section id="s-pregram-admin-seg-jmconfig-ss"><title>Scheduler-specific Job Manager Configuration</title>
+       
+       <para>
+         To enable using the Scheduler Event Generator interface for a particular
+         Job Manager, add the option -seg-module LRM to the end of the line in the service's file
+         in the <computeroutput>$GLOBUS_LOCATION/etc/grid-services</computeroutput> directory.
+       </para>
+
+       <para>
+         EXAMPLE $GLOBUS_LOCATION/etc/grid-services/jobmanager-lsf:
+       </para>
+
+       <screen>stderr_log,local_cred - /opt/globus/libexec/globus-job-manager globus-job-manager -conf /opt/globus/etc/globus-job-manager.conf -type lsf -rdn jobmanager-lsf -machine-type unknown -publish-jobs -seg-module lsf</screen>
+
+       <para>
+         <important><title>No SEG with Job Manager fork</title>
+           <para>
+             The Job Manager fork does not support using the Scheduler Event Generator.
+             If the -seg option is passed to a fork Job Manager, it will be ignored.
+           </para>
+	  </important>
+       </para>       
+
+     </section>
+ 
+   </section>
+
+   <section id="s-prewsgram-admin-seg-gjmegconfig"><title>globus-job-manager-event-generator Configuration</title>
+       
+     <para>
+       The globus-job-manager-event-generator program requires that the
+       globus_job_manager_event_generator setup package be installed and run. This
+       setup package creates the
+       <computeroutput>$GLOBUS_LOCATION/etc/globus-job-manager-seg.conf</computeroutput>
+       file and initializes a directory to use for the scheduler logs.
+     </para>
+
+     <para>
+       By default, this setup script will create a configuration entry and directory
+       for each scheduler installed on the system. For each scheduler to be handled
+       by the globus-job-manager-event-generator program, there must be an entry in
+       the file in the pattern:
+     </para>
+ 
+     <screen>&lt;SCHEDULER_TYPE&gt;_log_path=&lt;PATH&gt;</screen>
+
+     <para>
+       The two variable substitutions for this pattern are
+     </para>
+
+     <para>
+       <emphasis role="strong">
+         SCHEDULER_TYPE
+       </emphasis>
+     </para>
+
+     <para>
+       Must match the name of the scheduler-event-generator module for the
+       scheduler (supported with GT <replaceable role="entity">shortversion</replaceable> are lsf, condor, and pbs).
+     </para>
+
+     <para>
+       <emphasis role="strong">
+         PATH
+       </emphasis>
+     </para>
+    
+     <para>
+       A path to a directory which must be writable by the account which will
+       run the <computeroutput>globus-job-manager-event-generator</computeroutput> program for the
+       SCHEDULER_TYPE, and world-readable (or readable for a group which contains
+       all users which will run jobs via GRAM on that system).  Each directory
+       specified in the configuration file must be unique, or behavior is
+       undefined.
+     </para>
+  
+     <para>
+       EXAMPLE $GLOBUS_LOCATION/etc/globus-job-manger-seg.conf:
+     </para>
+       
+     <screen>lsf_log_path=/opt/globus/var/globus-job-manager-seg-lsf
+pbs_log_path=/opt/globus/var/globus-job-manager-seg-pbs</screen>
+
+     <para>
+       In this example, pbs and lsf schedulers are configured to use distinct
+       subdirectories of the <computeroutput>/opt/globus/var/</computeroutput> directory.
+     </para>
+
+     <para>
+       NOTE: For best performance, the log paths should be persistent across system
+       reboots and mounted locally (non-networked).
+     </para>
+
+     <para>
+       NOTE: If a scheduler is added after the configuration step is done,
+       administrator must rerun the setup package's script
+       (<computeroutput>$GLOBUS_LOCATION/setup/globus/setup-seg-job-manager.pl</computeroutput>)
+       or modify the configuration file and create the required directory with appropriate
+       permissions.
+     </para>     
+     
+   </section>
+ 
+ 
+   <section id="s-prewsgram-admin-seg-running"><title>Running the globus-job-manager-event-generator</title>
+     
+     <para>
+       The globus-job-manager-event-generator must be running when jobs are submitted
+       to the Job Manager if job state changes are to be detected. One instance of
+       the <computeroutput>globus-job-manager-event-generator</computeroutput> program must be running for
+       each scheduler type which is handled by a Job Manager and configured to use the
+       Scheduler Event Generator interface.
+     </para>
+
+     <para>
+       The command line for the globus-job-manager-event-generator program is
+       <computeroutput>globus-job-manager-event-generator -s SCHEDULER_TYPE</computeroutput>. The
+       SCHEDULER_TYPE should match the pattern of a log_path entry in the
+       <computeroutput>$GLOBUS_LOCATION/etc/globus-job-manager-seg.conf</computeroutput> as described above.
+     </para>
+
+     <para>
+       NOTE: Remember, if your scheduler logs have restrictive permissions, then this
+       script must be run by an account which has privileges to read those files.
+     </para>
+
+     <para>
+       NOTE: Old log files created by the globus-job-manager-event-generator script
+       may be deleted if the administrator is certain that there are no jobs which
+       will restart and require the old information. The names of the log files
+       correspond to the dates when the events occurred. If there is at least one log
+       file in the directory, then when the globus-job-manager-event-generator is
+       restarted, it will resume logging from the timestamp of the newest event in
+       that log file.
+      </para>
+    
+   </section>
+ 
+   <section id="s-prewsgram-admin-seg-trouble"><title>Troubleshooting the globus-job-manager-event-generator</title>
+    
+     <para>
+        <emphasis role="strong">PROBLEM</emphasis>: The globus-job-manager-event-generator program terminates
+        immediately with the output:
+     </para>
+        
+     <screen>Error: SCHEDULER not configured</screen>
+
+     <para>
+        <emphasis role="strong">SOLUTION 1</emphasis>: Make sure that you specified the correct name for the
+        SCHEDULER module on the command line to the
+        <computeroutput>globus-job-manager-event-generator</computeroutput> program
+     </para>
+
+     <para>
+       <emphasis role="strong">SOLUTION 2</emphasis>: There is no entry for lsf in the
+       <computeroutput>$GLOBUS_LOCATION/etc/globus-job-manager-seg.conf</computeroutput> file. See
+       the section on globus-job-manager-event-generator Configuration.
+     </para>
+     
+     <para>
+     </para>
+ 
+     <para>
+       <emphasis role="strong">PROBLEM</emphasis>:  The globus-job-manager-event-generator program terminates
+       immediately with the output:
+     </para>
+        
+     <screen>Fault: globus_xio: Operation was canceled</screen>
+ 
+     <para>
+       <emphasis role="strong">SOLUTION</emphasis>: The scheduler module selected on the command line could
+       not be loaded by the Globus Scheduler Event Generator. Check that
+       the name is correct, the module is installed, and the setup script
+       for that module has been run.  
+     </para>
+
+     <para>
+     </para>
+
+     <para>
+       <emphasis role="strong">PROBLEM</emphasis>: The Job Manager never receives any events from the
+       scheduler.
+     </para>
+ 
+     <para>
+       <emphasis role="strong">SOLUTION 1</emphasis>: Verify that the directory specified in the
+       <computeroutput>$GLOBUS_LOCATION/etc/globus-job-manager-seg.conf</computeroutput> for the
+       scheduler exists, is writable by the account running the
+       <computeroutput>globus-job-manager-event-generator</computeroutput> and is readable by the
+       user account running the job manager.
+     </para>
+
+     <para>
+       <emphasis role="strong">SOLUTION 2</emphasis>: Verify that the globus-job-manager-event-generator program
+       is running.
+     </para>
+
+     <para>
+       <emphasis role="strong">SOLUTION 3</emphasis>: Verify that the globus-job-manager-event-generator program
+       has permissions to read the scheduler logs. To help diagnose this, run
+       (as the account you wish to run the globus-job-manager-event-generator
+       as) the command
+     </para>
+        
+     <screen>$GLOBUS_LOCATION/libexec/globus-scheduler-event-generator -s &lt;SCHEDULER_TYPE&gt; -t 1</screen>
+
+     <para>
+       You should see events printed to the stdout of that process if it is
+       working correctly.
+     </para>
+    
+    
+   </section>
+
+ </chapter>  
+
+
+ <chapter id="gram2-admin-auditing"><title>Audit Logging</title>
+
+   
+<note>   <para>
+     For more information, click <olink targetdoc="gram2Audit">here</olink>.
+   </para></note>
+ </chapter>
+ 
+ <chapter id="gram2-admin-testing"><title>Testing GRAM</title>
+   
+   <!--
+   <para>
+   <emphasis role="strong">Note</emphasis>: To run these tests on a single
+   host, you will need both the Client and Server Resource Management bundles
+   installed. If you want to test a client-only install, you will need to have
+   a server available to test against, and if you want to test server-only,
+   you will need a client available somewhere.
+   </para>
+   <para>
+   When you have a user certificate, you can use the following tests to verify
+   a working installation. Don't forget to
+   <ulink url="http://www.globus.org/toolkit/docs/2.4/admin/guide-verify.html#env">
+   set your environment</ulink>.
+   </para>
+   -->
+   <para>
+     First launch a gatekeeper by running the following (as yourself, not root):
+   </para>
+   <screen>% grid-proxy-init -debug -verify
+     % globus-personal-gatekeeper -start</screen>
+   <para>
+     This command will output a contact string like <computeroutput>
+       hostname:4589:/O=Grid/O=Globus/CN=Your Name</computeroutput>. Substitute
+     that contact string for &lt;contact&gt; in the following command:
+   </para>
+   <screen>% globus-job-run &lt;contact&gt; /bin/date</screen>
+   <para>
+     You should see the current date and time. At this point you can stop the
+     personal gatekeeper and destroy your proxy with:
+   </para>
+   <screen>% globus-personal-gatekeeper -killall
+     % grid-proxy-destroy</screen>
+   <para>   
+     Please note that the above instructions are just for testing, and do not
+     install a fully functioning gatekeeper on your machine for everyone to
+     use.  Installing a system-level gatekeeper for everyone to use will be
+     covered in the <ulink url="#gram2-admin-configuring">configuration section
+     </ulink>of this guide.
+   </para>
+   </chapter>
+
+
+ <chapter id="gram2-admin-usage-stats"><title>Usage statistics collection by the Globus Alliance</title>
+   <para>
+     No usage statistic package is sent after the completion of a job
+     like it's done in WS-GRAM (see
+     <ulink url="../wsgram/admin-index.html#s-wsgram-admin-usage">here</ulink>).
+   </para>
+ </chapter>
+
+</book>
