@@ -5,104 +5,69 @@
 <chapter id="gram5-performance-guide">
     <title>Scalability and Performance Recommendations</title>
     <indexterm type="gram5"><primary>performance guide</primary></indexterm>
-    <para>This document includes recommendations for increasing the scalability and performance of
-        GRAM5 in a Grid.</para>
+    <para>This document includes recommendations for increasing the scalability
+    and performance of GRAM5 in a Grid.</para>
     <section>
         <title>Server-side Recommendations</title>
         <indexterm type="gram5"><primary>performance guide</primary><secondary>server-side</secondary></indexterm>
-       
-        <section><title>Memory related settings</title>
-          <para>
-            The GT5 container can run out of memory with large number of jobs. To avoid this:
-          </para>
-          <orderedlist>
-            <listitem>
-              <para>
-                Adjust the LRUCache settings in the JNDI configuration for the 
-                ManagedExecutableJobService in
-                <computeroutput>${GLOBUS_LOCATION}/etc/globus_wsrf_gram/jndi-config.xml</computeroutput>
-                as follows:
-              </para>
-              <screen>&lt;service name="ManagedExecutableJobService"&gt;
-    ...
-    &lt;resource name="cache" type="org.globus.wsrf.utils.cache.LRUCache"&gt;
-        &lt;resourceParams&gt;
-            &lt;parameter&gt;
-                &lt;name&gt;factory&lt;/name&gt;
-                &lt;value&gt;org.globus.wsrf.jndi.BeanFactory&lt;/value&gt;
-            &lt;/parameter&gt;
-            &lt;parameter&gt;
-                &lt;name&gt;timeout&lt;/name&gt;
-                &lt;value&gt;10000&lt;/value&gt;
-            &lt;/parameter&gt;
-            &lt;parameter&gt;
-                &lt;name&gt;delay&lt;/name&gt;
-                &lt;value&gt;10000&lt;/value&gt;
-            &lt;/parameter&gt;
-        &lt;/resourceParams&gt;
-    &lt;/resource&gt;
-    ...
-&lt;/service&gt;</screen>
-            </listitem>
-            <listitem>
-              <para>
-                Set the Java heap size for the container by defining the environment
-                variable GLOBUS_OPTIONS as follows:
-              </para>
-              <screen>GLOBUS_OPTIONS="-Xms256M -Xmx256M"</screen>
-            </listitem>
-          </orderedlist>
-        </section>
        
         <section><title>Filesystem related settings</title>
           <orderedlist>
             <listitem>
               <para>
-                The GRAM5 service stores the per job metadata used for crash/recovery in
-                files on disk. By default, the container account's home dir is used,
-                specifically <filename>~/.globus/persisted/</filename>. Often this home dir is
-                not located on a local disk, but on NFS. NFS is not needed for this purpose and
-                can negatively effect performance. For this reason, configure the container to
-                use a local disk.
-              </para>
-              <screen>GLOBUS_OPTIONS="${GLOBUS_OPTIONS} -Dorg.globus.wsrf.container.persistence.dir=/use/this/path"</screen>
-              <para>
-                By adding ${GLOBUS_OPTIONS} you make sure that you don't override
-                the memory options from above.
-              </para>
-            </listitem>
-            <listitem>
-              <para>
-                The account the container runs under, typically "globus", can run out of open
-                file descriptors. If you run into this problem, set the open file descriptors
-                to 16,384.
-              </para>
-              <para>
-                Specific settings can vary per operating system; for a "globus" user on
-                redhat/RHEL based distributions, add the following to
-                <filename>/etc/security/limits.conf</filename>:
-              </para>
-              <screen>globus          hard     nofile           16384</screen>
+                The GRAM5 service stores job state for
+                crash recovery on disk. By default, the 
+                <filename><envar>$GLOBUS_LOCATION</envar>/tmp/gram_job_state</filename>
+                directory is used for these files. If this path is located
+                on a distributed file system mount, locking and updating
+                the job state files can negatively effect performance.
+                </para>
+                <para>
+                To configure GRAM5 to use a local disk for job state files,
+                modify
+                <filename><envar>$GLOBUS_LOCATION</envar>/etc/globus-job-manager.conf</filename>
+                or
+                <filename><envar>$GLOBUS_LOCATION</envar>/etc/grid-services/jobmanager-<replaceable>LRM</replaceable></filename>
+                so that the argument to the <option>-state-file-dir</option>
+                is a local directory path. That directory must be world
+                writable with the "sticky bit" set (mode
+                <literal>1777</literal>).
+                </para>
             </listitem>
           </orderedlist> 
        </section>
-       
-       <section><title>Container thread settings</title>
-         <para>
-           We recommend the following thread settings as part of the global
-           configuration in
-           <filename>$GLOBUS_LOCATION/etc/globus_wsrf_core/server-config.wsdd</filename>:
-         </para>
-         <screen>&lt;globalConfiguration:
-    ...
-    &lt;parameter name="containerThreads" value="20"/&gt;
-    &lt;parameter name="containerThreadsMax" value="40"/&gt;
-    &lt;parameter name="containerThreadsHighWaterMark" value="10"/&gt;
-    ...
-&lt;/globalConfiguration&gt;</screen> 
-
+        <section><title>LRM-related settings</title>
+          <orderedlist>
+            <listitem>
+              <para>
+                The GRAM5 service can use two different interfaces to obtain
+                job state changes, polling and using the SEG. The default
+                method is to poll the LRM via the GRAM5 script interface. This
+                polling method is often less efficient than the SEG method and
+                results in a higher load on the GRAM5 service node, even when
+                all managed jobs are waiting in the queue for execution.
+               </para>
+               <para>The other method, uses a program implementing the SEG
+               interface to generate LRM events which can be stored in a log
+               file for job managers run by many different users to process.
+               When this is used, the multiple job managers may detect
+               job state changes without having to directly interact with the
+               LRM.
+               </para>
+               <para>
+               To enable the SEG to monitor jobs for a particular LRM, 
+               <olink
+               targetptr="gram5-admin-installing-pbs-lrm-adapter">install
+               and configure</olink> the LRM-specific gram5 bundle, run the
+               <olink
+               targetptr="gram5-cmd-globus-job-manager-event-generator"><command>globus-job-manager-event-generator</command></olink>
+               program on a node
+               which can access the LRM interfaces needed by the LRM-specific
+               SEG module, and <olink targetptr="gram5-Interface_Config_Frag-seg_module">configure the LRM-specific service instance to
+               use the SEG</olink> to monitor jobs for state changes.
+                </para>
+            </listitem>
+          </orderedlist> 
        </section>
-
      </section>
-    
 </chapter>
