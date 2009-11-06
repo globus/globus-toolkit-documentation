@@ -80,6 +80,30 @@ globus_out_of_date(); ?>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/mig/">Migrating Guides</a></dt>
 			</dl>
 			
+		<h2 class="smalltitle">Manuals</h2>
+			<h2 class="smalltitle"></h2>
+			<dl class="leftColumn">
+			<dt><a href="/toolkit/docs/5.0/5.0.0/data/">Data Mgt</a>
+				<dd><a href="/toolkit/docs/5.0/5.0.0/data/gridftp/">GridFTP</a></dd>
+				<dd><a href="/toolkit/docs/5.0/5.0.0/data/rls/">RLS</a></dd>
+				</dt>
+			<dt><a href="/toolkit/docs/5.0/5.0.0/execution/">Execution Mgt</a>
+			<dd><a href="/toolkit/docs/5.0/5.0.0/execution/gram5/">GRAM5</a></dd>
+			</dt>
+			<dt><a href="/toolkit/docs/5.0/5.0.0/security/">Security</a>
+			<dd><a href="/toolkit/docs/5.0/5.0.0/security/gsic/">GSI C</a></dd>
+				<dd><a href="/toolkit/docs/5.0/5.0.0/security/myproxy/">MyProxy</a></dd>
+				<dd><a href="/toolkit/docs/5.0/5.0.0/security/openssh/">GSI-OpenSSH</a></dd>
+				<dd><a href="/toolkit/docs/5.0/5.0.0/security/simpleca/">SimpleCA</a></dd>
+			</dt>
+			<dt><a href="/toolkit/docs/5.0/5.0.0/common/">Common Runtime</a>
+			
+				<dd><a href="/toolkit/docs/5.0/5.0.0/common/xio/">XIO</a></dd>
+				<dd><a href="/toolkit/docs/5.0/5.0.0/common/ccommonlib/">C Common Libs</a></dd>
+			</dt>
+			</dl>
+	
+			
 		<h2 class="smalltitle">Reference</h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/5.0/5.0.0/developer/#gt-bestpractices">Best Practices</a></dt>
@@ -94,32 +118,7 @@ globus_out_of_date(); ?>
 				<dt>Performance Studies (coming soon)</dt>
 				-->
 			</dl>
-		<h2 class="smalltitle">Manuals</h2>
-		<h2 class="smalltitle"><a href="/toolkit/docs/5.0/5.0.0/common/">Common Runtime</a></h2>
-			<dl class="leftColumn">
-
-				<dt><a href="/toolkit/docs/5.0/5.0.0/common/xio/">XIO</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/common/ccommonlib/">C Common Libs</a></dt>
-			</dl>
-			
-			<h2 class="smalltitle"><a href="/toolkit/docs/5.0/5.0.0/security/">Security</a></h2>
-			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/5.0/5.0.0/security/gsic/">GSI C</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/security/myproxy/">MyProxy</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/security/openssh/">GSI-OpenSSH</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/security/simpleca/">SimpleCA</a></dt>
-			</dl>
-		
-		<h2 class="smalltitle"><a href="/toolkit/docs/5.0/5.0.0/data/">Data Mgt</a></h2>
-			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/5.0/5.0.0/data/gridftp/">GridFTP</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/data/rls/">RLS</a></dt>
-			</dl>
-			
-			<h2 class="smalltitle"><a href="/toolkit/docs/5.0/5.0.0/execution/">Execution Mgt</a></h2>
-			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/5.0/5.0.0/execution/gram5/">GRAM5</a></dt>
-			</dl>
+	
 	</div>
 
 <div id="docbookContent">
