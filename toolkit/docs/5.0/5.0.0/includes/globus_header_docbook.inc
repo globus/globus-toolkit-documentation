@@ -71,7 +71,6 @@ globus_out_of_date(); ?>
 			<!--
 				<dt><a href="/toolkit/docs/5.0/5.0.0/doc_overview.html">Doc Structure</a></dt>
 				-->
-				<dt><a href="/toolkit/docs/5.0/5.0.0/key/">A Globus Primer</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/globus_is_modular.html">Globus Is Modular!</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/admin/install/">Installing GT</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/admin/quickstart/">Quickstart</a></dt>
@@ -98,23 +97,14 @@ globus_out_of_date(); ?>
 		<h2 class="smalltitle">Manuals</h2>
 		<h2 class="smalltitle"><a href="/toolkit/docs/5.0/5.0.0/common/">Common Runtime</a></h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/5.0/5.0.0/common/javawscore/">Java WS Core</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/common/cwscore/">C WS Core</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/common/pythonwscore/">Python WS Core</a></dt>
+
 				<dt><a href="/toolkit/docs/5.0/5.0.0/common/xio/">XIO</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/common/javacog/">CoG jGlobus</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/common/pyglobus/">pyGlobus</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/common/ccommonlib/">C Common Libs</a></dt>
 			</dl>
 			
 			<h2 class="smalltitle"><a href="/toolkit/docs/5.0/5.0.0/security/">Security</a></h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/5.0/5.0.0/security/gsic/">GSI C</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/common/javacog/">GSI Java</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/security/wsaajava/">Java WS A&amp;A</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/security/wsaac/">C WS A&amp;A</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/security/cas/">CAS</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/security/delegation/">Delegation Service</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/security/myproxy/">MyProxy</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/security/openssh/">GSI-OpenSSH</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/security/simpleca/">SimpleCA</a></dt>
@@ -123,27 +113,12 @@ globus_out_of_date(); ?>
 		<h2 class="smalltitle"><a href="/toolkit/docs/5.0/5.0.0/data/">Data Mgt</a></h2>
 			<dl class="leftColumn">
 				<dt><a href="/toolkit/docs/5.0/5.0.0/data/gridftp/">GridFTP</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/data/rft/">RFT</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/data/rls/">RLS</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/data/wsrls/">WS RLS</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/data/datarep/">DRS</a></dt>
-			</dl>
-		
-		<h2 class="smalltitle"><a href="/toolkit/docs/5.0/5.0.0/info/">WS MDS</a></h2>
-			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/5.0/5.0.0/info/index/">Index Service</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/info/trigger/">Trigger Service</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/info/webmds/">WebMDS</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/info/aggregator/">Aggregator Framework</a></dt>				
-				<dt><a href="/toolkit/docs/5.0/5.0.0/info/usefulrp/">UsefulRP</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/info/providers/">Info Providers</a></dt>
 			</dl>
 			
 			<h2 class="smalltitle"><a href="/toolkit/docs/5.0/5.0.0/execution/">Execution Mgt</a></h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/5.0/5.0.0/execution/gram4/">GRAM4</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/execution/gridway/">GridWay</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/execution/gram2/">GRAM2 (legacy)</a></dt>
+				<dt><a href="/toolkit/docs/5.0/5.0.0/execution/gram5/">GRAM5</a></dt>
 			</dl>
 	</div>
 
