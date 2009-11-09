@@ -33,7 +33,7 @@ MyProxy provides a command-line interface that allows users to obtain Grid proxy
 </p>
 
 <p>
-MyPorxy also provides an interface for integrating with web portals. This interface allows web portal developers to build MyProxy into their protal's interface so that users can enter their ID and password into the portal's interface.  The portal can then obtain a proxy credential on the user's behalf and use the proxy to access other Grid services (computation, data, remote instruments) to satisfy user requests.
+MyProxy also provides an interface for integrating with web portals. This interface allows web portal developers to build MyProxy into their protal's interface so that users can enter their ID and password into the portal's interface.  The portal can then obtain a proxy credential on the user's behalf and use the proxy to access other Grid services (computation, data, remote instruments) to satisfy user requests.
 </p>
 
 <?
