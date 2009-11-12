@@ -4,6 +4,8 @@
 [
 
 <!ENTITY % xinclude SYSTEM "../../../xinclude.mod" >
+<!ENTITY prompt "<prompt>&#37; </prompt>" >
+<!ENTITY globusrun "<command>globusrun</command>" >
 %xinclude;
 
 ]>
@@ -14,1625 +16,867 @@
 <bookinfo><abstract>
 <title>Introduction</title>
 <para>
-  GRAM services provide secure job submission to many types of 
-  <glossterm baseform="job scheduler">job schedulers</glossterm> 
-  for users who have the right to access a job hosting resource in a Grid
-  environment.  The existence of a <olink targetdoc="gram5User" targetptr="gram5-user-proxygen">valid proxy</olink>
-  is in fact required for job submission.  All GRAM job submission options are
-  supported transparently through the embedded request document input. In fact,
-  the job startup is done by submitting a client-side provided <glossterm>job description</glossterm>
-  to the GRAM services. This submission can be made by end-users with the 
-    GRAM <olink targetdoc="gram5User" targetptr="gram5-cmd">command-line tools</olink>.
+  GRAM services provide secure, remote job submission to different
+  <glossterm baseform="local resource manager">local resource
+  managers</glossterm> in a Grid
+  environment. This document describes how to use the RSL language and
+  command-line interfaces provided in GT <replaceable
+  role="entity">version</replaceable> to submit jobs to Grid resources.
 </para>
 </abstract></bookinfo>
 
 <chapter id="gram5-user-usagescenarios"><title>Using GRAM5</title>
     
-    <section id="gram5-user-proxygen"><title>Generating a valid proxy</title>
+    <section id="gram5-user-prepare"><title>Preparing to use GRAM</title>
       <indexterm type="gram5"><primary>jobs</primary><secondary>preparing</secondary><tertiary>generate valid proxy</tertiary></indexterm>
         <indexterm type="gram5-howto"><primary>jobs</primary><secondary>preparing</secondary><tertiary>generate valid proxy</tertiary></indexterm>
-    <para>In order to generate a valid proxy file, use the 
-        <olink targetdoc="gsicUser" targetptr="grid-proxy-init"/>
-    tool available under <computeroutput>$GLOBUS_LOCATION/bin</computeroutput>:
-    <screen>
-    % bin/grid-proxy-init
-    Your identity: /O=Grid/OU=GlobusTest/OU=simpleCA.mymachine/OU=mymachine/CN=John Doe
-    Enter GRID pass phrase for this identity:
-    Creating proxy ................................. Done
-    Your proxy is valid until: Tue Oct 26 01:33:42 2004
-    </screen>
+    <para>The first step to being able to use GRAM5 after installation is to
+    acquire a temporary Grid credential to use to authenticate with the GRAM5
+    service and any file services your job requires. Normally this is done via
+    either <olink targetdoc="gsicUser"
+    targetptr="grid-proxy-init"><command>grid-proxy-init</command></olink> or
+    via the <olink targetdoc="myproxyUser"
+    targetptr="myproxy-user-introduction">MyProxy</olink> service. 
     </para>
+
+    <section id="gram5-user-gridproxyinit">
+        <title>Proxy credentials with grid-proxy-init</title>
+
+    <para>To generate a proxy credential using the
+    <command>grid-proxy-init</command> program, execute the command with
+    no arguments. By default, it will generate an impersonation proxy with
+    a lifetime of 12 hours.
+
+    <example>
+        <title>Generating a proxy with grid-proxy-init</title>
+
+        <para>
+        Thie example creates a 12 hour impersonation proxy to use to
+        authenticate with grid services such as GRAM5:
+
+        <screen>&prompt;<command>bin/grid-proxy-init</command>
+<computeroutput>Your identity: /O=Grid/OU=Example/CN=Joe User
+Enter GRID pass phrase for this identity:
+Creating proxy ................................. Done
+Your proxy is valid until: Tue Oct 26 01:33:42 2010</computeroutput></screen>
+        </para>
+    </example>
+    </para>
+
+    <important>
+    <para>
+    In order to generate a proxy credential, you must have first been issued an
+    identity credential by some certificate authority that is trusted by the
+    GRAM5 resource you want to use. To learn more about certificates and Grid
+    security in general, please read <olink targetdoc="securityKey">Security
+    Key Concepts</olink>.
+    </para>
+    </important>
+
+    </section>
     </section>
 
-    <section id="gram5-user-delegating">
+
+    <section id="gram5-user-service-credentials">
     <title>Delegating credentials</title>
       <indexterm type="gram5"><primary>jobs</primary><secondary>preparing</secondary><tertiary>delegating credentials</tertiary></indexterm>
         <indexterm type="gram5-howto"><primary>jobs</primary><secondary>preparing</secondary><tertiary>delegating credentials</tertiary></indexterm>
     <para>
-        There are three different uses of delegated credentials: 
-        <orderedlist>
-          <listitem><simpara>for use by the
-            <glossterm baseform="Managed Executable Job Service">MEJS</glossterm>
-             to create a remote user proxy
-          </simpara></listitem>
-          <listitem><simpara>for use by the MEJS to contact RFT</simpara></listitem>
-          <listitem><simpara>for use by RFT to contact the GridFTP servers.  The
-            EPRs to each of these are specified in three job description elements --
-            they are jobCredentialEndpoint, stagingCredentialEndpoint, and
-            transferCredentialEndpoint respectively.  Please <ulink url="../schemas/gram_job_description.html">Job Description
-            Schema Reference</ulink> and
-            <ulink url="../schemas/rft_types.html">RFT
-            transfer request schema</ulink> documentation for more details about these
-            elements.
-          </simpara></listitem>
-        </orderedlist>
+    The credential created in the previous section is used to authenticate
+    with the GRAM5 service as well as to delegate a limited proxy of that
+    credential to the service so that it can process the job. This credential
+    delegation occurs when the <command>globus-gatekeeper</command> service
+    is first contacted when a job is to be submitted. By default, the tools
+    provided with GT <replaceable role="entity">version</replaceable> delegate
+    a <emphasis>limited proxy</emphasis>. This limited proxy can be used to
+    authenticate with other services on the client's behalf, but with the
+    services knowing that the proxy is not under direct control by the user.
     </para>
 
-    <para>
-    The <computeroutput>globusrun-ws</computeroutput> client can either delegate
-    these credentials automatically for a particular job, or it can reuse
-    pre-delegated credentials (see next paragraph) through the use of command-line
-    arguments for specifying the credentials' EPR files.  Please see the
-    <olink targetdoc="gram5User" targetptr="gram5-cmd"/> for details on these command-line arguments.
-    </para>
+        <section>
+            <title>Delegated Credential Usage</title>
+            <para>
+            The delegated proxy can be used by the GRAM5 service and the job in
+            a few different ways:
 
-    <para>It is possible to use delegation command-line tools to obtain and refresh
-    delegated credentials in order to use them when submitting jobs to GRAM5. This, for
-    instance, enables the submission of many jobs using a shared set of delegated credentials.
-    This can significantly decrease the number of remote calls for a set of jobs, thus improving
-    performance.
-    </para>
-    
-    <para>
-    The following example shows how to delegate credentials.
-    <computeroutput>globus-credential-delegate</computeroutput> delegates to the specified
-    delegation factory on lucky0.mcs.anl.gov, prints some information and stores the
-    endpoint reference of the delegated credentials into the file <computeroutput>delegCred.epr</computeroutput>
-    </para>
-    
-    <screen>[martin@osg-test1 ~]$ globus-credential-delegate \
-&gt; -s https://lucky0.mcs.anl.gov:8443/wsrf/services/DelegationFactoryService \
-&gt; delegCred.epr
-Delegated credential EPR:
-Address: https://lucky0.mcs.anl.gov:8443/wsrf/services/DelegationService
-Reference property[0]:
-&lt;ns1:DelegationKey xmlns:ns1="http://www.globus.org/08/2004/delegationService"&gt;
-  55e2a450-58be-11dd-b83c-e4ec640dfe13
-&lt;/ns1:DelegationKey&gt;</screen>
-    
-    <para>
-    To destroy the delegated credential use wsrf-destroy:
-    </para>
-    
-    <screen>[martin@osg-test1 jobs]$  wsrf-destroy -e delegCred.epr 
-Destroy operation was successful</screen>
-    
-    
-    </section>
-    
-    <section id="gram5-user-scheduler">
-        <title>Local resource managers interfaced by a GRAM5 installation</title>
-      
-    <para>
-      A GRAM5 instance can interface to more than one local resource manager (LRM), as
-      shown in the previous section. A user can explicitly specify what LRM should be
-      used for a job. But in a larger Grid it might be confusing for users to remember
-      which LRM's are available on which machines.</para>
-   <para>That's why GRAM5 configures a default local resource manager, which is used
-      for job submission if the client didn't explicitly specify one.</para>
-   
-   <section id="gram5-user-finding-availablescheduler">
-       <title>Finding available local resource managers</title>
-     <indexterm type="gram5"><primary>jobs</primary><secondary>preparing</secondary><tertiary>finding available LRMs</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>preparing</secondary><tertiary>finding available LRMs</tertiary></indexterm>
-       <para>You can check the resource property
-       <computeroutput>availableLocalResourceManagers</computeroutput>
-       of a GRAM5 factory service to get that information. Replace host and port in
-       the below example to query against other containers:</para>
-       <screen>[martin@osg-test1 ~]$ globus-wsrf-get-property \
-  -s https://osg-test1.unl.edu:8443/wsrf/services/ManagedJobFactoryService \
-  "{http://www.globus.org/namespaces/2008/03/gram/job}availableLocalResourceManagers"</screen>
-       <para>The result on that machine is (formatted for better readability) shows
-       that the local resource managers Fork, Multi, Condor and PBS are available:</para>
-       <screen>&lt;ns1:availableLocalResourceManagers 
-      xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
-  &lt;ns1:localResourceManager&gt;Fork&lt;/ns1:localResourceManager&gt;
-  &lt;ns1:localResourceManager&gt;Multi&lt;/ns1:localResourceManager&gt;
-  &lt;ns1:localResourceManager&gt;Condor&lt;/ns1:localResourceManager&gt;
-  &lt;ns1:localResourceManager&gt;PBS&lt;/ns1:localResourceManager&gt;
-&lt;/ns1:availableLocalResourceManagers&gt;</screen>
-    <para>A more typical result in a production environment is probably Fork, Multi
-    and just one additional LRM like Condor, PBS or LSF.</para>
-   </section>
+            <orderedlist>
+              <listitem><simpara>The GRAM5 service uses the credential to send job
+              state notification messages to clients which have registered to receive
+              them.</simpara></listitem>
+              <listitem><simpara>The GRAM5 service uses the credential to contact GASS
+              and GridFTP file servers to stage files to and from the execution
+              resource</simpara></listitem>
+              <listitem><simpara>The job executed by the GRAM5 service can use the
+              delegated credential for application-specific
+              purposes.</simpara></listitem>
+            </orderedlist>
+            </para>
 
-   <section id="gram5-user-finding-defaultscheduler">
-       <title>Finding the default local resource manager</title>
-     <indexterm type="gram5"><primary>jobs</primary><secondary>preparing</secondary><tertiary>finding default LRM</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>preparing</secondary><tertiary>finding default LRM</tertiary></indexterm>
-       <para>You can check the resource property
-       <computeroutput>defaultLocalResourceManagers</computeroutput>
-       of a GRAM5 factory service to get that information. Replace host and port in
-       the below example to query against other containers:</para>
-       <screen>[martin@osg-test1 ~]$ globus-wsrf-get-property \
-  -s https://osg-test1.unl.edu:8443/wsrf/services/ManagedJobFactoryService \
-  "{http://www.globus.org/namespaces/2008/03/gram/job}localResourceManager"</screen>
-       <para>The result on that machine shows that PBS is the default local
-       resource managers:</para>
-       <screen>&lt;ns1:localResourceManager xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
-    PBS
-&lt;/ns1:localResourceManager&gt;</screen>
-   </section>
-  
-  </section>
+            <note>
+            <para>
+            In GRAM5, the Job Manager may manage multiple jobs simultaneously. It will
+            use the delegated proxy with the most time left for authentication.
+            Individual GRAM5 jobs will have separate proxies.
+            </para>
+            </note>
 
-</chapter>
-
-<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="../GRAM5_Job_Desc.xml"/>
-
-
-<chapter id="gram5-user-usagescenarios-jdd">
-<title>Submitting jobs</title>
-    
-    <section id="gram5-user-simplejob-interactive-jdd">
-    <title>Simple interactive job</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>simple interactive</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>simple interactive</tertiary></indexterm>
-    <para>
-      Use the <computeroutput>globusrun-ws</computeroutput> program to submit a
-      simple job without writing a job description document.  Use the -c argument,
-      a job description will be generated assuming the first arg is the executable
-      and the remaining are arguments. For example:
-    </para>
-
-    <screen>% globusrun-ws -submit -c /bin/touch touched_it
-Submitting job...Done.
-Job ID: uuid:4a92c06c-b371-11d9-9601-0002a5ad41e5
-Termination time: 04/23/2005 20:58 GMT
-Current job state: Active
-Current job state: CleanUp
-Current job state: Done
-Destroying job...Done.</screen>
-
-    <para>
-      Confirm on the server-side that the job worked by verifying the file
-      was touched:</para>
-    <screen>% ls -l ~/touched_it 
--rw-r--r--  1 smartin globdev 0 Apr 22 15:59 /home/smartin/touched_it
-
-% date
-Fri Apr 22 15:59:20 CDT 2005</screen>
-
-    <para>
-      Note: You did not tell globusrun-ws where to run your job, so the default
-      of localhost was used.
-    </para>
-    <para>
-      Also note, that globusrun-ws destroyed the job after it was fully
-      processed.
-    </para>
-    <para>
-      We call this kind of job interactive, because globusrun-ws does not return
-      after submission. It subscribes for status update notifications of the job
-      and informs the user about a status change as soon as it changes.
-      Once it gets the information the the job has been fully processed it destroys
-      the job, which means that internal state belonging to the job is cleaned up
-      on the server-side.
-    </para>
-    </section> 
-
-    <section id="gram5-user-simplejob-batch-jdd">
-    <title>Simple batch job</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>simple batch</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>simple batch</tertiary></indexterm>
-    <para>
-      Now we submit the same job in batch mode. The option
-      <computeroutput>-b</computeroutput> tells globusrun-ws to submit in batch mode,
-      and <computeroutput>-o</computeroutput> causes that a reference (also named
-      EndpointReference) of the is stored in the file
-      <computeroutput>myJob.epr</computeroutput>, which is used later to check for
-      job status and to terminate the job.
-    </para>
-    <screen>% globusrun-ws -submit -b -o myJob.epr -c /bin/touch touched_it
-globusrun-ws -submit -b -o myJob.epr -c /bin/date
-Submitting job...Done.
-Job ID: uuid:5ad25b06-22f7-11dd-8482-0013d4c3b957
-Termination time: 05/16/3008 03:22 GMT</screen>
-    <para>
-      globusrun-ws returns as soon as the job has been submitted. No status
-      information is printed. The user has to do additional calls to check the
-      status of the job. See section <olink targetptr="gram5-user-query">
-      Get information about jobs</olink> how to do that.
-    </para>
-    <para>
-      The user should also demand job termination when the job is done,
-      to clean up internal state belonging to the job on the server-side.
-      See section <olink targetptr="gram5-user-terminate-batch">Jobs in 
-      batch mode</olink> in the <olink targetptr="gram5-user-terminate-batch">
-      Terminating jobs</olink> section how to do that.
-    </para>
-    <para>
-      Again the job had been submitted to localhost
-    </para>
+            <para>
+            When &globusrun;
+            <command>globus-job-run</command>, or
+            <command>globus-job-submit</command> commands delegate
+            credentials automatically when submitting a job. Additionally,
+            &globusrun; can refresh the job and job manager
+            credentials after the job manager is started.
+            </para>
+        </section>
     </section>
 
-    <section id="gram5-user-jobwithcontact-jdd">
-    <title>Using a contact string</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>using contact string</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>using contact string</tertiary></indexterm>
-    <para>
-      Use globusrun-ws to submit the same touch job, but this time tell globusrun-ws
-      to run the job on another machine (lucky0.mcs.anl.gov:8443). A GT5 server
-      with GRAM5 installed must run on that machine and listen on port 8443.
-    </para>
-    <screen>% globusrun-ws -submit \
-   -F https://lucky0.mcs.anl.gov:8443/wsrf/services/ManagedJobFactoryService \
-   -c /bin/touch touched_it
-Submitting job...Done.
-Job ID: uuid:3050ad64-b375-11d9-be11-0002a5ad41e5
-Termination time: 04/23/2005 21:26 GMT
-Current job state: Active
-Current job state: CleanUp
-Current job state: Done
-Destroying job...Done.</screen>
-    <para>
-      Type globusrun-ws -help to learn the details about the contact string.
-    </para>
-    </section>
+    <section>
+        <title>Submitting jobs</title>
 
-    <section id="gram5-user-streaming-jdd">
-    <title>Streaming output</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>request streaming output</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>request streaming output</tertiary></indexterm>
-    <para>
-      A user can request that the output of the program is sent back directly to
-      the client as soon as it's available. This is useful if a user does not
-      want to do additional file staging for a quick job. To enable this, specify 
-      the <computeroutput>-s</computeroutput> option.
-    </para>
-    <screen>[martin@osg-test1 ~]$ globusrun-ws -submit \
-    -F https://lucky0.mcs.anl.gov:8443/wsrf/services/ManagedJobFactoryService \
-    -s -c /bin/echo hello world!
-Delegating user credentials...Done.
-Submitting job...Done.
-Job ID: uuid:1731f602-22fe-11dd-879c-0013d4c3b957
-Termination time: 05/16/3008 04:10 GMT
-Current job state: Active
-Current job state: CleanUp-Hold
-hello world!
-Current job state: CleanUp
-Current job state: Done
-Destroying job...Done.
-Cleaning up any delegated credentials...Done.</screen>
-    <para>
-      If you want the output of the job to be written to a local file instead
-      of the terminal you'll have to add the <computeroutput>-so</computeroutput>
-      option:
-    </para>
-    <screen>[martin@osg-test1 ~]$ globusrun-ws -submit \
-    -F https://lucky0.mcs.anl.gov:8443/wsrf/services/ManagedJobFactoryService \
-    -s -so job.out -c /bin/echo hello world!
-Delegating user credentials...Done.
-Submitting job...Done.
-Job ID: uuid:1731f602-22fe-11dd-879c-0013d4c3b957
-Termination time: 05/16/3008 04:10 GMT
-Current job state: Active
-Current job state: CleanUp-Hold
-Current job state: CleanUp
-Current job state: Done
-Destroying job...Done.
-Cleaning up any delegated credentials...Done.</screen>
-    <para>
-      Check the output in the specified file:
-    </para>
-    <screen>[martin@osg-test1 ws-gram]$ cat job.out 
-hello, world!</screen>
-    <para>
-      Note that a GridFTP server must be running on the remote machine (lucky0)
-      to enable streaming.
-    </para>
-    <para>
-      Note that streaming output adds some overhead to the submission and will probably
-      be significantly slower compared to a job without streaming.
-      An alternative to streaming is to use staging to transport the output of the executable
-      back to the client. This however requires that a GridFTP server is running on the client
-      machine.
-    </para>
-
-    </section>
-
-    <section id="gram5-user-specifyingsimplejob-jdd">
-    <title>Using a job description</title>
-<indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>using a job description</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>using a job description</tertiary></indexterm>
-    <para>The specification of a job to submit is to be written by the user in a 
-      job description XML file. 
-    </para>
-    <para>Here is an example of a simple job description:</para>
-    <screen>&lt;job&gt;
-    &lt;executable&gt;/bin/echo&lt;/executable&gt;
-    &lt;argument&gt;this is an example_string &lt;/argument&gt;
-    &lt;argument&gt;Globus was here&lt;/argument&gt;
-    &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout&lt;/stdout&gt;
-    &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr&lt;/stderr&gt;
-&lt;/job&gt;</screen>
-
-    <para>
-      Tell globusrun-ws to read the job description from a file, using the -f
-      argument:
-    </para>
-
-    <screen>% bin/globusrun-ws -submit -f simple.xml
-    Submitting job...Done.
-    Job ID: uuid:c51fe35a-4fa3-11d9-9cfc-000874404099
-    Termination time: 12/17/2004 20:47 GMT
-    Current job state: Active
-    Current job state: CleanUp
-    Current job state: Done
-    Destroying job...Done.
-    </screen>
-
-    <para>
-    Note the usage of the substitution variable <computeroutput>${GLOBUS_USER_HOME}</computeroutput> 
-    which resolves to the user home directory.</para>
-    <para>
-    Here is an example with more job description parameters:</para>
-    <screen>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;job&gt;
-    &lt;executable&gt;/bin/echo&lt;/executable&gt;
-    &lt;directory&gt;/tmp&lt;/directory&gt;
-    &lt;argument&gt;12&lt;/argument&gt;
-    &lt;argument&gt;abc&lt;/argument&gt;
-    &lt;argument&gt;34&lt;/argument&gt;
-    &lt;argument&gt;this is an example_string &lt;/argument&gt;
-    &lt;argument&gt;Globus was here&lt;/argument&gt;
-    &lt;environment&gt;
-        &lt;name&gt;PI&lt;/name&gt;
-        &lt;value&gt;3.141&lt;/value&gt;
-    &lt;/environment&gt;
-    &lt;stdin&gt;/dev/null&lt;/stdin&gt;
-    &lt;stdout&gt;stdout&lt;/stdout&gt;
-    &lt;stderr&gt;stderr&lt;/stderr&gt;
-    &lt;count&gt;2&lt;/count&gt;
-&lt;/job&gt;</screen>
-
-    <para>Note that in this example, a <computeroutput>&lt;directory&gt;</computeroutput> element specifies the current directory for the execution 
-      of the command on the execution machine to be <computeroutput>/tmp</computeroutput>, and the standard output is 
-      specified as the relative path <computeroutput>stdout</computeroutput>. The output is therefore written to <computeroutput>/tmp/stdout</computeroutput>: 
-    </para>
-    <screen>% cat /tmp/stdout
-    12 abc 34 this is an example_string  Globus was here
-    </screen>
-    </section>
-
-    <section id="gram5-user-specifyingcontact-jdd">
-    <title>Using a contact string in the job description</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>using a job description with contact string</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>using a job description with contact string</tertiary></indexterm>
-    <para>Instead of specifying the contact string on the command-line, you
-      can also put it in the job description: 
-    </para>
-    <screen>&lt;job xmlns:wsa="http://www.w3.org/2005/08/addressing"&gt;
-    &lt;factoryEndpoint&gt;
-      &lt;wsa:Address&gt;
-          https://osg-test1.unl.edu:8443/wsrf/services/ManagedJobFactoryService
-      &lt;/wsa:Address&gt;
-    &lt;/factoryEndpoint&gt;
-    &lt;executable&gt;/bin/date&lt;/executable&gt;
-&lt;/job&gt;</screen>
-    <para>
-      Submit the job with the following command (assuming the above description
-      has been stored in the file job.xml):
-    </para>
-    <screen>% bin/globusrun-ws -submit -f job.xml</screen>
-    <note><simpara>
-       This time you don't have to specify the -F option.
-    </simpara></note>
-    </section>
-
-    <section id="gram5-user-lrm">
-    <title>Specifying a local resource manager</title>
-     
-    <para>
-      Note that at this point you didn't specify any local resource manager
-      related information. If a user does not specify anything then the job is
-      run by the default local resource manager, that is defined on the server-side.
-      If an admin e.g. configured Condor as default local resource manager, then
-      the jobs submitted so far will be managed by Condor on the server-side.
-    </para>
-    <para>
-      Check the section <olink targetptr="gram5-user-scheduler">Local resource
-      managers interfaced by a GRAM5 installation</olink> to find out which local
-      resource managers are available in a GRAM5 installation and which one is
-      configured as the default.
-    </para>
-    
-    <section id="gram5-user-using-defaultscheduler">
-    <title>Submitting to the default local resource manager</title>
-       <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>specifying LRM, default</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>specifying LRM, default</tertiary></indexterm>
-    <para>
-      As said, if you want to submit a job to the default local resource
-      manager, all you have to do is to just NOT specify any local resource
-      manager in your submission, neither in the job description, 
-      nor on the command-line. The above examples show how to do it.
-    </para>
-    </section>
-
-    <section id="gram5-user-using-nondefaultscheduler">
-    <title>Submitting to a non-default local resource manager</title>
-       <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>specifying LRM, non-default</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>specifying LRM, non-default</tertiary></indexterm>
-    <para>
-      If you want to submit a job to a non-default local resource manager,
-      or if you just want to be explicit in what you specify, you'll have to
-      specify the local resource manager in your submission. Using globusrun-ws,
-      there are two ways to specify a local resource manager:
-    </para>
-    <itemizedlist>
-      <listitem><simpara>as command-line argument of globusrun-ws
-        (<computeroutput>-Ft &lt;lrm&gt;</computeroutput>)</simpara></listitem>
-      <listitem><simpara>in the factoryEndpoint element in the job description</simpara></listitem>
-    </itemizedlist>
-    <para>
-      Example: the following job will be submitted to Condor:
-    </para>
-    <screen>globusrun-ws -submit \
-  -F osg-test1.unl.edu:8443/wsrf/services/ManagedJobFactoryService \
-  -Ft Condor \
-  -c /bin/date</screen>
-    <para>
-      Or with a job description that contains a factoryEndpoint:
-    </para>
-    <screen>&lt;job xmlns:wsa="http://www.w3.org/2005/08/addressing"
-    xmlns:gram="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
-    &lt;factoryEndpoint&gt;
-      &lt;wsa:Address&gt;
-          https://osg-test1.unl.edu:8443/wsrf/services/ManagedJobFactoryService
-      &lt;/wsa:Address&gt;
-      &lt;wsa:ReferenceParameters&gt;
-        &lt;gram:ResourceID&gt;Condor&lt;/gram:ResourceID&gt;
-      &lt;/wsa:ReferenceParameters&gt;
-    &lt;/factoryEndpoint&gt;
-    &lt;executable&gt;/bin/date&lt;/executable&gt;
-&lt;/job&gt;</screen>
-    <para>
-      Submit that job (assuming the description is stored in the file myJob.xml):
-    </para>
-    <screen>globusrun-ws -submit -f myJob.xml</screen>
-    </section>
-    
-    </section>
-       
-    <section id="gram5-user-job-credential">
-      <title>Using job credentials</title>
-      <para>
-        If your jobs needs a user proxy certificate e.g. because it calls other
-        programs that require user authentication/authorization, you can delegate
-        a job credential which is used to create a user proxy certificate
-        on the server-side and which can then be used by your job. You can
-        delegate a job credential per job, or you can make use of an already
-        existing delegated credential.
-      </para>
-      <section id="gram-user-job-credential-per-job">
-        <title>Job delegation per job</title>
-        <para> 
-          You can let globusrun-ws delegate a credential for a particular job
-          for you using the <computeroutput>-J</computeroutput> option:
+        <para>This section describes the steps needed to submit jobs to
+        resources managed by GRAM5 services. It describes how resources are
+        named, tools for submitting and monitoring jobs, and the RSL language
+        which describes requirements for jobs.
         </para>
-        <screen>globusrun-ws -submit -J -c /bin/[martin@osg-test1 ~]$ globusrun-ws -submit -J -c /bin/date
-Delegating user credentials...Done.
-Submitting job...Done.
-Job ID: uuid:b0de558e-87f3-11dd-a85a-0013d4c3b957
-Termination time: 09/21/3008 15:41 GMT
-Current job state: Active
-Current job state: CleanUp
-Current job state: Done
-Destroying job...Done.
-Cleaning up any delegated credentials...Done.</screen>
-        <para>
-          Note that globusrun-ws also requests the deletion of the delegated
-          credential after the job finished. This will also remove the user proxy
-          file that had been created for the job.        
-        </para>
-      </section>
 
-      <section id="gram-user-job-credential-shared">
-        <title>Making use of an already delegated credential</title>
-        <para> 
-          If you already delegated a credential and have an EPR of it you can tell
-          globusrun-ws to use it using the <computeroutput>-Jf</computeroutput>
-          option. Note that the delegated credential must be located in the same
-          GT server you are using to submit your job.
-          See section <olink targetptr="gram5-user-delegating">Delegating
-          credentials</olink> for how to delegate a credential.
-        </para>
-        <screen>[martin@osg-test1 ~]$ globusrun-ws -submit -Jf delegCred.epr -c /bin/date
-Submitting job...Done.
-Job ID: uuid:28dfbb5c-87f6-11dd-a34d-0013d4c3b957
-Termination time: 09/21/3008 15:58 GMT
-Current job state: Active
-Current job state: CleanUp
-Current job state: Done
-Destroying job...Done.</screen>
-        <para>
-          Note that globusrun-ws does not delegate this time, and also does
-          not request the deletion of the delegated credential.
-          Also the user proxy file, which is created from the credential won't
-          be removed; it is bound to the delegated credential, and not to the job.
-          You'll have to explicitly destroy the delegated credential in this case
-          which then will also remove the user proxy file.
-          See section <olink targetptr="gram5-user-delegating">Delegating
-          credentials</olink> how to request the destruction of a delegated
-          credential.
-        </para>
-      </section>
-    </section>
-    
-    <section id="gram5-user-specifyingstaging-jdd">
-    <title>Job with staging</title>
-       <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>with staging</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>with staging</tertiary></indexterm>
-    <para>In order to do file staging one must add specific elements to the job description and delegate credentials appropriately (see
-    <olink targetdoc="gram5User" targetptr="gram5-user-delegating"/>). The 
-        file transfer directives follow the <ulink url="../schemas/rft_types.html">RFT
-    syntax</ulink>, which allows only for third-party transfers.  Each file transfer
-    must therefore specify a source URL and a destination URL.  URLs are specified
-    as GridFTP URLs (for remote files) or as file URLs (for files local to the
-    service--these are converted internally to full GridFTP URLs by the service).
-    </para>
-    <para>
-    For instance, in the case of staging a file <emphasis>in</emphasis>, the source
-    URL would be a GridFTP URL (for instance
-    <computeroutput>gsiftp://job.submitting.host:2811/tmp/mySourceFile
-    </computeroutput>) resolving to a source document accessible on the file system
-    of the job submission machine (for instance <computeroutput>/tmp/mySourceFile
-    </computeroutput>). At run-time the Reliable File Transfer service used by the
-    MEJS on the remote machine would reliably fetch the remote file using the
-    GridFTP protocol and write it to the specified local file (for instance 
-    <computeroutput>file:///${GLOBUS_USER_HOME}/my_transfered_file</computeroutput>,
-    which resolves to  <computeroutput>~/my_transfered_file</computeroutput>). Here
-    is how the stage-in directive would look like:
+        <section>
+            <title>Resource Names</title>
 
-    <screen>&lt;fileStageIn&gt;
-    &lt;transfer&gt;
-        &lt;sourceUrl&gt;gsiftp://job.submitting.host:2811/tmp/mySourceFile&lt;/sourceUrl&gt;
-        &lt;destinationUrl&gt;file:///${GLOBUS_USER_HOME}/my_transfered_file&lt;/destinationUrl&gt;
-    &lt;/transfer&gt;
-&lt;/fileStageIn&gt;</screen> 
-    </para>
-    <para><emphasis>Note:</emphasis> additional RFT-defined quality of service requirements can be specified 
-          for each transfer. See the RFT documentation for more information.
-    </para>
-    <para>
-    Here is an example job description with file stage-in and stage-out:</para>
-
-    <screen>&lt;job&gt;
-    &lt;executable&gt;my_echo&lt;/executable&gt;
-    &lt;directory&gt;${GLOBUS_USER_HOME}&lt;/directory&gt;
-    &lt;argument&gt;Hello&lt;/argument&gt;
-    &lt;argument&gt;World!&lt;/argument&gt;
-    &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout&lt;/stdout&gt;
-    &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr&lt;/stderr&gt;
-    &lt;fileStageIn&gt;
-        &lt;transfer&gt;
-            &lt;sourceUrl&gt;gsiftp://job.submitting.host:2811/bin/echo&lt;/sourceUrl&gt;
-            &lt;destinationUrl&gt;file:///${GLOBUS_USER_HOME}/my_echo&lt;/destinationUrl&gt;
-        &lt;/transfer&gt;
-    &lt;/fileStageIn&gt;
-    &lt;fileStageOut&gt;
-        &lt;transfer&gt;
-            &lt;sourceUrl&gt;file:///${GLOBUS_USER_HOME}/stdout&lt;/sourceUrl&gt;
-            &lt;destinationUrl&gt;gsiftp://job.submitting.host:2811/tmp/stdout&lt;/destinationUrl&gt;
-        &lt;/transfer&gt;
-    &lt;/fileStageOut&gt;
-    &lt;fileCleanUp&gt;
-        &lt;deletion&gt;
-            &lt;file&gt;file:///${GLOBUS_USER_HOME}/my_echo&lt;/file&gt;
-        &lt;/deletion&gt;
-    &lt;/fileCleanUp&gt;
-&lt;/job&gt;</screen>
-
-    <para>Note that the job description XML does not need to include a reference to the schema 
-      that describes its syntax. As a matter of fact it is possible to omit the namespace 
-      in the GRAM job description XML elements as well. The submission of this job to the GRAM services causes the following sequence 
-      of actions:
-    </para>
-    <orderedlist>
-    <listitem><simpara> The <computeroutput>/bin/echo</computeroutput> executable is transfered from the submission machine 
-        to the GRAM host file system. The destination location is the HOME directory of the 
-        user on behalf of whom the job is executed by the GRAM services 
-        (see <computeroutput>&lt;fileStageIn&gt;</computeroutput>).</simpara></listitem>
-    <listitem><simpara> The transfered executable is used to print a test string  
-         (see <computeroutput>&lt;executable&gt;</computeroutput>, <computeroutput>&lt;directory&gt;</computeroutput> and 
-          the <computeroutput>&lt;argument&gt;</computeroutput> elements) on the standard output, which is 
-          redirected to a local file (see <computeroutput>&lt;stdout&gt;</computeroutput>).</simpara></listitem>
-    <listitem><simpara> The standard output file is transfered to the submission machine 
-         (see <computeroutput>&lt;fileStageOut&gt;</computeroutput>).</simpara></listitem>
-    <listitem><simpara> The file that was initially transfered during the stage-in phase is removed 
-         from the file system of the GRAM installation (see <computeroutput>&lt;fileCleanup&gt;</computeroutput>).</simpara></listitem>
-    </orderedlist>
-    
-    <para>
-      Submit that job (assuming the description is stored in the file myJob.xml):
-    </para>
-    <screen>globusrun-ws -submit -S -f myJob.xml</screen>
-    <para>
-      The flag <computeroutput>-S</computeroutput> tells globusrun-ws to delegate
-      credentials so that GRAM5 can call the file transfer service RFT on behalf of
-      the submitting user, and that RFT can interact with the gridftp servers on
-      behalf of the submitting user.
-    </para>
-    <para>
-      If you already delegated credentials (see <olink targetdoc="gram5User" targetptr="gram5-user-proxygen">Delegating
-      credentials</olink> for how to delegate a credential) and have an endpoint reference of that
-      delegated credentials stored in the file delegCred.epr and want them to be used
-      for the transfers instead of globusrun-ws delegating new credentials, you can tell
-      globusrun-ws to use your credentials: 
-    </para>
-    <screen>globusrun-ws -submit -Sf delegCred.epr -Tf delegCred.epr -f myJob.xml</screen>
-    <para>
-      The <computeroutput>-Sf</computeroutput> flag tells that the specified credential is
-      to be used by GRAM5 to call RFT on behalf of the user, and the
-      <computeroutput>-Tf</computeroutput> flag tells that the specified credential is
-      to be used by RFT to interact with the GridFTP servers.
-    </para>
-
-    </section>
-
-    <section id="gram5-user-specifying-localuserid">
-    <title>Specifying a local user id in the job description</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>with job description, specifying local user</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>with job description, specifying local user</tertiary></indexterm>
-    <para>If a user has more than one user account on a server and the
-        distinguished name (DN) of the user's certificate is mapped to all these
-        user accounts, a user can specify which local account should be used by
-        GRAM5 for the job submission. By default the first local user account that
-        is defined is used for job submission. If this is not the one that should
-        be used the user must explicitly specify the account to be used.
-        The following dummy job description shows how to do this:
-    </para>
-    <screen>&lt;job&gt;
-    &lt;localUserId&gt;stu&lt;/localUserId&gt;
-    &lt;executable&gt;/bin/date&lt;/executable&gt;
-    &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout&lt;/stdout&gt;
-    &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr&lt;/stderr&gt;
-&lt;/job&gt;</screen>
-    </section>
-
-    <section id="gram5-user-jobidsub-jdd">
-    <title>Using substitution variables</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>using substitution variables</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>using substitution variables</tertiary></indexterm>
-    <para>
-    To allow for customization of values, such as paths, on a per-job basis; a
-    job description substitution variable named "GLOBUS_JOB_ID" can be used.
-    </para>
-    <para>
-    For example:
-    </para>
-    <screen>&lt;job&gt;
-    &lt;executable&gt;/bin/date&lt;/executable&gt;
-    &lt;stdout&gt;/tmp/stdout.${GLOBUS_JOB_ID}&lt;/stdout&gt;
-    &lt;stderr&gt;/tmp/stderr.${GLOBUS_JOB_ID}&lt;/stderr&gt;
-    &lt;fileStageOut&gt;
-        &lt;transfer&gt;
-            &lt;sourceUrl&gt;file:///tmp/stdout.${GLOBUS_JOB_ID}&lt;/sourceUrl&gt;
-            &lt;destinationUrl&gt;gsiftp://mymachine.mydomain.com/out.${GLOBUS_JOB_ID}&lt;/destinationUrl&gt;
-        &lt;/transfer&gt;
-    &lt;/fileStageOut&gt;
-&lt;/job&gt;</screen>
-    <para>
-    More information about substitution variables can found
-    <olink targetdoc="gram5User" targetptr="gram5-jobdescription-variables">
-    here</olink>.
-    </para>
-    </section>
-
-    <section id="gram5-user-specifyingextensions-jdd">
-    <title>Using custom job description extensions</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>using custom job description extensions</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>using custom job description extensions</tertiary></indexterm>
-    <para>
-    Basic support is provided for specifying custom extensions to the job
-    description. There are plans to improve the usability of this feature, but at
-    this time it involves a bit of work.
-    </para>
-    <para>
-    Specifying the actual custom elements in the job description is trivial. Simply add any elements that you need between the beginning and ending
-    <computeroutput>extensions</computeroutput> tags at the bottom of the job
-    description as in the following basic example:
-    <screen>
-    &lt;job&gt;
-        &lt;executable&gt;/home/user1/myapp&lt;/executable&gt;
-        &lt;extensions&gt;
-            &lt;myData&gt;
-                &lt;flag1&gt;on&lt;/flag1&gt;
-                &lt;flag2&gt;off&lt;/flag2&gt;
-            &lt;/myData&gt;
-        &lt;/extensions&gt;
-    &lt;/job&gt;
-    </screen>
-    </para>
-    <para>
-    To handle this data, you will have to alter the appropriate Perl scheduler
-    script (i.e. $GLOBUS_LOCATION/lib/perl/Globus/GRAM/JobManager/fork.pm for the
-    Fork scheduler, etc...) to parse the data returned from the
-    <computeroutput>$description->extensions()</computeroutput> sub.
-    </para>
-    <para>
-    For more information about extensions see the
-    <olink targetdoc="gram5User" targetptr="gram5-jobdescription-extensions">Extensions</olink>
-    section.
-    </para>
-    </section>
-
-    <section id="gram5-user-specifyingmultijob-jdd">
-    <title>Multi-Job</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>multijob</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>multijob</tertiary></indexterm>
-    <para>The job description XML schema allows for specification of a <emphasis>multijob</emphasis>
-      i.e. a job that is itself composed of several executable jobs, which we 
-      will refer to as <emphasis>subjobs</emphasis> 
-      (<emphasis>note:</emphasis> subjobs cannot be multijobs, so the structure is not recursive).
-      This is useful for instance in order to bundle a group of jobs together and submit 
-      them as a whole to a remote GRAM installation.</para>
-    <para>
-    Note that no relationship can be specified between the subjobs of a multijob.
-    The subjobs are submitted to job factory services 
-    in their order of appearance in the multijob description.</para>
-    <para>
-      Within a <ulink url="../schemas/gram_job_description.html#element_multiJob">multijob description</ulink>, 
-      each subjob description must come along with an endpoint for the factory to submit the subjob to. This 
-      enables the at-once submission of several jobs to different hosts.
-      The factory to which the multijob is submitted acts as an intermediary tier 
-      between the client and the eventual executable job factories.
-    </para>
-    <para>
-      Here is an example of a multijob description:
-    </para>
-
-    <screen>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;multiJob xmlns:wsa="http://www.w3.org/2005/08/addressing"&gt;
-    &lt;factoryEndpoint&gt;
-       &lt;wsa:Address&gt;
-          https://localhost:8443/wsrf/services/ManagedJobFactoryService
-      &lt;/wsa:Address&gt;
-    &lt;/factoryEndpoint&gt;
-    &lt;directory&gt;${GLOBUS_LOCATION}&lt;/directory&gt;
-    &lt;count&gt;1&lt;/count&gt;
-
-    &lt;job&gt;
-       &lt;factoryEndpoint&gt;
-         &lt;wsa:Address&gt;https://localhost:8443/wsrf/services/ManagedJobFactoryService&lt;/wsa:Address&gt;
-       &lt;/factoryEndpoint&gt;
-       &lt;executable&gt;/bin/date&lt;/executable&gt;
-       &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout.p1&lt;/stdout&gt;
-       &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr.p1&lt;/stderr&gt;
-       &lt;count&gt;2&lt;/count&gt;
-    &lt;/job&gt;
-
-    &lt;job&gt;
-       &lt;factoryEndpoint&gt;
-         &lt;wsa:Address&gt;https://localhost:8443/wsrf/services/ManagedJobFactoryService&lt;/wsa:Address&gt;
-       &lt;/factoryEndpoint&gt;
-       &lt;executable&gt;/bin/echo&lt;/executable&gt;
-       &lt;argument&gt;Hello World!&lt;/argument&gt;        
-       &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout.p2&lt;/stdout&gt;
-       &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr.p2&lt;/stderr&gt;
-       &lt;count&gt;1&lt;/count&gt;
-    &lt;/job&gt;
-&lt;/multiJob&gt;</screen>
-
-<!--
-    <para><emphasis>Notes:</emphasis>
-    </para>
-    <itemizedlist>
-    <listitem><simpara>The <computeroutput>&lt;ResourceID&gt;</computeroutput> element within the <computeroutput>&lt;factoryEndpoint&gt;</computeroutput>
-    WS-Addressing endpoint structures must be qualified with the appropriate GRAM namespace.</simpara></listitem>
-    <listitem><simpara>Apart from the <computeroutput>factoryEndpoint</computeroutput> element, all elements at the enclosing multijob level 
-    act as defaults for the subjob parameters, in this example <computeroutput>&lt;directory&gt;</computeroutput> and <computeroutput>&lt;count&gt;</computeroutput>.</simpara></listitem>
-    <listitem><simpara>The default <computeroutput>&lt;count&gt;</computeroutput> value is overridden in the subjob descriptions.</simpara></listitem>
-    </itemizedlist>
--->
-    <para>
-      Submit the multi-job with the following command:
-    </para>
-
-    <screen>% bin/globusrun-ws -submit -f test_multi.xml
-    Delegating user credentials...Done.
-    Submitting job...Done.
-    Job ID: uuid:bd9cd634-4fc0-11d9-9ee1-000874404099
-    Termination time: 12/18/2004 00:15 GMT
-    Current job state: Active
-    Current job state: CleanUp
-    Current job state: Done
-    Destroying job...Done.
-    Cleaning up any delegated credentials...Done.</screen>
-
-    <note><simpara>
-      When you submit a multi-job you don't have to specify the local
-      resource manager, you can do so though. The fact that it's a multi-job is
-      detected on the server-side and the right "local resource manager"
-      Multi is used automatically.
-    </simpara></note>
-    
-    <note><simpara>
-      In this multi-job description the sub-jobs are submitted
-      to the default local resource manager. If you want them to be submitted to
-      a non-default local resource manager you'll have to specify that in an
-      additional ReferenceParameters element in the factoryEndpoint element of
-      each sub-job. See <olink targetptr="gram5-user-using-nondefaultscheduler">here</olink> for
-      more information about this.
-    </simpara></note>
-
-    <para>
-      A multijob resource is created by the factory and exposes a set of 
-      WSRF resource properties different than the resource properties of 
-      an executable job. The state machine of a multijob is also different 
-      since the multijob represents the <emphasis>overall</emphasis> execution
-      of all the executable jobs it is composed of.
-    </para>
-    </section>
-
-    <section id="s-wsgram-user-runningMPIjobs"><title>Submitting MPI Jobs</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>submitting</secondary><tertiary>MPIJob</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submitting</secondary><tertiary>MPIJob</tertiary></indexterm>
-        <para>
-      This <ulink url="http://www.gac-grid.org/project-documents/deliverables/wp1/Run_MPI_Jobs_on_Grid-D_1_4.pdf">document from DGrid</ulink> describes how to submit MPI batch jobs to compute clusters using GRAM5.
-        </para>
-    </section>
-    
-</chapter>
-
-<chapter id="gram5-user-query">
-<title>Getting information about jobs</title>
-
-<section id="gram5-user-query-single">
-<title>Resource properties of a job</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>querying</secondary><tertiary>resource properties</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>querying</secondary><tertiary>resource properties</tertiary></indexterm>
-<para>
-  A job submitted to GRAM5 has a set of resource properties that contain information
-  about the job a user might be interested in, like
-  <itemizedlist>
-    <listitem><simpara>status of the remote job</simpara></listitem>
-    <listitem><simpara>local user id the job is run under</simpara></listitem>
-    <listitem><simpara>exit code of the executable after it finished</simpara></listitem>
-    <listitem><simpara>information about errors</simpara></listitem>
-    <listitem><simpara>...</simpara></listitem>
-  </itemizedlist>
-</para>
-<para>
-  The following links give a complete list of all available resource properties of
-  <olink targetdoc="gram5Developer" targetptr="gram5-rps-mejpt">executable
-  jobs</olink> and <olink targetdoc="gram5Developer"
-  targetptr="gram5-rps-mmjpt">multi jobs</olink>.
-</para>
-<para>
-  The rest of this section assumes that a job had been submitted in batch mode,
-  and that the EPR of the job is available in the file
-  <computeroutput>myJob.epr</computeroutput>.
-</para>
-<para>
-  To check for status of the job, use globusrun-ws:
-</para>
-<screen>[martin@osg-test1 ~]$ globusrun-ws -status -j myJob.epr 
-Current job state: Active</screen>
-<para>
-  If a job failed, globusrun-ws will print an error that indicates what
-  happened:
-</para>
-<screen>[martin@osg-test1 ~]$ globusrun-ws -status -j myJob.epr 
-Current job state: Failed
-globusrun-ws: Job failed: Invalid executable path "/bin/sleeeeep".</screen>
-<para>
-  More general-purpose programs exist that are not limited to resource properties
-  of job resources and that let you get information about the other resource
-  properties:
-  <itemizedlist>
-    <listitem><simpara><emphasis role="strong">wsrf-get-resource-property</emphasis>:
-      Get a single resource property</simpara>
-    </listitem>
-    <listitem><simpara><emphasis role="strong">wsrf-get-resource-properties</emphasis>:
-      Get a list of resource properties</simpara>
-    </listitem>
-    <listitem><simpara><emphasis role="strong">wsrf-query</emphasis>:
-      Query the resource property document</simpara>
-    </listitem>
-  </itemizedlist>
-  The following examples show how to use these commands to get information
-  about an executable job.
-</para>
-<para>
-  Use wsrf-get-property to get the state of the job (resource property
-  <computeroutput>state</computeroutput>):
-</para>
-<screen>[martin@osg-test1 ~]$ wsrf-get-property -e myJob.epr \
-  "{http://www.globus.org/namespaces/2008/03/gram/job/types}state"
-
-&lt;ns1:state xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
-  Done
-&lt;/ns1:state&gt;
-</screen>
-<para>
-  Get the values of the two resource properties
-  <computeroutput>localUserId</computeroutput> and
-  <computeroutput>localJobId</computeroutput> in one request:
-</para>
-<screen>[martin@osg-test1 ~]$ wsrf-get-properties -e myJob.epr \
-  "{http://www.globus.org/namespaces/2008/03/gram/job/types}localUserId" \
-  "{http://www.globus.org/namespaces/2008/03/gram/job/exec}localJobId"
-  
-&lt;ns1:localUserId xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
-  feller
-&lt;/ns1:localUserId&gt;
-&lt;ns2:localJobId xmlns:ns2="http://www.globus.org/namespaces/2008/03/gram/job/exec"&gt;
-  51370.osg-test1.unl.edu
-&lt;/ns2:localJobId&gt;
-</screen>
-<para>
-  Get the whole resource property document of a job:
-</para>
-<screen>[martin@osg-test1 ~]$ wsrf-query -e myJob.epr "/*"
-
-&lt;ns0:managedJobResourceProperties
-   xmlns:ns0="http://www.globus.org/namespaces/2008/03/gram/job"
-   xmlns:ns04="http://www.w3.org/2001/XMLSchema-instance"
-   xmlns:ns05="http://www.w3.org/2001/XMLSchema"
-   xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job/exec"
-   xmlns:ns10="http://www.globus.org/namespaces/2008/03/gram/job/description"
-   xmlns:ns11="http://www.w3.org/2005/08/addressing"
-   xmlns:ns14="http://docs.oasis-open.org/wsn/b-2"
-   xmlns:ns2="http://www.globus.org/namespaces/2008/03/gram/job/types"
-   xmlns:ns6="http://docs.oasis-open.org/wsrf/rl-2"
-   xmlns:ns8="http://www.globus.org/namespaces/2008/04/rendezvous"&gt;
-  &lt;ns1:localJobId&gt;51370.osg-test1.unl.edu&lt;/ns1:localJobId&gt;
-  &lt;ns2:exitCode&gt;0&lt;/ns2:exitCode&gt;
-  &lt;ns3:localUserId xmlns:ns3="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
-     feller
-  &lt;/ns3:localUserId&gt;
-  &lt;ns4:userSubject xmlns:ns4="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
-     /DC=org/DC=doegrids/OU=People/CN=John Doe 807394
-  &lt;/ns4:userSubject&gt;
-  &lt;ns5:holding xmlns:ns5="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
-     false
-  &lt;/ns5:holding&gt;
-  &lt;ns6:TerminationTime&gt;3008-05-15T21:12:56.067Z&lt;/ns6:TerminationTime&gt;
-  &lt;ns7:state xmlns:ns7="http://www.globus.org/namespaces/2008/03/gram/job/types"&gt;
-     Active
-  &lt;/ns7:state&gt;
-  &lt;ns8:Capacity&gt;1&lt;/ns8:Capacity&gt;
-  &lt;ns9:CurrentTime xmlns:ns9="http://docs.oasis-open.org/wsrf/rl-2"&gt;
-     2008-05-15T21:17:03.849Z
-  &lt;/ns9:CurrentTime&gt;
-  &lt;ns10:serviceLevelAgreement&gt;
-    &lt;ns10:job&gt;
-      &lt;ns10:factoryEndpoint&gt;
-        &lt;ns11:Address&gt;
-           https://osg-test1.unl.edu:8443/wsrf/services/ManagedJobFactoryService
-        &lt;/ns11:Address&gt;
-        &lt;ns12:ReferenceParameters xmlns:ns12="http://www.w3.org/2005/08/addressing"&gt;
-          &lt;ns5:ResourceID ns04:type="ns05:string"
-             xmlns:ns5="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
-             PBS
-          &lt;/ns5:ResourceID&gt;
-        &lt;/ns12:ReferenceParameters&gt;
-      &lt;/ns10:factoryEndpoint&gt;
-      &lt;ns10:executable&gt;/bin/sleep&lt;/ns10:executable&gt;
-      &lt;ns10:directory&gt;/home/john&lt;/ns10:directory&gt;
-      &lt;ns10:argument xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:type="xsd:string"&gt;
-         600
-      &lt;/ns10:argument&gt;
-      &lt;ns10:stdout&gt;/dev/null&lt;/ns10:stdout&gt;
-      &lt;ns10:stderr&gt;/dev/null&lt;/ns10:stderr&gt;
-      &lt;ns10:count&gt;1&lt;/ns10:count&gt;
-    &lt;/ns10:job&gt;
-  &lt;/ns10:serviceLevelAgreement&gt;
-  &lt;ns13:RendezvousCompleted
-     xmlns:ns13="http://www.globus.org/namespaces/2008/04/rendezvous"&gt;
-     false
-  &lt;/ns13:RendezvousCompleted&gt;
-  &lt;ns14:FixedTopicSet&gt;false&lt;/ns14:FixedTopicSet&gt;
-  &lt;ns16:TopicSet Dialect="http://docs.oasis-open.org/wsn/t-1/TopicExpression/Simple"
-     xmlns:ns15="http://www.globus.org/namespaces/2008/04/rendezvous" 
-     xmlns:ns16="http://docs.oasis-open.org/wsn/b-2"&gt;
-     ns15:RendezvousCompleted
-  &lt;/ns16:TopicSet&gt;
-  &lt;ns18:TopicSet Dialect="http://docs.oasis-open.org/wsn/t-1/TopicExpression/Simple"
-     xmlns:ns17="http://www.globus.org/namespaces/2008/03/gram/job" 
-     xmlns:ns18="http://docs.oasis-open.org/wsn/b-2"&gt;
-     ns17:stateChangeInformation
-  &lt;/ns18:TopicSet&gt;
-  &lt;ns19:TopicExpressionDialect xmlns:ns19="http://docs.oasis-open.org/wsn/b-2"&gt;
-     http://docs.oasis-open.org/wsn/t-1/TopicExpression/Simple
-  &lt;/ns19:TopicExpressionDialect&gt;
-&lt;/ns0:managedJobResourceProperties&gt;
-</screen>
-<para>
-  The output might not be so nicely formated like in the above examples.
-</para>
-
-
-</section>
-
-<section id="gram5-user-query-multiple">
-<title>List of all jobs in a GRAM5 instance</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>querying</secondary><tertiary>all jobs in a GRAM5 instance</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>querying</secondary><tertiary>all jobs in a GRAM5 instance</tertiary></indexterm>
-<para>
-  There is currently no way to get a list of all jobs managed by a GRAM5 instance
-  or to get a list of all jobs of a particular user managed by GRAM5. A user or
-  client has to keep track of all jobs it submitted if this is of interest.
-</para>
-<para>
-  However, if audit logging is configured in GRAM5 (see <olink
-  targetdoc="gram5Admin" targetptr="gram5-audit-logging">Audit Logging</olink>
-  in the <olink targetdoc="gram5Admin">System Administrator's Guide</olink>),
-  a user could request a list of all jobs could be requested from an administrator.
-  But this information is probably by default not available on the fly.
-</para>
-</section>
-
-</chapter>
-
-<chapter id="gram5-user-terminate">
-<title>Terminating jobs</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>terminating</secondary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>terminating</secondary></indexterm>
-<para>
-  Terminating a job using globusrun-ws means interrupting job processing
-  and destroying all job-related data on the server-side, including delegated
-  credentials if globusrun-ws did the delegation itself.
-</para>
-<para>
-  If the job is still running and not already fully processed, termination
-  will cause the job to go through a series cleanup steps in GRAM5 before
-  the job-related data is destroyed.
-  The cleanup steps being performed depend on the job and the state it is in.  
-  In general this includes cancellation of a running job at the local resource
-  manager and running fileCleanUp if so specified in the job description.
-  Termination at the local resource manager however will only be performed if
-  the job did not already finished executing.
-  This also applies to fileCleanUp: If no fileCleanUp is specified in the job
-  description or if the job already passed fileCleanUp when the termination
-  request comes in, then this step is skipped.
-</para>
-<para>
-  Depending on load in GRAM5 performing these cleanup steps may take
-  a while.
-</para>
-
-<section id="gram5-user-terminate-batch">
-<title>Jobs in batch mode</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>terminating</secondary><tertiary>batch mode</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>terminating</secondary><tertiary>batch mode</tertiary></indexterm>
-<para>
-  The following shows how to terminate a job that had been submitted in batch
-  mode, assuming the EPR of the job is stored in the file myJob.epr:
-</para>
-<screen>[martin@osg-test1 ~]$ globusrun-ws -kill -j myJob.epr 
-Current job state: Active
-Current job state: UserTerminateDone
-Requesting original job description...Done.
-Destroying job...Done.</screen>
-</section>
-
-<section id="gram5-user-terminate-interactive">
-<title>Jobs in interactive mode</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>terminating</secondary><tertiary>interactive mode</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>terminating</secondary><tertiary>interactive mode</tertiary></indexterm>
-<para>
-  If globusrun-ws is run in interactive mode
-  <computeroutput>Ctrl-C</computeroutput> will cause job termination.
-</para>
-<screen>[martin@osg-test1 ~]$ globusrun-ws -submit -c /bin/sleep 30
-Submitting job...Done.
-Job ID: uuid:56b15176-22d4-11dd-8bdd-0013d4c3b957
-Termination time: 05/15/3008 23:12 GMT
-Current job state: Active
-Canceling...Current job state: UserTerminateDone
-Canceled.
-Destroying job...Done.</screen>
-<para>
-  Repetitive <computeroutput>Ctrl-C</computeroutput> cause globusrun-ws
-  to return and not wait for success of termination.
-</para>
-</section>  
-
-</chapter>
-
-
-<chapter id="gram5-user-lifetime">
-<title>Job lifetime</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>lifetime</secondary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>lifetime</secondary></indexterm>
-<para>For a general introduction see section <olink targetdoc="executionKey"
-targetptr="execution-approach-lifetime">Job Lifetime</olink> in the GRAM5
-approach.</para>
-<para>Jobs submitted to WS-GRAM have a lifetime. If the lifetime of a ManagedJob
-resource expires the job will be terminated and finally the job resource will be
-destroyed and the job's persistence data will removed.
-</para>
-<para>For executable jobs the user-relevant steps in termination are:
-<itemizedlist>
-  <listitem><simpara>
-    Cancellation of the job at the local resource manager if it's still running.
-  </simpara></listitem>
-  <listitem><simpara>
-    Performing fileCleanUp if specified in the job description and the
-    job did not already pass this step.
-  </simpara></listitem>
- </itemizedlist>
-  If a multi job expires all sub-jobs will be terminated.
-</para>
-
-<section id="gram5-user-general">
-<title>Server-side settings that impact job lifetime</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>lifetime</secondary><tertiary>server-side settings</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>lifetime</secondary><tertiary>server-side settings</tertiary></indexterm>
-<para>There are 2 resource properties (RP's) of GRAM5’s factory service
-that have impact on lifetime of job resources:</para>
-<informaltable><tgroup cols="2">
-  <tbody>
-    <row>
-      <entry><para><emphasis role="strong">maxJobLifetime</emphasis>
-      </para></entry>
-      <entry><para>Max lifetime a client can specify in the initial
-      job submission and in subsequent setTerminationTime calls.
-      Default value is 1 year.
-      A negative value means that there is no limit.</para></entry>
-    </row>
-    <row>
-      <entry><para><emphasis role="strong">jobTTLAfterProcessing
-      </emphasis></para></entry>
-      <entry><para>Amount of time a job resource keeps on existing
-      after the job has been fully processed and is in a final
-      state Done, Failed, UserTerminateDone, UserTerminateFailed,
-      and the client did not specify a job lifetime.
-      Default value is 24h.
-      A negative value means that the job resource does not
-      expire.</para></entry>
-    </row>
-  </tbody>
-</tgroup></informaltable>
-<para>Values are specified in seconds. A client can query the RP's to find out
-their values like explained in the following examples.</para>
-
-<para>Getting the value of the RP maxLifetime:</para>
-<screen>[martin@osg-test1 ~]$ globus-wsrf-get-property \
-  -s https://osg-test1.unl.edu:8443/wsrf/services/ManagedJobFactoryService \
-  {http://www.globus.org/namespaces/2008/03/gram/job}maxJobLifetime
-</screen>
-
-<para>The result (in this case 1 year) is:</para>
-<screen>&lt;ns1:maxJobLifetime xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
-      31536000
-&lt;/ns1:maxJobLifetime&gt;</screen>
-
-<para>Getting the value of the RP jobTTLAfterProcessing:</para>
-<screen>[martin@osg-test1 ~]$ globus-wsrf-get-property \
-  -s https://osg-test1.unl.edu:8443/wsrf/services/ManagedJobFactoryService \
-  {http://www.globus.org/namespaces/2008/03/gram/job}jobTTLAfterProcessing
-</screen>
-<para>The result (in this case 24h) is:</para>
-<screen>&lt;ns1:jobTTLAfterProcessing xmlns:ns1="http://www.globus.org/namespaces/2008/03/gram/job"&gt;
-      86400
-&lt;/ns1:jobTTLAfterProcessing&gt;</screen>
-</section>
-
-<section id="gram5-user-lifetime-scenarios">
-<title>Client-side information</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>lifetime</secondary><tertiary>client-side settings</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>lifetime</secondary><tertiary>client-side settings</tertiary></indexterm>
-<para>This section explains how the above parameters impact a client and what
-the actual lifetime of a job is, when a user does not specify a lifetime at all
-or when he/she specifies a lifetime for a job.</para>
-<section id="gram5-user-lifetime-scenario1">
-<title>Specifying no lifetime in submission</title>
-<para>The job does not expire until it is fully processed. After that the
-lifetime will be set to (now + jobTTLAfterProcessing). By this it is
-guaranteed that a job runs to completion (including fileStageOut and
-fileCleanUp) and a client has the ability to query the status of a job for
-a while before it will be removed.</para>
-<para>The default C-client globusrun-ws by default does not set a lifetime</para> 
-</section>
-
-<section id="gram5-user-lifetime-scenario2">
-<title>Specifying a lifetime in submission</title>
-<para>The job will definitely be terminated when the lifetime expires regardless
-of the status of the job. A client can however extend the lifetime before the
-lifetime expires (restricted by maxJobLifetime if set > -1 by the admin).
-If a client specifies a termination time in the past or a termination time that
-exceeds maxJobLifetime an UnableToSetTerminationTimeFault is thrown by
-MJFS.createManagedJob()</para>
-<para>Using the C-client globusrun-ws you can set a lifetime for a job in 2 ways.
-The first example shows how to set a relative lifetime, i.e. the job will expire
-in 48h from now:</para>
-<screen>globusrun-ws -submit -term "+48:00" -b -o myJob.epr -f myJob.xml</screen>
-<para> The second example shows how to set an absolute lifetime. The job
-will expire at the given date:</para>
-<screen>globusrun-ws -submit -term "10/23/2008 12:00" -b -o myJob.epr -f myJob.xml</screen>
-<para>In both example the job had been submitted in batch mode, which makes sense
-for longer running jobs. For more information about globusrun-ws see
-<olink targetdoc="gram5User" targetptr="gram5-cmd">here</olink>.</para>
-</section>
- 
-<section id="gram5-user-lifetime-scenario3">
-<title>Setting a new lifetime on an existing job</title>
-<para>In case a requested new termination time conflicts with the maxJobLifetime
-setting provided by an admin a TerminationTimeRejectedException is thrown. The
-following example shows how to set a new termination time of a job resource (assuming
-that the Endpoint Reference (EPR) of the job is stored in the file
-<computeroutput>myJob.epr</computeroutput>). The new lifetime is provided in
-seconds (604800 in this example [one week]):</para>
-<screen>[martin@osg-test1 ~]$ wsrf-set-termination-time -e myJob.epr 604800</screen>
-<para>The output could be something like this:</para>
-<screen>requested: Tue May 13 09:27:15 CDT 2008
-scheduled: Tue May 13 09:27:15 CDT 2008</screen>
-</section>
-
-</section>
-</chapter>
-
-<chapter id="gram5-user-jobholdandrelease">
-<title>Job hold and release</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>hold and release</secondary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>hold and release</secondary></indexterm>
-<para>
-    It is possible to specify in a job description that the job be 
-    put on hold when it reaches a chosen state (see <olink targetdoc="executionKey"
-    targetptr="execution-approach">GRAM Approach</olink>
-    documentation for more information about the executable 
-    job state machine, and see the<ulink url="../schemas/mj_types.html#element_holdState"> job
-    description XML schema documentation</ulink> for information about how to specify a held
-    state).
-    This is useful for instance when a GRAM client wishes to directly 
-    access output files written by the job (as opposed to waiting for 
-    the stage-out step to transfer files from the job host). The client would  
-    request that the file cleanup process be held until released, 
-    giving the client an opportunity to fetch all remaining/buffered 
-    data after the job completes but <emphasis>before</emphasis> the output files are 
-    deleted. </para>
-    <para>
-    This is used by <computeroutput>globusrun-ws</computeroutput> in order to ensure client-side 
-    streaming of remote files in batch mode.
-    </para>
-    <para>Valid hold states are:</para>
-    <itemizedlist>
-      <listitem><simpara>StageIn</simpara></listitem>
-      <listitem><simpara>StageOut</simpara></listitem>
-      <listitem><simpara>CleanUp</simpara></listitem>
-      <listitem><simpara>Pending</simpara></listitem>
-    </itemizedlist>
-    
-    <para>The following job description (later referred to by job.xml) shows
-      how to specify a hold state in the job description:
-    </para>
-    <screen>&lt;job&gt;
-    &lt;holdState&gt;CleanUp&lt;/holdState&gt;
-    &lt;executable&gt;/bin/date&lt;/executable&gt;
-    &lt;stdout&gt;${GLOBUS_USER_HOME}/stdout&lt;/stdout&gt;
-    &lt;stderr&gt;${GLOBUS_USER_HOME}/stderr&lt;/stderr&gt;
-    &lt;fileCleanUp&gt;
-        &lt;deletion&gt;
-            &lt;file&gt;gsiftp://osg-test1.unl.edu:2811/${GLOBUS_USER_HOME}/stdout&lt;/file&gt;
-        &lt;/deletion&gt;
-        &lt;deletion&gt;
-            &lt;file&gt;gsiftp://osg-test1.unl.edu:2811/${GLOBUS_USER_HOME}/stderr&lt;/file&gt;
-        &lt;/deletion&gt;
-    &lt;/fileCleanUp&gt;
-&lt;/job&gt;
-    </screen>
-
-    <para>Submitting the job in batch mode:</para>
-    <screen>[martin@osg-test1 tmp]$ globusrun-ws -submit -S -f myJob.xml -b -o myJob.epr
-Delegating user credentials...Done.
-Submitting job...Done.
-Job ID: uuid:837941d4-1085-11dd-b401-0013d4c3b957
-Termination time: 04/22/3008 16:02 GMT
-[martin@osg-test1 tmp]$</screen>
-
-    <para>Checking for status:</para>
-    <screen>[martin@osg-test1 tmp]$ globusrun-ws -status -j myJob.epr
-Current job state: CleanUp-Hold
-[martin@osg-test1 tmp]$</screen>
-    <para>Releasing the job:</para>
-    <screen>globusrun-ws -release -j myJob.epr</screen>
-
-    <para>Checking for status after the release:</para>    
-    <screen>[martin@osg-test1 tmp]$ globusrun-ws -status -j myJob.epr
-Current job state: Done</screen>
-
-    <para>Removing the job:</para>    
-    <screen>[martin@osg-test1 ~]$ globusrun-ws -kill -j myJob.epr
-Requesting original job description...Done.
-Destroying job...Done.</screen>
-
-</chapter>
-
-<chapter id="gram5-user-submissionid">
-<title>Client-Side Generated Submission ID</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>submission ID</secondary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>submission ID</secondary></indexterm>
-    <para>
-      A submission ID may be used in the GRAM protocol for reliability in the face
-      of message faults or other transient errors in order to ensure that at most
-      one instance of a job is executed, i.e. to prevent accidental duplication of
-      jobs under rare circumstances with client retry on failure. By default, the
-      <glossterm>globusrun-ws</glossterm> program will generate a submission ID
-      (<glossterm baseform="Universally Unique Identifier">uuid</glossterm>).
-      One can override this behavior by supplying a submission ID as a command
-      line argument.
-    </para>
-    <para>
-      If a user is unsure whether a job was submitted successfully, he
-      should resubmit using the same ID as was used for the previous attempt.
-      If the job had already been accepted by the container in the first submission
-      no new job is started but the Endpoint Reference of the first job is returned
-      back to the client.
-    </para>
-    <para>
-      Note that the client-generated submission ID is <emphasis>not</emphasis> the
-      ID GRAM5 uses for the job on the server-side. GRAM5 internally generates it's
-      own UUID for the job to circumvent the risk of potentially problematic
-      client-side submission IDs. 
-    </para>
-    <para>
-      The client-generated submission ID shows up in all server-side logs
-      (container-log, CEDPS-Troubleshooting admin log, records in the audit
-      database) and is linked with the server-side job UUID.
-      This enables debugging in situations where the user only knows about the
-      client-side generated submission ID.
-    </para>
-</chapter>
-
-<chapter id="gram5-user-softenv">
-    <title>Specifying SoftEnv keys in the job description</title>
-<indexterm type="gram5"><primary>jobs</primary><secondary>SoftEnv keys</secondary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>SoftEnv keys</secondary></indexterm>
-     <para>
-    For a short introduction to SoftEnv please have a look at the
-    <olink targetdoc="gram5Admin" targetptr="gram5-softenv">SoftEnv
-      chapter</olink>.
-  </para>
-  <para>
-    If SoftEnv is enabled on the server-side, nothing needs to be added to a job
-    description to set up the environment which is specified in the
-    <computeroutput>.soft</computeroutput> file in the remote home directory of
-    the user before the job is submitted to the scheduler.</para>
-   
-  <para>If a different software
-    environment should be used than the one specified in the remote
-    <computeroutput>.soft</computeroutput> file, the user must provide 
-    SoftEnv parameters in the extensions element of the job
-    description. </para>
-    
-  <para>The schema of the extension element for software selection
-    in the job description is as follows:
-  </para>
-  <screen>&lt;element name="softenv" type="xsd:string"&gt;</screen>
-  <para>  
-    For example, to add the SoftEnv commands <command>@teragrid-basic</command>,
-    <command>+intel-compilers</command>, <command>+atlas</command>, and <command>+tgcp</command> to the job process'
-    environment, the user would specify the following <computeroutput>&lt;extensions&gt;</computeroutput> element
-    in the job description:
-  </para>
-  <screen>&lt;extensions&gt;
-  &lt;softenv&gt;@teragrid-basic&lt;/softenv&gt;
-  &lt;softenv&gt;+intel-compilers&lt;/softenv&gt;
-  &lt;softenv&gt;+atlas&lt;/softenv&gt;
-  &lt;softenv&gt;+tgcp&lt;/softenv&gt;
-&lt;/extensions&gt;</screen>
-  <para>
-    So far there is no way for a user to learn from the remote service
-    itself whether or not SoftEnv support is enabled. Currently, the only way to check this is to submit a job 
-    with <computeroutput>/bin/env</computeroutput> as the executable and watch the results.
-  </para>
-  
-  <para>The following table describes what happens in various scenarios if SoftEnv is disabled or enabled on the server side:</para>
-  
-  <informaltable>
-    <tgroup cols="3">
-      <thead>
-        <row>
-          <entry>&nbsp;</entry>
-          <entry>Disabled on server side</entry>
-          <entry>Enabled on server side</entry>
-        </row>
-      </thead>
-      <tbody>
-        <row>
-          <entry><para><emphasis role="strong">User provides no SoftEnv extensions:</emphasis></para></entry>
-          <entry>
-            <para>No SoftEnv environment is configured before job submission, even
-            if the user has a <computeroutput>.soft</computeroutput> file in their
-              remote home directory.</para>
-          </entry>
-          <entry>
-            <para>If the user has a <computeroutput>.soft</computeroutput> file (and no
-            <computeroutput>.nosoft</computeroutput> file) in their remote home directory,
-            then the environment defined in the <computeroutput>.soft</computeroutput>
-              file will be configured before job submission.</para>
-            <para>If the user has a <computeroutput>.nosoft</computeroutput> file in their remote
-            home directory, no environment will be prepared.
-          </para></entry>
-        </row>
-        
-        <row>
-          <entry><para><emphasis role="strong">User provides valid SoftEnv extensions:</emphasis></para></entry>
-          <entry>
             <para>
-              If SoftEnv is not installed on the server then no environment
-              will be configured
+            In GRAM5, a <glossterm>Gatekeeper Service Contact</glossterm>
+            contains the host, port, service name, and service identity 
+            required to contact a particular GRAM service. For convenience,
+            default values are used when parts of the contact are omitted.
+            An example of a full gatekeeper service contact is
+            <literal>grid.example.org:2119/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal>.
             </para>
-            <para>
-              If SoftEnv is installed, the environment the user specifies in the <computeroutput>&lt;extensions&gt;</computeroutput>
-              elements overwrites any SoftEnv configuration the user
-              specifies in a <computeroutput>.soft</computeroutput> or 
-              <computeroutput>.nosoft</computeroutput> file in their remote home directory.
-              The environment will be configured as specified by the user in the 
-              <computeroutput>&lt;extensions&gt;</computeroutput> elements before job submission.
-            </para>     
-          </entry>
-          <entry>
-            <para>
-              The specified environment overwrites any SoftEnv configuration the user
-              specifies in a <computeroutput>.soft</computeroutput> or a 
-              <computeroutput>.nosoft</computeroutput> file in their remote home directory.
-              The environment will be configured as specified by the user in the 
-              <computeroutput>&lt;extensions&gt;</computeroutput> elements before job submission.
-            </para>
-          </entry>
-        </row>
-  
-        <row>
-          <entry><para><emphasis role="strong">User provides invalid SoftEnv extensions:</emphasis></para></entry>
-          <entry>
-            <para>
-              If SoftEnv is not installed on the server, then no environment
-              will be configured.
-            </para>
-            <para>
-              If SoftEnv is installed, the environment the user specifies in the <computeroutput>&lt;extensions&gt;</computeroutput>
-              elements overwrites any SoftEnv configuration the user
-              specifies in a <computeroutput>.soft</computeroutput> or a 
-              <computeroutput>.nosoft</computeroutput> file in their remote home directory.
-              Only the valid keys in the SoftEnv <computeroutput>&lt;extensions&gt;</computeroutput> elements will be configured.
-              If no valid key is found, no environment will be configured.
-              SoftEnv warnings are logged to the stdout of the job.
-            </para>
-          </entry>
-          <entry>
-            <para>
-              The specified environment overwrites any SoftEnv configuration the user
-              specifies in a <computeroutput>.soft</computeroutput> or a 
-              <computeroutput>.nosoft</computeroutput> file in their remote home directory.
-              Only the valid keys in the SoftEnv <computeroutput>&lt;extensions&gt;</computeroutput> elements will be configured.
-              If no valid key is found, no environment will be configured.
-              SoftEnv warnings are logged to stdout of the job.
-            </para>
-          </entry>
-        </row>
-        
-        <row>
-          <entry>&nbsp;</entry>
-          <entry>
-            <para>
-              In general, jobs do not fail if they have SoftEnv extensions in their description and SoftEnv is disabled (or not even installed) 
-              on the server side. But they will fail if they rely on environments being set up before job submission.
-            </para>
-          </entry>
-          <entry>
-            &nbsp;
-          </entry>
-        </row>
-      </tbody>
-    </tgroup>
-    </informaltable>
-  
-<note>
-  <para>In the current implementation, it is not possible to call executables
-    directly whose paths are defined in SoftEnv without specifiying the
-    complete path to the executable.
-  </para>
 
-  <para>
-    For example, if a database query must
-    be executed using the
-    <command>mysql</command> command and <command>mysql</command> is not in the default path, then the direct use of
-    mysql as an executable in the jobs description document will fail, even if
-    the use of SoftEnv is configured. The <command>mysql</command> command must be written to a
-    script which is in the default path. </para>
-    
-  <para>Thus a job submission with the
-    following job description document will fail:
-  </para>
-  <screen>
-&lt;job&gt;
-  ...
-  &lt;executable&gt;mysql&lt;/executable&gt;
-  ...
-&lt;/job&gt;
-  </screen>
-  <para>
-    But when the command is embedded inside a shell script which is
-    specified as the executable in the job description document, it will work:
-  </para>
-  <screen>
-#!/bin/sh
-  ...
-  mysql ...
-    ...
-  </screen>
-</note>
-  
-<note>
-  <para>The use of invalid SoftEnv keys in the extension part of the job
-    description document does not generate errors.
-  </para>
-</note>
-  
-  <!--
-  <section>
-    <title>Open Questions</title>
-    <para>
-      <itemizedlist>
-        <listitem>
-          <para>
-            What about the packages  for Condor and PBS on
-            <ulink url="http://www.globus.org/toolkit/downloads/development/">
-            http://www.globus.org/toolkit/downloads/development/</ulink>?
-          </para>
-        </listitem>
-        <listitem>   
-          <para>
-            Is the extension package globus_gram_job_manager_scripts-0.3
-            now part of a the software or must it be downloaded separately?
-          </para>
-        </listitem>
-        <listitem>
-          <para>Provide link to SoftEnv?</para>
-        </listitem>
-        <listitem>
-          <para>
-            What about the predefined softenv key in the JNDI configuration?
-            Is it already there? I can't find it in JNDI.
-            (<ulink url="http://bugzilla.mcs.anl.gov/globus/show_bug.cgi?id=4207">
-            http://bugzilla.mcs.anl.gov/globus/show_bug.cgi?id=4207</ulink>)
-          </para>
-        </listitem>
-        <listitem>
-          <para>  
-            I can't see that the mappings added to the
-            idempotenceIdMap are removed at any time. Should we add this in
-            the remove()-method of the MEJR?
-          </para>
-        </listitem>
-      </itemizedlist>
-    </para>
-   </section>
-   -->
- 
+            <para>
+            The varous forms of the resource name using default values follow:
+
+            <itemizedlist>
+                <listitem><simpara><replaceable>HOST</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable><literal>/</literal><replaceable>SERVICE</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>/</literal><replaceable>SERVICE</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:/</literal><replaceable>SERVICE</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>/</literal><replaceable>SERVICE</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:/</literal><replaceable>SERVICE</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable><literal>/</literal><replaceable>SERVICE</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
+            </itemizedlist>
+
+            Where the various values have the following meaning:
+
+            <variablelist>
+                <varlistentry>
+                    <term><replaceable>HOST</replaceable></term>
+                    <listitem><simpara>Network name of the machine hosting the service.</simpara></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>PORT</replaceable></term>
+                    <listitem><simpara>Network port number that the service is listening on. If not specified, the default of <literal>2119</literal> is used.</simpara></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>SERVICE</replaceable></term>
+                    <listitem><simpara>Path of the service entry in <filename><envar>$GLOBUS_LOCATION</envar>/etc/grid-services</filename>. If not specified, the default of <literal>jobmanager</literal> is used.</simpara></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>SUBJECT</replaceable></term>
+                    <listitem><simpara>X.509 identity of the credential used by the service. If not specified, the default of <literal>host@</literal><replaceable>HOST</replaceable> is used.</simpara></listitem>
+                </varlistentry>
+            </variablelist>
+            </para>
+
+            <example>
+                <title>Gatekeeper Service Contact Examples</title>
+
+                <para>
+                The following strings all name the service 
+                <literal>grid.example.org:2119/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal>
+                using the formats with the various defaults described above.
+
+                <itemizedlist>
+                <listitem><simpara><literal>grid.example.org</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:2119</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:2119/jobmanager</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org/jobmanager</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:/jobmanager</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:2119:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:2119/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
+                </itemizedlist>
+                </para>
+            </example>
+        </section>
+
+        <section>
+            <title>Running Jobs with <command>globus-job-run</command></title>
+
+            <para>
+            The <command>globus-job-run</command> provides a simple
+            blocking command-line interface to the GRAM service. The
+            <command>globus-job-run</command> program submits a job to a GRAM5
+            resource and waits for the job to terminate. After the job
+            terminates, the output and error streams of the job are sent to 
+            the output and error streams of <command>globus-job-run</command>
+            as if the job were run interactively. Note that input to the job
+            must be located in a file prior to running the job; true
+            interactive I/O is not supported by GRAM5.
+            </para>
+
+            <para>
+            The <command>globus-job-run</command> program has command-line
+            options to control most aspects of jobs run by GRAM5. However,
+            certain behaviors must be specified by definition of an RSL
+            string containing various job attributes. More detailed description
+            about the RSL language is included on the section on running
+            jobs with &globusrun; below.
+            </para>
+
+            <para>
+            The following examples show some of the common command-line options
+            to <command>globus-job-run</command>. Full <olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-run"><command>globus-job-run</command> documentation</olink>
+            is available in the <olink targetdoc="gram5PI">GRAM5 public interface guide</olink>.
+            </para>
+
+            <example>
+                <title>Minimal job using globus-job-run</title>
+
+                <para>
+                The following command line submits a single instance of the 
+                <filename>/bin/hostname</filename> executable to the resource
+                named by
+                <systemitem class="service">grid.example.org:2119/jobmanager-pbs</systemitem>.
+
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs /bin/hostname</option></command>
+<computeroutput>node1.grid.example.org</computeroutput></screen>
+                </para>
+            </example>
+
+            <example>
+                <title>Multiprocess job using globus-job-run</title>
+
+                <para>
+                The following command line submits ten instances of an
+                executable <filename>a.out</filename>, staging it from the
+                client host to the service node using GASS. The
+                <filename>a.out</filename> program prints the name of the host
+                it is executing on.
+
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -np 10 -s a.out</option></command>
+<computeroutput>node1.grid.example.org
+node3.grid.example.org
+node2.grid.example.org
+node5.grid.example.org
+node4.grid.example.org
+node8.grid.example.org
+node6.grid.example.org
+node9.grid.example.org
+node7.grid.example.org
+node10.grid.example.org</computeroutput></screen>
+                </para>
+            </example>
+
+            <example>
+                <title>Setting job environment variables with globus-job-run</title>
+
+                <para>
+                The following command line submits one instances of the
+                executable <filename>/usr/bin/env</filename>, setting some
+                environment variables in the job environment beyond those
+                set by GRAM5. 
+
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -env TEST=1 -env GRID=1 /usr/bin/env</option></command>
+<computeroutput>HOME=/home/juser
+LOGNAME=juser
+GLOBUS_GRAM_JOB_CONTACT=https://client.example.org:3882/16001579536700793196/5295612977485997184/
+GLOBUS_LOCATION=/opt/globus-5.0.0
+GLOBUS_GASS_CACHE_DEFAULT=/home/juser/.globus/.gass_cache
+TEST=1
+X509_USER_PROXY=/home/juser/.globus/job/mactop.local/16001579536700793196.5295612977485997184/x509_user_proxy
+GRID=1</computeroutput></screen>
+                </para>
+            </example>
+
+            <example>
+                <title>Using custom RSL clauses with globus-job-run</title>
+
+                <para>
+                The following command line submits an mpi job using
+                <command>globus-job-run</command>, setting the
+                <literal>jobtype</literal> RSL attribute to
+                <literal>mpi</literal>. Any RSL attribute understood by the
+                LRM can be added to a job via this method.
+                </para>
+
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -np 5 -x '&amp;(jobtype=mpi)' a.out</option></command>
+<computeroutput>Hello, MPI (rank: 0, count: 5)
+Hello, MPI (rank: 3, count: 5)
+Hello, MPI (rank: 1, count: 5)
+Hello, MPI (rank: 4, count: 5)
+Hello, MPI (rank: 2, count: 5)</computeroutput>
+                </screen>
+            </example>
+
+            <example>
+                <title>Constructing RSL strings with globus-job-run</title>
+
+                <para>
+                The <command>globus-job-run</command> program can also generate
+                the RSL language description of a job based on the command-line
+                options given to it. This example combines some of the
+                features above and prints out the resulting RSL. This RSL string
+                can be passed to tools such as &globusrun; to
+                be run later.
+                </para>
+
+                <screen>&prompt;<command>globus-job-run -dumprsl <option>grid.example.org:2119/jobmanager-pbs -np 5 -x '&amp;(jobtype=mpi)' -env GRID=1 -env TEST=1 a.out</option></command>
+<computeroutput> &amp;(jobtype=mpi)
+    (executable="a.out")
+    (environment= ("GRID" "1") ("TEST" "1"))
+    (count=5)</computeroutput></screen>
+            </example>
+
+        </section>
+
+        <section>
+            <title>Submitting Jobs with <command>globus-job-submit</command></title>
+            <para>A related tool to <command>globus-job-run</command> is
+            <olink targetdoc="gram5PI"
+            targetptr="gram5-cmd-globus-job-submit"><command>globus-job-submit</command></olink>.
+            This command submits a job to a GRAM5 service then exits without
+            waiting for the job to terminate. Other tools
+            (<olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-cancel"><command>globus-job-cancel</command></olink>,
+            <olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-clean"><command>globus-job-clean</command></olink>, and
+            <olink targetdoc="gram5PI"
+            targetptr="gram5-cmd-globus-job-get-output"><command>globus-job-get-output</command></olink>)
+            allow futher interaction
+            with the job.
+            </para>
+
+            <important>
+            <para>
+                When using <command>globus-job-submit</command>, the job output
+                and state will remain on disk on the GRAM resource until one
+                of <command>globus-job-clean</command> or
+                <command>globus-job-cancel</command> is run for that job. Be
+                sure to clean up your jobs!
+            </para>
+            </important>
+
+            <para>
+            The <command>globus-job-submit</command> program has most of the
+            same command-line options as <command>globus-job-run</command>. 
+            When run, instead of displaying the output and error streams of
+            the job, it prints the job contact, which is used with the other
+            globus-job tools to interact with the job.
+            </para>
+
+            <example>
+                <title>globus-job-submit</title>
+                <para>
+                This example shows the interaction of submitting a job via 
+                <command>globus-job-submit</command>, checking its status
+                with <command>globus-job-status</command>, getting its
+                output with <command>globus-job-get-output</command>, and then
+                cleaning the job with <command>globus-job-clean</command>.
+                </para>
+
+                <screen>&prompt;<command>globus-job-submit <option>grid.example.org:2119/jobmanager-pbs /bin/hostname</option></command>
+<computeroutput>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</computeroutput>
+&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>PENDING</computeroutput>
+&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>ACTIVE</computeroutput>
+&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>DONE</computeroutput>
+&prompt;<command>globus-job-get-output <option>-r grid.example.org:2119/jobmanager-fork \
+    https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>node1.grid.example.org</computeroutput>
+&prompt;<command>globus-job-clean <option>-r grid.example.org:2119/jobmanager-fork \
+    https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>
+    WARNING: Cleaning a job means:
+        - Kill the job if it still running, and
+        - Remove the cached output on the remote resource
+
+    Are you sure you want to cleanup the job now (Y/N) ?
+</computeroutput>
+<userinput>y</userinput>
+<computeroutput>
+Cleanup successful.</computeroutput></screen>
+            </example>
+
+        </section>
+
+        <section>
+            <title>Using the globusrun tool</title>
+
+            <para>The <olink targetdoc="gram5PI" targetptr="gram5-cmd-globusrun">&globusrun;</olink> tool provides a more
+            flexible tool for submitting, monitoring, and canceling jobs. With
+            this tool, most of the functionality of the GRAM5 APIs are made
+            available.
+            </para>
+
+            <para>
+            One major difference between &globusrun; and the
+            other tools described above is that &globusrun;
+            uses the <olink targetdoc="gram5PI" targetptr="gram5-rsl">RSL
+            language</olink> to provide the job description, instead of multiple
+            command-line options to describe the various aspects of the job.
+            The section on <command>globus-job-run</command> contained a brief
+            example RSL in the <option>-dumprsl</option> example above.
+            </para>
+
+            <para>
+            The following sections show examples of the different modes that
+            &globusrun; can run in. Full information about
+            &globusrun; command-line options is available
+            in the public interface guide.
+            </para>
+
+            <section>
+                <title>Checking RSL Syntax</title>
+                <para>
+                This example shows how to check that an RSL document contains
+                a syntactically correct job description. Note that this mode
+                does not do semantic validation of the RSL, so an RSL document
+                that passes this test may not work when submitted to a GRAM5
+                service.
+                </para>
+
+                <example>
+                    <title>Checking RSL Syntax</title>
+                <screen>&prompt;&globusrun; <option>-p "&amp;(executable=a.out)"</option>
+<computeroutput>
+RSL Parsed Successfully...
+</computeroutput>
+&prompt;&globusrun; <option>-p "&amp;/executable=a.out)"</option>
+<computeroutput>
+ERROR: cannot parse RSL &amp;/executable=/adfadf/adf /adf /adf)
+
+Syntax: globusrun [-help] [-f RSL file] [-s][-b][-d][...] [-r RM] [RSL]
+
+
+Use -help to display full usage</computeroutput></screen>
+                </example>
+            </section>
+
+            <section>
+                <title>Checking Service Contacts</title>
+                <para>
+                This example shows how to check that a
+                <command>globus-gatekeeper</command> is running at a particular
+                contact and that the client and servie have mutually-trusted 
+                credentials.
+                </para>
+
+                <example>
+                <title>GRAM Authentication test</title>
+                <screen>&prompt;&globusrun; <option>-a -r grid.example.org:2119/jobmanager-pbs</option>
+<computeroutput>GRAM Authentication test successful</computeroutput>
+&prompt;&globusrun; <option>-a -r grid.example.org:2119/jobmanager-lsf</option>
+<computeroutput>GRAM Authentication test failure: the gatekeeper failed to find the requested service</computeroutput>
+&prompt;&globusrun; <option>-a -r grid.example.org:2119/jobmanager-pbs:host@not.example.org</option>
+<computeroutput>GRAM Authentication test failure: an authorization operation failed
+globus_xio_gsi: gss_init_sec_context failed.
+GSS Major Status: Unexpected Gatekeeper or Service Name
+globus_gsi_gssapi: Authorization denied: The name of the remote host
+(host@not.example.org), and the expected name for the remote host
+(grid.example.org) do not match. This happens when the name in the host
+certificate does not match the information obtained from DNS and is often a DNS
+configuration problem.</computeroutput>
+                </screen>
+
+                <para>
+                    <note>
+                    <para>
+                    The DNS configuration problem was a common issue in GRAM2,
+                    but GRAM5 will not depend on DNS to resolve names for
+                    mutual authentication.
+                    </para>
+                    </note>
+                </para>
+            </example>
+            </section>
+
+            <section>
+                <title>Checking GRAM service version</title>
+
+                <para>
+                This example shows how to determine what software version of 
+                GRAM5 is deployed at a particular service contact.
+                </para>
+
+                <example>
+                    <title>GRAM version check</title>
+                <screen>&prompt;&globusrun; <option>-j -r grid.example.org:2119/jobmanager-pbs:host@not.example.org</option>
+<computeroutput>Toolkit version: 4.3.0-HEAD
+Job Manager version: 10.5 (1256257907-0)</computeroutput>
+                </screen>
+
+                <para>
+                    <note>
+                    <para>
+                        This example shows the version number for an unreleased
+                        development version of GRAM5. The actual numbers
+                        returned will be different.
+                    </para>
+                    </note>
+
+                    <note>
+                    <para>
+                        This feature is new in GRAM5. When contacting a GRAM2
+                        service, &globusrun; will display the following error
+                        message:
+
+                        <screen><computeroutput>GRAM version check failed : an incoming HTTP message did not contain the expected information</computeroutput></screen>
+                    </para>
+                    </note>
+                </para>
+                </example>
+            </section>
+
+            <section>
+                <title>Basic Interactive job with globusrun</title>
+
+                <para>
+                This example shows how to submit interactive job with
+                &globusrun;. When the <option>-s</option>
+                is used, the output of the job command is returned to the
+                client and displayed as if the command ran locally. This
+                is similar to the behavior of the
+                <command>globus-job-run</command> program described above.
+                </para>
+
+                <example>
+                    <title>Basic Interactive Job</title>
+                <screen>&prompt;&globusrun; <option>-s -r example.grid.org/jobmanager-pbs "&amp;(executable=/bin/hostname)(count=5)"</option>
+<computeroutput>node03.grid.example.org
+node01.grid.example.org
+node02.grid.example.urg
+node05.grid.example.org
+node04.grid.example.org</computeroutput></screen>
+                </example>
+            </section>
+
+            <section>
+                <title>Basic batch job with globusrun</title>
+
+                <para>
+                This example shows how to submit, monitor, and cancel a batch
+                job using &globusrun;. This method is useful
+                for the case where the job may run for a long time, the job may
+                be queued for a long time, or when there are network
+                reliability issues between the client and service
+                </para>
+
+                <example>
+                    <title>Basic Batch Job</title>
+                <screen>&prompt;&globusrun; <option>-b -r grid.example.org:2119/jobmanager-pbs "&amp;(executable=/bin/sleep)(arguments=500)"</option>
+<computeroutput>globus_gram_client_callback_allow successful
+GRAM Job submission successful
+https://grid.example.org:38824/16001608125017717261/5295612977486019989/
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_PENDING</computeroutput>
+&prompt;&globusrun; <option>-status https://grid.example.org:38824/16001608125017717261/5295612977486019989/</option>
+<computeroutput>PENDING</computeroutput>
+&prompt;&globusrun; <option>-k https://grid.example.org:38824/16001608125017717261/5295612977486019989/</option>
+&prompt;</screen>
+                </example>
+            </section>
+
+            <section>
+                <title>Refreshing a GRAM5 Credential</title>
+                <para>
+                The following example shows how to refresh the credential used
+                by a job manager and a job.
+                </para>
+
+                <example>
+                    <title>Refreshing a Credential</title>
+                    <screen>&prompt;&globusrun; <option>-refresh-proxy https://grid.example.org:38824/16001608125017717261/5295612977486019989/</option>
+&prompt;<command>echo $?</command>
+<computeroutput>0</computeroutput></screen> 
+                    <para>
+                        <note>
+                            <para>
+                            In GT <replaceable role="entity">version</replaceable>,
+                            &globusrun; does not print any
+                            diagnostics when given the
+                            <option>-refresh-proxy</option> command-line option.
+                            Therefore, check the exit code as above to ensure that
+                            the refresh is successful.
+                            </para>
+                        </note>
+                    </para>
+                </example>
+            </section>
+
+            <section>
+                <title>Dealing with credential expiration</title>
+
+                <para>
+                When the Job Manager's credential is about to expire, it sends
+                a message to all clients registered for
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_STATE_FAILED</literal>
+                notifications that the job manager is terminating and that the
+                job will continue to run without the job manager.
+                </para>
+
+                <para>
+                Any client which receives such a message can (if necessary)
+                generate a new proxy as described above and then submit a
+                <emphasis>restart request</emphasis> to start a job manager
+                with a new credential. This job manager will resume monitoring
+                the jobs which were started prior to proxy expiration.
+                </para>
+
+                <para>
+                In this example, the &globusrun; displays an
+                error message when the job manager's proxy is about to expire.
+                The user creates a new proxy and resumes monitoring the job with
+                &globusrun;.
+                </para>
+
+                <example>
+                    <title>Proxy Expiration Example</title>
+                    <screen>&prompt;&globusrun; <option>-r grid.example.org "&amp;(executable=a.out)"</option>
+<computeroutput>globus_gram_client_callback_allow successful
+GRAM Job submission successful
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_ACTIVE
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_FAILED
+GRAM Job failed because the user proxy expired (job is still running) (error code 131)</computeroutput>
+&prompt;<command>grid-proxy-init</command>
+<computeroutput>Your identity: /DC=org/DC=example/OU=grid/CN=Joe User
+Enter GRID pass phrase for this identity:
+Creating proxy ........................................................................... Done
+Your proxy is valid until: Tue Nov 10 04:25:03 2009</computeroutput>
+&prompt;&globusrun; <option>-r grid.example.org "&amp;(restart="https://grid.example.org:1997/16001700477575114131/5295612977486005428/)"</option>
+<computeroutput>globus_gram_client_callback_allow successful
+GRAM Job submission successful
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_ACTIVE
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</computeroutput></screen>
+                </example>
+            </section>
+
+            <section>
+                <title>File staging</title>
+
+                <para>
+                In addition to the standard output and error stream 
+                output done by &globusrun;, GRAM5 can do basic file management
+                tasks to stage files to the GRAM5 service node before
+                submitting a job and to stage files from the GRAM5 service node
+                to a file service after the job completes.
+                </para>
+
+                <para>
+                GRAM5 file staging supports four URL schemes:
+                <literal>ftp</literal>, <literal>gsiftp</literal>, 
+                <literal>http</literal>, and <literal>https</literal>. Note,
+                that for the <literal>https</literal> scheme, GRAM expects
+                the file server to be running with the same identity as the
+                client.
+                </para>
+                <para>
+                General file staging is controlled by three RSL attributes:
+                <literal>file_stage_in</literal>,
+                <literal>file_stage_in_shared</literal>, and 
+                <literal>file_stage_out</literal>. In addition, the files named
+                by the RSL attributes <literal>executable</literal>,
+                <literal>stdin</literal> may be staged in and the files named
+                by the RSL attributes <literal>stdout</literal> and
+                <literal>stderr</literal> may be staged out.
+                </para>
+                <para>
+                The <literal>file_stage_in_shared</literal> RSL attribute
+                instructs GRAM to store a local copy of the resource named by
+                the URL in the GASS cache. This is useful if multiple
+                concurrent jobs will be accessing one or more common files. The
+                GASS cache will manage a reference count for files in the cache
+                and remove them when all jobs that refer to them complete.
+                </para>
+
+                <para>
+                The following example shows how to stage a few files from a 
+                GridFTP server to the GRAM node. It uses the
+                <literal>rsl_substitution</literal> mechanism to define a
+                subsitution variable to reduce the amount of redundancy in the
+                job description.
+                </para>
+
+                <example>
+                    <title>File stage in</title>
+
+                    <screen>&prompt;&globusrun; <option>-s -r grid.example.org:2119/jobmanager-pbs \
+    "&amp;(rsl_substitution = (GRIDFTP_SERVER gsiftp://gridftp.example.org)) \
+      (executable=/bin/ls)
+      (arguments=/tmp/staged_file)
+      (file_stage_in = ($(GRIDFTP_SERVER)/staged_file /tmp/staged_file))"</option>
+<computeroutput>/tmp/staged_file</computeroutput></screen>
+                </example>
+
+                <para>
+                The next example uses the
+                <literal>file_stage_in_shared</literal> RSL attribute to stage
+                a file into the cache. The file is transferred from
+                the client using the GASS https server embedded in the
+                &globusrun; program when the <option>-s</option> option is
+                used.
+                </para>
+
+                <example>
+                    <title>File stage in shared</title>
+                    <screen>&prompt;&globusrun; <option>-s -r grid.example.org:2119/jobmanager-pbs \
+    "&amp;(executable=/bin/ls) \
+      (arguments = -l /tmp/staged_file_link1 /tmp/staged_file_link1) \
+      (file_stage_in_shared = \
+          (\$(GLOBUSRUN_GASS_URL)/staged_file1 /tmp/staged_file_link1))"</option>
+<computeroutput>lrwxr-xr-x  1 juser   juser  120 Nov 11 20:37 /tmp/staged_file1 -> /home/juser/.globus/.gass_cache/local/md5/ff/771bded8a2c7dacc1a1c0fecafa0ce/md5/39/13ab3db7fc002ed54012083ae6ed1c/data</computeroutput></screen>
+                </example>
+
+                <para>
+                The final staging example uses the
+                <literal>file_stage_out</literal> RSL attribute to transfer
+                a file from the GRAM service to an FTP server using anonymous
+                FTP</para>
+
+                <example>
+                    <title>File stage out</title>
+
+                    <screen>&prompt;&globusrun; <option>-r grid.example.org:2119/jobmanager-pbs \
+    "&amp;(executable=a.out) \
+      (file_stage_out = (results.txt ftp://anonymous:nopass@ftp.example.org/incoming/results.txt))"</option>
+&prompt;</screen>
+                </example>
+
+                <para>
+                <note>
+                <para>
+                In all of the above cases, multiple files may be staged
+                using any combination of the supported URL schemes.
+                </para>
+                </note>
+                </para>
+            </section>
+
+            <section>
+                <title>Temporary files and cleanup</title>
+                <para>
+                GRAM5 supports creating a per-job scratch directory which
+                can be used as a place to store files that will be
+                automatically removed by GRAM when the job completes. It also
+                supports an explicit list of files to remove when the job
+                completes.
+                </para>
+
+                <para>
+                This example shows how to stage files into a scratch directory.
+                It again uses the embedded GASS https server, stages to the
+                GRAM service, then runs /bin/ls in the temporary directory.
+                After the job completes, the contents of
+                <literal>$(SCRATCH_DIRECTORY)</literal> and the directory
+                itself are removed.
+                </para>
+                <example>
+                    <title>Staging to scratch directory</title>
+                    <screen>&prompt;&globusrun; <option>-s grid.example.org:2119/jobmanager-pbs \
+    "&amp;(scratch_dir = \$(HOME)) \
+      (directory = \$(SCRATCH_DIRECTORY))
+      (file_stage_in = \
+          (\$(GLOBUSRUN_GASS_URL)/inputfile $(SCRATCH_DIRECTORY)/inputfile)) \
+      (executable = /bin/ls)"</option>
+<computeroutput>inputfile</computeroutput></screen>
+                </example>
+
+                <para>
+                This example shows how to explicitly remove a file that was
+                created by the job.
+                </para>
+                <example>
+                    <title>Cleaning up a file</title>
+                    <screen>&prompt;&globusrun; <option>-s grid.example.org:2119/jobmanager-pbs \
+    "&amp;(executable = /bin/touch) \
+      (arguments = temporary_file) \
+      (file_clean_up = temporary_file)"</option>
+&prompt;</screen>
+                </example>
+            </section>
+
+            <section>
+                <title>Reliable job submit</title>
+
+                <para>
+                The &globusrun; command supports a two-phase commit
+                protocol to ensure that the client knows the contact of the
+                job which has been created so that it can be monitored or 
+                canceled in the case of a client or service error. The
+                two-phase commit affects both job submission and termination.
+                </para>
+
+                <para>
+                The two-phase protocol is enabled by using the
+                <literal>two_phase</literal> RSL attribute, as in the next
+                example. When this is enabled, job submission will fail with
+                the error
+                <literal>GLOBUS_GRAM_PROTOCOL_ERROR_WAITING_FOR_COMMIT</literal>.
+                The client must respond to this signal with
+                either the
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_SIGNAL_COMMIT_REQUEST</literal>
+                or
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_SIGNAL_COMMIT_EXTEND</literal>
+                signals to either commit the job to execution or delay the 
+                commit timeout. One of these signals must be sent prior to the
+                two phase commit timeout, or the job will be discarded by the
+                GRAM service.
+                </para>
+
+                <para>
+                A two phase protocol is also used at job termination if the
+                <literal>save_state</literal> RSL attribute is used along with
+                the <literal>two_phase</literal> attribute. When the
+                job manager sends a callback with the job state set to
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</literal> or
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</literal> it will
+                wait to clean up the job until the two phase commit occurs. The
+                client must reply with the
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_SIGNAL_COMMIT_END</literal>
+                signal to cause the job to be cleaned. Otherwise, the job
+                will be unloaded from memory until a client restarts the job
+                and sends the signal.
+                </para>
+
+                <example>
+                    <title>Two phase commit example</title>
+
+                    <para>
+                    In this example, the user submits a job with a
+                    <literal>two_phase</literal> timeout of 30 seconds and the
+                    <literal>save_state</literal> attribute. The client must
+                    send commit signals to ensure the job runs.
+                    </para>
+
+                    <screen>&prompt;&globusrun; <option>-r grid.example.org:2119/jobmanager-pbs \
+    "&amp;(two_phase = 30) \
+      (save_state = yes) \
+      (executable = a.out)"</option>
+<computeroutput>
+globus_gram_client_callback_allow successful
+GRAM Job submission successful
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_PENDING
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_ACTIVE
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</computeroutput>
+&prompt;</screen>
+                </example>
+            </section>
+        </section>
+    </section>
 </chapter>
 
-<chapter id="gram5-user-jobandprocessrendezvous">
-<title>Job and process rendezvous</title>
-  <indexterm type="gram5"><primary>jobs</primary><secondary>rendezvous</secondary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>rendezvous</secondary></indexterm>
-<para>GRAM5 services implement a <ulink url="../../wsrendezvous/">WS Rendezvous</ulink>
-    mechanism to perform synchronization between job processes in a multiprocess job and 
-    between subjobs in a multijob. The job application can in fact register binary information, for 
-    instance process information or subjob information, and get notified when 
-    all the other processes or subjobs have registered their own information.
-    This is for instance useful for parallel jobs which need to rendezvous 
-    at a "barrier" before proceeding with computations, in the case when no 
-    native application API is available to help do the rendezvous.</para>
-</chapter>
-    
-    
+
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
         href="../GRAM5_Interface_Commandline_Frag.xml"/>
 
