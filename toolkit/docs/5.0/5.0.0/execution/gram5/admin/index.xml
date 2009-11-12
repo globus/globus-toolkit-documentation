@@ -4,6 +4,8 @@
 [
 
 <!ENTITY % xinclude SYSTEM "../../../xinclude.mod" >
+<!ENTITY prompt "<prompt>&#37; </prompt>" >
+
 %xinclude;
 
 ]>
@@ -308,9 +310,9 @@
         options described above.
         </para>
 
-        <screen><prompt>% </prompt><command>globus-job-manager-event-generator</command> <option>-scheduler pbs</option> <option>-background</option> <option>-pidfile</option> <filename><envar>$GLOBUS_LOCATION</envar>/var/globus-job-manager-seg-pbs.pid</filename>
+        <screen>&prompt;<command>globus-job-manager-event-generator</command> <option>-scheduler pbs</option> <option>-background</option> <option>-pidfile</option> <filename><envar>$GLOBUS_LOCATION</envar>/var/globus-job-manager-seg-pbs.pid</filename>
 <computeroutput>Running in background (78258)</computeroutput>
-<prompt>% </prompt><command>kill</command> `<command>cat</command> <option><filename><envar>$GLOBUS_LOCATION</envar>/var/globus-job-manager-seg-pbs.pid</filename></option>`</screen>
+&prompt;<command>kill</command> `<command>cat</command> <option><filename><envar>$GLOBUS_LOCATION</envar>/var/globus-job-manager-seg-pbs.pid</filename></option>`</screen>
     </example>
     </section>
 </chapter>
@@ -327,7 +329,167 @@
   -->
 
 <chapter id="gram5-admin-testing"><title>Testing</title>
-	<para>See the user guide for information about submitting a test job.</para>
+	<para>
+        There are three test suites available to verify that the GRAM5 client
+        and service are installed corrected.
+        </para>
+
+        <section>
+            <title>GRAM protocol tests</title>
+            <para>
+                The GRAM protocol test suite tests the implementation of the
+                GRAM protocol library which is used by the job manager and GRAM
+                clients to process messages. The following examples shows how
+                to run the test suite.
+            </para>
+
+            <example>
+                <title>Running the GRAM Protocol Test Suite</title>
+                <screen>&prompt;<command>cd</command> <filename><envar>$GLOBUS_LOCATION</envar>/test/globus_gram_protocol_test</filename>
+&prompt;<command>grid-proxy-init</command>
+<computeroutput>Your identity: /DC=org/O=example/OU=grid/CN=Joe User
+Enter GRID pass phrase for this identity:
+Creating proxy ................................... Done
+Your proxy is valid until: Thu Nov 12 23:28:05 2009</computeroutput>
+&prompt;<command>./TESTS.pl</command>
+<computeroutput>globus-gram-protocol-allow-attach-test...........ok
+globus-gram-protocol-error-test..................ok
+globus-gram-protocol-io-test.....................ok
+globus-gram-protocol-pack-test...................ok
+pack-with-extensions-test........................ok
+create-extensions-test...........................ok
+unpack-message-test..............................ok
+unpack-with-extensions-test......................ok
+unpack-job-request-reply-with-extensions-test....ok
+unpack-status-reply-with-extensions-test.........ok
+All tests successful.
+Files=10, Tests=42,  1 wallclock secs ( 0.37 cusr +  0.24 csys =  0.61 CPU)</computeroutput></screen>
+            </example>
+        </section>
+
+        <section>
+            <title>GRAM client tests</title>
+            <para>
+                The GRAM client test suite tests the interactions between the
+                GRAM client API implementation and the job manager service.
+                These tests include authentication, callback, signal, job,
+                and cancellation tests.
+            </para>
+
+            <example>
+                <title>Running the GRAM Client Test Suite</title>
+                <screen>&prompt;<command>cd</command> <filename><envar>$GLOBUS_LOCATION</envar>/test/globus_gram_client_test</filename>
+&prompt;<command>grid-proxy-init</command>
+<computeroutput>Your identity: /DC=org/O=example/OU=grid/CN=Joe User
+Enter GRID pass phrase for this identity:
+Creating proxy ................................... Done
+Your proxy is valid until: Thu Nov 12 23:28:05 2009</computeroutput>
+&prompt;<command>./TESTS.pl</command>
+<computeroutput>globus-gram-client-activate-test................ok
+globus-gram-client-callback-contact-test........ok
+globus-gram-client-cancel-test..................ok
+globus-gram-client-nonblocking-register-test....ok 1/4Failed submitting job request because an authorization operation failed
+globus_xio_gsi: gss_init_sec_context failed.
+GSS Major Status: Unexpected Gatekeeper or Service Name
+globus_gsi_gssapi: Authorization denied: The name of the remote entity (/DC=org/O=example/OU=grid/CN=Joe User), and the expected name for the remote entity (/DC=org/O=example/OU=grid/CN=Joe UserX) do not match
+.
+globus-gram-client-nonblocking-register-test....ok
+globus-gram-client-refresh-credentials-test.....ok
+globus-gram-client-register-test................ok
+globus-gram-client-register-callback-test.......ok 1/4Failed submitting job request because an authorization operation failed
+globus_xio_gsi: gss_init_sec_context failed.
+GSS Major Status: Unexpected Gatekeeper or Service Name
+globus_gsi_gssapi: Authorization denied: The name of the remote entity (/DC=org/O=example/OU=grid/CN=Joe User), and the expected name for the remote entity (/DC=org/O=example/OU=grid/CN=Joe UserX) do not match
+.
+globus-gram-client-register-callback-test.......ok
+globus-gram-client-register-cancel-test.........ok
+globus-gram-client-ping-test....................ok
+globus-gram-client-status-test..................Made 3961 calls to status in 60.416390 seconds
+globus-gram-client-status-test..................ok
+globus-gram-client-two-phase-commit-test........ok
+globus-gram-client-register-ping-test...........ok
+globus-gram-client-stdio-size-test..............job manager returned 0 (Success) when I expected it to still be streaming output
+globus-gram-client-stdio-size-test..............ok
+version-test....................................ok
+All tests successful.
+Files=14, Tests=33, 791 wallclock secs (32.10 cusr +  5.34 csys = 37.44 CPU)</computeroutput></screen>
+            <para>
+                <note>
+                    <para>
+                        Some of the test cases display messages that look like
+                        errors when running. This is to be expected. The only
+                        concern should be the final lines indicating if the
+                        tests are successful or not.
+                    </para>
+                </note>
+            </para>
+            </example>
+
+            <para>
+                <note>
+                    <para>
+                        By default, this suite uses tests against a personal
+                        gatekeeper running the <literal>fork</literal> LRM. To
+                        run against another service, set the environment
+                        variable <envar>CONTACT_STRING</envar> to the service
+                        contact string prior to starting the tests.
+                    </para>
+                </note>
+            </para>
+        </section>
+
+        <section>
+            <title>GRAM Job Manager Tests</title>
+            <para>
+                The GRAM job manager test suite tests the features provided
+                by the LRM scripts, including detecting failures, staging
+                files, and submitting different types of jobs. The following
+                example shows how to run the job manager tests.
+            </para>
+
+            <example>
+                <title>Running the GRAM Job Manager Test Suite</title>
+
+                <screen>&prompt;<command>cd</command> <filename><envar>$GLOBUS_LOCATION</envar>/test/globus_gram_job_manager_test</filename>
+&prompt;<command>grid-proxy-init</command>
+<computeroutput>Your identity: /DC=org/O=example/OU=grid/CN=Joe User
+Enter GRID pass phrase for this identity:
+Creating proxy ................................... Done
+Your proxy is valid until: Thu Nov 12 23:28:05 2009</computeroutput>
+&prompt;<command>./TESTS.pl</command>
+<computeroutput>job-manager-script-test..................ok
+globus-gram-job-manager-stdio-test.......ok
+globus-gram-job-manager-submit-test......ok
+globus-gram-job-manager-failure-test.....ok
+globus-gram-job-manager-rsl-size-test....ok
+globus-gram-job-manager-user-test........ok
+All tests successful.
+Files=6, Tests=137, 200 wallclock secs (32.10 cusr +  5.34 csys = 37.44 CPU)</computeroutput></screen>
+            </example>
+            <para>
+                <note>
+                    <para>
+                    This test requires a GridFTP server to be running on the
+                    host running the test suite. If one is not running, then the
+                    following test cases will fail:
+                    <literal>globus-gram-job-manager-stdio-test</literal>
+                    subtests 2, 6, 9, 12, 13, 16, 17, 18, 19.
+                    </para>
+                </note>
+            </para>
+            <para>
+                <note>
+                    <para>
+                        By default, this suite uses tests against a personal
+                        gatekeeper running the <literal>fork</literal> LRM. To
+                        run against another service, set the environment
+                        variable <envar>CONTACT_STRING</envar> to the service
+                        contact string prior to starting the tests.
+                    </para>
+                </note>
+            </para>
+
+        </section>
 </chapter>
 
 <chapter id="gram5-admin-security_considerations"><title>Security Considerations </title>
