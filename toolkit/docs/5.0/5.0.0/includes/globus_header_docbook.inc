@@ -1,4 +1,4 @@
-
+<!--
 <div id="headerlinks">
 <br />
 <a href="http://www.globus.org/faq.php">FAQ</a><br />
@@ -48,11 +48,11 @@ maxlength="200" value="" />
   </table>
 
 </div>
+-->
 <div id="container">
 	<?php 
-include_once( "/mcs/www-unix.globus.org/include/outofdate.php" ); 
-globus_out_of_date(); ?>
-
+//include_once( "/mcs/www-unix.globus.org/include/outofdate.php" ); 
+//globus_out_of_date(); ?>
 
 		<div id="leftbg">
 		 <h2 class="smalltitle">Software Links</h2>
