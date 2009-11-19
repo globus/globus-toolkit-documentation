@@ -1,3 +1,13 @@
+<?php 
+if(!defined("FOOTER_INC"))
+{
+	define("FOOTER_INC",1);
+	if(strpos($_SERVER["REQUEST_URI"],"/docs/")!==FALSE && $_SERVER["REQUEST_URI"] != $SITE_PATHS["WEB_TOOLKIT"]."downloads/")
+	{
+		ob_end_flush();
+	}
+	
+?> 
         <!--end div of content-->
       </div>
       <!--ending div of container-->
@@ -14,8 +24,7 @@
      [<a href="<?=$SITE_PATHS["WEB_ROOT"]."privacy/"; ?>">privacy statements</a>]<br>
    For technical support or questions about Globus software, visit our 
      <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."support.html"; ?>">technical support</a> page.</p>
-  <p class="panel">Globus, Globus Alliance, and Globus Toolkit are trademarks<br>
-    held by the University of Chicago.</p>
+  <p class="panel">Globus, Globus Alliance, and Globus Toolkit are trademarks held by the University of Chicago.</p>
   <!--ending div of footer-->
 </div>
 
@@ -26,7 +35,11 @@
  _udn = "globus.org"; 
 urchinTracker();
 </script> 
-
+<script type="text/javascript">
+var this_page='<?=$_SERVER["REQUEST_URI"]; ?>';
+MarkNavSection(this_page,document.getElementById('menu'),'here','');
+MarkNavLinks(this_page,document.getElementById('subnav_menu'),'here','');
+</script>
 </body>
-
 </html>
+<?php } ?>

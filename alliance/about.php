@@ -14,7 +14,7 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
 <div id="main">
 
 	<h1 class="first">About the Globus Alliance</h1>
-
+<p>
 The Globus Alliance conducts research and development to develop the technology,
 standards, and systems that form the Grid: a computing architecture that 
 enables distributed collaboration for business, science, engineering, and

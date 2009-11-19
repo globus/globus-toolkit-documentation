@@ -1,124 +1,105 @@
 <?php
-
-$title = "The Globus Alliance";
+$title = "";
 $section = "section-1";
 $pagename = "home";
-include_once( "./include/local.inc" );
-include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
+define("FOOTER_INC",1); //skip the footer
 ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
 
-        <div id="coverimage">
-             <?php include( $SITE_PATHS["SERV_ALLIANCE"]."impact/gravitywaves.inc" ); ?>
+<meta http-equiv="Content-type" content="text/html;charset=ISO-8859-1" />
+<link href="/css/main.css" rel="stylesheet" type="text/css" />
+<link href="/css/common.css" rel="stylesheet" type="text/css" />
+<link href="/css/home.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="<?=$SITE_PATHS['WEB_ROOT']?>js/common.js"></script>
+<title>The Globus Alliance</title>
+
+</head>
+
+<body>
+<div id="header">
+
+  <img id="logo" src="img/header/logo.png" />
+  <ul id="menu" style="margin-left: 290px;">
+    <li id="nav_home_container"><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_home" href="/">Home</a></div><div class="nav_right">&nbsp;</div></li>
+    <li id="nav_about_container"><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_about" href="/alliance/">About Globus</a></div><div class="nav_right">&nbsp;</div></li>
+    <li id="nav_toolkit_container"><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_toolkit" href="/toolkit/">Globus Toolkit</a></div><div class="nav_right">&nbsp;</div></li>
+    <li id=""><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_dev" href="<?=$SITE_PATHS["WEB_DEV_GLOBUS"]; ?>">dev.globus</a></div><div class="nav_right">&nbsp;</div></li>
+    <li id="nav_org_container"><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_org" href="/service/">Globus.org Service</a></div><div class="nav_right" style="margin-right: 0px;">&nbsp;</div></li>  </ul>
+</div>
+<div id="splash">
+    <div id="headline">
+        <p>We build grid solutions for a 
+        variety of challenges that come 
+        up when people share resources</p>
+        <div id="news">
+            <h2>News &amp; Announcements</h2>
+          	<?
+            	 include_once( $SITE_PATHS["SERV_ROOT"]."include/globus_news.php");
+             	globus_print_alliance_news_headlines(5);
+          	?>
+			<p><a href="http://www-unix.globus.org/toolkit/rss/downloadNews/downloadNews.xml"><img src="http://www-unix.globus.org/toolkit/images/iconRSS.gif"  width="35" height="13" border="0"></a>&nbsp;<a href="/toolkit/about_rss.html">What's&nbsp;this?</a></p>            
         </div>
-
-        <div id="main">
-         
-          <p></p>
-
-          <!--
-          <table class="news">
-            <tr>
-              <td><span class="newsdate">03.16.2006</span></td>
-              <td><b>Ian Foster explains new Web service convergence roadmap.</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ROOT"]."wsrf/convergence.php"; ?>">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">03.15.2006</span></td>
-              <td><b>4th Intl. Summer School on Grid Computing in Italy, July 9-21.</b> 
-                <a class="learnmore" href="http://www.dma.unina.it/~murli/ISSGC06/">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">02.16.2006</span></td>
-              <td><b>Globus software supports the LHC service challenge.</b> 
-                <a class="learnmore" href="http://info.web.cern.ch/Press/PressReleases/Releases2006/PR03.06E.html">Learn more...</a></td>
-            </tr>
-            <tr>
-              <td><span class="newsdate">01.17.2006</span></td>
-              <td><b>New paper describes GT4 dynamic service deployment support.</b> 
-                <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]."publications/papers/HAND-Submitted.pdf"; ?>">Learn more...</a></td>
-            </tr>
-          </table>
-          <p><a href="alliance/news/">Archive of Globus Alliance news</a></p>
-          -->
-
-          <?
-             include_once("/mcs/www-unix.globus.org/include/globus_news.php");
-             globus_print_alliance_news_headlines(5);
-          ?>
-
-          <p><a href="news.html">Archive of Globus Alliance news</a></p>
-
-          <h1>Welcome to Globus<sup><small>&reg;</small></sup></h1>
-
-          <p>The <b>Globus Alliance</b> is a community of organizations and individuals developing 
-              fundamental technologies behind the "Grid," which lets people share computing power, 
-              databases, instruments, and other on-line tools securely across corporate, institutional, 
-              and geographic boundaries without sacrificing local autonomy.  
-              <a class="learnmore" href="<?=$SITE_PATHS["WEB_ALLIANCE"]; ?>">Learn more...</a></p>
-
-          <p>The <b>Globus Toolkit</b> is an open source software toolkit used for building Grid systems and
-             applications. It is being developed by the Globus Alliance and many others all over the world. 
-             A growing number of projects and companies are using the Globus Toolkit to unlock the potential 
-             of grids for their cause. 
-             <a class="learnmore" href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Learn more...</a></p>
-
-          <p>The Globus Alliance is an active member in the community of
-             <b>Grid Software</b> developers. 
-             <a class="learnmore" href="<?=$SITE_PATHS["WEB_SOFTWARE"]; ?>">Learn more...</a>
-             As partners in e-Science and e-Business projects, we've built
-             <b>Grid Solutions</b> for a variety of challenges that come up when people
-             share resources.
-             <a class="learnmore" href="<?=$SITE_PATHS["WEB_SOLUTIONS"]; ?>">Learn more...</a></p>
-
-          <!--end div of main-->
-        </div>
-        <!--end div of content-->
-      </div>
-      <!--ending div of container-->
     </div>
-
-
-    <div class="clearing">&nbsp;</div>
-    <!--ending div of wrapper-->
-  </div>
-  <!--ending div of outer_wrapper-->
 </div>
+<div id="outer_wrapper">
+	<div id="wrapper">
+    	<div id="container">
+        	<div id="content">
+                <div id="content_left">
+                	<h1>About Globus</h1>
 
-<div id="footer">
+                    <h2>Globus Alliance</h2>
+                    <p>The Globus Alliance is a community of organizations and individuals 
+                    developing fundamental technologies behind the "Grid," which lets 
+                    people share computing power, databases, instruments, and other 
+                    on-line tools securely across corporate, institutional, and geographic 
+                    boundaries without sacrificing local autonomy. 
+                    <a class="more" href="<?=$SITE_PATHS["WEB_ALLIANCE"]; ?>">Learn more...</a>
+                    </p>
+                    
+                   <h2> Globus Toolkit</h2>
+                    <p>The Globus Toolkit is an open source software toolkit used for building 
+                    Grid systems and applications. It is being developed by the Globus 
+                    Alliance and many others all over the world. A growing number of 
+                    projects and companies are using the Globus Toolkit to unlock the 
+                    potential of grids for their cause. 
+                    <a class="more" href="<?=$SITE_PATHS["WEB_TOOLKIT"]; ?>">Learn more...</a></p>
+                    
+					<h2>Globus.org Service</h2>
+					<p>This new online, hosted (i.e. Software-as-a-Service or SaaS) 
+					offering provides easy-to-use, end-to-end capabilities to researchers trying to use 
+					distributed Grid resources. Now available in limited beta testing, the initial service 
+					provides reliable, secure, high-performance, fire-and-forget data transfer. 
+					<a class="more" href="/service/">Learn more...</a></p>
+					
+					<h2>dev.globus Grid Software Community</h2>
+                    <p>The Globus Alliance is an active member in the community of Grid 
+                    Software developers. Learn more... As partners in e-Science and 
+                    e-Business projects, we've built Grid Solutions for a variety of 
+                    challenges that come up when people share resources. 
+                    <a class="more" href="<?=$SITE_PATHS["WEB_DEV_GLOBUS"]; ?>">Learn more...</a></p>                 
+                </div>
+                <div id="content_right">
+                	<h2>Unlocking Science</h2>
+                    <p>Physicists used the Globus Toolkit and MPICH-G2 to harness the power 
+                    of multiple supercomputers to simulate the gravitational effects of black 
+                    hole collisions. The team, which included researchers from Argonne 
+                    National Laboratory, the University of Chicago, Northern Illinois 
+                    University, and the Max Planck Institute for Gravitational Physics in 
+                    Germany, was awarded a prestigious Gordon Bell prize for its work. </p>
 
-<hr class="first" />
-
-<table width="100%">
-  <tr>
-    <td colspan=3><div align="center">Sponsors include:</div></td>
-  </tr>
-  <tr>
-    <td width="33%"><div align="center"><a href="http://www.energy.gov/"><img src="img/doelogo.jpg" width="100" height="100" border="0"></a></div></td>
-    <td width="33%"><div align="center"><a href="http://www.epsrc.ac.uk/"><img src="img/EPSRC2MONO.jpg" width="216" height="70" border="0"></a></div></td>
-    <td width="33%"><div align="center"><a href="http://www.nsf.gov/"><img src="img/nsfd.jpg" width="100" height="100" border="0"></a></div></td>
-  </tr>
-</table>
-
-  <hr class="first"/>
-
-  <p class="panel">For questions or feedback about this website: 
-     <a href="mailto:webmaster@globus.org">webmaster@globus.org</a> 
-     [<a href="<?=$SITE_PATHS["WEB_ROOT"]."privacy/"; ?>">privacy statements</a>]<br>
-   For technical support or questions about Globus software, visit our 
-     <a href="<?=$SITE_PATHS["WEB_TOOLKIT"]."support.html"; ?>">technical support</a> page.</p>
-
-  <p class="panel">Globus, Globus Alliance, and Globus Toolkit are trademarks<br>
-    held by the University of Chicago.</p>
-  <!--ending div of footer-->
+					<div align="center"><img src="img/home/gravitywaves.png" /></div>
+                    <span class="image_caption">Image courtesy of Max Planck Institute for Gravitational Physics</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-
-<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
-</script>
 <script type="text/javascript">
-_uacct = "UA-726125-2";
-urchinTracker();
-</script> 
-
+	var this_page='<?=$_SERVER["REQUEST_URI"]; ?>';
+	MarkNavSection(this_page,document.getElementById('menu'),'here','');
+</script>
 </body>
 </html>

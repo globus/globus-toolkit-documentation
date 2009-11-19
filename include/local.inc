@@ -7,6 +7,7 @@ define("LOCAL_INC",1);
     // SERV_ROOT   set this to the webserver root.
     // WEB_ROOT    this must be set to include the 'planning' sub folder of this system
     $SITE_PATHS["SERV_ROOT"]              = "/mcs/www-unix.globus.org/";
+    $SITE_PATHS["SERV_ROOT"]              = "/www/globus.org/";
     $SITE_PATHS["WEB_ROOT"]               = "/";
 
     // Which types of content do we want to display? 1 means "include content," 0 means 
@@ -24,5 +25,112 @@ define("LOCAL_INC",1);
     $SITE_PATHS["WEB_SOLUTIONS"]          = $SITE_PATHS["WEB_ROOT"]."solutions/";
     $SITE_PATHS["WEB_CSS"]                = $SITE_PATHS["WEB_ROOT"]."css/";
     $SITE_PATHS["WEB_IMG"]                = $SITE_PATHS["WEB_ROOT"]."img/";
+    $SITE_PATHS["WEB_DEV_GLOBUS"]		  = "http://dev.globus.org";
+
+	require_once($SITE_PATHS["SERV_INC"]."globus_news.php");    
+    /*
+     * These functions are used by the header script to find includes relative to the current 
+     * page's location.  Currently the header walks up the tree looking for a subnav.inc to include
+     * 
+     */
+    
+    function AddTrailingSlash($s)
+	{		
+		if(substr($s,-1,1) != "/")
+		{
+			$s = $s."/";
+		}
+		return $s;
+	}
+	
+	function StripTrailingSlash($s)
+	{	
+		if(substr($s,-1,1) == "/")
+		{
+			$s = substr($s,0,-1);
+		}
+		return $s;	
+	}    
+	/*
+	 * findFileInPath() walks up the directory tree to find the first file named $filename
+	 */
+	function findFileInPath($path,$filename)
+	{
+		global $SITE_PATHS;
+		
+		$path = AddTrailingSlash($path);
+	
+		if(file_exists($path.$filename))
+		{
+			return $path.$filename;
+		}
+		while(strlen($path)>=strlen($SITE_PATHS["SERV_ROOT"]))
+		{
+			$path = StripTrailingSlash($path);
+			$path = substr($path,0,strrpos($path,"/"));
+			$path = AddTrailingSlash($path);
+
+			if(file_exists($path.$filename))
+			{
+				return $path.$filename;
+			}
+		}
+		return "";
+	}
+	
+	/* this was moved here so it wouldn't have to be included as needed */
+	function globus_current_location()
+	{
+	
+	    $dir = $_SERVER["REQUEST_URI"];
+	    $dir = substr($dir, 1);  // Remove leading slash
+	    $expand_list = split("/", $dir);
+	    $current = "/";
+	
+	    # don't show location on top level docs
+	    if (strlen($dir) < 2) {
+	        return;
+	    }
+	    if(count($expand_list)<2)
+			return;
+			
+	    print "<a href='/'>Home</a> ";
+	
+	    while ($entry = array_shift($expand_list)) {
+	
+	        # never show html files
+	        if ( strstr($entry, "html") == false && strstr($entry, "php") == false ) {
+	            $nice = strtoupper(substr($entry, 0, 1)) . substr($entry, 1);
+	            $current = $current . "$entry/";
+	            print "-&gt; <a href='$current'>$nice</a> "; 
+	        }
+	    }
+	
+	    print "\n";
+	}
+	
+	function doc_parse($html)
+	{
+		$html = trim($html);
+		if(substr($html,0,9)=="<!DOCTYPE")
+		{
+			$body_start = strpos($html,"<body");
+			$body_end = strpos($html,">",$body_start);
+			$body_close = strpos($html,"</body>");
+			$body = substr($html,$body_end+1,$body_close - $body_end-1);
+			//echo $body;	
+			return $body;	
+		}
+		return false;
+	}
+	if($_SERVER["PHP_SELF"]!="/index.php")
+	{
+		include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
+	}
+	if(strpos($_SERVER["REQUEST_URI"],"/docs/")!==FALSE && $_SERVER["REQUEST_URI"] != $SITE_PATHS["WEB_TOOLKIT"]."downloads/")
+	{
+		ob_implicit_flush(false);
+		ob_start("doc_parse");
+	}
 } // end of ifndef
 
