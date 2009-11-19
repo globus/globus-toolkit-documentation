@@ -25,8 +25,8 @@
     <tr>
       <th>
 	<?php 
-include_once( "/mcs/www-unix.globus.org/toolkit/breadcrumb.php" ); 
-globus_current_location(); ?> <br/><br/>Could this page be better? <a href="#feedback">Send us your feedback.</a>
+//include_once( "/mcs/www-unix.globus.org/toolkit/breadcrumb.php" ); 
+//globus_current_location(); ?> <br/><br/>Could this page be better? <a href="#feedback">Send us your feedback.</a>
       </th>
 
       <td>
