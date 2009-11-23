@@ -21,8 +21,8 @@ function globus_print_toolkit_news_headlines($limit)
     globus_print_headlines("toolkit_news_headlines",
                            "toolkit_news='Y'",
                            $limit,
-                           "http://www-unix.globus.org/toolkit/news.html",
-                           "http://www-unix.globus.org/toolkit/rss/downloadNews/downloadNews.xml");
+                           "http://www.globus.org/toolkit/news.html",
+                           "http://www.globus.org/toolkit/rss/downloadNews/downloadNews.xml");
 }
 
 
@@ -31,8 +31,8 @@ function globus_print_toolkit_press_headlines($limit)
     globus_print_headlines("toolkit_press_headlines",
                            "toolkit_press='Y'",
                            $limit,
-                           "http://www-unix.globus.org/toolkit/press.html",
-                           "http://www-unix.globus.org/toolkit/rss/downloadNews/downloadPress.xml");
+                           "http://www.globus.org/toolkit/press.html",
+                           "http://www.globus.org/toolkit/rss/downloadNews/downloadPress.xml");
 }
 
 
@@ -41,8 +41,8 @@ function globus_print_alliance_news_headlines($limit)
     globus_print_headlines("alliance_news_headlines",
                            "alliance_news='Y'",
                            $limit,
-                           "http://www-unix.globus.org/news.html",
-                           "http://www-unix.globus.org/toolkit/rss/downloadNews/downloadNews.xml");
+                           "http://www.globus.org/news.html",
+                           "http://www.globus.org/toolkit/rss/downloadNews/downloadNews.xml");
 }
 
 
@@ -76,9 +76,9 @@ function globus_print_toolkit_news_rss20($limit)
                        $limit,
                        "Globus Toolkit",
                        "Up-to-date links to new downloads and information for developers using the Globus Toolkit",
-                       "http://www-unix.globus.org/toolkit/",
-                       "http://www-unix.globus.org/toolkit/images/gtLogo.jpg",
-                       "http://www-unix.globus.org/toolkit/news.html");
+                       "http://www.globus.org/toolkit/",
+                       "http://www.globus.org/toolkit/images/gtLogo.jpg",
+                       "http://www.globus.org/toolkit/news.html");
 }
 
 
@@ -129,9 +129,9 @@ function globus_print_headlines(
 
         # rss link
         fwrite($fp, "<p><a href=\"$rss_url\">" .
-                    "<img src=\"http://www-unix.globus.org/toolkit/images/iconRSS.gif\" " .
+                    "<img src=\"http://www.globus.org/toolkit/images/iconRSS.gif\" " .
                     " width=\"35\" height=\"13\" border=\"0\"></a>&nbsp;" .
-                    "<a href=\"http://www-unix.globus.org/toolkit/about_rss.html\">What's&nbsp;this?</a></p>");
+                    "<a href=\"http://www.globus.org/toolkit/about_rss.html\">What's&nbsp;this?</a></p>");
 
         fclose($fp);
     }
