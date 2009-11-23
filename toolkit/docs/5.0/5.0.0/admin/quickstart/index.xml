@@ -9,7 +9,7 @@
 <articleinfo id="q-intro"><abstract><title>Introduction</title>
 <para>
 This is a quickstart that shows a full installation of the Toolkit
-on two Debian 3.1 machines.  It shows the installation of prereqs, 
+on two Debian 5.0 machines.  It shows the installation of prereqs, 
 installation of the toolkit, creation of certificates, and configuration
 of services.  It is designed to supplement the main admin guide.
 </para></abstract>
@@ -29,42 +29,24 @@ of prereqs is available at
 <para>First I'll check for security libraries:
 <screen>
 <prompt>elephant %</prompt> <userinput>openssl version</userinput>
-OpenSSL 0.9.7e 25 Oct 2004
+OpenSSL 0.9.8g 19 Oct 2007
 
+<prompt>elephant %</prompt> <userinput>dpkg --list | grep libssl</userinput>
+ii  libssl-dev              0.9.8g-15+lenny5           SSL development libraries, header files and documentation
+ii  libssl0.9.8             0.9.8g-15+lenny5           SSL shared libraries
+  
+  
 <prompt>elephant %</prompt> <userinput>dpkg --list | grep zlib</userinput>
-ii  zlib-bin       1.2.2-4.sarge. compression library - sample programs
-ii  zlib1g         1.2.2-4.sarge. compression library - runtime
-ii  zlib1g-dev     1.2.2-4.sarge. compression library - development
+ii  zlib1g                  1:1.2.3.3.dfsg-12          compression library - runtime
+ii  zlib1g-dev              1:1.2.3.3.dfsg-12          compression library - development
+
 </screen>
-openssl 0.9.7 (or newer, 0.9.8 is okay) and the zlib development libraries are required.
+openssl 0.9.7 (or newer, 0.9.8 is okay) and the zlib and libssl development libraries are required.
 </para>
 <note>
 <para>The package names for zlib may vary for non-Debian systems.  The RPM name
 we would look for is <filename>zlib-devel</filename>.</para>
 </note>
-
-<para>I also have j2sdk1.5-sun installed under /usr/lib/j2sdk1.5-sun from the sun-j2sdk1.5
-dpkg:
-<screen>
-<prompt>elephant % </prompt><userinput>dpkg -S /usr/lib/j2sdk1.5-sun</userinput>
-sun-j2sdk1.5: /usr/lib/j2sdk1.5-sun
-</screen>
-<note><para>Note that GT<replaceable role="entity">version</replaceable> requires Java 5 or higher.  Java 1.4.2 is no longer supported.</para></note>
-</para>
-
-<para>I also have ant installed:
-<screen>
-<prompt>elephant % </prompt><userinput>ls /home/dsl/javapkgs/apache-ant-1.6.5/</userinput>
-bin   INSTALL  LICENSE	    LICENSE.xerces  TODO
-docs  KEYS     LICENSE.dom  NOTICE	    welcome.html
-etc   lib      LICENSE.sax  README	    WHATSNEW
-</screen>
-</para>
-<note><para>
-Most RedHat and Fedora Core boxes already ship with ant, but it is configured to use gcj.
-We don't want to use gcj!  To fix this, look for an /etc/ant.conf file.  If you have one,
-rename it to /etc/ant.conf.orig for the duration of this quickstart.
-</para></note>
 
 <para>My system already has C/C++ compilers:
 <screen>
@@ -78,31 +60,31 @@ rename it to /etc/ant.conf.orig for the duration of this quickstart.
 <para>GNU versions of tar/make/sed:
 <screen>
 <prompt>elephant % </prompt><userinput>tar --version</userinput>
-tar (GNU tar) 1.14
-Copyright (C) 2004 Free Software Foundation, Inc.
-This program comes with NO WARRANTY, to the extent permitted by law.
-You may redistribute it under the terms of the GNU General Public License;
-see the file named COPYING for details.
+tar (GNU tar) 1.20
+Copyright (C) 2008 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+    
 Written by John Gilmore and Jay Fenlason.
 <prompt>elephant % </prompt><userinput>sed --version</userinput>
-GNU sed version 4.1.2
+GNU sed version 4.1.5
 Copyright (C) 2003 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE,
 to the extent permitted by law.
 <prompt>elephant % </prompt><userinput>make --version</userinput>
-GNU Make 3.80
-Copyright (C) 2002  Free Software Foundation, Inc.
+GNU Make 3.81
+Copyright (C) 2006  Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE.
+
 </screen>
 </para>
 
-<para>Finally, I have sudo and XML::Parser for GRAM:
+<para>Finally, I have XML::Parser for GRAM:
 <screen>
-<prompt>elephant % </prompt><userinput>sudo -V</userinput>
-Sudo version 1.6.8p7
 <prompt>elephant % </prompt><userinput>locate XML/Parser.pm</userinput>
 /usr/lib/perl5/XML/Parser.pm
 </screen>
@@ -111,28 +93,19 @@ Sudo version 1.6.8p7
 
 <section id="q-toolkit"><title>Building the Toolkit</title>
 <para>
-That completes the list of build prereqs, so now I will download the installer and build it.  The long version of these instructions is at <olink targetdoc="gtadmin" targetptr="gtadmin-install"/>.  First I created a globus user, and I will start the installation from that.  First I will setup my ANT_HOME and JAVA_HOME:
+That completes the list of build prereqs, so now I will download the installer and build it.  The long version of these instructions is at <olink targetdoc="gtadmin" targetptr="gtadmin-install"/>.  First I created a globus user, and I will start the installation from that.
 <screen>
-<prompt>globus@elephant:~$ </prompt><userinput>export ANT_HOME=/home/dsl/javapkgs/apache-ant-1.6.5/</userinput>
-<prompt>globus@elephant:~$ </prompt><userinput>export JAVA_HOME=/usr/lib/j2sdk1.5-sun</userinput>
-<prompt>globus@elephant:~$ </prompt><userinput>export PATH=$ANT_HOME/bin:$JAVA_HOME/bin:$PATH</userinput>
 <prompt>globus@elephant:~$</prompt> <userinput>tar xzf gt<replaceable role="entity">version</replaceable>-all-source-installer.tar.gz</userinput>
 <prompt>globus@elephant:~$</prompt> <userinput>cd gt<replaceable role="entity">version</replaceable>-all-source-installer</userinput>
 <prompt>globus@elephant:~/gt<replaceable role="entity">version</replaceable>-all-source-installer$</prompt> <userinput>./configure --prefix=/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/</userinput>
 checking build system type... i686-pc-linux-gnu
-checking for javac... /usr/lib/j2sdk1.5-sun/bin/javac
-checking for ant... /home/dsl/javapkgs/apache-ant-1.6.5//bin/ant
 configure: creating ./config.status
 config.status: creating Makefile
 </screen>
 </para>
 
 <note><para>
-The machine I am installing on doesn't have access to a scheduler.  If it did, I would have specified one of the wsgram scheduler options, 
-  like <option>--enable-wsgram-condor</option>, <option>--enable-wsgram-lsf</option>, or <option>--enable-wsgram-pbs</option>.
-</para></note>
-<note><para>
-I could have used the binary installer for this example, because Debian ia32 binaries are available.  
+I could have used the binary installer for this example, because Debian x86 Lenny binaries are available.  
 To make the quickstart more general, I decided to use source instead.
 </para></note>
 
@@ -170,19 +143,25 @@ that is equal to their hostname.  For the users, we'll use their full name.  To 
 we're going to use the SimpleCA that is distributed with the toolkit.  
 Here's how we set it up, based on the instructions at
 <olink targetdoc="gtadmin" targetptr="gtadmin-simpleca">SimpleCA Admin</olink>:
+  <note><para>In many deployment scenarios, certificates for both services and users are obtained
+    through one or more third party CAs.  In such scenarios, it is unnecessary to use SimpleCA or myproxy to
+    issue certificates.  Since this quickstart is intended to describe a simple, stand alone
+    deployment scenario, we describe how to use these tools to issue your own certificates. </para></note>
 <screen>
 <prompt>root@elephant:~#</prompt> <userinput>export GLOBUS_LOCATION=/sandbox/globus/globus-<replaceable role="entity">version</replaceable></userinput>
 <prompt>root@elephant:~#</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.sh</userinput>
-<prompt>root@elephant:~#</prompt> <userinput>cd ~globus/gt<replaceable role="entity">version</replaceable>-all-source-installer</userinput>
-<prompt>root@elephant:gt<replaceable role="entity">version</replaceable>-all-source-installer#</prompt> <userinput>perl gt-server-ca.pl -y</userinput>
+<prompt>root@elephant:~#</prompt> <userinput>cd ~globus/gt<replaceable
+  role="entity">version</replaceable>-all-source-installer/quickstart</userinput>
+<prompt>root@elephant:gt<replaceable
+  role="entity">version</replaceable>-all-source-installer/quickstart#</prompt> <userinput>perl gt-server-ca.pl -y</userinput>
 Setting up /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/
 Please enter a password of at least four characters for the CA: 
 Confirm password:
 Creating a new simpleCA, logging to gt-server-ca.log...
 Running setup-gsi...
-Your CA hash is: 1bcdfe89
-It is located at /sandbox/globus/globus-<replaceable role="entity">version</replaceable>//share/certificates/1bcdfe89.0
-Your host DN is /O=Grid/OU=GlobusTest/OU=simpleCA-elephant.mcs.anl.gov/CN=host/elephant.mcs.anl.gov
+Your CA hash is: b906298a
+It is located at /sandbox/globus/globus-<replaceable role="entity">version</replaceable>//share/certificates/b906298a.0
+Your host DN is /O=Grid/OU=GlobusTest/OU=simpleCA-elephant.globus.org/CN=host/elephant.globus.org
 The hostcert is located at /sandbox/globus/globus-<replaceable role="entity">version</replaceable>//etc/hostcert.pem
 </screen>
 <note><para>This will fail if /tmp is mounted noexec.  If you get a failure, you might try setting
@@ -197,7 +176,7 @@ Here's what has happened:
 <prompt>root@elephant:~#</prompt> <userinput>ls ~/.globus/</userinput>
 simpleCA
 <prompt>root@elephant:~#</prompt> <userinput>ls ~/.globus/simpleCA/</userinput>
-cacert.pem  globus_simple_ca_1bcdfe89_setup-0.18.tar.gz  newcerts
+cacert.pem  globus_simple_ca_b906298a_setup-0.20.tar.gz  newcerts
 certs       grid-ca-ssl.conf                             private
 crl         index.txt                                    serial
 </screen>
@@ -207,28 +186,14 @@ That's the directory where my simpleCA has been created.
 </para>
 
 <para>
-Our last step is to copy that signed certificate into <filename class="directory">/etc</filename>:
+Our last step is to copy that signed certificate and our trusted certificates into <filename class="directory">/etc</filename>:
 <screen>
 <prompt>root@elephant:~#</prompt> <userinput>mkdir /etc/grid-security</userinput>
 <prompt>root@elephant:~#</prompt> <userinput>mv $GLOBUS_LOCATION/etc/host*.pem /etc/grid-security/</userinput>
+<prompt>root@elephant:~#</prompt> <userinput>cp -r $GLOBUS_LOCATION/share/certificates/ /etc/grid-security/</userinput>
 </screen>
 </para>
 
-<para>
-We'll make the containercerts owned by globus:
-<screen>
-<prompt>root@elephant:~#</prompt> <userinput>cd /etc/grid-security</userinput>
-<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>cp hostcert.pem containercert.pem</userinput>
-<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>cp hostkey.pem containerkey.pem</userinput>
-<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>chown globus:globus container*.pem</userinput>
-<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>ls -l *.pem</userinput>
--rw-r--r--  1 globus globus 2724 2008-06-16 14:26 containercert.pem
--r--------  1 globus globus  887 2008-06-16 14:26 containerkey.pem
--rw-r--r--  1 root root     2724 2008-06-16 14:26 hostcert.pem
--rw-r--r--  1 root root     1404 2008-06-16 14:26 hostcert_request.pem
--r--------  1 root root      887 2008-06-16 14:26 hostkey.pem
-</screen>
-</para>
 </section>
 
 <section><title>Creating a MyProxy server</title>
@@ -294,77 +259,39 @@ tcp        0      0 0.0.0.0:7512            0.0.0.0:*               LISTEN
 </para>
 
 <para>
-Now that myproxy is setup, we'll get a usercert for bacon.  The globus user will add a new credential into myproxy.
-I have to specify a full name
-and a login name.  I'll be using "Charles Bacon" and "bacon" for my user.  I have to supply two different passwords.  The
-first password is going to be the bacon user's password.  The second password has to be my SimpleCA password from when
+Now that myproxy is setup, we'll get a usercert for our sample user.  The root user will add a new credential into myproxy.
+I have to specify a full name and a login name.  I'll be using "QuickStart User" as the first and last name and "quser" as the
+UNIX account name for my user.  
+</para><para>
+I have to supply two different passwords.  The first password is going to be the quser user's password, and must be at least 6 characters long.  The second password has to be my SimpleCA password from when
 I ran gt-server-ca.pl.
 <screen>
-<prompt>root@elephant:~ #</prompt> <userinput>myproxy-admin-adduser -c "Charles Bacon" -l bacon</userinput>
-iA certificate request and private key is being created.
-You will be asked to enter a PEM pass phrase.
-This pass phrase is akin to your account password, 
-and is used to protect your key file.
-If you forget your pass phrase, you will need to
-obtain a new certificate.
-
-Generating a 1024 bit RSA private key
-......................++++++
-...++++++
-writing new private key to '/tmp/myproxy_adduser_HUTit8/myproxy_adduser_key.pem'
-Enter PEM pass phrase: <userinput>bacon's new password</userinput>
-Verifying - Enter PEM pass phrase: <userinput>bacon's new password</userinput>
------
-You are about to be asked to enter information that will be incorporated
-into your certificate request.
-What you are about to enter is what is called a Distinguished Name or a DN.
-There are quite a few fields but you can leave some blank
-For some fields there will be a default value,
-If you enter '.', the field will be left blank.
------
-Level 0 Organization [Grid]:Level 0 Organizational Unit [GlobusTest]:Level 1 Organizational Unit [simpleCA-elephant.mcs.anl.gov]:Level 2 Organizational Unit [mcs.anl.gov]:Name (e.g., John M. Smith) []:
-
-A private key and a certificate request has been generated with the subject:
-
-/O=Grid/OU=GlobusTest/OU=simpleCA-elephant.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon
-
-If the CN=Charles Bacon is not appropriate, rerun this
-script with the -force -cn "Common Name" options.
-
-Your private key is stored in /tmp/myproxy_adduser_HUTit8/myproxy_adduser_key.pem
-Your request is stored in /tmp/myproxy_adduser_HUTit8/myproxy_adduser_cert_request.pem
-
-Please e-mail the request to the Globus Simple CA 
-You may use a command similar to the following:
-
-  cat /tmp/myproxy_adduser_HUTit8/myproxy_adduser_cert_request.pem | mail 
-
-Only use the above if this machine can send AND receive e-mail. if not, please
-mail using some other method.
-
-Your certificate will be mailed to you within two working days.
-If you receive no response, contact Globus Simple CA at 
-
+<prompt>root@elephant:~ #</prompt> <userinput>myproxy-admin-adduser -c "QuickStart User" -l quser</userinput>
+Enter PEM pass phrase:
+Verifying - Enter PEM pass phrase:
+  
 To sign the request
-please enter the password for the CA key: <userinput>SimpleCA password</userinput>
-
-The new signed certificate is at: /homes/globus/.globus/simpleCA//newcerts/05.pem
-
+please enter the password for the CA key:
+  
+The new signed certificate is at: /root/.globus/simpleCA//newcerts/02.pem
+  
 using storage directory /var/myproxy
 Credential stored successfully
+Certificate subject is:
+/O=Grid/OU=GlobusTest/OU=simpleCA-elephant.globus.org/OU=globus.org/CN=QuickStart User
+ 
 </screen>
 
 Our last act will be to create a grid-mapfile as root for authorization.  You can copy and paste the /O=Grid/OU=... 
 subject name from the output above:
 <screen>
 <prompt>root@elephant:/etc/grid-security#</prompt> <userinput>vim /etc/grid-security/grid-mapfile</userinput>
-"/O=Grid/OU=GlobusTest/OU=simpleCA-elephant.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon" bacon
+"/O=Grid/OU=GlobusTest/OU=simpleCA-elephant.globus.org/OU=globus.org/CN=QuickStart User" quser
 </screen>
 </para>
 <note><para>
 The globus user doesn't need a user certificate!  It's a dummy account that
-we're using to own the GLOBUS_LOCATION.  When it starts the container, it
-will use the containercert.  Only real people need user certs.
+we're using to own the GLOBUS_LOCATION.  Only real people need user certs.
 </para></note>
 
 </section>
@@ -411,13 +338,14 @@ tcp        0      0 0.0.0.0:2811            0.0.0.0:*               LISTEN
   <callout arearefs="q-xinetd-co"  id="q-xinetd" >
     <para>I already had xinetd installed:
     <screen>
-bacon@elephant:~$ dpkg --list xinetd
+quser@elephant:~$ dpkg --list xinetd
 Desired=Unknown/Install/Remove/Purge/Hold
-| Status=Not/Installed/Config-files/Unpacked/Failed-config/Half-installed
+| Status=Not/Inst/Cfg-files/Unpacked/Failed-cfg/Half-inst/trig-aWait/Trig-pend
 |/ Err?=(none)/Hold/Reinst-required/X=both-problems (Status,Err: uppercase=bad)
 ||/ Name           Version        Description
 +++-==============-==============-============================================
-      ii  xinetd         2.3.13-3       replacement for inetd with many enhancements</screen>
+ii  xinetd         1:2.3.14-7     replacement for inetd with many enhancements
+    </screen>
       You can use inetd instead, see "Configuring the GridFTP server to run under xinetd/inetd" in <olink targetdoc="gridftpAdmin"/> for details.  
       For now, though, you might want to apt-get install xinetd.</para>
   </callout>
@@ -432,25 +360,91 @@ Desired=Unknown/Install/Remove/Purge/Hold
 Now the gridftp server is waiting for a request, so we'll run a client
 and transfer a file:
 <screen>
-<prompt>bacon@elephant $</prompt> <userinput>myproxy-logon -s elephant</userinput>
+<prompt>quser@elephant $</prompt> <userinput>myproxy-logon -s elephant</userinput>
 Enter MyProxy pass phrase: <userinput>******</userinput>
-A credential has been received for user bacon in /tmp/x509up_u1817.
-<prompt>bacon@elephant $</prompt> <userinput>globus-url-copy gsiftp://elephant.mcs.anl.gov/etc/group file:///tmp/bacon.test.copy</userinput>
-<prompt>bacon@elephant $</prompt> <userinput>diff /tmp/bacon.test.copy /etc/group</userinput>
-<prompt>bacon@elephant $</prompt> <userinput></userinput>
+A credential has been received for user quser in /tmp/x509up_u1817.
+<prompt>quser@elephant $</prompt> <userinput>globus-url-copy gsiftp://elephant.globus.org/etc/group file:///tmp/quser.test.copy</userinput>
+<prompt>quser@elephant $</prompt> <userinput>diff /tmp/quser.test.copy /etc/group</userinput>
+<prompt>quser@elephant $</prompt> <userinput></userinput>
 </screen>
 </para>
 
 <para>Okay, so the GridFTP server works.  If you had trouble, check the
-  security troubleshooting section in the <olink targetdoc="gsicAdmin">Security Admin Guide</olink>.  Now we can move on to starting the webservices container.
+  security troubleshooting section in the <olink targetdoc="gsicAdmin">Security Admin Guide</olink>.
+  Now we can move on to setting up GRAM5 resource management.
 </para>
 </section>
 
 
   <section id="q-gram"><title>Setting up GRAM5</title>
+<para> Now that we have security and GridFTP set up, we can set up GRAM for resource management.
+  There are several different Local Resource Managers that one could configure GRAM to use, but this
+  guide will explain the simple case of setting up a "fork" jobmanager, without auditing.  For details on all other
+  configuration options, and for reference, you can see the <olink targetdoc="gram5Admin">GRAM5 Admin Guide</olink>.
+</para>
+    
 <para>
-TODO</para>
+<screen>
+<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>vim /etc/services </userinput>
+<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>tail /etc/services </userinput>
+vboxd           20012/udp
+binkp           24554/tcp                       # binkp fidonet protocol
+asp             27374/tcp                       # Address Search Protocol
+asp             27374/udp
+dircproxy       57000/tcp                       # Detachable IRC Proxy
+tfido           60177/tcp                       # fidonet EMSI over telnet
+fido            60179/tcp                       # fidonet EMSI over TCP
+
+# Local services
+myproxy-server  7512/tcp                        # Myproxy server
+gsiftp          2811/tcp
+gsigatekeeper   2119/tcp
+</screen>
+
+<screen>
+<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>vim
+  /etc/xinetd.d/gsigatekeeper</userinput> <co id="q-xinetd-co2" linkends="q-xinetd"/>
+<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>cat /etc/xinetd.d/gsigatekeeper</userinput>
+service gsigatekeeper
+{
+    socket_type = stream
+    protocol = tcp
+    wait = no
+    user = root
+    env = LD_LIBRARY_PATH=/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/lib
+    server = /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/sbin/globus-gatekeeper
+    server_args = -conf /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/etc/globus-gatekeeper.conf
+    disable = no
+}
+</screen>
+<screen>
+<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>/etc/init.d/xinetd reload</userinput>
+Reloading internet superserver configuration: xinetd.
+<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>netstat -an | grep 2119</userinput>
+tcp        0      0 0.0.0.0:2119            0.0.0.0:*               LISTEN     
+</screen>
+ 
+</para>
+<para>
+  
+The gatekeeper is now set up to run from xinetd, and is ready to authorize job submissions and pass
+them on to the fork job manager.  We can now run a couple of test jobs:
+<screen>
+<prompt>quser@elephant $</prompt> <userinput>myproxy-logon -s elephant</userinput>
+Enter MyProxy pass phrase: <userinput>******</userinput>
+A credential has been received for user quser in /tmp/x509up_u1817.
+<prompt>quser@elephant $</prompt> <userinput>globusrun -o -r elephant.globus.org:2119/jobmanager-fork '&amp;(executable="/bin/hostname" )'</userinput>
+elephant
+<prompt>quser@elephant $</prompt> <userinput>globusrun -s -r elephant.globus.org:2119/jobmanager-fork '&amp;(executable=/usr/bin/whoami)'</userinput>
+quser
+</screen>
+Success!  If you had trouble, check the
+  security troubleshooting section in the <olink targetdoc="gsicAdmin">Security Admin Guide</olink>.
+   To learn more about using GRAM 5, take a look at the <olink targetdoc="gram5User"
+     id="gram5-user-submitting-jobs">GRAM User's Guide</olink>
+</para>
 </section>
+
 </section>
 
 <section id="q-second"><title>Setting up your second machine</title>
@@ -460,10 +454,8 @@ Alas, it's not much of a grid with just one machine.  So let's start up
 on another machine and add it to this little test grid.  For a change of
 pace, I'm going to use the binary installer on this machine.  
 <screen>
-<prompt>globus@cognito:~$</prompt> <userinput>tar xzf gt<replaceable role="entity">version</replaceable>-ia32_debian_3.1-binary-installer.tar.gz</userinput>
-<prompt>globus@cognito:~$ </prompt><userinput>export ANT_HOME=/home/dsl/javapkgs/apache-ant-1.6.5/</userinput>
-<prompt>globus@cognito:~$ </prompt><userinput>export JAVA_HOME=/usr/lib/j2sdk1.5-sun</userinput>
-<prompt>globus@cognito:~$</prompt> <userinput>export PATH=$ANT_HOME/bin:$JAVA_HOME/bin:$PATH</userinput>
+<prompt>globus@donkey:~$</prompt> <userinput>tar xzf gt<replaceable
+  role="entity">version</replaceable>-x86_debian_5.0-binary-installer.tar.gz</userinput>
 </screen>
 </para>
 
@@ -474,21 +466,17 @@ pace, I'm going to use the binary installer on this machine.
 Now we can install from binaries:
 <screen>
 
-<prompt>globus@cognito:~/gt<replaceable role="entity">version</replaceable>-ia32_debian_3.1-binary-installer$</prompt> <userinput>./configure \
+<prompt>globus@donkey:~/gt<replaceable role="entity">version</replaceable>-x86_debian_5.0-installer$</prompt> <userinput>./configure \
    --prefix=/usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
-checking for javac... /usr/lib/j2sdk1.5//bin/javac
-checking for ant... /home/dsl/javapkgs/apache-ant-1.6.5//bin/ant
 configure: creating ./config.status
 config.status: creating Makefile
-<prompt>globus@cognito:~/gt<replaceable role="entity">version</replaceable>-ia32_debian_3.1-binary-installer$</prompt> <userinput>make</userinput>
+<prompt>globus@donkey:~/gt<replaceable role="entity">version</replaceable>-x86_debian_5.0-installer$</prompt> <userinput>make</userinput>
 cd gpt-3.2autotools2004 &amp;&amp; OBJECT_MODE=32 ./build_gpt
 ...
 Binaries are much faster!  This is done in less than 10 minutes.
 ...
-tar -C /usr/local/globus-<replaceable role="entity">version</replaceable> -xzf binary-trees/globus_wsrf_rft_test-*/*.tar.gz
-tar -C /usr/local/globus-<replaceable role="entity">version</replaceable> -xzf binary-trees/globus_rendezvous-*/*.tar.gz
 Your build completed successfully.  Please run make install.
-<prompt>globus@cognito:~/gt<replaceable role="entity">version</replaceable>-ia32_debian_3.1-binary-installer$</prompt> <userinput>make install</userinput>
+<prompt>globus@donkey:~/gt<replaceable role="entity">version</replaceable>-x86_debian_5.0-installer$</prompt> <userinput>make install</userinput>
 ln -s /usr/local/globus-<replaceable role="entity">version</replaceable>/etc/gpt/packages /usr/local/globus-<replaceable role="entity">version</replaceable>/etc/globus_packages
 ...
 config.status: creating fork.pm
@@ -501,41 +489,35 @@ config.status: creating fork.pm
 <para>Now let's get security setup on the second machine.  We're going to just add trust for the original simpleCA to this new machine, there's no need to create a new one.  All we need to do is copy the $GLOBUS_LOCATION/share/certificates from our
 first machine to our second:
 <screen>
-<prompt>globus@cognito:~$</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
-<prompt>globus@cognito:~$</prompt> <userinput>scp -r elephant:/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/share/certificates $GLOBUS_LOCATION/share</userinput>
+<prompt>globus@donkey:~$</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
+<prompt>globus@donkey:~$</prompt> <userinput>scp -r elephant:/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/share/certificates $GLOBUS_LOCATION/share</userinput>
 </screen>
 
-We're going to create the host certificate for cognito, but we create it on elephant:
+We're going to create the host certificate for donkey, but we create it on elephant:
 <screen>
-<prompt>root@elephant:~#</prompt> <userinput>myproxy-admin-addservice -c "cognito.mcs.anl.gov" -l cognito</userinput>
+<prompt>root@elephant:~#</prompt> <userinput>myproxy-admin-addservice -c "donkey.globus.org" -l donkey</userinput>
 </screen>
 
-Then as root on cognito:
+Then as root on donkey:
 <screen>
-<prompt>root@cognito:~#</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
-<prompt>root@cognito:~#</prompt> <userinput>source $GLOBUS_LOCATION/globus-user-env.sh</userinput>
-<prompt>root@cognito:~#</prompt> <userinput>myproxy-retrieve -s elephant -k cognito.mcs.anl.gov -l cognito</userinput>
+<prompt>root@donkey:~#</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
+<prompt>root@donkey:~#</prompt> <userinput>source $GLOBUS_LOCATION/globus-user-env.sh</userinput>
+<prompt>root@donkey:~#</prompt> <userinput>myproxy-retrieve -s elephant -k donkey.globus.org -l donkey</userinput>
 Enter MyProxy pass phrase:<userinput>******</userinput>
-Credentials for bacon have been stored in
+Credentials for quser have been stored in
 /etc/grid-security/hostcert.pem and
 /etc/grid-security/hostkey.pem.
-<prompt>root@cognito:~#</prompt> <userinput>cd /etc/grid-security</userinput>
-<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>cp hostcert.pem containercert.pem</userinput>
-<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>cp hostkey.pem containerkey.pem</userinput>
-<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>chown globus:globus container*.pem</userinput>
-<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>ls -l *.pem</userinput>
--rw-------  1 root root 912 2008-06-19 13:50 containercert.pem
--rw-------  1 root root 887 2008-06-19 13:50 containerkey.pem
+<prompt>root@donkey:/etc/grid-security#</prompt> <userinput>ls -l *.pem</userinput>
 -rw-------  1 root root 912 2008-06-19 13:45 hostcert.pem
 -rw-------  1 root root 887 2008-06-19 13:45 hostkey.pem
-<prompt>root@cognito:/etc/grid-security# </prompt><userinput>myproxy-destroy -s  elephant -k cognito.mcs.anl.gov -l cognito</userinput>
-MyProxy credential 'cognito.mcs.anl.gov' for user cognito was successfully removed.
+<prompt>root@donkey:/etc/grid-security# </prompt><userinput>myproxy-destroy -s  elephant -k donkey.globus.org -l donkey</userinput>
+MyProxy credential 'donkey.globus.org' for user donkey was successfully removed.
 </screen>
-There.  Now cognito is setup with host and container certs, and it trusts the CA of my grid.  The last step for root is to create a grid-mapfile for myself again:
+There.  Now donkey is setup with host certs, and it trusts the CA of my grid.  The last step for root is to create a grid-mapfile for myself again:
 <screen>
-<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>vim grid-mapfile</userinput>
-<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>cat grid-mapfile </userinput>
-"/O=Grid/OU=GlobusTest/OU=simpleCA-elephant.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon" bacon
+<prompt>root@donkey:/etc/grid-security#</prompt> <userinput>vim grid-mapfile</userinput>
+<prompt>root@donkey:/etc/grid-security#</prompt> <userinput>cat grid-mapfile </userinput>
+"/O=Grid/OU=GlobusTest/OU=simpleCA-elephant.globus.org/OU=globus.org/CN=QuickStart User" quser
 </screen>
 </para>
 </section>
@@ -545,20 +527,20 @@ There.  Now cognito is setup with host and container certs, and it trusts the CA
 GridFTP setup on the second machine is identical to the first.  I'll just
 list the commands here, see <olink targetptr="q-gridftp"/> for the file contents, or just copy them from the first machine.
 <screen>
-<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>vim /etc/xinetd.d/gridftp</userinput>
-<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>vim /etc/services </userinput>
-<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>/etc/init.d/xinetd reload</userinput>
+<prompt>root@donkey:/etc/grid-security#</prompt> <userinput>vim /etc/xinetd.d/gridftp</userinput>
+<prompt>root@donkey:/etc/grid-security#</prompt> <userinput>vim /etc/services </userinput>
+<prompt>root@donkey:/etc/grid-security#</prompt> <userinput>/etc/init.d/xinetd reload</userinput>
 Reloading internet superserver configuration: xinetd.
 </screen>
 Now we can test it:
 <screen>
-<prompt>cognito %</prompt> <userinput>setenv GLOBUS_LOCATION /usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
-<prompt>cognito %</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.csh</userinput>
-<prompt>cognito %</prompt> <userinput>myproxy-logon -s elephant</userinput>
+<prompt>donkey %</prompt> <userinput>setenv GLOBUS_LOCATION /usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
+<prompt>donkey %</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.csh</userinput>
+<prompt>donkey %</prompt> <userinput>myproxy-logon -s elephant</userinput>
 Enter MyProxy pass phrase: <userinput>******</userinput>
-A credential has been received for user bacon in /tmp/x509up_u1817.
-<prompt>cognito %</prompt> <userinput>globus-url-copy gsiftp://cognito.mcs.anl.gov/etc/group \
-   gsiftp://elephant.mcs.anl.gov/tmp/from-cognito</userinput>
+A credential has been received for user quser in /tmp/x509up_u1817.
+<prompt>donkey %</prompt> <userinput>globus-url-copy gsiftp://donkey.globus.org/etc/group \
+   gsiftp://elephant.globus.org/tmp/from-donkey</userinput>
 </screen>
 That was a slightly fancier test than I ran on elephant.  In this case, I did a third-party transfer between two GridFTP servers.  It worked, so I have the local and remote security setup correctly.
 </para>
@@ -579,69 +561,27 @@ GridFTP to use them, see <ulink url="http://dev.globus.org/wiki/FirewallHowTo#Co
 
 </section>
 
-<section id="q-container2"><title>Setting up your second machine: Webservices</title>
-<para>
-Setting up the container on the second machine is a lot like the first.  I'll list the commands here.  See <olink targetptr="q-container2"/>, or you can just copy the files from the first machine.  First globus creates the start-stop script:
-<screen>
-<prompt>root@cognito:~#</prompt> <userinput>cp $GLOBUS_LOCATION/etc/init.d/globus-ws-java-container /etc/init.d</userinput>
-</screen>
-<screen>
-<prompt>globus@cognito:~ $</prompt> <userinput>/etc/init.d/globus-ws-java-container start</userinput>
-Starting Globus container. PID: 19745
-</screen>
-</para>
-</section>
-
   <section id="q-gram2"><title>Setting up your second machine: GRAM5</title>
 <para>
-As with last time, we'll need to setup the sudoers.  See <olink targetptr="q-gram"/> for the sudo contents, or copy the sudoers from the first machine.
-<screen>
-<prompt>root@cognito:/etc/grid-security#</prompt> <userinput>visudo</userinput>
-</screen>
 
-Now we can submit a staging job.  This job will copy the /bin/echo command from cognito to a file called $HOME/my_echo.  Then
+Now we can submit a staging job.  This job will copy the /bin/echo command from donkey to a file
+called /tmp/my_echo.  Then
 it runs it with some arguments, and captures the stderr/stdout.  Finally, it will clean up the my_echo file when execution is
 done.
 <screen>
-<prompt>cognito %</prompt> <userinput>vim a.rsl</userinput>
-<prompt>cognito %</prompt> <userinput>cat a.rsl</userinput>
-cognito % cat a.rsl
-<![CDATA[
-<job>
-    <executable>my_echo</executable>
-    <directory>${GLOBUS_USER_HOME}</directory>
-    <argument>Hello</argument>
-    <argument>World!</argument>
-    <stdout>${GLOBUS_USER_HOME}/stdout</stdout>
-    <stderr>${GLOBUS_USER_HOME}/stderr</stderr>
-    <fileStageIn>
-        <transfer>
-            <sourceUrl>gsiftp://cognito.mcs.anl.gov:2811/bin/echo</sourceUrl>
-            <destinationUrl>file:///${GLOBUS_USER_HOME}/my_echo</destinationUrl>
-        </transfer>
-    </fileStageIn>
-    <fileCleanUp>
-        <deletion>
-            <file>file:///${GLOBUS_USER_HOME}/my_echo</file>
-        </deletion>
-    </fileCleanUp>
-</job>
-]]>
-<prompt>cognito %</prompt> <userinput>globusrun-ws -submit -S -f a.rsl</userinput>
-Delegating user credentials...Done.
-Submitting job...Done.
-Job ID: uuid:1223d7e6-3e35-11dd-a209-003048241085
-Termination time: 06/19/3008 19:22 GMT
-Current job state: StageIn
-Current job state: Active
-Current job state: CleanUp
-Current job state: Done
-Destroying job...Done.
-Cleaning up any delegated credentials...Done.
-<prompt>cognito %</prompt> <userinput>cat ~/stdout</userinput>
-Hello World!
-<prompt>cognito %</prompt> <userinput>ls ~/my_echo</userinput>
-ls: /home/bacon/my_echo: No such file or directory
+<prompt>donkey %</prompt> <userinput>vim a.rsl</userinput>
+<prompt>donkey %</prompt> <userinput>cat a.rsl</userinput>
+donkey % cat a.rsl
+&amp;(rsl_substitution = (GRIDFTP_SERVER "gsiftp://donkey.globus.org:2811"))
+ (executable=/bin/ls) (arguments=/tmp) 
+ (file_stage_in = ($(GRIDFTP_SERVER)/bin/echo /tmp/my_echo)) 
+ (file_clean_up=/tmp/my_echo)
+
+<prompt>donkey %</prompt> <userinput> globusrun -f a.rsl -s -r elephant.globus.org:2119/jobmanager-fork</userinput>
+<prompt>donkey %</prompt> <userinput>cat ~/stdout</userinput>
+This example needs revision before the final cut on documentation
+<prompt>donkey %</prompt> <userinput>ls /tmp/staged_file</userinput>
+ls: /tmp/staged_file: No such file or directory
 </screen>
 </para>
   <para>You can get other examples of GRAM RSL files from <olink targetdoc="gram5User" targetptr="gram5-user-usagescenarios">GRAM usage scenarios</olink>.
