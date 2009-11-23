@@ -19,15 +19,9 @@
   The changes to <ulink url="http://www.openssh.org/">OpenSSH</ulink> to add 
   GSI support are limited, because we
   build on the existing GSSAPI support in OpenSSH for Kerberos.
-  In addition to adding support for the GSI GSSAPI mechanism,
-  GSI-OpenSSH includes support for GSSAPI key exchange, as specified
-  in
-  <ulink url="http://www.watersprings.org/pub/id/draft-ietf-secsh-gsskeyex-08.txt">draft-ietf-secsh-gsskeyex-08.txt</ulink>, 
-  whereas OpenSSH only supports GSSAPI authentication.
-  Visit the 
-  <ulink url="http://grid.ncsa.uiuc.edu/ssh/installpatch.html">GSI
-  OpenSSH Patch Page</ulink> for the patch containing the differences
-  between OpenSSH and GSI-OpenSSH.
+  See the
+  <ulink url="http://dev.globus.org/wiki/GSI-OpenSSH/Internals">GSI-OpenSSH Internals</ulink>
+  page for more details.
 </para></abstract>
 </bookinfo>
 
@@ -60,13 +54,8 @@
   </chapter>
   
   <chapter id="openssh-developer-archdes"><title>Architecture and design overview</title>
-<para>For information about the SSH protocol, including the latest draft
-  of the SSH GSSAPI protocol specification, see the current documents
-  of the <ulink url="http://www.ietf.org/html.charters/secsh-charter.html">IETF 
-    Secure Shell (secsh) Working Group</ulink>.
-  For information on GSSAPI, see
-  <ulink url="http://www.ietf.org/rfc/rfc2743.txt">RFC 2743</ulink> and 
-  <ulink url="http://www.ietf.org/rfc/rfc2744.txt">RFC 2744</ulink>.
+<para>See the
+<ulink url="http://dev.globus.org/wiki/GSI-OpenSSH/Internals">GSI-OpenSSH Internals</ulink> page.
 </para>
 </chapter>
   <!-- 
@@ -109,175 +98,18 @@
       href="../Util_OpenSSH_Interface_Env_Frag.xml"/>
   </chapter>
 
-<chapter id="openssh-developer-debugging"><title>Debugging</title>
-  <para>For information about sys admin debugging, see <olink targetdoc="opensshAdmin" targetptr="openssh-admin-debugging"/>.</para>
-<section><title>Specifying verbose output</title>
-  <para>Pass the '-vvv' flag to the GSI-OpenSSH clients when debugging to
-  increase the verbosity of the output.  For example:</para>
-<screen>
-  $ gsissh -vvv &lt;remote host&gt;
-</screen>
-<para>Likewise, pass the following flags to the server when debugging:</para>
-<screen>
-  $ sshd -ddd -o 'UsePrivilegeSeparation no' -r
-</screen>
-<para>
-You can add the '-p &lt;port number&gt;' option to run the sshd on an
-alternate port for debugging without affecting your system sshd.
-Then, give the same '-p &lt;port number&gt;' option to gsissh to test
-the sshd.
-</para>
-<para>
-The presence of a debugging flag also runs the server without detaching it from the
-console.  The server will only handle one connection in this mode.
-</para></section>
-</chapter>
-
   <chapter id="openssh-developer-troubleshooting"><title>Troubleshooting</title>
-    <para>For a list of common errors in GT, see <olink targetdoc="gtuser" targetptr="errors"/>.</para>
+<section id="openssh-gterrors">
+  <title>Common GT Errors</title>
+<para>For a list of common errors in GT, see <olink targetdoc="gtuser" targetptr="errors"/>.</para>
+</section>
+
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../Util_OpenSSH_Errors_Frag.xml"/>
-    <!-- using error code frag instead - keeping here in case we decide to switch back
-<section id="openssh-developer-noproxy"><title>No proxy found</title>
 
-<para>
-Failing to run grid-proxy-init to create a user proxy with which to connect
-will result in the client notifying you that no local credentials exist.  Any
-attempt to authenticate using GSI will fail in this case.
-</para>
-
-<screen>
-debug1: Local version string SSH-2.0-OpenSSH_3.2.3p1
-debug1: Problem with local credentials
-debug1: no proxy credentials: run grid-proxy-init or wgpi first
-        Function:proxy_pw_cb
-debug1: SSH2_MSG_KEXINIT sent
-debug1: SSH2_MSG_KEXINIT received
-</screen>
-
-<para>
-Fix: Verify that your GSI proxy has been properly initialized via 'grid-proxy-info'.  If you need
-to initialize the proxy, use the command 'grid-proxy-init'.
-</para>
-
-</section>
-
-<section id="openssh-developer-hostkey_perms"><title>Host key permissions failure</title>
-
-<para>
-The host key that the SSH server is using for GSI authentication must only
-be readable by the user which owns it.  Any other permissions will cause the
-following debugging output to be generated.
-</para>
-
-<screen>
-7959: debug1: Local version string SSH-1.99-OpenSSH_3.4p1
-7959: debug1: list_hostkey_types: ssh-rsa,ssh-dss
-7959: debug1: Problem with local credentials
-7959: debug1: bad file system permissions on private key
-              key must only be readable by the user
-              File=/etc/grid-security/hostkey.pem
-              Function:proxy_init_cred
-7959: debug1: SSH2_MSG_KEXINIT sent
-7959: debug1: SSH2_MSG_KEXINIT received
-</screen>
-
-<para>
-Fix: Make sure that the host key's UNIX permissions are mode 400 (that is, it should only have mode
-readable for the user that owns the file, and no other mode bits should be set).
-</para>
-
-</section>
-
-<section id="openssh-developer-unable_to_map"><title>Unable to map implicit username</title>
-
-<para>
-If the server was passed an "implicit username" (i.e. requested to map the incoming connection
-to a username based on some contextual clues such as the certificate's subject), and no entry exists
-  in the grid-mapfile for the incoming connection's <glossterm>certificate subject</glossterm>, the server should output
-a clue that states it is unable to set the username against which to authenticate.
-</para>
-
-<screen>
-7978: debug2: input_userauth_request: try method none
-7978: Failed none for cphillip from 141.142.21.10 port 1240 ssh2
-7978: debug1: gssapi received empty username
-7978: debug1: failed to set username from gssapi context
-7978: Failed external-keyx for cphillip from 141.142.21.10 port 1240 ssh2
-7978: debug1: gssapi received empty username
-7978: debug1: failed to set username from gssapi context
-7978: Failed gssapi for cphillip from 141.142.21.10 port 1240 ssh2
-7978: debug1: userauth-request for user cphillip service ssh-connection method publickey
-7978: debug1: attempt 0 failures 3
-</screen>
-
-<para>
-Fix: Add an entry for the user to the grid-mapfile.
-</para>
-
-</section>
-<section id="openssh-developer-no_such_user"><title>Entry in grid-mapfile refers to non-existent username</title>
-
-<para>
-If the subject name given in the system's grid-mapfile points to a non-existent user, the server
-will give an internal error which is best caught when it is running in debugging mode.
-</para>
-
-<screen>
-8046: debug2: input_userauth_request: setting up authctxt for cphillip
-8046: debug2: input_userauth_request: try method none
-8046: Failed none for cphillip from 141.142.21.10 port 1259 ssh2
-8046: debug1: gssapi received empty username
-8046: debug1: gssapi successfully set username to cphillip2
-8046: debug1: userauth-request for user cphillip2 service ssh-connection method external-keyx
-8046: debug1: attempt 0 failures 1
-8046: input_userauth_request: illegal user cphillip2
-8046: debug2: input_userauth_request: try method external-keyx
-8046: GSI user /C=US/O=National Computational Science Alliance/CN=Chase Phillips is authorized as target user cphillip2
-8046: INTERNAL ERROR: authenticated invalid user cphillip2
-8046: debug1: Calling cleanup 0x806bb38(0x0)
-</screen>
-
-<para>
-Fix: Add a new account to the system matching the username pointed at by the user's subject
-in the grid-mapfile.
-</para>
-
-</section>
-<section id="openssh-developer-no_gsi"><title>Client proxy uninitialized or non-GSI agent</title>
-
-<para>
-  Should the user attempt to connect without first creating a <glossterm>proxy certificate</glossterm>, or if the user
-is connecting via a SSH client that does not support GSI authentication, the server will note
-that no GSSAPI data was sent to it.  Verify that the client is able to connect through another
-GSI service (such as the gatekeeper) to make sure that the user's proxy has been created
-correctly.
-</para>
-
-<screen>
-9597: debug2: input_userauth_request: setting up authctxt for cphillip
-9597: debug2: input_userauth_request: try method none
-9597: Failed none for cphillip from 141.142.21.10 port 2554 ssh2
-9597: debug1: gssapi received empty username
-9597: debug1: No suitable client data
-9597: debug1: failed to set username from gssapi context
-9597: Failed external-keyx for cphillip from 141.142.21.10 port 2554 ssh2
-9597: debug1: gssapi received empty username
-9597: debug1: No suitable client data
-9597: debug1: failed to set username from gssapi context
-9597: Failed gssapi for cphillip from 141.142.21.10 port 2554 ssh2
-9597: debug1: userauth-request for user cphillip service ssh-connection method publickey
-9597: debug1: attempt 0 failures 3
-9597: debug2: input_userauth_request: try method publickey
-</screen>
-
-<para>
-Fix: Verify that you are using a GSI-enabled SSH client and that your GSI proxy has been
-properly initialized via 'grid-proxy-info'.  If you need to initialize this proxy, use the
-command 'grid-proxy-init'.
-</para>
-</section>
--->
+<section id="openssh-errors">
+  <title>Additional GSI-OpenSSH Troubleshooting</title>
+    <para>Please see the <ulink url="http://grid.ncsa.illinois.edu/ssh/ts_common.html">GSI-OpenSSH Troubleshooting Page</ulink> at NCSA.</para>
 </chapter>
 
 <chapter id="openssh-developer-relateddocs"><title>Related Documentation</title>
