@@ -4,6 +4,15 @@
 [
 
 <!ENTITY % xinclude SYSTEM "../../../xinclude.mod" >
+<!ENTITY gram_ping_example SYSTEM "gram_ping_example.c" >
+<!ENTITY gram_version_example SYSTEM "gram_version_example.c" >
+<!ENTITY gram_submit_example SYSTEM "gram_submit_example.c" >
+<!ENTITY gram_submit_and_wait_example SYSTEM "gram_submit_and_wait_example.c" >
+<!ENTITY gram_poll_example SYSTEM "gram_poll_example.c" >
+<!ENTITY gram_refresh_example SYSTEM "gram_refresh_example.c" >
+<!ENTITY gram_nonblocking_submit_example SYSTEM "gram_nonblocking_submit_example.c" >
+<!ENTITY gram_rsl_example SYSTEM "gram_rsl_example.c" >
+<!ENTITY gram_attr_example SYSTEM "gram_attr_example.c" >
 %xinclude;
 
 ]>
@@ -13,19 +22,10 @@
 
 <bookinfo><abstract><title>Introduction</title>
 <para>
-  This guide is intended to help a developer create compatible GRAM5 clients
-  and alternate service implementations.
+  This guide is intended to help a developer create GRAM5 clients in C. It
+  provides an overview of the concepts and APIs needed to interact with GRAM
+  services. 
 </para>
-<para>
-  The key concepts for the GRAM component have not changed. Its purpose
-  is still to provide the mechanisms to execute remote applications for a
-  user. Given an XML job description, GRAM submits the job to a scheduling system
-  such as <glossterm baseform="Portable Batch System">PBS</glossterm> or
-  <glossterm>Condor</glossterm>, or to a simple fork-based way of spawning processes,
-  and monitors it until completion. More details can be found here:
-</para>
-
-<para><ulink url="http://www.globus.org/toolkit/docs/3.2/gram/key">http://www.globus.org/toolkit/docs/3.2/gram/key</ulink></para>
 </abstract></bookinfo>
 
 <chapter id="gram5-developer-beforeyoubegin">
@@ -41,16 +41,298 @@
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../GRAM5_Security_Considerations_Frag.xml"/>
 </chapter>
-<!-- 
-<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-    href="GRAM5_Selective_Concepts.xml"/>
--->
+
+<chapter id="gram5-developer-concepts">
+    <title>GRAM5 Concepts for Developers</title>
+
+    <section id="gram5-developer-concepts-blocking"> 
+        <title>Blocking and Nonblocking Function Variants</title>
+        <para>
+            In the GRAM Client API, all functions that involve sending
+            messages over the network have both blocking and nonblocking
+            variants. These are useful in different programming situations.
+        </para>
+        <para>
+            The blocking variants, such as the
+            <function>globus_gram_client_job_request</function> function
+            require less application code, but will prevent subsequent
+            instructions from executing until the request has been sent
+            and the reply parsed. In a non-threaded environment, other
+            callback functions registered with the Globus event driver may
+            be invoked while the blocking function is running. In a threaded
+            environment, other events may occur in other threads while the
+            function is blocking, but the current thread will be blocked until
+            the response is parsed.
+        </para>
+        <para>
+            The nonblocking variants, such as
+            <function>globus_gram_client_register_job_request</function> 
+            require the application to include a callback function which will
+            be called by the Globus event driver when the reply has been
+            parsed. In a non-threaded environment, applications must poll
+            the event driver using functions from the
+            <function>globus_poll</function> or 
+            <function>globus_cond_wait</function> families of
+            functions. In a threaded environment, the callback function
+            may be invoked in another thread than the one calling the
+            non-blocking function, even before the non-blocking function has
+            returned. Application writers must be careful in using
+            synchronization primitives such as <type>globus_mutex_t</type>
+            and <type>globus_cond_t</type> when using non-blocking functions.
+        </para>
+        <para>
+            An application writer should use the non-blocking variants if 
+            the application will be submitting many jobs concurrently or
+            requires custom network or security attributes. Using the 
+            non-blocking variants allows the Globus event driver to better
+            schedule network I/O in these cases.
+        </para>
+    </section>
+    <section>
+        <title>Service Contact Strings</title>
+        <para>
+        GRAM uses three types of <emphasis>contact strings</emphasis> to
+        describe how to contact different services. These service contacts
+        are:
+
+        <table>
+            <title>GRAM Contact String Types</title>
+            <tgroup cols="2">
+                <thead>
+                    <row>
+                        <entry><simpara>Type</simpara></entry>
+                        <entry><simpara>Meaning</simpara></entry>
+                    </row>
+                </thead>
+                <tbody>
+                    <row>
+                        <entry><simpara>Gatekeeper Service Contact</simpara></entry>
+                        <entry><simpara>This string describes how to contact a
+                        gatekeeper service. It is used to submit jobs, send
+                        "ping" requests to determine if a service is properly
+                        deployed, and version requests to determine what
+                        version of the software is deployed. Full details of
+                        the syntax of this contact is located in the
+                        <olink targetdoc="gram5User"
+                        targetptr="gram5-user-resource-names">GRAM5 User's
+                        Guide</olink>.</simpara></entry>
+                    </row>
+                    <row>
+                        <entry><simpara>Callback Contact</simpara></entry>
+                        <entry><simpara>This string is an HTTPS URL that 
+                        is an endpoint for GRAM job state callbacks. An https
+                        message is posted to this address when the Job Manager
+                        detects a job state change.</simpara></entry>
+                    </row>
+                    <row>
+                        <entry><simpara>Job Contact</simpara></entry>
+                        <entry><simpara>This string is an HTTPS URL that
+                        is an endpoint for contacting an existing GRAM job.
+                        An https message is posted to this address to cancel,
+                        signal, or query a GRAM job.</simpara></entry>
+                    </row>
+                </tbody>
+            </tgroup>
+        </table>
+        </para>
+    </section>
+    <section>
+        <title>Job State Callbacks and Polling</title>
+        <para>
+        GRAM clients and learn about a job's state in two ways: by registering
+        for job state callbacks and by polling for status. These two methods
+        have different performance characteristics and costs.
+        </para>
+        <para>
+        In order to receive job state callbacks, a client application must
+        create an HTTPS listener using the
+        <function>globus_gram_client_callback_allow</function> or
+        <function>globus_gram_client_info_callback_allow</function> functions.
+        A non-threaded application must then periodically call a function from
+        either the <function>globus_cond_wait</function> or
+        <function>globus_poll</function> families in order to process the
+        job state callbacks. Additionally, the network must be configured to
+        allow the GRAM job manager to send messages to the port that the client
+        is listening on. This may be difficult if there is a firewall between
+        the client and service.
+        </para>
+        <para>The GRAM service initiates the job state callbacks, and thus
+        they are usually sent very shortly after the job state changes, so
+        clients can be notified about the state changes quickly.
+        </para>
+        <para>
+        In order to poll for job states, a client can call either the blocking
+        or nonblocking variant of the
+        <function>globus_gram_client_job_status</function> or
+        <function>globus_gram_client_job_status_with_info</function> functions.
+        These functions require that the network be configured to allow
+        the client to contact the network port that the GRAM service is
+        listening on (the Job Contact).
+        </para>
+        <para>
+        The client intiates these polling operations, so they are only
+        as accurate as the polling frequence of the client. If the client polls
+        very often, it will receive job state changes more quickly, at the 
+        risk of increasing the computing and network cost of both the client
+        and service.
+        </para>
+    </section>
+
+    <section>
+        <title>Credential Management</title>
+        <para>
+        The GRAM5 protocols all use GSSAPIv2 abstractions to provide
+        authentication and authorization. By default, GRAM uses an SSL-based
+        GSSAPI for its security.
+        </para>
+        <para>
+        The client delegates a credential to the gatekeeper service after
+        authentication, and the GRAM job manager service uses this delegated
+        credential as both a job-specific credential and for subsequent
+        communication with GRAM clients.
+        </para>
+        <para>
+        If a client or clients submit multiple jobs to a gatekeeper service,
+        they will eventually all be handled by a single job manager process.
+        This process will use whichever delegated credential will remain
+        valid the longest for accepting new connections and connecting to 
+        clients to send job state callbacks.
+        When a client delegates a new credential to a job, this credential may
+        also be used as the job manager's credential for future connections.
+        </para>
+    </section>
+
+    <section>
+        <title>RSL</title>
+        <para>
+        GRAM5 jobs are described using the RSL language. The GRAM client API
+        submits jobs using the string representation of the RSL, rather than
+        the RSL parse tree. Clients can, if they need to modify of construct
+        RSL at runtime, use the functions in the RSL API to do so.
+        </para>
+    </section>
+
+</chapter>
+
 <chapter id="gram5-developer-scenarios">
-    <title>Scenarios</title>
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="GRAM5_C_Scenarios_Frag.xml"/>
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="GRAM5_Java_Scenarios_Frag.xml"/>
+    <title>Basic GRAM Client Scenarios</title>
+
+    <section>
+        <title>"Ping" a Job Manager</title>
+        <para>
+            This example shows how to use a gatekeeper "ping" request to
+            determine if a service is running and if the client is authorized
+            to contact it. It takes a gatekeeper service contact as its only
+            command-line option. The <ulink url="gram_ping_example.c">source to
+            this example</ulink> can be downloaded.
+        </para>
+
+        <programlisting>&gram_ping_example;</programlisting>
+    </section>
+
+    <section>
+        <title>Check a Job Manager Version</title>
+        <para>
+            This example shows how to use the "version" command to determine
+            what software version a gatekeeper service is running.
+            The <ulink url="gram_version_example.c">source to
+            this example</ulink> can be downloaded.
+        </para>
+
+        <programlisting>&gram_version_example;</programlisting>
+    </section>
+
+    <section>
+        <title>Submitting a Job</title>
+        <para>
+            This example shows how to submit a job to a GRAM service.
+            The <ulink url="gram_submit_example.c">source to
+            this example</ulink> can be downloaded.
+        </para>
+
+        <programlisting>&gram_submit_example;</programlisting>
+    </section>
+
+    <section>
+        <title>Submitting a Job and Processing Job State Callbacks</title>
+        <para>
+            This example shows how to submit a job to a GRAM service and
+            then wait until the job reaches the FAILED or DONE state.
+            The <ulink url="gram_submit_and_wait_example.c">source to
+            this example</ulink> can be downloaded.
+        </para>
+
+        <programlisting>&gram_submit_and_wait_example;</programlisting>
+    </section>
+
+    <section>
+        <title>Polling Job Status</title>
+        <para>
+            This example shows how to submit a job to a GRAM service and
+            then wait until the job reaches the FAILED or DONE state.
+            The <ulink url="gram_poll_example.c">source to
+            this example</ulink> can be downloaded.
+        </para>
+
+        <programlisting>&gram_poll_example;</programlisting>
+    </section>
+
+    <section>
+        <title>Refreshing Job Credential</title>
+        <para>
+            This example shows how to refresh a GRAM job's credential after
+            the job has been submitted by some other means.
+            The <ulink url="gram_refresh_example.c">source to
+            this example</ulink> can be downloaded.
+        </para>
+
+        <programlisting>&gram_refresh_example;</programlisting>
+    </section>
+</chapter>
+
+<chapter id="gram5-developer-scenarios-advanced">
+    <title>Advanced GRAM Client Scenarios</title>
+
+    <section>
+        <title>Non-blocking Job Submission</title>
+        <para>
+            This example shows how to submit a series of GRAM jobs using the
+            non-blocking function
+            <function>globus_gram_client_register_job_request</function> and
+            wait until all submissions have completed. This example throttles
+            the number of concurrent job submissions to reduce the load
+            on the service node. The
+            <ulink url="gram_nonblocking_submit_example.c">source to
+            this example</ulink> can be downloaded.
+
+            <programlisting>&gram_nonblocking_submit_example;</programlisting>
+        </para>
+    </section>
+
+    <section>
+        <title>Custom Security Attributes</title>
+        <para>
+            This example shows how to submit a job and delegate a full
+            credential to the job.  The
+            <ulink url="gram_attr_example.c">source to
+            this example</ulink> can be downloaded.
+
+            <programlisting>&gram_attr_example;</programlisting>
+        </para>
+    </section>
+
+    <section>
+        <title>Modifying RSL</title>
+        <para>
+            This example shows how to programmatically add environment variable
+            definitions to an RSL prior to submitting a job.  The
+            <ulink url="gram_rsl_example.c">source to
+            this example</ulink> can be downloaded.
+
+            <programlisting>&gram_rsl_example;</programlisting>
+        </para>
+    </section>
+
 </chapter>
 
 <chapter id="gram5-developer-tutorials"><title>Tutorials</title>
@@ -62,135 +344,11 @@
     </itemizedlist>
   </chapter>
   
-  
-<chapter id="gram5-developer-archdes"><title>Architecture and design overview</title>
-
-  <para>  The GRAM services in GT <replaceable role="entity">version</replaceable> are WSRF compliant. One of the key
-  concepts in the <ulink url="http://www.globus.org/wsrf/">WSRF</ulink> specification
-  is the decoupling of a  service with the public &quot;state&quot; of the service
-  in the interface via the <ulink url="http://www.globus.org/wsrf/faq.php#wsrf12">implied
-    resource pattern</ulink>.
-    Following this concept, the data of GT <replaceable role="entity">version</replaceable> GRAM jobs is published
-  as part of WSRF resources, while there is only one service
-  to start jobs or query and monitor their state. This is different from the
-   <ulink url="http://www.gridforum.org/ogsi-wg/drafts/draft-ggf-ogsi-gridservice-04_2002-10-04.pdf">OGSI</ulink> model
-   of GT3 where each job was represented as a separate service. There is still
-   a job factory service that can be called in order to create job instances
-   (represented as WSRF resources). Each scheduling system that GRAM is interfaced
-   with is represented as a separate factory resource. By making a call to the
-   factory service while associating the call to  the appropriate factory resource,
-   the job submitting actor can create  a job resource mapping to a job in the
-   chosen scheduling system.</para>
-
-<section id="gram5-developer-archdes-states">
-<title>Job States</title>
-
-<section id="gram5-developer-archdes-states-overview">
-<title>Overview</title>
-<para>
-  The <glossterm baseform="Managed Executable Job Service">Managed Executable Job Service (MEJS)</glossterm> relies on a state machine to handle state
-transitions. There are two sets of states: external and internal.  The external
-states are those that the user gets in notifications and can be queried as a
-resource property. The internal states are those that are strictly used by the
-state machine to step through all the necessary internal tasks that need to be
-performed for a particular job.
-</para>
-
-<para>
-  The Managed Multi Job Service does not rely on a state machine, but instead
-makes judgements after receiving notifications from the sub-jobs about which
-  external state it should be in.  The external states for the <glossterm baseform="Managed Multi Job Service">MMJS</glossterm> are identical
-to the ones used by the MEJS.
-</para>
-</section>
-
-<section id="gram5-developer-archdes-states-listing">
-<title>External and Internal States of the Managed Job Services</title>
-
-<section id="gram5-developer-archdes-states-external">
-<title>External States of the Managed Job Services</title>
-<itemizedlist>
-<listitem><simpara>Unsubmitted</simpara></listitem>
-<listitem><simpara>StageIn</simpara></listitem>
-<listitem><simpara>Pending</simpara></listitem>
-<listitem><simpara>Active</simpara></listitem>
-<listitem><simpara>Suspended</simpara></listitem>
-<listitem><simpara>StageOut</simpara></listitem>
-<listitem><simpara>CleanUp</simpara></listitem>
-<listitem><simpara>Done</simpara></listitem>
-<listitem><simpara>Failed</simpara></listitem>
-<listitem><simpara>UserTerminateDone</simpara></listitem>
-<listitem><simpara>UserTerminateFailed</simpara></listitem>
-</itemizedlist>
-</section>
-
-<section id="gram5-developer-archdes-states-internal">
-<title>Internal States of the Managed Executable Job Service</title>
-<itemizedlist>
-<listitem><simpara>None</simpara></listitem>
-<listitem><simpara>Start</simpara></listitem>
-<listitem><simpara>StageIn</simpara></listitem>
-<listitem><simpara>StageInHold</simpara></listitem>
-<listitem><simpara>StageInResponse</simpara></listitem>
-<listitem><simpara>Submit</simpara></listitem>
-<listitem><simpara>PendingHold</simpara></listitem>
-<listitem><simpara>WaitingForStateChanges</simpara></listitem>
-<listitem><simpara>Suspend</simpara></listitem>
-<listitem><simpara>Resume</simpara></listitem>
-<listitem><simpara>OpenStdout</simpara></listitem>
-<listitem><simpara>OpenStderr</simpara></listitem>
-<listitem><simpara>MergeStdout</simpara></listitem>
-<listitem><simpara>StageOut</simpara></listitem>
-<listitem><simpara>StageOutHold</simpara></listitem>
-<listitem><simpara>StageOutResponse</simpara></listitem>
-<listitem><simpara>CleanUp</simpara></listitem>
-<listitem><simpara>CleanUpHold</simpara></listitem>
-<listitem><simpara>FileCleanUp</simpara></listitem>
-<listitem><simpara>FileCleanUpResponse</simpara></listitem>
-<listitem><simpara>CacheCleanUp</simpara></listitem>
-<listitem><simpara>UserTerminate</simpara></listitem>
-<listitem><simpara>SystemTerminate</simpara></listitem>
-<listitem><simpara>FailureFileCleanUp</simpara></listitem>
-<listitem><simpara>FailureFileCleanUpResponse</simpara></listitem>
-<listitem><simpara>FailureCacheCleanUp</simpara></listitem>
-<listitem><simpara>FinalizeTermination</simpara></listitem>
-<listitem><simpara>Done</simpara></listitem>
-<listitem><simpara>Restart</simpara></listitem>
-</itemizedlist>
-</section>
-
-</section>
-
-<section id="gram5-developer-archdes-statediag">
-<title>Managed Executable Job Service Internal State</title>
-<para>
-Here is a diagram illustrating the internal state transitions of the
-Managed Executable Job Service and how the external states are triggered
-  within this progression:
-</para>
-  
-  <figure id="MEJS_internal_state_transitions"><title>Managed Executable Job Service Internal State Transition Diagram</title>
-    <mediaobject>
-      <imageobject>
-        <imagedata fileref="MEJS_internal_state_transitions-Resized.jpg" format="JPEG" align="center"/>
-      </imageobject>
-    </mediaobject>
-  </figure>
-  
-</section>
-
-</section>
-
-</chapter>
-
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../GRAM5_Interface_API_Frag.xml"/>
 
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
     href="../GRAM5_Interface_RSL_Frag.xml"/>
-
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-      href="../GRAM5_Interface_WSDL_Frag.xml"/>
 
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../GRAM5_Debugging_Frag.xml"/>
@@ -198,12 +356,10 @@ Managed Executable Job Service and how the external states are triggered
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../GRAM5_Troubleshooting_Frag.xml"/>
 
-  <!-- n/a 
-  <chapter id="gram5-developer-protocols"><title>Semantics and syntax of non-WSDL protocols</title>
+  <chapter id="gram5-developer-protocols"><title>Semantics and syntax of protocols</title>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
       href="../GRAM5_Interface_Protocol_Frag.xml"/>
   </chapter>
-  -->
 
   <!-- n/a 
   <chapter id="gram5-developer-guis"><title>Graphical User Interface</title>
