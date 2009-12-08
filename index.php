@@ -30,11 +30,9 @@ define("FOOTER_INC",1); //skip the footer
 </div>
 <div id="splash">
     <div id="headline">
-        <p>We build grid solutions for a 
-        variety of challenges that come 
-        up when people share resources</p>
+        <p>Globus is <span class="highlight">open source</span> Grid software that addresses the most challenging problems in <span class="highlight">distributed resource sharing</span></p>
         <div id="news">
-            <h2>News &amp; Announcements</h2>
+            <h2><a href="news.html" style="font-size:24px;">News &amp; Announcements</a></h2>
           	<?
             	 include_once( $SITE_PATHS["SERV_ROOT"]."include/globus_news.php");
              	globus_print_alliance_news_headlines(5);
