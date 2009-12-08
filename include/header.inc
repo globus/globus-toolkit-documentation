@@ -45,7 +45,6 @@ f.q.value = f.qinit.value + " -inurl:mail_archive " ;
 		include($subnav_inc); 
 	}
 ?>
-
 <div id="outer_wrapper">
 	<div id="wrapper">
     	<div id="container">
