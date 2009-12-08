@@ -1,6 +1,6 @@
         
 	
-	<div id="content_sidebar">
+	<div id="docbook_content_sidebar">
 		 <h2 class="smalltitle">Software Links</h2>
            <dl class="leftColumn">
 		   		<dt><a href="/toolkit/docs/5.0/5.0.0/Usage_Stats.html">Usage Statistics</a></dt>
