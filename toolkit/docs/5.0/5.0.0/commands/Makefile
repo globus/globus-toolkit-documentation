@@ -12,7 +12,6 @@ html:
 	--stringparam current.docid "gtcommands" \
 	../custom_html.xsl \
 	$(FILENAME)
-	&& chgrp -R cvsusers *
 
 fo:
 	xsltproc \
