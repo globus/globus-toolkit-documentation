@@ -38,10 +38,7 @@
                 
                 <!-- Set path to admonition graphics-->
                 <xsl:param name="admon.graphics.path">/docbook-images/</xsl:param>
-                
-                
-                <!-- Set path to docbook graphics (testing)
-                <xsl:param name="admon.graphics.path">file:///Z:/testing/alliance/docbook-images/</xsl:param> -->
+             
                 
                 <!-- Again, if 1 above, what is the filename extension for admon graphics? -->
                 <xsl:param name="admon.graphics.extension" select="'.gif'"/>
@@ -56,7 +53,7 @@
                 <xsl:param name="part.autolabel">0</xsl:param>
                 
                 <!-- Are chapters automatically enumerated? -->
-                <xsl:param name="chapter.autolabel">0</xsl:param>
+                <xsl:param name="chapter.autolabel">1</xsl:param>
                 
                 <!-- Are sections enumerated? -->
                 <xsl:param name="section.autolabel">1</xsl:param>
@@ -214,9 +211,7 @@
                                                 
                                                 <body>
                                                                 <xsl:call-template name="body.attributes"/>
-                                                                <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/5.0/5.0.0/includes/globus_header_docbook.inc");
-                                                                                ?</xsl:processing-instruction>
+                                                                
                                                                 
  
                                                                 <xsl:call-template name="user.header.navigation"/>
@@ -229,7 +224,9 @@
                                                                 
                                                                 <xsl:call-template name="user.header.content"/>
                                                                 
-                                                                
+                                                                <xsl:processing-instruction name="php">
+                                                                                include_once("/mcs/globus.org/toolkit/docs/5.0/5.0.0/includes/docbook_sidebar.inc");
+                                                                                ?</xsl:processing-instruction>
                                                                
 
                                                                 
@@ -245,9 +242,6 @@
                                                                 
                                                                 <xsl:call-template name="user.footer.navigation"/>
 
-                                                                <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/5.0/5.0.0/includes/globus_footer_docbook.inc");
-                                                                                ?</xsl:processing-instruction>
                                                       
                                                 </body>
                                 </html>
