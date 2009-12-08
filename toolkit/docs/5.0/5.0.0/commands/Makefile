@@ -10,8 +10,9 @@ html:
 	xsltproc \
 	--xinclude \
 	--stringparam current.docid "gtcommands" \
-	../custom_html_chunk.xsl \
+	../custom_html.xsl \
 	$(FILENAME)
+	&& chgrp -R cvsusers *
 
 fo:
 	xsltproc \
