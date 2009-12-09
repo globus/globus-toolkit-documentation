@@ -1,7 +1,7 @@
 
 <div id="content_sidebar">
   <ul id="submenu">
-  <li id="active"><a href="/toolkit/data/gridftp/index.html" id="current">Intro</a></li>
+  <li id="active"><a href="/toolkit/data/gridftp/" id="current">GridFTP Home</a></li>
   <li><a href="/toolkit/docs/latest-stable/data/gridftp/developer/#gridftp-featuresummary">New Features</a></li>
   <li><a href="/toolkit/data/gridftp/advantage.html">The GridFTP Advantage</a></li>
   <li><a href="/toolkit/docs/latest-stable/data/gridftp/">Documentation</a></li>
