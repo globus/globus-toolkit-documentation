@@ -35,7 +35,7 @@ define("FOOTER_INC",1); //skip the footer
             <h2><a href="news.html" style="font-size:24px;">News &amp; Announcements</a></h2>
           	<?
             	 include_once( $SITE_PATHS["SERV_ROOT"]."include/globus_news.php");
-             	globus_print_alliance_news_headlines(5);
+             	globus_print_alliance_news_headlines(3);
           	?>
 			<p><a href="http://www-unix.globus.org/toolkit/rss/downloadNews/downloadNews.xml"><img src="http://www-unix.globus.org/toolkit/images/iconRSS.gif"  width="35" height="13" border="0"></a>&nbsp;<a href="/toolkit/about_rss.html">What's&nbsp;this?</a></p>            
         </div>
