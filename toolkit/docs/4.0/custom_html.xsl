@@ -160,9 +160,7 @@
                                                 
                                                 <body>
                                                                 <xsl:call-template name="body.attributes"/>
-                                                                <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/4.0/includes/globus_header_docbook.inc");
-                                                                                ?</xsl:processing-instruction>
+                                                                
                                                                 
  
                                                                 <xsl:call-template name="user.header.navigation"/>
@@ -175,8 +173,6 @@
                                                                 --> 
                                                                 <xsl:call-template name="user.header.content"/>
                                                                 
-                                                                
-                                                               
 
                                                                 
                                                                 <xsl:copy-of select="$content"/>
@@ -191,9 +187,7 @@
                                                                 -->
                                                                 <xsl:call-template name="user.footer.navigation"/>
 
-                                                                <xsl:processing-instruction name="php">
-                                                                                include_once("http://www.globus.org/toolkit/docs/4.0/includes/globus_footer_docbook.inc");
-                                                                                ?</xsl:processing-instruction>
+                                                               
                                                       
                                                 </body>
                                 </html>
