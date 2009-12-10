@@ -30,7 +30,7 @@
                 <xsl:param name="collect.xref.targets">yes</xsl:param>
                 
                 <!-- default location for target database document (for olinks) -->
-                <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/4.2/4.2.0/olinkdb.xml</xsl:param>
+                <xsl:param name="target.database.document">/mcs/globus.org//toolkit/docs/4.2/4.2.0/olinkdb.xml</xsl:param>
                 
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
                 <xsl:param name="admon.graphics">1</xsl:param>
@@ -55,7 +55,7 @@
                 <xsl:param name="part.autolabel">0</xsl:param>
                 
                 <!-- Are chapters automatically enumerated? -->
-                <xsl:param name="chapter.autolabel">0</xsl:param>
+                <xsl:param name="chapter.autolabel">1</xsl:param>
                 
                 <!-- Are sections enumerated? -->
                 <xsl:param name="section.autolabel">1</xsl:param>
