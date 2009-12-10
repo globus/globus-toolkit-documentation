@@ -55,9 +55,9 @@
                 <!-- Are chapters automatically enumerated? -->
                 <xsl:param name="chapter.autolabel">1</xsl:param>
                 
-                <!-- Are sections enumerated? 
+                <!-- Are sections enumerated? -->
                 <xsl:param name="section.autolabel">1</xsl:param>
-                -->
+                
                 <!-- how deep should each toc be? (how many levels?) -->
                 <xsl:param name="toc.max.depth">4</xsl:param>
                 
