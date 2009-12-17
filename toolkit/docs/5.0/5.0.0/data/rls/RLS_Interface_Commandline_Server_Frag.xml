@@ -52,9 +52,9 @@
               [ <emphasis>-K rlskeyfile </emphasis> ] [ <emphasis>-L loglevel </emphasis> ] [ <emphasis>-l
               true|false </emphasis> ]
               [ <emphasis>-M maxconnections </emphasis> ] [ <emphasis>-m maxthreads </emphasis> ] [ <emphasis>-N </emphasis> ]
-              [ <emphasis>-o lrc_buffer_time </emphasis> ] [ <emphasis>-p pidfiledir </emphasis> ] [ <emphasis>-r
+              [ <emphasis>-o update_buftime </emphasis> ] [ <emphasis>-p pidfiledir </emphasis> ] [ <emphasis>-r
               true|false </emphasis> ] [ <emphasis>-S rli_expire_stale </emphasis> ] [ <emphasis>-s startthreads </emphasis> ]
-              [ <emphasis>-t timeout </emphasis> ] [ <emphasis>-U myurl </emphasis> ] [ <emphasis>-u lrc_update_ll </emphasis> ]
+              [ <emphasis>-t timeout </emphasis> ] [ <emphasis>-U myurl </emphasis> ] [ <emphasis>-u update_ll_int </emphasis> ]
         [ <emphasis>-v </emphasis> ] </para>
         </refsect1>
 
@@ -68,34 +68,62 @@
         </itemizedlist>
         <para>Please see below for more on Bloom filters.</para>
   <para><olink targetptr="globus-rls-admin"><command>globus-rls-admin</command></olink> can be used to manage the list of RLIs that an LRC server updates. This includes partitioning LFNs among multiple RLI servers. </para>
-        <para>A soft state algorithm is used in both update modes: periodically the
-          LRC server sends its state (LFN information) to the RLI servers it
-        updates. The RLI servers add these LFNs to their indexes or update timestamps if the LFNs were already known. RLI servers expire information about LFN, LRC mappings if they haven't been updated for a period longer than the soft state update interval. </para>
-  <para>The following options in the <olink targetdoc="rlsAdmin" targetptr="rls-configuring">configuration file</olink> control the soft state algorithm when an LRC updates an RLI by sending LFNs: </para>
-        <itemizedlist>
-          <listitem><simpara><command>rli_expire_int (seconds)</command></simpara></listitem><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>-->
-          <listitem><simpara><command>rli_expire_stale (seconds)</command></simpara></listitem><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>-->
-          <listitem><simpara><command>lrc_update_ll (seconds)</command></simpara></listitem><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>-->
-          <listitem><simpara><command>lrc_update_bf (seconds)</command></simpara></listitem><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>-->
-        </itemizedlist>
-  <para>Updates to an LRC (new LFNs or deleted LFNs) normally don't propagate to RLI servers until the next soft state update (controlled by options <command>lrc_update_ll</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>--> and <command>lrc_update_bf</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>-->).</para>
-        <para>However,
-          by enabling "immediate update" mode (set <command>lrc_update_immediate</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>--> to
-          <command>true</command>),
-          an LRC will send updates to an RLI within <command>lrc_buffer_time</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>--> seconds. </para>
-        <para>If updates are done with LFN lists then only the LFNs that
-              have been added or deleted to the LRC are sent. If Bloom filters
-              are used, then the entire Bloom filter is sent. </para>
-        <para>When immediate updates are enabled, the interval between soft state
-          updates is multiplied by <command>lrc_update_factor</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>--> as long
-          as no updates have failed (LRC and RLI are considered to be in sync).
-          This can greatly reduce the number of soft state updates an LRC needs
-          to send to an RLI. </para>
-        <para>Incremental updates are buffered by the LRC server
-              until either 200 updates have accumulated (when LFN lists are used),
-          or <command>lrc_buffer_time</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>--> seconds have passed since
-              the last update. </para>
-        </refsect1>
+
+<para>A softstate algorithm is used for updates, periodically the
+source server sends its state (LFN information) to the RLI servers it updates.
+The RLI servers add these LFNs to their index, or update a timestamp
+if the LFNs were already known.  RLI servers expire information about LFN,LRC
+mappings if they haven't been updated for a period longer than the softstate
+update interval.</para>
+<para>
+Options that can be configured to control the softstate algorithm
+when a source server updates an RLI by sending LFNs are include:</para>
+<itemizedlist>
+<listitem><simpara><command>rli_expire_int (seconds)</command>
+</simpara><simpara>
+How often an RLI server will check for stale entries in its database.
+</simpara>
+<listitem>
+<simpara><command>rli_expire_stale (seconds)</command></simpara>
+<simpara>
+How old an entry must be in an RLI database before it's considered stale.
+This value should be no smaller than <command>update_ll_int</command>.
+Note if the LRC server is responding this value is not used, instead the
+value of <command>update_ll_int</command> or <command>update_bf_int</command>
+is retrieved from the LRC server, multiplied by 1.2, and used as the
+value for <command>rli_expire_stale</command>.
+</simpara>
+</listitem><listitem>
+<simpara><command>update_bf_int seconds</command></simpara>
+<simpara>Interval between RLI updates when using Bloom filters.
+</simpara>
+</listitem><listitem>
+<simpara><command>update_ll_int (seconds)</command></simpara>
+<simpara>Interval between RLI updates when using LFN lists for softstate updates.
+</simpara>
+</listitem>
+</itemizedlist>
+<para>
+Updates to an LRC (new LFNs or deleted LFNs) normally don't propagate
+to RLI servers until the next softstate update (controlled
+by <command>update_ll_int</command> and <command>update_bf_int</command>).
+However by enabling "immediate update" mode an LRC will send updates to
+an RLI within <command>update_buftime</command> seconds.  
+Immedate updates are enabled by setting <command>update_immediate</command>
+to true.  If updates are done with LFN lists then only the LFNs that
+have been added or deleted to the source server are sent, if Bloom filters
+are used then the entire Bloom filter is sent.
+</para><para>
+When immediate updates are enabled, the interval between softstate updates 
+is multiplied by <command>update_factor</command>,
+so long as no updates have failed (source and RLI are considered to
+be in sync).  This can greatly reduce the number of softstate updates a
+source needs to send to an RLI.  Incremental updates are buffered by the source
+server until either 100 updates have accumulated (when LFN lists are used), or
+<command>update_buftime</command> seconds have passed since the last update.
+</para>
+
+</refsect1>
 
 
 <refsect1 id="bloomfilter"><title>Bloom filter updates</title>
@@ -177,7 +205,7 @@
             <entry>If <command>lrc_update_immediate</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#lrcupdateimmediate"> </ulink>--> mode is on, and the LRC server
               is in sync with an RLI server (an LRC and RLI are synced if there
               have been no failed updates since the last full soft state update),
-              then the interval between RLI updates for this server (<command>lrc_update_ll</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>-->) is multiplied by <command>lrc_update_factor</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>-->. </entry>
+              then the interval between RLI updates for this server (<command>update_ll_int</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>-->) is multiplied by <command>lrc_update_factor</command><!--id no longer works: <ulink url="RLS_Public_Interfaces.html#id2839679"> </ulink>-->. </entry>
           </row>
           <row>
             <entry><command>-f maxfreethreads</command></entry>
@@ -220,7 +248,7 @@
               <para>This option is intended for debugging. Clients should use the URL <command>RLSN://host</command> to disable authentication on the client side.</para></entry>
           </row>
           <row>
-            <entry><command>-o lrc_buffer_time</command></entry>
+            <entry><command>-o update_buftime</command></entry>
             <entry><para>LRC to RLI updates are buffered until either the buffer is full or this much time (in seconds) has elapsed since the last update.</para>
               <para>The default value is <command>30</command>.</para></entry>
           </row>
@@ -256,7 +284,7 @@
             <entry>URL for this server.</entry>
           </row>
           <row>
-            <entry><command>-u lrc_update_ll</command></entry>
+            <entry><command>-u update_ll_int</command></entry>
             <entry>Interval (in seconds) between lfn-list LRC to RLI updates.</entry>
           </row>
           <row>
