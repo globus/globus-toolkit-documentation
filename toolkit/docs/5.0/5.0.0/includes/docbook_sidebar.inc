@@ -26,7 +26,7 @@
 				<dt><a href="/toolkit/docs/5.0/5.0.0/mig/">Migrating Guides</a></dt>
 			</dl>
 			
-		<h2 class="smalltitle">Manuals</h2>
+		<h2 class="smalltitle">Components</h2>
 			<h2 class="smalltitle"></h2>
 			<dl class="leftColumn">
 			<dt><a href="/toolkit/docs/5.0/5.0.0/data/">Data Mgt</a>
@@ -57,8 +57,6 @@
 				<dt><a href="/api/">API docs</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/commands/">GT Commands</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/user/#public-interfaces">Public Interfaces</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/developer/#gt-rp">Resource Properties</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/developer/#gt-samples">Samples</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/glossary.html">Glossary</a></dt>
 				<!--
 				<dt>Performance Studies (coming soon)</dt>
