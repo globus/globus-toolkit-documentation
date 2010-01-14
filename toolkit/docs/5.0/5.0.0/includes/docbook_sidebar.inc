@@ -57,7 +57,7 @@
 				<dt><a href="/api/">API docs</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/commands/">GT Commands</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/user/#public-interfaces">Public Interfaces</a></dt>
-				<dt><a href="/toolkit/docs/5.0/5.0.0/glossary.html">Glossary</a></dt>
+				<dt><a href="/toolkit/docs/5.0/5.0.0/index.html#glossary">Glossary</a></dt>
 				<!--
 				<dt>Performance Studies (coming soon)</dt>
 				-->
