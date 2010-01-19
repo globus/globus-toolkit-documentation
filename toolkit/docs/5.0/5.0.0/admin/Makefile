@@ -34,6 +34,7 @@ lint:
 	--noent \
 	--xinclude \
 	--postvalid \
+	--dtdattr \
 	$(FILENAME)
 
 olink:
