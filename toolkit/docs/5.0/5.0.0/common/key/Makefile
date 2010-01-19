@@ -1,13 +1,12 @@
-#
 export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
 
-all: lint html
-pdf: fo xep
+#all: lint html
+#pdf: fo xep
 
-html:
+#html:
 	xsltproc \
 	--xinclude \
 	--stringparam current.docid "commonKey" \
@@ -15,7 +14,7 @@ html:
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
 
-fo:
+#fo:
 	xsltproc \
 	--xinclude \
 	-o index.fo \
@@ -23,7 +22,7 @@ fo:
 	../../custom_fo.xsl \
 	$(FILENAME)
 	
-xep:
+#xep:
 	~bacon/XEP/xep -quiet \
 	-fo index.fo \
 	-pdf commonRuntimeKeyConcepts.pdf
@@ -43,7 +42,7 @@ mac:
 	/sw/share/xml/xsl/docbook-xsl/html/chunk.xsl \
 	$(FILENAME)
 	
-lint:
+#lint:
 	xmllint \
 	--noout \
 	--noent \
@@ -51,7 +50,7 @@ lint:
 	--postvalid \
 	$(FILENAME)
 
-olink:
+#olink:
 	xsltproc \
 	--xinclude \
 	--stringparam  collect.xref.targets  "only"  \
