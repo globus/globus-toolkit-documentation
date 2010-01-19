@@ -48,6 +48,10 @@ main(int argc, char *argv[])
     {
         fprintf(stderr, "Unable to submit job to %s because %s (Error %d)\n",
                 argv[1], globus_gram_client_error_string(rc), rc);
+        if (job_contact != NULL)
+        {
+            printf("Job Contact: %s\n", job_contact);
+        }
     }
     else
     {
