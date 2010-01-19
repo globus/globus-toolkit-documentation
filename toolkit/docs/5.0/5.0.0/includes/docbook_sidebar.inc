@@ -52,7 +52,7 @@
 			
 		<h2 class="smalltitle">Reference</h2>
 			<dl class="leftColumn">
-				<dt><a href="/toolkit/docs/5.0/5.0.0/developer/#gt-bestpractices">Best Practices</a></dt>
+			<!--	<dt><a href="/toolkit/docs/5.0/5.0.0/developer/#gt-bestpractices">Best Practices</a></dt> -->
 				<dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
 				<dt><a href="/api/">API docs</a></dt>
 				<dt><a href="/toolkit/docs/5.0/5.0.0/commands/">GT Commands</a></dt>
