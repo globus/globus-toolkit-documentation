@@ -42,41 +42,39 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
        
        <h2>Job Execution Challenges</h2>
        
-       <ul>
-       <li><b><a href="olsgw/">Open Life Science Gateway and GRAM</a></b><br />
-       The challenge:  Allow biologists with no prior experience of Grid computing to easily use a gateway environment to run their analysis programs and compose computational workflow scripts without the challenges of a sharp learning curve. <a class="learnmore" href="olsgw/">Learn how...</a>       </li>
-       <li><b><a href="boinc/">Client scripting for BOINC applications</a></b><br />
-       The challenge: Finding an alternative to using several different mechanisms to submit and monitor jobs on  various  resources. <a class="learnmore" href="boinc/">Learn how...</a></li>
-       </ul>
+       <h3><a href="olsgw/">Open Life Science Gateway and GRAM</a></h3>
+       <p>The challenge:  Allow biologists with no prior experience of Grid computing to easily use a gateway environment to run their analysis programs and compose computational workflow scripts without the challenges of a sharp learning curve. <a class="learnmore" href="olsgw/">Learn how...</a> </p>      
+       
+       <h3><a href="boinc/">Client scripting for BOINC applications</a></h3>
+       
+       <p>The challenge: Finding an alternative to using several different mechanisms to submit and monitor jobs on  various  resources. <a class="learnmore" href="boinc/">Learn how...</a></p>
+       
 
   <h2>Security Challenges</h2>
 
-    <ul>
-      <li><b><a href="purse/">Registering Users For The Earth System Grid</a></b><br>
-        The challenge: Add a simple user registration interface to your Grid application
+    <h3><a href="purse/">Registering Users For The Earth System Grid</a></h3>
+    
+        <p>The challenge: Add a simple user registration interface to your Grid application
         so that users need only a simple ID/password combination to "sign in."
         At the same time, make certain that the application uses "strong"
         Grid security internally. 
-        <a class="learnmore" href="purse/">Learn how...</a>
-      </li>
-    </ul>
+        <a class="learnmore" href="purse/">Learn how...</a></p>
+
 
     <h2>Monitoring/Managability Challenges</h2>
 
-    <ul>
-      <li><b><a href="system_monitoring/">A Monitoring System For The 
-             Earth System Grid</a></b><br>
-        The challenge: Improve the overall availability of a distributed system
+    <h3><a href="system_monitoring/">A Monitoring System For The 
+             Earth System Grid</a></h3>
+        <p>The challenge: Improve the overall availability of a distributed system
         by monitoring critical system components, notifying system administrators 
         when services fail, and recording availability of the services over time 
         for later analysis.
         <a class="learnmore" href="system_monitoring/">Learn how...</a>
-      </li>
-    </ul>
+      </p>
 
     <h2>Data Challenges</h2>
 
-    <ul>
+
     <!-- outdated - tgcp being removed from teragrid
     
       <li><b><a href="tgcp/">Moving Data Fast On The TeraGrid</a></b><br>
@@ -88,14 +86,14 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         <a class="learnmore" href="tgcp/">Learn how...</a>
       </li>
 -->
-      <li><b><a  href="data_replication/">Data Replication For The Laser Interferometer 
-             Gravitational Wave Observatory</a></b><br>
-        The challenge: Replicate large datasets on servers in several locations 
+      <h3><a  href="data_replication/">Data Replication For The Laser Interferometer 
+             Gravitational Wave Observatory</a></h3>
+       <p>The challenge: Replicate large datasets on servers in several locations 
         to improve access times for local users in each place, keeping track of 
         where the replicas are and ensuring that each replica site has all 
         of the necessary files.
         <a class="learnmore" href="data_replication/">Learn how...</a>
-      </li>
+      </p>
 
 <!--   Not ready yet!
       <li><b>Balancing Computation And Storage For The Sloan Digital Sky Survey</b><br>
@@ -104,18 +102,16 @@ include_once( $SITE_PATHS["SERV_INC"].'header.inc' );
         results, and a limited set of computation and storage facilities.
       </li>
 -->
-    </ul>
+
 
     <h2>VO Management Challenges</h2>
 
-    <ul>
-      <li><b><a href="managed_computations/">The Managed Computation and its Application to EGEE and OSG Requirements</a></b><br>
-        The challenge: A virtual organization (VO) negotiates an
+    <h3><a href="managed_computations/">The Managed Computation and its Application to EGEE and OSG Requirements</a></h3>
+        <p>The challenge: A virtual organization (VO) negotiates an
         allocation from a resource provider and then disperses that
         allocation across its members according to VO policy.
-        <a class="learnmore" href="managed_computations//">Learn how...</a>
-      </li>
-    </ul>
+        <a class="learnmore" href="managed_computations//">Learn how...</a></p>
+      
 
 </div>
 
