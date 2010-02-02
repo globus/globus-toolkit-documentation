@@ -1,0 +1,249 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
+[
+
+<!ENTITY % xinclude SYSTEM "../../../xinclude.mod" >
+%xinclude;
+
+]>
+<book  id="rlsUser">
+<title>GT <replaceable role="entity">version</replaceable> RLS : User's Guide</title>
+<titleabbrev>User's Guide</titleabbrev>
+
+<bookinfo><abstract><title>Introduction</title>
+<para>The Replica Location Service (RLS) maintains and provides access to mapping 
+  information from <glossterm baseform="logical name">logical names</glossterm> for data items to <glossterm baseform="target name">target names</glossterm>. </para>
+<para>RLS was co-developed by the Globus team and Work Package 2 of the DataGrid project. The distributed RLS is intended to replace the centralized Globus replica catalog available in earlier releases of GT2.x. The distributed RLS provides higher performance, reliability and scalability.</para>
+<para>Replication of data items can reduce access latency, improve data locality, and increase robustness, scalability and performance for distributed applications. An RLS typically does not operate in isolation but functions as one component of a data grid architecture (other components include services that provide reliable file transfers, metadata management, reliable replication and workflow management).</para>
+<para>The RLS implementation is based on the following mechanisms:</para>
+<para><itemizedlist>
+  <listitem><simpara><emphasis>Consistent local state maintained in <glossterm baseform="Local Replica Catalog (LRC)">Local Replica Catalogs (LRCs)</glossterm>.</emphasis> 
+    Local catalogs maintain mappings between arbitrary <glossterm baseform="logical file name">logical file names (LFNs)</glossterm> 
+    and the <glossterm baseform="physical file name">physical file names (PFNs)</glossterm> associated with those LFNs on its storage 
+  system(s).</simpara></listitem>
+  <listitem><simpara><emphasis>Collective state with relaxed consistency maintained in Replica 
+    Location Indices (RLIs).</emphasis> Each <glossterm baseform="Replica Location Index">RLI</glossterm> contains a set of mappings from LFNs to 
+  LRCs. A variety of index structures can be defined with different performance 
+  characteristics simply by varying the number of RLIs and the amount of redundancy and partitioning among the RLIs.</simpara></listitem>
+  <listitem><simpara><emphasis>Soft state maintenance of RLI state.</emphasis> LRCs send information about 
+  their state to RLIs using soft state protocols. State information in RLIs 
+  times out and must be periodically refreshed by soft state updates. </simpara></listitem>
+  <listitem><simpara><emphasis>Compression of state updates.</emphasis> This optional compression uses 
+    <glossterm baseform="Bloom filter">Bloom filters</glossterm> to summarize the content of a Local Replica Catalog before 
+  sending a soft state update to a Replica Location Index Node. </simpara></listitem>
+  <listitem><simpara><emphasis>Membership and partitioning information maintenance.</emphasis> The current 
+  RLS implementation maintains static information about the LRCs and RLIs 
+  participating in the distributed system. As new implementations of the RLS are 
+  developed, they will use OGSA mechanisms for registration of services and for 
+  service lifetime management. </simpara></listitem>
+</itemizedlist></para>
+</abstract></bookinfo>
+    
+    
+<chapter id="rls-user-usage-scenarios"><title>Mapping Replica Locations</title>
+    <para>This section describes a few key usage scenarios and provides examples of using the RLS command-line tools.</para>
+    
+    <section id="rls-user-usage-proxyinit"><title>Generate a valid proxy</title>
+        <indexterm type="rls-howto"><primary>generating a valid proxy</primary></indexterm>
+        <indexterm type="rls"><primary>generating a valid proxy</primary></indexterm>
+        <para>Before using any of the tools, a user must generate a valid user proxy. Use <olink targetdoc="gsicPI" targetptr="grid-proxy-init"/>.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/grid-proxy-init
+Your identity: /O=Grid/OU=GlobusTest/OU=simpleCA.mymachine/OU=mymachine/CN=John Smith
+Enter GRID pass phrase for this identity:
+        </screen>
+    </section>
+    
+    <section id="rls-user-usage-gra-ping"><title>Ping the server</title>
+        <indexterm type="rls-howto"><primary>administrative operations</primary><secondary>pinging the server</secondary></indexterm>
+        <indexterm type="rls"><primary>administrative operations</primary><secondary>pinging the server</secondary></indexterm>
+        <para>To check whether your server is active you may use the <olink targetdoc="rlsUser" targetptr="globus-rls-admin"/> <emphasis>ping</emphasis> command.</para>
+        <screen>
+% $GLOBUS_LOCATION/sbin/globus-rls-admin -p <emphasis>rls://localhost</emphasis>
+ping rls://localhost: 0 seconds
+        </screen>
+    </section>
+    
+    <section id="rls-user-usage-grc-create"><title>Creating replica location mappings</title>
+        <indexterm type="rls-howto"><primary>client operations</primary><secondary>basic</secondary><tertiary>creating a new lfn, pfn mapping in an LRC catalog</tertiary></indexterm>
+        <indexterm type="rls"><primary>client operations</primary><secondary>basic</secondary><tertiary>creating a new lfn, pfn mapping in an LRC catalog</tertiary></indexterm>
+        <para>When the RLS server is first installed its database of replica location information will be empty, as expected. To create a replica location mapping, use the <olink targetdoc="rlsUser" targetptr="globus-rls-cli"/> <emphasis>create</emphasis> command. Replica information in RLS is represented as mappings from logical names to target names. Typically, the logical name will be a unique identifier for a given replicated data set and the target name will be a URL identifying a particular replica of the data set.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli create <emphasis>my-logical-name-1 url-for-target-name-1 rls://localhost</emphasis>
+        </screen>
+        <note><simpara>The create command is intended for creating the initial replica mapping entry for a given logical name. If the user attempts to create another entry using an existing logical name, RLS will report a user error. To map additional target names to an existing logical name, see <olink targetdoc="rlsUser" targetptr="rls-user-usage-grc-add"/>.</simpara></note>
+    </section>
+    
+    <section id="rls-user-usage-grc-add"><title>Adding replica location mappings</title>
+        <indexterm type="rls-howto"><primary>client operations</primary><secondary>basic</secondary><tertiary>adding physical filenames to mappings of logical filenames in a LocalReplicaCatalog</tertiary></indexterm>
+        <indexterm type="rls"><primary>client operations</primary><secondary>basic</secondary><tertiary>adding physical filenames to mappings of logical filenames in a LocalReplicaCatalog</tertiary></indexterm>
+        <para>To map additional target names to a logical name created by the previously described create command, use the <olink targetdoc="rlsUser" targetptr="globus-rls-cli"/> <emphasis>add</emphasis> command.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli add <emphasis>my-logical-name-1 url-for-target-name-2 rls://localhost</emphasis>
+        </screen>
+    </section>
+    
+    <section id="rls-user-usage-grc-query"><title>Querying replica location mappings</title>
+        <indexterm type="rls-howto"><primary>client operations</primary><secondary>querying</secondary></indexterm>
+        <indexterm type="rls"><primary>client operations</primary><secondary>querying</secondary></indexterm>
+        <para>Once your RLS server is populated with replica location mappings, you can query the server for useful information using the <olink targetdoc="rlsUser" targetptr="globus-rls-cli"/> <emphasis>query</emphasis> command.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli query lrc lfn <emphasis>my-logical-name-1 rls://localhost</emphasis>
+my-logical-name-1: url-for-target-name-1
+my-logical-name-1: url-for-target-name-2
+        </screen>
+    </section>
+    
+    <section id="rls-user-usage-grc-del"><title>Deleting replica location mappings</title>
+        <indexterm type="rls-howto"><primary>client operations</primary><secondary>basic</secondary><tertiary>deleting a lfn, pfn mapping from an LRC catalog</tertiary></indexterm>
+        <indexterm type="rls"><primary>client operations</primary><secondary>basic</secondary><tertiary>deleting a lfn, pfn mapping from an LRC catalog</tertiary></indexterm>
+        <para>To remove unwanted replica location mappings from your RLS server, use the <olink targetdoc="rlsUser" targetptr="globus-rls-cli"/> <emphasis>delete</emphasis> command. The delete operation works <emphasis>directly</emphasis> on the mapping and <emphasis>indirectly</emphasis> on the logical and target names. When the delete operation is performed by the RLS server the association between the specified logical name and the specified target name is eliminated. However, there may still be other target names associated with the logical name, and there could still be other logical names associated with the target name, though the latter scenario is less likely. Only when all mapping associations for a given logical name (or a given target name) are eliminated (i.e., the specified logical name has no target names associated with it) will the logical (or target) name be deleted from the RLS server.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli delete <emphasis>my-logical-name-1 url-for-target-name-1 rls://localhost</emphasis>
+% $GLOBUS_LOCATION/bin/globus-rls-cli query lrc lfn <emphasis>my-logical-name-1 rls://localhost</emphasis>
+my-logical-name-1: url-for-target-name-2
+% $GLOBUS_LOCATION/bin/globus-rls-cli delete <emphasis>my-logical-name-1 url-for-target-name-2 rls://localhost</emphasis>
+% $GLOBUS_LOCATION/bin/globus-rls-cli query lrc lfn <emphasis>my-logical-name-1 rls://localhost</emphasis>
+globus_rls_client: LFN doesn't exist: my-logical-name-1
+        </screen>
+    </section>
+    
+    <section id="rls-user-usage-grc-bulk"><title>Using bulk operations</title>
+        <indexterm type="rls-howto"><primary>client operations</primary><secondary>bulk</secondary></indexterm>
+        <indexterm type="rls"><primary>client operations</primary><secondary>bulk</secondary></indexterm>
+        <para>The <olink targetdoc="rlsUser" targetptr="globus-rls-cli"/> supports a variety of bulk operations that enhance productivity for users and reduce network connection overhead from making multiple, separate invocations of the client. The general pattern for bulk operation support as implemented by the client is a parameter list consisting of <computeroutput>bulk command-name [command-modifiers] param-1 param-2 param-N</computeroutput>, such as <computeroutput>bulk query lrc lfn my-logical-name-1 my-logical-name-2 my-logical-name-3</computeroutput>.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli bulk create <emphasis>my-logical-name-1 url-for-target-name-1-1 my-logical-name-2 url-for-target-name-2-1 rls://localhost</emphasis>
+% $GLOBUS_LOCATION/bin/globus-rls-cli bulk add <emphasis>my-logical-name-1 url-for-target-name-1-2 my-logical-name-2 url-for-target-name-2-2 rls://localhost</emphasis>
+% $GLOBUS_LOCATION/bin/globus-rls-cli bulk query lrc lfn <emphasis>my-logical-name-1 my-logical-name-2 my-logical-name-3 rls://localhost</emphasis>
+my-logical-name-3: LFN doesn't exist
+my-logical-name-2: url-for-target-name-2-1
+my-logical-name-2: url-for-target-name-2-2
+my-logical-name-1: url-for-target-name-1-1
+my-logical-name-1: url-for-target-name-1-2
+        </screen>
+    </section>
+    
+    <section id="rls-user-usage-grc-interactive"><title>Using interactive mode</title>
+        <indexterm type="rls-howto"><primary>client operations</primary><secondary>using interactive mode</secondary></indexterm>
+        <indexterm type="rls"><primary>client operations</primary><secondary>using interactive mode</secondary></indexterm>
+        <para>The <olink targetdoc="rlsUser" targetptr="globus-rls-cli"/> supports an interactive mode in addition to the general command-line mode. To enter the interactive mode, simply invoke the client without any command.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli <emphasis>rls://localhost</emphasis>
+rls> query lrc lfn my-logical-name-2
+my-logical-name-2: url-for-target-name-2-1
+my-logical-name-2: url-for-target-name-2-2
+rls> query lrc lfn my-logical-name-1
+my-logical-name-1: url-for-target-name-1-1
+my-logical-name-1: url-for-target-name-1-2
+rls> bulk delete my-logical-name-1 url-for-target-name-1-1 my-logical-name-1 
+url-for-target-name-1-2 my-logical-name-2 url-for-target-name-2-1 
+my-logical-name-2 url-for-target-name-2-2
+rls> bulk query lrc lfn my-logical-name-2 my-logical-name-1
+my-logical-name-1: LFN doesn't exist
+my-logical-name-2: LFN doesn't exist
+rls> exit
+        </screen>
+    </section>
+    
+</chapter>
+<!-- 
+    <chapter id="rls-user-tutorials"><title>Tutorials</title>
+       <para>There are no tutorials at this time. if you would like to contribute one, see [link to contributing docs in wiki] </para>
+    </chapter>
+ -->
+<chapter id="rls-user-commandline"><title>Command line tools</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../RLS_Interface_Commandline_Admin_Frag.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../RLS_Interface_Commandline_Client_Frag.xml"/>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../RLS_Interface_Commandline_Server_Frag.xml"/>
+</chapter>
+<!-- n/a 
+<chapter id="rls-user-gui"><title>Graphical user interfaces</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../RLS_Interface_GUI_Frag.xml"/>
+</chapter>
+    -->
+<chapter id="rls-user-troubleshooting"><title>Troubleshooting</title>
+    <indexterm type="rls-howto"><primary>troubleshooting</primary><secondary>(for end-users)</secondary></indexterm>
+    <indexterm type="rls"><primary>troubleshooting</primary></indexterm>
+    <para>The following section described a few troubleshooting tips. Additional information on troubleshooting can be found in 
+        the <ulink url="http://www.globus.org/toolkit/data/rls/rls_faq.html">FAQ</ulink>.</para>
+    
+    <para>For a list of common errors in GT, see <olink targetdoc="gtuser" targetptr="errors"/>.</para>
+
+    <section id="rls-user-trouble-verbose"><title>Verbose error messages</title>
+        <indexterm type="rls-howto"><primary>troubleshooting</primary><secondary>(for end-users)</secondary></indexterm>
+    <indexterm type="rls"><primary>troubleshooting</primary><secondary>verbose error messages</secondary></indexterm>
+        <para>When troubleshooting problems encountered during usage of the RLS client or server, verbose error messages may 
+            be enabled by setting the <computeroutput>GLOBUS_ERROR_VERBOSE</computeroutput> environment variable. Verbose 
+            error messages are particularly helpful when communicating on the <emphasis>rls-user@globus.org</emphasis> or 
+            <emphasis>gt-user@globus.org</emphasis> list or when reporting problems on the <emphasis>bugzilla.globus.org</emphasis> site.</para>
+    </section>
+
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../RLS_Errors_Frag.xml"/>
+
+<!-- put most of this info in error codes frag - keeping in case we need it again 
+    <section id="rls-user-trouble-expiredproxy"><title>Expired proxy</title>
+        <para>A security context failure may be experienced when using the client to connect to the RLS server. This is frequently caused by an expired credential.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli query lrc lfn my-logical-name rls://localhost
+connect(rls://localhost): globus_rls_client: Globus I/O error: globus_xio_gsi: gss_init_sec_context failed.
+globus_gsi_gssapi: Error with GSI credential
+globus_gsi_gssapi: Error with gss credential handle
+globus_credential: Error with credential: The proxy credential: /tmp/x509up_u4191
+      with subject: /C=US/O=My Org/OU=User/CN=Me/CN=1234
+      expired 350 minutes ago.
+        </screen>
+    </section>
+
+    <section id="rls-user-trouble-connect"><title>Unable to connect</title>
+        <para>There are a variety of reasons which may prevent the client from establishing a connection with the RLS server. Among the more obvious of reasons is a wrong address or port number in the RLS connection URL. Among the less obvious reasons is a firewall configuration that prevents connections to the target host for a particular port. In the latter case, you may need to consult the system administrator.</para>
+        <screen>
+% $GLOBUS_LOCATION/bin/globus-rls-cli query lrc lfn my-logical-name rls://localhost:1234
+connect(rls://localhost:1234): globus_rls_client: Globus I/O error: globus_xio:
+Unable to connect to localhost:1234
+globus_xio: System error in connect: Connection refused
+globus_xio: A system call failed: Connection refused
+        </screen>
+    </section>
+
+    <section id="rls-user-trouble-timeout"><title>Operation timeouts</title>
+        <para>At times, a client may experience a connection timeout when interacting with the RLS server due to a variety of reasons. One reason could simply be due to wide-area network latency or congestion. Another situation that users eventually encounter is due to scaling of the system. As the RLS server's database of replica location mappings grows in size, some query operations, such as bulk queries involving large quantities of mappings or wildcard queries that result in a large subset of mappings, will begin to take more time both to process the query and to return the large results set to the client over the network. If timeouts are experienced with increasing frequency, increase the RLS server's <computeroutput>timeout</computeroutput> configuration parameter found in the <computeroutput>$GLOBUS_LOCATION/var/globus-rls-server.conf</computeroutput> file. You may also use the <computeroutput>-t timeout</computeroutput> option of the <olink targetdoc="rlsUser" targetptr="globus-rls-cli"/>.</para>
+    </section>-->
+<!--
+    <section id="rls-user-trouble-"><title></title>
+        <para></para>
+        <screen>
+        </screen>
+    </section>
+-->
+
+</chapter>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../RLS_Usage_Statistics_Frag.xml"/>
+
+    <glossary role="auto" id="glossary-rlsUser">
+        <!-- 
+        <remark>some terms not in the docs but wanted in glossary: 
+        <glossterm>scheduler</glossterm>
+        </remark>
+        -->
+        <glossdiv><title>A</title>
+            <glossentry>
+                <glossterm>Dummy term</glossterm>
+                <glossdef>
+                    <para>This is a dummy entry for the automatic glossary database. Do not edit.</para>
+                </glossdef>
+            </glossentry>
+        </glossdiv>
+    </glossary>
+      <index type="rls">
+    <title>Index</title>
+</index>
+</book>

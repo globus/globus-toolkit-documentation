@@ -1,0 +1,444 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+<chapter id="rls-configuring"><title>Configuring RLS</title>
+<section><title>Configuration overview</title>
+    <para>RLS configuration involves statically-defined, system settings as defined in the RLS configuration file (see <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>), settings changed temporarally at run-time using the RLS Admin tool (see <olink targetdoc="rlsDeveloper" targetptr="globus-rls-admin"/> <computeroutput>-C option value</computeroutput> command), and finally LRC-to-RLI and RLI-to-RLI updates configured using the RLS Admin tool (see <olink targetdoc="rlsDeveloper" targetptr="globus-rls-admin"/> <computeroutput>-a</computeroutput>, <computeroutput>-A</computeroutput>, <computeroutput>-d</computeroutput> commands).</para>
+</section> <!-- Configuration overview -->
+
+<section><title>Server configuration file (globus-rls-server.conf)</title>
+
+    <para>Configuration settings for the RLS are specified in the <computeroutput>globus-rls-server.conf</computeroutput> file. If the configuration file is not specified on the command line (see the <olink targetdoc="rlsDeveloper" targetptr="globus-rls-server"><computeroutput>-c</computeroutput></olink> option) then it is looked for in both: </para>
+    <itemizedlist>
+        <listitem><simpara><computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput></simpara></listitem>
+        <listitem><simpara><computeroutput>/usr/local/etc/globus-rls-server.conf </computeroutput> if <computeroutput>GLOBUS_LOCATION</computeroutput> is not set</simpara></listitem>
+    </itemizedlist>
+    <note><para>Command line options always override items found in the configuration file.</para></note>
+    <para>The configuration file is a sequence of lines consisting of a keyword, whitespace, and a value. Comments begin with <computeroutput>#</computeroutput> and end with a newline.</para>
+</section> <!-- Configuration file -->
+
+<section><title>Basic configuration</title>
+    <para>Review the server configuration file <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput> and change any options you want. The server man page <computeroutput>globus-rls-server(8)</computeroutput> has complete details on all options. The complete details are also provided later in this section.</para>
+    <para>A minimal configuration file for both an LRC and RLI server would be:</para>
+    <screen>
+# Configure the database connection info
+  db_user       dbuser
+  db_pwd        dbpassword
+   
+# If the server is an LRC server
+  lrc_server    true
+  lrc_dbname    lrc1000
+   
+# If the server is an RLI server
+  rli_server    true
+  rli_dbname    rli1000 # Not needed if updated by Bloom filters
+   
+# Configure who can make requests of the server
+  acl .*: all
+
+# RE matching grid-mapfile users or DNs from x509 certs
+...
+    </screen>
+</section> <!-- Basic configuration -->
+
+<section><title>Host key and certificate configuration</title>
+    <para>The server uses a host certificate to identify itself to clients. By default this certificate is located in the files <computeroutput>/etc/grid-security/hostcert.pem</computeroutput> and <computeroutput>/etc/grid-security/hostkey.pem</computeroutput>. Host certificates have a distinguished name of the form <computeroutput>/CN=host/FQDN</computeroutput>. If the host you plan to run the RLS server on does not have a host certificate, you must obtain one from your Certificate Authority. The RLS server must be run as the same user who owns the host certificate files (typically root). The location of the host certificate files may be specified in <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>:</para>
+    <screen>
+rlscertfile     path-to-cert-file   # default /etc/grid-security/hostcert.pem
+rlskeyfile      path-to-key-file    # default /etc/grid-security/hostkey.pem
+    </screen>
+    <para>It is possible to run the RLS server without authentication, by starting it with the <computeroutput>-N</computeroutput> option, and using URL's of the form <computeroutput>rlsn://server</computeroutput> to connect to it. Notice that the URL scheme is <computeroutput>rlsn</computeroutput> as opposed to <computeroutput>rls</computeroutput>.</para>
+    <para>It is generally recommended to run the server with a user account other than root for added security. In order to do so, you will need to create complimentary key and certificate files owned by a designated user account, <computeroutput>globus</computeroutput> for instance.</para>
+    <orderedlist>
+        <listitem><simpara>Begin by copying the <computeroutput>/etc/grid-security/hostcert.pem</computeroutput> and <computeroutput>/etc/grid-security/hostkey.pem</computeroutput> to <computeroutput>/etc/grid-security/containercert.pem</computeroutput> and <computeroutput>/etc/grid-security/constainerkey.pem</computeroutput>. Note that we use the prefix &quot;container&quot; to conform with the recommended naming scheme for other services distributed with the Globus Toolkit.</simpara>
+            <screen>
+% cp /etc/grid-security/hostcert.pem /etc/grid-security/containercert.pem
+% cp /etc/grid-security/hostkey.pem /etc/grid-security/containerkey.pem
+            </screen>
+        </listitem>
+        <listitem><simpara>Then change ownership of the files to the designated user account, <computeroutput>globus</computeroutput> in our example.</simpara>
+            <screen>
+% chown globus /etc/grid-security/containercert.pem
+% chown globus /etc/grid-security/containerkey.pem
+            </screen>
+        </listitem>
+        <listitem><simpara>Change the <computeroutput>rlskeyfile</computeroutput> and <computeroutput>rlscertfile</computeroutput> settings in the RLS configuration file (<computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>) to reflect the appropriate filenames.</simpara>
+            <screen>
+rlscertfile     /etc/grid-security/containercert.pem
+rlskeyfile      /etc/grid-security/containerkey.pem
+            </screen>
+        </listitem>
+        <listitem><simpara>Finally, bear in mind that your certificate and key files must always have file permissions <computeroutput>644</computeroutput> and <computeroutput>400</computeroutput> respectively.</simpara>
+            <screen>
+% ls -l /etc/grid-security/*.pem
+-rw-r--r--    1 globus  gridstaff      818 Dec  8  2005 /etc/grid-security/containercert.pem
+-r--------    1 globus  gridstaff      887 Dec  8  2005 /etc/grid-security/containerkey.pem
+-rw-r--r--    1 root     root          818 Dec  8  2005 /etc/grid-security/hostcert.pem
+-r--------    1 root     root          887 Dec  8  2005 /etc/grid-security/hostkey.pem
+            </screen>
+        </listitem>
+    </orderedlist>
+    <para>If authentication is enabled, RLI servers must include acl configuration options that match the identities of LRC servers that update it and that grant the <computeroutput>rli_update</computeroutput> permission to the LRCs.</para>
+</section> <!-- Key and cert configuration -->
+
+<section><title>Configuring LRC to RLI updates</title>
+    <para>One of the key benefits to using the RLS for managing replica location information is its distributed architecture. In a distributed deployment, one or more Local Replica Catalog (LRC) services will send updates of its contents to one or more Replica Location Index (RLI) services.</para>
+    <para>By default the installed LRC is not configured to send updates to any RLI, even the local RLI co-located with the local LRC. Use the <olink targetdoc="rlsDeveloper" targetptr="globus-rls-admin"/> tool to configure the LRC to send updates to one or more RLI services.</para>
+    <itemizedlist>
+        <listitem><simpara>To configure the LRC to send uncompressed lists of its logical names to a RLI, use the following command:</simpara>
+            <screen>
+% $GLOBUS_LOCATION/sbin/globus-rls-admin -a <emphasis>rls://rli_host</emphasis> rls://lrc_host
+            </screen>
+        </listitem>
+        <listitem><simpara>To configure the LRC to send compressed bitmaps (using Bloom filters) of its logical names to a RLI, use the following command:</simpara>
+            <screen>
+% $GLOBUS_LOCATION/sbin/globus-rls-admin -A <emphasis>rls://rli_host</emphasis> rls://lrc_host
+            </screen>
+        </listitem>
+        <listitem><simpara>To configure the LRC to stop sending updates to a RLI, use the following command:</simpara>
+            <screen>
+% $GLOBUS_LOCATION/sbin/globus-rls-admin -d <emphasis>rls://rli_host</emphasis> rls://lrc_host
+            </screen>
+        </listitem>
+    </itemizedlist>
+    <note><simpara>While any given LRC is capable of sending uncompressed or compressed updates to any RLI. The RLI service must be configured to accept either uncompressed or compressed updates but not both. See the <computeroutput>rli_bloomfilter</computeroutput> setting of the RLS configuration file for more details.</simpara></note>
+    <para>There are tradeoffs between using uncompressed and compressed updates in your configuration. The advantage of using compressed updates, not surprisingly, is a significant reduction in network overhead and memory usage. As replica location mappings grow into the 10's of millions or more, the savings of using compressed updates becomes important. On the other hand, due to the compressed nature of the Bloom filter bitmap used to represent the logical names in the LRC, the wildcard query at the RLI cannot be supported when update compression is used.</para>
+</section> <!-- Configuring updates -->
+
+<section><title>Configuring the RLS Server for the MDS2 GRIS</title>
+    <para>The server package includes a program called <computeroutput>globus-rls-reporter</computeroutput> that will report information about an RLS server to the MDS2 GRIS. Use this procedure to enable this program:</para>
+    <orderedlist>
+        <listitem><simpara>To enable Index Service reporting, add the contents of the file <computeroutput>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf </computeroutput> to the MDS2 GRIS configuration file <computeroutput>$GLOBUS_LOCATION/etc/grid-info-resource-ldif.conf</computeroutput>.</simpara></listitem>
+        <listitem><simpara> If necessary, set your virtual organization (VO) name in <computeroutput>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf </computeroutput>. The default value is <computeroutput>local</computeroutput>. The VO name is referenced twice, on the lines beginning <computeroutput>dn:</computeroutput> and <computeroutput>args:</computeroutput>.</simpara></listitem>
+        <listitem><simpara>You must restart your MDS (GRIS) server after modifying <computeroutput>$GLOBUS_LOCATION/etc/grid-info-resoruce-ldif.conf</computeroutput> You can use the following commands to do so: </simpara></listitem>
+    </orderedlist>
+    <screen>
+$GLOBUS_LOCATION/sbin/SXXgris stop
+$GLOBUS_LOCATION/sbin/SXXgris start
+    </screen>
+</section> <!-- Configuring the RLS Server for the MDS2 GRIS -->
+
+<section><!--can't have id's in a frag called more than once: turn one appearance into a olink or remove the id tag; id="rls-config-settings"-->
+    <title>Complete RLS Server settings (globus-rls-server.conf)</title>
+    <para>This section describes the complete details of the RLS Server configuration settings.</para>
+
+    <table><title>Complete RLS Server settings (globus-rls-server.conf)</title>
+<tgroup cols="2"><tbody>
+          <row>
+            <entry><computeroutput>acl user: permission [permission] </computeroutput></entry>
+            <entry><para><computeroutput>acl </computeroutput> entries may be a combination of
+                DNs and local usernames. If a DN is not found in the gridmap
+                file then the file is used to search the <computeroutput>acl</computeroutput> list. </para>
+              <para>A gridmap file may also
+                  be used to map DNs to local usernames, which in turn are matched
+                  against the regular expressions in the <computeroutput>acl </computeroutput> list to
+                  determine the user's permissions. </para>              <para><computeroutput>user </computeroutput> is a regular expression matching distinguished
+                names (or local usernames if a gridmap file is used) of users
+              allowed to make calls to the server. </para>
+              <para>There may be multiple <computeroutput>acl</computeroutput> entries, with the first match found used to determine a user's privileges.</para>
+              <para><computeroutput>[permission]</computeroutput> is one or more
+            of the following values: </para>
+<itemizedlist>
+  <listitem><simpara><computeroutput>lrc_read</computeroutput> Allows  client to read an <glossterm baseform="Local Replica Catalog (LRC)">LRC</glossterm>.
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>lrc_update</computeroutput> Allows  client to update an LRC.
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>rli_read</computeroutput>
+  Allows client to read an <glossterm baseform="Replica Location Index">RLI</glossterm>.
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>rli_update</computeroutput> Allows client to update an RLI. 
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>admin</computeroutput> Allows client to update an LRC's list of RLIs to send updates to. 
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>stats</computeroutput> Allows client to read performance statistics.
+</simpara></listitem>
+<listitem><simpara>
+<computeroutput>all</computeroutput> Allows client to do all of the above.
+</simpara></listitem>
+</itemizedlist>
+</entry>
+   </row>
+        <row>
+            <entry><computeroutput>authentication true|false </computeroutput></entry>
+            <entry><para>Enable or disable GSI authentication.
+                </para>
+              <para>The default value is <computeroutput>true</computeroutput>. </para>
+              <para>If authentication is enabled (<computeroutput>true</computeroutput>), clients
+                should use the URL schema <computeroutput>rls:</computeroutput> to
+            connect to the server.</para>
+            <para>If authentication is <emphasis>not</emphasis> enabled (<computeroutput>false</computeroutput>), clients
+              should use the URL schema
+            <computeroutput>rlsn:</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>db_pwd password</computeroutput></entry>
+            <entry><para>Password to use to connect to the database server.</para>
+              <para>The default value is <computeroutput>changethis</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>db_user databaseuser </computeroutput></entry>
+            <entry><para>Username to use to connect to database server.</para>
+              <para>The default value is <computeroutput>dbperson.</computeroutput></para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>idletimeout seconds </computeroutput></entry>
+            <entry><para>Seconds after which idle connections
+              close.</para>
+              <para>The default value is <computeroutput>900.</computeroutput></para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>loglevel N </computeroutput></entry>
+            <entry>Sets loglevel to N (default is <computeroutput>0</computeroutput>). Higher levels mean more verbosity.</entry>
+          </row>
+          <row>
+            <entry><computeroutput>logtype syslog|syslog-ng</computeroutput></entry>
+            <entry><para>Sets system log type. (default is <computeroutput>syslog</computeroutput>).</para>
+			<para><computeroutput>syslog</computeroutput> configures RLS to use the syslog facility. This is the default. </para>
+			<para><computeroutput>syslog-ng</computeroutput> configures RLS to use the syslog-ng facility.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>lrc_bloomfilter_numhash N </computeroutput></entry>
+            <entry><para>Number of hash functions to use in <glossterm baseform="Bloom filter">Bloom filters</glossterm>. </para>
+              <para>The default
+              value is <computeroutput>3</computeroutput>. </para>
+              <para>Possible values are 1 through 8. </para>
+              <para>This value, in conjunction
+                    with<computeroutput>lrc_bloomfilter_ratio</computeroutput>,
+                    will determine the number of false positives that may be
+                    expected when querying an RLI that is updated via Bloom filters.</para>
+              <para><emphasis>Note:</emphasis> The
+                      default values of <computeroutput>3</computeroutput> and <computeroutput>10</computeroutput> give a false positive rate of
+            approximately 1%. </para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>lrc_bloomfilter_ratio N </computeroutput></entry>
+            <entry><para>Sets ratio of bloom filter size (in bits) to number of <glossterm baseform="logical file name">LFNs</glossterm>
+                in the LRC catalog (in other words, size of the Bloom filter
+                as a multiple of the number of LFNs in the LRC database.) This is only meaningful if Bloom filters are used to update an RLI. Too small a value will generate too many false positives, while too large a value wastes memory and network bandwidth.</para>
+              <para>The default value is <computeroutput>10</computeroutput>.</para>
+            <para><emphasis>Note:</emphasis> The default values of <computeroutput>3</computeroutput> and <computeroutput>10</computeroutput> give a false
+            positive rate of approximately 1%.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>lrc_dbname </computeroutput></entry>
+            <entry><para>Name of LRC database.</para>
+            <para>The default value is <computeroutput>lrcdb.</computeroutput></para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>lrc_server true|false </computeroutput></entry>
+            <entry><para>If LRC server, the value should
+              be <computeroutput>true</computeroutput>.</para>
+              <para>The default value is <computeroutput>false.</computeroutput></para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>lrc_update_factor N </computeroutput></entry>
+            <entry>If <computeroutput>lrc_update_immediate</computeroutput> mode
+              is on, and the LRC server is in sync with an RLI server (an LRC
+              and RLI are synced if there have been no failed updates since the
+              last full soft state update), then the interval between RLI updates
+              for this server (<computeroutput>update_ll_int</computeroutput>)
+            is multiplied by the value of this option.</entry>
+          </row>
+          <row>
+            <entry><computeroutput>lrc_update_immediate true|false </computeroutput></entry>
+            <entry><para>Turns LRC to RLI immediate mode updates
+              on (<computeroutput>true</computeroutput>) or off (<computeroutput>false</computeroutput>).</para>
+              <para>The default value is <computeroutput>false</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>lrc_update_retry seconds </computeroutput></entry>
+            <entry><para>Seconds to wait before an LRC server will retry to connect to
+            an RLI server that it needs to update. </para>
+            <para>The default value is <computeroutput>300</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>maxbackoff seconds </computeroutput></entry>
+            <entry><para>Maximum seconds to wait before re-trying
+              listen in the event of an I/O error.</para>
+              <para>The  default value is <computeroutput>300.</computeroutput></para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>maxfreethreads N </computeroutput></entry>
+            <entry><para>Maximum number of idle threads. Excess threads are killed. </para>
+              <para>The default
+            value is <computeroutput>5.</computeroutput></para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>maxconnections N </computeroutput></entry>
+            <entry><para>Maximum number of simultaneous connections. </para>
+            <para>The default value is <computeroutput>100</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>maxthreads N</computeroutput></entry>
+            <entry><para>Maximum number of threads running at
+              one time.</para>
+              <para>The  default value is <computeroutput>30</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>myurl URL </computeroutput></entry>
+            <entry><para>URL of server. </para>
+            <para>The default value is <computeroutput>rls://&lt;hostname&gt;:port </computeroutput></para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>odbcini filename</computeroutput></entry>
+            <entry><para>Sets environment variable <computeroutput>ODBCINI</computeroutput>. </para>
+              <para>If not specified, and <computeroutput>ODBCINI</computeroutput>            is not
+            already set, then the default value is <computeroutput>$GLOBUS_LOCATION/var/odbc.ini. </computeroutput></para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>pidfile filename </computeroutput></entry>
+            <entry><para>Filename where pid file should be written.</para>
+              <para>The 
+              default value is <computeroutput>$GLOBUS_LOCATION/var/&lt;programname&gt;.pid</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>port N</computeroutput></entry>
+            <entry><para>Port the server listens on.</para>
+              <para>The default
+              value is <computeroutput>39281.</computeroutput></para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>result_limit limit</computeroutput></entry>
+            <entry><para>Sets the maximum number of results returned
+              by a query. </para>
+              <para>The default value is <computeroutput>0</computeroutput> (zero), which means no limit.</para>
+              <para>If a query request includes a limit greater than this
+                value, an error (<computeroutput>GLOBUS_RLS_BADARG</computeroutput>) is returned. </para>              <para>If the query
+                  request has no limit specified, then at most <computeroutput>result_limit </computeroutput> records
+              are returned by a query. </para>
+             </entry>
+          </row>
+          <row>
+            <entry><computeroutput>rli_bloomfilter true|false </computeroutput></entry>
+            <entry><para>RLI servers must have this set to
+                accept Bloom filter updates.</para>
+              <para>If <computeroutput>true</computeroutput>, then only Bloom
+                filter updates are accepted from LRCs.</para>
+              <para>If <computeroutput>false</computeroutput>,  full LFN lists
+                  are accepted. </para>              <para><emphasis>Note:</emphasis> If Bloom filters are
+            enabled, then the RLI does <emphasis>not</emphasis> support wildcarded queries.</para>
+            </entry>
+          </row>
+          <row>
+            <entry><computeroutput>rli_bloomfilter_dir none|default|pathname </computeroutput>
+</entry>
+            <entry><para>If an RLI is configured to accept
+                bloom filters (<computeroutput>rli_bloomfilter
+                true</computeroutput>), then Bloom filters may be saved to this directory
+                after updates. </para>
+              <para>This directory is scanned when an RLI server starts
+                  up and is used to initialize Bloom filters for each LRC that
+                updated the RLI. </para>
+              <para>This option is useful when you want
+                    the RLI to recover its data immediately after a restart rather
+                  than wait for LRCs to send another update. </para>
+              <para>If the LRCs are
+                  updating frequently, this option is unnecessary and may be
+                wasteful in that each Bloom filter is written to disk after each update.</para>       
+<itemizedlist>
+<listitem><para>
+       <computeroutput>none</computeroutput></para><para>Bloom filters are not saved to disk.</para><para>This is the default. </para>
+       </listitem>
+       <listitem><para>
+<computeroutput>default</computeroutput></para><para> Bloom filters are saved to the default directory:</para>
+              <itemizedlist>
+                <listitem><simpara><computeroutput>$GLOBUS_LOCATION/var/rls-bloomfilters</computeroutput> if <computeroutput>GLOBUS_LOCATION</computeroutput> is set</simpara></listitem>
+                <listitem><simpara> else, <computeroutput>/tmp/rls-bloomfilters</computeroutput></simpara></listitem>
+            </itemizedlist>
+	    </listitem>
+	    <listitem><para>
+<computeroutput>pathname</computeroutput></para><para>Bloom filters are saved to the named directory. </para> <para>Any other string is used as the directory name unchanged. </para> <para>The Bloom filter files in this directory have the name of the URL of the LRC that sent the Bloom filter, with slashes(/) changed to percent signs (%) and ".bf" appended.</para>
+	    </listitem>
+</itemizedlist></entry></row>
+<row>
+<entry>
+<computeroutput>rli_dbname database </computeroutput></entry>
+            <entry><para>Name of the RLI database.</para>
+            <para>The  default value is <computeroutput>rlidb</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>rli_expire_int seconds </computeroutput></entry>
+            <entry><para>Interval (in seconds) between RLI
+                expirations of stale entries. In other words, how often an RLI
+                server will check for stale entries in its database.</para>
+              <para>The default value is <computeroutput>28800</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>rli_expire_stale seconds </computeroutput></entry>
+            <entry><para>Interval (in seconds) after which
+                entries in the RLI database are considered stale (presumably
+                because they were deleted in the LRC).</para>
+              <para>The default value is <computeroutput>86400</computeroutput>. </para>
+              <para>This value should be no smaller than <computeroutput>update_ll_int</computeroutput>. </para>
+              <para>Stale
+                RLI entries are not returned in queries. </para>              
+              <para><emphasis>Note:</emphasis>                If the LRC server is responding,
+                this value is not used. Instead the value of <computeroutput>update_ll_int</computeroutput> or <computeroutput>update_bf_int</computeroutput> is
+                retrieved from the LRC server, multiplied by 1.2, and used as
+              the value for this option. </para>              </entry>
+          </row>
+          <row>
+            <entry><computeroutput>rli_server true|false </computeroutput></entry>
+            <entry><para>If an RLI server, the value should be
+                <computeroutput>true</computeroutput>.</para>
+            <para>The default value is <computeroutput>false.</computeroutput></para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>rlscertfile filename </computeroutput></entry>
+            <entry><para>Name of the X.509 certificate file identifying the server.</para>
+              <para>This value is set by setting environment variable <computeroutput>X509_USER_CERT</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>rlskeyfile filename </computeroutput></entry>
+            <entry><para>Name of the X.509 key file for the server.</para>
+              <para>This value is
+              set by setting environment variable <computeroutput>X509_USER_KEY</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>startthreads N </computeroutput></entry>
+            <entry><para>Number of threads to start initially.</para>
+              <para>The
+              default value is <computeroutput>3</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>timeout seconds </computeroutput></entry>
+            <entry>Timeout (in seconds) for calls to other RLS servers (e.g., for LRC calls to send an update to an RLI).</entry>
+          </row> 
+          <row>
+            <entry><computeroutput>update_bf_int seconds </computeroutput></entry>
+            <entry><para>Interval in seconds between LRC to
+                RLI updates when the RLI is updated by Bloom filters. In other
+                words, how often an LRC server does a Bloom
+                filter soft state update.</para>
+              <para>This can
+                  be much smaller than the interval between updates without using
+                  Bloom filters (<computeroutput>update_ll_int</computeroutput>).</para>
+              <para>The default value is <computeroutput>300</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>update_buftime seconds</computeroutput></entry>
+            <entry><para>LRC to RLI updates are buffered until
+                either the buffer is full or this much time in seconds has elapsed
+                since the last update. </para>
+              <para>The default value is
+            <computeroutput>30</computeroutput>.</para></entry>
+          </row>
+          <row>
+            <entry><computeroutput>update_ll_int seconds </computeroutput></entry>
+            <entry><para>Number of seconds before an LRC server
+                does an LFN list soft state update. </para>
+              <para>The default value is <computeroutput>86400</computeroutput>.
+			  </para>
+			</entry>
+          </row>
+</tbody></tgroup>
+</table>
+</section>
+
+</chapter>
