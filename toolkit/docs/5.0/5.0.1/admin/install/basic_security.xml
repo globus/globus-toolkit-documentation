@@ -1,0 +1,169 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+<chapter id="gtadmin-basic-security" xreflabel="Basic Security Configuration">
+	<title>Basic Security Configuration</title>
+
+	<section id="gtadmin-basic-environment" xreflabel="Setting environment variables"><title>Set environment variables</title>
+
+		<para>
+			In order for the system to know the location of the
+			Globus Toolkit commands you just installed, you must set
+			an environment variable and source the <filename>globus-user-env.sh</filename>
+			script.
+		</para>
+
+		<orderedlist>
+			<listitem><simpara>As globus, set <command>GLOBUS_LOCATION</command> to where you installed the
+					Globus Toolkit. This will  be one of the following:
+			</simpara>
+			<itemizedlist>
+                                <listitem><simpara>Using Bourne shells:</simpara>
+                                        <screen>globus$ export GLOBUS_LOCATION=/path/to/install</screen>
+				</listitem>
+                                <listitem><simpara>Using csh:</simpara>
+                                        <screen>globus$ setenv GLOBUS_LOCATION /path/to/install</screen>
+				</listitem>
+			</itemizedlist></listitem>
+			<listitem><simpara>Source 
+					<filename>$GLOBUS_LOCATION/etc/globus-user-env.<replaceable>{sh,csh}</replaceable></filename> depending
+					on your shell.</simpara>
+				<itemizedlist>
+					<listitem><simpara>
+							Use <replaceable>.sh</replaceable> for Bourne shell:</simpara>
+						<screen>globus$ . $GLOBUS_LOCATION/etc/globus-user-env.sh</screen>
+					</listitem>
+					<listitem><simpara>
+							Use <replaceable>.csh</replaceable> for C shell.</simpara>
+						<screen>globus$ source $GLOBUS_LOCATION/etc/globus-user-env.csh</screen>
+					</listitem>
+				</itemizedlist>
+			</listitem>
+		</orderedlist>
+		<!-- include olink to new env_vars appendix  -->
+		
+	</section>
+
+	<section id="gtadmin-basic-host" xreflabel="Obtaining host certificates"><title>Obtain host certificates</title>
+		<!-- this is where preswsaa (GSI) config and env variables come in - but not really necessary at this point?? do most people already know??  -->
+		<para>You must have X509 certificates to use the GT <replaceable role="entity">version</replaceable> software securely (referred
+			to in this documentation as <emphasis>host certificates</emphasis>). For an overview of
+			certificates for <glossterm baseform="Grid Security Infrastructure">GSI</glossterm> (security) see <olink targetdoc="gsicAdmin" targetptr="gsic-configuring">GSI Configuration Information</olink>
+			and <olink targetdoc="gsicDeveloper" targetptr="gsic-developer-env">GSI Environmental Variables</olink>.</para>
+		<para>Host certificates must:</para>
+		<itemizedlist>
+			<listitem><simpara>consist of the following two files: <filename>hostcert.pem</filename> and <filename>hostkey.pem</filename></simpara></listitem>
+			<listitem><simpara>be in the
+					appropriate directory for secure services: <filename class="directory">/etc/grid-security/</filename>
+			</simpara></listitem>
+			<listitem><simpara>be for
+					a machine which has a consistent name in DNS; you should <emphasis>not</emphasis> run
+					it on a computer using DHCP where a different name could be assigned to your
+					computer.</simpara></listitem>
+		</itemizedlist>
+		<para>You have the following options:</para>
+		<section id="gtadmin-basic-existing"><title> Request a certificate from an existing CA</title>
+			<para>Your best option is to use an already existing CA. You may have access to
+				one from the company you work for or an organization you are affiliated with.
+				Some universities provide certificates for their members and affiliates. Contact
+				your support organization for details about how to acquire a certificate. You
+				may find your CA listed in the <ulink
+					url="http://www.tacar.org/">TERENA
+					Repository</ulink>. </para>
+			<para>If you already have a CA, you will need to follow their configuration directions.
+				If they include a CA setup package, follow the CAs instruction on how to
+				install the setup package. If they do not, you will need to create an 
+				<filename class="directory">/etc/grid-security/certificates</filename> directory
+				and include the CA cert and signing policy in that directory. See <olink targetdoc="gsicAdmin" targetptr="gsic-configuring">Configuring
+					a Trusted CA</olink> for more details. </para>
+			<para>This type of certificate is best for service deployment and Grid inter-operation. </para>
+		</section>
+		<section id="gtadmin-basic-simpleca"><title>SimpleCA</title>
+			<para>SimpleCA provides a wrapper around the OpenSSL CA functionality and is sufficient
+				for simple Grid services. Alternatively, you can use OpenSSL's <command>CA.sh</command> command
+				on its own. Instructions on how to use the SimpleCA can be found in <olink targetptr="gtadmin-simpleca"/>.  </para>
+			<para>SimpleCA is suitable for testing or when a certificate authority is not available.</para>
+		</section>
+		<section id="gtadmin-basic-gcs"><title>Low-trust certificate</title>
+			<para>Globus offers a low-trust certificate available at <ulink
+					url="http://gcs.globus.org:8080/gcs">http://gcs.globus.org:8080/gcs</ulink>. This
+				option should only be used as a last resort because it does not fulfill some
+				of the duties of a real Certificate Authority. </para>
+			<para>This type of certificate
+				is best suited for short term testing. </para>
+		</section>
+	</section>
+	<section id="gtadmin-basic-gridmap"><title>Add authorization</title>
+		<para>Add authorizations for users:</para>
+		<para>Create <filename class="directory">/etc/grid-security/grid-mapfile</filename> as root. </para>
+		<para>You need two pieces of information:</para>
+		<itemizedlist>
+			<listitem><simpara>the subject name of a user</simpara></listitem>
+			<listitem><simpara>the account name it should map to.</simpara></listitem>
+		</itemizedlist>
+		<para>The syntax is one line per user, with the certificate subject followed by
+			the user account name. </para>
+		<para>Run <command>grid-cert-info</command> to get your subject name, and <command>whoami</command> to
+			get the account name:</para>
+<screen>bacon$ grid-cert-info -subject
+/O=Grid/OU=GlobusTest/OU=simpleCA-mayed.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon
+bacon$ whoami
+bacon</screen>
+		<para>You may add the line by running the following as root:</para>
+<screen>root# $GLOBUS_LOCATION/sbin/grid-mapfile-add-entry -dn \
+"/O=Grid/OU=GlobusTest/OU=simpleCA-mayed.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon" \
+-ln bacon</screen>
+		<para>The corresponding line in the <filename>grid-mapfile</filename> should look like:</para>
+<screen>&quot;/O=Grid/OU=GlobusTest/OU=simpleCA-mayed.mcs.anl.gov/OU=mcs.anl.gov/CN=Charles Bacon&quot; <replaceable>bacon</replaceable></screen>
+		<important><simpara>The quotes around the subject name are <emphasis>important</emphasis>, because it contains
+				spaces.</simpara></important>
+	</section>
+	<section id="gtadmin-basic-verify"><title>Verify Basic Security</title>
+		 <para>Now that you have installed a trusted CA, acquired
+			 a hostcert and acquired a usercert, you may verify that
+			 your security setup is complete.  As your user
+			 account, run the following command:
+		 </para>
+<screen>bacon$ grid-proxy-init -verify -debug
+
+User Cert File: /home/bacon/.globus/usercert.pem
+User Key File: /home/bacon/.globus/userkey.pem
+
+Trusted CA Cert Dir: /etc/grid-security/certificates
+
+Output File: /tmp/x509up_u506
+Your identity: /DC=org/DC=doegrids/OU=People/CN=Charles Bacon 332900
+Enter GRID pass phrase for this identity:
+Creating proxy ...++++++++++++
+..................++++++++++++
+ Done
+Proxy Verify OK
+Your proxy is valid until: Fri Jan 28 23:13:22 2005</screen>
+		<para>
+			There are a few things you can notice from this command.
+			Your usercert and key are located in
+			<filename class="directory">$HOME/.globus/</filename>.
+			The proxy certificate is created in
+			<filename class="directory">/tmp/</filename>.
+			The "up" stands for "user proxy", and the
+			<replaceable>_u506</replaceable> will be your
+			UNIX userid.  It also prints out your
+			distinguished name (DN), and the proxy is valid
+			for 12 hours.
+		</para>
+		<para>
+			If this command succeeds, your single node
+			is correctly configured.  
+		</para>
+	</section>
+        <section><title>Firewall configuration</title>
+        <para>
+	For information on configuring services in the presence of
+	a firewall, see <ulink url="http://www.globus.org/toolkit/security/firewalls/">
+	the firewall PDF</ulink>.
+	</para>
+        </section>
+
+</chapter>
+
