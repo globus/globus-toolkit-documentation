@@ -19,6 +19,7 @@ html:
 pdf:
 	~bacon/XEP/xep \
 	-xml $(FILENAME) \
+	--stringparam current.docid "gt" \
 	-xsl custom_fo.xsl \
 	-out index.pdf
 
