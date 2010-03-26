@@ -30,7 +30,7 @@
                 <xsl:param name="collect.xref.targets">yes</xsl:param>
                 
                 <!-- default location for target database document (for olinks) -->
-                <xsl:param name="target.database.document">/mcs/globus.org//toolkit/docs/5.0/5.0.1/olinkdb.xml</xsl:param>
+                <xsl:param name="target.database.document">/Users/cristinawilliams/testing/alliance/toolkit/docs/5.0/5.0.1/olinkdb.xml</xsl:param>
                 <!-- should be:/Users/cristinawilliams/testing/alliance/toolkit/docs/5.0/5.0.1/olinkdb.xml -->
                 
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
@@ -228,13 +228,13 @@
                                                                                 include_once("/mcs/globus.org/toolkit/docs/5.0/5.0.1/includes/docbook_sidebar.inc");
                                                                                 ?</xsl:processing-instruction>
                                                                
-                                                                <!-- add temporary DRAFTS box here-->
+                                                                <!-- add temporary DRAFTS box here
         
 
 <xsl:processing-instruction name="php">
 include_once("/mcs/globus.org/toolkit/docs/5.0/5.0.1/includes/docbook_drafts.inc");
 ?</xsl:processing-instruction>
-
+                                                                -->
 
 
                                                                 
