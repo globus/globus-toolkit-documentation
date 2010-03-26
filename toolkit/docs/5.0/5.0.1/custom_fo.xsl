@@ -34,7 +34,7 @@
                </xsl:attribute-set>
                
                <!-- default location for target database document (for olinks) -->
-               <xsl:param name="target.database.document">/www/www-unix.globus.org/toolkit/docs/5.0/5.0.1/olinkdb.xml</xsl:param>
+               <xsl:param name="target.database.document">/mcs/globus.org/toolkit/docs/5.0/5.0.1/olinkdb.xml</xsl:param>
                
                <!-- enable extensions -->
                <xsl:param name="xep.extensions" select="1"></xsl:param>
@@ -44,7 +44,7 @@
                
                <!-- should output be in draft mode? -->
                <xsl:param name="draft.mode" select="'no'"></xsl:param>
-               <xsl:param name="draft.watermark.image">/www/www-unix.globus.org/docbook-images/draft.png</xsl:param>
+               <xsl:param name="draft.watermark.image">/mcs/globus.org/docbook-images/draft.png</xsl:param>
                
                <!-- ALIGNMENT -->
                <xsl:param name="alignment">left</xsl:param>
@@ -55,7 +55,7 @@
                 <xsl:param name="admon.graphics">1</xsl:param>
                 
                <!-- Set path to admonition graphics  COMMON -->
-                <xsl:param name="admon.graphics.path">/www/www-unix.globus.org/docbook-images/</xsl:param>
+               <xsl:param name="admon.graphics.path">/mcs/globus.org/docbook-images/</xsl:param>
 
                 
                 <!-- Set path to docbook graphics (testing)
