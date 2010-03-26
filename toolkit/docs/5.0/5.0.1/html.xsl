@@ -30,8 +30,8 @@
                 <xsl:param name="collect.xref.targets">yes</xsl:param>
                 
                 <!-- default location for target database document (for olinks) -->
-                <xsl:param name="target.database.document">/Users/cristinawilliams/testing/alliance/toolkit/docs/5.0/5.0.1/olinkdb.xml</xsl:param>
-                <!-- should be:/Users/cristinawilliams/testing/alliance/toolkit/docs/5.0/5.0.1/olinkdb.xml -->
+                <xsl:param name="target.database.document">/mcs/globus.org/toolkit/docs/5.0/5.0.1/olinkdb.xml</xsl:param>
+                <!-- local to doc coordinator:/Users/cristinawilliams/testing/alliance/toolkit/docs/5.0/5.0.1/olinkdb.xml -->
                 
                 <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
                 <xsl:param name="admon.graphics">1</xsl:param>
