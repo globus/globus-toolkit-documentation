@@ -41,7 +41,7 @@ import org.globus.util.GlobusURL;
  * Catalog (LRC). Patterned after testrls.java, but using the new classes
  * released with Globus Toolkit 4.
  */
-public class ExerciseRlsApi
+public class new_rls_example
 {
 	private static String urlString = "rlsn://localhost/"; // default value
 	private static GlobusURL rlsServerUrl;
