@@ -50,16 +50,15 @@ f.q.value = f.qinit.value + " -inurl:mail_archive " ;
     	<div id="container">
 		 	<div id="breadcrumbs"><?php globus_current_location(); ?>
   	   				<div id="searchform" style="float: right;margin-right: 10px; margin-top: 0px;font-size: smaller;">	  
-				         <form method="GET" name="GlobusSearchForm"  onSubmit="GlobusSubmit()">
-				         <input type="radio" name="domain" value="nomail"checked>&nbsp;Website&nbsp;
-				         <input type="radio" name="domain" value="mail">&nbsp;Email Lists&nbsp;
-				         Search:&nbsp;<input style="border: 1px solid #888; color: #444; type="text" name="qinit" size="15"  maxlength="200" value="" />
-				         <input type="hidden" name="cof" VALUE="S:http://www.globus.org/;VLC:#cccccc;AH:center;BGC:#ffffff;LH:76;LC:#003390;L:http://www.globus.org/img/globusalliance-nourl.gif;ALC:#003390;LW:170;T:#000000;AWFID:fb67b77f3237ebb9;">
-				         <input type="hidden" name="domains" value="www.globus.org">
-				             <br />
-				         <input type="hidden" name="sitesearch" value="www.globus.org">
-				         <input type="hidden" name="q" value="">
-				         </form>
+				        <form action="http://www.google.com/cse" id="cse-search-box">
+  <div>
+    <input type="hidden" name="cx" value="017852682429607164232:btsxwxgrrkk" />
+    <input type="hidden" name="ie" value="UTF-8" />
+    <input type="text" name="q" size="31" />
+    <input type="submit" name="sa" value="Search" />
+  </div>
+</form>
+<script type="text/javascript" src="http://www.google.com/cse/brand?form=cse-search-box&lang=en"></script>
 		         	</div>		 	
 		 	
 		 	</div>   	
