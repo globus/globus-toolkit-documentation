@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+  <chapter id="ccommonlib-apis"><title>APIs</title>
+<section><title>Component API</title>
+  <para>See the <ulink url="http://www.globus.org/api/c-globus-5.0.2/">C API pages</ulink> for other API documentation on globus_common.</para>
+</section>
+
+<section>
+  <title>Internationalization Infrastructure</title>
+  <para>The Globus Toolkit C Common Library now has optional infrastructure support
+ for internationalization, which is used by GridFTP and its dependencies (non-ws authorization/authentication and XIO).</para>
+  <para>This means that user-presented strings are wrapped in a lookup function,
+which, if the globus_i18n module is installed and the GLOBUS_I18N environment variable is set to &quot;YES&quot;, will lookup the string in a resource bundle 
+    using ICU4C.  If GLOBUS_I18N is set to &quot;NO&quot;, or the globus_i18n module is not installed, or the string value cannot be found in the resource bundle, 
+    the default string (exactly what was being looked up) is returned.</para>
+</section>
+<section>
+  <title>Developer Information</title>
+  <para>There are two functions that are used for string lookup.</para>
+  <para>The first is the preferred function; you supply a module descriptor and the
+  string that you want to look up: </para>
+  <screen>
+globus_common_i18n_get_string(
+                  globus_module_descriptor_t * module,
+                        char * key);
+</screen>
+  <para>The second function is used if you need to look up a particular locale.
+A NULL value for locale will look up from the default locale:</para>
+  <screen>
+globus_common_i18n_get_string_by_key(
+                       char * locale,
+                       char * resource_name,
+                       char * key);
+</screen>
+  <para>
+Typically, one or more macros will be defined on a per-module basis that supply the module descriptor, to reduce clutter in the code.  Within the toolkit, these are typically _???SL where ??? are some mnemonic for the module in question  (for example _GCSL is defined for globus_common). </para>
+  <para>The resource bundles used for the string lookups are created using ICU4C (see 
+    <ulink url="http://oss.software.ibm.com/icu/userguide/ResourceManagement.html"> IBM documentation on Resource Bundles)</ulink>.</para>
+  <para>Our resource bundles are very simple; they contain simply a set of keys and
+  strings. The key is actually the string itself: it is hashed using the globus_hashtable_string_hash
+  function, then converted to contain only invariant characters ( #!@[]^`{|}~
+  are converted to &apos;_&apos;). See globus_i18n_resource_init.c in the globus_i18n source
+  for an example of creating keys.</para>
+  <para>While resource bundles for the Globus Toolkit are not by default created as part of the build process nor distributed in our binary distributions, there is a tool distributed with the globus_i18n package that makes them simple to construct.</para>
+  <para> Invoking globus-i18n-resource-create &lt;module name&gt; from the top level directory of a built (or at least configured) source package will generate a resource bundle for that package which can then be moved to <filename>$GLOBUS_LOCATION/share/i18n/</filename>.</para>
+  <para>globus-i18n-resource-create is part of the globus_i18n package, and will be installed if --enable-i18n was given as a configure option to the installer.  globus-i18n-resource-create uses globus-i18n-resource-init and genrb from ICU4C to create the resource bundles. </para>
+  <para>Resource bundles must be installed in <filename>$GLOBUS_LOCATION/share/i18n/</filename>.</para>
+</section>
+
+
+</chapter>
