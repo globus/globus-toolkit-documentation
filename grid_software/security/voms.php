@@ -25,7 +25,7 @@ VOMS is a system for managing authorization data within multi-institutional coll
 </p>
 
 <p>
-The VOMS database contains authorization data that defines specific capabilities and general roles for specific users. A suite of administrative tools allow administrators to assign roles to users and manipulate capability information. A command-line tool (voms-proxy-init) allows users to generate a local proxy credential based on the contents of the VOMS database. This credential includes the basic authenticaiton information that standardGrid proxy credentials contain, but it also includes role and capability information from the VOMS server. Standard Grid applications can use the credential without using the VOMS data, whereas VOMS-aware applications can use the VOMS data to make authentication decisions regarding user requests.
+The VOMS database contains authorization data that defines specific capabilities and general roles for specific users. A suite of administrative tools allow administrators to assign roles to users and manipulate capability information. A command-line tool (voms-proxy-init) allows users to generate a local proxy credential based on the contents of the VOMS database. This credential includes the basic authentication information that standardGrid proxy credentials contain, but it also includes role and capability information from the VOMS server. Standard Grid applications can use the credential without using the VOMS data, whereas VOMS-aware applications can use the VOMS data to make authentication decisions regarding user requests.
 </p>
 
 <p>
