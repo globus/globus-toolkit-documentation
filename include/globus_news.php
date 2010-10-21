@@ -1,7 +1,7 @@
 <?
 
 
-$globus_news_db_host       = "mysql.mcs.anl.gov";
+$globus_news_db_host       = "coredb.mcs.anl.gov";
 $globus_news_db_username   = "globusnews";
 $globus_news_db_password   = "Eicuew7e";
 $globus_news_db_dbname     = "globusnews";
