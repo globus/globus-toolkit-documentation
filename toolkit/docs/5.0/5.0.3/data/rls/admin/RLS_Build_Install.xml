@@ -1,0 +1,613 @@
+<!-- n/a - info is in admin/index.xml  -->
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
+[
+
+<!ENTITY % myents SYSTEM "../../entities">
+
+%myents;
+
+]>
+<section>
+<title>GT <replaceable role="entity">version</replaceable> RLS: Building and Installing</title>
+
+<para>This procedure includes the steps required to set up an RLS server.
+  Post setup configuration (tuning the server parameters, etc) are not included
+  in this document.</para>
+
+<!-- belongs as a subsection of gtadmin prereq.xml -->
+<!-- turn a lot of 'headers' procedures into ordered lists -->
+
+<section id="rls-building-installing-requirements"><title>Requirements</title>
+<para>You need to download and install the following software (follow the links
+to download):</para>
+
+<itemizedlist>
+  <listitem><simpara><olink targetdoc="gtadmin"/> </simpara></listitem>
+  <listitem><para>A Relational Database Server (RDBMS) that supports ODBC. We provide instructions for PostgreSQL and MySQL. 
+  <itemizedlist>
+    <listitem><simpara>If you use <ulink url="http://www.postgresql.org">PostgreSQL</ulink>, you'll also need <ulink url="http://gborg.postgresql.org">psqlODBC</ulink> (the ODBC driver for PostgreSQL).
+    </simpara></listitem>
+    <listitem><simpara>If you use <ulink url="http://www.mysql.com">MySQL</ulink>, you'll also need the <ulink url="http://www.mysql.com">MyODBC</ulink> (Connector/ODBC) packages. MySQL's top level installation directory must be specified. By default these are assumed to be in $GLOBUS_LOCATION. 
+    </simpara></listitem>
+  </itemizedlist></para></listitem>
+  <listitem><simpara>The <ulink url="http://www.iodbc.org">iODBC</ulink> package is used to interface to the ODBC layer of the RDBMS. The location of iODBC and the odbc.ini file must be specified before installing the RLS server. </simpara></listitem>
+</itemizedlist>
+</section>
+
+
+<section id="rls-building-installing-setenv"><title>Setting environment variables</title>
+<para>The following environment variables can be used to override
+the default locations. These should be set prior to installing the RLS server. </para>
+<para>The location of iODBC and the odbc.ini file must be specified before installing
+  the RLS server. Also, if you're using MySQL its top level installation directory
+  must be specified. By default, these are assumed to be in $GLOBUS_LOCATION. </para>
+<table><title>RLS Build Environment Variables</title>
+<tgroup cols="2"><thead>
+  <row>
+    <entry>Variable</entry>
+    <entry>Default</entry>
+  </row>
+</thead><tbody>
+  <row>
+    <entry><computeroutput>GLOBUS_IODBC_PATH </computeroutput></entry>
+    <entry><computeroutput>$GLOBUS_LOCATION </computeroutput></entry>
+  </row>
+  <row>
+    <entry><computeroutput>ODBCINI </computeroutput></entry>
+    <entry><computeroutput>$GLOBUS_LOCATION/var/odbc.ini </computeroutput></entry>
+  </row>
+  <row>
+    <entry><computeroutput>GLOBUS_MYSQL_PATH </computeroutput></entry>
+    <entry><computeroutput>$GLOBUS_LOCATION 
+      (if using MySQL) </computeroutput></entry>
+  </row>
+</tbody></tgroup>
+</table>
+
+<para>You can use the following commands to set these variables. You only need to
+  set these variables for RLS installation; they are not used when running RLS.
+  This document assumes you are using the <emphasis>csh </emphasis> shell or one of its variants. If you're using <emphasis>sh</emphasis> or something similar (eg <emphasis>bash</emphasis>), you should change the <emphasis>setenv</emphasis> commands to <emphasis>export variable=value</emphasis>. </para>
+<itemizedlist>
+  <listitem><simpara><computeroutput>setenv GLOBUS_IODBC_PATH $GLOBUS_LOCATION </computeroutput></simpara></listitem>
+  <listitem><simpara><computeroutput>setenv ODBCINI $GLOBUS_LOCATION/var/odbc.ini </computeroutput></simpara></listitem>
+  <listitem><simpara><computeroutput>setenv GLOBUS_MYSQL_PATH $GLOBUS_LOCATION # if using MySQL </computeroutput></simpara></listitem>
+</itemizedlist>
+</section>
+
+
+<section id="rls-building-installing-iodbcinstall"><title>Installing iODBC</title>
+<caution><simpara>Please note that at the time of the GT 4.0 release, incompatibility issues were identified between iODBC and MyODBC. Our brief evaluation indicated that iODBC 3.52.2 is incompatible with MyODBC 3.51.11 and possibly earlier versions as well. We have used iODBC 3.51.1 and 3.51.2 in combination with MyODBC 3.51.06. Installing incompatible iODBC and MyODBC versions from binary packages may not indicate an error until runtime. Building these libraries from source packages may be the best way to ensure that you have installed a compatible combination.</simpara></caution>
+<important><simpara>Recommended Version: 3.51.2</simpara></important>
+
+<section><title>Run the install commands </title>
+<para>The following commands were used during RLS development to install iODBC.</para>
+<screen>% cd $IODBCSRC % ./configure --prefix=$GLOBUS_IODBC_PATH --disable-gtktest --with-pthreads --disable-gui
+    --with-iodbc-inidir=$ODBCINIDIR % gmake % gmake install </screen>
+<para>where:</para>
+<itemizedlist>
+  <listitem><simpara><computeroutput>$IODBCSRC</computeroutput> is the directory where you untarred the iODBC sources</simpara></listitem>
+  <listitem><simpara><computeroutput>$ODBCINIDIR</computeroutput> is the directory where you plan to install the <computeroutput>odbc.ini</computeroutput> file (which you will create in the next step).</simpara></listitem>
+</itemizedlist>
+</section>
+
+<section><title>Create the odbc.ini file</title>
+<para>Create the <computeroutput>odbc.ini</computeroutput> file in <computeroutput>$ODBCINIDIR</computeroutput>:</para>
+<para>The contents should include the path to where you intend to install the ODBC driver for your RDBMS (such as <computeroutput>psqlodbc.so</computeroutput> or <computeroutput>libmyodbc3.so</computeroutput>). </para>
+  <para>The following is an example that should work with psqlODBC. It assumes you will name your <glossterm baseform="Local Replica Catalog (LRC)">LRC</glossterm> and <glossterm baseform="Replica Location Index">RLI</glossterm> databases <computeroutput>lrc1000</computeroutput> and <computeroutput>rli1000</computeroutput>:</para>
+<screen>[ODBC Data Sources]
+lrc1000=lrc database
+rli1000=rli database
+
+
+[lrc1000]
+Description=LRC database
+DSN=lrc1000
+Servertype=postgres
+Servername=localhost
+Database=lrc1000
+ReadOnly=no
+
+
+[rli1000]
+Description=RLI database
+DSN=rli1000
+Servertype=postgres
+Servername=localhost
+Database=rli1000
+ReadOnly=no
+
+
+[Default]
+Driver=/path/to/psqlodbc.so
+Port=5432 </screen>
+<para><emphasis>Note:</emphasis> You do not need an RLI database if you plan to use
+  <glossterm baseform="Bloom filter">Bloom filters</glossterm> for LRC to RLI updates (Bloom filters are kept in memory). In
+  this case you can omit the RLI entries below. </para>
+<para><emphasis>Bug:</emphasis> psqlODBC will not find a Data Source Name (DSN) in the
+  system <emphasis>odbc.ini</emphasis> file <emphasis>$ODBCINIDIR/odbc.ini</emphasis>. It will find
+  DSNs in the user's <emphasis>odbc.ini</emphasis> file if it exists at $HOME/.odbc.ini. </para>
+<para>One work around is to copy or symolink the system <emphasis>odbc.ini </emphasis> file to
+  each user's home directory. psqlODBC does find system DSNs in a file called <emphasis>odbcinst.ini</emphasis>,
+  which is looked for in the etc subdirectory where iODBC was installed, <emphasis>$GLOBUS_IODBC_PATH/etc/odbcinst.ini</emphasis>.
+  So another option besides creating user <emphasis>.odbc.ini</emphasis> files is to copy
+  or symolink the system <emphasis>odbc.ini</emphasis> file to <emphasis>$GLOBUS_IODBC_PATH/etc/odbcinst.ini</emphasis>.
+Someone who understands this better may have a better answer.</para>
+</section>
+
+<section><title>Changing how  clients connect to the server (for MySQL only) </title>
+<para>If you're using MySQL and have changed how MySQL clients connect to the MySQL server in <emphasis>my.cnf </emphasis> (e.g., the port number or socket name), then you should set the option to <computeroutput>65536</computeroutput> in <computeroutput>odbc.ini</computeroutput> for each database. This tells MyODBC to read the client section of <computeroutput>my.cnf</computeroutput> to find the changed connection parameters. </para>
+<screen>[lrc1000] option = 65536 
+[rli1000] option = 65536 </screen>
+</section>
+</section>
+
+
+
+<section id="rls-building-installing-installdb"><title>Installing the relational database</title>
+  <para>We include instructions for both PostgreSQL (<olink targetptr="rls-building-installing-postgresql"/>) and MySQL (<olink targetptr="rls-building-installing-mysql"/>).  </para>
+
+
+  <section id="rls-building-installing-postgresql"><title>Using PostgreSQL</title>
+<para>If your relational database of choice is PostgreSQL, you need
+  to install and configure both PostgreSQL and psqlODBC (the ODBC
+  driver for PostgreSQL) as follows:</para>
+
+    <section id="rls-building-installing-postgresinstall"><title>Installing PostgreSQL</title>
+
+<section><title>Running the install commands </title>
+<para>The commands used to install PostgreSQl 7.2.3 on the RLS development system are as follows. </para>
+<screen>% cd $POSTGRESSRC % ./configure --prefix=$GLOBUS_LOCATION % gmake % gmake install </screen>
+<para><computeroutput>$POSTGRESSRC</computeroutput> is the directory where the PostgreSQL source was untarred. </para>
+</section>
+
+<section><title>Initializing PostgreSQL </title>
+<para>Initialize PostgreSQL
+  and start the server by running: </para>
+<screen>initdb -D /path/to/postgres-datadir
+postmaster -D /path/to/postgres-datadir -i -o -F </screen>
+<para>The <computeroutput>-o -F</computeroutput> flags to postmaster disable <computeroutput>fsync()</computeroutput> calls
+  after transactions (which, although it improves performance, raises the risk
+  of DB corruption).</para>
+</section>
+
+<section><title>Creating the  user and password </title>
+<para>Create the database user (in our example, called <computeroutput>dbuser</computeroutput>) and
+  password that RLS will use: </para>
+<screen>createuser -P dbuser </screen>
+<para><emphasis>Important:</emphasis> Be sure to do periodic <computeroutput>vacuum </computeroutput> and <computeroutput>analyze </computeroutput> commands
+  on all your PostgreSQl databases. The PostgreSQl documentation recommends doing
+  this daily from <computeroutput>cron</computeroutput>. Failure to do this can seriously degrade
+  performance, to the point where routine RLS operations (such as LRC to RLI
+  soft state updates) timeout and fail. Please see the PostgreSQl documentation
+  for further details.</para>
+</section>
+</section>
+
+    <section id="rls-building-installing-psqlodbcinstall"><title>Installing psqlODBC</title>
+<para>Install psqlODBC by running the following commands (which were used to install psqlODBC 7.2.5): </para>
+<screen>% cd $PSQLODBCSRC 
+% setenv CPPFLAGS -I$(IODBC_INSTALLDIR)/include 
+% ./configure --prefix=$GLOBUS_LOCATION --enable-pthreads 
+% gmake 
+% gmake install </screen>
+<para>where <computeroutput>$PSQLODBCSRC</computeroutput> is the directory where you untarred the psqlODBC
+  source.</para>
+<para><emphasis>Note:</emphasis> The configure script that comes with psqlODBC supports
+  a <computeroutput>--with-iodbc </computeroutput> option. However, when the RLS developers used
+  this it resulted in RLS servers with corrupt memory that would dump core while
+  opening the database connection. It seems to work fine (with iODBC) without
+  this option. </para>
+<para>You can now continue to instructions for Installing
+  the RLS Server. See <olink targetptr="rls-building-installing-serverinstall"/>. </para>
+</section>
+</section>
+
+
+  <section id="rls-building-installing-mysql"><title>Using MySQL </title>
+<para>If your relational database of choice is MySQL, you'll need to install and
+  configure both MySQL and the MyODBC  (Connector/ODBC) packages as follows:</para>
+
+    <section id="rls-building-installing-mysqlinstall"><title>Installing MySQL </title>
+<para>Once you've installed and configured MySQL you must start the database server
+and create the database user/password that RLS will use to connect to the database. </para>
+
+<section><title>Starting database server </title>
+<para>Start the database server by running:</para>
+<screen>mysqld_safe [--defaults-file <emphasis>path to your my.cnf file </emphasis>] </screen>
+
+</section>
+
+<section><title>Creating the  user and password </title>
+<para>To create the database user and password that RLS will use you must run the MySQL command line tool <emphasis>mysql</emphasis>, and specify the following commands:</para>
+<screen><emphasis>mysql&gt; </emphasis> use mysql; 
+<emphasis>mysql&gt; </emphasis> grant all on lrc1000.* to dbuser@localhost identified by 'dbpassword'; 
+<emphasis>mysql&gt; </emphasis> grant all on rli1000.* to dbuser@localhost identified by 'dbpassword'; </screen>
+<para>These commands assume the username you will create for RLS is <computeroutput>dbuser</computeroutput> with password <computeroutput>dbpassword</computeroutput>, and the database(s) you will create for your LRC and/or RLI server are <computeroutput>lrc1000 </computeroutput> and <computeroutput>rli1000</computeroutput>. </para>
+  <para>Creation of the LRC and/or RLI databases is covered below in <olink targetptr="rls-building-installing-rlsdbconfig"/>.</para>
+</section>
+</section>
+
+    <section id="rls-building-installing-myodbcinstall"><title>Installing MyODBC</title>
+<important>
+  <simpara>Recommended Version: 3.51.06</simpara>
+  <simpara>Please read the note under <olink targetptr ="rls-building-installing-iodbcinstall"/>.</simpara>
+  <simpara>If you cannot locate this version on a public site or mirror, you can find it <ulink url="http://www.isi.edu/~schuler/MyODBC-3.51.06.tar.gz">here</ulink>.</simpara>
+</important>
+<para>These instructions  assume that iODBC was installed in <computeroutput>$GLOBUS_LOCATION</computeroutput>.
+  This may be changed by changing the <emphasis>--with-iodbc-includes </emphasis> and <emphasis>--with-iodbc-libs </emphasis> options. </para>
+
+<section><title>Running install commands </title>
+<para>Install MyODBC in <computeroutput>$GLOBUS_LOCATION</computeroutput> (you may choose a different directory if
+  you wish, by changing the <emphasis>--prefix </emphasis> option to <emphasis>configure </emphasis> below):</para>
+<screen>% cd $MYODBCSRC 
+% ./configure --prefix=$GLOBUS_LOCATION 
+     --with-mysql-libs=$GLOBUS_MYSQL_PATH/lib/mysql     
+	 --with-mysql-includes=$GLOBUS_MYSQL_PATH/include/mysql 
+	 --with-iodbc-includes=$GLOBUS_LOCATION/include     
+	 --with-iodbc-libs=$GLOBUS_LOCATION/lib 
+	 --with-odbc-ini=$ODBCINIDIR 
+% gmake 
+% gmake install </screen>
+<para>where:</para>
+<itemizedlist>
+  <listitem><simpara><computeroutput>$MYODBCSRC</computeroutput> is the directory where you untarred the MyODBC sources. </simpara></listitem>
+  <listitem><simpara><computeroutput>$ODBCINIDIR</computeroutput> is the directory where you created the <emphasis>odbc.ini </emphasis> file. </simpara></listitem>
+</itemizedlist>
+<para><emphasis>Bug:</emphasis> There is a bug in MyODBC version 3.51.05 and earlier.
+  The debug code is not thread safe, and the RLS server will get a segmentation
+  violation and die if this code is enabled. In versions 3.51.05 and later the
+  debug code can be disabled with the configure option <computeroutput>--without-debug</computeroutput>.
+  In earlier versions it is disabled by defining <computeroutput>DBUG_OFF</computeroutput>, as in
+  the following example: </para>
+<screen>setenv CFLAGS -DBUG_OFF </screen>
+<para>You can now continue to instructions for installing
+  the RLS Server. See <olink targetptr="rls-building-installing-serverinstall"/>.</para>
+</section>
+</section>
+</section>
+</section>
+
+
+<section id="rls-building-installing-serverinstall"><title>Installing the RLS Server</title>
+<para>Download the appropriate bundle. RLS is included as part of the Globus Toolkit
+  bundle. See the <ulink url="http://www.globus.org/toolkit/downloads/development/">Globus
+  Toolkit Development Downloads</ulink> for a listing of available software.</para>
+<!--
+      <para>The download page for
+          Globus Toolkit is at:</para>
+      <para><emphasis>RLS Source Bundle </emphasis></para>
+      <para>The RLS source bundle is included in the &quot;All Services&quot; and &quot;WS Base
+        Installers&quot; bundles. </para>
+-->
+<para><emphasis>Note:</emphasis> When using these bundles, RLS will <emphasis>not</emphasis> be
+  built by the installer script <emphasis>unless</emphasis> the environment variable
+  GLOBUS_IODBC_PATH is set.</para>
+<!--
+      <para>If you prefer, you can find the source bundle  at:</para>
+      <para>
+      <ulink url="http://www.globus.org/ftppub/gt4/4.0/4.0.0/bundles/src/globus-rls-server-4.0-src_bundle.tar.gz">
+      http://www.globus.org/ftppub/gt4/4.0/4.0.0/bundles/src/globus-rls-server-4.0-src_bundle.tar.gz
+      </ulink></para>
+      <para><emphasis>RLS Binary Bundle</emphasis></para>
+      <para>The RLS binary bundle is included in the &quot;All Services&quot; and &quot;WS Base
+        Installers&quot; bundles linked against libiodbc-3.0.5.</para></entry>
+-->
+<para>RLS is installed as a part of the standard install.
+  For basic installation instructions, see the <olink targetdoc="gtadmin" targetptr="gtadmin-install">Installation Guide</olink>.</para>
+<!--    
+    <para>Install the source bundle by running: </para>
+      <pre class="command">        gpt-build globus-rls-server-4.0-src_bundle.tar.gz gcc32dbgpthr
+        gpt-postinstall </screen>      
+-->
+</section>
+
+<section id="rls-building-installing-rlsdbconfig"><title>Configuring the RLS Database</title>
+<para>RLS server configuration is specified in <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>;
+  please see the man page for <emphasis>globus-rls-server(8)</emphasis> for complete details.
+  Some of the configuration options (such as database user/password) are mentioned
+below. </para>
+
+<section><title>Creating a  user and password </title>
+<para>Create a <emphasis>database user</emphasis> that the RLS server will use to connect
+  to the DBMS. </para>
+<para>The database user and password you pick must be specified in the RLS server
+  configuration file, as well as the name of the database(s) you will create
+  (see below). </para>
+<screen>db_user <emphasis>dbuser </emphasis>
+db_pwd <emphasis>dbpassword </emphasis>
+lrc_dbname <emphasis>lrc1000 </emphasis> # optional (if LRC server) 
+rli_dbname <emphasis>rli1000 </emphasis> # optional (if RLI server) </screen>
+</section>
+
+  <section id="rls-building-installing-rlsdbchoose"><title>Choosing database for RLS server </title>
+    <para>Decide which database(s) the RLS server will use (and that you will create in <olink targetptr="rls-building-installing-rlsdbcreate">Section 6.4</olink>):</para>
+<itemizedlist>
+  <listitem><simpara>If the RLS server is a Local Replica Catalog (LRC) server you, will need to create the LRC database. </simpara></listitem>
+  <listitem><simpara>If the server is a Replica Location Index (RLI) server, you may need to create a RLI database. </simpara></listitem>
+</itemizedlist>
+  <para>An RLI server can receive updates from LRC servers in one of two forms, as <glossterm baseform="logical file name">LFN</glossterm> lists 
+    (in which case the RLI database must be created) or as highly compressed Bloom filters. Since Bloom filters are so small, they are kept in memory 
+    and no database is required. An RLS server can be configured as both an LRC and RLI server.</para>
+</section>
+
+  <section id="rls-building-installing-rlsdbconfigschema"><title>Configuring database schema </title>
+<para>Configure the schema file(s) for the database(s) you
+  will create. </para>
+    <para>GT <replaceable role="entity">version</replaceable> installed the schema files for the LRC and RLI databases in <computeroutput>$GLOBUS_LOCATION/setup/globus</computeroutput>. </para>
+<para>For PostgreSQL, use:
+</para>
+<itemizedlist>
+  <listitem><simpara>globus-rls-lrc-postgres.sql </simpara></listitem>
+  <listitem><simpara> globus-rls-rli-postgres.sql </simpara></listitem>
+</itemizedlist>
+<para>For MySQL , use: </para>
+<itemizedlist>
+  <listitem><simpara> globus-rls-lrc-mysql.sql </simpara></listitem>
+  <listitem><simpara> globus-rls-rli-mysql.sql </simpara></listitem>
+</itemizedlist>
+<para>Edit these files to set the name of the database user you created for RLS and the names of the databases configured in <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf</computeroutput>. </para>
+<para>By default the database user is <emphasis>dbuser</emphasis>, the LRC database name is <emphasis>lrc1000</emphasis> and
+  the RLI database name is <emphasis>rli1000</emphasis>.</para>
+</section>
+
+  <section id="rls-building-installing-rlsdbcreate"><title>Creating the database(s) </title>
+<para>Create the database(s) with the following commands (note
+          once again that you do <emphasis>not</emphasis> need to create an RLI database if you are
+  configuring an RLI server updated by Bloom filters): </para>
+<para>For PostgreSQL, run: </para>
+<screen>createdb -O <emphasis>dbuser </emphasis> -U <emphasis>dbuser </emphasis> -W <emphasis>lrc1000 
+</emphasis>createdb -O <emphasis>dbuser </emphasis> -U <emphasis>dbuser </emphasis> -W <emphasis>rli1000 
+</emphasis>psql -W -U <emphasis>dbuser </emphasis> -d <emphasis>lrc1000 </emphasis> -f $GLOBUS_LOCATION/setup/globus/globus-rls-lrc-postgres.sql 
+psql -W -U <emphasis>dbuser </emphasis> -d <emphasis>rli1000 </emphasis> -f $GLOBUS_LOCATION/setup/globus/globus-rls-rli-postgres.sql </screen>
+<para>For MySQL, run:</para>
+<screen>mysql -p -u <emphasis>dbuser </emphasis> &lt; $GLOBUS_LOCATION/setup/globus/globus-rls-lrc-mysql.sql 
+mysql -p -u <emphasis>dbuser </emphasis> &lt; $GLOBUS_LOCATION/setup/globus/globus-rls-rli-mysql.sql</screen>
+<important><simpara>Before continuing, it is recommended that you first test the database configuration using the <computeroutput>iodbctest</computeroutput> utility provided with a typical iODBC installation.</simpara></important>
+<para>Testing with iODBC, run:</para>
+<screen>
+% $GLOBUS_IODBC_PATH/bin/iodbctest "DSN=<emphasis>lrc1000</emphasis>;UID=<emphasis>dbuser</emphasis>;PWD=<emphasis>dbpassword</emphasis>"
+iODBC Demonstration program
+This program shows an interactive SQL processor
+Driver Manager: 03.51.0002.0224
+Driver: 03.51.06
+
+SQL>show tables;
+ 
+Tables_in_lrc1000
+-----------------
+t_attribute
+t_date_attr
+t_flt_attr
+t_int_attr
+t_lfn
+t_map
+t_pfn
+t_rli
+t_rlipartition
+t_str_attr
+ 
+ result set 1 returned 10 rows.
+
+SQL>quit
+ 
+Have a nice day.
+</screen>
+<warning><simpara>If the the above test fails, then RLS will not run properly. You must have a valid database configuration before proceeding with RLS installation and configuration.</simpara></warning>
+</section>
+</section>
+
+
+<section id="rls-building-installing-rlsserverconfig"><title>Configuring the RLS Server</title>
+<para>Review the server configuration file <computeroutput>$GLOBUS_LOCATION/etc/globus-rls-server.conf </computeroutput> and
+  change any options you want. The server man page <emphasis>globus-rls-server(8) </emphasis> has
+complete details on all the options.</para>
+<para>A minimal configuration file for both an LRC and RLI server would be: </para>
+<screen># Configure the database connection info 
+  db_user dbuser 
+  db_pwd dbpassword 
+   
+# If the server is an LRC server 
+  lrc_server true 
+  lrc_dbname lrc1000 
+   
+# If the server is an RLI server 
+  rli_server true 
+  rli_dbname rli1000 # Not needed if updated by Bloom filters 
+   
+# Configure who can make requests of the server 
+  acl .*: all 
+
+# RE matching grid-mapfile users or DNs from x509 certs </screen>
+<para>The server uses a host certificate to identify itself to clients. By default
+  this certificate is located in the files <emphasis>/etc/grid-security/hostcert.pem</emphasis> and <emphasis>/etc/grid-security/hostkey.pem</emphasis>.
+  Host certificates have a distinguished name of the form <emphasis>/CN=host/FQDN</emphasis>.
+  If the host you plan to run the RLS server  on does not have a host certificate,
+  you must obtain one from your Certificate Authority. The RLS server must be
+  run as the same user who owns the host certificate files (typically root).
+  The location of the host certificate files may be specified in <emphasis>$GLOBUS_LOCATION/etc/globus-rls-server.conf</emphasis>: </para>
+<screen>rlscertfile path-to-cert-file # default /etc/grid-security/hostcert.pem 
+rlskeyfile path-to-key-file # default /etc/grid-security/hostkey.pem </screen>
+<para>It is possible to run the RLS server without authentication, by starting it
+  with the <emphasis>-N </emphasis> option, and using URL's of the form <emphasis>rlsn://server </emphasis> to
+  connect to it. If authentication is enabled, RLI servers must include <emphasis>acl</emphasis> configuration options that match the identities of LRC servers that update it and that grant the <emphasis>rli_update</emphasis> permission to the LRCs. </para>
+</section>
+
+
+<section id="rls-building-installing-rlsserverstart"><title>Starting the RLS Server </title>
+<para>Start the RLS Server by running:</para>
+<screen>$GLOBUS_LOCATION/sbin/SXXrls start</screen>
+
+  <section id="rls-building-installing-initializing"><title>Notes on RLS Initialization</title>
+<para>Please be advised (and advise other users responsible for bringing up the
+  RLS) that the startup initialization may take a few minutes before the RLS
+  may be accessible. The initialization involves two key operations that may
+  consume significant resources causing the server to appear temporarily unresponsive.
+  Users of RLS may mistakenly assume that RLS failed to startup and may kill
+  the server and start over. Some users may fall into this in a repeated cycle,
+  believing that the RLS is unable to startup properly. </para>
+<para>If the RLS is configured to send compressed updates (Bloom filters) to other
+  RLIs, the RLS startup will involve initialization of the Bloom filter representing
+  the current contents of the local replica catalog (LRC). This step is a prerequisite
+  before any additional operations may be allowed, therefore no client connections
+  are permitted until the initialization is complete. In our test environment,
+  we have seen over 30 seconds delay due to creation of the Bloom filter corresponding
+  to 1 million LFN names on a system with Dual 1 GHz CPU and 1.5 GB RAM. You
+  may experience greater delays at larger scales and/or when running RLS with
+  more limited system resources.</para>
+<para>If the RLS is configured to send uncompressed updates (LFN lists) to other
+  RLIs, the RLS startup will not involve any additional initialization delay.
+  However, the RLS will spawn an initial full catalog update to all RLIs it updates.
+  Though these updates will take place on separate threads of execution after
+  the initialization of the system, they will consume a great amount of processor
+  activity. Depending on the volume of the local replica catalog (LRC), this
+  processor activity may initially interfere with a client operation. In our
+  test environment, we have seen our initial &quot;globus-rls-admin ping...&quot; operation may suffer a delay and timeout in 30 seconds, the second &quot;ping&quot; may
+delay for a few seconds but will successfully return, and the third and every
+subsequent &quot;ping&quot; operation will successfully return immediately throughout
+the duration of the update. The system exhibits the same behavior for any other
+client operation, such as a &quot;globus-rls-cli query...&quot; operation.
+</para>
+
+</section>
+</section>
+
+
+<section id="rls-building-installing-rlsserverstop"><title>Stopping the RLS Server </title>
+<para>Stop the RLS Server by running: </para>
+<screen>$GLOBUS_LOCATION/sbin/SXXrls stop </screen>
+</section>
+
+<section id="rls-building-installing-mdsconfig"><title>Configuring the RLS Server for the MDS2 GRIS</title>
+<para>The server package includes a program called <computeroutput>globus-rls-reporter </computeroutput> that
+  will report information about an RLS server to the MDS2 GRIS. Use
+  this procedure to enable this program:</para>
+<orderedlist>
+  <listitem><simpara>To enable Index Service reporting, add the contents of the file <computeroutput>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf </computeroutput> to the MDS2 GRIS configuration file <computeroutput>$GLOBUS_LOCATION/etc/grid-info-resource-ldif.conf</computeroutput>.</simpara></listitem>
+  <listitem><simpara> If necessary, set your virtual organization (VO) name
+    in <computeroutput>$GLOBUS_LOCATION/setup/globus/rls-ldif.conf
+    </computeroutput>. The default value
+    is <computeroutput>local</computeroutput>. The VO name is referenced twice,
+    on the lines beginning <computeroutput>dn:</computeroutput> and <computeroutput>args:</computeroutput>.
+  </simpara></listitem>
+  <listitem><simpara>You must restart your MDS (GRIS) server after modifying <computeroutput>$GLOBUS_LOCATION/etc/grid-info-resoruce-ldif.conf</computeroutput>.
+      You can use the following commands to do so: </simpara></listitem>
+</orderedlist>
+  <screen>$GLOBUS_LOCATION/sbin/SXXgris stop 
+$GLOBUS_LOCATION/sbin/SXXgris start </screen>
+</section>
+
+<!-- 
+<h2 class="command"><ulink name="servertest"></ulink>Testing your RLS Server Installation</title>
+<p class="command">You can use the programs <computeroutput>globus-rls-admin </computeroutput> and <computeroutput>globus-rls-cli </computeroutput> to
+  test functionality. See their respective <computeroutput>man</computeroutput> pages for details
+  on their use. We'll also describe how to use the <computeroutput>runtest</computeroutput> script
+that comes installed with RLS. </para>
+<h3 class="command">Step 23 </title>
+<para>Start the server in debug mode with the command: </para>
+<screen>$GLOBUS_LOCATION/sbin/globus-rls-server -d [-N] </screen>
+<para>The <computeroutput>-N </computeroutput> option is helpful: if you do not have a host certificate
+  for the server host, or a user certificate for yourself, it disables authentication. </para>
+</section>
+<section><title>Step 24 </title>
+<para>Ping the server using <computeroutput>globus-rls-admin</computeroutput>: </para>
+<screen>$GLOBUS_LOCATION/sbin/globus-rls-admin -p rls://serverhost </screen>
+<para>If you disabled authentication (by starting the server with the <computeroutput>-N </computeroutput> option),
+  then use this command: </para>
+<screen>$GLOBUS_LOCATION/sbin/globus-rls-admin -p rlsn://serverhost </screen>
+<h3 class="command">Step 25 </title>
+<para>The RLS source bundle includes a test subdirectory (find it in <computeroutput>BUILD/globus_rls_server- <emphasis>version </emphasis>/test</computeroutput>)
+  which includes a script called <computeroutput>runtests </computeroutput> that invokes a program
+  called <computeroutput>globus-rls-test </computeroutput> to thoroughly test an RLS server. </para>
+<orderedlist>
+  <listitem><simpara>Edit the config file <computeroutput>test.conf </computeroutput> to set the name of the
+    database user and password (and possibly the path to your <computeroutput>odbc.ini</computeroutput> file
+    if it's not standard.)</simpara></listitem>
+  <listitem><simpara> Run the script :
+  <screen>runtests</screen>
+  The script does the following: </simpara></listitem>
+  <itemizedlist>
+    <listitem><simpara> creates databases called <computeroutput>lrctest</computeroutput> and <computeroutput>rlitest</computeroutput>    </simpara></listitem>
+    <listitem><simpara>starts
+                    up an RLS server</simpara></listitem>
+    <listitem><simpara> runs <computeroutput>globus-rls-test</computeroutput>. </simpara></listitem>
+  </itemizedlist>
+  <listitem><simpara> You may need to grant access to the test databases for the database
+      user using <emphasis>grant </emphasis> commands similar to what you used to create
+      your production database(s). See <olink targetptr="rls-building-installing-mysqlinstall"/>. </simpara></listitem>
+</orderedlist>
+</section>
+<section id="rls-building-installing-clientinstall"><title>Installing an RLS Client</title>
+<para>The RLS Server bundles (source and binary) include the RLS client bundles.</para>
+<itemizedlist>
+  <listitem><simpara>Build the RLS client source bundle by running: 
+    <screen>gpt-build globus-rls-client-1.1-src_bundle.tar.gz gcc32dbgpthr 
+gpt-postinstall</screen> </simpara></listitem>
+  <listitem><simpara>Install the RLS client binary bundle by running: 
+  <screen>gpt-install globus-rls-client-1.1-i686-pc-linux-gnu-bin.tar.gz
+gpt-postinstall</screen> </simpara></listitem>
+  </itemizedlist>
+  -->
+
+<section id="rls-building-installing-redhat9"><title>RedHat 9 Incompatibility</title>
+<para>This note applies to RedHat 9 but could also apply to other Linux distributions.</para>
+<para>There have been occurrences of RLS servers hanging on RedHat 9 systems. The external symptoms are:</para>
+<orderedlist>
+  <listitem><para>The server does not accept new connections from clients, with an error message similar to:
+        <screen>connect(rls://XXXXX): globus_rls_client: IO timeout:
+globus_io_tcp_register_connect() timed out after 30 seconds</screen>
+  </para></listitem>
+  <listitem><simpara> Often, the server continues to receive and send updates as configured
+          and respond to signals. You can check this by querying
+        other servers that interact with the one that's hung.
+    Under gdb:
+    All the server threads are waiting to be signaled on a condition
+          variable. Sometimes, this is in <computeroutput>globus_io</computeroutput> functions, particularly
+        in <computeroutput>globus_io_cancel()</computeroutput>.</simpara></listitem>
+  </orderedlist>
+
+<section><title>Probable cause</title>
+<para> This seems to be due to a problem in the new kernel and thread libraries
+      of RedHat 9. A problem in <computeroutput>pthread_cond_wait()</computeroutput> causes threads
+    not to wake up correctly.</para>
+<para>  This problem has been seen with the following kernels and glibc packages:</para>
+<itemizedlist>
+  <listitem><para><emphasis>    Kernels:</emphasis>
+    <itemizedlist>
+      <listitem><simpara> 2.4.20-30.9</simpara></listitem>
+      <listitem><simpara> 2.4.20-8</simpara></listitem>
+    </itemizedlist>
+  </para></listitem>
+  <listitem><para><emphasis>    glibc:</emphasis>
+    <itemizedlist>
+      <listitem><simpara>    glibc-2.3.2-27.9.7</simpara></listitem>
+    </itemizedlist>
+  </para></listitem>
+</itemizedlist>
+</section>
+
+<section><title>Suggested workaround</title>
+<para> The problems don't seem to arise when RLS is linked with older pthread
+        libraries. This can be done as by adding a couple of lines to the RLS startup
+  script in <computeroutput>$GLOBUS_LOCATION/sbin/SXXrls</computeroutput>, as shown:</para>
+<screen>&lt;--- START ---&gt;
+#!/bin/sh
+
+GLOBUS_LOCATION=/opt/gt3.2
+MYSQL=/opt/mysql
+IODBC=/opt/iodbc
+
+export GLOBUS_LOCATION
+
+#RedHat 9 workaround
+LD_ASSUME_KERNEL=2.4.1
+export LD_ASSUME_KERNEL
+&lt;--- END ---&gt;</screen>
+<para>On i586 systems, set:</para>
+<screen>LD_ASSUME_KERNEL=2.2.5</screen>
+</section>
+</section>
+
+
+</section>
