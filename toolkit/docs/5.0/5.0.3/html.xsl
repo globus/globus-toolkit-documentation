@@ -229,10 +229,10 @@
                                                                                 ?</xsl:processing-instruction>
                                                                
                                                                 <!-- add temporary DRAFTS box here -->
-                                                                <xsl:processing-instruction name="php">
+       <!--                                                          <xsl:processing-instruction name="php">
                                                                                 include_once("/mcs/globus.org/toolkit/docs/5.0/5.0.3/includes/docbook_drafts.inc");
                                                                                 ?</xsl:processing-instruction>
-<!-- 
+
 
 -->                                                   
 
