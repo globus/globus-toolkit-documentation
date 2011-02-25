@@ -17,7 +17,7 @@ html:
 
 
 pdf:
-	/usr/local/RenderX/XEP/xep \
+	/usr/local/RenderX/XEP/xep -quiet \
 	-xml $(FILENAME) \
 	-xsl custom_fo.xsl \
 	-out index.pdf
