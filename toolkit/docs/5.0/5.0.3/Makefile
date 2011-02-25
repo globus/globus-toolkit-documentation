@@ -17,7 +17,7 @@ html:
 
 
 pdf:
-	~bacon/XEP/xep \
+	/usr/local/RenderX/XEP \
 	-xml $(FILENAME) \
 	-xsl custom_fo.xsl \
 	-out index.pdf
