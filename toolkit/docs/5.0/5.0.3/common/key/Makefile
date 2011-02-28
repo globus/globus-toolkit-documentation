@@ -14,7 +14,7 @@ pdf: fo xep
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
 
-#fo:
+fo:
 	xsltproc \
 	--xinclude \
 	-o index.fo \
