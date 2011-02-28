@@ -4,7 +4,7 @@ export XML_CATALOG_FILES=../../catalog
 FILENAME= index.xml
 
 #all: lint html
-#pdf: fo xep
+pdf: fo xep
 
 #html:
 	xsltproc \
@@ -22,8 +22,8 @@ FILENAME= index.xml
 	../../custom_fo.xsl \
 	$(FILENAME)
 	
-#xep:
-	~bacon/XEP/xep -quiet \
+xep:
+	/usr/local/RenderX/XEP/xep -quiet \
 	-fo index.fo \
 	-pdf commonRuntimeKeyConcepts.pdf
 
