@@ -22,7 +22,7 @@ fo:
 	$(FILENAME)
 	
 xep:	
-	~bacon/XEP/xep -quiet \
+	/usr/local/RenderX/XEP/xep -quiet \
 	-fo index.fo \
 	-pdf gtUserGuide.pdf
 
