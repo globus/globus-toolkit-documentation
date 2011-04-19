@@ -1,0 +1,607 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
+[
+
+<!ENTITY % xinclude SYSTEM "../../../xinclude.mod" >
+<!ENTITY prompt "<prompt>&#37; </prompt>" >
+
+%xinclude;
+
+]>
+<book id="gram5Admin">
+<title>GT <replaceable role="entity">version</replaceable> GRAM5 : System Administrator's Guide</title>
+<titleabbrev> System Administrator's Guide</titleabbrev>
+ 
+<bookinfo><abstract><title>Introduction</title>
+
+<para>This guide contains advanced configuration information
+  for system administrators working with GRAM5. It provides references to
+  information on procedures typically performed by system administrators,
+  including installation, configuring, deploying, and testing the
+  installation. It also describes additional prerequisites and host settings
+  necessary for GRAM5 operation. Readers should be familiar with the
+  <olink targetdoc="executionKey">Key Concepts</olink> and
+  <olink targetdoc="executionKey" targetptr="execution-approach">Implementation
+  Approach</olink>
+  for GRAM5 to understand the motivation for and interaction between the
+  various deployed components.
+</para>
+
+
+<para>  <important>
+    <simpara> The information in this GRAM5 Admin Guide is in addition to the basic Globus Toolkit prerequisite, 
+   overview, installation, security configuration instructions in the <olink targetdoc="gtadmin" />.  
+    Read through this guide before continuing!</simpara>  
+  </important></para>
+</abstract></bookinfo>
+<!--  will add back when the output is more useful - i lost the indexterms i'd added, need to add them again
+<index type="gram5-howto">
+    <title>Admin How-tos Index</title>
+</index>
+-->
+<!-- introduction -->
+
+<chapter id="gram5-admin-installing" xreflabel="Building and installing GRAM5"><title>Building and Installing</title>
+  <para>GRAM5 is built and installed as part of
+    a default GT <replaceable role="entity">version</replaceable> installation. For basic installation instructions, see   <olink targetdoc="gtadmin"/>.</para>
+  
+<!-- local scheduler -->
+<section id="gram5-admin-lrm"><title>Local Resource Manager</title>
+  <indexterm type="gram5"><primary>installing</primary><secondary>prerequisites</secondary><tertiary>local scheduler</tertiary></indexterm>
+    <indexterm type="gram5-howto"><primary>installing</primary><secondary>prerequisites</secondary><tertiary>local scheduler</tertiary></indexterm>
+<para> 
+  GRAM5 depends on a local mechanism for starting and controlling jobs.
+  GRAM5 includes a fork <glossterm>local resource
+  manager</glossterm> which requires no special software to execute
+  jobs on the local host. GRAM5 can also be configured to use additional
+  batch facilities and schedulers such as condor, torque, or LSF. Install
+  and configure any local resource managers you intend to use prior to
+  configuring GRAM5.
+</para>
+</section>
+
+<!-- lrm adapters -->
+<section id="gram5-admin-lrmAdapters"><title>LRM Adapters</title>
+  <indexterm type="gram5"><primary>installing</primary><secondary>prerequisites</secondary><tertiary>lrm adapter</tertiary></indexterm>
+    <indexterm type="gram5-howto"><primary>installing</primary><secondary>prerequisites</secondary><tertiary>lrm adapter</tertiary></indexterm>
+  <para>
+  GRAM5 depends on LRM adapters to execute jobs described by GRAM5 <glossterm>
+  RSL</glossterm> documents on a resource managed by a LRM.
+  </para>
+  <para>
+      LRM adapters included in the GT <replaceable role="entity">version</replaceable> release are:
+  <table>
+    <title>Supported LRM Adapters</title>
+    <tgroup cols="2">
+      <thead>
+        <row>
+          <entry>LRM Adapter Name</entry>
+          <entry>LRM Supported</entry>
+        </row>
+      </thead>
+      <tbody>
+        <row>
+          <entry>fork</entry>
+          <entry>Unscheduled local execution</entry>
+        </row>
+        <row>
+          <entry>pbs</entry>
+          <entry><ulink url="http://www.clusterresources.com/products/torque-resource-manager.php">Torque</ulink></entry>
+        </row>
+        <row>
+          <entry>condor</entry>
+          <entry><ulink url="http://www.cs.wisc.edu/condor/">Condor</ulink></entry>
+        </row>
+        <row>
+          <entry>lsf</entry>
+          <entry><ulink url="http://www.platform.com/Products/Platform.LSF.Family/Platform.LSF/">LSF</ulink></entry>
+        </row>
+        <row>
+          <entry>SGE</entry>
+          <entry><ulink url="http://gridengine.sunsource.net/">Grid Engine</ulink></entry>
+        </row>
+       </tbody>
+      </tgroup>
+    </table>
+    <note><simpara>The <literal>pbs</literal> LRM adapter may work with other systems
+    that implement POSIX batch environment services.</simpara></note>
+  </para>
+
+  <para>
+      For configuration details, see "Configuring LRM adapters" in the
+  <olink targetptr="gram5-configuring">Configuring</olink> section.
+  </para>
+
+</section>
+
+</chapter>
+
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../GRAM5_Interface_Config_Frag.xml"/>
+
+<chapter id="gram5-admin-deploying"><title>Deploying </title>
+  <indexterm type="gram5"><primary>deploying</primary></indexterm>
+    <indexterm type="gram5-howto"><primary>deploying</primary></indexterm>
+  <para>GRAM5 is installed as part of a standard toolkit installation. By
+  default the <literal>fork</literal> LRM interface is installed and configured
+  to use the poll interface.
+  </para>
+  
+  <para>In order to run the service, the
+  <command>globus-gatekeeper</command> program must be started on a service
+  node. This may be done in two supported ways, either via a super-server such
+  as <application>inetd</application> or <application>xinetd</application>, or
+  as a stand-alone daemon process.
+  </para>
+
+  <section id="gram5-admin-deploying-servicesconf"><title>Deploying GRAM5 via inetd or xinetd</title>
+
+  <para>To deploy GRAM5 to be started by <application>inetd</application>,
+  define a service entry for the gsigatekeeper service in
+  <filename>/etc/services</filename> file if it is not already present. The
+  ICANN-assigned port number for the service is 2119, so add an entry like:
+
+  <programlisting>gsigatekeeper   2119/tcp</programlisting>
+  </para>
+  
+      <section id="gram5-admin-deploying-inetdconf">
+        <title>Deploying GRAM5 via inetd</title>
+
+        <para>To deploy GRAM5 to be started via
+        <application>inetd</application>, modify
+        <filename>/etc/inetd.conf</filename> (or your operating-system specific
+        path to this file) by adding the following entry (on one line):
+
+        <programlisting>gsigatekeeper stream tcp nowait root /usr/bin/env env LD_LIBRARY_PATH=<replaceable>GLOBUS_LOCATION</replaceable>/lib <replaceable>GLOBUS_LOCATION</replaceable>/sbin/globus-gatekeeper -conf <replaceable>GLOBUS_LOCATION</replaceable>/etc/globus-gatekeeper.conf</programlisting>
+
+            After doing so, run the operating-system specific command to 
+            have <application>inetd</application> reload its configuration.
+        </para>
+
+        <important>
+        <para>This example assumes that the <envar>LD_LIBRARY_PATH</envar>
+        environment variable is needed to be able to run the GRAM5 programs and
+        scripts. This is operating-system specific and may need to be changed.
+        Consult the documentation for the operating system's runtime linker in
+        the case of runtime problems.</para>
+        
+        <para>The <replaceable>GLOBUS_LOCATION</replaceable> string in the
+        above example must be replaced with the actual path where GT
+        has been installed.
+        </para></important>
+
+        <note>
+        <para>
+        When deploying GRAM5 via xinetd, be sure to include the command-line
+        option <option>-inetd</option> in the gatekeeper configuration file;
+        otherwise, the gatekeeper will log a warning each time it is started.
+        </para>
+        </note>
+      </section>
+
+      <section id="gram5-admin-deploying-xinetdconf">
+        <title>Deploying GRAM5 via xinetd</title>
+            <para>To deploy GRAM5 to be started via
+            <application>xinetd</application>, create a file in the
+            <filename>/etc/xinetd.d/</filename> directory (or the
+            operating-system specific path to xinetd configuration files) called
+            <filename>gsigatekeeper</filename>  with the following contents:
+
+            <programlisting>service gsigatekeeper
+{
+    socket_type = stream
+    protocol = tcp
+    wait = no
+    user = root
+    env = LD_LIBRARY_PATH=<replaceable>GLOBUS_LOCATION</replaceable>/lib
+    server = <replaceable>GLOBUS_LOCATION</replaceable>/sbin/globus-gatekeeper
+    server_args = -conf <replaceable>GLOBUS_LOCATION</replaceable>/etc/globus-gatekeeper.conf
+    disable = no
+}</programlisting>
+
+            After doing so, run the operating-system specific command to 
+            have <application>xinetd</application> reload its configuration.
+            </para>
+
+        <important>
+        <para>This example assumes that the <envar>LD_LIBRARY_PATH</envar>
+        environment variable is needed to be able to run the GRAM5 programs and
+        scripts. This is operating-system specific and may need to be changed.
+        Consult the documentation for the operating system's runtime linker in
+        the case of runtime problems.</para>
+        
+        <para>The <replaceable>GLOBUS_LOCATION</replaceable> string in the
+        above example must be replaced with the actual path where GT
+        has been installed.
+        </para></important>
+
+        <note>
+        <para>
+        When deploying GRAM5 via xinetd, be sure to include the command-line
+        option <option>-inetd</option> in the gatekeeper configuration file;
+        otherwise, the gatekeeper will log a warning each time it is started.
+        </para>
+        </note>
+      </section>
+  </section>
+
+  <section id="gram5-admin-deploying-daemon"><title>Deploying GRAM5 as a daemon</title>
+  <para>
+    To deploy GRAM5 to be started as a daemon, run the
+    <command>globus-gatekeeper</command> at boot time. This may be done in
+    an init script, via cron, or other system-specific methods. The typical
+    command-line to run is
+    <programlisting><command>globus-gatekeeper <option>-conf <envar>$GLOBUS_LOCATION</envar>/etc/globus-gatekeeper.conf</option></command></programlisting>
+
+  </para>
+
+  <note>
+    <para>
+        When deploying GRAM5 as a daemon, be sure to include the command-line
+        option <option>-f</option> in the gatekeeper configuration file;
+        otherwise, the gatekeeper will log a warning each time it is started.
+    </para>
+  </note>
+  </section>
+</chapter>
+
+<chapter id="gram5-admin-running-seg"><title>Running the SEG </title>
+  <indexterm type="gram5"><primary>SEG</primary></indexterm>
+
+  <section>
+    <title>Starting the SEG</title>
+   
+      <para>
+      GRAM5 can be configured to use the
+      <command>globus-job-manager-event-generator</command> program to
+      monitor job state changes. This is often more efficient than using
+      a LRM adapter's <methodname>poll</methodname> method. This program
+      is configured when the LRM-specific bundle is installed. However, by
+      default, the job manager does not use the SEG. It must be explicitly
+      enabled by adding the <option>-seg-module
+      <replaceable>LRM</replaceable></option> option to the job manager
+      configuration.
+      </para>
+
+      <para>
+      To start the <command>globus-job-manager-event-generator</command>
+      program, add the following command to your system init scripts or
+      crontab to be run at boot time:
+
+      <programlisting><command><envar>$GLOBUS_LOCATION</envar>/sbin/globus-job-manager-event-generator</command> <option>-scheduler</option> <replaceable>LRM</replaceable> <option>-background</option> <option>-pidfile</option> <replaceable>PIDFILE</replaceable></programlisting>
+      </para>
+
+      <para>
+      This will start the <command>globus-job-manager-event-generator</command>
+      to monitor jobs for the resource named by <replaceable>LRM</replaceable>
+      in the background. The process id of the command will be written to the
+      file named by <replaceable>PIDFILE</replaceable>, so that processes can
+      check if it is running and kill it if necessary.
+      </para>
+
+      <para>
+          <important>
+              <para>
+              If the job manager is configured to use a SEG module but the
+              <command>globus-job-manager-event-generator</command> is not
+              running for that LRM, jobs will appear to hang. It is 
+              important that the program be running whenever GRAM5 jobs might
+              be run.
+              </para>
+          </important>
+      </para>
+  </section>
+  <section>
+    <title>Stopping the SEG</title>
+
+    <para>
+    To stop the SEG, kill the
+    <command>globus-job-manager-event-generator</command> process. The
+    <option>-pidfile</option> option makes it easy to know which process to
+    kill. When the SEG terminates, it will remove that file.
+    </para>
+
+    <example>
+        <title>Starting and Stopping the SEG</title>
+
+        <para>
+        This example shows how to start and stop the SEG using the command-line
+        options described above.
+        </para>
+
+        <screen>&prompt;<command>globus-job-manager-event-generator</command> <option>-scheduler pbs</option> <option>-background</option> <option>-pidfile</option> <filename><envar>$GLOBUS_LOCATION</envar>/var/globus-job-manager-seg-pbs.pid</filename>
+<computeroutput>Running in background (78258)</computeroutput>
+&prompt;<command>kill</command> `<command>cat</command> <option><filename><envar>$GLOBUS_LOCATION</envar>/var/globus-job-manager-seg-pbs.pid</filename></option>`</screen>
+    </example>
+    </section>
+</chapter>
+
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+  href="../GRAM5_Performance_Guide.xml"/>
+  
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+  href="../GRAM5_Audit_Logging.xml"/>
+  
+  <!--
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+  href="../GRAM5_SoftEnv_Support.xml"/>
+  -->
+
+<chapter id="gram5-admin-testing"><title>Testing</title>
+	<para>
+        There are three test suites available to verify that the GRAM5 client
+        and service are installed corrected.
+        </para>
+
+        <section>
+            <title>GRAM protocol tests</title>
+            <para>
+                The GRAM protocol test suite tests the implementation of the
+                GRAM protocol library which is used by the job manager and GRAM
+                clients to process messages. The following examples shows how
+                to run the test suite.
+            </para>
+
+            <example>
+                <title>Running the GRAM Protocol Test Suite</title>
+                <screen>&prompt;<command>cd</command> <filename><envar>$GLOBUS_LOCATION</envar>/test/globus_gram_protocol_test</filename>
+&prompt;<command>grid-proxy-init</command>
+<computeroutput>Your identity: /DC=org/O=example/OU=grid/CN=Joe User
+Enter GRID pass phrase for this identity:
+Creating proxy ................................... Done
+Your proxy is valid until: Thu Nov 12 23:28:05 2009</computeroutput>
+&prompt;<command>./TESTS.pl</command>
+<computeroutput>globus-gram-protocol-allow-attach-test...........ok
+globus-gram-protocol-error-test..................ok
+globus-gram-protocol-io-test.....................ok
+globus-gram-protocol-pack-test...................ok
+pack-with-extensions-test........................ok
+create-extensions-test...........................ok
+unpack-message-test..............................ok
+unpack-with-extensions-test......................ok
+unpack-job-request-reply-with-extensions-test....ok
+unpack-status-reply-with-extensions-test.........ok
+All tests successful.
+Files=10, Tests=42,  1 wallclock secs ( 0.37 cusr +  0.24 csys =  0.61 CPU)</computeroutput></screen>
+            </example>
+        </section>
+
+        <section>
+            <title>GRAM client tests</title>
+            <para>
+                The GRAM client test suite tests the interactions between the
+                GRAM client API implementation and the job manager service.
+                These tests include authentication, callback, signal, job,
+                and cancellation tests.
+            </para>
+
+            <example>
+                <title>Running the GRAM Client Test Suite</title>
+                <screen>&prompt;<command>cd</command> <filename><envar>$GLOBUS_LOCATION</envar>/test/globus_gram_client_test</filename>
+&prompt;<command>grid-proxy-init</command>
+<computeroutput>Your identity: /DC=org/O=example/OU=grid/CN=Joe User
+Enter GRID pass phrase for this identity:
+Creating proxy ................................... Done
+Your proxy is valid until: Thu Nov 12 23:28:05 2009</computeroutput>
+&prompt;<command>./TESTS.pl</command>
+<computeroutput>globus-gram-client-activate-test................ok
+globus-gram-client-callback-contact-test........ok
+globus-gram-client-cancel-test..................ok
+globus-gram-client-nonblocking-register-test....ok 1/4Failed submitting job request because an authorization operation failed
+globus_xio_gsi: gss_init_sec_context failed.
+GSS Major Status: Unexpected Gatekeeper or Service Name
+globus_gsi_gssapi: Authorization denied: The name of the remote entity (/DC=org/O=example/OU=grid/CN=Joe User), and the expected name for the remote entity (/DC=org/O=example/OU=grid/CN=Joe UserX) do not match
+.
+globus-gram-client-nonblocking-register-test....ok
+globus-gram-client-refresh-credentials-test.....ok
+globus-gram-client-register-test................ok
+globus-gram-client-register-callback-test.......ok 1/4Failed submitting job request because an authorization operation failed
+globus_xio_gsi: gss_init_sec_context failed.
+GSS Major Status: Unexpected Gatekeeper or Service Name
+globus_gsi_gssapi: Authorization denied: The name of the remote entity (/DC=org/O=example/OU=grid/CN=Joe User), and the expected name for the remote entity (/DC=org/O=example/OU=grid/CN=Joe UserX) do not match
+.
+globus-gram-client-register-callback-test.......ok
+globus-gram-client-register-cancel-test.........ok
+globus-gram-client-ping-test....................ok
+globus-gram-client-status-test..................Made 3961 calls to status in 60.416390 seconds
+globus-gram-client-status-test..................ok
+globus-gram-client-two-phase-commit-test........ok
+globus-gram-client-register-ping-test...........ok
+globus-gram-client-stdio-size-test..............job manager returned 0 (Success) when I expected it to still be streaming output
+globus-gram-client-stdio-size-test..............ok
+version-test....................................ok
+All tests successful.
+Files=14, Tests=33, 791 wallclock secs (32.10 cusr +  5.34 csys = 37.44 CPU)</computeroutput></screen>
+            <para>
+                <note>
+                    <para>
+                        Some of the test cases display messages that look like
+                        errors when running. This is to be expected. The only
+                        concern should be the final lines indicating if the
+                        tests are successful or not.
+                    </para>
+                </note>
+            </para>
+            </example>
+
+            <para>
+                <note>
+                    <para>
+                        By default, this suite uses tests against a personal
+                        gatekeeper running the <literal>fork</literal> LRM. To
+                        run against another service, set the environment
+                        variable <envar>CONTACT_STRING</envar> to the service
+                        contact string prior to starting the tests.
+                    </para>
+                </note>
+            </para>
+        </section>
+
+        <section>
+            <title>GRAM Job Manager Tests</title>
+            <para>
+                The GRAM job manager test suite tests the features provided
+                by the LRM scripts, including detecting failures, staging
+                files, and submitting different types of jobs. The following
+                example shows how to run the job manager tests.
+            </para>
+
+            <example>
+                <title>Running the GRAM Job Manager Test Suite</title>
+
+                <screen>&prompt;<command>cd</command> <filename><envar>$GLOBUS_LOCATION</envar>/test/globus_gram_job_manager_test</filename>
+&prompt;<command>grid-proxy-init</command>
+<computeroutput>Your identity: /DC=org/O=example/OU=grid/CN=Joe User
+Enter GRID pass phrase for this identity:
+Creating proxy ................................... Done
+Your proxy is valid until: Thu Nov 12 23:28:05 2009</computeroutput>
+&prompt;<command>./TESTS.pl</command>
+<computeroutput>job-manager-script-test..................ok
+globus-gram-job-manager-stdio-test.......ok
+globus-gram-job-manager-submit-test......ok
+globus-gram-job-manager-failure-test.....ok
+globus-gram-job-manager-rsl-size-test....ok
+globus-gram-job-manager-user-test........ok
+All tests successful.
+Files=6, Tests=137, 200 wallclock secs (32.10 cusr +  5.34 csys = 37.44 CPU)</computeroutput></screen>
+            </example>
+            <para>
+                <note>
+                    <para>
+                    This test requires a GridFTP server to be running on the
+                    host running the test suite. If one is not running, then the
+                    following test cases will fail:
+                    <literal>globus-gram-job-manager-stdio-test</literal>
+                    subtests 2, 6, 9, 12, 13, 16, 17, 18, 19.
+                    </para>
+                </note>
+            </para>
+            <para>
+                <note>
+                    <para>
+                        By default, this suite uses tests against a personal
+                        gatekeeper running the <literal>fork</literal> LRM. To
+                        run against another service, set the environment
+                        variable <envar>CONTACT_STRING</envar> to the service
+                        contact string prior to starting the tests.
+                    </para>
+                </note>
+            </para>
+
+        </section>
+</chapter>
+
+<chapter id="gram5-admin-security_considerations"><title>Security Considerations </title>
+  <para>No special security considerations exist at this time.</para>
+</chapter>
+
+<chapter id="gram5-admin-debugging">
+  <title>Admin Debugging</title>
+  <para>By default, GRAM5 logs errors to
+  <filename><envar>$HOME</envar>/gram_<replaceable>YYYYMMDD</replaceable>.log</filename>
+  where <replaceable>YYYYMMDD</replaceable> is the time of the log event in
+  GMT. The log file format conforms to <ulink url="http://www.cedps.net/index.php/LoggingBestPractices">CEDPS Logging Best Practices</ulink>. GRAM5 log files are governed by the log levels defined in the job manager configuration file. The log levels available are defined below:
+  <table id="gram5-log-levels">
+      <title>GRAM5 Log Levels</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+        <colspec colname='gram5-log-level-name'/>
+        <colspec colname='gram5-log-level-meaning'/>
+        <colspec colname='gram5-log-level-default'/>
+        <thead>
+          <row>
+            <entry>Level</entry>
+            <entry>Meaning</entry>
+            <entry>Default Behavior</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><literal>FATAL</literal></entry>
+            <entry>Problems which cause the job manager to terminate prematurely</entry>
+            <entry>Enabled</entry>
+          </row>
+          <row>
+            <entry><literal>ERROR</literal></entry>
+            <entry>Problems which cause a job or operation to fail</entry>
+            <entry>Enabled</entry>
+          </row>
+          <row>
+            <entry><literal>WARN</literal></entry>
+            <entry>Problems which cause minor problems with job execution or monitoring</entry>
+            <entry>Disabled</entry>
+          </row>
+          <row>
+            <entry><literal>INFO</literal></entry>
+            <entry>Major events in the lifetime of the job manager and its jobs</entry>
+            <entry>Disabled</entry>
+          </row>
+          <row>
+            <entry><literal>DEBUG</literal></entry>
+            <entry>Minor events in the lifetime of jobs</entry>
+            <entry>Disabled</entry>
+          </row>
+          <row>
+            <entry><literal>TRACE</literal></entry>
+            <entry>Job processing details</entry>
+            <entry>Disabled</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </para>
+
+  <para>To enable logging for GRAM5, modify 
+  <filename><envar>$GLOBUS_LOCATION</envar>/etc/globus-job-manager.conf</filename>
+  so that it has either <option>-stdio-log
+  <replaceable>PATH</replaceable></option> to log to a file or
+  <option>-enable-syslog</option> to log using the syslog service.  To select
+  log levels, add <option>-log-levels
+  "<replaceable>LEVELS</replaceable>"</option> to the configuration file. The
+  <replaceable>LEVELS</replaceable> string can contain any of the log levels
+  mentioned aboved joined by the vertical bar character '|'.
+  </para>
+
+</chapter>
+
+<!--
+    This is the subset of the command-line interface that is configured by
+    the admin
+-->
+<chapter id="gram5-admin-programs">
+  <title>GRAM5 Admin Programs</title>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../globus-gram-audit-manual.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../globus-job-manager-event-generator-manual.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../globus-job-manager-manual.xml"/>
+</chapter>
+    
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../GRAM5_Troubleshooting_Frag.xml"/>
+
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+    href="../GRAM5_Usage_Statistics_Frag.xml"/>
+
+<!--  LocalWords:  NOPASSWD
+ -->
+  <glossary role="auto" id="glossary-gram5Admin">
+    <!-- 
+    <remark>some terms not in the docs but wanted in glossary: 
+    <glossterm>scheduler</glossterm>
+    </remark>
+    -->
+    <glossdiv><title>A</title>
+      <glossentry>
+        <glossterm>Dummy term</glossterm>
+        <glossdef>
+          <para>This is a dummy entry for the automatic glossary database. Do not edit.</para>
+        </glossdef>
+      </glossentry>
+    </glossdiv>
+  </glossary>
+  <index type="gram5">
+    <title>Index</title>
+</index>
+</book>
