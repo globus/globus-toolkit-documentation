@@ -1,0 +1,181 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+<chapter id="gram5-approach">
+  <title>GT <replaceable role="entity">version</replaceable> GRAM5 Approach</title>
+  <titleabbrev>GRAM5 Approach</titleabbrev> 
+
+    <section id="gram5-approach-intro"><title>Introduction</title>
+
+<para>
+  The GRAM5 software implements a solution to the job-management problem
+  described in <olink targetdoc="gram5Key"/>. This solution is specific to
+  operating systems following the POSIX programming and security model.
+</para>
+</section>
+
+    <section id="gram5-approach-approach"><title>Component architecture approach</title>
+
+<para>
+GRAM5's job management services interact with local resource managers
+and other service components of GT
+<replaceable role="entity">version</replaceable> in order to support job
+execution with coordinated file staging.
+</para>
+  
+  <!-- TODO: GRAM5 Component Diagram
+
+  <figure id="GRAM5_components"><title>GRAM5 Components</title>
+    <mediaobject>
+      <imageobject role="html">
+        <imagedata fileref="GRAM5_components.png" format="PNG" align="center"/>
+      </imageobject>
+      <imageobject role="fo">
+        <imagedata fileref="GRAM5_components.png" format="PNG" align="center"  contentwidth="6in"/>
+      </imageobject>
+    </mediaobject>
+  </figure>
+  -->
+
+  <section><title>GRAM5 Architecture</title>
+
+    <para>The GRAM5 service architecture consists of several components which
+    work together to authenticate users, manage jobs, interface with the LRM,
+    and stage files.  These components are described in the following table.
+    </para>
+
+    <table>
+        <title>GRAM5 Service Components</title>
+        <tgroup cols="2">
+            <tbody>
+            <row>
+                <entry><simpara>Gatekeeper</simpara></entry>
+                <entry><simpara>The <application>globus-gatekeeper</application>
+                service performs authentication and service startup for the
+                GRAM5 job management service. One instance of this daemon is
+                created for each job submission, but these instances are
+                short-lived.
+                </simpara></entry>
+            </row>
+            <row>
+                <entry><simpara>Job Manager</simpara></entry>
+                <entry><simpara>The
+                <application>globus-job-manager</application> daemon processes
+                job requests and coordinates file transfers. There is one 
+                long-lived instance of this per user per LRM and one
+                short-lived instance per job.
+                </simpara></entry>
+            </row>
+            <row>
+                <entry><simpara>Job Manager Script</simpara></entry>
+                <entry><simpara>The
+                <application>globus-job-manager-script.pl</application> process
+                interacts with the local resource manager via the LRM adapter
+                and file servers via the
+                <application>globus-url-copy</application> program.  There are
+                1-5 instances of this per user per LRM.</simpara></entry>
+            </row>
+            <row>
+                <entry><simpara>Job Manager LRM Adapter</simpara></entry>
+                <entry><simpara>The LRM adapter 
+                to interact directly with the LRM. It is loaded into the
+                Job Manager Script component when it starts.
+                </simpara></entry>
+            </row>
+            <row>
+                <entry><simpara>Scheduler Event Generator</simpara></entry>
+                <entry><simpara>The
+                <application>globus-job-manager-event-generator</application>
+                process parses LRM-specific data relating to job startup,
+                execution, and termination into an LRM-independent data format.
+                There is one instance of this program per LRM.</simpara></entry>
+            </row>
+            <row>
+                <entry><simpara>Scheduler Event Generator LRM
+                Module</simpara></entry>
+                <entry><simpara>The LRM module for the scheduler event
+                generator processes LRM state to produce events that the
+                Scheduler Event Generator writes to an event
+                log.</simpara></entry>
+            </row>
+            <row>
+                <entry><simpara>GRAM Audit Database</simpara></entry>
+                <entry><simpara>The Job Manager can be configured to write
+                audit records to a file. The
+                <command>globus-gram-audit</command> program loads those
+                records into an SQL database.</simpara></entry>
+            </row>
+            </tbody>
+        </tgroup>
+    </table>
+</section>
+
+
+  <section><title>External Components used by GRAM5</title>
+
+    <section><title>Local resource manager </title>
+    <para>GRAM5 uses a local resource manager (LRM) to schedule and run jobs on a
+    compute element. GRAM5 supports several common LRM systems (Condor, PBS, LSF)
+    and can also be configured to run jobs without an LRM.
+    </para>
+    </section>
+
+    </section>
+
+      <section><title>Internal Components used by GRAM5</title>
+
+    <section><title>Scheduler Event Generator</title>
+    <para>
+    The <command><olink targetdoc="gram5User" targetptr="gram5-cmd-globus-job-manager-event-generator">globus-job-manager-event-generator</olink></command>
+    program provides the job monitoring capability for
+    the GRAM5 service. Plugin modules provide an support for the
+    LRMs supported by GRAM5.</para>
+    </section>
+
+    <section><title>Fork Starter</title>
+    <para>
+    GRAM can be configured to use the
+    <olink targetdoc="gram5PI" targetptr="gram5-globus-fork-starter">Fork
+    Starter</olink> program to start and monitor job processes in place of a
+    LRM. This allows GRAM to use the SEG interface with fork jobs.
+    </para>
+
+    </section>
+  </section>
+</section>
+
+<section>
+    <title>GRAM Client-Server Interactions</title>
+
+    <para>
+    The GRAM client interacts with the <command>globus-gatekeeper</command>
+    to start a GRAM Job Manager process or to "ping" a GRAM Job Manager
+    service. The <command>globus-gatekeeper</command> program starts a Job
+    Manager process when the client initiates a job request or a version info 
+    query. In either of these cases, the gatekeeper creates a new Job Manager
+    process, passing a file descriptor that is the connection back to the
+    client, a file descriptor containing the HTTP message body, and sets
+    the <envar>X509_USER_PROXY</envar> environment variable to point to the
+    path of the delegated proxy. The <command>globus-gatekeeper</command>
+    program exits after this process is started. When the client does
+    a "ping" request, the <command>globus-gatekeeper</command> program reads
+    the service configuration file for the Job Manager service and verifies
+    that the executable exists, but does not start the Job Manager.
+    </para>
+
+    <para>
+    The GRAM client interacts with the <command>globus-job-manager</command>
+    program as it receives the response to a job request of version query,
+    using the security context established during its communication with the 
+    <command>globus-gatekeeper</command> program. It can then send messages
+    to the job contact returned from the job request to cancel a job, check its
+    status, signal it, register or unregister a callback contact, or renew a
+    job proxy. If it registers a callback contact either during job submission
+    or after the job has submitted, the <command>globus-job-manager</command>
+    will send https messages to the client with status updates when the GRAM
+    job state changes.
+    </para>
+</section>
+
+</chapter>
