@@ -1,0 +1,1028 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
+[
+
+<!ENTITY % xinclude SYSTEM "../../xinclude.mod" >
+<!ENTITY prompt "<prompt>&#37; </prompt>" >
+<!ENTITY globusrun "<command>globusrun</command>" >
+%xinclude;
+
+]>
+<book id="gram5User">
+<title>GT <replaceable role="entity">version</replaceable> GRAM5: User's Guide</title>
+<titleabbrev>User's Guide</titleabbrev>
+
+<bookinfo><abstract>
+<title>Introduction</title>
+<para>
+  GRAM services provide secure, remote job submission to different
+  <glossterm baseform="local resource manager">local resource
+  managers</glossterm> in a Grid
+  environment. This document describes how to use the RSL language and
+  command-line interfaces provided in GT <replaceable
+  role="entity">version</replaceable> to submit jobs to Grid resources.
+</para>
+</abstract></bookinfo>
+
+<chapter id="gram5-user-usagescenarios"><title>Using GRAM5</title>
+    
+    <section id="gram5-user-prepare"><title>Preparing to use GRAM</title>
+      <indexterm type="gram5"><primary>jobs</primary><secondary>preparing</secondary><tertiary>generate valid proxy</tertiary></indexterm>
+        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>preparing</secondary><tertiary>generate valid proxy</tertiary></indexterm>
+    <para>The first step to being able to use GRAM5 after installation is to
+    acquire a temporary Grid credential to use to authenticate with the GRAM5
+    service and any file services your job requires. Normally this is done via
+    either <olink targetdoc="gsicUser"
+    targetptr="grid-proxy-init"><command>grid-proxy-init</command></olink> or
+    via the <olink targetdoc="myproxyUser"
+    targetptr="myproxy-user-introduction">MyProxy</olink> service. 
+    </para>
+
+    <section id="gram5-user-gridproxyinit">
+        <title>Proxy credentials with grid-proxy-init</title>
+
+    <para>To generate a proxy credential using the
+    <command>grid-proxy-init</command> program, execute the command with
+    no arguments. By default, it will generate an impersonation proxy with
+    a lifetime of 12 hours.
+
+    <example>
+        <title>Generating a proxy with grid-proxy-init</title>
+
+        <para>
+        Thie example creates a 12 hour impersonation proxy to use to
+        authenticate with grid services such as GRAM5:
+
+        <screen>&prompt;<command>bin/grid-proxy-init</command>
+<computeroutput>Your identity: /O=Grid/OU=Example/CN=Joe User
+Enter GRID pass phrase for this identity:
+Creating proxy ................................. Done
+Your proxy is valid until: Tue Oct 26 01:33:42 2010</computeroutput></screen>
+        </para>
+    </example>
+    </para>
+
+    <important>
+    <para>
+    In order to generate a proxy credential, you must have first been issued an
+    identity credential by some certificate authority that is trusted by the
+    GRAM5 resource you want to use. To learn more about certificates and Grid
+    security in general, please read <olink targetdoc="gsicKey">Security
+    Key Concepts</olink>.
+    </para>
+    </important>
+
+    </section>
+    </section>
+
+    <xi:include href="../../Java_API_Download.xml"
+        xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+    <section id="gram5-user-service-credentials">
+    <title>Delegating credentials</title>
+      <indexterm type="gram5"><primary>jobs</primary><secondary>preparing</secondary><tertiary>delegating credentials</tertiary></indexterm>
+        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>preparing</secondary><tertiary>delegating credentials</tertiary></indexterm>
+    <para>
+    The credential created in the previous section is used to authenticate
+    with the GRAM5 service as well as to delegate a limited proxy of that
+    credential to the service so that it can process the job. This credential
+    delegation occurs when the <command>globus-gatekeeper</command> service
+    is first contacted when a job is to be submitted. By default, the tools
+    provided with GT <replaceable role="entity">version</replaceable> delegate
+    a <emphasis>limited proxy</emphasis>. This limited proxy can be used to
+    authenticate with other services on the client's behalf, but with the
+    services knowing that the proxy is not under direct control by the user.
+    </para>
+
+        <section>
+            <title>Delegated Credential Usage</title>
+            <para>
+            The delegated proxy can be used by the GRAM5 service and the job in
+            a few different ways:
+
+            <orderedlist>
+              <listitem><simpara>The GRAM5 service uses the credential to send job
+              state notification messages to clients which have registered to receive
+              them.</simpara></listitem>
+              <listitem><simpara>The GRAM5 service uses the credential to contact GASS
+              and GridFTP file servers to stage files to and from the execution
+              resource</simpara></listitem>
+              <listitem><simpara>The job executed by the GRAM5 service can use the
+              delegated credential for application-specific
+              purposes.</simpara></listitem>
+            </orderedlist>
+            </para>
+
+            <note>
+            <para>
+            In GRAM5, the Job Manager may manage multiple jobs simultaneously. It will
+            use the delegated proxy with the most time left for authentication.
+            Individual GRAM5 jobs will have separate proxies.
+            </para>
+            </note>
+
+            <para>
+            &globusrun;
+            <command>globus-job-run</command>, and 
+            <command>globus-job-submit</command> commands delegate
+            credentials automatically when submitting a job. Additionally,
+            &globusrun; can refresh the credentials used by the job and job
+            manager, after the job manager is started.
+            </para>
+        </section>
+    </section>
+
+    <section id="gram5-user-submitting-jobs">
+        <title>Submitting jobs</title>
+
+        <para>This section describes the steps needed to submit jobs to
+        resources managed by GRAM5 services. It describes how resources are
+        named, tools for submitting and monitoring jobs, and the RSL language
+        which describes requirements for jobs.
+        </para>
+
+        <section id="gram5-user-resource-names">
+            <title>Resource Names</title>
+
+            <para>
+            In GRAM5, a <glossterm>Gatekeeper Service Contact</glossterm>
+            contains the host, port, service name, and service identity 
+            required to contact a particular GRAM service. For convenience,
+            default values are used when parts of the contact are omitted.
+            An example of a full gatekeeper service contact is
+            <literal>grid.example.org:2119/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal>.
+            </para>
+
+            <para>
+            The various forms of the resource name using default values follow:
+
+            <itemizedlist>
+                <listitem><simpara><replaceable>HOST</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable><literal>/</literal><replaceable>SERVICE</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>/</literal><replaceable>SERVICE</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:/</literal><replaceable>SERVICE</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>/</literal><replaceable>SERVICE</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:/</literal><replaceable>SERVICE</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
+                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable><literal>/</literal><replaceable>SERVICE</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
+            </itemizedlist>
+
+            Where the various values have the following meaning:
+
+            <variablelist>
+                <varlistentry>
+                    <term><replaceable>HOST</replaceable></term>
+                    <listitem><simpara>Network name of the machine hosting the service.</simpara></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>PORT</replaceable></term>
+                    <listitem><simpara>Network port number that the service is listening on. If not specified, the default of <literal>2119</literal> is used.</simpara></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>SERVICE</replaceable></term>
+                    <listitem><simpara>Path of the service entry in <filename><envar>$GLOBUS_LOCATION</envar>/etc/grid-services</filename>. If not specified, the default of <literal>jobmanager</literal> is used.</simpara></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>SUBJECT</replaceable></term>
+                    <listitem><simpara>X.509 identity of the credential used by the service. If not specified, the default of <literal>host@</literal><replaceable>HOST</replaceable> is used.</simpara></listitem>
+                </varlistentry>
+            </variablelist>
+            </para>
+
+            <example>
+                <title>Gatekeeper Service Contact Examples</title>
+
+                <para>
+                The following strings all name the service 
+                <literal>grid.example.org:2119/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal>
+                using the formats with the various defaults described above.
+
+                <itemizedlist>
+                <listitem><simpara><literal>grid.example.org</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:2119</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:2119/jobmanager</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org/jobmanager</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:/jobmanager</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:2119:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
+                <listitem><simpara><literal>grid.example.org:2119/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
+                </itemizedlist>
+                </para>
+            </example>
+        </section>
+
+        <section>
+            <title>Running Jobs with <command>globus-job-run</command></title>
+
+            <para>
+            The <command>globus-job-run</command> provides a simple
+            blocking command-line interface to the GRAM service. The
+            <command>globus-job-run</command> program submits a job to a GRAM5
+            resource and waits for the job to terminate. After the job
+            terminates, the output and error streams of the job are sent to 
+            the output and error streams of <command>globus-job-run</command>
+            as if the job were run interactively. Note that input to the job
+            must be located in a file prior to running the job; true
+            interactive I/O is not supported by GRAM5.
+            </para>
+
+            <para>
+            The <command>globus-job-run</command> program has command-line
+            options to control most aspects of jobs run by GRAM5. However,
+            certain behaviors must be specified by definition of an RSL
+            string containing various job attributes. A more detailed description
+            about the RSL language is included on the section on running
+            jobs with &globusrun; below.
+            </para>
+
+            <para>
+            The following examples show some of the common command-line options
+            to <command>globus-job-run</command>. Full <olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-run"><command>globus-job-run</command> documentation</olink>
+            is available in the <olink targetdoc="gram5PI">GRAM5 public interface guide</olink>.
+            </para>
+
+            <example>
+                <title>Minimal job using globus-job-run</title>
+
+                <para>
+                The following command line submits a single instance of the 
+                <filename>/bin/hostname</filename> executable to the resource
+                named by
+                <systemitem class="service">grid.example.org:2119/jobmanager-pbs</systemitem>.
+
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs /bin/hostname</option></command>
+<computeroutput>node1.grid.example.org</computeroutput></screen>
+                </para>
+            </example>
+
+            <example>
+                <title>Multiprocess job using globus-job-run</title>
+
+                <para>
+                The following command line submits ten instances of an
+                executable <filename>a.out</filename>, staging it from the
+                client host to the service node using GASS. The
+                <filename>a.out</filename> program prints the name of the host
+                it is executing on.
+
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -np 10 -s a.out</option></command>
+<computeroutput>node1.grid.example.org
+node3.grid.example.org
+node2.grid.example.org
+node5.grid.example.org
+node4.grid.example.org
+node8.grid.example.org
+node6.grid.example.org
+node9.grid.example.org
+node7.grid.example.org
+node10.grid.example.org</computeroutput></screen>
+                </para>
+            </example>
+
+            <example>
+                <title>Canceling an interactive job </title>
+
+                <para>
+                This example shows how using the
+                <keycombo
+                action="simul"><keycap>Control</keycap><keycap>C</keycap></keycombo>
+                (or other system-specific mechanism for sending the
+                <literal>SIGINT</literal> signal) can be used to cancel a GRAM
+                job.
+                </para>
+
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs /bin/sleep 90</option></command>
+<userinput><keycombo><keycap>Control</keycap><keycap>C</keycap></keycombo></userinput>
+<computeroutput>GRAM Job failed because the user cancelled the job (error code 8)</computeroutput></screen>
+
+            </example>
+
+            <example>
+                <title>Setting job environment variables with globus-job-run</title>
+
+                <para>
+                The following command line submits one instances of the
+                executable <filename>/usr/bin/env</filename>, setting some
+                environment variables in the job environment beyond those
+                set by GRAM5. 
+
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -env TEST=1 -env GRID=1 /usr/bin/env</option></command>
+<computeroutput>HOME=/home/juser
+LOGNAME=juser
+GLOBUS_GRAM_JOB_CONTACT=https://client.example.org:3882/16001579536700793196/5295612977485997184/
+GLOBUS_LOCATION=/opt/globus-<replaceable role="entity">version</replaceable>
+GLOBUS_GASS_CACHE_DEFAULT=/home/juser/.globus/.gass_cache
+TEST=1
+X509_USER_PROXY=/home/juser/.globus/job/mactop.local/16001579536700793196.5295612977485997184/x509_user_proxy
+GRID=1</computeroutput></screen>
+                </para>
+            </example>
+
+            <example>
+                <title>Using custom RSL clauses with globus-job-run</title>
+
+                <para>
+                The following command line submits an mpi job using
+                <command>globus-job-run</command>, setting the
+                <literal>jobtype</literal> RSL attribute to
+                <literal>mpi</literal>. Any RSL attribute understood by the
+                LRM can be added to a job via this method.
+                </para>
+
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -np 5 -x '&amp;(jobtype=mpi)' a.out</option></command>
+<computeroutput>Hello, MPI (rank: 0, count: 5)
+Hello, MPI (rank: 3, count: 5)
+Hello, MPI (rank: 1, count: 5)
+Hello, MPI (rank: 4, count: 5)
+Hello, MPI (rank: 2, count: 5)</computeroutput>
+                </screen>
+            </example>
+
+            <example>
+                <title>Constructing RSL strings with globus-job-run</title>
+
+                <para>
+                The <command>globus-job-run</command> program can also generate
+                the RSL language description of a job based on the command-line
+                options given to it. This example combines some of the
+                features above and prints out the resulting RSL. This RSL string
+                can be passed to tools such as &globusrun; to
+                be run later.
+                </para>
+
+                <screen>&prompt;<command>globus-job-run -dumprsl <option>grid.example.org:2119/jobmanager-pbs -np 5 -x '&amp;(jobtype=mpi)' -env GRID=1 -env TEST=1 a.out</option></command>
+<computeroutput> &amp;(jobtype=mpi)
+    (executable="a.out")
+    (environment= ("GRID" "1") ("TEST" "1"))
+    (count=5)</computeroutput></screen>
+            </example>
+
+        </section>
+
+        <section>
+            <title>Submitting Jobs with <command>globus-job-submit</command></title>
+            <para>A related tool to <command>globus-job-run</command> is
+            <olink targetdoc="gram5PI"
+            targetptr="gram5-cmd-globus-job-submit"><command>globus-job-submit</command></olink>.
+            This command submits a job to a GRAM5 service then exits without
+            waiting for the job to terminate. Other tools
+            (<olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-cancel"><command>globus-job-cancel</command></olink>,
+            <olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-clean"><command>globus-job-clean</command></olink>, and
+            <olink targetdoc="gram5PI"
+            targetptr="gram5-cmd-globus-job-get-output"><command>globus-job-get-output</command></olink>)
+            allow futher interaction
+            with the job.
+            </para>
+
+            <important>
+            <para>
+                When using <command>globus-job-submit</command>, the job output
+                and state will remain on disk on the GRAM resource until one
+                of <command>globus-job-clean</command> or
+                <command>globus-job-cancel</command> is run for that job. Be
+                sure to clean up your jobs!
+            </para>
+            </important>
+
+            <para>
+            The <command>globus-job-submit</command> program has most of the
+            same command-line options as <command>globus-job-run</command>. 
+            When run, instead of displaying the output and error streams of
+            the job, it prints the job contact, which is used with the other
+            globus-job tools to interact with the job.
+            </para>
+
+            <example>
+                <title>globus-job-submit</title>
+                <para>
+                This example shows the interaction of submitting a job via 
+                <command>globus-job-submit</command>, checking its status
+                with <command>globus-job-status</command>, getting its
+                output with <command>globus-job-get-output</command>, and then
+                cleaning the job with <command>globus-job-clean</command>.
+                </para>
+
+                <screen>&prompt;<command>globus-job-submit <option>grid.example.org:2119/jobmanager-pbs /bin/hostname</option></command>
+<computeroutput>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</computeroutput>
+&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>PENDING</computeroutput>
+&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>ACTIVE</computeroutput>
+&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>DONE</computeroutput>
+&prompt;<command>globus-job-get-output <option>-r grid.example.org:2119/jobmanager-fork \
+    https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>node1.grid.example.org</computeroutput>
+&prompt;<command>globus-job-clean <option>-r grid.example.org:2119/jobmanager-fork \
+    https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>
+    WARNING: Cleaning a job means:
+        - Kill the job if it still running, and
+        - Remove the cached output on the remote resource
+
+    Are you sure you want to cleanup the job now (Y/N) ?
+</computeroutput>
+<userinput>y</userinput>
+<computeroutput>
+Cleanup successful.</computeroutput></screen>
+            </example>
+
+        </section>
+
+        <section id="gram5-user-globusrun">
+            <title>Using the globusrun tool</title>
+
+            <para>The <olink targetdoc="gram5PI" targetptr="gram5-cmd-globusrun">&globusrun;</olink> tool provides a more
+            flexible tool for submitting, monitoring, and canceling jobs. With
+            this tool, most of the functionality of the GRAM5 APIs are made
+            available.
+            </para>
+
+            <para>
+            One major difference between &globusrun; and the
+            other tools described above is that &globusrun;
+            uses the <olink targetdoc="gram5PI" targetptr="gram5-rsl">RSL
+            language</olink> to provide the job description, instead of multiple
+            command-line options to describe the various aspects of the job.
+            The section on <command>globus-job-run</command> contained a brief
+            example RSL in the <option>-dumprsl</option> example above.
+            </para>
+
+            <para>
+            The following sections show examples of the different modes that
+            &globusrun; can run in. Full information about
+            &globusrun; command-line options is available
+            in the public interface guide.
+            </para>
+
+            <section>
+                <title>Checking RSL Syntax</title>
+                <para>
+                This example shows how to check that an RSL document contains
+                a syntactically correct job description. Note that this mode
+                does not do semantic validation of the RSL, so an RSL document
+                that passes this test may not work when submitted to a GRAM5
+                service.
+                </para>
+
+                <example>
+                    <title>Checking RSL Syntax</title>
+                <screen>&prompt;&globusrun; <option>-p "&amp;(executable=a.out)"</option>
+<computeroutput>
+RSL Parsed Successfully...
+</computeroutput>
+&prompt;&globusrun; <option>-p "&amp;/executable=a.out)"</option>
+<computeroutput>
+ERROR: cannot parse RSL &amp;/executable=/adfadf/adf /adf /adf)
+
+Syntax: globusrun [-help] [-f RSL file] [-s][-b][-d][...] [-r RM] [RSL]
+
+
+Use -help to display full usage</computeroutput></screen>
+                </example>
+            </section>
+
+            <section>
+                <title>Checking Service Contacts</title>
+                <para>
+                This example shows how to check that a
+                <command>globus-gatekeeper</command> is running at a particular
+                contact and that the client and service have mutually-trusted 
+                credentials.
+                </para>
+
+                <example>
+                <title>GRAM Authentication test</title>
+                <screen>&prompt;&globusrun; <option>-a -r grid.example.org:2119/jobmanager-pbs</option>
+<computeroutput>GRAM Authentication test successful</computeroutput>
+&prompt;&globusrun; <option>-a -r grid.example.org:2119/jobmanager-lsf</option>
+<computeroutput>GRAM Authentication test failure: the gatekeeper failed to find the requested service</computeroutput>
+&prompt;&globusrun; <option>-a -r grid.example.org:2119/jobmanager-pbs:host@not.example.org</option>
+<computeroutput>GRAM Authentication test failure: an authorization operation failed
+globus_xio_gsi: gss_init_sec_context failed.
+GSS Major Status: Unexpected Gatekeeper or Service Name
+globus_gsi_gssapi: Authorization denied: The name of the remote host
+(host@not.example.org), and the expected name for the remote host
+(grid.example.org) do not match. This happens when the name in the host
+certificate does not match the information obtained from DNS and is often a DNS
+configuration problem.</computeroutput>
+                </screen>
+
+                <para>
+                    <note>
+                    <para>
+                    The DNS configuration problem was a common issue in GRAM2,
+                    but GRAM5 will not depend on DNS to resolve names for
+                    mutual authentication.
+                    </para>
+                    </note>
+                </para>
+            </example>
+            </section>
+
+            <section>
+                <title>Checking GRAM service version</title>
+
+                <para>
+                This example shows how to determine what software version of 
+                GRAM5 is deployed at a particular service contact.
+                </para>
+
+                <example>
+                    <title>GRAM version check</title>
+                <screen>&prompt;&globusrun; <option>-j -r grid.example.org:2119/jobmanager-pbs:host@not.example.org</option>
+<computeroutput>Toolkit version: 4.3.0-HEAD
+Job Manager version: 10.5 (1256257907-0)</computeroutput>
+                </screen>
+
+                <para>
+                    <note>
+                    <para>
+                        This example shows the version number for an unreleased
+                        development version of GRAM5. The actual numbers
+                        returned will be different.
+                    </para>
+                    </note>
+
+                    <note>
+                    <para>
+                        This feature is new in GRAM5. When contacting a GRAM2
+                        service, &globusrun; will display the following error
+                        message:
+
+                        <screen><computeroutput>GRAM version check failed : an incoming HTTP message did not contain the expected information</computeroutput></screen>
+                    </para>
+                    </note>
+                </para>
+                </example>
+            </section>
+
+            <section>
+                <title>Basic Interactive job with globusrun</title>
+
+                <para>
+                This example shows how to submit interactive job with
+                &globusrun;. When the <option>-s</option>
+                is used, the output of the job command is returned to the
+                client and displayed as if the command ran locally. This
+                is similar to the behavior of the
+                <command>globus-job-run</command> program described above.
+                </para>
+
+                <example>
+                    <title>Basic Interactive Job</title>
+                <screen>&prompt;&globusrun; <option>-s -r example.grid.org/jobmanager-pbs "&amp;(executable=/bin/hostname)(count=5)"</option>
+<computeroutput>node03.grid.example.org
+node01.grid.example.org
+node02.grid.example.urg
+node05.grid.example.org
+node04.grid.example.org</computeroutput></screen>
+                </example>
+            </section>
+
+            <section>
+                <title>Basic batch job with globusrun</title>
+
+                <para>
+                This example shows how to submit, monitor, and cancel a batch
+                job using &globusrun;. This method is useful
+                for the case where the job may run for a long time, the job may
+                be queued for a long time, or when there are network
+                reliability issues between the client and service.
+                </para>
+
+                <example>
+                    <title>Basic Batch Job</title>
+                <screen>&prompt;&globusrun; <option>-b -r grid.example.org:2119/jobmanager-pbs "&amp;(executable=/bin/sleep)(arguments=500)"</option>
+<computeroutput>globus_gram_client_callback_allow successful
+GRAM Job submission successful
+https://grid.example.org:38824/16001608125017717261/5295612977486019989/
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_PENDING</computeroutput>
+&prompt;&globusrun; <option>-status https://grid.example.org:38824/16001608125017717261/5295612977486019989/</option>
+<computeroutput>PENDING</computeroutput>
+&prompt;&globusrun; <option>-k https://grid.example.org:38824/16001608125017717261/5295612977486019989/</option>
+&prompt;</screen>
+                </example>
+            </section>
+
+            <section>
+                <title>Refreshing a GRAM5 Credential</title>
+                <para>
+                The following example shows how to refresh the credential used
+                by a job manager and a job.
+                </para>
+
+                <example>
+                    <title>Refreshing a Credential</title>
+                    <screen>&prompt;&globusrun; <option>-refresh-proxy https://grid.example.org:38824/16001608125017717261/5295612977486019989/</option>
+&prompt;<command>echo $?</command>
+<computeroutput>0</computeroutput></screen> 
+                    <para>
+                        <note>
+                            <para>
+                            In GT <replaceable role="entity">version</replaceable>,
+                            &globusrun; does not print any
+                            diagnostics when given the
+                            <option>-refresh-proxy</option> command-line option.
+                            Therefore, check the exit code as above to ensure that
+                            the refresh is successful.
+                            </para>
+                        </note>
+                    </para>
+                </example>
+            </section>
+
+            <section>
+                <title>Dealing with credential expiration</title>
+
+                <para>
+                When the Job Manager's credential is about to expire, it sends
+                a message to all clients registered for
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_STATE_FAILED</literal>
+                notifications that the job manager is terminating and that the
+                job will continue to run without the job manager.
+                </para>
+
+                <para>
+                Any client which receives such a message can (if necessary)
+                generate a new proxy as described above and then submit a
+                <emphasis>restart request</emphasis> to start a job manager
+                with a new credential. This job manager will resume monitoring
+                the jobs which were started prior to proxy expiration.
+                </para>
+
+                <para>
+                In this example, the &globusrun; displays an
+                error message when the job manager's proxy is about to expire.
+                The user creates a new proxy and resumes monitoring the job with
+                &globusrun;.
+                </para>
+
+                <example>
+                    <title>Proxy Expiration Example</title>
+                    <screen>&prompt;&globusrun; <option>-r grid.example.org "&amp;(executable=a.out)"</option>
+<computeroutput>globus_gram_client_callback_allow successful
+GRAM Job submission successful
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_ACTIVE
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_FAILED
+GRAM Job failed because the user proxy expired (job is still running) (error code 131)</computeroutput>
+&prompt;<command>grid-proxy-init</command>
+<computeroutput>Your identity: /DC=org/DC=example/OU=grid/CN=Joe User
+Enter GRID pass phrase for this identity:
+Creating proxy ........................................................................... Done
+Your proxy is valid until: Tue Nov 10 04:25:03 2009</computeroutput>
+&prompt;&globusrun; <option>-r grid.example.org "&amp;(restart="https://grid.example.org:1997/16001700477575114131/5295612977486005428/)"</option>
+<computeroutput>globus_gram_client_callback_allow successful
+GRAM Job submission successful
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_ACTIVE
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</computeroutput></screen>
+                </example>
+            </section>
+
+            <section>
+                <title>File staging</title>
+
+                <para>
+                In addition to the standard output and error stream 
+                output done by &globusrun;, GRAM5 can do basic file management
+                tasks to stage files to the GRAM5 service node before
+                submitting a job and to stage files from the GRAM5 service node
+                to a file service after the job completes.
+                </para>
+
+                <para>
+                GRAM5 file staging supports four URL schemes:
+                <literal>ftp</literal>, <literal>gsiftp</literal>, 
+                <literal>http</literal>, and <literal>https</literal>. Note,
+                that for the <literal>https</literal> scheme, GRAM expects
+                the file server to be running with the same identity as the
+                client.
+                </para>
+                <para>
+                General file staging is controlled by three RSL attributes:
+                <literal>file_stage_in</literal>,
+                <literal>file_stage_in_shared</literal>, and 
+                <literal>file_stage_out</literal>. In addition, the files named
+                by the RSL attributes <literal>executable</literal>,
+                <literal>stdin</literal> may be staged in and the files named
+                by the RSL attributes <literal>stdout</literal> and
+                <literal>stderr</literal> may be staged out.
+                </para>
+                <para>
+                The <literal>file_stage_in_shared</literal> RSL attribute
+                instructs GRAM to store a local copy of the resource named by
+                the URL in the GASS cache. This is useful if multiple
+                concurrent jobs will be accessing one or more common files. The
+                GASS cache will manage a reference count for files in the cache
+                and remove them when all jobs that refer to them complete.
+                </para>
+
+                <para>
+                The following example shows how to stage a few files from a 
+                GridFTP server to the GRAM node. It uses the
+                <literal>rsl_substitution</literal> mechanism to define a
+                subsitution variable to reduce the amount of redundancy in the
+                job description.
+                </para>
+
+                <example>
+                    <title>File stage in</title>
+
+                    <screen>&prompt;&globusrun; <option>-s -r grid.example.org:2119/jobmanager-pbs \
+    "&amp;(rsl_substitution = (GRIDFTP_SERVER gsiftp://gridftp.example.org)) \
+      (executable=/bin/ls)
+      (arguments=/tmp/staged_file)
+      (file_stage_in = ($(GRIDFTP_SERVER)/staged_file /tmp/staged_file))"</option>
+<computeroutput>/tmp/staged_file</computeroutput></screen>
+                </example>
+
+                <para>
+                The next example uses the
+                <literal>file_stage_in_shared</literal> RSL attribute to stage
+                a file into the cache. The file is transferred from
+                the client using the GASS https server embedded in the
+                &globusrun; program when the <option>-s</option> option is
+                used.
+                </para>
+
+                <example>
+                    <title>File stage in shared</title>
+                    <screen>&prompt;&globusrun; <option>-s -r grid.example.org:2119/jobmanager-pbs \
+    "&amp;(executable=/bin/ls) \
+      (arguments = -l /tmp/staged_file_link1 /tmp/staged_file_link1) \
+      (file_stage_in_shared = \
+          (\$(GLOBUSRUN_GASS_URL)/staged_file1 /tmp/staged_file_link1))"</option>
+<computeroutput>lrwxr-xr-x  1 juser   juser  120 Nov 11 20:37 /tmp/staged_file1 -> /home/juser/.globus/.gass_cache/local/md5/ff/771bded8a2c7dacc1a1c0fecafa0ce/md5/39/13ab3db7fc002ed54012083ae6ed1c/data</computeroutput></screen>
+                </example>
+
+                <para>
+                The final staging example uses the
+                <literal>file_stage_out</literal> RSL attribute to transfer
+                a file from the GRAM service to an FTP server using anonymous
+                FTP</para>
+
+                <example>
+                    <title>File stage out</title>
+
+                    <screen>&prompt;&globusrun; <option>-r grid.example.org:2119/jobmanager-pbs \
+    "&amp;(executable=a.out) \
+      (file_stage_out = (results.txt ftp://anonymous:nopass@ftp.example.org/incoming/results.txt))"</option>
+&prompt;</screen>
+                </example>
+
+                <para>
+                <note>
+                <para>
+                In all of the above cases, multiple files may be staged
+                using any combination of the supported URL schemes.
+                </para>
+                </note>
+                </para>
+            </section>
+
+            <section>
+                <title>Temporary files and cleanup</title>
+                <para>
+                GRAM5 supports creating a per-job scratch directory which
+                can be used as a place to store files that will be
+                automatically removed by GRAM when the job completes. It also
+                supports an explicit list of files to remove when the job
+                completes.
+                </para>
+
+                <para>
+                This example shows how to stage files into a scratch directory.
+                It again uses the embedded GASS https server, stages to the
+                GRAM service, then runs /bin/ls in the temporary directory.
+                After the job completes, the contents of
+                <literal>$(SCRATCH_DIRECTORY)</literal> and the directory
+                itself are removed.
+                </para>
+                <example>
+                    <title>Staging to scratch directory</title>
+                    <screen>&prompt;&globusrun; <option>-s grid.example.org:2119/jobmanager-pbs \
+    "&amp;(scratch_dir = \$(HOME)) \
+      (directory = \$(SCRATCH_DIRECTORY))
+      (file_stage_in = \
+          (\$(GLOBUSRUN_GASS_URL)/inputfile $(SCRATCH_DIRECTORY)/inputfile)) \
+      (executable = /bin/ls)"</option>
+<computeroutput>inputfile</computeroutput></screen>
+                </example>
+
+                <para>
+                This example shows how to explicitly remove a file that was
+                created by the job.
+                </para>
+                <example>
+                    <title>Cleaning up a file</title>
+                    <screen>&prompt;&globusrun; <option>-s grid.example.org:2119/jobmanager-pbs \
+    "&amp;(executable = /bin/touch) \
+      (arguments = temporary_file) \
+      (file_clean_up = temporary_file)"</option>
+&prompt;</screen>
+                </example>
+            </section>
+
+            <section>
+                <title>Reliable job submit</title>
+
+                <para>
+                The &globusrun; command supports a two-phase commit
+                protocol to ensure that the client knows the contact of the
+                job which has been created so that it can be monitored or 
+                canceled in the case of a client or service error. The
+                two-phase commit affects both job submission and termination.
+                </para>
+
+                <para>
+                The two-phase protocol is enabled by using the
+                <literal>two_phase</literal> RSL attribute, as in the next
+                example. When this is enabled, job submission will fail with
+                the error
+                <literal>GLOBUS_GRAM_PROTOCOL_ERROR_WAITING_FOR_COMMIT</literal>.
+                The client must respond to this signal with
+                either the
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_SIGNAL_COMMIT_REQUEST</literal>
+                or
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_SIGNAL_COMMIT_EXTEND</literal>
+                signals to either commit the job to execution or delay the 
+                commit timeout. One of these signals must be sent prior to the
+                two phase commit timeout, or the job will be discarded by the
+                GRAM service.
+                </para>
+
+                <para>
+                A two phase protocol is also used at job termination if the
+                <literal>save_state</literal> RSL attribute is used along with
+                the <literal>two_phase</literal> attribute. When the
+                job manager sends a callback with the job state set to
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</literal> or
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</literal> it will
+                wait to clean up the job until the two phase commit occurs. The
+                client must reply with the
+                <literal>GLOBUS_GRAM_PROTOCOL_JOB_SIGNAL_COMMIT_END</literal>
+                signal to cause the job to be cleaned. Otherwise, the job
+                will be unloaded from memory until a client restarts the job
+                and sends the signal.
+                </para>
+
+                <example>
+                    <title>Two phase commit example</title>
+
+                    <para>
+                    In this example, the user submits a job with a
+                    <literal>two_phase</literal> timeout of 30 seconds and the
+                    <literal>save_state</literal> attribute. The client must
+                    send commit signals to ensure the job runs.
+                    </para>
+
+                    <screen>&prompt;&globusrun; <option>-r grid.example.org:2119/jobmanager-pbs \
+    "&amp;(two_phase = 30) \
+      (save_state = yes) \
+      (executable = a.out)"</option>
+<computeroutput>
+globus_gram_client_callback_allow successful
+GRAM Job submission successful
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_PENDING
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_ACTIVE
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</computeroutput>
+&prompt;</screen>
+                </example>
+            </section>
+
+            <section>
+                <title>Reconnecting to a job</title>
+
+                <para>
+                If a job manager or client exits before a job has completed,
+                the job will continue to run. The client can reconnect to a job
+                manager and receive job state notifications and output using
+                the <literal>restart</literal> RSL attribute.
+                </para>
+
+                <example>
+                    <title>Restart example</title>
+
+                    <para>
+                    This example uses <command>globus-job-submit</command> to
+                    submit a batch job and then &globusrun; to reconnect to
+                    the job.
+                    </para>
+
+                    <screen>&prompt;<command>globus-job-submit</command> <option>grid.example.org:2119/jobmanager-pbs /bin/sleep 90</option>
+<computeroutput>https://grid.example.org:38824/16001746665595486521/5295612977486005662/</computeroutput>
+&prompt;&globusrun; <option>-r grid.example.org:2119/jobmanager-pbs \
+    "&amp;(restart = https://grid.example.org:38824/16001746665595486521/5295612977486005662/)"</option>
+<computeroutput>globus_gram_client_callback_allow successful
+GRAM Job submission successful
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</computeroutput>
+&prompt;</screen>
+                </example>
+
+            </section>
+
+            <section>
+                <title>Submitting a Java job</title>
+
+                <para>
+                To submit a job that runs a java program, the client must
+                ensure that the job can find the Java interpreter and its
+                classes. This example sets the default <envar>PATH</envar>
+                and <envar>CLASSPATH</envar> environment variables and
+                uses the shell to locate the path to the <command>java</command>
+                program.
+                </para>
+
+                <example>
+                    <title>Java example</title>
+
+                    <para>
+                    This example uses <command>globus-job-submit</command> to
+                    submit a java job, staging a jar file from a remote
+                    service.
+                    </para>
+
+                    <screen>&prompt;&globusrun; <option>-r grid.example.org:2119/jobmanager-pbs \
+    "&amp;(environment = (PATH '/usr/bin:/bin') (CLASSPATH \$(SCRATCH_DIRECTORY)))
+      (scratch_dir = \$(HOME)) 
+      (directory = \$(SCRATCH_DIRECTORY))
+      (rsl_substitution = (JAVA_SERVER http://java.example.org))
+      (file_stage_in = 
+          (\$(JAVA_SERVER)/example.jar \$(SCRATCH_DIRECTORY)/example.jar) 
+          (\$(JAVA_SERVER)/support.jar \$(SCRATCH_DIRECTORY)/support.jar))
+      (executable=/bin/sh)
+      (arguments=-c 'java -jar example.jar')"</option>
+<computeroutput>globus_gram_client_callback_allow successful
+GRAM Job submission successful
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_PENDING
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_ACTIVE
+GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</computeroutput>
+&prompt;</screen>
+                </example>
+
+            </section>
+        </section>
+    </section>
+
+    <section id="gram5-user-condor-g">
+    <title>Using GRAM5 with Condor-G</title>
+    <para>
+        Condor-G users should upgrade their clients to condor 7.4.0 or later to
+        achvieve highest performance. That version includes the 
+        <literal>gt5</literal> grid type, which includes client-side
+        optimizations to improve performance. To use an older Condor-G client,
+        be sure to set the
+        <literal>GRIDMANAGER_MAX_JOBMANAGERS_PER_RESOURCE</literal> attribute
+        to <literal>0</literal> to disable the Condor-G client attempts to
+        stop and restart the job manager service. Also, disable the Grid
+        Monitor when using a GRAM5 resource by setting the
+        <literal>ENABLE_GRID_MONITOR</literal> configuration attribute to
+        <literal>FALSE</literal>.
+    </para>
+    </section>
+</chapter>
+
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../GRAM5_Interface_Commandline_Frag.xml"/>
+
+<!-- n/a 
+<chapter id="gram5-user-gui">
+<title>Graphical user interfaces</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../GRAM5_Interface_GUI_Frag.xml"/>
+</chapter>
+    -->
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../GRAM5_Troubleshooting_Frag.xml"/>
+
+<chapter id="gram5-user-knownproblems"><title>Known Problems in GRAM5</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../GRAM5_Known_Problems_Frag.xml"/>
+</chapter>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+        href="../GRAM5_Usage_Statistics_Frag.xml"/>
+
+    <glossary role="auto" id="glossary-gram5User">
+        <!-- 
+        <remark>some terms not in the docs but wanted in glossary: 
+        <glossterm>scheduler</glossterm>
+        </remark>
+        -->
+        <glossdiv><title>A</title>
+            <glossentry>
+                <glossterm>Dummy term</glossterm>
+                <glossdef>
+                    <para>This is a dummy entry for the automatic glossary database. Do not edit.</para>
+                </glossdef>
+            </glossentry>
+        </glossdiv>
+    </glossary>
+    <index type="gram5">
+    <title>Index</title>
+</index>
+</book>
