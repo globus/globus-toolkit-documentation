@@ -10,121 +10,56 @@
 <articleinfo id="q-intro"><abstract><title>Introduction</title>
 <para>
 This is a quickstart that shows a full installation of the Toolkit
-on two Debian 5.0 machines.  It shows the installation of prereqs, 
+on one Fedora machine and one Debian machine.  It shows the installation of prereqs, 
 installation of the toolkit, creation of certificates, and configuration
 of services.  It is designed to supplement the main admin guide, <olink targetdoc="gtadmin"/>.
-</para></abstract>
+</para>
+<para>Scenarios are shown for running GridFTP and GRAM services, and using Globus Online, GridFTP and GRAM clients.</para></abstract>
 </articleinfo>
 
-<section id="q-first"><title>Setting up the first machine</title>
 
 <section id="q-prereq"><title>Pre-requisites</title>
 
-<para>I will be installing all of the toolkit from source, so
-I'm going to double-check my system for pre-requisites.  The full list
-of prereqs is available at 
-  <olink targetdoc="gtadmin" targetptr="gtadmin-prereq">Software Prerequisites</olink> in <olink targetdoc="gtadmin"/>.
+  <para>The Globus Toolkit 5.1.3 release consists of a set of RPMs or .debs for several Linux distributions and a source installer which can be used on platforms that do not use RPM or Debian packaging.
+    In this quickstart, we will be installing from native packages.  Thus, it is a pre-requisite for following this quickstart
+  that you are running a distribution for which we provide native binary packages.
+  </para>
+  <para>We provide source and binary RPM packages for CentOS 5, Fedora 13, 14 and 15, RedHat 5, and Scientific Linux 5.5 and 6.1, and a set of .deb packages for several Debian and Ubuntu versions, including Debian 5.0 "lenny" and 6.0 "squeeze", and Ubuntu 10.10 and 11.4.
+  </para>
+  <para>We will show how to set up and use the Globus RPM repository.  If your distribution has Globus <replaceable role="entity">version</replaceable>
+  packages within its repository, you can skip to the next section.
 </para>
-
-
-<para>First I'll check for security libraries:
-<screen>
-<prompt>elephant %</prompt> <userinput>openssl version</userinput>
-OpenSSL 0.9.8g 19 Oct 2007
-
-<prompt>elephant %</prompt> <userinput>dpkg --list | grep libssl</userinput>
-ii  libssl-dev              0.9.8g-15+lenny5           SSL development libraries, header files and documentation
-ii  libssl0.9.8             0.9.8g-15+lenny5           SSL shared libraries
-  
-  
-<prompt>elephant %</prompt> <userinput>dpkg --list | grep zlib</userinput>
-ii  zlib1g                  1:1.2.3.3.dfsg-12          compression library - runtime
-ii  zlib1g-dev              1:1.2.3.3.dfsg-12          compression library - development
-
-</screen>
-openssl 0.9.7 (or newer, 0.9.8 is okay) and the zlib and libssl development libraries are required.
-</para>
-<note>
-<para>The package names for zlib may vary for non-Debian systems.  The RPM name
-we would look for is <filename>zlib-devel</filename>.</para>
-</note>
-
-<para>My system already has C/C++ compilers:
-<screen>
-<prompt>elephant % </prompt><userinput>which gcc</userinput>
-/usr/bin/gcc
-<prompt>elephant % </prompt><userinput>which g++</userinput>
-/usr/bin/g++
-</screen>
-</para>
-
-<para>GNU versions of tar/make/sed:
-<screen>
-<prompt>elephant % </prompt><userinput>tar --version</userinput>
-tar (GNU tar) 1.20
-Copyright (C) 2008 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.
-    
-Written by John Gilmore and Jay Fenlason.
-<prompt>elephant % </prompt><userinput>sed --version</userinput>
-GNU sed version 4.1.5
-Copyright (C) 2003 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE,
-to the extent permitted by law.
-<prompt>elephant % </prompt><userinput>make --version</userinput>
-GNU Make 3.81
-Copyright (C) 2006  Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.
-There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.
-
-</screen>
-</para>
-
-</section>
-
-<section id="q-toolkit"><title>Building the Toolkit</title>
 <para>
-That completes the list of build prereqs, so now I will download the installer and build it.  The long version of these instructions is at <olink targetdoc="gtadmin" targetptr="gtadmin-install"/>.  First I created a <computeroutput>globus</computeroutput> user, and I will start the installation from that user.
-<screen>
-<prompt>globus@elephant:~$</prompt> <userinput>tar xzf gt<replaceable role="entity">version</replaceable>-all-source-installer.tar.gz</userinput>
-<prompt>globus@elephant:~$</prompt> <userinput>cd gt<replaceable role="entity">version</replaceable>-all-source-installer</userinput>
-<prompt>globus@elephant:~/gt<replaceable role="entity">version</replaceable>-all-source-installer$</prompt> <userinput>./configure --prefix=/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/</userinput>
-checking build system type... i686-pc-linux-gnu
-configure: creating ./config.status
-config.status: creating Makefile
+  The repo-config rpms for the various binary (RPM and deb) repositories can be found <ulink url="http://www.globus.org/ftppub/gt5/5.1/5.1.2/installers/repo/.">here.</ulink>
+
+</para>
+<para>
+  To install from binary RPMs, get the appropriate repo-config rpm from the link above, install it with 
+  <screen><prompt>#</prompt><userinput>rpm -i Globus-repo-config.&lt;distro&gt;.noarch.rpm</userinput>
 </screen>
 </para>
-
-<note><para>
-I could have used the binary installer for this example, because Debian x86 Lenny binaries are available.  
-To make the quickstart more general, I decided to use source instead.
-</para></note>
-
-<para>Now it's time to build the toolkit:
-<screen>
-<prompt>globus@elephant:~/gt<replaceable role="entity">version</replaceable>-all-source-installer$</prompt> <userinput>make | tee installer.log</userinput>
-cd gpt-3.2autotools2004 &amp;&amp; OBJECT_MODE=32 ./build_gpt
-build_gpt ====&gt; installing GPT into /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/
-...
-Time for a coffee break here, the build will take over an hour, possibly
-longer depending on how fast your machine is
-...
-Your build completed successfully.  Please run make install.
-
-<prompt>globus@elephant:~/gt<replaceable role="entity">version</replaceable>-all-source-installer$</prompt> <userinput>make install</userinput>
-/sandbox/globus/globus-<replaceable role="entity">version</replaceable>//sbin/gpt-postinstall
-...
-..Done
-
-<prompt>globus@elephant:~/gt<replaceable role="entity">version</replaceable>-all-source-installer$</prompt> 
+ <para>
+    To install from binary debss, get the appropriate repo-config deb from the link above, install it with 
+    <screen><prompt>#</prompt><userinput>dpkg -i globus-repository-&lt;distro&gt;_0.0.1_all.deb</userinput>
+            <prompt>#</prompt><userinput>apt-get update</userinput>
+      
 </screen>
-</para>
+  </para>
 </section>
-
+  
+  <section id="q-first"><title>Setting up the first machine (GridFTP and GRAM services)</title>
+    
+  
+<section id="q-toolkit"><title>Installing the Toolkit</title>
+  <para>Install packages 
+    <screen>
+      <prompt>#</prompt><userinput>yum groupinstall globus-gridftp globus-gram5</userinput>
+       
+      <prompt>#</prompt><userinput>yum install globus-gridftp-server-progs globus-gass-copy-progs myproxy myproxy-server myproxy-admin  globus-simple-ca</userinput>
+      
+    </screen>
+  </para>
+</section>
 <section id="q-security"><title>Setting up security on your first machine</title>
 <para>
 All of the work we're going to do now requires that we be authenticated and authorized.  We
@@ -143,12 +78,10 @@ Here's how we set it up, based on the instructions at
     issue certificates.  Since this quickstart is intended to describe a simple, standalone
     deployment scenario, we describe how to use these tools to issue your own certificates. </para></note>
 <screen>
-<prompt>root@elephant:~#</prompt> <userinput>export GLOBUS_LOCATION=/sandbox/globus/globus-<replaceable role="entity">version</replaceable></userinput>
-<prompt>root@elephant:~#</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.sh</userinput>
-<prompt>root@elephant:~#</prompt> <userinput>cd ~globus/gt<replaceable
-  role="entity">version</replaceable>-all-source-installer/quickstart</userinput>
-<prompt>root@elephant:gt<replaceable
-  role="entity">version</replaceable>-all-source-installer/quickstart#</prompt> <userinput>perl gt-server-ca.pl -y</userinput>
+<prompt>root@elephant:~#</prompt> <userinput>wget <ulink url="http://dev.globus.org/images/8/8d/Gt-server-ca.txt"></ulink></userinput>
+
+<prompt>root@elephant:~#</prompt> <userinput>mv Gt-server-ca.txt gt-server-ca.pl</userinput>
+<prompt>root@elephant:~#</prompt> <userinput>perl gt-server-ca.pl -y</userinput>
 Setting up /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/
 Please enter a password of at least four characters for the CA: 
 Confirm password:
@@ -168,25 +101,18 @@ GLOBUS_SH_TMP=`pwd` and trying again.
 <para>
 Here's what has happened:
 <screen>
-<prompt>root@elephant:~#</prompt> <userinput>ls ~/.globus/</userinput>
-simpleCA
-<prompt>root@elephant:~#</prompt> <userinput>ls ~/.globus/simpleCA/</userinput>
-cacert.pem  globus_simple_ca_b906298a_setup-0.20.tar.gz  newcerts
+<prompt>root@elephant:~#</prompt> <userinput>ls /var/lib/globus/</userinput>
+simple_ca
+<prompt>root@elephant:~#</prompt> <userinput>ls /var/lib/globus/simpleCA/</userinput>
+cacert.pem  newcerts
 certs       grid-ca-ssl.conf                             private
 crl         index.txt                                    serial
+<prompt>root@elephant:~#</prompt> <userinput>ls ./globus_simple_ca*</userinput>
+globus_simple_ca_b11443f0.tar.gz
 </screen>
 That's the directory where my SimpleCA has been created.  
   These files are all explained in the 
   <olink targetdoc="gsicAdmin">Security Admin Guide</olink>.
-</para>
-
-<para>
-Our last step is to copy that signed certificate and our trusted certificates into <filename class="directory">/etc</filename>:
-<screen>
-<prompt>root@elephant:~#</prompt> <userinput>mkdir /etc/grid-security</userinput>
-<prompt>root@elephant:~#</prompt> <userinput>mv $GLOBUS_LOCATION/etc/host*.pem /etc/grid-security/</userinput>
-<prompt>root@elephant:~#</prompt> <userinput>cp -r $GLOBUS_LOCATION/share/certificates/ /etc/grid-security/</userinput>
-</screen>
 </para>
 
 </section>
@@ -199,64 +125,27 @@ store our user's certificates.  Recall that so far we have made a host certifica
 end users yet.
 <screen>
 <prompt>root@elephant:~#</prompt> <userinput>export GLOBUS_LOCATION=/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/</userinput>
-<prompt>root@elephant:~#</prompt> <userinput>cp $GLOBUS_LOCATION/share/myproxy/myproxy-server.config /etc</userinput>
 <prompt>root@elephant:~#</prompt> <userinput>vim /etc/myproxy-server.config </userinput>
-<prompt>root@elephant:~#</prompt> <userinput>diff /etc/myproxy-server.config $GLOBUS_LOCATION/share/myproxy/myproxy-server.config</userinput>
-18,27c18,27
-&lt; accepted_credentials  "*"
-&lt; authorized_retrievers "*"
-&lt; default_retrievers    "*"
-&lt; authorized_renewers   "*"
-&lt; default_renewers      "none"
-&lt; authorized_key_retrievers "*"
-&lt; default_key_retrievers "none"
-&lt; trusted_retrievers         "*"
-&lt; default_trusted_retrievers "none"
-&lt; cert_dir /etc/grid-security/certificates
----
-&gt; #accepted_credentials  "*"
-&gt; #authorized_retrievers "*"
-&gt; #default_retrievers    "*"
-&gt; #authorized_renewers   "*"
-&gt; #default_renewers      "none"
-&gt; #authorized_key_retrievers "*"
-&gt; #default_key_retrievers "none"
-&gt; #trusted_retrievers         "*"
-&gt; #default_trusted_retrievers "none"
-&gt; #cert_dir /etc/grid-security/certificates
-<prompt>root@elephant:~#</prompt> <userinput>cat $GLOBUS_LOCATION/share/myproxy/etc.services.modifications >> /etc/services </userinput>
-<prompt>root@elephant:~#</prompt> <userinput>tail /etc/services </userinput>
-binkp           24554/tcp                       # binkp fidonet protocol
-asp             27374/tcp                       # Address Search Protocol
-asp             27374/udp
-dircproxy       57000/tcp                       # Detachable IRC Proxy
-tfido           60177/tcp                       # fidonet EMSI over telnet
-fido            60179/tcp                       # fidonet EMSI over TCP
-# Local services
-myproxy-server  7512/tcp                        # Myproxy server
-<prompt>root@elephant:~#</prompt> <userinput>cp $GLOBUS_LOCATION/share/myproxy/etc.xinetd.myproxy /etc/xinetd.d/myproxy</userinput>
-<prompt>root@elephant:~#</prompt> <userinput>vim /etc/xinetd.d/myproxy </userinput>
-<prompt>root@elephant:~#</prompt> <userinput>cat /etc/xinetd.d/myproxy </userinput>
-service myproxy-server
-{
-  socket_type  = stream
-  protocol     = tcp
-  wait         = no
-  user         = root
-  server       = /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/sbin/myproxy-server
-  env          = GLOBUS_LOCATION=/sandbox/globus/globus-<replaceable role="entity">version</replaceable> LD_LIBRARY_PATH=/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/lib <co id="myproxy_ld-co" linkends="myproxy_ld"/>
-  disable      = no
-}
-<prompt>root@elephant:~#</prompt> <userinput>/etc/init.d/xinetd reload</userinput>
-Reloading internet superserver configuration: xinetd.
+<para>Uncomment every line in the section "Complete Sample Policy #1" such that it looks like this:</para>
+ accepted_credentials  "*"
+ authorized_retrievers "*"
+ default_retrievers    "*"
+ authorized_renewers   "*"
+ default_renewers      "none"
+ authorized_key_retrievers "*"
+ default_key_retrievers "none"
+ trusted_retrievers         "*"
+ default_trusted_retrievers "none"
+ cert_dir /etc/grid-security/certificates
+ 
+<prompt>root@elephant:~#</prompt> <userinput>cp /etc/grid-security/host*.pem /etc/grid-security/myproxy/</userinput>
+<prompt>root@elephant:~#</prompt> <userinput>chown myproxy /etc/grid-security/myproxy/*.pem</userinput>
+<prompt>root@elephant:~#</prompt> <userinput>chown root /var/lib/myproxy</userinput>
+
+
 <prompt>root@elephant:~#</prompt> <userinput>netstat -an | grep 7512</userinput>
 tcp        0      0 0.0.0.0:7512            0.0.0.0:*               LISTEN     
 </screen>
-<calloutlist>
-   <callout arearefs="myproxy_ld-co" id="myproxy_ld" >
-    <simpara>Your system may require a different environment variable than LD_LIBRARY_PATH if you are using MacOS X or IRIX.</simpara>
-   </callout>
-</calloutlist>
 </para>
 
 <para>
@@ -310,26 +199,21 @@ instances               = 100
 socket_type             = stream
 wait                    = no
 user                    = root
-env                     += GLOBUS_LOCATION=/sandbox/globus/globus-<replaceable role="entity">version</replaceable>
-env                     += LD_LIBRARY_PATH=/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/lib <co  id="q-ld_lib-co"  linkends="q-ld_lib" />
-server                  = /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/sbin/globus-gridftp-server
+env                     += GLOBUS_LOCATION=/usr
+env                     += LD_LIBRARY_PATH=/usr/lib
+server                  = /usr/sbin/globus-gridftp-server
 server_args             = -i
 log_on_success          += DURATION
+nice                    = 10
 disable                 = no
 }
-<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>vim /etc/services </userinput>
-<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>tail /etc/services </userinput>
-vboxd           20012/udp
-binkp           24554/tcp                       # binkp fidonet protocol
-asp             27374/tcp                       # Address Search Protocol
-asp             27374/udp
-dircproxy       57000/tcp                       # Detachable IRC Proxy
-tfido           60177/tcp                       # fidonet EMSI over telnet
-fido            60179/tcp                       # fidonet EMSI over TCP
 
-# Local services
-myproxy-server  7512/tcp                        # Myproxy server
-gsiftp          2811/tcp
+<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>grep gsiftp /etc/services </userinput>
+gsiftp          2811/tcp    #GSI FTP
+gsiftp          2811/udp    #GSI FTP
+
+
+  
 <prompt>root@elephant:/etc/grid-security#</prompt> <userinput>/etc/init.d/xinetd reload</userinput>
 Reloading internet superserver configuration: xinetd.
 <prompt>root@elephant:/etc/grid-security#</prompt> <userinput>netstat -an | grep 2811</userinput>
@@ -339,16 +223,13 @@ tcp        0      0 0.0.0.0:2811            0.0.0.0:*               LISTEN
   <callout arearefs="q-xinetd-co"  id="q-xinetd" >
     <para>I already had xinetd installed:
     <screen>
-quser@elephant:~$ dpkg --list xinetd
-Desired=Unknown/Install/Remove/Purge/Hold
-| Status=Not/Inst/Cfg-files/Unpacked/Failed-cfg/Half-inst/trig-aWait/Trig-pend
-|/ Err?=(none)/Hold/Reinst-required/X=both-problems (Status,Err: uppercase=bad)
-||/ Name           Version        Description
-+++-==============-==============-============================================
-ii  xinetd         1:2.3.14-7     replacement for inetd with many enhancements
+quser@elephant:~$ rpm -qa xinetd
+xinetd-2.3.14-fc14.i686
     </screen>
       You can use inetd instead, see "Configuring the GridFTP server to run under xinetd/inetd" in <olink targetdoc="gridftpAdmin"/> for details.  
-      For now, though, you might want to apt-get install xinetd.</para>
+      For now, though, you might want to install xinetd.</para>
+    If you don't already have xinetd installed,
+    <prompt>root@elephant:/etc/grid-security#</prompt> <userinput>yum install xinetd</userinput>
   </callout>
   <callout arearefs="q-ld_lib-co"  id="q-ld_lib" >
     <simpara>On MacOS X, this would be DYLD_LIBRARY_PATH.  Check your system documentation if LD_LIBARARY_PATH doesn't work on your system.</simpara>
@@ -386,20 +267,10 @@ A credential has been received for user quser in /tmp/x509up_u1817.
     
 <para>
 <screen>
-<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>vim /etc/services </userinput>
-<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>tail /etc/services </userinput>
-vboxd           20012/udp
-binkp           24554/tcp                       # binkp fidonet protocol
-asp             27374/tcp                       # Address Search Protocol
-asp             27374/udp
-dircproxy       57000/tcp                       # Detachable IRC Proxy
-tfido           60177/tcp                       # fidonet EMSI over telnet
-fido            60179/tcp                       # fidonet EMSI over TCP
 
-# Local services
-myproxy-server  7512/tcp                        # Myproxy server
-gsiftp          2811/tcp
-gsigatekeeper   2119/tcp
+<prompt>root@elephant:/etc/grid-security#</prompt> <userinput>grep gsigatekeeper /etc/services </userinput>
+gsigatekeeper   2119/tcp    # GSIGATEKEEPER
+gsigatekeeper   2119/udp    # GSIGATEKEEPER
 </screen>
 
 <screen>
@@ -411,10 +282,9 @@ service gsigatekeeper
     protocol = tcp
     wait = no
     user = root
-    env = LD_LIBRARY_PATH=/sandbox/globus/globus-<replaceable
-      role="entity">version</replaceable>/lib <co id="q-ld_lib-co2" linkends="q-ld_lib2"/>
-    server = /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/sbin/globus-gatekeeper
-    server_args = -conf /sandbox/globus/globus-<replaceable role="entity">version</replaceable>/etc/globus-gatekeeper.conf
+    env = LD_LIBRARY_PATH=/usr/lib
+    server = /usr/sbin/globus-gatekeeper
+    server_args = -conf /etc/globus/globus-gatekeeper.conf
     disable = no
 }
 </screen>
@@ -458,49 +328,33 @@ Success!  If you had trouble, check the security troubleshooting section in the 
 </section>
 
 <section id="q-second"><title>Setting up your second machine</title>
+  <para>
+    Alas, it's not much of a grid with just one machine.  So let's start up
+    on another machine and add it to this little test grid.  
+  </para>
 <section id="q-prereq2"><title>Setting up your second machine: Prereqs</title>
-<para>
-Alas, it's not much of a grid with just one machine.  So let's start up
-on another machine and add it to this little test grid.  For a change of
-pace, I'm going to use the binary installer on this machine.  
-<screen>
-<prompt>globus@donkey:~$</prompt> <userinput>tar xzf gt<replaceable
-  role="entity">version</replaceable>-x86_debian_5.0-binary-installer.tar.gz</userinput>
-</screen>
-</para>
-
+  <para>See <link linkend="q-prereq">Prereqs</link></para>
 </section>
 
 <section id="q-toolkit2"><title>Setting up your second machine: Installation</title>
 <para>
 Now we can install from binaries:
-<screen>
-
-<prompt>globus@donkey:~/gt<replaceable role="entity">version</replaceable>-x86_debian_5.0-installer$</prompt> <userinput>./configure \
-   --prefix=/usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
-configure: creating ./config.status
-config.status: creating Makefile
-<prompt>globus@donkey:~/gt<replaceable role="entity">version</replaceable>-x86_debian_5.0-installer$</prompt> <userinput>make</userinput>
-cd gpt-3.2autotools2004 &amp;&amp; OBJECT_MODE=32 ./build_gpt
-...
-Binaries are much faster!  This is done in less than 10 minutes.
-...
-Your build completed successfully.  Please run make install.
-<prompt>globus@donkey:~/gt<replaceable role="entity">version</replaceable>-x86_debian_5.0-installer$</prompt> <userinput>make install</userinput>
-ln -s /usr/local/globus-<replaceable role="entity">version</replaceable>/etc/gpt/packages /usr/local/globus-<replaceable role="entity">version</replaceable>/etc/globus_packages
-...
-config.status: creating fork.pm
-..Done
-</screen>
 </para>
+  <para>Install packages 
+    <screen>
+      <prompt>#</prompt><userinput>tasksel install globus-gridftp</userinput>
+       
+      <prompt>#</prompt><userinput>apt-get install globus-gridftp-server-progs globus-gass-copy-progs myproxy globus-simple-ca</userinput>
+      
+    </screen>
+  </para>
 </section>
 
 <section id="q-security2"><title>Setting up your second machine: Security</title>
 <para>Now let's get security setup on the second machine.  We're going to just add trust for the original simpleCA to this new machine, there's no need to create a new one.  All we need to do is copy the <filename>$GLOBUS_LOCATION/share/certificates</filename> from our
 first machine to our second:
 <screen>
-<prompt>globus@donkey:~$</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
-<prompt>globus@donkey:~$</prompt> <userinput>scp -r elephant:/sandbox/globus/globus-<replaceable role="entity">version</replaceable>/share/certificates $GLOBUS_LOCATION/share</userinput>
+<prompt>globus@donkey:~$</prompt> <userinput>scp -r elephant:/etc/grid-security/certificates /etc/grid-security/certificates</userinput>
 </screen>
 
 We're going to create the host certificate for donkey, but we create it on elephant:
@@ -510,8 +364,6 @@ We're going to create the host certificate for donkey, but we create it on eleph
 
 Then as <computeroutput>root</computeroutput> on donkey:
 <screen>
-<prompt>root@donkey:~#</prompt> <userinput>export GLOBUS_LOCATION=/usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
-<prompt>root@donkey:~#</prompt> <userinput>source $GLOBUS_LOCATION/globus-user-env.sh</userinput>
 <prompt>root@donkey:~#</prompt> <userinput>myproxy-retrieve -s elephant -k donkey.globus.org -l donkey</userinput>
 Enter MyProxy pass phrase:<userinput>******</userinput>
 Credentials for quser have been stored in
@@ -544,8 +396,7 @@ Reloading internet superserver configuration: xinetd.
 </screen>
 Now we can test it:
 <screen>
-<prompt>donkey %</prompt> <userinput>setenv GLOBUS_LOCATION /usr/local/globus-<replaceable role="entity">version</replaceable></userinput>
-<prompt>donkey %</prompt> <userinput>source $GLOBUS_LOCATION/etc/globus-user-env.csh</userinput>
+
 <prompt>donkey %</prompt> <userinput>myproxy-logon -s elephant</userinput>
 Enter MyProxy pass phrase: <userinput>******</userinput>
 A credential has been received for user quser in /tmp/x509up_u1817.
