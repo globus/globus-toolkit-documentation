@@ -64,6 +64,7 @@
    which require polling for job completion.
    </para>
 
+
    <section><title>GRAM Client Tools</title>
    <para>
    There are a number of GRAM clients which can be used to interact with the
@@ -106,116 +107,136 @@
     describes how to use GridWay.
    </para>
    </section>
+
+   <section><title>GRAM APIs</title>
+   <para>
+   In addition to the tools above, you can write your own GRAM clients, using the 
+   public APIs described in the <olink targetdoc="gram5Developer">GRAM5
+   Developer's Guide</olink>. The client APIs there can be used to write custom
+   applications that interact with GRAM services.
+   </para>
    </section>
+   </section>
+
+   <section><title>Portals and Science Gateways that use GRAM</title>
+
+   <section><title>XSEDE</title>
+   <para>
+   <ulink url="https://www.xsede.org">XSEDE</ulink> provides a number of
+   domain-specific
+   <ulink url="https://www.xsede.org/gateways-overview">science gateways and
+   portals</ulink>,
+   which provide interfaces to various computation and data resources,
+   including some managed by GRAM.</para>
+   
+   <para>These include <ulink
+   url="http://www.cgd.ucar.edu/amp/">CGD's Atmospheric Modeling &amp;
+   Predictability Section</ulink> from NCAR, the
+   <ulink url="http://uslims.uthscsa.edu">UltraScan LIMS Portal</ulink> at the
+   Bioinformatics Core Facility at the University of Texas Health Science
+   Center at San Antonio, the <ulink
+   url="https://sidgrid.ci.uchicago.edu">Social Informatics Data (SID) Grid</ulink>
+   at the University of Chicago, and <ulink url="http://scec.org">Southern
+   California Earthquake Center</ulink> headquarted at the University of
+   Southern California.
+   </para>
+   </section>
+</section>
 
 </chapter>
 
 <chapter id="gram5-user-usagescenarios"><title>Using GRAM5</title>
     
-    <section id="gram5-user-prepare"><title>Preparing to use GRAM</title>
+    <section id="gram5-user-prepare"><title>Before Getting Started</title>
       <indexterm type="gram5"><primary>jobs</primary><secondary>preparing</secondary><tertiary>generate valid proxy</tertiary></indexterm>
         <indexterm type="gram5-howto"><primary>jobs</primary><secondary>preparing</secondary><tertiary>generate valid proxy</tertiary></indexterm>
-    <para>The first step to being able to use GRAM5 after installation is to
-    acquire a temporary Grid credential to use to authenticate with the GRAM5
-    service and any file services your job requires. Normally this is done via
-    either <olink targetdoc="gsicUser"
-    targetptr="grid-proxy-init"><command>grid-proxy-init</command></olink> or
-    via the <olink targetdoc="myproxyUser"
-    targetptr="myproxy-user-introduction">MyProxy</olink> service. 
-    </para>
-
-    <section id="gram5-user-gridproxyinit">
-        <title>Proxy credentials with grid-proxy-init</title>
-
-    <para>To generate a proxy credential using the
-    <command>grid-proxy-init</command> program, execute the command with
-    no arguments. By default, it will generate an impersonation proxy with
-    a lifetime of 12 hours.
-
-    <example>
-        <title>Generating a proxy with grid-proxy-init</title>
-
-        <para>
-        Thie example creates a 12 hour impersonation proxy to use to
-        authenticate with grid services such as GRAM5:
-
-        <screen>&prompt;<command>bin/grid-proxy-init</command>
-<computeroutput>Your identity: /O=Grid/OU=Example/CN=Joe User
-Enter GRID pass phrase for this identity:
-Creating proxy ................................. Done
-Your proxy is valid until: Tue Oct 26 01:33:42 2010</computeroutput></screen>
-        </para>
-    </example>
-    </para>
-
-    <important>
+    <section><title>GRAM and Security</title>
     <para>
-    In order to generate a proxy credential, you must have first been issued an
-    identity credential by some certificate authority that is trusted by the
-    GRAM5 resource you want to use. To learn more about certificates and Grid
-    security in general, please read <olink targetdoc="gsicKey">Security
-    Key Concepts</olink>.
+    GRAM uses the <olink targetdoc="gsic">Grid Security Infrastructure</olink>
+    for its security implementation, based on X.509 certificates and the TLSv1
+    protocol to authenticate user identities with GRAM services.  Before using
+    GRAM, you must first obtain a security credential. This
+    is typically done by requesting a certificate from a site-specific CA, or
+    by using a portal to obtain a temporary credential. In typical use, GRAM
+    uses a <ulink url="http://www.ietf.org/rfc/rfc3820.txt">proxy certificate</ulink>
+    which is a short-term credential digitally signed by a private key. Please
+    read the <olink targetdoc="gtuser"
+    targetptr="gtuser-security">Security</olink> section of the 
+    Globus Toolkit User's Guide to learn more about how to obtain and use a 
+    GSI credential before continuing this guide.
     </para>
-    </important>
-
-    </section>
     </section>
 
-    <xi:include href="../../Java_API_Download.xml"
-        xmlns:xi="http://www.w3.org/2001/XInclude"/>
-
-    <section id="gram5-user-service-credentials">
-    <title>Delegating credentials</title>
-      <indexterm type="gram5"><primary>jobs</primary><secondary>preparing</secondary><tertiary>delegating credentials</tertiary></indexterm>
-        <indexterm type="gram5-howto"><primary>jobs</primary><secondary>preparing</secondary><tertiary>delegating credentials</tertiary></indexterm>
+    <section><title>GRAM Resource Names</title>
     <para>
-    The credential created in the previous section is used to authenticate
-    with the GRAM5 service as well as to delegate a limited proxy of that
-    credential to the service so that it can process the job. This credential
-    delegation occurs when the <command>globus-gatekeeper</command> service
-    is first contacted when a job is to be submitted. By default, the tools
-    provided with GT <replaceable role="entity">version</replaceable> delegate
-    a <emphasis>limited proxy</emphasis>. This limited proxy can be used to
-    authenticate with other services on the client's behalf, but with the
-    services knowing that the proxy is not under direct control by the user.
+    Before interacting with a GRAM service, you must know its contact address.
+    GRAM uses a very flexible URL-like syntax to contain information about the
+    service's hostname, TCP port number, service name, and security identity.
+    In the basic case, you will only need to use the service's hostname to 
+    contact the service. However, if the service is configured to run on a 
+    non-standard port, or with a custom service name, or credential which
+    doesn't match its hostname, you will need to use one of the longer forms.
     </para>
 
-        <section>
-            <title>Delegated Credential Usage</title>
-            <para>
-            The delegated proxy can be used by the GRAM5 service and the job in
-            a few different ways:
+    <para>
+    A fully-qualified resource name looks something like
+    <literal>grid.example.org:2120/jobmanager-sge:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal>.
+    Breaking this down, the resource name includes:
 
-            <orderedlist>
-              <listitem><simpara>The GRAM5 service uses the credential to send job
-              state notification messages to clients which have registered to receive
-              them.</simpara></listitem>
-              <listitem><simpara>The GRAM5 service uses the credential to contact GASS
-              and GridFTP file servers to stage files to and from the execution
-              resource</simpara></listitem>
-              <listitem><simpara>The job executed by the GRAM5 service can use the
-              delegated credential for application-specific
-              purposes.</simpara></listitem>
-            </orderedlist>
-            </para>
+    <informaltable>
+      <tgroup cols="4">
+        <thead>
+          <row>
+            <entry>Name Component</entry>
+            <entry>Example</entry>
+            <entry>Meaning</entry>
+            <entry>Default</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><simpara>Host Name</simpara></entry>
+            <entry><simpara><literal>grid.example.org</literal></simpara></entry>
+            <entry><simpara>Host which the GRAM service is running on.</simpara></entry>
+            <entry><simpara>None. This is always a required component.</simpara></entry>
+          </row>
+          <row>
+            <entry><simpara>TCP Port</simpara></entry>
+            <entry><simpara><literal>2120</literal></simpara></entry>
+            <entry><simpara>TCP port which the GRAM service is listening on. If multiple GRAM services
+            are running on the same machine, they may use alternate TCP ports.</simpara></entry>
+            <entry><simpara><literal>2119</literal></simpara></entry>
+          </row>
+          <row>
+            <entry><simpara>Service Name</simpara></entry>
+            <entry><simpara><literal>jobmanager-sge</literal></simpara></entry>
+            <entry><simpara>The name of the GRAM service on the given host. A
+            host may provide access to multiple resources
+            using different local resource managers.  This name is used to
+            distinguish which service to use for a particular job request. Typically, a host
+            will provide a default entry called <literal>jobmanager</literal> which will interface
+            with a batch computing or high-throughput scheduling system, and another called
+            <literal>jobmanager-fork</literal> for simple non-compute jobs.</simpara></entry>
+            <entry><simpara><literal>jobmanager</literal></simpara></entry>
+          </row>
+          <row>
+            <entry><simpara>Credential Name</simpara></entry>
+            <entry><simpara><literal>/C=US/O=Example/OU=Grid /CN=host/grid.example.org</literal></simpara></entry>
+            <entry><simpara>The name of the credential which the GRAM service is using. This is only
+            needed if the credential's common name does not match the host name.</simpara></entry>
+            <entry><simpara><literal>host@</literal><replaceable>hostname</replaceable></simpara></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+    </para>
+    <para>
+    Any component of the resource name may be omitted, except for the host name, and defaults will be used.
+    The field separator <literal>:</literal> must be retained when skipping between name components.
+    </para>
 
-            <note>
-            <para>
-            In GRAM5, the Job Manager may manage multiple jobs simultaneously. It will
-            use the delegated proxy with the most time left for authentication.
-            Individual GRAM5 jobs will have separate proxies.
-            </para>
-            </note>
 
-            <para>
-            &globusrun;
-            <command>globus-job-run</command>, and 
-            <command>globus-job-submit</command> commands delegate
-            credentials automatically when submitting a job. Additionally,
-            &globusrun; can refresh the credentials used by the job and job
-            manager, after the job manager is started.
-            </para>
-        </section>
+    </section>
     </section>
 
     <section id="gram5-user-submitting-jobs">
@@ -227,77 +248,6 @@ Your proxy is valid until: Tue Oct 26 01:33:42 2010</computeroutput></screen>
         which describes requirements for jobs.
         </para>
 
-        <section id="gram5-user-resource-names">
-            <title>Resource Names</title>
-
-            <para>
-            In GRAM5, a <glossterm>Gatekeeper Service Contact</glossterm>
-            contains the host, port, service name, and service identity 
-            required to contact a particular GRAM service. For convenience,
-            default values are used when parts of the contact are omitted.
-            An example of a full gatekeeper service contact is
-            <literal>grid.example.org:2119/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal>.
-            </para>
-
-            <para>
-            The various forms of the resource name using default values follow:
-
-            <itemizedlist>
-                <listitem><simpara><replaceable>HOST</replaceable></simpara></listitem>
-                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable></simpara></listitem>
-                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable><literal>/</literal><replaceable>SERVICE</replaceable></simpara></listitem>
-                <listitem><simpara><replaceable>HOST</replaceable><literal>/</literal><replaceable>SERVICE</replaceable></simpara></listitem>
-                <listitem><simpara><replaceable>HOST</replaceable><literal>:/</literal><replaceable>SERVICE</replaceable></simpara></listitem>
-                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
-                <listitem><simpara><replaceable>HOST</replaceable><literal>/</literal><replaceable>SERVICE</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
-                <listitem><simpara><replaceable>HOST</replaceable><literal>:/</literal><replaceable>SERVICE</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
-                <listitem><simpara><replaceable>HOST</replaceable><literal>:</literal><replaceable>PORT</replaceable><literal>/</literal><replaceable>SERVICE</replaceable><literal>:</literal><replaceable>SUBJECT</replaceable></simpara></listitem>
-            </itemizedlist>
-
-            Where the various values have the following meaning:
-
-            <variablelist>
-                <varlistentry>
-                    <term><replaceable>HOST</replaceable></term>
-                    <listitem><simpara>Network name of the machine hosting the service.</simpara></listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term><replaceable>PORT</replaceable></term>
-                    <listitem><simpara>Network port number that the service is listening on. If not specified, the default of <literal>2119</literal> is used.</simpara></listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term><replaceable>SERVICE</replaceable></term>
-                    <listitem><simpara>Path of the service entry in <filename><envar>$GLOBUS_LOCATION</envar>/etc/grid-services</filename>. If not specified, the default of <literal>jobmanager</literal> is used.</simpara></listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term><replaceable>SUBJECT</replaceable></term>
-                    <listitem><simpara>X.509 identity of the credential used by the service. If not specified, the default of <literal>host@</literal><replaceable>HOST</replaceable> is used.</simpara></listitem>
-                </varlistentry>
-            </variablelist>
-            </para>
-
-            <example>
-                <title>Gatekeeper Service Contact Examples</title>
-
-                <para>
-                The following strings all name the service 
-                <literal>grid.example.org:2119/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal>
-                using the formats with the various defaults described above.
-
-                <itemizedlist>
-                <listitem><simpara><literal>grid.example.org</literal></simpara></listitem>
-                <listitem><simpara><literal>grid.example.org:2119</literal></simpara></listitem>
-                <listitem><simpara><literal>grid.example.org:2119/jobmanager</literal></simpara></listitem>
-                <listitem><simpara><literal>grid.example.org/jobmanager</literal></simpara></listitem>
-                <listitem><simpara><literal>grid.example.org:/jobmanager</literal></simpara></listitem>
-                <listitem><simpara><literal>grid.example.org:2119:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
-                <listitem><simpara><literal>grid.example.org/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
-                <listitem><simpara><literal>grid.example.org:/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
-                <listitem><simpara><literal>grid.example.org:2119/jobmanager:/C=US/O=Example/OU=Grid/CN=host/grid.example.org</literal></simpara></listitem>
-                </itemizedlist>
-                </para>
-            </example>
-        </section>
 
         <section>
             <title>Running Jobs with <command>globus-job-run</command></title>
