@@ -30,7 +30,7 @@
 			<h2 class="smalltitle"></h2>
 			<dl class="leftColumn">
 			<dt>Data Management - <a href="/toolkit/docs/5.2/5.2.0/gridftp/">GridFTP</a></dt>
-			<dt>Jobs Management - <a href="/toolkit/docs/5.2/5.2.0/execution/gram5/">GRAM5</a></dt>
+			<dt>Jobs Management - <a href="/toolkit/docs/5.2/5.2.0/gram5/">GRAM5</a></dt>
 			<dt>Security
 			<dd><a href="/toolkit/docs/5.2/5.2.0/gsic/">GSI C</a></dd>
 				<dd><a href="/toolkit/docs/5.2/5.2.0/myproxy/">MyProxy</a></dd>
