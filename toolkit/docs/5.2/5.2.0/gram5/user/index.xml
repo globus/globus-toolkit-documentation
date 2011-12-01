@@ -6,6 +6,8 @@
 <!ENTITY % xinclude SYSTEM "../../xinclude.mod" >
 <!ENTITY prompt "<prompt>&#37; </prompt>" >
 <!ENTITY globusrun "<command>globusrun</command>" >
+<!ENTITY gjr "<command>globus-job-run</command>" >
+<!ENTITY gjs "<command>globus-job-submit</command>" >
 %xinclude;
 
 ]>
@@ -37,6 +39,15 @@
    </para>
 
    <para>
+   GRAM achieves its uniform interface by implementing a domain-specific language
+   called the <olink targetdoc="gram5Developer" targetptr="gram5-rsl">Resource
+   Specification Language</olink> (RSL) which provides a simple way to express
+   job requirements, environment, and commands in a specification which is
+   independent of the local resource manager which will actually execute the
+   job.
+   </para>
+
+   <para>
    The GRAM protocol is a two-phase protocol, so that when jobs are submitted
    to a GRAM service, they will not start until a client has received a contact
    handle to the job. The GRAM service will not clean up a job until it has
@@ -58,6 +69,12 @@
    </para>
 
    <para>
+   GRAM provides file staging before and after a job runs, scratch directory
+   management, and a cache location for common files. File staging is Grid-aware
+   and access remote storage resources via the GridFTP, ftp https, http protocols.
+   </para>
+
+   <para>
    Because the GRAM service implements client callbacks for job state changes,
    clients can submit a number of jobs and be notified when each completes.
    This allows clients to be more responsive to changes in state than services
@@ -69,7 +86,7 @@
    <para>
    There are a number of GRAM clients which can be used to interact with the
    GRAM service.  The Globus Toolkit includes <command>globusrun</command>, 
-   <command>globus-job-submit</command>, and <command>globus-job-run</command>.
+   &gjs;, and &gjr;.
    Other projects provide higher-level tools which can be used to manage
    large sets of jobs.
    </para>
@@ -81,6 +98,8 @@
    url="http://research.cs.wisc.edu/condor/manual/latest/index.html">Condor
    documentation</ulink>, especially the section on Grid Universe, which
    describes how to write Condor Classified Ads to run jobs using GRAM services.
+   The <literal>gt5</literal> Grid type provides the best performance for using
+   GRAM with Condor-G.
    </para>
    </section>
 
@@ -240,33 +259,48 @@
     </section>
 
     <section id="gram5-user-submitting-jobs">
-        <title>Submitting jobs</title>
+        <title>Basic Client Interace</title>
 
-        <para>This section describes the steps needed to submit jobs to
-        resources managed by GRAM5 services. It describes how resources are
-        named, tools for submitting and monitoring jobs, and the RSL language
-        which describes requirements for jobs.
+        <para>This section contains the basic command-line interface for
+        interacting with gram services. For these examples, we will use the 
+        GRAM resource named <literal>grid.example.org:2119/jobmanager-pbs</literal>.
+        You will need to change that to resources which you have been granted
+        access. 
         </para>
 
+        <section>
+            <title>Batch and Interactive Use</title>
+            <para>
+            The tools &gjr; and
+            &gjs; an both be used to submit jobs
+            to GRAM resources. The difference is that
+            &gjr; will wait until the job terminates
+            before exiting and prints job standard output and stderr after the
+            job completes, while &gjs; will
+            submit the job and then exit immediately, printing the job contact
+            to its standard output stream. The job can be then polled for status
+            with the <command>globus-job-status</command> command, its output can
+            be fetched with the <command>globus-job-get-output</command> and cleaned
+            up with the <command>globus-job-clean</command> command.
+            </para>
+        </section>
 
         <section>
-            <title>Running Jobs with <command>globus-job-run</command></title>
+            <title>Running Basic Jobs with &gjr;</title>
 
             <para>
-            The <command>globus-job-run</command> provides a simple
+            The &gjr; provides a simple
             blocking command-line interface to the GRAM service. The
-            <command>globus-job-run</command> program submits a job to a GRAM5
+            &gjr; program submits a job to a GRAM
             resource and waits for the job to terminate. After the job
             terminates, the output and error streams of the job are sent to 
-            the output and error streams of <command>globus-job-run</command>
-            as if the job were run interactively. Note that input to the job
-            must be located in a file prior to running the job; true
-            interactive I/O is not supported by GRAM5.
+            the output and error streams of &gjr;. Note that truly interactive
+            jobs are not supported with GRAM.
             </para>
 
             <para>
-            The <command>globus-job-run</command> program has command-line
-            options to control most aspects of jobs run by GRAM5. However,
+            The &gjr; program has command-line
+            options to control most aspects of jobs run by GRAM. However,
             certain behaviors must be specified by definition of an RSL
             string containing various job attributes. A more detailed description
             about the RSL language is included on the section on running
@@ -275,7 +309,7 @@
 
             <para>
             The following examples show some of the common command-line options
-            to <command>globus-job-run</command>. Full <olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-run"><command>globus-job-run</command> documentation</olink>
+            to &gjr;. Full <olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-run">&gjr; documentation</olink>
             is available in the <olink targetdoc="gram5PI">GRAM5 public interface guide</olink>.
             </para>
 
@@ -298,22 +332,64 @@
 
                 <para>
                 The following command line submits ten instances of an
-                executable <filename>a.out</filename>, staging it from the
-                client host to the service node using GASS. The
-                <filename>a.out</filename> program prints the name of the host
-                it is executing on.
+                executable <filename>/bin/hostname</filename>. The output of
+                the job is the name of the ten hosts that the job ran on. The
+                <option>-np <replaceable>COUNT</replaceable></option> option
+                causes &gjr; to run
+                <replaceable>COUNT</replaceable> instances of the executable.
 
-                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -np 10 -s a.out</option></command>
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -np 4 /bin/hostname</option></command>
 <computeroutput>node1.grid.example.org
 node3.grid.example.org
 node2.grid.example.org
-node5.grid.example.org
-node4.grid.example.org
-node8.grid.example.org
-node6.grid.example.org
-node9.grid.example.org
-node7.grid.example.org
 node10.grid.example.org</computeroutput></screen>
+                </para>
+            </example>
+
+            <example>
+                <title>Staging an executable file using globus-job-run</title>
+
+                <para>
+                The following command line submits an executable which is local to the
+                submit machine to the GRAM resource, then executes it. The executable
+                is removed automatically from the GRAM resource after the job completes.
+                The <option>-s</option> option prior to the executable name causes
+                &gjr; to stage the executable using GASS (an https-based protocol) from
+                the machine running &gjr; to the GRAM resource.
+
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -s my-executable</option></command>
+<computeroutput>node1.grid.example.org</computeroutput></screen>
+                </para>
+            </example>
+
+            <example>
+                <title>Providing an input file to a job using globus-job-run</title>
+
+                <para>
+                The following command line submits a job to a GRAM resource. When
+                this job runs, its standard input will read from the file 
+                <filename><replaceable>$HOME</replaceable>/inputfile.txt</filename>, 
+                which is located on the GRAM resource. The <option>-stdin</option>
+                command-line option indicates this path.
+                
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -stdin inputfile.txt /bin/cat</option></command>
+<computeroutput>Hello, Grid</computeroutput></screen>
+                </para>
+            </example>
+
+            <example>
+                <title>Staging an input file to a job using globus-job-run</title>
+
+                <para>
+                The following command line submits a job to a GRAM resource. When
+                this job runs, its standard input will read from the file 
+                <filename>inputfile.txt</filename>, 
+                which is located on the submit client machine. The <option>-stdin -s</option>
+                command-line option combination causes the input to be staged in the above
+                executable staging example.
+                
+                <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -stdin -s inputfile.txt /bin/cat</option></command>
+<computeroutput>Hello, staged input on the Grid</computeroutput></screen>
                 </para>
             </example>
 
@@ -342,7 +418,10 @@ node10.grid.example.org</computeroutput></screen>
                 The following command line submits one instances of the
                 executable <filename>/usr/bin/env</filename>, setting some
                 environment variables in the job environment beyond those
-                set by GRAM5. 
+                set by GRAM5.  The <option>-env <replaceable>VARIABLE</replaceable>=<replaceable>VALUE</replaceable></option>
+                command-line option adds the named variable to the job
+                environment. It may be present multiple times in the command-line
+                to set multiple environment variables.
 
                 <screen>&prompt;<command>globus-job-run <option>grid.example.org:2119/jobmanager-pbs -env TEST=1 -env GRID=1 /usr/bin/env</option></command>
 <computeroutput>HOME=/home/juser
@@ -355,7 +434,91 @@ X509_USER_PROXY=/home/juser/.globus/job/mactop.local/16001579536700793196.529561
 GRID=1</computeroutput></screen>
                 </para>
             </example>
+        </section>
 
+        <section>
+            <title>Submitting Basic Jobs with &gjs;</title>
+            <para>A related tool to <command>globus-job-run</command> is
+            <olink targetdoc="gram5PI"
+            targetptr="gram5-cmd-globus-job-submit"><command>globus-job-submit</command></olink>.
+            This command submits a job to a GRAM5 service then exits without
+            waiting for the job to terminate. Other tools
+            (<olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-cancel"><command>globus-job-cancel</command></olink>,
+            <olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-clean"><command>globus-job-clean</command></olink>, and
+            <olink targetdoc="gram5PI"
+            targetptr="gram5-cmd-globus-job-get-output"><command>globus-job-get-output</command></olink>)
+            allow futher interaction
+            with the job.
+            </para>
+
+            <important>
+            <para>
+                When using <command>globus-job-submit</command>, the job output
+                and state will remain on disk on the GRAM resource until one
+                of <command>globus-job-clean</command> or
+                <command>globus-job-cancel</command> is run for that job. Be
+                sure to clean up your jobs!
+            </para>
+            </important>
+
+            <para>
+            The &gjs; program has most of the
+            same command-line options as &gjr;. 
+            When run, instead of displaying the output and error streams of
+            the job, it prints the job contact, which is used with the other
+            globus-job tools to interact with the job.
+            </para>
+
+            <example>
+                <title>globus-job-submit</title>
+                <para>
+                This example shows the interaction of submitting a job via 
+                <command>globus-job-submit</command>, checking its status
+                with <command>globus-job-status</command>, getting its
+                output with <command>globus-job-get-output</command>, and then
+                cleaning the job with <command>globus-job-clean</command>. Note
+                that this example uses the <literal>jobmanager-fork</literal>
+                service when retrieving input and cleaning the job. This allows
+                those tasks to be done without waiting in the batch system.
+                Most sites will allow these sorts of administrative jobs to be
+                run on the GRAM node, but consult your system administrator to
+                be sure.
+                </para>
+
+                <para>Also, note, that the job contact returned from &gjs; can be
+                used to get information about the job from any computer,  provided you
+                have GRAM tools installed and your security environment set up.
+                </para>
+
+                <screen>&prompt;<command>globus-job-submit <option>grid.example.org:2119/jobmanager-pbs /bin/hostname</option></command>
+<computeroutput>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</computeroutput>
+&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>PENDING</computeroutput>
+&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>ACTIVE</computeroutput>
+&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>DONE</computeroutput>
+&prompt;<command>globus-job-get-output <option>-r grid.example.org:2119/jobmanager-fork \
+    https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>node1.grid.example.org</computeroutput>
+&prompt;<command>globus-job-clean <option>-r grid.example.org:2119/jobmanager-fork \
+    https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
+<computeroutput>
+    WARNING: Cleaning a job means:
+        - Kill the job if it still running, and
+        - Remove the cached output on the remote resource
+
+    Are you sure you want to cleanup the job now (Y/N) ?
+</computeroutput>
+<userinput>y</userinput>
+<computeroutput>
+Cleanup successful.</computeroutput></screen>
+            </example>
+
+        </section>
+
+        <section>
+            <title>Advanced Jobs with globus-job-run</title>
             <example>
                 <title>Using custom RSL clauses with globus-job-run</title>
 
@@ -396,84 +559,15 @@ Hello, MPI (rank: 2, count: 5)</computeroutput>
             </example>
 
         </section>
+    </section>
 
-        <section>
-            <title>Submitting Jobs with <command>globus-job-submit</command></title>
-            <para>A related tool to <command>globus-job-run</command> is
-            <olink targetdoc="gram5PI"
-            targetptr="gram5-cmd-globus-job-submit"><command>globus-job-submit</command></olink>.
-            This command submits a job to a GRAM5 service then exits without
-            waiting for the job to terminate. Other tools
-            (<olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-cancel"><command>globus-job-cancel</command></olink>,
-            <olink targetdoc="gram5PI" targetptr="gram5-cmd-globus-job-clean"><command>globus-job-clean</command></olink>, and
-            <olink targetdoc="gram5PI"
-            targetptr="gram5-cmd-globus-job-get-output"><command>globus-job-get-output</command></olink>)
-            allow futher interaction
-            with the job.
-            </para>
-
-            <important>
-            <para>
-                When using <command>globus-job-submit</command>, the job output
-                and state will remain on disk on the GRAM resource until one
-                of <command>globus-job-clean</command> or
-                <command>globus-job-cancel</command> is run for that job. Be
-                sure to clean up your jobs!
-            </para>
-            </important>
-
-            <para>
-            The <command>globus-job-submit</command> program has most of the
-            same command-line options as <command>globus-job-run</command>. 
-            When run, instead of displaying the output and error streams of
-            the job, it prints the job contact, which is used with the other
-            globus-job tools to interact with the job.
-            </para>
-
-            <example>
-                <title>globus-job-submit</title>
-                <para>
-                This example shows the interaction of submitting a job via 
-                <command>globus-job-submit</command>, checking its status
-                with <command>globus-job-status</command>, getting its
-                output with <command>globus-job-get-output</command>, and then
-                cleaning the job with <command>globus-job-clean</command>.
-                </para>
-
-                <screen>&prompt;<command>globus-job-submit <option>grid.example.org:2119/jobmanager-pbs /bin/hostname</option></command>
-<computeroutput>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</computeroutput>
-&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
-<computeroutput>PENDING</computeroutput>
-&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
-<computeroutput>ACTIVE</computeroutput>
-&prompt;<command>globus-job-status <option>https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
-<computeroutput>DONE</computeroutput>
-&prompt;<command>globus-job-get-output <option>-r grid.example.org:2119/jobmanager-fork \
-    https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
-<computeroutput>node1.grid.example.org</computeroutput>
-&prompt;<command>globus-job-clean <option>-r grid.example.org:2119/jobmanager-fork \
-    https://grid.example.org:38843/16001600430615223386/5295612977486013582/</option></command>
-<computeroutput>
-    WARNING: Cleaning a job means:
-        - Kill the job if it still running, and
-        - Remove the cached output on the remote resource
-
-    Are you sure you want to cleanup the job now (Y/N) ?
-</computeroutput>
-<userinput>y</userinput>
-<computeroutput>
-Cleanup successful.</computeroutput></screen>
-            </example>
-
-        </section>
-
-        <section id="gram5-user-globusrun">
-            <title>Using the globusrun tool</title>
+    <section id="gram5-user-globusrun">
+        <title>Advanced GRAM Client with the globusrun tool</title>
 
             <para>The <olink targetdoc="gram5PI" targetptr="gram5-cmd-globusrun">&globusrun;</olink> tool provides a more
             flexible tool for submitting, monitoring, and canceling jobs. With
             this tool, most of the functionality of the GRAM5 APIs are made
-            available.
+            available from the command-line.
             </para>
 
             <para>
@@ -999,41 +1093,43 @@ GLOBUS_GRAM_PROTOCOL_JOB_STATE_DONE</computeroutput>
                 </example>
 
             </section>
-        </section>
     </section>
 
-    <section id="gram5-user-condor-g">
-    <title>Using GRAM5 with Condor-G</title>
-    <para>
-        Condor-G users should upgrade their clients to condor 7.4.0 or later to
-        achvieve highest performance. That version includes the 
-        <literal>gt5</literal> grid type, which includes client-side
-        optimizations to improve performance. To use an older Condor-G client,
-        be sure to set the
-        <literal>GRIDMANAGER_MAX_JOBMANAGERS_PER_RESOURCE</literal> attribute
-        to <literal>0</literal> to disable the Condor-G client attempts to
-        stop and restart the job manager service. Also, disable the Grid
-        Monitor when using a GRAM5 resource by setting the
-        <literal>ENABLE_GRID_MONITOR</literal> configuration attribute to
-        <literal>FALSE</literal>.
-    </para>
-    </section>
 </chapter>
 
 
+<chapter id="gram5-user-troubleshooting"><title>Troubleshooting</title>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-        href="../GRAM5_Interface_Commandline_Frag.xml"/>
-
-<!-- n/a 
-<chapter id="gram5-user-gui">
-<title>Graphical user interfaces</title>
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-        href="../GRAM5_Interface_GUI_Frag.xml"/>
+        href="../GRAM5_Troubleshooting_User_Frag.xml"/>
 </chapter>
-    -->
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-        href="../GRAM5_Troubleshooting_Frag.xml"/>
+<chapter id="gram5-user-clientcli">
+<title>Command-line Client Reference Pages</title>
+<para>
+This section contains reference pages for all of the tools described in the
+previous section. These pages contain all the command-line options for these
+tools. These are available as manpages in the documentation subpackages for 
+the globus-gram-client-tools package.
+</para>
+
+<xi:include href="../globusrun-manual.xml"
+            xmlns:xi="http://www.w3.org/2001/XInclude"/>
+<xi:include href="../globus-job-cancel-manual.xml"
+            xmlns:xi="http://www.w3.org/2001/XInclude"/>
+<xi:include href="../globus-job-clean-manual.xml"
+            xmlns:xi="http://www.w3.org/2001/XInclude"/>
+<xi:include href="../globus-job-get-output-manual.xml"
+            xmlns:xi="http://www.w3.org/2001/XInclude"/>
+<xi:include href="../globus-job-run-manual.xml"
+            xmlns:xi="http://www.w3.org/2001/XInclude"/>
+<xi:include href="../globus-job-status-manual.xml"
+            xmlns:xi="http://www.w3.org/2001/XInclude"/>
+<xi:include href="../globus-job-submit-manual.xml"
+            xmlns:xi="http://www.w3.org/2001/XInclude"/>
+<xi:include href="../globus-personal-gatekeeper-manual.xml"
+            xmlns:xi="http://www.w3.org/2001/XInclude"/>
+</chapter>
+
 
 <chapter id="gram5-user-knownproblems"><title>Known Problems in GRAM5</title>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
