@@ -2,6 +2,7 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
+#	../../custom_html.xsl ./toc.xsl\
 
 all: lint html
 pdf: fo xep
@@ -10,7 +11,6 @@ html:
 	xsltproc \
 	--xinclude \
 	--stringparam current.docid "gtadmin" \
-#	../../custom_html.xsl ./toc.xsl\
 	./toc.xsl\
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
