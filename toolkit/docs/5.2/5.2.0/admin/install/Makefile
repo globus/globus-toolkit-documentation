@@ -10,7 +10,7 @@ html:
 	xsltproc \
 	--xinclude \
 	--stringparam current.docid "gtadmin" \
-	../../custom_html.xsl \
+	../../custom_html.xsl ./toc.xsl\
 	$(FILENAME) \
 	&& chgrp -R cvsusers *
 
