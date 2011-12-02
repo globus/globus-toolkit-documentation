@@ -18,7 +18,7 @@ html:
 	&& chgrp -R cvsusers *
 appendix:
 	xsltproc \
-	--output appendix.html
+	--output appendix.html \
 	--xinclude \
 	--stringparam current.docid "gtadmin" \
 	../../custom_html.xsl\
