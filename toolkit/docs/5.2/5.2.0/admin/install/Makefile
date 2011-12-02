@@ -15,15 +15,14 @@ html:
 	--stringparam current.docid "gtadmin" \
 	../../custom_html.xsl \
 	$(HTMLNAME) \
-	&& chgrp -R cvsusers *
+	&& (chgrp -R cvsusers * || true)
 appendix:
 	xsltproc \
-	--output appendix.html \
 	--xinclude \
-	--stringparam current.docid "gtadmin" \
+	--stringparam current.docid "gtadmin-appendix" \
 	../../custom_html.xsl \
 	$(APPENDIXNAME) \
-	&& chgrp -R cvsusers *
+	&& (chgrp -R cvsusers * || true)
 
 fo:
 	xsltproc \
@@ -66,4 +65,4 @@ olink:
 	--xinclude \
 	--stringparam  collect.xref.targets  "only"  \
 	../../custom_html.xsl \
-	$(FILENAME)
+	$(FILENAME) $(APPENDIXNAME)
