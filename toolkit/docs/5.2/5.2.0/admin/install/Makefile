@@ -1,18 +1,27 @@
 export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
-FILENAME= index.xml
+FILENAME= index-book.xml
+HTMLNAME= index.xml
+APPENDIXNAME= appendix.xml
 #	../../custom_html.xsl ./toc.xsl\
 
-all: lint html
+all: lint html appendix
 pdf: fo xep
 
 html:
 	xsltproc \
 	--xinclude \
 	--stringparam current.docid "gtadmin" \
-	./toc.xsl\
-	$(FILENAME) \
+	../../custom_html.xsl\
+	$(HTMLNAME) \
+	&& chgrp -R cvsusers *
+appendix:
+	xsltproc \
+	--xinclude \
+	--stringparam current.docid "gtadmin" \
+	../../custom_html.xsl\
+	$(APPENDIXNAME) \
 	&& chgrp -R cvsusers *
 
 fo:
