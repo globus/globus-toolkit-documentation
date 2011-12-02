@@ -13,7 +13,7 @@ html:
 	xsltproc \
 	--xinclude \
 	--stringparam current.docid "gtadmin" \
-	../../custom_html.xsl\
+	../../custom_html.xsl \
 	$(HTMLNAME) \
 	&& chgrp -R cvsusers *
 appendix:
@@ -21,7 +21,7 @@ appendix:
 	--output appendix.html \
 	--xinclude \
 	--stringparam current.docid "gtadmin" \
-	../../custom_html.xsl\
+	../../custom_html.xsl \
 	$(APPENDIXNAME) \
 	&& chgrp -R cvsusers *
 
