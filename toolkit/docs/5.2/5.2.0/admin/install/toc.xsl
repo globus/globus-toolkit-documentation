@@ -7,22 +7,10 @@
 
   <xsl:choose>
     <xsl:when test="local-name($toc-context) = 'book'">
-     <xsl:choose>
-     <xsl:when test="local-name = 'appendix'">
       <xsl:call-template name="subtoc">
         <xsl:with-param name="toc-context" select="$toc-context"/>
         <xsl:with-param name="nodes" select="foo"/>
       </xsl:call-template>
-     </xsl:when>
-     <xsl:otherwise>
-      <xsl:call-template name="subtoc">
-        <xsl:with-param name="toc-context" select="$toc-context"/>
-        <xsl:with-param name="nodes"
-              select="section|sect1|glossary|bibliography|index
-                     |bridgehead[$bridgehead.in.toc != 0]"/>
-      </xsl:call-template>
-     </xsl:otherwise>
-     </xsl:choose>
     </xsl:when>
     <xsl:otherwise>
       <xsl:call-template name="subtoc">
