@@ -17,7 +17,6 @@
 			<!--
 				<dt><a href="/toolkit/docs/5.2/5.2.0/doc_overview.html">Doc Structure</a></dt>
 				-->
-				<dt><a href="/toolkit/docs/5.2/5.2.0/globus_is_modular.html">Globus Is Modular!</a></dt>
 				<dt><a href="/toolkit/docs/5.2/5.2.0/admin/install/">Installing GT</a></dt>
 				<dt><a href="/toolkit/docs/5.2/5.2.0/admin/quickstart/">Quickstart</a></dt>
 				<dt><a href="/toolkit/docs/5.2/5.2.0/admin/install/#gtadmin-platform">Platform Notes</a></dt>
