@@ -27,11 +27,11 @@
 			</simpara></listitem>
 		</itemizedlist>
 	</section>
-	<section id="gtadmin-simpleca-setup" xreflabel="Run the setup script"><title>Run the setup script</title>
+	<section id="gtadmin-simpleca-setup" xreflabel="Create your SimpleCA"><title>Create your Simple CA</title>
 		<para>A script was installed to set up a new SimpleCA. You only need to run this
 			script <emphasis>once</emphasis> per Grid. </para>
-		<para>Run the setup script:</para>
-		<screen>$GLOBUS_LOCATION/setup/globus/setup-simple-ca 
+		<para>Run the script:</para>
+		<screen>/usr/bin/grid-ca-create 
 		</screen>
 		<section id="gtadmin-simpleca-subjectname" xreflabel="Configure the subject name"><title>2.1 Configure the subject name</title>
 			<para>This script prompts you for information about the CA you wish to create:</para>
@@ -95,10 +95,6 @@ the CA certificate should last before it expires.
 		<section id="gtadmin-simpleca-passphrase" xreflabel="Enter a passphrase"><title>Enter a passphrase</title>
 			<para>Next you'll see: </para>
 			<screen>
-Generating a 1024 bit RSA private key
-........++++++
-................++++++
-writing new private key to '/home/globus/.globus/simpleCA//private/cakey.pem'
 Enter PEM pass phrase:</screen>
 			<para>The passphrase of the CA certificate will be used only when signing certificates
 				(with <command>grid-cert-sign</command>). It should be hard to guess, as its compromise
@@ -110,69 +106,16 @@ Enter PEM pass phrase:</screen>
 		<section id="gtadmin-simpleca-confirmcert" xreflabel="Confirm generated certificate"><title>Confirm generated certificate</title>
 			<para>Finally you'll see the following: </para>
 			<screen>
-A self-signed certificate has been generated 
-for the Certificate Authority with the subject: 
-
-/O=Grid/OU=GlobusTest/OU=simpleCA-mayed.mcs.anl.gov/CN=Globus Simple CA
-
-If this is invalid, rerun this script 
-
-setup/globus/setup-simple-ca
-
-and enter the appropriate fields.
-
--------------------------------------------------------------------
-
-The private key of the CA is stored in /home/globus/.globus/simpleCA//private/cak ey.pem
-The public CA certificate is stored in /home/globus/.globus/simpleCA//cacert.pem
-
-The distribution package built for this CA is stored in
-
-/home/globus/.globus/simpleCA//globus_simple_ca_68ea3306_setup-0.17.tar.gz</screen>
+Installing new CA files to /etc/grid-security/certificates... done
+Creating RPM source tarball... done
+	globus_simple_ca_68ea3306_setup-0.17.tar.gz</screen>
 			<para>This information will be important for setting up other machines in your grid.
 				The number <replaceable>68ea3306</replaceable> in the last line is known as your 
 				<emphasis>CA hash</emphasis>.
 				It will be an 8 hexadecimal digit string. </para>
-			<para>Press any key to acknowledge this screen.</para>
-			<para>Your CA setup package finishes installing and ends the procedure with the
-				following reminder: </para>
-			<screen>
-***************************************************************************
-
-Note: To complete setup of the GSI software you need to run the
-following script as root to configure your security configuration
-directory:
-
-/opt/gt4/setup/globus_simple_ca_68ea3306_setup/setup-gsi
-
-For further information on using the setup-gsi script, use the -help
-option.  The -default option sets this security configuration to be 
-the default, and -nonroot can be used on systems where root access is 
-not available.
-
-***************************************************************************
-
-setup-ssl-utils: Complete
-			</screen>
-			<para>We'll run the setup-gsi script in the next section. For now, just notice that
-				it refers to your <filename class="directory">$GLOBUS_LOCATION</filename> and
-				the <replaceable>CA Hash</replaceable> from the last message.</para>
+			
 		</section>
-		<section id="gtadmin-simpleca-finalizing" xreflabel="Complete setup of GSI"><title>Complete setup of GSI</title>
-			<para>To finish the setup of GSI, we'll run the script noted in the previous step.</para>
-			<para>Run the following as root (or, if no root privileges are available, add the <command>-nonroot</command> option
-				to the command line):</para>
-			<screen>$GLOBUS_LOCATION/setup/globus_simple_ca_<replaceable>CA_Hash</replaceable>_setup/setup-gsi -default</screen>
-			<para>The output should look like:</para>
-			<screen>
-setup-gsi: Configuring GSI security
-Installing /etc/grid-security/certificates//grid-security.conf.CA_Hash...
-Running grid-security-config...
-Installing Globus CA certificate into trusted CA certificate directory...
-Installing Globus CA signing policy into trusted CA certificate directory...
-setup-gsi: Complete</screen>
 		</section>
-	</section>
 	<section id="gtadmin-simpleca-hostcert" xreflabel="Host certificates for SimpleCA"><title>Host certificates</title>
 		<para>You must request and sign a host certificate and then copy it into the appropriate
 			directory for secure services. The certificate must be for a machine which
@@ -277,22 +220,28 @@ Creating proxy ..............................++++++++++++
 Done
 Proxy Verify OK
 Your proxy is valid until: Sat Mar 20 03:01:46 2004</screen>
+		<para>If you get an error, or if you want to see more diagnostic information about your certificates,
+			run the following:</para>
+		<screen>gtuser$ grid-cert-diagnostics</screen>
+		<para>For more troubleshooting information, see the GSI <olink targetptr="#gsic-admin-troubleshooting">troubleshooting guide</olink></para>
+		
 	</section>
 	<section id="gtadmin-simpleca-multiplemachines" xreflabel="Configure SimpleCA for multiple machines">
 		<title>Configure SimpleCA for multiple machines </title>
 		<para>So far, you have a single machine configured with SimpleCA
-			certificates. Recall that in <olink targetptr="gtadmin-simpleca-finalizing"/>
-				 a
-			CA setup package was created in <filename>.globus/simpleCA/globus_simple_ca_HASH_setup-0.17.tar.gz</filename>.
+			certificates. Recall that in <olink targetptr="gtadmin-simpleca-confirmcert"/>
+				 an RPM Source tarball
+			CA package was created as <filename>globus_simple_ca_HASH.tar.gz</filename>in your current directory..
 			If you want to use your certificates on another machine, you
-			must install that CA setup package on that machine.             
+			must install that CA package on that machine.             
 		</para>
-		<para>To install it, copy that package to the second machine and run:
-			<screen> $GLOBUS_LOCATION/sbin/gpt-build globus_simple_ca_HASH_setup-0.17.tar.gz gcc32dbg</screen>
+		<para>To create an RPM to install on a second machine, run:
+			<screen> rpmbuild -ta ./globus_simple_ca_HASH.tar.gz </screen>
 		</para>
-		<para>Then you will have to perform <command>setup-gsi -default</command> from 
-			<olink targetptr="gtadmin-simpleca-signhost"/>.
+		<para>This will create a ~/rpmbuild/RPMS/noarch/globus_simple_ca_HASH-1.0-1*.rpm which you can copy to your
+			second machine and install using the standard RPM commands.
 		</para>
+		<para>Build files are also included for creating Debian packages for your SimpleCA.</para>
 		<para>If you are going to run services on the second host, it will need
 			its own <olink targetptr="gtadmin-simpleca-hostcert"/>
 	  		and grid-mapfile (as described in the basic configuration instructions
