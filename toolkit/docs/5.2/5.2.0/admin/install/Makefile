@@ -20,6 +20,7 @@ appendix:
 	xsltproc \
 	--xinclude \
 	--stringparam current.docid "gtadminappendix" \
+	--stringparam targets.filename "appendixtarget.db" \
 	../../custom_html.xsl \
 	$(APPENDIXNAME) \
 	&& (chgrp -R cvsusers * || true)
