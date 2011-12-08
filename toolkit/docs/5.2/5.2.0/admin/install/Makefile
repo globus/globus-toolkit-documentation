@@ -19,7 +19,7 @@ html:
 appendix:
 	xsltproc \
 	--xinclude \
-	--stringparam current.docid "gtadmin-appendix" \
+	--stringparam current.docid "gtadminappendix" \
 	../../custom_html.xsl \
 	$(APPENDIXNAME) \
 	&& (chgrp -R cvsusers * || true)
