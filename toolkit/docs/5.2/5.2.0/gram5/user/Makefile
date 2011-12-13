@@ -2,6 +2,7 @@ export UMASK=002
 export XML_CATALOG_FILES=../../catalog
 #export XML_DEBUG_CATALOG= 1
 FILENAME= index.xml
+TARGET_DATABASE_DOC=/mcs/globus.org/toolkit/docs/5.2/5.2.0/olinkdb.xml
 
 all: lint html
 pdf: fo xep
@@ -10,9 +11,10 @@ html:
 	xsltproc \
 	--xinclude \
 	--stringparam current.docid "gram5User" \
+	--stringparam target.database.document "$(TARGET_DATABASE_DOC)" \
 	../../custom_html.xsl \
 	$(FILENAME) \
-	&& chgrp -R cvsusers *
+	&& (chgrp -R cvsusers * || true)
 
 fo:
 	xsltproc \
