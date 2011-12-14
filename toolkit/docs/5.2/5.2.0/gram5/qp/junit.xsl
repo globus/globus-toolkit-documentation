@@ -1,9 +1,11 @@
 <?xml version="1.0"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
         xmlns:lxslt="http://xml.apache.org/xslt"
-        xmlns:stringutils="xalan://org.apache.tools.ant.util.StringUtils">
-<xsl:output method="html" indent="yes" encoding="US-ASCII"
-  doctype-public="-//W3C//DTD HTML 4.01 Transitional//EN" />
+        xmlns:stringutils="xalan://org.apache.tools.ant.util.StringUtils"
+exclude-result-prefixes='xsl lxslt stringutils'
+        >
+<xsl:output method="html" indent="yes" encoding="US-ASCII" />
+<xsl:preserve-space elements="*"/>
 <xsl:decimal-format decimal-separator="." grouping-separator="," />
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -33,16 +35,16 @@
 
 -->
 <xsl:template match="testsuites">
-    <html>
-        <head>
-            <title><xsl:value-of select="$TITLE"/></title>
-    <style type="text/css">
-      body {
-        font:normal 68% verdana,arial,helvetica;
-        color:#000000;
-      }
+    <xsl:processing-instruction name="php">
+
+$title = "<xsl:value-of select="$TITLE"/>";
+
+include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+?</xsl:processing-instruction><xsl:text>&#10;&#10;</xsl:text>
+<style type="text/css">
+  
       table tr td, table tr th {
-          font-size: 68%;
+          font-size: 100%;
       }
       table.details tr th{
         font-weight: bold;
@@ -57,24 +59,13 @@
         line-height:1.5em;
         margin-top:0.5em; margin-bottom:1.0em;
       }
-      h1 {
-        margin: 0px 0px 5px; font: 165% verdana,arial,helvetica
-      }
-      h2 {
-        margin-top: 1em; margin-bottom: 0.5em; font: bold 125% verdana,arial,helvetica
-      }
-      h3 {
-        margin-bottom: 0.5em; font: bold 115% verdana,arial,helvetica
-      }
-      h4 {
-        margin-bottom: 0.5em; font: bold 100% verdana,arial,helvetica
-      }
-      h5 {
-        margin-bottom: 0.5em; font: bold 100% verdana,arial,helvetica
-      }
-      h6 {
-        margin-bottom: 0.5em; font: bold 100% verdana,arial,helvetica
-      }
+		
+	  h3 {
+	  font-size: 14px;
+	  color: #333333;
+	  font-weight: bold;
+	  }
+		
       .Error {
         font-weight:bold; color:red;
       }
@@ -84,7 +75,7 @@
       .Properties {
         text-align:right;
       }
-      </style>
+      </style><xsl:text>&#10;</xsl:text>
       <script type="text/javascript" language="JavaScript">
         var TestCases = new Array();
         var cur;
@@ -121,15 +112,19 @@
           win.focus();
         }
       ]]>
-      </script>
-        </head>
-        <body>
+      </script><xsl:text>&#10;&#10;</xsl:text>
+<h1 class="first"><xsl:processing-instruction name="php">echo $title; ?</xsl:processing-instruction></h1>
+        <xsl:text>&#10;</xsl:text>
+
             <a name="top"></a>
+            <xsl:text>&#10;</xsl:text>
+
             <xsl:call-template name="pageHeader"/>
 
             <!-- Summary part -->
             <xsl:call-template name="summary"/>
             <hr size="1" width="95%" align="left"/>
+            <xsl:text>&#10;</xsl:text>
 
             
             <!-- Package List part -->
@@ -146,9 +141,11 @@
 
             <!-- For each class create the  part -->
             <xsl:call-template name="classes"/>
+            <xsl:text>&#10;</xsl:text>
+            <p> <xsl:text disable-output-escaping="yes"><![CDATA[&nbsp; ]]></xsl:text></p>
+            <xsl:text>&#10;</xsl:text>
+            <xsl:processing-instruction name="php">include("http://www.globus.org/include/globus_footer.inc"); ?</xsl:processing-instruction>
 
-        </body>
-    </html>
 </xsl:template>
 
 
@@ -209,6 +206,7 @@
                 <a name="{@package}"></a>
                 <h3>Package <xsl:value-of select="@package"/></h3>
 
+        <xsl:text>&#10;</xsl:text>
                 <table class="details" border="0" cellpadding="5" cellspacing="2" width="95%">
                     <xsl:call-template name="testsuite.test.header"/>
 
@@ -227,6 +225,7 @@
             <!-- create an anchor to this class name -->
             <a name="{@name}"></a>
             <h3>TestCase <xsl:value-of select="@name"/></h3>
+            <xsl:text>&#10;</xsl:text>
 
             <table class="details" border="0" cellpadding="5" cellspacing="2" width="95%">
               <xsl:call-template name="testcase.test.header"/>
@@ -241,25 +240,30 @@
                 </xsl:if>
                 <xsl:apply-templates select="./testcase" mode="print.test"/>
             </table>
+            <xsl:text>&#10;</xsl:text>
             <div class="Properties">
                 <a>
                     <xsl:attribute name="href">javascript:displayProperties('<xsl:value-of select="@package"/>.<xsl:value-of select="@name"/>');</xsl:attribute>
                     Properties &#187;
                 </a>
             </div>
+            <xsl:text>&#10;</xsl:text>
             <p/>
+            <xsl:text>&#10;</xsl:text>
 
             <a href="#top">Back to top</a>
         </xsl:for-each>
     </xsl:template>
 
     <xsl:template name="summary">
+        <xsl:text>&#10;</xsl:text>
         <h2>Summary</h2>
         <xsl:variable name="testCount" select="sum(testsuite/@tests)"/>
         <xsl:variable name="errorCount" select="sum(testsuite/@errors)"/>
         <xsl:variable name="failureCount" select="sum(testsuite/@failures)"/>
         <xsl:variable name="timeCount" select="sum(testsuite/@time)"/>
         <xsl:variable name="successRate" select="($testCount - $failureCount - $errorCount) div $testCount"/>
+        <xsl:text>&#10;</xsl:text>
         <table class="details" border="0" cellpadding="5" cellspacing="2" width="95%">
         <tr valign="top">
             <th>Tests</th>
@@ -291,6 +295,7 @@
 
         </tr>
         </table>
+        <xsl:text>&#10;</xsl:text>
         <table border="0" width="95%">
         <tr>
         <td style="text-align: justify;">
@@ -298,6 +303,7 @@
         </td>
         </tr>
         </table>
+        <xsl:text>&#10;</xsl:text>
     </xsl:template>
 
   <!--
@@ -314,13 +320,13 @@
 
 <!-- Page HEADER -->
 <xsl:template name="pageHeader">
-    <h1><xsl:value-of select="$TITLE"/></h1>
     <table width="100%">
     <tr>
         <td align="left"></td>
-        <td align="right">Designed for use with <a href='http://www.junit.org'>JUnit</a> and <a href='http://ant.apache.org/ant'>Ant</a>.</td>
+        <td align="right"></td>
     </tr>
     </table>
+    <xsl:text>&#10;</xsl:text>
     <hr size="1"/>
 </xsl:template>
 
