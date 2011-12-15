@@ -21,7 +21,7 @@
 				<dt><a href="/toolkit/docs/5.2/5.2.0/admin/quickstart/">Quickstart</a></dt>
 				<dt><a href="/toolkit/docs/5.2/5.2.0/admin/install/#gtadmin-platform">Platform Notes</a></dt>
 				<dt><a href="/toolkit/docs/5.2/5.2.0/appendices/developer/">GT Developer's Guide</a></dt>
-				<dt><a href="/toolkit/docs/5.2/5.2.0/appendices/user/">GT User's Guide</a></dt>
+	<!--			<dt><a href="/toolkit/docs/5.2/5.2.0/appendices/user/">GT User's Guide</a></dt> -->
 				<dt><a href="/toolkit/docs/5.2/5.2.0/appendices/mig/">Migrating Guides</a></dt>
 			</dl>
 			
