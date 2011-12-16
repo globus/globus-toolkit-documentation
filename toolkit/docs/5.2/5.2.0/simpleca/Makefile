@@ -13,7 +13,7 @@ html:
 	--stringparam current.docid "simpleca" \
 	../custom_html.xsl \
 	$(FILENAME) \
-	&& chgrp -R cvsusers *
+	&& (chgrp -R cvsusers * || true)
 
 pdf:
 	pdftk \
