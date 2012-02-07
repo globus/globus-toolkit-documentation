@@ -66,4 +66,11 @@ olink:
 	--xinclude \
 	--stringparam  collect.xref.targets  "only"  \
 	../../custom_html.xsl \
-	$(FILENAME) $(APPENDIXNAME)
+	$(FILENAME)
+	xsltproc \
+	--xinclude \
+	--stringparam  collect.xref.targets  "only"  \
+	--stringparam targets.filename "appendixtarget.db" \
+	../../custom_html.xsl \
+	$(APPENDIXNAME)
+ 
