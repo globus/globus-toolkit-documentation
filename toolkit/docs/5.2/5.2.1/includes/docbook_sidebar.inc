@@ -53,7 +53,7 @@
 				<dt><a href="/toolkit/docs/development/coding_guidelines.html">Coding Guidelines</a></dt>
 				<dt><a href="/api/">API docs</a></dt>
 				<dt><a href="/toolkit/docs/5.2/5.2.1/appendices/commands/">GT Commands</a></dt>
-				<dt><a href="/toolkit/docs/5.2/5.2.1/appendices/user/#public-interfaces">Public Interfaces</a></dt>
+		<!--		<dt><a href="/toolkit/docs/5.2/5.2.1/appendices/user/#public-interfaces">Public Interfaces</a></dt> -->
 				<dt><a href="/toolkit/docs/5.2/5.2.1/index.html#glossary">Glossary</a></dt>
 			</dl>
 	
