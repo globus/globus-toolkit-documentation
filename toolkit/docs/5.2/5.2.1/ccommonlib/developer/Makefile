@@ -12,7 +12,7 @@ html:
 	--stringparam current.docid "ccommonlibDeveloper" \
 	../../custom_html.xsl \
 	$(FILENAME) \
-	&& chgrp -R cvsusers *
+	&& (chgrp -R cvsusers * || true)
 
 
 fo:
