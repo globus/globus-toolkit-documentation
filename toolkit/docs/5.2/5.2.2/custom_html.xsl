@@ -4,4 +4,5 @@
                 
     <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/html/onechunk.xsl"/>
     <xsl:include href="html.xsl"/>
+    <xsl:include href="common.xsl"/>
 </xsl:stylesheet>

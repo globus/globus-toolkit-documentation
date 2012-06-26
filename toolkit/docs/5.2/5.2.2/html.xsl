@@ -2,11 +2,6 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 version="1.0">
 
-    <!-- common.xsl contains version rewriting templates and some parameters
-         common to html and pdf output
-      -->
-    <xsl:include href="common.xsl"/>
-
                 <!-- default width of tables -->
                 <xsl:param name="default.table.width" select="'700px'"/>
                 

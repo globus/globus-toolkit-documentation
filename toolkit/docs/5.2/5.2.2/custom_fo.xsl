@@ -5,10 +5,7 @@
  version="1.0">
  
  <!-- now replace all these settings with those specific for use with the fo stylesheet (for pdf output) -->
- <!-- just realized both html and fo can share many parameters - need to create common.xsl that gets imported to both so i can single source
- those variables -->
-               
-                               <!-- which stylesheet to use? -->
+               <!-- which stylesheet to use? -->
                <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
                <xsl:import href="common.xsl"/>
                
