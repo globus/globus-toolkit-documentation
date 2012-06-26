@@ -130,15 +130,17 @@
                 <xsl:with-param name="by" select="$oldversion"/>
             </xsl:call-template>
         </xsl:variable>
+
         <xsl:variable name="new-ulink">
             <xsl:element name="ulink">
                 <xsl:attribute name="url">
                     <xsl:value-of select="$replaceoldversion"/>
                 </xsl:attribute>
                 <xsl:copy-of select="@*[local-name() != 'url']"/>
-                <xsl:copy-of select="."/>
+                <xsl:copy-of select="*"/>
+                <xsl:copy-of select="text()"/>
             </xsl:element>
         </xsl:variable>
-        <xsl:apply-imports select="exsl:node-set($new-ulink)"/>
+        <xsl:apply-templates select="exsl:node-set($new-ulink)"/>
     </xsl:template>
 </xsl:stylesheet>
