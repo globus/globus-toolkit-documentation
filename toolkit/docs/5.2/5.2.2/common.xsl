@@ -22,7 +22,7 @@
     <xsl:param name="admon.graphics">1</xsl:param>
 
     <!-- Set path to admonition graphics  -->
-    <xsl:param name="admon.graphics.path">/mcs/globus.org/docbook-images/</xsl:param>
+    <xsl:param name="admon.graphics.path">/docbook-images/</xsl:param>
 
     <!-- Set path to docbook graphics (testing)
         <xsl:param name="admon.graphics.path">file:///Z:/testing/alliance/docbook-images/</xsl:param> -->
