@@ -10,18 +10,8 @@
                
                                <!-- which stylesheet to use? -->
                <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
+               <xsl:import href="common.xsl"/>
                
-                               <!-- shared text COMMON -->
-                <xsl:template match="replaceable[@role='entity']">
-                  <xsl:choose>
-                                   <xsl:when test=". = 'version'">5.2.2</xsl:when>
-                                  <xsl:when test=". = 'shortversion'">5.2</xsl:when>
-                                  <xsl:when test=". = 'previousversion'">5.2.1</xsl:when>
-                                 <xsl:otherwise>
-                                <xsl:message>Undefined replacement text for <xsl:value-of select="."/></xsl:message>
-                                </xsl:otherwise>
-                  </xsl:choose>
-                </xsl:template>
                 
 <xsl:param name="collect.xref.targets">yes</xsl:param>
 
@@ -34,7 +24,7 @@
                </xsl:attribute-set>
                
                <!-- default location for target database document (for olinks) -->
-               <xsl:param name="target.database.document">/mcs/globus.org/toolkit/docs/5.2/5.2.2/olinkdb.xml</xsl:param>
+               <xsl:param name="target.database.document">http://root/olinkdb.xml</xsl:param>
                
                <!-- enable extensions -->
                <xsl:param name="xep.extensions" select="1"></xsl:param>
@@ -51,16 +41,6 @@
                
                <!-- GRAPHICS -->
                
-               <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc COMMON -->
-                <xsl:param name="admon.graphics">1</xsl:param>
-                
-               <!-- Set path to admonition graphics  COMMON -->
-               <xsl:param name="admon.graphics.path">/mcs/globus.org/docbook-images/</xsl:param>
-
-                
-                <!-- Set path to docbook graphics (testing)
-                                <xsl:param name="admon.graphics.path">file:///Z:/testing/alliance/docbook-images/</xsl:param> -->
-                
                <!-- Again, if 1 above, what is the filename extension for admon graphics?-->
                 <xsl:param name="admon.graphics.extension" select="'.png'"/> 
                
@@ -79,12 +59,6 @@
 
                <!-- are parts enumerated?  COMMON -->
                 <xsl:param name="part.autolabel">1</xsl:param>
-                
-               <!-- Are chapters automatically enumerated? COMMON-->
-                <xsl:param name="chapter.autolabel">1</xsl:param> 
-                
-               <!-- Are sections enumerated? COMMON -->
-                <xsl:param name="section.autolabel">1</xsl:param>
                 
                <!-- how deep should each toc be? (how many levels?) COMMON -->
                 <xsl:param name="toc.max.depth">2</xsl:param>
@@ -109,29 +83,12 @@
 
                 <!-- INDEX  -->
                
-               <!-- do you want an index? COMMON -->
-                <xsl:param name="generate.index">1</xsl:param>
-               
                <!-- index attributes for xep -->
                <xsl:attribute-set name="xep.index.item.properties">
                               <xsl:attribute name="merge-subsequent-page-numbers">true</xsl:attribute>
                               <xsl:attribute name="link-back">true</xsl:attribute>
                </xsl:attribute-set>
                 
-                <!-- GLOSSARY  -->
-               
-               <!-- Display glossentry acronyms? COMMON> -->
-                <xsl:param name="glossentry.show.acronym">yes</xsl:param>
-
-                              <!-- Name of the glossary collection file COMMON -->
-               <xsl:param name="glossary.collection" select="'http://root/glossary.xml'"></xsl:param>
-                
-               <!-- Generate links from glossterm to glossentry automatically?  COMMON-->
-                <xsl:param name="glossterm.auto.link">1</xsl:param>
-                
-                <!-- if non-zero value for previous parameter, does automatic glossterm linking only apply to firstterms? COMMON
-                <xsl:param name="firstterm.only.link">1</xsl:param>-->
-               
                <!-- reduce 'indentation' of body text -->
                <xsl:param name="body.start.indent">
                               <xsl:choose>
