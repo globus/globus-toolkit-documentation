@@ -139,6 +139,6 @@
                 <xsl:copy-of select="."/>
             </xsl:element>
         </xsl:variable>
-        <xsl:apply-templates select="exsl:node-set($new-ulink)"/>
+        <xsl:apply-imports select="exsl:node-set($new-ulink)"/>
     </xsl:template>
 </xsl:stylesheet>
