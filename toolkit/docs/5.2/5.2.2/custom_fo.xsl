@@ -7,7 +7,7 @@
  <!-- now replace all these settings with those specific for use with the fo stylesheet (for pdf output) -->
                <!-- which stylesheet to use? -->
                <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
-               <xsl:import href="common.xsl"/>
+               <xsl:include href="common.xsl"/>
                
                 
 <xsl:param name="collect.xref.targets">yes</xsl:param>
@@ -189,4 +189,38 @@
                <xsl:template match="part/subtitle"></xsl:template>
                
                 
+<!-- this modifies the object ids on output so that a double xinclude, such as the 
+     bundled set of all books for a component, have unique ids
+  -->
+<xsl:template name="object.id">
+  <xsl:param name="object" select="."/>
+
+  <xsl:variable name="id" select="@id"/>
+  <xsl:variable name="xid" select="@xml:id"/>
+
+  <xsl:variable name="preceding.id"
+        select="count(preceding::*[@id = $id])"/>
+
+  <xsl:variable name="preceding.xid"
+        select="count(preceding::*[@xml:id = $xid])"/>
+
+  <xsl:choose>
+    <xsl:when test="$object/@id and $preceding.id != 0">
+      <xsl:value-of select="concat($object/@id, $preceding.id)"/>
+    </xsl:when>
+    <xsl:when test="$object/@id">
+      <xsl:value-of select="$object/@id"/>
+    </xsl:when>
+    <xsl:when test="$object/@xml:id and $preceding.xid != 0">
+      <xsl:value-of select="concat($object/@id, $preceding.xid)"/>
+    </xsl:when>
+    <xsl:when test="$object/@xml:id">
+      <xsl:value-of select="$object/@xml:id"/>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="generate-id($object)"/>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
 </xsl:stylesheet>
