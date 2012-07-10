@@ -1,5 +1,5 @@
 /*
- * <![CDATA[These headers contain declarations for the globus_module functions
+ * These headers contain declarations for the globus_module functions
  * and GRAM Client API functions
  */
 #include "globus_common.h"
@@ -58,4 +58,4 @@ main(int argc, char *argv[])
 out:
     return rc;
 }
-/* ]]>End of gram_ping_example.c */
+/* End of gram_ping_example.c */

@@ -1,5 +1,5 @@
 /*
- * <![CDATA[These headers contain declarations for the globus_module,
+ * These headers contain declarations for the globus_module,
  * the GRAM Client, RSL, and protocol functions
  */
 #include "globus_common.h"
@@ -185,4 +185,4 @@ deactivate:
 out:
     return rc;
 }
-/* ]]>End of gram_rsl_example.c */
+/* End of gram_rsl_example.c */

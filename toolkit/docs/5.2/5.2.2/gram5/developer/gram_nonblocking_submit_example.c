@@ -1,5 +1,5 @@
 /*
- * <![CDATA[These headers contain declarations for the globus_module functions
+ * These headers contain declarations for the globus_module functions
  * and GRAM Client API functions
  */
 #include "globus_common.h"
@@ -152,4 +152,4 @@ deactivate:
 out:
     return rc;
 }
-/* ]]>End of gram_nonblocking_submit_example.c */
+/* End of gram_nonblocking_submit_example.c */
