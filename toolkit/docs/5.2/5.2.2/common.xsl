@@ -21,11 +21,6 @@
     <!-- Use graphics in admonitions? like 'warnings' 'important' 'note' etc -->
     <xsl:param name="admon.graphics">1</xsl:param>
 
-    <!-- Set path to admonition graphics  -->
-    <xsl:param name="admon.graphics.path">/docbook-images/</xsl:param>
-
-    <!-- Set path to docbook graphics (testing)
-        <xsl:param name="admon.graphics.path">file:///Z:/testing/alliance/docbook-images/</xsl:param> -->
                 
     <!-- Are chapters automatically enumerated? -->
     <xsl:param name="chapter.autolabel">1</xsl:param> 

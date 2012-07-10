@@ -1,54 +1,14 @@
-export UMASK=002
-export XML_CATALOG_FILES=catalog
-#export XML_DEBUG_CATALOG= 1
-FILENAME= index.xml
+default: all
 
-all: lint html
+PDF_FILES = index.pdf
+SUBDIRS= \
+admin       gram5    gsiopenssh  simpleca \
+appendices  gridftp  myproxy     xio \
+ccommonlib  gsic     rn
 
-html:
-	xsltproc \
-	--xinclude \
-	--stringparam target.database.document "olinkdb.xml" \
-	--stringparam current.docid "gt" \
-	--stringparam generate.toc "" \
-	custom_html.xsl \
-	$(FILENAME) \
-	&& chgrp -R cvsusers *
+index.pdf: index.fo
+FO_FILES = target.db
+target.db: index.xml
 
-
-pdf:
-	/usr/local/RenderX/XEP/xep -quiet \
-	-xml $(FILENAME) \
-	-xsl custom_fo.xsl \
-	-out index.pdf
-
-debian-sarge:
-	xsltproc --stringparam chunk.section.depth 0 \
-	--stringparam suppress.navigation 1 \
-	--stringparam  chapter.autolabel 0 \
-	--stringparam  section.autolabel 1 \
-	--stringparam toc.section.depth 0\
-           /usr/share/xml/docbook/stylesheet/nwalsh/html/chunk.xsl \
-           $(FILENAME)
-
-mac:
-	xsltproc --stringparam chunk.section.depth 0 \
-	--stringparam chapter.autolabel 0 \
-	/sw/share/xml/xsl/docbook-xsl/html/chunk.xsl \
-	$(FILENAME)
-	
-lint:
-	xmllint \
-	--noout \
-	--noent \
-	--xinclude \
-	--postvalid \
-	$(FILENAME)
-
-olink:
-	xsltproc \
-	--xinclude \
-	--stringparam  collect.xref.targets  "only"  \
-	custom_html.xsl \
-	$(FILENAME)
-	
+TOPDIR=.
+include $(TOPDIR)/rules.mk

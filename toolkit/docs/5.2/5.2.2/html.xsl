@@ -16,12 +16,11 @@
                 <xsl:param name="collect.xref.targets">yes</xsl:param>
                 
                 <!-- default location for target database document (for olinks) -->
-                <xsl:param name="target.database.document">http://root/olinkdb.xml</xsl:param> 
-                <!-- local to doc coordinator: 
-                                <xsl:param name="target.database.document">/Users/cristinawilliams/testing/alliance/toolkit/docs/5.2/5.2.2/olinkdb.xml</xsl:param> -->
-             
+                <xsl:param name="target.database.document">olinkdb.xml</xsl:param> 
                 
-                <!-- Again, if 1 above, what is the filename extension for admon graphics? -->
+                <!-- Set path to admonition graphics  -->
+                <xsl:param name="admon.graphics.path">/docbook-images/</xsl:param>
+                <!-- What is the filename extension for admon graphics? -->
                 <xsl:param name="admon.graphics.extension" select="'.gif'"/>
                 
                 <!-- Set path to callout graphics -->

@@ -21,7 +21,7 @@
                </xsl:attribute-set>
                
                <!-- default location for target database document (for olinks) -->
-               <xsl:param name="target.database.document">http://root/olinkdb.xml</xsl:param>
+               <xsl:param name="target.database.document">olinkdb.xml</xsl:param>
                
                <!-- enable extensions -->
                <xsl:param name="xep.extensions" select="1"></xsl:param>
@@ -37,6 +37,11 @@
                <xsl:param name="alignment">left</xsl:param>
                
                <!-- GRAPHICS -->
+               <!-- Set path to admonition graphics  -->
+               <xsl:param name="admon.graphics.path">/mcs/globus.org/docbook-images/</xsl:param>
+                
+                <!-- Set path to callout graphics -->
+                <xsl:param name="callout.graphics.path">/mcs/globus.org/docbook-images/callouts/</xsl:param>
                
                <!-- Again, if 1 above, what is the filename extension for admon graphics?-->
                 <xsl:param name="admon.graphics.extension" select="'.png'"/> 
@@ -44,9 +49,6 @@
                <!-- for some reason, xep makes the admon graphics too large, this scales them back down -->
                <xsl:template match="*" mode="admon.graphic.width">14pt</xsl:template>
                 
-               <!-- Set path to callout graphics COMMON
-               <xsl:param name="callout.graphics.path">/www/www-unix.globus.org/docbook-images/callouts/</xsl:param> -->
-               
                <!-- callouts look fuzzy in print - using the following two parameters to force unicode -->
                <xsl:param name="callout.graphics" select="'0'"></xsl:param>
                
