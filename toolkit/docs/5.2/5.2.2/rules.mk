@@ -2,7 +2,7 @@
 export XML_CATALOG_FILES=$(CURDIR)/$(TOPDIR)/catalog
 #export XML_DEBUG_CATALOG= 1
 
-# Allow local overrides
+# Allow local overrides if wanted
 ifneq ($(wildcard $(TOPDIR)/local.mk),)
 include $(TOPDIR)/local.mk
 endif
