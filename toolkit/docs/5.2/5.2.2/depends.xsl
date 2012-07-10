@@ -74,15 +74,17 @@
         </xsl:choose>
     </xsl:variable>
 
-
-    <!--
-    <xsl:message>Processing xi:include of <xsl:value-of select="@href"/></xsl:message>
-    <xsl:message>current dir is <xsl:value-of select="$dirname"/></xsl:message>
-    -->
-    <xsl:apply-templates select="document(@href, .)/*">
-      <xsl:with-param name="target" select="$target"/>
-      <xsl:with-param name="source" select="concat($dirname, '/', @href)"/>
-    </xsl:apply-templates>
+    <xsl:choose>
+        <xsl:when test="@parse='text'">
+            <xsl:value-of select="concat($target, ': ', $dirname, '/', @href, '&#10;')"/>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:apply-templates select="document(@href, .)/*">
+              <xsl:with-param name="target" select="$target"/>
+              <xsl:with-param name="source" select="concat($dirname, '/', @href)"/>
+            </xsl:apply-templates>
+        </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="glossary[@role='auto']">
