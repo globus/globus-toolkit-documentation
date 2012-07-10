@@ -88,6 +88,8 @@ endif
 # default rule
 all: dependencies olink html $(PDF_TARGET)
 
+include dependencies
+
 olink: olink-recursive $(DB_FILES)
 lint: lint-recursive $(LINT_FILES)
 html: html-recursive $(HTML_FILES)
@@ -154,8 +156,6 @@ dependencies:
 
 $(SUBDIRS):
 	make -C $@
-
-include dependencies
 
 .SUFFIXES: .db .xml .lint .pdf .fo
 .PHONY: all olink-recursive olink lint-recursive lint clean-recursive clean distclean-recursive distclean pdf $(SUBDIRS)
