@@ -106,17 +106,22 @@ olink-recursive lint-recursive html-recursive pdf-recursive clean-recursive dist
 
 
 %.db:
-	xsltproc \
+	xsltproc --nonet \
 	--xinclude \
 	--stringparam collect.xref.targets  "only"  \
 	--stringparam targets.filename "$@" \
 	$(TOPDIR)/custom_html.xsl \
 	$<
 
-dependencies:
+dependencies-recursive: dependencies
+	@if [ "$(SUBDIRS)" != "" ]; then \
+            for dir in $(SUBDIRS); do echo "Entering $$dir [$@]" ; $(MAKE) -C $$dir $@ || exit 1; done \
+        fi
+
+dependencies: $(SOURCE)
 	printf "" > $@
 	for target in dependencies target.db $(PDF_FILES) $(HTML_FILES) $(LINT_FILES); do \
-            xsltproc \
+            xsltproc --nonet \
             --stringparam  target  "$$target" \
             --stringparam  source  "$(SOURCE)" \
             --stringparam  topdir  "$(TOPDIR)" \
@@ -133,7 +138,7 @@ dependencies:
 	$< > $@ || (rm $@ && false)
 
 %.html: %.xml %.lint $(DB_FILES)
-	xsltproc \
+	xsltproc --nonet \
 	--xinclude \
 	--stringparam target.database.document "$(CURDIR)/$(TOPDIR)/olinkdb.xml" \
 	--stringparam collect.xref.targets "no" \
@@ -141,7 +146,7 @@ dependencies:
 	$(SET_FILE_PERMISSIONS)
 
 %.fo: %.xml %.lint $(DB_FILES)
-	xsltproc --xinclude -o $@ $(FO_PARAMS) \
+	xsltproc --nonet --xinclude -o $@ $(FO_PARAMS) \
 	--stringparam target.database.document "$(CURDIR)/$(TOPDIR)/olinkdb.xml" \
 	--stringparam collect.xref.targets no \
 	$(TOPDIR)/custom_fo.xsl $<
@@ -158,4 +163,4 @@ $(SUBDIRS):
 	make -C $@
 
 .SUFFIXES: .db .xml .lint .pdf .fo
-.PHONY: all olink-recursive olink lint-recursive lint clean-recursive clean distclean-recursive distclean pdf $(SUBDIRS)
+.PHONY: all olink-recursive olink lint-recursive lint clean-recursive clean distclean-recursive dependencies-recursive distclean pdf $(SUBDIRS)

@@ -91,14 +91,11 @@
         </xsl:choose>
     </xsl:template>
 
-    <!-- replace {$version}, {$shortversion} and {$oldversion} in ulink urls with
-         the current or previous version
+    <!-- replace {$version}, {$shortversion} and {$oldversion} in ulink urls
+         with the appropriate version string. Returns a node set with a
+         ulink with the url attribute modified
       -->
-    <xsl:template match="ulink[
-            contains(@url, '{$version}')
-            or contains(@url, '{$shortversion}')
-            or contains(@url, '{$previousversion}')]">
-
+    <xsl:template match="ulink" mode="replace-versions">
         <xsl:variable name="replaceversion">
             <xsl:call-template name="string-replace-all">
                 <xsl:with-param name="text">
@@ -127,8 +124,41 @@
             </xsl:call-template>
         </xsl:variable>
 
-        <xsl:call-template name="ulink">
-            <xsl:with-param name="url" select="$replaceoldversion"/>
-        </xsl:call-template>
+        <xsl:element name="ulink">
+            <xsl:attribute name="url">
+                <xsl:value-of select="$replaceoldversion"/>
+            </xsl:attribute>
+            <xsl:copy-of select="@*[name() != 'url']"/>
+            <xsl:copy-of select="*|text()"/>
+        </xsl:element>
+    </xsl:template>
+
+    <!-- using the above template, create a node set and apply the normal
+         ulink processing to it
+      -->
+    <xsl:template match="ulink[
+            contains(@url, '{$version}')
+            or contains(@url, '{$shortversion}')
+            or contains(@url, '{$previousversion}')]">
+
+        <xsl:variable name="new-ulink">
+            <xsl:apply-templates select="." mode="replace-versions"/>
+        </xsl:variable>
+        <xsl:apply-templates select="exsl:node-set($new-ulink)[1]"/>
+    </xsl:template>
+
+    <!-- The fo template fails if ulink is the root element. Since the
+         exsl:node-set() above makes it look like it is, we mask that by
+         absorbing the root match
+      -->
+    <xsl:template match="/">
+        <xsl:choose>
+            <xsl:when test="name(*) = 'ulink'">
+                <xsl:apply-templates select="*"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-imports/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 </xsl:stylesheet>
