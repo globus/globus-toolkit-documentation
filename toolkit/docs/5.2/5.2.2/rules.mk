@@ -120,7 +120,7 @@ dependencies-recursive: dependencies
 
 dependencies: $(SOURCE)
 	printf "" > $@
-	for target in dependencies target.db $(PDF_FILES) $(HTML_FILES) $(LINT_FILES); do \
+	for target in target.db $(PDF_FILES) $(HTML_FILES) $(LINT_FILES); do \
             xsltproc --nonet \
             --stringparam  target  "$$target" \
             --stringparam  source  "$(SOURCE)" \
