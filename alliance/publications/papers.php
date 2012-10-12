@@ -217,9 +217,9 @@ submitting bibliographic citations</a>.</b></p>
 
     [<a href="#GlobusHCW98">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/globus-hcw98.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/globus-hcw98.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/globus-hcw98.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/globus-hcw98.pdf">PDF</a>]</font></p>
 
 
 
@@ -235,9 +235,9 @@ submitting bibliographic citations</a>.</b></p>
 
     [<a href="#Globus">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/globus.ps.gz">PS</a>,
+    <a href="http://www.globus.org/ftppub/globus/papers/globus.ps.gz">PS</a>,
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/globus.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/globus.pdf">PDF</a>]</font></p>
 
 
 
@@ -251,9 +251,9 @@ submitting bibliographic citations</a>.</b></p>
 
     [<a href="#isoftp">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/isoft.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/isoft.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/isoft.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/isoft.pdf">PDF</a>]</font></p>
 
     
 
@@ -1299,9 +1299,9 @@ N. Paton, M.P. Atkinson, V. Dialani, D. Pearson, T. Storey, and P. Watson.
 
     [<a href="#gass">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/gass.ps.gz">PS</a>,
+    <a href="http://www.globus.org/ftppub/globus/papers/gass.ps.gz">PS</a>,
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/gass.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/gass.pdf">PDF</a>]</font></p>
 
 
 
@@ -1315,9 +1315,9 @@ N. Paton, M.P. Atkinson, V. Dialani, D. Pearson, T. Storey, and P. Watson.
 
     [<a href="#RIO97">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/rio.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/rio.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/rio.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/rio.pdf">PDF</a>]</font></p>
 
 
 
@@ -1715,9 +1715,9 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
     [<a href="#IWQoS-98">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/qualis_pp.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/qualis_pp.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/qualis_pp.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/qualis_pp.pdf">PDF</a>]</font></p>
 
 
 
@@ -1735,9 +1735,9 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
     [<a href="#GRAM97">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/gram97.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/gram97.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/gram97.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/gram97.pdf">PDF</a>]</font></p>
 
 
 
@@ -1751,9 +1751,9 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
     [<a href="#Smith98">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/runtime.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/runtime.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/runtime.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/runtime.pdf">PDF</a>]</font></p>
 
       
 
@@ -1813,9 +1813,9 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
     [<a href="#fault-detector">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/hbm.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/hbm.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/hbm.pdf">PDF</a>,
+    <a href="http://www.globus.org/ftppub/globus/papers/hbm.pdf">PDF</a>,
 
 
 
@@ -1835,9 +1835,9 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
     [<a href="#LDAP-Usage">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/ldap_in_globus.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/ldap_in_globus.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/ldap_in_globus.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/ldap_in_globus.pdf">PDF</a>]</font></p>
 
 
 
@@ -1853,9 +1853,9 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
     [<a href="#mds97">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/hpdc97-mds.ps.gz">PS</a>, <a
+    <a href="http://www.globus.org/ftppub/globus/papers/hpdc97-mds.ps.gz">PS</a>, <a
 
-    href="ftp://ftp.globus.org/pub/globus/papers/hpdc97-mds.pdf">PDF</a>,
+    href="http://www.globus.org/ftppub/globus/papers/hpdc97-mds.pdf">PDF</a>,
 
     
 
@@ -1997,9 +1997,9 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
     [<a href="#security-arch">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/security.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/security.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/security.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/security.pdf">PDF</a>]</font></p>
 
 
 
@@ -2013,9 +2013,9 @@ Describes and compares the functionality and performance of the GRAM2 and GRAM4 
 
     [<a href="#cc-security">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/cc-security.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/cc-security.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/cc-security.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/cc-security.pdf">PDF</a>]</font></p>
 
 
 
@@ -2276,7 +2276,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#mpich98">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/mpichg98.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/mpichg98.ps.gz">PS</a>, 
 
     <a href="papers/gempi.pdf">PDF</a>]</font></p>
 
@@ -2292,9 +2292,9 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#mpi-nexus-pc">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/mpi-nexus-pc.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/mpi-nexus-pc.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/mpi-nexus-pc.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/mpi-nexus-pc.pdf">PDF</a>]</font></p>
 
 
 
@@ -2318,7 +2318,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#Zipper">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/hpdc97-security.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/hpdc97-security.ps.gz">PS</a>, 
 
     <a href="papers/secure.pdf">PDF</a>]</font></p>
 
@@ -2336,9 +2336,9 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#MultiMethod">Citation</a>, 
 
-    <a href="ftp://ftp.mcs.anl.gov/pub/nexus/reports/jpdc2.ps.Z">PS</a>,
+    <a href="http://www.globus.org/ftppub/globus/papers/jpdc2.ps.gz">PS</a>,
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/jpdc2_ps.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/jpdc2_ps.pdf">PDF</a>]</font></p>
 
 
 
@@ -2352,9 +2352,9 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#mpi-nexus">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/mdc96_iway.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/mdc96_iway.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/mdc96_iway.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/mdc96_iway.pdf">PDF</a>]</font></p>
 
 
 
@@ -2370,9 +2370,9 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#JPDCNexus">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/jpdc.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/jpdc.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/jpdc.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/jpdc.pdf">PDF</a>]</font></p>
 
 
 
@@ -2388,9 +2388,9 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#NexusJava">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/hpdc_java.ps.gz">PS</a>,
+    <a href="http://www.globus.org/ftppub/globus/papers/hpdc_java.ps.gz">PS</a>,
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/hpdc_java.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/hpdc_java.pdf">PDF</a>]</font></p>
 
 
 
@@ -2404,9 +2404,9 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#Nexus">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/nexus/india_paper_ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/nexus/india_paper_ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/india_paper_ps.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/india_paper_ps.pdf">PDF</a>]</font></p>
 
 
 
@@ -2420,9 +2420,9 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#nexus-runtime">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/nexus/nexus_paper_ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/nexus/nexus_paper_ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/nexus_paper_ps.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/nexus_paper_ps.pdf">PDF</a>]</font></p>
 
 
 
@@ -2436,9 +2436,9 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#PORTSO">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/ports0_spec_v0.3_ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/ports0_spec_v0.3_ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/ports0_spec_v0_3_ps.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/ports0_spec_v0_3_ps.pdf">PDF</a>]</font></p>
 
     
 
@@ -2888,7 +2888,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     <a href="papers/sf-express.ps">PS</a>,
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/sf-express.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/sf-express.pdf">PDF</a>]</font></p>
 
 
 
@@ -2902,9 +2902,9 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#globus-apps">Citation</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/globus-apps.ps.Z">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/globus-apps.ps.Z">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/globus-apps.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/globus-apps.pdf">PDF</a>]</font></p>
 
 
 
@@ -2918,7 +2918,7 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#I-WAY">Citation</a>, 
 
-    <a href="ftp://ftp.mcs.anl.gov/pub/nexus/reports/iway_overview.ps.gz">PS</a>,
+    <!--<a href="ftp://ftp.mcs.anl.gov/pub/nexus/reports/iway_overview.ps.gz">PS</a>,-->
 
     <a href="papers/iway_overview.pdf">PDF</a>]</font></p>
 
@@ -2934,9 +2934,9 @@ Instruments. In  <i>Proceedings of the Workshop Distributed Computing
 
     [<a href="#Clouds3">Citation</a>, 
 
-    <a href="ftp://ftp.mcs.anl.gov/pub/nexus/reports/neph.ps.gz">PS</a>, 
+    <a href="http://www.globus.org/ftppub/globus/papers/neph.ps.gz">PS</a>, 
 
-    <a href="ftp://ftp.globus.org/pub/globus/papers/neph.pdf">PDF</a>]</font></p>
+    <a href="http://www.globus.org/ftppub/globus/papers/neph.pdf">PDF</a>]</font></p>
 
 
 
