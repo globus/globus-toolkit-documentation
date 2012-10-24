@@ -31,17 +31,17 @@
                
                <!-- should output be in draft mode? -->
                <xsl:param name="draft.mode" select="'no'"></xsl:param>
-               <xsl:param name="draft.watermark.image">/mcs/globus.org/docbook-images/draft.png</xsl:param>
+               <xsl:param name="draft.watermark.image">/nfs/globus.org/docbook-images/draft.png</xsl:param>
                
                <!-- ALIGNMENT -->
                <xsl:param name="alignment">left</xsl:param>
                
                <!-- GRAPHICS -->
                <!-- Set path to admonition graphics  -->
-               <xsl:param name="admon.graphics.path">/mcs/globus.org/docbook-images/</xsl:param>
+               <xsl:param name="admon.graphics.path">/nfs/globus.org/docbook-images/</xsl:param>
                 
                 <!-- Set path to callout graphics -->
-                <xsl:param name="callout.graphics.path">/mcs/globus.org/docbook-images/callouts/</xsl:param>
+                <xsl:param name="callout.graphics.path">/nfs/globus.org/docbook-images/callouts/</xsl:param>
                
                <!-- Again, if 1 above, what is the filename extension for admon graphics?-->
                 <xsl:param name="admon.graphics.extension" select="'.png'"/> 

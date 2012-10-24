@@ -81,7 +81,7 @@ endif
 
 # on cvs.globus.org, we want to change group ownership to be cvsusers so 
 # that different committers can overwrite files
-ifneq (,$(shell id cvsusers 2>/dev/null || :))
+ifneq (,$(shell grep cvsusers /etc/group 2>/dev/null || :))
    SET_FILE_PERMISSIONS=chgrp -R cvsusers *
 endif
 

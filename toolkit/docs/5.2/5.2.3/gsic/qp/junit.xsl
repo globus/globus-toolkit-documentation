@@ -39,7 +39,7 @@ exclude-result-prefixes='xsl lxslt stringutils'
 
 $title = "<xsl:value-of select="$TITLE"/>";
 
-include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" ); 
+include_once( "/nfs/globus.org/include/globus_header.inc" ); 
 ?</xsl:processing-instruction><xsl:text>&#10;&#10;</xsl:text>
 <style type="text/css">
   
@@ -144,7 +144,7 @@ include_once( "/mcs/www-unix.globus.org/include/globus_header.inc" );
             <xsl:text>&#10;</xsl:text>
             <p> <xsl:text disable-output-escaping="yes"><![CDATA[&nbsp; ]]></xsl:text></p>
             <xsl:text>&#10;</xsl:text>
-            <xsl:processing-instruction name="php">include("http://www.globus.org/include/globus_footer.inc"); ?</xsl:processing-instruction>
+            <xsl:processing-instruction name="php">include("/nfs/globus.org/include/globus_footer.inc"); ?</xsl:processing-instruction>
 
 </xsl:template>
 

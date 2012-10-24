@@ -186,12 +186,12 @@
                                                                 <xsl:call-template name="user.header.content"/>
                                                                 
                                                                 <xsl:processing-instruction name="php">
-                                                                                include_once("/mcs/globus.org/toolkit/docs/5.2/5.2.3/includes/docbook_sidebar.inc");
+                                                                                include_once("/nfs/globus.org/toolkit/docs/5.2/5.2.3/includes/docbook_sidebar.inc");
                                                                                 ?</xsl:processing-instruction>
                                                                
                                                                 <!-- add temporary DRAFTS box here until docs are released 
                                                                <xsl:processing-instruction name="php">
-                                                                                include_once("/mcs/globus.org/toolkit/docs/5.2/5.2.3/includes/docbook_drafts.inc");
+                                                                                include_once("/nfs/globus.org/toolkit/docs/5.2/5.2.3/includes/docbook_drafts.inc");
                                                                                 ?</xsl:processing-instruction>  -->
                                                                
 
