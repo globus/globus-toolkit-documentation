@@ -64,6 +64,8 @@ else
     FO_PARAMS=--param xep.extensions 0 --param fop1.extensions 1
     FO_TO_PDF=$(FOP) -q $(firstword $(patsubst %.xml,%.fo,$+ $(SOURCE))) $@
     PDF_TARGET=pdf
+    else
+    FO_TO_PDF=:
     endif
 endif
 
