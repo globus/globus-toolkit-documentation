@@ -4,7 +4,9 @@
 
                 <!-- default width of tables -->
                 <xsl:param name="default.table.width" select="'700px'"/>
-                
+
+                <!-- do static inclusion of header, instead of php include -->
+                <xsl:param name="static.includes"/>
                 
                 <!-- speed up the chunking process? -->
                 <xsl:param name="chunk.fast">1</xsl:param>
