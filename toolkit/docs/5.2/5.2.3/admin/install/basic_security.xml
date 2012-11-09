@@ -4,21 +4,21 @@
 <chapter id="gtadmin-basic-security" xreflabel="Basic Security Configuration">
 	<title>Basic Security Configuration</title>
 	<section id="gtadmin-basic-host" xreflabel="Obtaining host certificates">
-		<title>Obtain host certificates</title>
+		<title>Obtain host credentials</title>
 		<!-- this is where preswsaa (GSI) config and env variables come in - but not really necessary at this point?? do most people already know??  -->
-		<para>You must have X509 certificates to use the GT <replaceable role="entity"
+		<para>You must have X.509 certificates to use the GT <replaceable role="entity"
 				>version</replaceable> software securely (referred to in this documentation as
 				<emphasis>host certificates</emphasis>). For an overview of certificates for
 				<glossterm baseform="Grid Security Infrastructure">GSI</glossterm> (security) see
 				<olink targetdoc="gsicAdmin" targetptr="gsic-configuring">GSI Configuration
 				Information</olink> and <olink targetdoc="gsicDeveloper"
-				targetptr="gsic-developer-env">GSI Environmental Variables</olink>.</para>
+				targetptr="gsic-developer-env">GSI Environment Variables</olink>.</para>
 		<para>If you will need to be interoperable with other sites, you will need to obtain certs
 			from a trusted Certificate Authority, such as those that are included in <ulink
 				url="http://www.igtf.net">IGTF</ulink>. If you are simply testing the software on
 			your own resources, SimpleCA offers an easy way to create your own certificates (see
 			section below).</para>
-		<para>Host certificates must:</para>
+		<para>Host credentials must:</para>
 		<itemizedlist>
 			<listitem>
 				<simpara>consist of the following two files: <filename>hostcert.pem</filename> and
@@ -30,9 +30,9 @@
 				</simpara>
 			</listitem>
 			<listitem>
-				<simpara>be for a machine which has a consistent name in DNS; you should
-						<emphasis>not</emphasis> run it on a computer using DHCP where a different
-					name could be assigned to your computer.</simpara>
+				<simpara>match the hostname for a the machine. If the machine is going to be
+                                accessed remotely, the name on the certificate
+                                must match the network-visible hostname.</simpara>
 			</listitem>
 		</itemizedlist>
 		<para>You have the following options:</para>
@@ -61,39 +61,56 @@
 				be found in <olink targetdoc="gtadminappendix" targetptr="gtadmin-simpleca"/>. </para>
 			<para>SimpleCA is suitable for testing or when a certificate authority is not
 				available.</para>
+                        <para>If you install the
+                            <package>globus-simpleca</package> native package, it
+                            will automatically create a CA and host certificate if
+                            you don't have one configured yet. Otherwise, you'll need to use
+                            <command>grid-ca-create</command> to create the CA
+                            and <command>grid-default-ca</command> to make that the default
+                            for requesting credentials.
+                        </para>
+                        <para>
+                            To create user credentials, you can run the command
+                            <command>grid-cert-request</command> as a user that
+                            you want to create a credential for. You can then
+                            run the <command>grid-ca-sign</command> command as
+                            the <systemitem class="username">simpleca</systemitem>
+                            user to sign the certificate.
+                        </para>
 		</section>
 	</section>
 	<section id="gtadmin-basic-gridmap">
 		<title>Add authorization</title>
-		<para>Installing Globus services on your resources doesn't automatically authorize your
-			local users to use these services. Each user must have their own user certificate, and
+		<para>Installing Globus services on your resources doesn't automatically authorize 
+			users to use these services. Each user must have their own user certificate, and
 			each user certificate must be mapped to a local account.</para>
-		<para>Add authorizations for users:</para>
-		<para>Create <filename class="directory">/etc/grid-security/grid-mapfile</filename> as root. </para>
-		<para>You need two pieces of information:</para>
+		<para>To add authorizations for users, you'll need to update the <filename>grid-mapfile</filename>
+                database to include the mapping between the credentials and the local user accounts.</para>
+		<para>You'll need two pieces of information:</para>
 		<itemizedlist>
 			<listitem>
-				<simpara>the subject name of a user</simpara>
+				<simpara>the subject name of a user's certificate</simpara>
 			</listitem>
 			<listitem>
-				<simpara>the account name it should map to.</simpara>
+				<simpara>the local account name that the certificate holder can access.</simpara>
 			</listitem>
 		</itemizedlist>
-		<para>The syntax is one line per user, with the certificate subject followed by the user
-			account name. </para>
-		<para>Run <command>grid-cert-info</command> to get your subject name, and <command
-				>whoami</command> to get the account name:</para>
-		<screen>gtuser$ grid-cert-info -subject
-/O=Grid/OU=GlobusTest/OU=simpleCA-mayed.mcs.anl.gov/OU=mcs.anl.gov/CN=GT User
-gtuser$ whoami
-gtuser</screen>
-		<para>You may add the line by running the following as root:</para>
-		<screen>root# $GLOBUS_LOCATION/sbin/grid-mapfile-add-entry -dn \
-"/O=Grid/OU=GlobusTest/OU=simpleCA-mayed.mcs.anl.gov/OU=mcs.anl.gov/CN=GT User" \
--ln gtuser</screen>
-		<para>The corresponding line in the <filename>grid-mapfile</filename> should look
-			like:</para>
-		<screen>&quot;/O=Grid/OU=GlobusTest/OU=simpleCA-mayed.mcs.anl.gov/OU=mcs.anl.gov/CN=GT User&quot; <replaceable>gtuser</replaceable></screen>
+                <para>To start with, if you have created a user certificate,
+                you can run the <command>grid-cert-info</command> command to get the
+                certificate's subject name, and <command>id -un</command> to get the account name:</para>
+		<screen><prompt role="globus"/><command>grid-cert-info -subject</command>
+<computeroutput>/O=Grid/OU=GlobusTest/OU=simpleCA-elephant.globus.org/CN=Globus User</computeroutput>
+<prompt role="globus"/><command>id -un</command>
+<computeroutput>globus</computeroutput></screen>
+		<para>You may add the line by running the following command as root:</para>
+		<screen><prompt role="root"/><command>grid-mapfile-add-entry \
+    -dn "/O=Grid/OU=GlobusTest/OU=simpleCA-elephant.globus.org/CN=Globus User" \
+    -ln gtuser</command>
+<computeroutput>Modifying /etc/grid-security/grid-mapfile ...
+/etc/grid-security/grid-mapfile does not exist... Attempting to create /etc/grid-security/grid-mapfile 
+New entry:
+"/O=Grid/OU=GlobusTest/OU=simpleCA-elephant.globus.org/CN=Globus User" globus
+(1) entry added</computeroutput></screen>
 		<important>
 			<simpara>The quotes around the subject name are <emphasis>important</emphasis>, because
 				it contains spaces.</simpara>

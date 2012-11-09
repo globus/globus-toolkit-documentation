@@ -185,9 +185,14 @@
                                                                 
                                                                 <xsl:call-template name="user.header.content"/>
                                                                 
-                                                                <xsl:processing-instruction name="php">
-                                                                                include_once("/nfs/globus.org/toolkit/docs/5.2/5.2.3/includes/docbook_sidebar.inc");
-                                                                                ?</xsl:processing-instruction>
+                                                                <xsl:if test="$static.includes = 1">
+                                                                    <xsl:copy-of select="document('includes/docbook_sidebar.inc')"/>
+                                                                </xsl:if>
+                                                                <xsl:if test="$static.includes != 1">
+                                                                    <xsl:processing-instruction name="php">
+                                                                                    include_once("includes/docbook_sidebar.inc");
+                                                                                    ?</xsl:processing-instruction>
+                                                                </xsl:if>
                                                                
                                                                 <!-- add temporary DRAFTS box here until docs are released 
                                                                <xsl:processing-instruction name="php">
@@ -321,6 +326,9 @@
                                 </xsl:if>
                 </xsl:template>
                 
+                <xsl:template match="*[@role = 'html-only']" priority='10'>
+                    <xsl:apply-imports select="."/>
+                </xsl:template>
                 
 
 </xsl:stylesheet>

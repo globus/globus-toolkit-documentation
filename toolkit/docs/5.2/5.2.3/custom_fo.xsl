@@ -225,4 +225,7 @@
   </xsl:choose>
 </xsl:template>
 
+<xsl:template match="*[@role = 'fo-only']" priority='10'>
+    <xsl:apply-imports/>
+</xsl:template>
 </xsl:stylesheet>

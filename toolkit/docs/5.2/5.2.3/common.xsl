@@ -8,6 +8,7 @@
          {$oldversion}.
       -->
     
+    <xsl:param name="collect.xref.targets">yes</xsl:param>
     <xsl:param name="version" select="'5.2.3'"/>
     <xsl:param name="shortversion" select="'5.2'"/>
     <xsl:param name="oldversion" select="'5.2.2'"/>
@@ -153,7 +154,7 @@
       -->
     <xsl:template match="/">
         <xsl:choose>
-            <xsl:when test="name(*) = 'ulink'">
+            <xsl:when test="name(*) = 'ulink' or name(*) = 'prompt'">
                 <xsl:apply-templates select="*"/>
             </xsl:when>
             <xsl:otherwise>
@@ -161,4 +162,41 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
+
+    <!-- Ignore html and fo only sections in common, re-enable them in
+         the (output-type-specific) higher-level stylesheets
+      -->
+    <xsl:template match="*[@role='html-only' or @role='fo-only']" priority="1"/>
+    <xsl:template match="*[@role='html-only' or @role='fo-only']" priority="1" mode="collect.targets">
+        <xsl:apply-imports/>
+    </xsl:template>
+
+    <xsl:template match="prompt[starts-with(@role, 'root')]">
+        <xsl:variable name="prompt">
+            <xsl:choose>
+                <xsl:when test="contains(@role, '@')">
+                    <prompt><xsl:value-of select="substring-after(@role, '@')"/><xsl:text># </xsl:text></prompt>
+                </xsl:when>
+                <xsl:otherwise>
+                    <prompt><xsl:text>elephant# </xsl:text></prompt>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:apply-templates select="exsl:node-set($prompt)"/>
+    </xsl:template>
+
+    <xsl:template match="prompt[@role and not(starts-with(@role, 'root'))]">
+        <xsl:variable name="prompt">
+            <xsl:choose>
+                <xsl:when test="contains(@role, '@')">
+                    <prompt><xsl:value-of select="@role"/><xsl:text>% </xsl:text></prompt>
+                </xsl:when>
+                <xsl:otherwise>
+                    <prompt><xsl:value-of select="@role"/><xsl:text>@elephant% </xsl:text></prompt>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:apply-templates select="exsl:node-set($prompt)"/>
+    </xsl:template>
+
 </xsl:stylesheet>
