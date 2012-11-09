@@ -198,5 +198,6 @@
         </xsl:variable>
         <xsl:apply-templates select="exsl:node-set($prompt)"/>
     </xsl:template>
+    <xsl:template match="glossary/remark"/>
 
 </xsl:stylesheet>
