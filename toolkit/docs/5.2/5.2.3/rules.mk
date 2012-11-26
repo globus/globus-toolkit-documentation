@@ -113,6 +113,7 @@ olink-recursive lint-recursive html-recursive pdf-recursive clean-recursive dist
 	--stringparam collect.xref.targets  "only"  \
 	--stringparam targets.filename "$@" \
 	$(EXTRA_XSLTPROC_PARAMS) \
+	$(LOCAL_XSLTPROC_HTML_PARAMS) \
 	$(TOPDIR)/custom_html.xsl \
 	$<
 
