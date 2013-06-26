@@ -122,7 +122,7 @@ dependencies-recursive: dependencies
             for dir in $(SUBDIRS); do echo "Entering $$dir [$@]" ; $(MAKE) -C $$dir $@ || exit 1; done \
         fi
 
-dependencies: $(SOURCE)
+dependencies:
 	printf "" > $@
 	for target in target.db $(PDF_FILES) $(HTML_FILES) $(LINT_FILES); do \
             xsltproc --nonet \
