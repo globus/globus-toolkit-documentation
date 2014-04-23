@@ -21,12 +21,12 @@
                 <xsl:param name="target.database.document">olinkdb.xml</xsl:param> 
                 
                 <!-- Set path to admonition graphics  -->
-                <xsl:param name="admon.graphics.path">/docbook-images/</xsl:param>
+                <xsl:param name="admon.graphics.path"><xsl:value-of select="$topdir"/>/docbook/xsl/docbook-xsl-1.78.1/images/</xsl:param>
                 <!-- What is the filename extension for admon graphics? -->
-                <xsl:param name="admon.graphics.extension" select="'.gif'"/>
+                <xsl:param name="admon.graphics.extension" select="'.png'"/>
                 
                 <!-- Set path to callout graphics -->
-                <xsl:param name="callout.graphics.path">/docbook-images/callouts/</xsl:param>
+                <xsl:param name="callout.graphics.path"><xsl:value-of select="$topdir"/>/docbook-images/callouts/</xsl:param>
                 
                 <!-- Depth to which sections should be chunked -->
                 <xsl:param name="chunk.section.depth">0</xsl:param>

@@ -108,10 +108,11 @@ olink-recursive lint-recursive html-recursive pdf-recursive clean-recursive dist
 
 
 %.db:
-	xsltproc --nonet \
+	@xsltproc --nonet \
 	--xinclude \
 	--stringparam collect.xref.targets  "only"  \
 	--stringparam targets.filename "$@" \
+	--stringparam  topdir  "$(TOPDIR)" \
 	$(EXTRA_XSLTPROC_PARAMS) \
 	$(LOCAL_XSLTPROC_HTML_PARAMS) \
 	$(TOPDIR)/custom_html.xsl \
@@ -124,7 +125,7 @@ dependencies-recursive: dependencies
 
 dependencies:
 	printf "" > $@
-	for target in target.db $(PDF_FILES) $(HTML_FILES) $(LINT_FILES); do \
+	for target in target.db $(FO_FILES) $(HTML_FILES) $(LINT_FILES); do \
             xsltproc --nonet \
             --stringparam  target  "$$target" \
             --stringparam  source  "$(SOURCE)" \
@@ -136,43 +137,45 @@ dependencies:
 	$(SET_FILE_PERMISSIONS)
 
 %.lint: %.xml
-	xmllint \
+	@xmllint \
 	--noout \
 	--noent \
 	--xinclude \
 	--postvalid \
 	$< > $@ || (rm $@ && false)
-	$(SET_FILE_PERMISSIONS)
+	@$(SET_FILE_PERMISSIONS)
 
 %.html: %.xml %.lint $(DB_FILES)
-	xsltproc --nonet \
+	@xsltproc --nonet \
 	--xinclude \
 	--stringparam target.database.document "$(CURDIR)/$(TOPDIR)/olinkdb.xml" \
 	--stringparam collect.xref.targets "no" \
+	--stringparam  topdir  "$(TOPDIR)" \
 	$(EXTRA_XSLTPROC_PARAMS) \
 	$(LOCAL_XSLTPROC_HTML_PARAMS) \
 	$(TOPDIR)/custom_html.xsl $<
-	$(SET_FILE_PERMISSIONS)
+	@$(SET_FILE_PERMISSIONS)
 
 %.fo: %.xml %.lint $(DB_FILES)
-	xsltproc --nonet --xinclude -o $@ $(FO_PARAMS) \
+	@xsltproc --nonet --xinclude -o $@ $(FO_PARAMS) \
 	--stringparam target.database.document "$(CURDIR)/$(TOPDIR)/olinkdb.xml" \
 	--stringparam collect.xref.targets no \
+	--stringparam topdir  "$(TOPDIR)" \
 	$(EXTRA_XSLTPROC_PARAMS) \
 	$(LOCAL_XSLTPROC_FO_PARAMS) \
 	$(TOPDIR)/custom_fo.xsl $<
-	$(SET_FILE_PERMISSIONS)
+	@$(SET_FILE_PERMISSIONS)
 
 %.pdf:
-	if expr $< : '.*.fo' > /dev/null; then \
+	@if expr $< : '.*.fo' > /dev/null; then \
 	    $(FO_TO_PDF); \
         else \
             $(CONCAT_PDFS); \
         fi
-	$(SET_FILE_PERMISSIONS)
+	@$(SET_FILE_PERMISSIONS)
 
 $(SUBDIRS):
-	make -C $@
+	@make -C $@
 
 .SUFFIXES: .db .xml .lint .pdf .fo
 .PHONY: all olink-recursive olink lint-recursive lint clean-recursive clean distclean-recursive dependencies-recursive distclean pdf $(SUBDIRS)

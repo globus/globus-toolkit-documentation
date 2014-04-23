@@ -11,7 +11,7 @@
     <xsl:param name="collect.xref.targets">yes</xsl:param>
     <xsl:param name="version" select="'6.0'"/>
     <xsl:param name="shortversion" select="'6'"/>
-    <xsl:param name="oldversion" select="'6.0'"/>
+    <xsl:param name="oldversion" select="'5.2.5'"/>
 
     <!-- Set the docid from the root element's id attribute -->
     <xsl:param name="current.docid" select="/*/@id"/>

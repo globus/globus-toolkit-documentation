@@ -38,10 +38,10 @@
                
                <!-- GRAPHICS -->
                <!-- Set path to admonition graphics  -->
-               <xsl:param name="admon.graphics.path">docbook/xsl/docbook-xsl-1.78.1/images</xsl:param>
+               <xsl:param name="admon.graphics.path"><xsl:value-of select="$topdir"/>/docbook/xsl/docbook-xsl-1.78.1/images/</xsl:param>
                 
                 <!-- Set path to callout graphics -->
-                <xsl:param name="callout.graphics.path">docbook/xsl/docbook-xsl-1.78.1/images/</xsl:param>
+                <xsl:param name="callout.graphics.path"><xsl:value-of select="$topdir"/>/docbook/xsl/docbook-xsl-1.78.1/images/</xsl:param>
                
                <!-- Again, if 1 above, what is the filename extension for admon graphics?-->
                 <xsl:param name="admon.graphics.extension" select="'.png'"/> 
