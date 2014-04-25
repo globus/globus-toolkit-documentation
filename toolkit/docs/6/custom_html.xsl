@@ -3,6 +3,7 @@
                 version="1.0">
                 
     <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/html/onechunk.xsl"/>
+    <xsl:param name="draft.mode" select="'yes'"></xsl:param>
     <xsl:include href="html.xsl"/>
     <xsl:include href="common.xsl"/>
 </xsl:stylesheet>
