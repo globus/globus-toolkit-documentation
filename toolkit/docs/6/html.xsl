@@ -195,11 +195,15 @@
                                                                                     include_once("includes/docbook_sidebar.inc");
                                                                                     ?</xsl:processing-instruction>
                                                                 </xsl:if>
+                                                                <xsl:if test="$draft.mode = 'yes'">
                                                                
-                                                                <!-- add temporary DRAFTS box here until docs are released 
+                                                                <!-- add temporary DRAFTS box here until docs are released  -->
                                                                <xsl:processing-instruction name="php">
-                                                                                include_once("/nfs/globus.org/toolkit/docs/5.2/5.2.5/includes/docbook_drafts.inc");
-                                                                                ?</xsl:processing-instruction>  -->
+            <xsl:text>include_once("</xsl:text>
+            <xsl:value-of select="$topdir"/>
+            <xsl:text>/includes/docbook_drafts.inc");</xsl:text>
+            <xsl:text>?</xsl:text></xsl:processing-instruction>
+            </xsl:if>
                                                                
 
                                                 
