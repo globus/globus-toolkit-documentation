@@ -17,6 +17,12 @@ ifeq (,$(HTML_FILES))
     HTML_FILES = index.html
 endif
 
+# default html file if not specified
+ifeq (,$(YAML_FILES))
+    YAML_FILES = $(patsubst %.html,%.yaml,$(HTML_FILES))
+endif
+
+
 # default lint file if not specified
 ifeq (,$(LINT_FILES))
     ifneq (,$(HTML_FILES))
@@ -88,20 +94,21 @@ ifneq (,$(shell grep cvsusers /etc/group 2>/dev/null || :))
 endif
 
 # default rule
-all: dependencies olink html $(PDF_TARGET)
+all: dependencies olink html yaml $(PDF_TARGET)
 
 include dependencies
 
 olink: olink-recursive $(DB_FILES)
 lint: lint-recursive $(LINT_FILES)
 html: html-recursive $(HTML_FILES)
+yaml: yaml-recursive $(YAML_FILES)
 pdf: pdf-recursive $(PDF_FILES) $(PDF_COLLECTIONS)
 clean: clean-recursive
 	@for f in $(CLEANFILES); do [ -f "$$f" ] && rm "$$f" || true; done
 distclean: distclean-recursive
 	@for f in $(CLEANFILES) $(DISTCLEANFILES); do [ -f "$$f" ] && rm "$$f" || true; done
 	
-olink-recursive lint-recursive html-recursive pdf-recursive clean-recursive distclean-recursive:
+olink-recursive lint-recursive html-recursive yaml-recursive pdf-recursive clean-recursive distclean-recursive:
 	@if [ "$(SUBDIRS)" != "" ]; then \
             for dir in $(SUBDIRS); do echo "Entering $$dir [$(subst -recursive,,$@])" ; $(MAKE) -C $$dir $(subst -recursive,,$@) || exit 1; done \
         fi
@@ -154,6 +161,17 @@ dependencies:
 	$(EXTRA_XSLTPROC_PARAMS) \
 	$(LOCAL_XSLTPROC_HTML_PARAMS) \
 	$(TOPDIR)/custom_html.xsl $<
+	@$(SET_FILE_PERMISSIONS)
+
+%.yaml: %.xml %.lint $(DB_FILES)
+	@xsltproc --nonet \
+	--xinclude \
+	--stringparam target.database.document "$(CURDIR)/$(TOPDIR)/olinkdb.xml" \
+	--stringparam collect.xref.targets "no" \
+	--stringparam  topdir  "$(TOPDIR)" \
+	$(EXTRA_XSLTPROC_PARAMS) \
+	$(LOCAL_XSLTPROC_HTML_PARAMS) \
+	$(TOPDIR)/yaml.xsl $< > $@
 	@$(SET_FILE_PERMISSIONS)
 
 %.fo: %.xml %.lint $(DB_FILES)

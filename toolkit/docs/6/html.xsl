@@ -105,10 +105,6 @@
                 
                 <!-- INCORPORATING DOCBOOK PAGES INTO WEBSITE -->
 
-                <!-- make sure there's a DOCTYPE in the html output (otherwise, some css renders strangely -->
-                <xsl:param name="chunker.output.doctype-public" select="'-//W3C//DTD HTML 4.01 Transitional//EN'"/>
-                <xsl:param name="chunker.output.doctype-system" select="'http://www.w3.org/TR/html4/loose.dtd'"/>
-                
                 <!-- add elements to the HEAD tag -->
                 <!-- the following template is for the conditional comments for detecting certain browsers -->
                 <xsl:template name="conditionalComment">
