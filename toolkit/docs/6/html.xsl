@@ -162,7 +162,6 @@
                                 
                                 <xsl:call-template name="user.preroot"/>
                                 
-                                <!--
                                 <html>
                                                 <xsl:call-template name="html.head">
                                                                 <xsl:with-param name="prev" select="$prev"/>
@@ -194,16 +193,13 @@
                                                                 </xsl:if>
                                                                 <xsl:if test="$draft.mode = 'yes'">
                                                                
-                                                                -->
                                                                 <!-- add temporary DRAFTS box here until docs are released  -->
-                                                                <!--
                                                                <xsl:processing-instruction name="php">
             <xsl:text>include_once("</xsl:text>
             <xsl:value-of select="$topdir"/>
             <xsl:text>/includes/docbook_drafts.inc");</xsl:text>
             <xsl:text>?</xsl:text></xsl:processing-instruction>
             </xsl:if>
-            -->
                                                                
 
                                                 
@@ -222,11 +218,9 @@
                                                                 
                                                                 <xsl:call-template name="user.footer.navigation"/>
 
-<!--
                                                       
                                                 </body>
                                 </html>
-                                -->
                 </xsl:template>
                 
                 <!-- prevent h1 and h2 using clear: both - want to control in css, instead -->
