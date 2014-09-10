@@ -5,6 +5,7 @@ $title = "Globus Toolkit Advisories";
 include_once( "/mcs/globus.org/include/globus_header.inc" ); 
 
 $version_dir = array (
+    '6.0' => 'gt6/',
     '5.2.5' => 'gt5/5.2/5.2.5',
     '5.2.4' => 'gt5/5.2/5.2.4',
     '5.2.3' => 'gt5/5.2/5.2.3',
@@ -114,13 +115,10 @@ Installation instructions are included after the package list.
     $fd = fopen( "advisories.txt", "r" );
 
     $toggle_color = 1;
+    $advisories = array();
+    $buffer = "";
     while ( !feof( $fd ) )
     {
-        $date = "";
-        $name = "";
-        $ver = "";
-        $type = "";
-        $description = "";
 
         $buffer = fgets( $fd, 4096 );
         if ( preg_match( "/^\s*$/", $buffer ) )
@@ -133,71 +131,85 @@ Installation instructions are included after the package list.
         }
         else 
         {
-            list( $date, $name, $ver, $type, $description ) = explode( ";", $buffer );
-            if ( preg_match( "/^$get_version/", $ver ) )
+            array_push($advisories, $buffer);
+        }
+    }
+    arsort($advisories);
+    foreach ($advisories as $buffer) {
+        $date = "";
+        $name = "";
+        $ver = "";
+        $type = "";
+        $description = "";
+        list( $date, $name, $ver, $type, $description ) = explode( ";", $buffer );
+        if ( preg_match( "/^$get_version/", $ver ) )
+        {
+            if ( $toggle_color )
             {
-                if ( $toggle_color )
+                print "<tr bgcolor=#e5e5ff>\n";
+                $toggle_color = 0;
+            }
+            else
+            {
+                print "<tr bgcolor=#ffffff>\n";
+                $toggle_color = 1;
+            }
+       
+            // print "$buffer<br>\n";
+            print "<td width=90>\n";
+            print "$date\n";
+            print "</td>\n<td width=250>";
+            $packages = explode( ",", $name );
+            foreach( $packages as $name )
+            {
+                if ( preg_match( "/^bin\//", $name ) )
                 {
-                    print "<tr bgcolor=#e5e5ff>\n";
-                    $toggle_color = 0;
+                    $binsrc = "bin";
+                    $name = preg_replace( "/^bin\//", "", $name );
                 }
                 else
                 {
-                    print "<tr bgcolor=#ffffff>\n";
-                    $toggle_color = 1;
+                    $binsrc = "src";
                 }
-           
-                // print "$buffer<br>\n";
-                print "<td width=90>\n";
-                print "$date\n";
-                print "</td>\n<td width=250>";
-                $packages = explode( ",", $name );
-                foreach( $packages as $name )
-                {
-                    if ( preg_match( "/^bin\//", $name ) )
-                    {
-                        $binsrc = "bin";
-                        $name = preg_replace( "/^bin\//", "", $name );
-                    }
-                    else
-                    {
-                        $binsrc = "src";
-                    }
 
-                    if ( preg_match( "/\.gar$/", $name ) )
-                    {
-                        $pkgformat = "gar";
-                        $name = preg_replace( "/\.gar$/", "", $name );
-                    }
-                    else
-                    {
-                        $pkgformat = "tar.gz";
-                    }
-                        
+                if ( preg_match( "/\.gar$/", $name ) )
+                {
+                    $pkgformat = "gar";
+                    $name = preg_replace( "/\.gar$/", "", $name );
+                }
+                else
+                {
+                    $pkgformat = "tar.gz";
+                }
+                    
+                if ($ver != '6.0') {
                     $name = eregi_replace( "(.+-*[0-9]+.[0-9]*.[0-9]*[\.a-z_]*)", 
                         "<a name=\"\\1\" href=\"http://www.globus.org/ftppub/$version_dir[$ver]/updates/$binsrc/\\1\">\\1</a>", $name );
-                    print "$name<br>\n";
+                } else {
+                    $name = eregi_replace( "(.+-*[0-9]+.[0-9]*.[0-9]*[\.a-z_]*)", 
+                        "<a name=\"\\1\" href=\"http://www.globus.org/ftppub/$version_dir[$ver]/packages/\\1\">\\1</a>", $name );
                 }
-                print "</td>\n<td align=middle width=40>";
-                print "$ver\n";
-                print "</td>\n<td width=20>";
-                if ( ereg ( "bug", $type ) )
-                {
-                    print "<img src=images/bug.gif><br>\n";
-                }
-                if ( ereg ( "sec", $type ) )
-                {
-                    print "<img src=images/security.gif><br>\n";
-                }
-                if ( ereg ( "enh", $type ) )
-                {
-                    print "<img src=images/enhancement.gif><br>\n";
-                }
-                print "</td>\n<td>";
-                $description = eregi_replace( "bug ([0-9]+)", "<a href=http://bugzilla.globus.org/globus/show_bug.cgi?id=\\1>bug \\1</a>", $description );
-                $description = eregi_replace( "(GT|GRAM|RIC|GRIDFTP)-([0-9]+)", "<a href=\"http://jira.globus.org/browse/\\1-\\2\">\\1-\\2</a>", $description );
-                print "$description\n";
+                print "$name<br>\n";
             }
+            print "</td>\n<td align=middle width=40>";
+            print "$ver\n";
+            print "</td>\n<td width=20>";
+            if ( ereg ( "bug", $type ) )
+            {
+                print "<img src=images/bug.gif><br>\n";
+            }
+            if ( ereg ( "sec", $type ) )
+            {
+                print "<img src=images/security.gif><br>\n";
+            }
+            if ( ereg ( "enh", $type ) )
+            {
+                print "<img src=images/enhancement.gif><br>\n";
+            }
+            print "</td>\n<td>";
+            $description = eregi_replace( "bug ([0-9]+)", "<a href=http://bugzilla.globus.org/globus/show_bug.cgi?id=\\1>bug \\1</a>", $description );
+            $description = eregi_replace( "(GT|GRAM|RIC|GRIDFTP)-([0-9]+)", "<a href=\"http://jira.globus.org/browse/\\1-\\2\">\\1-\\2</a>", $description );
+            print "$description\n";
         }
     }
 ?>
@@ -226,9 +238,9 @@ print "<a href=\"/toolkit/rss/advisories/$get_version.rss\">";
 </p>
 
 <?php
-  if (substr($get_version, 0, 3) == '5.2') {
+  if (substr($get_version, 0, 3) == '5.2' || substr($get_version, 0, 3) == '6.0') {
 ?>
-<h2>Installing Updates on RPM-based systems</h2>
+<h2>Installing Updates on Yum-based RPM systems (Red Hat, CentOS, Fedora, etc)</h2>
 <p>To update to the latest stable RPM packages of globus, use the command
 <pre>
 # <b>yum update</b>
@@ -280,9 +292,38 @@ globus_openssl_module-0.2.tar.gz, the <code>apt-get install</code> command would
 # <b>apt-get --only-upgrade install 'globus-openssl-module*'</b>
 </pre>
 </p>
+<h2>Installing Updates on Zypper-based RPM systems (SUSE)</h2>
+<p>To update to the latest stable RPM packages of globus, use the command
+<pre>
+# <b>zypper update</b>
+</pre>
+</p>
+<p>To install the version of a specific package for an RPM-based install, use the command
+<pre>
+# <b>zypper update</b> <i>package-name</i>
+</pre>
+For RPM packages, the base package name matches the globus package name, but
+with hyphens replacing underscores, and without the extension. There may be multiple
+RPM packages associated with a source package, so add an asterix after the package name
+to indicate other installed subpackages.  Thus, for the update package
+globus_openssl_module-0.2.tar.gz, the zypper update command would be
+<pre>
+# <b>zypper update 'globus-openssl-module*'</b>
+Reading installed packages...
+
+...
+
+Continue? [y/n/?] (y): 
+
+
+ ....
+
+Installing: globus-openssl-module-0.2-1 [done]
+</pre>
 
 <?php
   }
+  if (substr($get_version, 0, 3) != '6.0') {
 ?>
 <h2>Installing updates from source</h2>
 <p>To install update packages, use the command
@@ -333,6 +374,23 @@ gpt-build ====&gt; BUILDING FLAVOR gcc64dbg
 gpt-build ====&gt; Changing to /home/juser/BUILD
 </pre>
 </p>
+<?php
+  } else  {
+?>
+<h2>Installing updates from source</h2>
+<p>To install update packages, use the commands:
+<pre>
+% <b>gzip</b> -dc <i>package-name</i>.tar.gz | <b>tar</b> xf -
+% <b>cd</b> <i>package-name</i>
+% <b>./configure</b> <i>CONFIGURE OPTIONS</i>
+% <b>make</b> 
+% <b>make</b> check <i>(optional)</i>
+% <b>make</b> install
+</pre>
+
+<?php
+  }
+?>
 <p>
 After installing the update package, restart all globus services.
 </p>
