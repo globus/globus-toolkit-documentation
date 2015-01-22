@@ -31,10 +31,10 @@ f.q.value = f.qinit.value + " -inurl:mail_archive " ;
   <img id="logo" src="<?=$SITE_PATHS["WEB_ROOT"];?>img/header/logo.png" />
   <ul id="menu">
     <li id="nav_home_container"><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_home" href="/">Home</a></div><div class="nav_right">&nbsp;</div></li>
-    <li id="nav_about_container"><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_about" href="/alliance/">About Globus</a></div><div class="nav_right">&nbsp;</div></li>
+    <li id="nav_org_container"><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_org" href="/service/">Globus.org</a></div><div class="nav_right">&nbsp;</div></li>
     <li id="nav_toolkit_container"><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_toolkit" href="/toolkit/">Globus Toolkit</a></div><div class="nav_right">&nbsp;</div></li>
     <li id=""><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_dev" href="<?=$SITE_PATHS["WEB_DEV_GLOBUS"]; ?>">dev.globus</a></div><div class="nav_right">&nbsp;</div></li>
-    <li id="nav_org_container"><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_org" href="/service/">Globus.org Service</a></div><div class="nav_right" style="margin-right: 0px;">&nbsp;</div></li>
+    <li id="nav_about_container"><div class="nav_left">&nbsp;</div><div class="nav_center"><a id="nav_about" href="/alliance/">About Globus</a></div><div class="nav_right" style="margin-right: 0px;">&nbsp;</div></li>
   </ul>
 
 </div>
