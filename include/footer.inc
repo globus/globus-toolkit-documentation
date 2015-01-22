@@ -6,7 +6,11 @@ if(!defined("FOOTER_INC"))
 	{
 		ob_end_flush();
 	}
-	
+	elseif(substr($_SERVER["PHP_SELF"],0,5) =="/api/")
+	{
+		ob_end_flush();		
+	}
+	if($header_sent) {
 ?> 
         <!--end div of content-->
       </div>
@@ -42,4 +46,4 @@ MarkNavLinks(this_page,document.getElementById('subnav_menu'),'here','');
 </script>
 </body>
 </html>
-<?php } ?>
+<?php } } ?>

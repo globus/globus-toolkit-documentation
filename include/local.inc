@@ -109,6 +109,7 @@ define("LOCAL_INC",1);
 	    print "\n";
 	}
 	
+	/* handles the documentation buffer */
 	function doc_parse($html)
 	{
 		$html = trim($html);
@@ -123,14 +124,59 @@ define("LOCAL_INC",1);
 		}
 		return false;
 	}
-	if($_SERVER["PHP_SELF"]!="/index.php")
+	
+	/* handles the api buffer */
+	function api_parse($html)
+	{
+		global $api_header,$header_sent;		
+		
+		$html = trim($html);
+		if(strpos(strtolower($html),"<frame"))
+		{
+			// this page declares frames, just pass it through 
+			return $html;
+		}
+		elseif(strpos(strtolower($html),"<body"))
+		{
+			$body_start = strpos($html,"<body");
+			$body_end = strpos($html,">",$body_start);
+			$body_close = strpos($html,"</body>");
+			$body = substr($html,$body_end+1,$body_close - $body_end-1);
+			//echo $body;	
+			$header_sent = true;
+			return $html;	
+		}
+		else
+		{
+			// just a pange junk, include the header and finish up 
+
+			$header_sent = true;
+			return $api_header.$html;
+		}
+		return false;
+		
+	}
+
+	$header_sent = false;
+	if($_SERVER["PHP_SELF"]!="/index.php" && substr($_SERVER["PHP_SELF"],0,5) !="/api/")
 	{
 		include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
+		$header_sent = true;
 	}
 	if(strpos($_SERVER["REQUEST_URI"],"/docs/")!==FALSE && $_SERVER["REQUEST_URI"] != $SITE_PATHS["WEB_TOOLKIT"]."downloads/")
 	{
 		ob_implicit_flush(false);
 		ob_start("doc_parse");
+	}
+	if(substr($_SERVER["PHP_SELF"],0,5) =="/api/")
+	{
+		// capture the header in case we need it
+		ob_start();
+		include_once( $SITE_PATHS["SERV_INC"].'header.inc' ); 
+		$api_header = ob_get_clean();
+		
+		ob_implicit_flush(false);
+		ob_start("api_parse");		
 	}
 } // end of ifndef
 
