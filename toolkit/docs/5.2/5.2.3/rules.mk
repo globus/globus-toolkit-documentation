@@ -112,6 +112,7 @@ olink-recursive lint-recursive html-recursive pdf-recursive clean-recursive dist
 	--xinclude \
 	--stringparam collect.xref.targets  "only"  \
 	--stringparam targets.filename "$@" \
+	--stringparam topdir "$(TOPDIR)" \
 	$(EXTRA_XSLTPROC_PARAMS) \
 	$(LOCAL_XSLTPROC_HTML_PARAMS) \
 	$(TOPDIR)/custom_html.xsl \
@@ -147,6 +148,7 @@ dependencies: $(SOURCE)
 %.html: %.xml %.lint $(DB_FILES)
 	xsltproc --nonet \
 	--xinclude \
+	--stringparam topdir "$(TOPDIR)" \
 	--stringparam target.database.document "$(CURDIR)/$(TOPDIR)/olinkdb.xml" \
 	--stringparam collect.xref.targets "no" \
 	$(EXTRA_XSLTPROC_PARAMS) \
@@ -156,6 +158,7 @@ dependencies: $(SOURCE)
 
 %.fo: %.xml %.lint $(DB_FILES)
 	xsltproc --nonet --xinclude -o $@ $(FO_PARAMS) \
+	--stringparam topdir "$(TOPDIR)" \
 	--stringparam target.database.document "$(CURDIR)/$(TOPDIR)/olinkdb.xml" \
 	--stringparam collect.xref.targets no \
 	$(EXTRA_XSLTPROC_PARAMS) \

@@ -105,7 +105,7 @@
                 
                 <!-- INCORPORATING DOCBOOK PAGES INTO WEBSITE -->
 
-                <!-- make sure there's a DOCTYPE in the html output (otherwise, some css renders strangely -->
+                <!-- make sure there's a DOCTYPE in the html output (otherwise, some css renders strangely) -->
                 <xsl:param name="chunker.output.doctype-public" select="'-//W3C//DTD HTML 4.01 Transitional//EN'"/>
                 <xsl:param name="chunker.output.doctype-system" select="'http://www.w3.org/TR/html4/loose.dtd'"/>
                 
@@ -188,11 +188,13 @@
                                                                 <xsl:call-template name="user.header.content"/>
                                                                 
                                                                 <xsl:if test="$static.includes = 1">
-                                                                    <xsl:copy-of select="document('includes/docbook_sidebar.inc')"/>
+                                                                    <xsl:copy-of select="document(concat($topdir, '/includes/docbook_sidebar.inc'))"/>
+                                                                    <xsl:copy-of select="document(concat($topdir, '/includes/docbook_obsolete.inc'))"/>
                                                                 </xsl:if>
                                                                 <xsl:if test="$static.includes != 1">
                                                                     <xsl:processing-instruction name="php">
-                                                                                    include_once("includes/docbook_sidebar.inc");
+                                                                                    include_once("<xsl:value-of select="concat($topdir, '/includes/docbook_sidebar.inc')"/>");
+                                                                                    include_once("<xsl:value-of select="concat($topdir, '/includes/docbook_obsolete.inc')"/>");
                                                                                     ?</xsl:processing-instruction>
                                                                 </xsl:if>
                                                                

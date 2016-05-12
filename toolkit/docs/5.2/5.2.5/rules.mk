@@ -149,6 +149,7 @@ dependencies:
 	--xinclude \
 	--stringparam target.database.document "$(CURDIR)/$(TOPDIR)/olinkdb.xml" \
 	--stringparam collect.xref.targets "no" \
+        --stringparam  topdir  "$(TOPDIR)" \
 	$(EXTRA_XSLTPROC_PARAMS) \
 	$(LOCAL_XSLTPROC_HTML_PARAMS) \
 	$(TOPDIR)/custom_html.xsl $<
@@ -158,6 +159,7 @@ dependencies:
 	xsltproc --nonet --xinclude -o $@ $(FO_PARAMS) \
 	--stringparam target.database.document "$(CURDIR)/$(TOPDIR)/olinkdb.xml" \
 	--stringparam collect.xref.targets no \
+        --stringparam  topdir  "$(TOPDIR)" \
 	$(EXTRA_XSLTPROC_PARAMS) \
 	$(LOCAL_XSLTPROC_FO_PARAMS) \
 	$(TOPDIR)/custom_fo.xsl $<
