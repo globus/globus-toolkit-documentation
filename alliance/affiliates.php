@@ -57,11 +57,6 @@ organizations, as contributors or as users. </p>
 </tr>
 
 <tr>
-<td width="161"> <p style="margin-top: 0; margin-bottom: 0">Monash University (Australia)</td>
- <td width="259" align="center"><a href="images/Monash_1-CMYK.jpg"> <img border="0" src="images/Monash_1-CMYK_small.jpg" xthumbnail-orig-image="images/Monash_1-CMYK.jpg" width="310" height="36"></a></td>
-</tr>
-
-<tr>
 <td width="161"><p style="margin-top: 0; margin-bottom: 0">National Institute of Advanced Industrial Science and Technology’s Grid Technology and Research Center (Japan)</td>
 <td width="259" align="center"><a href="images/aist-logo.jpg"><img border="0" src="images/aist-logo_small.jpg" xthumbnail-orig-image="images/aist-logo.jpg" width="182" height="64"></a></td>
 </tr>
